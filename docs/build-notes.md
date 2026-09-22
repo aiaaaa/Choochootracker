@@ -109,9 +109,9 @@ to happen after native C/C++ changes:
 ```powershell
 $env:ANDROID_NDK_ROOT = "$env:LOCALAPPDATA\Android\Sdk\ndk\30.0.16248370"
 & 'C:\msys64\usr\bin\bash.exe' -c `
-  'export PATH=/ucrt64/bin:/usr/bin:$PATH; cd /c/Users/<you>/Desktop/mobilegroove/tracker; make -f Makefile.android android ARCH=arm64-v8a'
+  'export PATH=/ucrt64/bin:/usr/bin:$PATH; cd /c/Users/<you>/Desktop/choochootracker/tracker; make -f Makefile.android android ARCH=arm64-v8a'
 & 'C:\msys64\usr\bin\bash.exe' -c `
-  'export PATH=/ucrt64/bin:/usr/bin:$PATH; cd /c/Users/<you>/Desktop/mobilegroove/tracker; make -f Makefile.android android ARCH=armeabi-v7a'
+  'export PATH=/ucrt64/bin:/usr/bin:$PATH; cd /c/Users/<you>/Desktop/choochootracker/tracker; make -f Makefile.android android ARCH=armeabi-v7a'
 ```
 
 The native build also needs SDL 2.32.10 headers in

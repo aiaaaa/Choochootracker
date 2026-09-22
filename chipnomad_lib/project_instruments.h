@@ -346,6 +346,7 @@ int instrumentModDestinationAvailable(const Instrument* instrument, int destinat
 int drumSynthMacroUsed(DrumSynthEngine engine, int macro);
 InstrumentVoicePostSettings* instrumentVoicePostSettings(Instrument* instrument);
 const char* instrumentModDestinationName(InstrumentType type, int destination);
+const char* instrumentModDestinationNameForInstrument(const Instrument* instrument, int destination);
 int instrumentModDestinationMax(InstrumentType type);
 int instrumentGenericModDestination(InstrumentType type, int destination);
 int modulationIsLiveStick(ModulationType type);

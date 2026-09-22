@@ -1,8 +1,8 @@
-# MobileGroove architecture
+# ChooChooTracker architecture
 
 ## Overview
 
-MobileGroove is a portable C++ tracker. `tracker/` provides the application
+ChooChooTracker is a portable C++ tracker. `tracker/` provides the application
 and its screens; `chipnomad_lib/` contains the project model, sequencer and
 audio renderer. Windows, Web and PortMaster share the same engine.
 
