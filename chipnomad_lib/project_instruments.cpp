@@ -10,24 +10,10 @@ static void initCommon(Instrument* instrument) {
   instrument->tableSpeed = 1;
   instrument->transposeEnabled = 1;
   instrument->volume = 255;
-}
-
-static void initDefaultStickModulation(Instrument* instrument) {
-  int destinations[4] = {3, 4, 5, 6};
-  switch (instrument->type) {
-    case InstrumentType::AY1:       destinations[2] = 3; destinations[3] = 4; break;
-    case InstrumentType::AY2:       destinations[2] = 8; destinations[3] = 9; break;
-    case InstrumentType::AYSample:  destinations[2] = 5; destinations[3] = 3; break;
-    case InstrumentType::Sample:    destinations[2] = 6; destinations[3] = 5; break;
-    default: break;
-  }
-  for (int slot = 0; slot < 4; ++slot) {
-    Modulation* mod = &instrument->modulation[slot];
-    mod->type = ModulationType::StickLinear;
-    mod->destination = destinations[slot];
-    mod->amount = 80;
-    mod->p1 = slot;
-  }
+  instrument->modulation[0].type = ModulationType::ADSR;
+  instrument->modulation[1].type = ModulationType::AHD;
+  instrument->modulation[2].type = ModulationType::LFO;
+  instrument->modulation[3].type = ModulationType::LFO;
 }
 
 static void freeCommon(Instrument* instrument) {
@@ -68,7 +54,6 @@ static const char* modNameAY1(int modIndex) {
 static int initAY1Instrument(Instrument* instrument) {
   initCommon(instrument);
   instrument->type = InstrumentType::AY1;
-  initDefaultStickModulation(instrument);
   instrument->chip.ay.defaultMixer = 0x01; // Tone on, noise off, envelope shape 0
   instrument->chip.ay.volumeEnvelope = (Modulation){
     .type = ModulationType::ADSR, .destination = 1, .amount = 127, .p1 = 0, .p2 = 0, .p3 = 15, .p4 = 0
@@ -92,7 +77,6 @@ static const char* modNameAY2(int modIndex) {
 static int initAY2Instrument(Instrument* instrument) {
   initCommon(instrument);
   instrument->type = InstrumentType::AY2;
-  initDefaultStickModulation(instrument);
   instrument->chip.ay2.oscTone.isOn = 1;
   instrument->chip.ay2.oscEnvelope.pitchOffset = 48; // +4 octaves because envelope is lower
   instrument->chip.ay2.oscSoftware.pulseWidth = 0x80; // 50% duty cycle
@@ -113,7 +97,6 @@ static const char* modNameAYSample(int modIndex) {
 static int initAYSampleInstrument(Instrument* instrument) {
   initCommon(instrument);
   instrument->type = InstrumentType::AYSample;
-  initDefaultStickModulation(instrument);
 
   return 0;
 }
@@ -148,7 +131,6 @@ static void initVoicePostSettings(InstrumentVoicePostSettings* post) {
 static int initBraidsInstrument(Instrument* instrument) {
   initCommon(instrument);
   instrument->type = InstrumentType::Braids;
-  initDefaultStickModulation(instrument);
   instrument->chip.braids.model = 0;
   instrument->chip.braids.timbre = 16384;
   instrument->chip.braids.color = 16384;
@@ -171,7 +153,6 @@ static const char* modNamePlaits(int modIndex) {
 static int initPlaitsInstrument(Instrument* instrument) {
   initCommon(instrument);
   instrument->type = InstrumentType::Plaits;
-  initDefaultStickModulation(instrument);
   InstrumentPlaits* plaits = &instrument->chip.plaits;
   plaits->harmonics = 16384;
   plaits->timbre = 16384;
@@ -188,7 +169,6 @@ static int freePlaitsInstrument(Instrument* instrument) {
 static int initPlaitsAltInstrument(Instrument* instrument) {
   initPlaitsInstrument(instrument);
   instrument->type = InstrumentType::PlaitsAlt;
-  initDefaultStickModulation(instrument);
   return 0;
 }
 
@@ -202,7 +182,6 @@ static const char* modNameSample(int modIndex) {
 static int initSampleInstrument(Instrument* instrument) {
   initCommon(instrument);
   instrument->type = InstrumentType::Sample;
-  initDefaultStickModulation(instrument);
   instrument->chip.sample.end = 255;
   instrument->chip.sample.speedPercent = 100;
   initVoicePostSettings(&instrument->chip.sample);
@@ -228,7 +207,6 @@ static const char* modNameBYOWTBL(int modIndex) {
 static int initSCWFInstrument(Instrument* instrument) {
   initCommon(instrument);
   instrument->type = InstrumentType::SCWF;
-  initDefaultStickModulation(instrument);
   instrument->chip.scwf.mix = 128;
   initVoicePostSettings(&instrument->chip.scwf);
   return 0;
@@ -244,7 +222,6 @@ static int freeSCWFInstrument(Instrument* instrument) {
 static int initBYOWTBLInstrument(Instrument* instrument) {
   initSCWFInstrument(instrument);
   instrument->type = InstrumentType::BYOWTBL;
-  initDefaultStickModulation(instrument);
   return 0;
 }
 
@@ -260,7 +237,6 @@ static const char* modNameAChChid(int modIndex) {
 static int initAChChidInstrument(Instrument* instrument) {
   initCommon(instrument);
   instrument->type = InstrumentType::AChChid;
-  initDefaultStickModulation(instrument);
   InstrumentAChChid* a = &instrument->chip.achchid;
   a->wave = AChChidWave::saw;
   a->timbre = a->color = 16384;
@@ -282,7 +258,7 @@ int drumSynthMacroUsed(DrumSynthEngine engine, int macro) {
   return (int)engine >= 0 && (int)engine < (int)DrumSynthEngine::totalCount && macro >= 0 && macro < 6;
 }
 static int initDrumSynthInstrument(Instrument* instrument) {
-  initCommon(instrument); instrument->type = InstrumentType::DrumSynth; initDefaultStickModulation(instrument);
+  initCommon(instrument); instrument->type = InstrumentType::DrumSynth;
   InstrumentDrumSynth* d = &instrument->chip.drumSynth;
   d->engine = DrumSynthEngine::kick; d->decay = 72; d->tone = 128;
   d->sweep = 150; d->noise = 24; d->fm = 32; d->drive = 28;
@@ -296,7 +272,6 @@ static const char* modNameMME(int modIndex) {
 }
 static int initMMEInstrument(Instrument* instrument) {
   initCommon(instrument); instrument->type = InstrumentType::MME;
-  initDefaultStickModulation(instrument);
   InstrumentMME* m = &instrument->chip.mme;
   m->model = MMEModel::ring; m->waves = 80; m->interval = 128;
   m->amount = m->feedback = m->shaper = 0; m->flow = 128;
@@ -310,7 +285,6 @@ static const char* modNameSintered(int modIndex) {
 }
 static int initSinteredInstrument(Instrument* instrument) {
   initCommon(instrument); instrument->type = InstrumentType::Sintered;
-  initDefaultStickModulation(instrument);
   InstrumentSintered* s = &instrument->chip.sintered;
   s->model = SinteredModel::knot; s->decay = 82; s->mod = 112; s->a = 128;
   s->b = 96; s->motion = 128; s->c = 64; initVoicePostSettings(s); return 0;
