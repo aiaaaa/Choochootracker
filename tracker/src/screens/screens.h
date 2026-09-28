@@ -117,6 +117,10 @@ extern const AppScreen* currentScreen;
 void screenSetup(const AppScreen* screen, int input);
 void screenDraw(void);
 void screenMessage(int time, const char* format, ...);
+// Current message text set by screenMessage(), or "" if none is active.
+// screenTitle draws through its own gfxTitle* calls (see screenDraw()), so it
+// needs this to show a message instead of the normal gfxPrint-based banner.
+const char* screenGetActiveMessage(void);
 void screensInitAll(void);
 void drawScreenMap(void);
 enum ScreenPlaybackLevel screenGetPlaybackLevel(const AppScreen* screen);

@@ -143,6 +143,10 @@ void screenMessage(int time, const char* format, ...) {
   }
 }
 
+const char* screenGetActiveMessage(void) {
+  return messageBuffer;
+}
+
 void screensInitAll(void) {
   screenTitle.init();
   screenSong.init();

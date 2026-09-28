@@ -97,17 +97,30 @@ static void drawMenu(void) {
   }
 }
 
-// The autosave existed but could not be parsed - CONTINUE was disabled above
-// (see canContinue()), so make sure this isn't easy to miss: the fallback
-// demo project is currently loaded instead of the user's real work.
-static void drawAutosaveWarning(void) {
-  if (!autosaveLoadFailed) return;
-  const char* lines[] = {"AUTOSAVE FAILED TO LOAD", "DEMO PROJECT OPENED INSTEAD"};
-  gfxSetFgColor(appSettings.colorScheme.warning);
-  for (int i = 0; i < 2; i++) {
-    const int textX = (32 - (int)strlen(lines[i])) / 2;
-    gfxTitlePrint(textX, 10 + i, lines[i]);
+// screenDraw() skips its normal gfxPrint-based message banner while the
+// title screen is active (it renders through gfxTitle* calls instead), so an
+// error set via screenMessage() - e.g. picking an invalid file through OPEN,
+// which returns here - would otherwise vanish silently. Show it here too.
+// The autosave-specific case takes priority: it existed but could not be
+// parsed, CONTINUE was disabled above (see canContinue()), and the fallback
+// demo project is loaded instead of the user's real work - too important to
+// let a later, shorter-lived message push off screen.
+static void drawTitleMessage(void) {
+  if (autosaveLoadFailed) {
+    const char* lines[] = {"AUTOSAVE FAILED TO LOAD", "DEMO PROJECT OPENED INSTEAD"};
+    gfxSetFgColor(appSettings.colorScheme.warning);
+    for (int i = 0; i < 2; i++) {
+      const int textX = (32 - (int)strlen(lines[i])) / 2;
+      gfxTitlePrint(textX, 10 + i, lines[i]);
+    }
+    return;
   }
+  const char* message = screenGetActiveMessage();
+  if (!message || !message[0]) return;
+  gfxSetFgColor(appSettings.colorScheme.warning);
+  int textX = (32 - (int)strlen(message)) / 2;
+  if (textX < 0) textX = 0;
+  gfxTitlePrint(textX, 10, message);
 }
 
 static void draw(void) {
@@ -125,7 +138,7 @@ static void draw(void) {
   drawWrapped(foreground, frame / FOREGROUND_SCROLL_FRAMES, 136);
   if (logo) gfxImageDrawCrop(logo, 0, 0, gfxImageWidth(logo), gfxImageHeight(logo), 52, 24);
   drawMenu();
-  drawAutosaveWarning();
+  drawTitleMessage();
   if (frame < 30) gfxTitleFadeBlack((uint8_t)(255 - frame * 255 / 30));
   gfxTitlePresent();
   frame++;
