@@ -80,7 +80,7 @@ int projectLoadFromPath(const char* path) {
     }
   } else {
     projectFree(&replacement);
-    screenMessage(MESSAGE_TIME, "%s", projectFileError);
+    screenMessage(MESSAGE_TIME_ERROR, "%s", projectFileError);
   }
 
   return loadResult;

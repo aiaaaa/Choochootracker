@@ -109,7 +109,7 @@ static void onInstrumentLoaded(const char* path) {
         if (result == 0) {
           screenMessage(MESSAGE_TIME, importFormats[i].successMsg);
         } else {
-          screenMessage(MESSAGE_TIME, importFormats[i].errorMsg);
+          screenMessage(MESSAGE_TIME_ERROR, importFormats[i].errorMsg);
         }
         formatHandled = 1;
         break;
@@ -122,7 +122,7 @@ static void onInstrumentLoaded(const char* path) {
     if (result == 0) {
       screenMessage(MESSAGE_TIME, "Instrument loaded");
     } else {
-      screenMessage(MESSAGE_TIME, "%s", projectFileError);
+      screenMessage(MESSAGE_TIME_ERROR, "%s", projectFileError);
     }
   }
 

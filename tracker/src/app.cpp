@@ -264,9 +264,15 @@ void appSetup(void) {
 
   // Restore autosave; a bundled Grieg demo is the first-launch fallback.
   int projectLoaded = 0;
+  FILE* autosaveCheck = fopen(getAutosavePath(), "rb");
+  int autosaveExists = autosaveCheck != NULL;
+  if (autosaveCheck) fclose(autosaveCheck);
   if (projectLoad(&chipnomadState->project, getAutosavePath()) == 0) {
     projectLoaded = 1;
   }
+  // Only a genuine parse failure is worth warning about - no autosave yet
+  // (first launch) is normal and falls through to the demo silently.
+  autosaveLoadFailed = autosaveExists && !projectLoaded;
 #ifdef WEB_BUILD
   const char* defaultProject = "/projects/grieg-mountain-king-fm.cct";
 #else

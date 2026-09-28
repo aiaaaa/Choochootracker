@@ -5,6 +5,9 @@
 #include "../chipnomad_lib/playback.h"
 
 #define MESSAGE_TIME (60)
+// Errors are unexpected and need to be read, not just glanced at like a
+// routine confirmation ("Copied selection") - give them much longer on screen.
+#define MESSAGE_TIME_ERROR (300)
 
 enum class CellState : int {
   normal = 0,

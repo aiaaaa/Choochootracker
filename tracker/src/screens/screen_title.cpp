@@ -54,6 +54,7 @@ static void init(void) {
 }
 
 static int canContinue(void) {
+  if (autosaveLoadFailed) return 0;
 #ifdef WEB_BUILD
   return 1;
 #else
@@ -96,6 +97,19 @@ static void drawMenu(void) {
   }
 }
 
+// The autosave existed but could not be parsed - CONTINUE was disabled above
+// (see canContinue()), so make sure this isn't easy to miss: the fallback
+// demo project is currently loaded instead of the user's real work.
+static void drawAutosaveWarning(void) {
+  if (!autosaveLoadFailed) return;
+  const char* lines[] = {"AUTOSAVE FAILED TO LOAD", "DEMO PROJECT OPENED INSTEAD"};
+  gfxSetFgColor(appSettings.colorScheme.warning);
+  for (int i = 0; i < 2; i++) {
+    const int textX = (32 - (int)strlen(lines[i])) / 2;
+    gfxTitlePrint(textX, 10 + i, lines[i]);
+  }
+}
+
 static void draw(void) {
   gfxTitleBegin();
   drawWrapped(sky, frame / SKY_SCROLL_FRAMES, 0);
@@ -111,6 +125,7 @@ static void draw(void) {
   drawWrapped(foreground, frame / FOREGROUND_SCROLL_FRAMES, 136);
   if (logo) gfxImageDrawCrop(logo, 0, 0, gfxImageWidth(logo), gfxImageHeight(logo), 52, 24);
   drawMenu();
+  drawAutosaveWarning();
   if (frame < 30) gfxTitleFadeBlack((uint8_t)(255 - frame * 255 / 30));
   gfxTitlePresent();
   frame++;
