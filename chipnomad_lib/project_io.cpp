@@ -734,6 +734,7 @@ static int projectLoadInternal(FILE* file, Project* project) {
   line = peekLine(file);
   if (line == NULL) return 1;
   if (sscanf(line, "- Chips count: %d", &p.chipsCount) != 1) return 1;
+  if (p.chipsCount < 1 || p.chipsCount > PROJECT_MAX_TRACKS) return 1;
   consumeLine(file);
 
   line = peekLine(file);
@@ -744,7 +745,6 @@ static int projectLoadInternal(FILE* file, Project* project) {
   for (int i = 0; i < PROJECT_MAX_TRACKS; i++) {
     if (p.trackVolume[i] > 100) p.trackVolume[i] = 100;
   }
-  p.chipsCount = PROJECT_MAX_TRACKS;
   consumeLine(file);
 
   line = peekLine(file);
