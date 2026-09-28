@@ -1,5 +1,14 @@
 # MobileGroove agent notes
 
+## Agent docs
+
+Layer docs for coding agents live in `docs/agents/`. Load only the file that
+matches the change. Append caveats there when hardware or code surprises you.
+
+- Index and load rules: `docs/agents/README.md`
+- How to update those docs: `docs/agents/DOC_PROTOCOL.md`
+- Core / PortMaster / handheld / UI / audio: `docs/agents/*.md`
+
 ## Builds
 
 - Windows: run from `tracker` with MSYS2 UCRT64: `make -j4 windows`.
