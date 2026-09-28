@@ -6,6 +6,9 @@
 #include <sys/stat.h>
 #include <dirent.h>
 #include <unistd.h>
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 #if defined(ANDROID_BUILD) || defined(MACOS_BUILD)
 // Helper: Create directory recursively
@@ -37,6 +40,37 @@ static void createDirectoryRecursive(const char* path) {
 }
 #endif
 
+// Windows and Linux desktop builds are meant to be portable (see
+// docs/build-notes.md: a Windows release ships as the exe alongside its
+// DLLs and assets, run from anywhere). Resolving settings/autosave/projects
+// relative to getcwd() breaks that: it depends on the shell's current
+// directory at launch time (e.g. being cd'd into a subfolder), not on where
+// the app itself lives, so settings.txt can silently end up somewhere
+// different from one run to the next. Resolve the running executable's own
+// directory instead, so the app always finds "its" files regardless of the
+// caller's cwd.
+#if !defined(ANDROID_BUILD) && !defined(MACOS_BUILD)
+static int fileGetExecutableDirectory(char* buffer, int bufferSize) {
+#ifdef _WIN32
+  char exePath[4096];
+  DWORD len = GetModuleFileNameA(NULL, exePath, sizeof(exePath));
+  if (len == 0 || len >= sizeof(exePath)) return -1;
+  exePath[len] = '\0';
+  char* lastSep = strrchr(exePath, '\\');
+#else
+  char exePath[4096];
+  ssize_t len = readlink("/proc/self/exe", exePath, sizeof(exePath) - 1);
+  if (len <= 0) return -1;
+  exePath[len] = '\0';
+  char* lastSep = strrchr(exePath, '/');
+#endif
+  if (!lastSep) return -1;
+  *lastSep = '\0';
+  snprintf(buffer, bufferSize, "%s", exePath);
+  return 0;
+}
+#endif
+
 int fileGetDefaultDirectory(char* buffer, int bufferSize) {
 #ifdef ANDROID_BUILD
   extern int androidGetWorkspacePath(char*, int);
@@ -51,6 +85,9 @@ int fileGetDefaultDirectory(char* buffer, int bufferSize) {
   }
   return 0;
 #else
+  // Fall back to cwd only if the executable's own path can't be resolved
+  // (e.g. an unsupported OS/filesystem) - better than failing outright.
+  if (fileGetExecutableDirectory(buffer, bufferSize) == 0) return 0;
   return getcwd(buffer, bufferSize) ? 0 : -1;
 #endif
 }
