@@ -424,7 +424,21 @@ int gfxSetup(int *screenWidth, int *screenHeight) {
     return 1;
   }
 
+  // Android's software renderer repaints the whole tracker canvas on the CPU
+  // and can miss display deadlines while the audio callback stays realtime.
+  // Prefer the platform compositor; retain software as a portability fallback.
+#ifdef ANDROID_BUILD
+  renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+  if (!renderer) renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
+#else
   renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
+#endif
+  if (!renderer) {
+    fprintf(stderr, "SDL2 Create Renderer Error: %s\n", SDL_GetError());
+    SDL_DestroyWindow(window);
+    SDL_Quit();
+    return 1;
+  }
 
   // Check for high-DPI display and get actual drawable size. HTML5 uses a
   // software canvas, so SDL_GL_GetDrawableSize is not meaningful there.
