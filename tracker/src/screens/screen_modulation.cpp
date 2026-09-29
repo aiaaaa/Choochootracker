@@ -583,12 +583,6 @@ static int onInput(int isKeyDown, int keys, int tapCount) {
   if (getModRow(screenData.cursorRow) == 1) {
     Instrument* instrument = &chipnomadState->project.instruments[cInstrument];
     Modulation* mod = &instrument->modulation[getModIndex(screenData.cursorCol, screenData.cursorRow)];
-    if (isKeyDown && (keys == keyLeft || keys == keyRight)) {
-      cycleDestination(instrument, mod, keys == keyRight ? 1 : -1);
-      projectModified = 1;
-      drawField(screenData.cursorCol, screenData.cursorRow, CellState::focus);
-      return 1;
-    }
     PopupEditInput input = popupEditInput(isKeyDown, keys, &destinationButtonDown);
     if (input == PopupEditInput::cycle) {
       cycleDestination(instrument, mod, keys == (keyEdit | keyRight) ? 1 : -1);

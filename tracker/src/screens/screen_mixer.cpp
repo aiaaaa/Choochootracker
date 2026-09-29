@@ -49,7 +49,7 @@ static void drawStatic(void) {
 static void drawCursor(int col, int row) {
   if (mixerPage == 0) {
     static const int x[] = {3, 8, 13, 18, 23, 26};
-    static const int width[] = {3, 3, 3, 2, 1, 1};
+    static const int width[] = {2, 2, 2, 2, 1, 1};
     if (row == PROJECT_MAX_TRACKS) { gfxCursor(10, 12, 16); return; }
     if (col < 0 || col >= 6 || row < 0 || row >= PROJECT_MAX_TRACKS) return;
     gfxCursor(x[col], 3 + row, width[col]);

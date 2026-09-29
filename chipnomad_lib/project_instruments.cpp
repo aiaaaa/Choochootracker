@@ -274,7 +274,7 @@ static int initMMEInstrument(Instrument* instrument) {
   initCommon(instrument); instrument->type = InstrumentType::MME;
   InstrumentMME* m = &instrument->chip.mme;
   m->model = MMEModel::ring; m->waves = 80; m->interval = 128;
-  m->amount = m->feedback = m->shaper = 0; m->flow = 128;
+  m->amount = 255; m->feedback = m->shaper = 0; m->flow = 128;
   initVoicePostSettings(m); return 0;
 }
 static int freeMMEInstrument(Instrument* instrument) { freeCommon(instrument); return 0; }

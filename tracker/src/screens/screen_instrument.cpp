@@ -12,6 +12,7 @@
 #include "import_vts.h"
 #include "selection_popup.h"
 #include <string.h>
+#include <stdio.h>
 #include <strings.h>
 #include <math.h>
 
@@ -414,7 +415,19 @@ int instrumentCommonDrawVoicePostCursor(int col, int row) {
     return 1;
   }
   if (col && row >= 4 && row <= 8) {
-    gfxCursor(26, row + 4, 8);
+    InstrumentVoicePostSettings* post = instrumentVoicePostSettings(&chipnomadState->project.instruments[cInstrument]);
+    int width = 2;
+    if (row == 4) {
+      static const char* types[] = {"Off", "Clean", "Classic", "Aggro", "Acid"};
+      width = (int)strlen(types[post && post->filterCharacter <= 4 ? post->filterCharacter : 1]);
+    } else if (row == 6) {
+      width = 5;
+    } else if (row == 7) {
+      char value[12];
+      snprintf(value, sizeof(value), "%u Hz", post ? post->filterCutoffHz : 0);
+      width = (int)strlen(value);
+    }
+    gfxCursor(26, row + 4, width);
     return 1;
   }
   return 0;

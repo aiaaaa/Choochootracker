@@ -50,6 +50,7 @@ TEST_CASE("model-specific modulation labels and classic modulation defaults") {
   getInstrumentFunctions(InstrumentType::MME).init(&instrument);
   instrument.chip.mme.model = MMEModel::sync;
   CHECK(instrument.chip.mme.waves == 80);
+  CHECK(instrument.chip.mme.amount == 255);
   CHECK(strcmp(instrumentModDestinationNameForInstrument(&instrument, 5), "SyncAmt") == 0);
   instrument.chip.mme.model = MMEModel::ring;
   CHECK(strcmp(instrumentModDestinationNameForInstrument(&instrument, 6), "RingType") == 0);
