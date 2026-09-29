@@ -6,6 +6,7 @@
 #include "playback_fx.h"
 #include "playback_chips.h"
 #include "playback_modulation.h"
+#include "chord.h"
 
 struct ChipNomadState;
 
@@ -103,6 +104,9 @@ struct PlaybackTrackState {
 
   // Currently playing note
   PlaybackNoteState note;
+  uint8_t chordVoiceCount;
+  uint8_t chordPitchBase[CHORD_MAX_VOICES];
+  uint8_t chordPitchFinal[CHORD_MAX_VOICES];
   // Cached phrase row data
   PhraseRow currentPhraseRow;
   // FX auxillary state data for the phrase (used by HOP)
@@ -137,6 +141,9 @@ struct PlaybackState {
   float liveStickAxes[4];
   int16_t liveStickRate[PROJECT_MAX_INSTRUMENTS][4];
   uint8_t liveStickWasPlaying;
+  uint8_t scaleRoot;
+  ScalePreset scalePreset;
+  uint8_t scaleFXCommandSeen;
 };
 
 // FX typedefs

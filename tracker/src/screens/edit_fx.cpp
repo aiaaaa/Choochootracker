@@ -7,6 +7,7 @@ int currentGroup;      // Current group being navigated
 int currentIdx;        // Current FX index within group
 int expandedGroup;     // Currently expanded group (-1 = none)
 uint8_t currentInstrumentIdx;  // Current instrument index for context-aware help
+static int currentIsTable;
 
 // Helper to get instrument type from stored instrument index
 static InstrumentType getInstrumentType(uint8_t instrumentIdx) {
@@ -24,7 +25,8 @@ static const Instrument* getCurrentInstrument() {
     ? &chipnomadState->project.instruments[currentInstrumentIdx] : NULL;
 }
 
-static bool isFXAvailable(enum FX fx, uint8_t instrumentIdx) {
+static bool isFXAvailable(enum FX fx, uint8_t instrumentIdx, int isTable) {
+  if (isTable && (fx == fxSCL || fx == fxCRD)) return false;
   InstrumentType instrumentType = getInstrumentType(instrumentIdx);
   const Instrument* instrument = instrumentIdx != EMPTY_VALUE_8 && instrumentIdx < PROJECT_MAX_INSTRUMENTS
     ? &chipnomadState->project.instruments[instrumentIdx] : NULL;
@@ -41,10 +43,10 @@ static bool isFXAvailable(enum FX fx, uint8_t instrumentIdx) {
   return false;
 }
 
-static void stepFX(uint8_t* fx, int direction, uint8_t instrumentIdx) {
+static void stepFX(uint8_t* fx, int direction, uint8_t instrumentIdx, int isTable) {
   for (int candidate = (int)fx[0] + direction;
        candidate >= 0 && candidate < fxTotalCount; candidate += direction) {
-    if (isFXAvailable((enum FX)candidate, instrumentIdx)) {
+    if (isFXAvailable((enum FX)candidate, instrumentIdx, isTable)) {
       fx[0] = candidate;
       return;
     }
@@ -53,25 +55,28 @@ static void stepFX(uint8_t* fx, int direction, uint8_t instrumentIdx) {
 
 static int visibleFXCount(const FXGroup* group) {
   const Instrument* instrument = getCurrentInstrument();
-  if (!instrument || group->instType != InstrumentType::DrumSynth) return group->count;
+  if ((!instrument || group->instType != InstrumentType::DrumSynth) && !currentIsTable) return group->count;
   int count = 0;
-  for (int i = 0; i < group->count; ++i)
-    if (instrumentFXAvailableForInstrument(instrument, group->fxList[i].fx)) ++count;
+  for (int i = 0; i < group->count; ++i) {
+    if (currentIsTable && (group->fxList[i].fx == fxSCL || group->fxList[i].fx == fxCRD)) continue;
+    if (!instrument || group->instType != InstrumentType::DrumSynth || instrumentFXAvailableForInstrument(instrument, group->fxList[i].fx)) ++count;
+  }
   return count;
 }
 
 static const FXName* visibleFXAt(const FXGroup* group, int visibleIndex) {
   const Instrument* instrument = getCurrentInstrument();
-  if (!instrument || group->instType != InstrumentType::DrumSynth) return
+  if ((!instrument || group->instType != InstrumentType::DrumSynth) && !currentIsTable) return
     visibleIndex >= 0 && visibleIndex < group->count ? &group->fxList[visibleIndex] : NULL;
   for (int i = 0; i < group->count; ++i) {
-    if (!instrumentFXAvailableForInstrument(instrument, group->fxList[i].fx)) continue;
+    if (currentIsTable && (group->fxList[i].fx == fxSCL || group->fxList[i].fx == fxCRD)) continue;
+    if (instrument && group->instType == InstrumentType::DrumSynth && !instrumentFXAvailableForInstrument(instrument, group->fxList[i].fx)) continue;
     if (visibleIndex-- == 0) return &group->fxList[i];
   }
   return NULL;
 }
 
-void fxEditFullDraw(uint8_t currentFX, uint8_t instrumentIdx);
+void fxEditFullDraw(uint8_t currentFX, uint8_t instrumentIdx, int isTable);
 
 int editFX(CellEditAction action, uint8_t* fx, uint8_t* lastValue, int isTable, uint8_t instrumentIdx) {
   int result = 0;
@@ -96,16 +101,16 @@ int editFX(CellEditAction action, uint8_t* fx, uint8_t* lastValue, int isTable, 
     lastValue[1] = fx[1];
     result = 2;
   } else if (action == CellEditAction::increase && fx[0] != EMPTY_VALUE_8) {
-    stepFX(fx, 1, instrumentIdx);
+    stepFX(fx, 1, instrumentIdx, isTable);
     lastValue[0] = fx[0];
     result = 2;
   } else if (action == CellEditAction::decrease && fx[0] != EMPTY_VALUE_8) {
-    stepFX(fx, -1, instrumentIdx);
+    stepFX(fx, -1, instrumentIdx, isTable);
     lastValue[0] = fx[0];
     result = 2;
   } else if (action == CellEditAction::increaseBig || action == CellEditAction::decreaseBig) {
     // Show FX select screen with instrument context
-    fxEditFullDraw(fx[0], instrumentIdx);
+    fxEditFullDraw(fx[0], instrumentIdx, isTable);
     result = 1;
   }
   if (result != 1) screenMessage(0, "%s", helpFXHint(fx, isTable, instrumentIdx));
@@ -255,11 +260,12 @@ int drawFXList(int visibleGroupIdx, int y) {
   return y + rows;
 }
 
-void fxEditFullDraw(uint8_t currentFX, uint8_t instrumentIdx) {
+void fxEditFullDraw(uint8_t currentFX, uint8_t instrumentIdx, int isTable) {
   gfxClearRect(0, 0, 35, 20);
 
   // Store instrument index for this session
   currentInstrumentIdx = instrumentIdx;
+  currentIsTable = isTable;
 
   // Get instrument type for filtering groups
   InstrumentType instType = InstrumentType::none;
@@ -411,7 +417,7 @@ int fxEditInput(int keys, int tapCount, uint8_t* fx, uint8_t* lastFX) {
       FXGroup* newGroup = getVisibleGroup(currentGroup, getCurrentInstrumentType());
       const FXName* item = newGroup ? visibleFXAt(newGroup, currentIdx) : NULL;
       if (item) {
-        fxEditFullDraw(item->fx, currentInstrumentIdx);
+        fxEditFullDraw(item->fx, currentInstrumentIdx, currentIsTable);
       }
     } else {
       // Same group, just update the FX selection
@@ -419,7 +425,7 @@ int fxEditInput(int keys, int tapCount, uint8_t* fx, uint8_t* lastFX) {
       FXGroup* currentGroupPtr = getVisibleGroup(currentGroup, getCurrentInstrumentType());
       const FXName* item = currentGroupPtr ? visibleFXAt(currentGroupPtr, currentIdx) : NULL;
       if (item) {
-        fxEditFullDraw(item->fx, currentInstrumentIdx);
+        fxEditFullDraw(item->fx, currentInstrumentIdx, currentIsTable);
       }
     }
   }

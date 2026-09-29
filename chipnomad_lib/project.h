@@ -186,9 +186,39 @@ enum FX {
   fxSCF3, // Filter cutoff
   fxSRS3, // Filter resonance
 
+  // Global scale automation. Appended to preserve project FX IDs.
+  fxSCL,
+
+  // Per-row chord voicing. Appended to preserve project FX IDs.
+  fxCRD,
+
+  // Alias for PCM sample start. Appended to preserve project FX IDs.
+  fxSTA,
+
   // Total count - must be last
   fxTotalCount
 };
+
+enum ScalePreset : uint8_t {
+  scaleChromatic,
+  scaleMajor,
+  scaleMinor,
+  scaleDorian,
+  scalePhrygian,
+  scaleLydian,
+  scaleMixolydian,
+  scaleLocrian,
+  scaleMajorPentatonic,
+  scaleMinorPentatonic,
+  scaleBlues,
+  scaleWholeTone,
+  scaleCustom,
+  scalePresetCount
+};
+
+const char* scalePresetName(ScalePreset preset);
+uint16_t scalePresetMask(ScalePreset preset);
+uint8_t scaleQuantizeNote(uint8_t note, uint8_t root, uint16_t mask, uint16_t pitchCount);
 
 struct FXName {
   enum FX fx;
@@ -299,6 +329,13 @@ struct Project {
   uint8_t linearPitch;
   uint8_t signedTrackSpeed;
   uint8_t perceptualEffects;
+
+  // Global 12-TET playback quantizer. Phrase data always stays chromatic.
+  uint8_t scaleApply;
+  uint8_t scaleTracksMask;
+  uint8_t scaleRoot;
+  ScalePreset scalePreset;
+  uint16_t scaleCustomMask;
 
   int tracksCount;
   uint8_t trackVolume[PROJECT_MAX_TRACKS];

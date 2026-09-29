@@ -20,7 +20,7 @@ FXName fxNamesSequencer[] = {
 };
 int fxSequencerCount = sizeof(fxNamesSequencer) / sizeof(FXName);
 
-FXName fxNamesTrack[] = {{fxRSN, "RSN"}, {fxDSN, "DSN"}};
+FXName fxNamesTrack[] = {{fxRSN, "RSN"}, {fxDSN, "DSN"}, {fxSCL, "SCL"}, {fxCRD, "CRD"}, {fxSTA, "STA"}};
 int fxTrackCount = sizeof(fxNamesTrack) / sizeof(FXName);
 
 FXName fxNamesEnvelope[] = {
@@ -124,6 +124,11 @@ void projectInit(Project* p) {
   p->linearPitch = 0;
   p->signedTrackSpeed = 1;
   p->perceptualEffects = 1;
+  p->scaleApply = 1;
+  p->scaleTracksMask = 0xff;
+  p->scaleRoot = 0;
+  p->scalePreset = scaleChromatic;
+  p->scaleCustomMask = 0x0fff;
   for (int i = 0; i < PROJECT_MAX_TRACKS; i++) {
     p->trackVolume[i] = 100;
     p->trackTilt[i] = 0x80;

@@ -89,6 +89,7 @@ extern const AppScreen screenProjectLoad;
 extern const AppScreen screenProjectSave;
 extern const AppScreen screenConfirm;
 extern const AppScreen screenPitchTable;
+extern const AppScreen screenScale;
 extern const AppScreen screenFileBrowser;
 extern const AppScreen screenCreateFolder;
 extern const AppScreen screenEnterName;
@@ -172,7 +173,7 @@ char charEditInput(int keys, int tapCount, char* str, int idx, int maxLen);
 int editFX(CellEditAction action, uint8_t* fx, uint8_t* lastFX, int isTable, uint8_t instrumentIdx);
 int editFXValue(CellEditAction action, uint8_t* fx, uint8_t* lastFX, int isTable, uint8_t instrumentIdx);
 int fxEditInput(int keys, int tapCount, uint8_t* fx, uint8_t* lastFX);
-void fxEditFullDraw(uint8_t currentFX, uint8_t instrumentIdx);
+void fxEditFullDraw(uint8_t currentFX, uint8_t instrumentIdx, int isTable);
 
 // Manage screen functions
 // TODO: Remove this

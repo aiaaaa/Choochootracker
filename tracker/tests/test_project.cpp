@@ -62,6 +62,34 @@ TEST_CASE("track tilt project settings survive save and load") {
   CHECK(loaded.tiltPivotHz == 2500);
 }
 
+TEST_CASE("scale project settings survive save and load") {
+  Project saved, loaded;
+  projectInit(&saved);
+  projectInit(&loaded);
+  saved.chipsCount = 1;
+  saved.tracksCount = 1;
+  saved.chipType = ChipType::AY;
+  saved.tickRate = 50;
+  saved.pitchTable.length = 1;
+  saved.pitchTable.octaveSize = 12;
+  std::strcpy(saved.pitchTable.name, "Test");
+  std::strcpy(saved.pitchTable.noteNames[0], "C-4");
+  saved.pitchTable.values[0] = 1000;
+  saved.scaleApply = 0;
+  saved.scaleTracksMask = 0xa5;
+  saved.scaleRoot = 9;
+  saved.scalePreset = scaleCustom;
+  saved.scaleCustomMask = 0x0491;
+  const char* path = "build/tests/scale_io.cct";
+  REQUIRE(projectSave(&saved, path) == 0);
+  REQUIRE(projectLoad(&loaded, path) == 0);
+  CHECK(loaded.scaleApply == 0);
+  CHECK(loaded.scaleTracksMask == 0xa5);
+  CHECK(loaded.scaleRoot == 9);
+  CHECK(loaded.scalePreset == scaleCustom);
+  CHECK(loaded.scaleCustomMask == 0x0491);
+}
+
 TEST_CASE("a project with fewer than 8 tracks survives save and load") {
   // Regression test: projectLoadInternal used to force chipsCount back to
   // PROJECT_MAX_TRACKS after reading it from the file, so any project saved

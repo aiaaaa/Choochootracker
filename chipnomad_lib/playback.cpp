@@ -102,6 +102,9 @@ static void resetTrack(PlaybackState* state, int trackIdx) {
   track->note.volume1 = 0;
   track->note.volume2 = 0;
   track->note.volume3 = 0;
+  track->chordVoiceCount = 1;
+  memset(track->chordPitchBase, EMPTY_VALUE_8, sizeof(track->chordPitchBase));
+  memset(track->chordPitchFinal, EMPTY_VALUE_8, sizeof(track->chordPitchFinal));
 
   track->note.instrument = EMPTY_VALUE_8;
   track->note.instrumentTable.tableIdx = EMPTY_VALUE_8;
@@ -386,6 +389,7 @@ void readPhraseRowDirect(PlaybackState* state, int trackIdx, PhraseRow* phraseRo
   uint8_t instrumentTableRow = EMPTY_VALUE_8;
   int hasAuxTableFX = 0;
   int hasInstrumentTableFX = 0;
+  uint8_t chordValue = EMPTY_VALUE_8;
 
   // Check for pending groove change
   if (track->pendingGrooveIdx != track->grooveIdx) {
@@ -399,7 +403,18 @@ void readPhraseRowDirect(PlaybackState* state, int trackIdx, PhraseRow* phraseRo
     uint8_t fxType = phraseRow->fx[i][0];
     uint8_t fxValue = phraseRow->fx[i][1];
 
-    if (fxType == fxSPD && (p->signedTrackSpeed || fxValue <= 0x10)) {
+    if (fxType == fxSCL) {
+      // SCL XY: X selects a scale, Y selects C..B. Phrase-only global FX.
+      uint8_t preset = fxValue >> 4;
+      uint8_t root = fxValue & 0x0f;
+      if (!state->scaleFXCommandSeen && preset < scalePresetCount && root < 12) {
+        state->scalePreset = (ScalePreset)preset;
+        state->scaleRoot = root;
+        state->scaleFXCommandSeen = 1;
+      }
+    } else if (fxType == fxCRD) {
+      chordValue = fxValue;
+    } else if (fxType == fxSPD && (p->signedTrackSpeed || fxValue <= 0x10)) {
       track->speedRatio = fxValue;
       track->speedPhase = 0;
     } else if (fxType == fxSLE) {
@@ -477,7 +492,8 @@ void readPhraseRowDirect(PlaybackState* state, int trackIdx, PhraseRow* phraseRo
 
   // Read new FX
   for (int i = 0; i < 3; i++) {
-    if (phraseRow->fx[i][0] != fxDEL && phraseRow->fx[i][0] != fxSLE) {
+    if (phraseRow->fx[i][0] != fxDEL && phraseRow->fx[i][0] != fxSLE &&
+        phraseRow->fx[i][0] != fxSCL && phraseRow->fx[i][0] != fxCRD) {
       initFX(state, trackIdx, phraseRow->fx[i], NULL, -1);
     }
   }
@@ -501,6 +517,30 @@ void readPhraseRowDirect(PlaybackState* state, int trackIdx, PhraseRow* phraseRo
       int8_t transpose = p->chains[chainIdx].rows[track->chainRow].transpose;
       if (p->instruments[track->note.instrument].transposeEnabled) {
         track->note.pitchBase += transpose;
+      }
+    }
+  }
+
+  // Keep phrases chromatic; only the pitch sent to the engine is quantized.
+  if (note != EMPTY_VALUE_8 && note != NOTE_OFF && p->scaleApply &&
+      (p->scaleTracksMask & (1u << trackIdx)) && p->pitchTable.octaveSize == 12) {
+    uint16_t mask = state->scalePreset == scaleCustom ? p->scaleCustomMask : scalePresetMask(state->scalePreset);
+    track->note.pitchBase = scaleQuantizeNote(track->note.pitchBase, state->scaleRoot, mask, p->pitchTable.length);
+  }
+
+  if (note != EMPTY_VALUE_8 && note != NOTE_OFF) {
+    track->chordVoiceCount = 1;
+    track->chordPitchBase[0] = track->note.pitchBase;
+    InstrumentType type = track->note.instrument == EMPTY_VALUE_8 ? InstrumentType::none
+      : p->instruments[track->note.instrument].type;
+    bool ay = type == InstrumentType::AY1 || type == InstrumentType::AY2 || type == InstrumentType::AYSample;
+    if (chordValue != EMPTY_VALUE_8 && !ay && p->pitchTable.octaveSize == 12) {
+      track->chordVoiceCount = chordBuild(track->note.pitchBase, chordValue & 0x0f, chordValue >> 4,
+                                          p->pitchTable.length, track->chordPitchBase);
+      if (p->scaleApply && (p->scaleTracksMask & (1u << trackIdx))) {
+        uint16_t mask = state->scalePreset == scaleCustom ? p->scaleCustomMask : scalePresetMask(state->scalePreset);
+        for (int i = 0; i < track->chordVoiceCount; ++i)
+          track->chordPitchBase[i] = scaleQuantizeNote(track->chordPitchBase[i], state->scaleRoot, mask, p->pitchTable.length);
       }
     }
   }
@@ -835,6 +875,10 @@ static void nextFrame(PlaybackState* state, int trackIdx, int chipIdx) {
     pitch = clampInt16(pitch, 0, p->pitchTable.length - 1);
 
     track->note.pitchFinal = pitch;
+    for (int i = 0; i < track->chordVoiceCount; ++i) {
+      int chordPitch = pitch + (int)track->chordPitchBase[i] - (int)track->chordPitchBase[0];
+      track->chordPitchFinal[i] = clampInt16(chordPitch, 0, p->pitchTable.length - 1);
+    }
   }
 }
 
@@ -1035,6 +1079,8 @@ void playbackInit(PlaybackState* state, Project* project) {
   memset(state->liveStickAxes, 0, sizeof(state->liveStickAxes));
   resetLiveStickRate(state);
   state->liveStickWasPlaying = 0;
+  state->scaleRoot = project->scaleRoot;
+  state->scalePreset = project->scalePreset;
 
   initFXHandlers();
   initAYSampleTables();
@@ -1075,6 +1121,9 @@ void playbackClearLoopRange(PlaybackState* state) {
 void playbackStartSong(PlaybackState* state, int songRow, int chainRow, int loop) {
   if (playbackIsPlaying(state)) return;
 
+  state->scaleRoot = state->p->scaleRoot;
+  state->scalePreset = state->p->scalePreset;
+
   Project* p = state->p;
 
   for (int trackIdx = 0; trackIdx < p->tracksCount; trackIdx++) {
@@ -1093,6 +1142,9 @@ void playbackStartSong(PlaybackState* state, int songRow, int chainRow, int loop
 void playbackStartChain(PlaybackState* state, int trackIdx, int songRow, int chainRow, int loop) {
   if (playbackIsPlaying(state)) return;
 
+  state->scaleRoot = state->p->scaleRoot;
+  state->scalePreset = state->p->scalePreset;
+
   Project* p = state->p;
   PlaybackTrackState* track = &state->tracks[trackIdx];
 
@@ -1108,6 +1160,9 @@ void playbackStartChain(PlaybackState* state, int trackIdx, int songRow, int cha
 void playbackStartPhrase(PlaybackState* state, int trackIdx, int songRow, int chainRow, int loop) {
   if (playbackIsPlaying(state)) return;
 
+  state->scaleRoot = state->p->scaleRoot;
+  state->scalePreset = state->p->scalePreset;
+
   PlaybackTrackState* track = &state->tracks[trackIdx];
 
   track->queue.mode = PlaybackMode::phrase;
@@ -1118,6 +1173,8 @@ void playbackStartPhrase(PlaybackState* state, int trackIdx, int songRow, int ch
 }
 
 void playbackStartPhraseRow(PlaybackState* state, int trackIdx, PhraseRow* phraseRow) {
+  state->scaleRoot = state->p->scaleRoot;
+  state->scalePreset = state->p->scalePreset;
   resetTrack(state, trackIdx);
 
   PlaybackTrackState* track = &state->tracks[trackIdx];
@@ -1227,6 +1284,7 @@ int playbackNextFrame(ChipNomadState* chipNomadState) {
   PlaybackState *state = &chipNomadState->playbackState;
   Project* p = &chipNomadState->project;
   int hasActiveTracks = 0;
+  state->scaleFXCommandSeen = 0;
 
   int chipIdx = 0;
   int chipTracksCount = projectGetChipTracks(p, chipIdx);

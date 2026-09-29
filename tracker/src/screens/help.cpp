@@ -161,6 +161,22 @@ const char* helpFXHint(uint8_t* fx, int isTable, uint8_t instrumentIdx) {
     case fxGGR: // Global groove
       snprintf(buffer, bufferSize, "Global groove %s", byteToHex(fx[1]));
       break;
+    case fxSCL:
+      if (isTable) snprintf(buffer, bufferSize, "No effect in tables");
+      else {
+        static const char* const rootNames[12] = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
+        uint8_t preset = fx[1] >> 4;
+        uint8_t root = fx[1] & 0xf;
+        if (preset < scalePresetCount && root < 12)
+          snprintf(buffer, bufferSize, "%s, root %s", scalePresetName((ScalePreset)preset), rootNames[root]);
+        else
+          snprintf(buffer, bufferSize, "Invalid scale / root");
+      }
+      break;
+    case fxCRD:
+      if (isTable) snprintf(buffer, bufferSize, "No effect in tables");
+      else snprintf(buffer, bufferSize, "%s, inversion %hX", chordName(fx[1] & 0x0f), fx[1] >> 4);
+      break;
     case fxHOP: // Hop
       if (!isTable && fx[1] == 0xff) {
         snprintf(buffer, bufferSize, "Stop playback");
@@ -338,6 +354,7 @@ const char* helpFXHint(uint8_t* fx, int isTable, uint8_t instrumentIdx) {
     case fxBRS: snprintf(buffer, bufferSize, "Braids resonance %hhu", fx[1]); break;
     case fxSPT: snprintf(buffer, bufferSize, "Sample pitch %+hhd st", (int8_t)fx[1]); break;
     case fxSST: snprintf(buffer, bufferSize, "Sample start %hhu", fx[1]); break;
+    case fxSTA: snprintf(buffer, bufferSize, "Sample start %hhu", fx[1]); break;
     case fxSEN: snprintf(buffer, bufferSize, "Sample end %hhu", fx[1]); break;
     case fxSVL: snprintf(buffer, bufferSize, "Sample volume %hhu", fx[1]); break;
     case fxSCF: snprintf(buffer, bufferSize, "Sample cutoff %hhu", fx[1]); break;
@@ -415,6 +432,8 @@ static void initFxHelpText() {
   fxHelpText[fxTXH] = "Aux Table Hop\nJumps to specific\naux table row";
   fxHelpText[fxGRV] = "Track Groove\nSets groove for this track only";
   fxHelpText[fxGGR] = "Global Groove\nSets groove for all tracks";
+  fxHelpText[fxSCL] = "Scale / Root\nSCL XY: X is scale\nY is root C through B";
+  fxHelpText[fxCRD] = "Chord\nCRD XY: X is inversion\nY selects a fixed chord";
   fxHelpText[fxHOP] = "Hop\nHops to phrase/table row X times";
   fxHelpText[fxSNG] = "Song Hop\nHops in song by N rows";
   // Modulation FX
@@ -478,6 +497,7 @@ static void initFxHelpText() {
   fxHelpText[fxBRS] = "Braids Resonance FX\nOverrides resonance until\nthe next note trigger";
   fxHelpText[fxSPT] = "Sample Pitch FX\nSigned semitone pitch until\nthe next note trigger";
   fxHelpText[fxSST] = "Sample Start FX\nOverrides sample start until\nthe next note trigger";
+  fxHelpText[fxSTA] = "Sample Start FX\nAlias of SST";
   fxHelpText[fxSEN] = "Sample End FX\nOverrides sample end until\nthe next note trigger";
   fxHelpText[fxSVL] = "Sample Volume FX\nOverrides sample volume until\nthe next note trigger";
   fxHelpText[fxSCF] = "Sample Cutoff FX\n00-FF logarithmic cutoff\nuntil the next note trigger";

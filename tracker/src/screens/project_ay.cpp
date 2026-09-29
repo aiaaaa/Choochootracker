@@ -45,6 +45,7 @@ static void drawStatic(void) {
   gfxPrint(0, 10, "PWM range");
   gfxPrint(0, 11, "AY clock");
   gfxPrint(0, 12, "Pitch table");
+  gfxPrint(0, 14, "Scale");
 }
 
 static void drawCursor(int col, int row) {
@@ -58,6 +59,8 @@ static void drawCursor(int col, int row) {
     gfxCursor(13, 11, chipClockLength);
   } else if (row == SCR_PROJECT_ROWS + 3) {
     gfxCursor(13, 12, strlen(chipnomadState->project.pitchTable.name));
+  } else if (row == SCR_PROJECT_ROWS + 4) {
+    gfxCursor(0, 14, 5);
   }
 }
 
@@ -88,6 +91,8 @@ static void drawField(int col, int row, CellState state) {
   } else if (row == SCR_PROJECT_ROWS + 3) {
     gfxClearRect(13, 12, PROJECT_PITCH_TABLE_TITLE_LENGTH, 1);
     gfxPrint(13, 12, chipnomadState->project.pitchTable.name);
+  } else if (row == SCR_PROJECT_ROWS + 4) {
+    gfxPrint(0, 14, "Scale");
   }
 }
 
@@ -122,6 +127,9 @@ static int onEdit(int col, int row, enum CellEditAction action) {
     // Pitch table - enter pitch table screen
     screenSetup(&screenPitchTable, 0);
     handled = 0;
+  } else if (row == SCR_PROJECT_ROWS + 4) {
+    screenSetup(&screenScale, 0);
+    handled = 0;
   }
 
   if (handled) projectModified = 1;
@@ -130,7 +138,7 @@ static int onEdit(int col, int row, enum CellEditAction action) {
 }
 
 ScreenData screenProjectAY = {
-  .rows = SCR_PROJECT_ROWS + 4,
+  .rows = SCR_PROJECT_ROWS + 5,
   .cursorRow = 0,
   .cursorCol = 0,
   .topRow = 0,
