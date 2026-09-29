@@ -4,7 +4,8 @@
 #include "file_browser.h"
 #include "screen_quick_help.h"
 
-static int ignoreInput(int, int, int) { return 1; }
+int mockLastInputKeys;
+static int ignoreInput(int, int keys, int) { mockLastInputKeys = keys; return 1; }
 static void noOp(void) {}
 static int startAudio(int, int) { return 0; }
 AudioManager audioManager = {startAudio, noOp, noOp, nullptr, nullptr, noOp};

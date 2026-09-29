@@ -62,7 +62,9 @@ ChooChooTracker works best with a gamepad that has a D-pad, 2 analogue sticks an
 | **MOTION RECORD** | L2 | W |
 | **MOTION ERASE** | R2 | E |
 
-Mappings can be changed in **Settings > Key mapping**.
+Mappings can be changed in **Settings > Key mapping**. On PortMaster, custom
+mappings are saved immediately and navigation remains available when returning
+to Settings.
 
 Windows, web, and Android users can also use a game controller. On Android,
 touch controls appear automatically when no gamepad is connected: in portrait

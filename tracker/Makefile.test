@@ -3,7 +3,7 @@
 
 # Compiler settings
 CXX = c++
-CFLAGS = -std=c++17 -Wall -g -O0 -DTEST
+CFLAGS = -std=c++17 -Wall -g -O0 -DTEST -DTEST_PORTMASTER_INPUT
 LDFLAGS = -lm
 
 # Build directory

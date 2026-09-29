@@ -7,3 +7,4 @@ extern int mockQuitTriggered;
 extern ScreenData* mockScreenData;
 extern const char* mockBrowserTitle;
 extern const char* mockBrowserExtension;
+extern int mockLastInputKeys;

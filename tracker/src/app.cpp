@@ -453,8 +453,13 @@ void appOnEvent(MainLoopEventData eventData) {
     }
 
     // PortMaster may expose the same physical control through gptokeyb and
-    // SDL's controller API. Unmapped controller duplicates must not replay
-    // the currently held keyboard combination.
+    // SDL's controller API. Ignore an unmapped controller duplicate even on
+    // the key-mapping screen: otherwise it can stay held while the mapped
+    // keyboard event switches screens, making every later D-pad press a
+    // combination and freezing navigation.
+#if defined(PORTMASTER_BUILD) || defined(TEST_PORTMASTER_INPUT)
+    if (eventData.data.input.deviceType == InputDeviceType::gamepad && value == keyUnmapped) break;
+#endif
     if (value == keyUnmapped && currentScreen != &screenKeyMapping) break;
 
     // Ignore duplicate downs. SDL keyboard repeat is filtered by the platform
@@ -526,6 +531,11 @@ void appOnEvent(MainLoopEventData eventData) {
       break;
     }
 
+    // See keyDown: PortMaster's unmapped SDL duplicate must never affect the
+    // held-button state, including if its release arrives after a screen swap.
+#if defined(PORTMASTER_BUILD) || defined(TEST_PORTMASTER_INPUT)
+    if (eventData.data.input.deviceType == InputDeviceType::gamepad && value == keyUnmapped) break;
+#endif
     if (value == keyUnmapped && currentScreen != &screenKeyMapping) break;
 
     pressedButtons &= ~value;

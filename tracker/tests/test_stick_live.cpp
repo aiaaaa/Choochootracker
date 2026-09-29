@@ -105,6 +105,25 @@ TEST_CASE_FIXTURE(StickLiveFixture, "overlapping input delivery toggles only onc
   input(gamepadLive, false);
 }
 
+TEST_CASE_FIXTURE(StickLiveFixture, "PortMaster controller duplicate cannot stick after leaving key mapping") {
+  const InputCode controllerDuplicate = {InputDeviceType::gamepad, 9001};
+  const InputCode keyboardUp = {InputDeviceType::keyboard, 9002};
+  appSettings.keyMapping.keyUp[0] = keyboardUp;
+
+  // Knulli/PortMaster can emit an unmapped SDL controller event alongside a
+  // gptokeyb key. Before the fix it was recorded on Key Mapping, but its
+  // release was ignored after switching to Settings, poisoning later input.
+  currentScreen = &screenKeyMapping;
+  input(controllerDuplicate, true);
+  currentScreen = &screenSong;
+  input(controllerDuplicate, false);
+
+  mockLastInputKeys = 0;
+  input(keyboardUp, true);
+  CHECK(mockLastInputKeys == keyUp);
+  input(keyboardUp, false);
+}
+
 TEST_CASE_FIXTURE(StickLiveFixture, "FREE keeps Stick live active regardless of input") {
   appSetStickLiveMode(StickLiveMode::free);
   CHECK(chipnomadLiveStickIsEnabled());
