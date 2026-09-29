@@ -51,6 +51,9 @@ task copyNativeLibs(type: Copy) {
 
 // Make the build process depend on our custom task
 preBuild.dependsOn copyNativeLibs
+tasks.matching { it.name.startsWith('merge') && it.name.endsWith('NativeLibs') }.configureEach {
+    dependsOn copyNativeLibs
+}
 
 android {
     namespace 'com.paiheulevrai.choochootracker'

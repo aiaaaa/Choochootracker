@@ -20,7 +20,7 @@ FXName fxNamesSequencer[] = {
 };
 int fxSequencerCount = sizeof(fxNamesSequencer) / sizeof(FXName);
 
-FXName fxNamesTrack[] = {{fxRSN, "RSN"}, {fxDSN, "DSN"}, {fxSCL, "SCL"}, {fxCRD, "CRD"}, {fxSTA, "STA"}};
+FXName fxNamesTrack[] = {{fxRSN, "RSN"}, {fxDSN, "DSN"}, {fxSCL, "SCL"}, {fxCRD, "CRD"}};
 int fxTrackCount = sizeof(fxNamesTrack) / sizeof(FXName);
 
 FXName fxNamesEnvelope[] = {
@@ -41,7 +41,7 @@ int fxModulationCount = sizeof(fxNamesModulation) / sizeof(FXName);
 // FX Groups array. FX counts are filled in fillFXNames()
 FXGroup fxGroups[] = {
   {"Sequencer FX", fxNamesSequencer, 0, 8, InstrumentType::none},
-  {"Track FX", fxNamesTrack, 0, 2, InstrumentType::none},
+  {"Track FX", fxNamesTrack, 0, 4, InstrumentType::none},
   {"AY Classic FX", NULL, 0, 8, InstrumentType::AY1},
   {"AY Plus FX", NULL, 0, 8, InstrumentType::AY2},
   {"AYSample FX", NULL, 0, 8, InstrumentType::AYSample},
