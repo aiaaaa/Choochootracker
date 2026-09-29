@@ -282,7 +282,7 @@ static int motionDestinationFX(const Instrument* instrument, const PlaybackTrack
 
 static int motionFXValue(int value, InstrumentMotionValue kind) {
   if (kind == InstrumentMotionValue::speed) return clampInt(value, 0, 500) * 255 / 500;
-  if (kind == InstrumentMotionValue::cutoff) return filterControlFromCutoff((float)clampInt(value, 20, 20000));
+  if (kind == InstrumentMotionValue::cutoff) return filterControlFromCutoff((float)clampInt(value, FILTER_CUTOFF_MIN_HZ, FILTER_CUTOFF_MAX_HZ));
   return clampInt(value, 0, 255);
 }
 
@@ -1142,7 +1142,7 @@ static void updateSampleVoices(ChipNomadState* state) {
           loopMode += playbackModScaleToRange(mod->outValue, 2);
           break;
         case 7:
-          cutoff += playbackModScaleToRange(mod->outValue, 20000);
+          cutoff = playbackModulateCutoff(cutoff, mod);
           break;
         case 8:
           resonance += value;
@@ -1153,7 +1153,7 @@ static void updateSampleVoices(ChipNomadState* state) {
     loopMode = clampInt(loopMode, 0, 2);
     start = clampInt(start, 0, 255);
     end = clampInt(end, 0, 255);
-    cutoff = clampInt(cutoff, 20, 20000);
+    cutoff = clampInt(cutoff, FILTER_CUTOFF_MIN_HZ, FILTER_CUTOFF_MAX_HZ);
     resonance = clampInt(resonance, 0, 255);
     if (track->note.fx[fxEAT].isOn) attack = track->note.fx[fxEAT].fxValue;
     if (track->note.fx[fxEDC].isOn) decay = track->note.fx[fxEDC].fxValue;
@@ -1227,19 +1227,19 @@ static void updateSCWFVoices(ChipNomadState* state) {
         case 4: mix += value; break;
         case 5:
           if (instrument->type == InstrumentType::BYOWTBL) frameIndex[0] = (uint8_t)clampInt(frameIndex[0] + value, 0, 255);
-          else cutoff += playbackModScaleToRange(mod->outValue, 20000);
+          else cutoff = playbackModulateCutoff(cutoff, mod);
           break;
         case 6:
           if (instrument->type == InstrumentType::BYOWTBL) frameIndex[1] = (uint8_t)clampInt(frameIndex[1] + value, 0, 255);
           else resonance += value;
           break;
-        case 7: cutoff += playbackModScaleToRange(mod->outValue, 20000); break;
+        case 7: cutoff = playbackModulateCutoff(cutoff, mod); break;
         case 8: resonance += value; break;
       }
     }
     detune = clampInt(detune, 0, SCWF_DETUNE_MAX);
     mix = clampInt(mix, 0, 255);
-    cutoff = clampInt(cutoff, 20, 20000);
+    cutoff = clampInt(cutoff, FILTER_CUTOFF_MIN_HZ, FILTER_CUTOFF_MAX_HZ);
     resonance = clampInt(resonance, 0, 255);
     if (track->note.fx[fxEAT].isOn) attack = track->note.fx[fxEAT].fxValue;
     if (track->note.fx[fxEDC].isOn) decay = track->note.fx[fxEDC].fxValue;
@@ -1292,7 +1292,7 @@ static void updateAChChidVoices(ChipNomadState* state) {
       if (!mod->modulation) continue;
       switch (mod->modulation->destination) {
         case 1: { int value = playbackModScaleToRange(mod->outValue, 255); gain = modulationIsAdditive(mod->modulation->type) ? gain + value / 255.0f : value / 255.0f; break; }
-        case 3: cutoff += playbackModScaleToRange(mod->outValue, 20000); break;
+        case 3: cutoff = playbackModulateCutoff(cutoff, mod); break;
         case 4: resonance += playbackModScaleToRange(mod->outValue, 100); break;
         case 5: envMod += playbackModScaleToRange(mod->outValue, 100); break;
         case 6: decay += playbackModScaleToRange(mod->outValue, 1800); break;
@@ -1303,7 +1303,7 @@ static void updateAChChidVoices(ChipNomadState* state) {
     }
     for (int slot = 0; slot < track->chordVoiceCount; ++slot)
       voices[slot]->configure((uint8_t)a->wave, a->fineTune, a->model, (uint16_t)clampInt(timbre, 0, 32767), (uint16_t)clampInt(color, 0, 32767),
-        (uint16_t)clampInt(cutoff, 200, 20000), (uint8_t)clampInt(resonance, 0, 100),
+        (uint16_t)clampInt(cutoff, 200, FILTER_CUTOFF_MAX_HZ), (uint8_t)clampInt(resonance, 0, 100),
         (uint8_t)clampInt(envMod, 0, 100), (uint16_t)clampInt(decay, 200, 2000),
         (uint8_t)clampInt(accent, 0, 100), (gain < 0.0f ? 0.0f : gain) / track->chordVoiceCount);
   }
@@ -1342,7 +1342,7 @@ static void updateDrumSynthVoices(ChipNomadState* state) {
         case 2: pitchModulation += playbackModScaleToRange(mod->outValue, 1200); break;
         case 3: decay += value; break; case 4: tone += value; break; case 5: sweep += value; break;
         case 6: noise += value; break; case 7: fm += value; break; case 8: drive += value; break;
-        case 9: cutoff += playbackModScaleToRange(mod->outValue, 20000); break; case 10: resonance += value; break;
+        case 9: cutoff = playbackModulateCutoff(cutoff, mod); break; case 10: resonance += value; break;
       }
     }
     InstrumentDrumSynth configured = *d;
@@ -1355,7 +1355,7 @@ static void updateDrumSynthVoices(ChipNomadState* state) {
       int cents = note == EMPTY_VALUE_8 ? 6000 :
         (project->linearPitch ? project->pitchTable.values[note] : (note + 12) * 100) + track->note.fineOffset + pitchModulation;
       voices[slot]->configure(&configured, (float)cents, (gain < 0.0f ? 0.0f : gain) / track->chordVoiceCount,
-        (uint16_t)clampInt(cutoff, 20, 20000), (uint8_t)clampInt(resonance, 0, 255));
+        (uint16_t)clampInt(cutoff, FILTER_CUTOFF_MIN_HZ, FILTER_CUTOFF_MAX_HZ), (uint8_t)clampInt(resonance, 0, 255));
     }
   }
 }
@@ -1390,7 +1390,7 @@ static void updateMMEVoices(ChipNomadState* state) {
         case 2: pitch += playbackModScaleToRange(mod->outValue, 1200); break;
         case 3: waves += value; break; case 4: interval += value; break; case 5: amount += value; break;
         case 6: flow += value; break; case 7: feedback += value; break; case 8: shaper += value; break;
-        case 9: cutoff += playbackModScaleToRange(mod->outValue, 20000); break; case 10: resonance += value; break;
+        case 9: cutoff = playbackModulateCutoff(cutoff, mod); break; case 10: resonance += value; break;
       }
     }
     InstrumentMME configured = *m;
@@ -1414,7 +1414,7 @@ static void updateMMEVoices(ChipNomadState* state) {
       int cents = note == EMPTY_VALUE_8 ? 6000 :
         (project->linearPitch ? project->pitchTable.values[note] : (note + 12) * 100) + track->note.fineOffset + pitch;
       voices[slot]->configure(&configured, (float)cents, (gain < 0.0f ? 0.0f : gain) / track->chordVoiceCount,
-        (uint16_t)clampInt(cutoff, 20, 20000), (uint8_t)clampInt(resonance, 0, 255));
+        (uint16_t)clampInt(cutoff, FILTER_CUTOFF_MIN_HZ, FILTER_CUTOFF_MAX_HZ), (uint8_t)clampInt(resonance, 0, 255));
     }
   }
 }
@@ -1448,7 +1448,7 @@ static void updateSinteredVoices(ChipNomadState* state) {
         case 2: pitch += playbackModScaleToRange(stateMod->outValue, 1200); break;
         case 3: decay += value; break; case 4: mod += value; break; case 5: a += value; break;
         case 6: b += value; break; case 7: motion += value; break; case 8: c += value; break;
-        case 9: cutoff += playbackModScaleToRange(stateMod->outValue, 20000); break; case 10: resonance += value; break;
+        case 9: cutoff = playbackModulateCutoff(cutoff, stateMod); break; case 10: resonance += value; break;
       }
     }
     InstrumentSintered configured = *s;
@@ -1461,7 +1461,7 @@ static void updateSinteredVoices(ChipNomadState* state) {
       int cents = note == EMPTY_VALUE_8 ? 6000 :
         (project->linearPitch ? project->pitchTable.values[note] : (note + 12) * 100) + track->note.fineOffset + pitch;
       voices[slot]->configure(&configured, (float)cents, (gain < 0.0f ? 0.0f : gain) / track->chordVoiceCount,
-        (uint16_t)clampInt(cutoff, 20, 20000), (uint8_t)clampInt(resonance, 0, 255));
+        (uint16_t)clampInt(cutoff, FILTER_CUTOFF_MIN_HZ, FILTER_CUTOFF_MAX_HZ), (uint8_t)clampInt(resonance, 0, 255));
     }
   }
 }
@@ -1514,14 +1514,14 @@ static void updateBraidsVoices(ChipNomadState* state) {
         case 2: pitchModulation += playbackModScaleToRange(mod->outValue, 1200); break;
         case 3: timbre += playbackModScaleToRange(mod->outValue, 32767); break;
         case 4: color += playbackModScaleToRange(mod->outValue, 32767); break;
-        case 5: cutoff += playbackModScaleToRange(mod->outValue, 20000); break;
+        case 5: cutoff = playbackModulateCutoff(cutoff, mod); break;
         case 6: resonance += playbackModScaleToRange(mod->outValue, 255); break;
       }
     }
 
     timbre = clampInt(timbre, 0, 32767);
     color = clampInt(color, 0, 32767);
-    cutoff = clampInt(cutoff, 20, 20000);
+    cutoff = clampInt(cutoff, FILTER_CUTOFF_MIN_HZ, FILTER_CUTOFF_MAX_HZ);
     resonance = clampInt(resonance, 0, 255);
     if (track->note.fx[fxEAT].isOn) attack = track->note.fx[fxEAT].fxValue;
     if (track->note.fx[fxEDC].isOn) decay = track->note.fx[fxEDC].fxValue;
@@ -1601,7 +1601,7 @@ static void updatePlaitsVoices(ChipNomadState* state) {
         case 4: timbre += playbackModScaleToRange(mod->outValue, 32767); break;
         case 5: morph += playbackModScaleToRange(mod->outValue, 32767); break;
         case 6: auxMix += value; break;
-        case 7: cutoff += playbackModScaleToRange(mod->outValue, 20000); break;
+        case 7: cutoff = playbackModulateCutoff(cutoff, mod); break;
         case 8: resonance += value; break;
       }
     }
@@ -1611,7 +1611,7 @@ static void updatePlaitsVoices(ChipNomadState* state) {
     timbre = clampInt(timbre, 0, 32767);
     morph = clampInt(morph, 0, 32767);
     auxMix = clampInt(auxMix, 0, 255);
-    cutoff = clampInt(cutoff, 20, 20000);
+    cutoff = clampInt(cutoff, FILTER_CUTOFF_MIN_HZ, FILTER_CUTOFF_MAX_HZ);
     resonance = clampInt(resonance, 0, 255);
     if (track->note.fx[fxEAT].isOn) attack = track->note.fx[fxEAT].fxValue;
     if (track->note.fx[fxEDC].isOn) decay = track->note.fx[fxEDC].fxValue;
@@ -1679,13 +1679,13 @@ static void updatePlaitsAltVoices(ChipNomadState* state) {
         case 4: timbre += playbackModScaleToRange(mod->outValue, 32767); break;
         case 5: morph += playbackModScaleToRange(mod->outValue, 32767); break;
         case 6: auxMix += value; break;
-        case 7: cutoff += playbackModScaleToRange(mod->outValue, 20000); break;
+        case 7: cutoff = playbackModulateCutoff(cutoff, mod); break;
         case 8: resonance += value; break;
       }
     }
     engine = clampInt(engine, 0, 23); harmonics = clampInt(harmonics, 0, 32767);
     timbre = clampInt(timbre, 0, 32767); morph = clampInt(morph, 0, 32767);
-    auxMix = clampInt(auxMix, 0, 255); cutoff = clampInt(cutoff, 20, 20000);
+    auxMix = clampInt(auxMix, 0, 255); cutoff = clampInt(cutoff, FILTER_CUTOFF_MIN_HZ, FILTER_CUTOFF_MAX_HZ);
     resonance = clampInt(resonance, 0, 255);
     if (track->note.fx[fxEAT].isOn) attack = track->note.fx[fxEAT].fxValue;
     if (track->note.fx[fxEDC].isOn) decay = track->note.fx[fxEDC].fxValue;

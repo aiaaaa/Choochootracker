@@ -66,8 +66,9 @@ static SDL_Rect getTrackerViewport(void) {
     return (SDL_Rect){(physicalW - canvasW) / 2, (physicalH - groupH) / 2,
       canvasW, canvasH};
   }
-  // Wide displays fill their height. Square and near-square handhelds fit
-  // the 4:3 tracker canvas to their width so neither side is cropped.
+  // Wide displays fill their height.  Square and near-square handhelds must
+  // instead fit the 4:3 tracker canvas to their width; filling the height
+  // would make the viewport wider than the display and crop both sides.
   if (physicalW * 3 >= physicalH * 4) {
     const int canvasW = physicalH * 4 / 3;
     return (SDL_Rect){(physicalW - canvasW) / 2, 0, canvasW, physicalH};

@@ -2,6 +2,7 @@
 #include "project_io_common.h"
 #include "synth/sample_voice.h"
 #include "synth/sr_wavetable_loader.h"
+#include "synth/multimode_filter.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -546,26 +547,26 @@ int instrumentLoadData(FILE* file, Instrument* instrument, Project* p) {
   }
 
   if (instrument->type == InstrumentType::Braids &&
-      instrument->chip.braids.filterCutoffHz > 20000) {
-    instrument->chip.braids.filterCutoffHz = 20000;
+      instrument->chip.braids.filterCutoffHz > FILTER_CUTOFF_MAX_HZ) {
+    instrument->chip.braids.filterCutoffHz = FILTER_CUTOFF_MAX_HZ;
   } else if ((instrument->type == InstrumentType::Plaits || instrument->type == InstrumentType::PlaitsAlt) &&
-             instrument->chip.plaits.filterCutoffHz > 20000) {
-    instrument->chip.plaits.filterCutoffHz = 20000;
+             instrument->chip.plaits.filterCutoffHz > FILTER_CUTOFF_MAX_HZ) {
+    instrument->chip.plaits.filterCutoffHz = FILTER_CUTOFF_MAX_HZ;
   } else if (instrument->type == InstrumentType::Sample &&
-             instrument->chip.sample.filterCutoffHz > 20000) {
-    instrument->chip.sample.filterCutoffHz = 20000;
+             instrument->chip.sample.filterCutoffHz > FILTER_CUTOFF_MAX_HZ) {
+    instrument->chip.sample.filterCutoffHz = FILTER_CUTOFF_MAX_HZ;
   } else if (instrument->type == InstrumentType::DrumSynth) {
     InstrumentDrumSynth* d = &instrument->chip.drumSynth;
     if ((uint8_t)d->engine >= (uint8_t)DrumSynthEngine::totalCount) d->engine = DrumSynthEngine::kick;
-    if (d->filterCutoffHz > 20000) d->filterCutoffHz = 20000;
+    if (d->filterCutoffHz > FILTER_CUTOFF_MAX_HZ) d->filterCutoffHz = FILTER_CUTOFF_MAX_HZ;
   } else if (instrument->type == InstrumentType::MME) {
     InstrumentMME* m = &instrument->chip.mme;
     if ((uint8_t)m->model >= (uint8_t)MMEModel::totalCount) m->model = MMEModel::ring;
-    if (m->filterCutoffHz > 20000) m->filterCutoffHz = 20000;
+    if (m->filterCutoffHz > FILTER_CUTOFF_MAX_HZ) m->filterCutoffHz = FILTER_CUTOFF_MAX_HZ;
   } else if (instrument->type == InstrumentType::Sintered) {
     InstrumentSintered* s = &instrument->chip.sintered;
     if ((uint8_t)s->model >= (uint8_t)SinteredModel::totalCount) s->model = SinteredModel::knot;
-    if (s->filterCutoffHz > 20000) s->filterCutoffHz = 20000;
+    if (s->filterCutoffHz > FILTER_CUTOFF_MAX_HZ) s->filterCutoffHz = FILTER_CUTOFF_MAX_HZ;
   }
 
   return 0;
