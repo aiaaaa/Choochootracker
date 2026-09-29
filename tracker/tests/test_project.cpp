@@ -62,6 +62,34 @@ TEST_CASE("track tilt project settings survive save and load") {
   CHECK(loaded.tiltPivotHz == 2500);
 }
 
+TEST_CASE("a project with fewer than 8 tracks survives save and load") {
+  // Regression test: projectLoadInternal used to force chipsCount back to
+  // PROJECT_MAX_TRACKS after reading it from the file, so any project saved
+  // with fewer tracks (e.g. a VT2 import, which is 3 tracks) would then be
+  // read back expecting a wider Song section than what was actually written,
+  // and fail to load at all.
+  Project saved, loaded;
+  projectInitAY(&saved);
+  projectInitAY(&loaded);
+  saved.tracksCount = saved.chipsCount = 3;
+
+  saved.song[0][2] = 0;
+  saved.chains[0].rows[0].phrase = 0;
+  saved.phrases[0].rows[0].note = 40;
+  saved.phrases[0].rows[0].instrument = 0;
+  saved.phrases[0].rows[0].volume = 15;
+
+  const char* path = "build/tests/reduced_tracks_io.cct";
+  REQUIRE(projectSave(&saved, path) == 0);
+  INFO(projectFileError);
+  REQUIRE(projectLoad(&loaded, path) == 0);
+  INFO(projectFileError);
+  CHECK(loaded.tracksCount == 3);
+  CHECK(loaded.chipsCount == 3);
+  CHECK(loaded.song[0][2] == 0);
+  CHECK(loaded.phrases[0].rows[0].note == 40);
+}
+
 TEST_CASE("new projects initialize the validated period pitch table") {
   Project project;
   projectInitAY(&project);
