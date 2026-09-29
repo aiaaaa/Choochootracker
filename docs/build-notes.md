@@ -88,6 +88,33 @@ plus `-lasound` on Linux, `-D__WINDOWS_MM__` plus `-lwinmm` on Windows,
 macOS. `Dockerfile.linux` installs `libasound2-dev` for the Docker-based
 Linux build.
 
+### AppImage
+
+```sh
+make -j4 -f Makefile.linux appimage
+```
+
+Produces `releases/ChooChooTracker-<date>-<version>-x86_64.AppImage`. Bundles
+only `libSDL2` and its `libsamplerate` dependency into `usr/lib` - the two
+libraries the tar.gz release's README tells users to `apt install` - and
+lets everything else (X11, ALSA, glibc...) resolve from the host, to avoid
+the ABI-mismatch risk of bundling core OS libraries into an AppImage. Uses
+`appimagetool` if it's already on `PATH`, otherwise downloads it once to
+`.tmp/appimagetool`.
+
+`fileGetDefaultDirectory()` (`src/corelib/corelib_file.cpp`) detects the
+`APPIMAGE` environment variable the AppImage runtime sets and resolves
+settings/autosave to `~/.local/share/ChooChooTracker` instead of next to the
+executable, since an AppImage mounts itself read-only - confirmed by running
+the produced AppImage under Xvfb with an isolated `$HOME` and checking that
+`settings.txt`/`autosave.cct` land there rather than inside the
+`/tmp/.mount_*` squashfs mount.
+
+This first pass does not bundle `packaging/common/*` (bonus themes,
+instruments, title art) the tar.gz release includes - out of scope for a
+single self-contained executable; revisit if that content turns out to be
+wanted from the AppImage too.
+
 ## Web
 
 Emscripten is installed locally at `.tmp/emsdk`; do not search for or install
