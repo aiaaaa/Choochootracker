@@ -182,7 +182,8 @@ void settingsDrawField(int col, int row, CellState state) {
     gfxSetFgColor(appSettings.colorScheme.textDefault);
     gfxPrint(0, 11, "Stick live mode");
     gfxSetFgColor(state == CellState::focus ? appSettings.colorScheme.textValue : appSettings.colorScheme.textDefault);
-    gfxPrint(23, 11, appSettings.stickLiveMode == StickLiveMode::toggle ? "TOGGLE" : "HOLD  ");
+    gfxPrint(23, 11, appSettings.stickLiveMode == StickLiveMode::free ? "FREE  " :
+      appSettings.stickLiveMode == StickLiveMode::toggle ? "TOGGLE" : "HOLD  ");
   } else if (row == 10 && col == 0) {
     gfxSetFgColor(state == CellState::focus ? appSettings.colorScheme.textValue : appSettings.colorScheme.textDefault);
     gfxPrint(0, 12, "Key mapping");
@@ -254,7 +255,7 @@ int settingsOnEdit(int col, int row, CellEditAction action) {
     return handled;
   } else if (row == 9 && col == 0) {
     uint8_t value = (uint8_t)appSettings.stickLiveMode;
-    int handled = edit8noLast(action, &value, 1, 0, 1);
+    int handled = edit8noLast(action, &value, 1, 0, 2);
     if (handled) appSetStickLiveMode((StickLiveMode)value);
     return handled;
   } else if (row == 10 && col == 0 && action == CellEditAction::tap) {

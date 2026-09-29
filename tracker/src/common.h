@@ -46,7 +46,7 @@ struct KeyMapping {
   InputCode keyMotionErase[3];
 };
 
-enum class StickLiveMode { hold, toggle };
+enum class StickLiveMode { hold, toggle, free };
 
 struct AppSettings {
   int screenWidth;

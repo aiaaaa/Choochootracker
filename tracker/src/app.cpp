@@ -81,6 +81,7 @@ static int motionLiveInputMask(InputCode input) {
 }
 
 static int motionLiveActive(void) {
+  if (appSettings.stickLiveMode == StickLiveMode::free) return 1;
   return appSettings.stickLiveMode == StickLiveMode::toggle ? motionLiveLatched : motionLiveHeld != 0;
 }
 
@@ -96,7 +97,7 @@ static void updateMotionRecordMode(void) {
 }
 
 void appSetStickLiveMode(StickLiveMode mode) {
-  if (mode != StickLiveMode::toggle) mode = StickLiveMode::hold;
+  if (mode != StickLiveMode::toggle && mode != StickLiveMode::free) mode = StickLiveMode::hold;
   if (appSettings.stickLiveMode == mode) return;
   appSettings.stickLiveMode = mode;
   motionLiveLatched = 0;

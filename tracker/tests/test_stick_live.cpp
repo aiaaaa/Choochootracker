@@ -105,6 +105,24 @@ TEST_CASE_FIXTURE(StickLiveFixture, "overlapping input delivery toggles only onc
   input(gamepadLive, false);
 }
 
+TEST_CASE_FIXTURE(StickLiveFixture, "FREE keeps Stick live active regardless of input") {
+  appSetStickLiveMode(StickLiveMode::free);
+  CHECK(chipnomadLiveStickIsEnabled());
+  CHECK(indicator() == '~');
+  for (InputCode code : {keyboardLive, gamepadLive, logicalLive}) {
+    input(code, true);
+    input(code, false);
+    CHECK(chipnomadLiveStickIsEnabled());
+  }
+  motion(keyMotionRecord, true);
+  CHECK(indicator() == '*');
+  motion(keyMotionRecord, false);
+  CHECK(chipnomadLiveStickIsEnabled());
+  CHECK(indicator() == '~');
+  appSetStickLiveMode(StickLiveMode::toggle);
+  CHECK_FALSE(chipnomadLiveStickIsEnabled());
+}
+
 TEST_CASE_FIXTURE(StickLiveFixture, "mode changes clear the latch and reconcile held input") {
   appSetStickLiveMode(StickLiveMode::toggle);
   input(keyboardLive, true);
@@ -128,7 +146,7 @@ TEST_CASE_FIXTURE(StickLiveFixture, "mode changes clear the latch and reconcile 
 }
 
 TEST_CASE_FIXTURE(StickLiveFixture, "Record and Erase remain momentary with indicator priority") {
-  for (StickLiveMode mode : {StickLiveMode::hold, StickLiveMode::toggle}) {
+  for (StickLiveMode mode : {StickLiveMode::hold, StickLiveMode::toggle, StickLiveMode::free}) {
     appSetStickLiveMode(mode);
     for (int key : {keyMotionRecord, keyMotionErase}) {
       motion(key, true);
@@ -136,7 +154,7 @@ TEST_CASE_FIXTURE(StickLiveFixture, "Record and Erase remain momentary with indi
       CHECK(chipnomadMotionMode() == (key == keyMotionRecord ? 1 : 2));
       CHECK(indicator() == (key == keyMotionRecord ? '*' : 'x'));
       motion(key, false);
-      CHECK_FALSE(chipnomadLiveStickIsEnabled());
+      CHECK(chipnomadLiveStickIsEnabled() == (mode == StickLiveMode::free));
       CHECK(chipnomadMotionMode() == 0);
     }
     input(keyboardLive, true);
@@ -213,6 +231,10 @@ TEST_CASE_FIXTURE(StickLiveFixture, "normal exit saves mode but restart clears t
   REQUIRE(settingsSave() == 0);
   REQUIRE(settingsLoad() == 0);
   CHECK(appSettings.stickLiveMode == StickLiveMode::hold);
+  appSetStickLiveMode(StickLiveMode::free);
+  REQUIRE(settingsSave() == 0);
+  REQUIRE(settingsLoad() == 0);
+  CHECK(appSettings.stickLiveMode == StickLiveMode::free);
 }
 
 TEST_CASE_FIXTURE(StickLiveFixture, "absent, older and invalid settings default to HOLD") {
@@ -239,6 +261,11 @@ TEST_CASE_FIXTURE(StickLiveFixture, "Settings row, padded value, cursor and subs
   REQUIRE(screen->onEdit(0, 9, CellEditAction::increase) == 1);
   screen->drawField(0, 9, CellState::focus);
   CHECK(std::string(mockGfxCells[11] + 23, 6) == "TOGGLE");
+  REQUIRE(screen->onEdit(0, 9, CellEditAction::increase) == 1);
+  screen->drawField(0, 9, CellState::focus);
+  CHECK(std::string(mockGfxCells[11] + 23, 6) == "FREE  ");
+  CHECK(chipnomadLiveStickIsEnabled());
+  REQUIRE(screen->onEdit(0, 9, CellEditAction::decrease) == 1);
   input(keyboardLive, true);
   input(keyboardLive, false);
   screen->onEdit(0, 9, CellEditAction::tap); // unchanged mode must not clear a latch
