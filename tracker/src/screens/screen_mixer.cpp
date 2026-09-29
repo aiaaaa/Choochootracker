@@ -120,9 +120,12 @@ static int onEdit(int col, int row, CellEditAction action) {
       return 1;
     }
     if (col < 0 || col >= 6 || row < 0 || row >= PROJECT_MAX_TRACKS) return 0;
-    if (col == 0) handled = editNormalized8(action, &p->trackVolume[row], 100);
-    else if (col == 1) handled = editNormalized8(action, &p->trackReverbSend[row], 100);
-    else if (col == 2) handled = editNormalized8(action, &p->trackDelaySend[row], 100);
+    // These values are stored as 0-100 percentages.  Do not round-trip them
+    // through the 0-255 display scale: a one-step left/right edit can round
+    // back to the same percentage and appear broken.
+    if (col == 0) handled = edit8noLast(action, &p->trackVolume[row], 10, 0, 100);
+    else if (col == 1) handled = edit8noLast(action, &p->trackReverbSend[row], 10, 0, 100);
+    else if (col == 2) handled = edit8noLast(action, &p->trackDelaySend[row], 10, 0, 100);
     else if (col == 3) handled = edit8noLast(action, &p->trackTilt[row], 16, 0, 255);
     else if (action == CellEditAction::tap) {
       if (col == 4) audioManager.toggleTrackMute(row); else audioManager.toggleTrackSolo(row);
@@ -130,15 +133,15 @@ static int onEdit(int col, int row, CellEditAction action) {
     }
   } else if (row >= 0 && row < (mixerPage == 2 ? 5 : 4)) {
     if (mixerPage == 1) {
-      if (row == 0) handled = editNormalized8(action, &p->reverbReturn, 100);
+      if (row == 0) handled = edit8noLast(action, &p->reverbReturn, 10, 0, 100);
       else if (row == 1) handled = edit8noLast(action, &p->reverbTime, 16, 0, 255);
       else if (row == 2) handled = edit8noLast(action, &p->reverbDamping, 16, 0, 255);
       else handled = editFilterCutoff(action, &p->reverbFilterCutoffHz);
     } else {
-      if (row == 0) handled = editNormalized8(action, &p->delayReturn, 100);
-      else if (row == 1) handled = editNormalized8(action, &p->delayReverbSend, 100);
+      if (row == 0) handled = edit8noLast(action, &p->delayReturn, 10, 0, 100);
+      else if (row == 1) handled = edit8noLast(action, &p->delayReverbSend, 10, 0, 100);
       else if (row == 2) handled = edit8noLast(action, &p->delayTicks, 4, 1, 255);
-      else if (row == 3) handled = editNormalized8(action, &p->delayFeedback, 95);
+      else if (row == 3) handled = edit8noLast(action, &p->delayFeedback, 10, 0, 95);
       else handled = editFilterCutoff(action, &p->delayFilterCutoffHz);
     }
   }
