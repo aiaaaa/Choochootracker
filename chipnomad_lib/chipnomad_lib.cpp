@@ -409,8 +409,9 @@ static float mixerSendGain(uint8_t value) {
   return powf(10.0f, -36.0f * (100 - value) / 2000.0f);
 }
 
-static float phraseGain(const PlaybackTrackState* track, const Instrument* instrument) {
-  return instrument->volume * track->note.volume / (255.0f * 15.0f);
+static float phraseGain(const PlaybackState* playback, const PlaybackTrackState* track,
+                        const Instrument* instrument) {
+  return instrument->volume * playbackVolumeGain(playback, track) / 255.0f;
 }
 
 static float effectiveTrackSend(ChipNomadState* state, int trackIdx,
@@ -1057,7 +1058,7 @@ static void updateSampleVoices(ChipNomadState* state) {
         : rootNote * 100;
       pitchCents += noteCents - rootCents;
     }
-    float gain = phraseGain(track, &project->instruments[track->note.instrument]);
+    float gain = phraseGain(playback, track, &project->instruments[track->note.instrument]);
     if (track->note.fx[fxSPT].isOn) pitchCents = (int8_t)track->note.fx[fxSPT].fxValue * 100 + track->note.fineOffset;
     if (track->note.fx[fxSST].isOn) start = track->note.fx[fxSST].fxValue;
     if (track->note.fx[fxSEN].isOn) end = track->note.fx[fxSEN].fxValue;
@@ -1139,7 +1140,7 @@ static void updateSCWFVoices(ChipNomadState* state) {
     int triggerDecay = decay, triggerColor = sustain;
     uint8_t frameIndex[2] = {byowtbl->frameIndex[0], byowtbl->frameIndex[1]};
     int pitchModulation = 0;
-    float gain = phraseGain(track, instrument);
+    float gain = phraseGain(playback, track, instrument);
     detune = slewEngineFX(track, fxSDT,
       track->note.fx[fxSDT].isOn ? track->note.fx[fxSDT].fxValue : detune);
     mix = slewEngineFX(track, fxSMX,
@@ -1213,7 +1214,7 @@ static void updateAChChidVoices(ChipNomadState* state) {
     int cutoff = a->cutoff, resonance = a->resonance, envMod = a->envMod;
     int decay = a->decay, accent = a->accent;
     int timbre = a->timbre, color = a->color;
-    float gain = phraseGain(track, &project->instruments[track->note.instrument]);
+    float gain = phraseGain(playback, track, &project->instruments[track->note.instrument]);
     if (track->note.fx[fxACF].isOn) cutoff = instrumentFXCutoff(track->note.fx[fxACF].fxValue);
     if (track->note.fx[fxARS].isOn) resonance = track->note.fx[fxARS].fxValue * 100 / 255;
     if (track->note.fx[fxAEM].isOn) envMod = track->note.fx[fxAEM].fxValue * 100 / 255;
@@ -1258,7 +1259,7 @@ static void updateDrumSynthVoices(ChipNomadState* state) {
     int engine = (int)d->engine, decay = d->decay, tone = d->tone, sweep = d->sweep;
     int noise = d->noise, fm = d->fm, drive = d->drive;
     int cutoff = d->filterCutoffHz, resonance = d->filterResonance, pitchModulation = 0;
-    float gain = phraseGain(track, &project->instruments[track->note.instrument]);
+    float gain = phraseGain(playback, track, &project->instruments[track->note.instrument]);
     if (track->note.fx[fxDMD].isOn) engine = track->note.fx[fxDMD].fxValue;
     decay = slewEngineFX(track, fxDDC, track->note.fx[fxDDC].isOn ? track->note.fx[fxDDC].fxValue : decay);
     tone = slewEngineFX(track, fxDTO, track->note.fx[fxDTO].isOn ? track->note.fx[fxDTO].fxValue : tone);
@@ -1303,7 +1304,7 @@ static void updateMMEVoices(ChipNomadState* state) {
     int model = (int)m->model, waves = m->waves, interval = m->interval, amount = m->amount;
     int flow = m->flow, feedback = m->feedback, shaper = m->shaper;
     int cutoff = m->filterCutoffHz, resonance = m->filterResonance, pitch = 0;
-    float gain = phraseGain(track, &project->instruments[track->note.instrument]);
+    float gain = phraseGain(playback, track, &project->instruments[track->note.instrument]);
     if (track->note.fx[fxMMD].isOn) model = track->note.fx[fxMMD].fxValue;
     waves = slewEngineFX(track, fxMWV, track->note.fx[fxMWV].isOn ? track->note.fx[fxMWV].fxValue : waves);
     interval = slewEngineFX(track, fxMIN, track->note.fx[fxMIN].isOn ? track->note.fx[fxMIN].fxValue : interval);
@@ -1358,7 +1359,7 @@ static void updateSinteredVoices(ChipNomadState* state) {
     InstrumentSintered* s = &project->instruments[track->note.instrument].chip.sintered;
     int model = (int)s->model, decay = s->decay, mod = s->mod, a = s->a, b = s->b, motion = s->motion, c = s->c;
     int cutoff = s->filterCutoffHz, resonance = s->filterResonance, pitch = 0;
-    float gain = phraseGain(track, &project->instruments[track->note.instrument]);
+    float gain = phraseGain(playback, track, &project->instruments[track->note.instrument]);
     if (track->note.fx[fxSMDL].isOn) model = track->note.fx[fxSMDL].fxValue;
     decay = slewEngineFX(track, fxSDC, track->note.fx[fxSDC].isOn ? track->note.fx[fxSDC].fxValue : decay);
     mod = slewEngineFX(track, fxSMD, track->note.fx[fxSMD].isOn ? track->note.fx[fxSMD].fxValue : mod);
@@ -1415,7 +1416,7 @@ static void updateBraidsVoices(ChipNomadState* state) {
     int attack = instrument->attack, decay = instrument->decay, sustain = instrument->sustain;
     int release = instrument->release, shape = instrument->envelopeShape;
     int triggerDecay = decay, triggerColor = sustain;
-    float gain = phraseGain(track, &project->instruments[track->note.instrument]);
+    float gain = phraseGain(playback, track, &project->instruments[track->note.instrument]);
 
     if (track->note.fx[fxBMD].isOn) {
       model = clampInt(track->note.fx[fxBMD].fxValue, 0,
@@ -1505,7 +1506,7 @@ static void updatePlaitsVoices(ChipNomadState* state) {
     int attack = p->attack, decay = p->decay, sustain = p->sustain;
     int release = p->release, shape = p->envelopeShape;
     int triggerDecay = decay, triggerColor = sustain;
-    float gain = phraseGain(track, &project->instruments[track->note.instrument]);
+    float gain = phraseGain(playback, track, &project->instruments[track->note.instrument]);
 
     if (track->note.fx[fxPMD].isOn) engine = track->note.fx[fxPMD].fxValue;
     harmonics = slewEngineFX(track, fxPHA, track->note.fx[fxPHA].isOn ? track->note.fx[fxPHA].fxValue : harmonics / 129) * 129;
@@ -1584,7 +1585,7 @@ static void updatePlaitsAltVoices(ChipNomadState* state) {
     int attack = p->attack, decay = p->decay, sustain = p->sustain;
     int release = p->release, shape = p->envelopeShape;
     int triggerDecay = decay, triggerColor = sustain;
-    float gain = phraseGain(track, &project->instruments[track->note.instrument]);
+    float gain = phraseGain(playback, track, &project->instruments[track->note.instrument]);
     if (track->note.fx[fxPMD].isOn) engine = track->note.fx[fxPMD].fxValue;
     harmonics = slewEngineFX(track, fxPHA, track->note.fx[fxPHA].isOn ? track->note.fx[fxPHA].fxValue : harmonics / 129) * 129;
     timbre = slewEngineFX(track, fxPTM, track->note.fx[fxPTM].isOn ? track->note.fx[fxPTM].fxValue : timbre / 129) * 129;

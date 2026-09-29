@@ -1147,6 +1147,17 @@ static int liveChainValid(const PlaybackState* state, int trackIdx, int songRow)
   return chain != EMPTY_VALUE_16 && state->p->chains[chain].rows[0].phrase != EMPTY_VALUE_16;
 }
 
+float playbackVolumeGain(const PlaybackState* state, const PlaybackTrackState* track) {
+  float gain = clampInt(track->note.volume + track->note.volumeOffset, 0, 15) / 15.0f;
+  const PlaybackTableState* tables[] = {&track->note.instrumentTable, &track->note.auxTable};
+  for (const PlaybackTableState* table : tables) {
+    if (table->tableIdx == EMPTY_VALUE_8) continue;
+    uint8_t volume = state->p->tables[table->tableIdx].rows[table->rows[0]].volume;
+    if (volume != EMPTY_VALUE_8) gain *= volume / 15.0f;
+  }
+  return gain;
+}
+
 void playbackStartLiveChain(PlaybackState* state, int trackIdx, int songRow) {
   if (!liveChainValid(state, trackIdx, songRow)) return;
   PlaybackTrackState* track = &state->tracks[trackIdx];

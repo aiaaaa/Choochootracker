@@ -238,6 +238,9 @@ void playbackQueuePhrase(PlaybackState* state, int trackIdx, int songRow, int ch
 void playbackStartLiveChain(PlaybackState* state, int trackIdx, int songRow);
 void playbackQueueLiveChain(PlaybackState* state, int trackIdx, int songRow, int urgent);
 
+// Phrase volume, VOL effects, and the active instrument/aux table volume columns.
+float playbackVolumeGain(const PlaybackState* state, const PlaybackTrackState* track);
+
 /**
  * Stops playback on all tracks
  *

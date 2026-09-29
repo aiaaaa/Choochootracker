@@ -532,7 +532,7 @@ Motion recording supports Braids, Plaits, PCM Sample, 2xSCWF, BYOWTBL and Bogie 
 
 Tables are a core sound design tool in trackers. In Vortex Tracker terms, they combine instruments and ornaments, but they can do much more. If you know LSDj or NerdSEQ, the idea should already feel familiar.
 
-The Pitch column accepts relative (`~`) or absolute (`=`) pitch values in semitones. Volume is applied on top of the ADSR envelope. The 4 FX lanes mostly match the lanes in a phrase, although a few FX behave differently in tables.
+The Pitch column accepts relative (`~`) or absolute (`=`) pitch values in semitones. The Volume column is `00`-`0F`, applies to every engine on top of its envelope, and can be used for a gate: alternate `0F` and `00` then loop with `HOP 00`. The 4 FX lanes mostly match the lanes in a phrase, although a few FX behave differently in tables.
 
 Putting a `TIC` FX on the last table row sets the speed of that column and overrides the instrument's default table speed. Each FX column can run at a different tick speed. The Pitch and Volume columns follow the speed of the 1st FX column.
 
@@ -605,7 +605,7 @@ Each FX has a 3-letter command and a hexadecimal value. The in-app help panel gi
 | `PIT` | signed `XX` | Accumulated relative offset in pitch-table steps. |
 | `FIN` | signed `XX` | Accumulated fine offset in cents with Linear pitch, period units otherwise. |
 | `PRD` | signed `XX` | Accumulated relative oscillator-period offset. |
-| `VOL` | signed `XX` | Accumulated relative volume offset. |
+| `VOL` | signed `XX` | Accumulated relative volume offset (`FF` is -1, not full volume). |
 | `VSL` | signed `XX` | Adds `XX` to volume on every phrase/table row. Use `00` to stop. |
 | `RET` | `XY` | Retriggers every `Y` ticks; `X` applies a volume change. `Y=0` stops retriggering. |
 | `DEL` | `XX` ticks | Delays note-on. A delay longer than the current groove step skips the note. |
