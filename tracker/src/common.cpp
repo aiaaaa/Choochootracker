@@ -37,6 +37,7 @@ void initDefaultAppSettings(void) {
   appSettings.pitchConflictWarning = 0;
   appSettings.quickHelpReleaseSeen = 0;
   appSettings.ayWavetableLfoView = 0;
+  appSettings.stickLiveMode = StickLiveMode::hold;
 
   // Zero out key mapping (platform-specific defaults applied later)
   memset(&appSettings.keyMapping, 0, sizeof(KeyMapping));
@@ -137,6 +138,10 @@ int settingsSave(void) {
   fprintf(file, "pitchConflictWarning: %d\n", appSettings.pitchConflictWarning);
   fprintf(file, "quickHelpReleaseSeen: %d\n", appSettings.quickHelpReleaseSeen);
   fprintf(file, "ayWavetableLfoView: %d\n", appSettings.ayWavetableLfoView);
+
+  const char* stickLiveMode = appSettings.stickLiveMode == StickLiveMode::free ? "FREE" :
+    appSettings.stickLiveMode == StickLiveMode::toggle ? "TOGGLE" : "HOLD";
+  fprintf(file, "stickLiveMode: %s\n", stickLiveMode);
 
   // Save key mapping codes
   fprintf(file, "keyUp: %d,%d,%d\n", appSettings.keyMapping.keyUp[0].code, appSettings.keyMapping.keyUp[1].code, appSettings.keyMapping.keyUp[2].code);
@@ -249,6 +254,9 @@ int settingsLoad(void) {
       sscanf(line + 22, "%d", &appSettings.quickHelpReleaseSeen);
     } else if (strncmp(line, "ayWavetableLfoView: ", 20) == 0) {
       sscanf(line + 20, "%d", &appSettings.ayWavetableLfoView);
+    } else if (strncmp(line, "stickLiveMode: ", 15) == 0) {
+      appSettings.stickLiveMode = strcmp(line + 15, "FREE") == 0 ? StickLiveMode::free :
+        strcmp(line + 15, "TOGGLE") == 0 ? StickLiveMode::toggle : StickLiveMode::hold;
     } else if (strncmp(line, "keyUp: ", 7) == 0) {
       sscanf(line + 7, "%d,%d,%d", &appSettings.keyMapping.keyUp[0].code, &appSettings.keyMapping.keyUp[1].code, &appSettings.keyMapping.keyUp[2].code);
     } else if (strncmp(line, "keyDown: ", 9) == 0) {
