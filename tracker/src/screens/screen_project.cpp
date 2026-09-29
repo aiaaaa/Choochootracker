@@ -65,6 +65,7 @@ int projectLoadFromPath(const char* path) {
 
   if (loadResult == 0) {
     audioManager.replaceProject(&replacement);
+    autosaveLoadFailed = 0;
     projectModified = 0; // Clear modified flag after loading
 
     // Store filename without extension
@@ -80,7 +81,7 @@ int projectLoadFromPath(const char* path) {
     }
   } else {
     projectFree(&replacement);
-    screenMessage(MESSAGE_TIME, "%s", projectFileError);
+    screenMessage(MESSAGE_TIME_ERROR, "%s", projectFileError);
   }
 
   return loadResult;

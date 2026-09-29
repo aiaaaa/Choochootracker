@@ -58,7 +58,7 @@ This is a fork of [ChipNomad](https://github.com/Megus/chipnomad-tracker), with 
 
 The main target is the Anbernic RG353V through PortMaster. It should work on any Portmaster system. So far tested and working on Arkos and TrimUI.
 
-A native Windows build is available for development and desktop testing.
+A native Windows build is available for development and desktop testing. It works on Steamdeck if you feel adventurous.
 
 You can also test it in your browser on https://choochootracker.vercel.app/ (use the keyboard or gamepad on a computer, use the on-screen gamepad on a mobile device). 
 
@@ -77,6 +77,8 @@ Synthesis
 - Dual wavetable oscillator: bring your own Serum wavetables !
 - Achchid: acid engine (open303 based) that can take Braids as VCO
 - Bogie: In-house drum synth with 12 VA/FM models (including cowbells).
+- MME: Multi Modulation Engine. An aggressive voice inspired by the Loquelic Iteritas, but with Mutable Warps algos
+- Sintered: experimental synthetic percussions. MME for drums. Very wild.
 - Multimode LP/HP/BP 12/24dB filters for all new synth/sample engines
 - Several filter flavours inspired by analog synths
 - Per-track volume, mute, solo, tiltEQ, Reverb send, and Delay send
@@ -93,6 +95,7 @@ Articulations
 - LFO can retrig on phrase & chains start (in addition to standard lfo trigs)
 - Joystick modulation , that can be live recorded as trackFX 
 - Tracker tables (4 FX slots per table row), grooves, chains, and songs
+- Decoupled tables: tracker tables can be free running, or reset on phrase/chain.
 
 ## One tracker, many engines
 
@@ -146,6 +149,8 @@ I wanted a mobile groovebox to make techno... but none of the available option t
 
 ChooChooTracker is a fork of [ChipNomad](https://github.com/Megus/chipnomad-tracker). Its Braids, Plaits, Clouds, and stmlib code comes from Mutable Instruments' open-source releases. See the included license files for exact attribution.
 
+Thanks to [luginf](https://github.com/luginf) for project-loading and VT2 import fixes, and to [aiaaaa](https://github.com/aiaaaa) for Stick live mode improvements.
+
 The project is released under the [MIT License](LICENSE).
 
 Mad respects to the people I stole code from:
@@ -158,4 +163,5 @@ Mad respects to the people I stole ideas from:
 - Thomas, the absolute beast behind Nedseq
 - The people at Elektron who boldly put user workflow and speed first, and also whoever invented P-locks and trig conditions.
 - Whoever invented the menu navigation style of vintage RPGs
+- the Noise Engineering team, who inspired the MME engine
 - All musicians who I saw playing live sets on gameboys and other constrained hardware rigs.

@@ -46,6 +46,8 @@ struct KeyMapping {
   InputCode keyMotionErase[3];
 };
 
+enum class StickLiveMode { hold, toggle, free };
+
 struct AppSettings {
   int screenWidth;
   int screenHeight;
@@ -64,6 +66,7 @@ struct AppSettings {
   int pitchConflictWarning;
   int quickHelpReleaseSeen;
   int ayWavetableLfoView;
+  StickLiveMode stickLiveMode;
   KeyMapping keyMapping;
   ColorScheme colorScheme;
   char themeName[THEME_NAME_LENGTH + 1];
@@ -88,6 +91,11 @@ extern int* pChainRow;
 extern ChipNomadState* chipnomadState;
 
 extern int projectModified; // Flag to track if the project has unsaved changes
+
+// Set at startup when an autosave file exists but failed to load, so the
+// title screen can warn instead of silently offering to "continue" into the
+// demo project it fell back to.
+extern int autosaveLoadFailed;
 
 // Settings functions
 void initDefaultAppSettings(void);
