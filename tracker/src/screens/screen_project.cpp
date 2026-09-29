@@ -65,6 +65,7 @@ int projectLoadFromPath(const char* path) {
 
   if (loadResult == 0) {
     audioManager.replaceProject(&replacement);
+    autosaveLoadFailed = 0;
     projectModified = 0; // Clear modified flag after loading
 
     // Store filename without extension
