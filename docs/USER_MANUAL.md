@@ -154,6 +154,10 @@ Settings → Load font → fonts/Pixel16x24 contains TechMonoAudit (converted fr
 
 A code-drawn pixel piano below the eight right-side track rows lights sounding pitch classes, folded into one octave. It includes chord notes and respects muted/stopped tracks. The outline uses the theme value color and all active keys use the waveform color; idle keys have dark fills and subtle shadows. Its grid uses integer scaling and fixed-width borders. The piano is a playback indicator, not a note-entry control. Popups and the wavetable editor keep their own content in this area.
 
+### Project page spacing
+
+The Project page puts the application version on its own line and separates Load, Save, New, Export and Manage from the project metadata with blank rows. Cursor positions and touch targets follow the displayed fields; project settings and file operations are unchanged.
+
 ## 4. Song, Chain and Phrase
 
 ### Song
