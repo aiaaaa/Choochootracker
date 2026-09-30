@@ -3,6 +3,7 @@
 #include "app.h"
 #include "app_ui_mock.h"
 #include "chipnomad_lib_live_stick.h"
+#include "corelib_file.h"
 #include "project_utils.h"
 
 #include <chrono>
