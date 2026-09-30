@@ -196,8 +196,7 @@ static ScreenData screenData = {
 
 // Map logical row to screen Y
 static int rowToY(int row) {
-  if (appSettings.persistentWaveform) return row + 1;
-  return row < ROWS_PER_MOD ? row + 2 : row + 3;
+  return screenModulationRowY(row);
 }
 
 // Map (col, row) to modulator index (0-3)
