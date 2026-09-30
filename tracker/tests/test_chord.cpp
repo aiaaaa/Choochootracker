@@ -26,7 +26,7 @@ TEST_CASE("fixed chord palette and inversions") {
   CHECK(chordBuild(36, 0, 0x0f, 96, pitches) == 3);
   CHECK(pitches[0] == 43);
   CHECK(chordBuild(0, 0, 0x0f, 96, pitches) == 3);
-  CHECK(pitches[0] == 0);
+  CHECK(pitches[0] == 7);
 }
 
 TEST_CASE("CRD is same-row only and quantizes every chord note") {

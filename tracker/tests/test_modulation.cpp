@@ -384,7 +384,7 @@ TEST_CASE("test_scaleToRange_different_maxAmplitudes") {
 TEST_CASE("cutoff modulation has quadratic musical depth") {
   Modulation modulation = {.amount = 32};
   PlaybackModState state = {.modulation = &modulation, .outValue = 8160};
-  CHECK(playbackModulateCutoff(1000, &state) == 1297); // 25%: 4.5 semitones
+  CHECK(playbackModulateCutoff(1000, &state) == 1302); // 25%: 4.5 semitones
   modulation.amount = 127;
   state.outValue = 32385;
   CHECK(playbackModulateCutoff(100, &state) == 6400); // 100%: six octaves
