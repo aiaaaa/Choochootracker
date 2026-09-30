@@ -9,6 +9,7 @@
 #include "chipnomad_lib.h"
 #include "project_utils.h"
 #include "waveform_display.h"
+#include "piano_display.h"
 #include "corelib_input.h"
 #include "corelib_keymap.h"
 #include "screens/screen_quick_help.h"
@@ -352,6 +353,8 @@ void appDraw(void) {
   if (currentScreen == &screenTitle) return;
 
   if (!chipnomadState) return;
+
+  pianoDisplayDraw();
 
   // Tracks
   char digit[2] = "0";
