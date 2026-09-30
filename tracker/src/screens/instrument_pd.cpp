@@ -23,7 +23,7 @@ static int macroIndex(int row) {
   if (row >= 4 && row <= 8) return row - 4;
   return row >= 10 && row <= 12 ? row - 5 : -1;
 }
-static int macroY(int index) { return !isVCO() || index < 5 ? 8 + index : 11 + index; }
+static int macroY(int index) { return !isVCO() || index < 5 ? 8 + index : index == 5 ? 13 : 9 + index; }
 static void cancelled() { screenSetup(&screenInstrument, cInstrument); }
 static void loaded(const char* path) {
   Instrument* instrument = &chipnomadState->project.instruments[cInstrument];
@@ -71,7 +71,7 @@ static void drawStatic() {
   if (patchStatus[0]) {
     gfxSetFgColor(!strcmp(patchStatus, "READY") ? appSettings.colorScheme.textDefault : appSettings.colorScheme.warning);
     gfxPrint(29, 6, patchStatus);
-    if (patchError[0]) { gfxPrint(0, 19, patchError); }
+    if (patchError[0]) screenMessage(MESSAGE_TIME_ERROR, "%s", patchError);
   }
   if (instrument->type == InstrumentType::PDVCO) instrumentCommonDrawVoicePostStatic(1);
 }

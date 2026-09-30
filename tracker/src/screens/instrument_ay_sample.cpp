@@ -10,10 +10,10 @@
 #include <string.h>
 
 // Preview configuration
-#define PREVIEW_ROW 16
+#define PREVIEW_ROW 15
 #define PREVIEW_COL 0
 #define PREVIEW_WIDTH_CHARS 32
-#define PREVIEW_HEIGHT_CHARS 3
+#define PREVIEW_HEIGHT_CHARS 2
 
 // Screen layout:
 // y 0: INSTRUMENT 00

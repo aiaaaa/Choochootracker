@@ -12,7 +12,7 @@
 static int sampleButtonDown;
 static constexpr int sourceValueX = 9;
 static constexpr int sourceValueWidth = 7;
-static constexpr int previewRow = 16, previewWidth = 32, previewHeight = 3;
+static constexpr int previewRow = 15, previewWidth = 15, previewHeight = 2;
 static Bitmap* samplePreviewBitmap;
 
 static void updateSamplePreview(const InstrumentSample* sample) {

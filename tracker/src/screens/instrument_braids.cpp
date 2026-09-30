@@ -2,23 +2,14 @@
 #include "corelib_gfx.h"
 #include "utils.h"
 #include "model_catalog.h"
-#include "waveform_display.h"
 #include <string.h>
 
 static int modelButtonDown;
-static Bitmap* previewBitmap;
 
 static const char* paraphonicChordName(uint16_t color) {
   static const char* names[] = {"DETUNE", "OCT", "2/5/OCT", "MIN7", "MIN", "MIN9", "MIN11", "5TH", "SPREAD", "MAJ11", "MAJ9", "MAJ", "MAJ7", "SUS4", "DETUNE", "OCT+", "OCT++"};
   int index = (int)((uint32_t)color * 17 / 32768);
   return names[index > 16 ? 16 : index];
-}
-
-static void drawPreview(const InstrumentBraids* braids) {
-  if (!previewBitmap) previewBitmap = gfxBitmapCreate(32, 3);
-  renderBraidsPreview(previewBitmap, braids);
-  gfxSetFgColor(appSettings.colorScheme.textInfo);
-  gfxDrawBitmap(previewBitmap, 0, 16);
 }
 
 static void selectModel(int value) {
@@ -51,7 +42,6 @@ static void drawStatic(void) {
   gfxPrint(0,8,"Timbre");
   gfxPrint(0,9,"Color");
   instrumentCommonDrawVoicePostStatic(1);
-  drawPreview(&chipnomadState->project.instruments[cInstrument].chip.braids);
 }
 
 static void drawCursor(int col, int row) {
