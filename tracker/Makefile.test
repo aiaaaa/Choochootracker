@@ -60,6 +60,7 @@ TRACKER_SRC_SOURCES = src/app.cpp \
                       src/corelib/corelib_gfx_layout.cpp \
                       src/screens/screen_layout.cpp \
                       src/scope_display.cpp \
+                      src/meter_display.cpp \
                       src/monitor_display.cpp \
                       src/screens/screen_settings.cpp \
                       src/string_utils.cpp \
