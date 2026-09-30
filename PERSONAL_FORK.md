@@ -15,6 +15,9 @@ pull requests are declined. Other contributors' unmerged work is not included.
 | Persistent waveform | [#21](https://github.com/paiheulevrai/Choochootracker/pull/21) | Keep it available with an ON/OFF setting |
 | Mixer level meters | [#22](https://github.com/paiheulevrai/Choochootracker/pull/22) | Keep the meters and numeric TRK labels |
 
+The personal launcher cover also carries a diagonal red **GITHUB FORK** stamp.
+This is a personal-only asset change, separate from the six upstream proposals.
+
 The exact included commits and upstream base are in
 [personal-features.json](personal-features.json). A future MIDI feature is not
 included unless it reaches upstream `main` and passes the same update checks.

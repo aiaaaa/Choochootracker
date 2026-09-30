@@ -53,5 +53,12 @@
       "upstream_pr": "https://github.com/paiheulevrai/Choochootracker/pull/22",
       "retain_if_declined": true
     }
+  ],
+  "personal_assets": [
+    {
+      "path": "tracker/packaging/portmaster/cover.png",
+      "description": "Existing cover with a diagonal red GITHUB FORK stamp",
+      "upstream_pr": null
+    }
   ]
 }

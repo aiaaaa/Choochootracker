@@ -164,6 +164,8 @@ Audio readouts use a UI-owned snapshot of the final mix and individual track con
 
 ### Personal build Settings
 
+The personal handheld launcher cover carries a red diagonal GITHUB FORK stamp.
+
 In the personal R36H build, Persistent waveform and Track visuals are separate Settings entries. The waveform remains optional; changing it preserves each track’s visual preferences.
 
 ### Persistent waveform
