@@ -67,6 +67,7 @@ struct AppSettings {
   int quickHelpReleaseSeen;
   int ayWavetableLfoView;
   StickLiveMode stickLiveMode;
+  uint8_t persistentWaveform;
   KeyMapping keyMapping;
   ColorScheme colorScheme;
   char themeName[THEME_NAME_LENGTH + 1];

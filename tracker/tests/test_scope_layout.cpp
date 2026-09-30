@@ -4,6 +4,12 @@
 #include <initializer_list>
 TEST_CASE("Scope reserves rows only on the intended screens") {
   const AppScreen* saved = currentScreen;
+  uint8_t oldEnabled = appSettings.persistentWaveform;
+  appSettings.persistentWaveform = 0;
+  currentScreen = &screenSong;
+  CHECK(screenScopeRows(currentScreen) == 0);
+  CHECK(screenVisibleRows() == 16);
+  appSettings.persistentWaveform = 1;
   for (const AppScreen* screen : {&screenSong, &screenChain, &screenPhrase, &screenTable,
        &screenInstrument, &screenInstrumentPool, &screenMixer, &screenGroove}) {
     currentScreen = screen;
@@ -15,6 +21,7 @@ TEST_CASE("Scope reserves rows only on the intended screens") {
   currentScreen = &screenModulation;
   CHECK(screenVisibleRows() == 16);
   currentScreen = saved;
+  appSettings.persistentWaveform = oldEnabled;
   gfxSetContentRowOffset(2);
   { ScreenOverlayCoordinates overlay; CHECK(gfxGetContentRowOffset() == 0); }
   CHECK(gfxGetContentRowOffset() == 2);

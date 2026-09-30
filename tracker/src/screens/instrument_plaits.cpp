@@ -2,9 +2,11 @@
 #include "corelib_gfx.h"
 #include "utils.h"
 #include "model_catalog.h"
+#include "waveform_display.h"
 #include <string.h>
 
 static int engineButtonDown;
+static Bitmap* previewBitmap;
 static bool isAlt(void);
 
 static const char* plaitsChordName(uint16_t harmonics) {
@@ -17,6 +19,14 @@ static int usesChordNames(const InstrumentPlaits* p) {
   // Plaits CHORD and the two Plaits-Alt chord engines use the stock 11-entry
   // chord bank selected by Harmonics. The other macro controls stay continuous.
   return (!isAlt() && p->engine == 14) || (isAlt() && (p->engine == 15 || p->engine == 17));
+}
+
+static void drawPreview(const InstrumentPlaits* plaits) {
+  if (appSettings.persistentWaveform) return;
+  if (!previewBitmap) previewBitmap = gfxBitmapCreate(32, 3);
+  renderPlaitsPreview(previewBitmap, plaits, isAlt());
+  gfxSetFgColor(appSettings.colorScheme.textInfo);
+  gfxDrawBitmap(previewBitmap, 0, 16);
 }
 
 static bool isAlt(void) {
@@ -67,6 +77,7 @@ static void drawStatic(void) {
   gfxPrint(0, 12, "Env Mode");
   InstrumentPlaits* p = &chipnomadState->project.instruments[cInstrument].chip.plaits;
   instrumentCommonDrawVoicePostStatic(p->envelopeMode != 0);
+  drawPreview(p);
   if (p->envelopeMode == 0) {
     gfxSetFgColor(lpgControlsActive(p) ? appSettings.colorScheme.textTitles : appSettings.colorScheme.textInfo);
     gfxPrint(0, 14, lpgControlsActive(p) ? "LPG" : "LPG N/A");

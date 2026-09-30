@@ -22,6 +22,8 @@ int cInstrument = 0;
 static int isCharEdit = 0;
 static int typeButtonDown = 0;
 static Bitmap* envelopePreviewBitmap = NULL;
+static Bitmap* livePreviewBitmap = NULL;
+static int livePreviewWasActive = 0;
 
 static SelectionItem instrumentTypeChip[] = {
   {NULL, (int)InstrumentType::AY1, NULL, 0},
@@ -407,13 +409,13 @@ void instrumentCommonDrawVoicePostStatic(int drawEnvelope) {
     gfxPrint(11, 14, "D");
     gfxPrint(16, 14, "S");
     gfxPrint(21, 14, "R");
-    gfxPrint(25, 14, "Shape");
+    gfxPrint(appSettings.persistentWaveform ? 25 : 27, 14, "Shape");
   }
 }
 
 int instrumentCommonDrawVoicePostCursor(int col, int row) {
   if (row == 9) {
-    gfxCursor(col == 4 ? 31 : 7 + col * 5, 14, 2);
+    gfxCursor(col == 4 ? (appSettings.persistentWaveform ? 31 : 35) : 7 + col * 5, 14, 2);
     return 1;
   }
   if (col && row >= 4 && row <= 8) {
@@ -440,7 +442,7 @@ int instrumentCommonDrawVoicePostField(int col, int row, CellState state,
   if (row == 9) {
     const uint8_t values[] = {post->attack, post->decay, post->sustain, post->release, post->envelopeShape};
     gfxSetFgColor(state == CellState::focus ? appSettings.colorScheme.textValue : appSettings.colorScheme.textDefault);
-    gfxPrint(col == 4 ? 31 : 7 + col * 5, 14, byteToHex(values[col]));
+    gfxPrint(col == 4 ? (appSettings.persistentWaveform ? 31 : 35) : 7 + col * 5, 14, byteToHex(values[col]));
     instrumentCommonDrawEnvelopePreview(post->attack, post->decay, post->sustain, post->release, post->envelopeShape);
     return 1;
   }
@@ -503,13 +505,14 @@ static void drawEnvelopePreviewSegment(Bitmap* bitmap, int x0, float start, int 
 
 void instrumentCommonDrawEnvelopePreview(uint8_t attack, uint8_t decay, uint8_t sustain, uint8_t release, uint8_t shape) {
   const bool pdVco = chipnomadState->project.instruments[cInstrument].type == InstrumentType::PDVCO;
-  const int columns = pdVco ? 15 : 17;
+  const int columns = appSettings.persistentWaveform && pdVco ? 15 : 17;
+  const int rows = appSettings.persistentWaveform ? 2 : 3;
   if (envelopePreviewBitmap && (envelopePreviewBitmap->widthPixels != columns * gfxGetCharWidth() ||
-      envelopePreviewBitmap->heightPixels != 2 * gfxGetCharHeight())) {
+      envelopePreviewBitmap->heightPixels != rows * gfxGetCharHeight())) {
     gfxBitmapFree(envelopePreviewBitmap);
     envelopePreviewBitmap = nullptr;
   }
-  if (!envelopePreviewBitmap) envelopePreviewBitmap = gfxBitmapCreate(columns, 2);
+  if (!envelopePreviewBitmap) envelopePreviewBitmap = gfxBitmapCreate(columns, rows);
   if (!envelopePreviewBitmap) return;
 
   Bitmap* bitmap = envelopePreviewBitmap;
@@ -525,12 +528,43 @@ void instrumentCommonDrawEnvelopePreview(uint8_t attack, uint8_t decay, uint8_t 
   drawEnvelopePreviewSegment(bitmap, decayEnd, sustainLevel, releaseStart, sustainLevel, shape);
   drawEnvelopePreviewSegment(bitmap, releaseStart, sustainLevel, width, 0.0f, shape);
   gfxSetFgColor(appSettings.colorScheme.textTitles);
-  gfxDrawBitmap(bitmap, pdVco ? 18 :
+  gfxDrawBitmap(bitmap, !appSettings.persistentWaveform ? 6 : pdVco ? 18 :
     chipnomadState->project.instruments[cInstrument].type == InstrumentType::Sample ? 16 : 6, 15);
 }
 
 void instrumentCommonDrawLivePreview(void) {
-  // Live audio now belongs to the persistent header. Keep this area for ADSR.
+  if (!appSettings.persistentWaveform) {
+    const PlaybackStatus* playback = chipnomadGetPlaybackStatus(chipnomadState);
+    int track = -1;
+    for (int i = 0; i < chipnomadState->project.tracksCount; ++i) {
+      if (playback->tracks[i].note.instrument == cInstrument &&
+          chipnomadState->voiceMonitors[i].active &&
+          (track < 0 || i == *pSongTrack)) track = i;
+    }
+    if (track < 0) {
+      if (livePreviewWasActive) currentScreen->fullRedraw();
+      livePreviewWasActive = 0;
+      return;
+    }
+    if (!livePreviewBitmap) livePreviewBitmap = gfxBitmapCreate(32, 3);
+    gfxClearRect(0, 16, 32, 3);
+    renderFloatPreview(livePreviewBitmap, chipnomadState->voiceMonitors[track].samples,
+                       VOICE_MONITOR_SAMPLES);
+    gfxSetFgColor(appSettings.colorScheme.textInfo);
+    gfxDrawBitmap(livePreviewBitmap, 0, 16);
+    Instrument* instrument = &chipnomadState->project.instruments[cInstrument];
+    InstrumentVoicePostSettings* post = voicePostSettings(instrument, instrument->type);
+    if (post && instrument->type != InstrumentType::DrumSynth && instrument->type != InstrumentType::Sintered &&
+        ((instrument->type != InstrumentType::Plaits &&
+                  instrument->type != InstrumentType::PlaitsAlt) ||
+                 instrument->chip.plaits.envelopeMode != 0)) {
+      instrumentCommonDrawEnvelopePreview(post->attack, post->decay, post->sustain,
+                                          post->release, post->envelopeShape);
+    }
+    livePreviewWasActive = 1;
+    return;
+  }
+  // The opt-in header leaves the footer available for ADSR.
   Instrument* instrument = &chipnomadState->project.instruments[cInstrument];
   InstrumentVoicePostSettings* post = voicePostSettings(instrument, instrument->type);
   if (post && instrument->type != InstrumentType::DrumSynth && instrument->type != InstrumentType::Sintered &&

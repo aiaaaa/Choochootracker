@@ -41,6 +41,7 @@ void initDefaultAppSettings(void) {
   appSettings.quickHelpReleaseSeen = 0;
   appSettings.ayWavetableLfoView = 0;
   appSettings.stickLiveMode = StickLiveMode::hold;
+  appSettings.persistentWaveform = 0;
 
   // Zero out key mapping (platform-specific defaults applied later)
   memset(&appSettings.keyMapping, 0, sizeof(KeyMapping));
@@ -145,6 +146,7 @@ int settingsSave(void) {
   const char* stickLiveMode = appSettings.stickLiveMode == StickLiveMode::free ? "FREE" :
     appSettings.stickLiveMode == StickLiveMode::toggle ? "TOGGLE" : "HOLD";
   fprintf(file, "stickLiveMode: %s\n", stickLiveMode);
+  fprintf(file, "persistentWaveform: %d\n", appSettings.persistentWaveform);
 
   // Save key mapping codes
   fprintf(file, "keyUp: %d,%d,%d\n", appSettings.keyMapping.keyUp[0].code, appSettings.keyMapping.keyUp[1].code, appSettings.keyMapping.keyUp[2].code);
@@ -223,7 +225,11 @@ int settingsLoad(void) {
       len--;
     }
 
-    if (strncmp(line, "screenWidth: ", 13) == 0) {
+    if (strncmp(line, "persistentWaveform: ", 20) == 0) {
+      int enabled;
+      if (sscanf(line + 20, "%d", &enabled) == 1 && (enabled == 0 || enabled == 1))
+        appSettings.persistentWaveform = (uint8_t)enabled;
+    } else if (strncmp(line, "screenWidth: ", 13) == 0) {
       sscanf(line + 13, "%d", &appSettings.screenWidth);
     } else if (strncmp(line, "screenHeight: ", 14) == 0) {
       sscanf(line + 14, "%d", &appSettings.screenHeight);

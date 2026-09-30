@@ -23,7 +23,7 @@ static int macroIndex(int row) {
   if (row >= 4 && row <= 8) return row - 4;
   return row >= 10 && row <= 12 ? row - 5 : -1;
 }
-static int macroY(int index) { return !isVCO() || index < 5 ? 8 + index : index == 5 ? 13 : 9 + index; }
+static int macroY(int index) { return !isVCO() || index < 5 ? 8 + index : !appSettings.persistentWaveform ? 11 + index : index == 5 ? 13 : 9 + index; }
 static void cancelled() { screenSetup(&screenInstrument, cInstrument); }
 static void loaded(const char* path) {
   Instrument* instrument = &chipnomadState->project.instruments[cInstrument];

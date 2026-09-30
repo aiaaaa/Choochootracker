@@ -196,7 +196,8 @@ static ScreenData screenData = {
 
 // Map logical row to screen Y
 static int rowToY(int row) {
-  return row + 1; // Compact blocks: physical rows 3-10 and 11-18.
+  if (appSettings.persistentWaveform) return row + 1;
+  return row < ROWS_PER_MOD ? row + 2 : row + 3;
 }
 
 // Map (col, row) to modulator index (0-3)
@@ -337,7 +338,7 @@ static void drawStatic(void) {
   if (chipnomadState->project.instruments[cInstrument].type == InstrumentType::none) return;
 
   for (int block = 0; block < 2; block++) {
-    int baseY = block == 0 ? 1 : 9;
+    int baseY = rowToY(block * ROWS_PER_MOD);
 
     gfxSetFgColor(cs.textTitles);
     gfxPrintf(COL_LEFT_X, baseY, "Mod%d", block == 0 ? 1 : 2);

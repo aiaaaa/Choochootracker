@@ -6,6 +6,7 @@
 #include "synth/scwf_voice.h"
 #include "audio_manager.h"
 #include "utils.h"
+#include "waveform_display.h"
 
 #include <string.h>
 
@@ -13,6 +14,15 @@ static int loadSlot;
 static int buttonDown;
 static constexpr int sourceValueX = 9;
 static constexpr int sourceValueWidth = 7;
+static Bitmap* previewBitmap;
+
+static void drawPreview(const InstrumentSCWF* scwf) {
+  if (appSettings.persistentWaveform) return;
+  if (!previewBitmap) previewBitmap = gfxBitmapCreate(32, 3);
+  renderSCWFPreview(previewBitmap, scwf, NULL, NULL);
+  gfxSetFgColor(appSettings.colorScheme.textInfo);
+  gfxDrawBitmap(previewBitmap, 0, 16);
+}
 
 static const char* filename(const char* path) {
   const char* separator = strrchr(path, PATH_SEPARATOR);
@@ -73,6 +83,7 @@ static void drawStatic(void) {
   gfxPrint(0,8,"Osc A"); gfxPrint(0,9,"Osc B");
   gfxPrint(0,10,"Detune"); gfxPrint(0,11,"Mix");
   instrumentCommonDrawVoicePostStatic(1);
+  drawPreview(&chipnomadState->project.instruments[cInstrument].chip.scwf);
 }
 
 static void drawCursor(int col, int row) {

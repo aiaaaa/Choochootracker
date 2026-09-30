@@ -280,6 +280,16 @@ static int screenTouchEnvelopeAt(int col, int row, int* targetCol) {
 
 static int screenTouchCellAt(int col, int row, int* targetCol, int* targetRow) {
   if (!touchScreenData || touchScreenData->selectMode == 1) return 0;
+  if (currentScreen == &screenSettings) {
+    int field = row >= 2 && row <= 15 ? row - 2 : row == 18 ? 14 : -1;
+    if (field < 0) return 0;
+    const int widths[] = {11, 9, 16};
+    if (field < 10 || field == 13) { if (col < 23 || col >= 33) return 0; }
+    else if (col < 0 || col >= (field == 14 ? 19 : widths[field - 10])) return 0;
+    if (targetCol) *targetCol = 0;
+    if (targetRow) *targetRow = field;
+    return 1;
+  }
   if (currentScreen == &screenTable) {
     if (row == 1 && col >= 8 && col < 14) {
       if (targetCol) *targetCol = 0;

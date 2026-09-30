@@ -3,6 +3,7 @@
 #include "corelib_gfx.h"
 
 int screenScopeRows(const AppScreen* screen) {
+  if (!appSettings.persistentWaveform) return 0;
   return screen == &screenSong || screen == &screenChain ||
     screen == &screenPhrase || screen == &screenTable ||
     screen == &screenInstrument || screen == &screenInstrumentPool ||
