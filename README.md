@@ -1,3 +1,5 @@
+> **Personal R36H build:** upstream `main` plus my chosen additions. See [the feature list and update process](PERSONAL_FORK.md).
+
 > ** ALPHA VERSION. Software is not finished. CHOO CHOO.**
 
 ```*        .         *               .            *
