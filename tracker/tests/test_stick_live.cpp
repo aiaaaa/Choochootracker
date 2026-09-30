@@ -314,18 +314,19 @@ TEST_CASE_FIXTURE(StickLiveFixture, "Settings row, padded value, cursor and subs
   CHECK(mockCursorWidth == 6);
 
   const char* labels[] = {"Key mapping", "Load font", "Edit color theme", "Track visuals", "Quit ChooChooTracker"};
-  const int lines[] = {12, 13, 14, 15, 18};
+  const int lines[] = {12, 13, 14, 16, 18};
+  const int rows[] = {10, 11, 12, 14, 15};
   const int widths[] = {11, 9, 16, 13, 19}; // preserve existing action cursor widths
   const AppScreen* destinations[] = {&screenKeyMapping, &screenFileBrowser, &screenColorTheme, &screenTrackVisuals};
   mockQuitTriggered = 0;
   for (int i = 0; i < 5; ++i) {
-    screen->drawField(0, 10 + i, CellState::focus);
+    screen->drawField(0, rows[i], CellState::focus);
     CHECK(std::string(mockGfxCells[lines[i]], std::string(labels[i]).size()) == labels[i]);
-    screen->drawCursor(0, 10 + i);
+    screen->drawCursor(0, rows[i]);
     CHECK(mockCursorX == 0);
     CHECK(mockCursorY == lines[i]);
     CHECK(mockCursorWidth == widths[i]);
-    screen->onEdit(0, 10 + i, CellEditAction::tap);
+    screen->onEdit(0, rows[i], CellEditAction::tap);
     if (i < 4) {
       CHECK(currentScreen == destinations[i]);
       CHECK_FALSE(mockQuitTriggered);
@@ -335,4 +336,22 @@ TEST_CASE_FIXTURE(StickLiveFixture, "Settings row, padded value, cursor and subs
   CHECK(std::string(mockBrowserTitle) == "LOAD FONT");
   CHECK(std::string(mockBrowserExtension) == ".cnfont");
 }
+}
+
+TEST_CASE_FIXTURE(StickLiveFixture, "Persistent waveform is opt-in and its Settings toggle persists") {
+  CHECK(appSettings.persistentWaveform == 0);
+  screenSettings.fullRedraw();
+  REQUIRE(mockScreenData != nullptr);
+  auto* screen = mockScreenData;
+  int modified = projectModified;
+  screen->drawField(0, 13, CellState::focus);
+  CHECK(std::string(mockGfxCells[15] + 23, 3) == "OFF");
+  REQUIRE(screen->onEdit(0, 13, CellEditAction::tap) == 1);
+  CHECK(appSettings.persistentWaveform == 1);
+  REQUIRE(settingsLoad() == 0);
+  CHECK(appSettings.persistentWaveform == 1);
+  REQUIRE(screen->onEdit(0, 13, CellEditAction::tap) == 1);
+  REQUIRE(settingsLoad() == 0);
+  CHECK(appSettings.persistentWaveform == 0);
+  CHECK(projectModified == modified);
 }
