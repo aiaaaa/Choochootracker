@@ -105,6 +105,7 @@ extern const AppScreen screenAYWavetable;
 extern const AppScreen screenExport;
 extern const AppScreen screenManage;
 extern const AppScreen screenSettings;
+extern const AppScreen screenTrackVisuals;
 extern const AppScreen screenMixer;
 extern const AppScreen screenSelectionPopup;
 int screenMixerGetPage(void);

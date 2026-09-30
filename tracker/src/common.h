@@ -48,6 +48,14 @@ struct KeyMapping {
 
 enum class StickLiveMode { hold, toggle, free };
 
+enum class TrackVisualMode : uint8_t { detailed, audio };
+struct TrackVisualSettings {
+  TrackVisualMode mode = TrackVisualMode::detailed;
+  uint8_t wave = 1;
+  uint8_t envelope = 1;
+  uint8_t noise = 1;
+};
+
 struct AppSettings {
   int screenWidth;
   int screenHeight;
@@ -67,6 +75,7 @@ struct AppSettings {
   int quickHelpReleaseSeen;
   int ayWavetableLfoView;
   StickLiveMode stickLiveMode;
+  TrackVisualSettings trackVisuals[PROJECT_MAX_TRACKS];
   KeyMapping keyMapping;
   ColorScheme colorScheme;
   char themeName[THEME_NAME_LENGTH + 1];

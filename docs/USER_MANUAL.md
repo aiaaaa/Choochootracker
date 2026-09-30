@@ -158,6 +158,10 @@ A code-drawn pixel piano below the eight right-side track rows lights sounding p
 
 The Project page puts the application version on its own line and separates Load, Save, New, Export and Manage from the project metadata with blank rows. Cursor positions and touch targets follow the displayed fields; project settings and file operations are unchanged.
 
+### Audio display telemetry
+
+Audio readouts use a UI-owned snapshot of the final mix and individual track contributions. Track samples and stereo peaks are captured after track level and tilt, before shared effect returns and master gain. Monitoring does not change the audio signal. The audio callback publishes fixed-size snapshots without locks or allocation; display history spans about 21 ms.
+
 ## 4. Song, Chain and Phrase
 
 ### Song
@@ -953,6 +957,9 @@ Use **Save** before changing instrument types or loading another project.
 - **Braids BITS / DRFT / SIGN** apply globally to every Braids instrument.
 - **Stick live mode** selects `HOLD`, `TOGGLE`, or `FREE` for the existing mapped Stick live button.
 - **Key mapping**, **Load font**, and **Edit color theme** customise the interface. ChipNomad fonts and themes should work.
+- **Track visuals** opens a per-track table for the eight right-side mini readouts. `DETAIL` is the default, with `WAVE`, `ENV`, and `NOISE` enabled. These retain the instrument waveform, envelope overlay and AY noise texture where supported. `WAVE` controls the main trace; the other layers can be shown independently.
+- Set a track's mode to `AUDIO` for a simple view of its summed audio after track level/tilt, before shared effects and master volume. This works across engines and chord voices, with a padded centre line and no envelope/noise decorations. `WAVE` hides or shows this readout; `ENV` and `NOISE` show `---` and their Detailed-mode choices are remembered.
+- In **Track visuals**, tap **EDIT** to toggle a field, or use **EDIT + direction**. **All audio** enables the clean readout for every track; **All detailed** returns to each track's saved layer choices. **Done** or **SHIFT + LEFT** saves these application preferences and returns to Settings. They do not alter the song or audio output.
 - **Quit ChooChooTracker** exits cleanly.
 
 ## 13. Performance and troubleshooting
