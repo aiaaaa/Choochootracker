@@ -286,7 +286,7 @@ TEST_CASE_FIXTURE(StickLiveFixture, "absent, older and invalid settings default 
 TEST_CASE_FIXTURE(StickLiveFixture, "Settings row, padded value, cursor and subsequent actions align") {
   screenSettings.fullRedraw();
   REQUIRE(mockScreenData != nullptr);
-  CHECK(mockScreenData->rows == 15);
+  CHECK(mockScreenData->rows == 16);
   auto* screen = mockScreenData;
   CHECK(screen->getColumnCount(9) == 1);
   screen->drawField(0, 9, CellState::focus);
@@ -354,4 +354,26 @@ TEST_CASE_FIXTURE(StickLiveFixture, "Persistent waveform is opt-in and its Setti
   REQUIRE(settingsLoad() == 0);
   CHECK(appSettings.persistentWaveform == 0);
   CHECK(projectModified == modified);
+}
+
+TEST_CASE_FIXTURE(StickLiveFixture, "Personal visual settings coexist and survive saving either option") {
+  mockQuitTriggered = 0;
+  appSettings.trackVisuals[0].mode = TrackVisualMode::audio;
+  appSettings.trackVisuals[0].envelope = 0;
+  screenSettings.fullRedraw();
+  REQUIRE(mockScreenData != nullptr);
+  auto* settings = mockScreenData;
+  REQUIRE(settings->onEdit(0, 13, CellEditAction::tap) == 1);
+  REQUIRE(settingsLoad() == 0);
+  CHECK(appSettings.persistentWaveform == 1);
+  CHECK(appSettings.trackVisuals[0].mode == TrackVisualMode::audio);
+  CHECK(appSettings.trackVisuals[0].envelope == 0);
+  settings->onEdit(0, 14, CellEditAction::tap);
+  CHECK(currentScreen == &screenTrackVisuals);
+  CHECK_FALSE(mockQuitTriggered);
+  appSettings.trackVisuals[1].noise = 0;
+  REQUIRE(settingsSave() == 0);
+  REQUIRE(settingsLoad() == 0);
+  CHECK(appSettings.persistentWaveform == 1);
+  CHECK(appSettings.trackVisuals[1].noise == 0);
 }
