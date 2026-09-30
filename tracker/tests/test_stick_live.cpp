@@ -286,7 +286,7 @@ TEST_CASE_FIXTURE(StickLiveFixture, "absent, older and invalid settings default 
 TEST_CASE_FIXTURE(StickLiveFixture, "Settings row, padded value, cursor and subsequent actions align") {
   screenSettings.fullRedraw();
   REQUIRE(mockScreenData != nullptr);
-  CHECK(mockScreenData->rows == 14);
+  CHECK(mockScreenData->rows == 15);
   auto* screen = mockScreenData;
   CHECK(screen->getColumnCount(9) == 1);
   screen->drawField(0, 9, CellState::focus);
@@ -313,12 +313,12 @@ TEST_CASE_FIXTURE(StickLiveFixture, "Settings row, padded value, cursor and subs
   CHECK(mockCursorY == 11);
   CHECK(mockCursorWidth == 6);
 
-  const char* labels[] = {"Key mapping", "Load font", "Edit color theme", "Quit ChooChooTracker"};
-  const int lines[] = {12, 13, 14, 18};
-  const int widths[] = {11, 9, 16, 19}; // preserve existing action cursor widths
-  const AppScreen* destinations[] = {&screenKeyMapping, &screenFileBrowser, &screenColorTheme};
+  const char* labels[] = {"Key mapping", "Load font", "Edit color theme", "Track visuals", "Quit ChooChooTracker"};
+  const int lines[] = {12, 13, 14, 15, 18};
+  const int widths[] = {11, 9, 16, 13, 19}; // preserve existing action cursor widths
+  const AppScreen* destinations[] = {&screenKeyMapping, &screenFileBrowser, &screenColorTheme, &screenTrackVisuals};
   mockQuitTriggered = 0;
-  for (int i = 0; i < 4; ++i) {
+  for (int i = 0; i < 5; ++i) {
     screen->drawField(0, 10 + i, CellState::focus);
     CHECK(std::string(mockGfxCells[lines[i]], std::string(labels[i]).size()) == labels[i]);
     screen->drawCursor(0, 10 + i);
@@ -326,7 +326,7 @@ TEST_CASE_FIXTURE(StickLiveFixture, "Settings row, padded value, cursor and subs
     CHECK(mockCursorY == lines[i]);
     CHECK(mockCursorWidth == widths[i]);
     screen->onEdit(0, 10 + i, CellEditAction::tap);
-    if (i < 3) {
+    if (i < 4) {
       CHECK(currentScreen == destinations[i]);
       CHECK_FALSE(mockQuitTriggered);
     }
