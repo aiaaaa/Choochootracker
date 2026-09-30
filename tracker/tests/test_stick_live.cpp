@@ -3,6 +3,7 @@
 #include "app.h"
 #include "app_ui_mock.h"
 #include "chipnomad_lib_live_stick.h"
+#include "corelib_file.h"
 
 #include <chrono>
 #include <filesystem>
@@ -36,10 +37,20 @@ struct StickLiveFixture {
   std::filesystem::path originalPath = std::filesystem::current_path();
   std::filesystem::path testPath = std::filesystem::temp_directory_path() /
     ("choochootracker-stick-live-" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+  // settingsSave()/settingsLoad() resolve their path from the running
+  // executable's own directory (see corelib_file.cpp), not the process cwd,
+  // so chdir'ing into testPath does not isolate settings.txt between test
+  // cases. Track and clean up the real resolved path directly instead.
+  std::string realSettingsPath = [] {
+    char defaultDir[PATH_LENGTH];
+    if (fileGetDefaultDirectory(defaultDir, sizeof(defaultDir)) != 0) return std::string();
+    return std::string(defaultDir) + "/settings.txt";
+  }();
 
   StickLiveFixture() {
     std::filesystem::create_directories(testPath);
     std::filesystem::current_path(testPath);
+    if (!realSettingsPath.empty()) std::filesystem::remove(realSettingsPath);
     initDefaultAppSettings();
     appSettings.keyMapping.keyMotionLive[0] = keyboardLive;
     appSettings.keyMapping.keyMotionLive[1] = gamepadLive;
@@ -56,6 +67,7 @@ struct StickLiveFixture {
     chipnomadSetMotionRecordMode(0, 0);
     std::filesystem::current_path(originalPath);
     std::filesystem::remove_all(testPath);
+    if (!realSettingsPath.empty()) std::filesystem::remove(realSettingsPath);
   }
 };
 }
@@ -262,7 +274,7 @@ TEST_CASE_FIXTURE(StickLiveFixture, "absent, older and invalid settings default 
   for (const char* content : {"screenWidth: 640\n", "stickLiveMode: INVALID\n",
        "stickLiveMode: 1\n", "stickLiveMode: TOGGLEjunk\n", "stickLiveMode: \n"}) {
     appSettings.stickLiveMode = StickLiveMode::toggle;
-    std::ofstream("settings.txt") << content;
+    std::ofstream(realSettingsPath) << content;
     REQUIRE(settingsLoad() == 0);
     CHECK(appSettings.stickLiveMode == StickLiveMode::hold);
   }
