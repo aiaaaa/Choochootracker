@@ -4,7 +4,7 @@
 # Compiler settings
 CXX = c++
 CFLAGS = -std=c++17 -Wall -g -O0 -DTEST -DTEST_PORTMASTER_INPUT
-LDFLAGS = -lm
+LDFLAGS = -lm -pthread
 
 # Build directory
 BUILD_DIR = build/tests
@@ -56,6 +56,9 @@ CHIPNOMAD_LIB_SOURCES = $(wildcard ../chipnomad_lib/*.cpp) \
 
 TRACKER_SRC_SOURCES = src/app.cpp \
                       src/piano_display.cpp \
+
+                      src/screens/screen_track_visuals.cpp \
+                      src/monitor_display.cpp \
                       src/screens/screen_settings.cpp \
                       src/string_utils.cpp \
                       src/common.cpp \

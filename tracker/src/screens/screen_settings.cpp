@@ -21,7 +21,7 @@ static void settingsDrawField(int col, int row, CellState state);
 static int settingsOnEdit(int col, int row, CellEditAction action);
 
 static ScreenData screenSettingsData = {
-  .rows = 14,
+  .rows = 15,
   .cursorRow = 0,
   .cursorCol = 0,
   .topRow = 0,
@@ -117,6 +117,8 @@ void settingsDrawCursor(int col, int row) {
   } else if (row == 12 && col == 0) {
     gfxCursor(0, 14, 16);
   } else if (row == 13 && col == 0) {
+    gfxCursor(0, 15, 13);
+  } else if (row == 14 && col == 0) {
     gfxCursor(0, 18, 19);
   }
 }
@@ -195,6 +197,9 @@ void settingsDrawField(int col, int row, CellState state) {
     gfxPrint(0, 14, "Edit color theme");
   } else if (row == 13 && col == 0) {
     gfxSetFgColor(state == CellState::focus ? appSettings.colorScheme.textValue : appSettings.colorScheme.textDefault);
+    gfxPrint(0, 15, "Track visuals");
+  } else if (row == 14 && col == 0) {
+    gfxSetFgColor(state == CellState::focus ? appSettings.colorScheme.textValue : appSettings.colorScheme.textDefault);
     gfxPrint(0, 18, "Quit ChooChooTracker");
   }
 }
@@ -271,6 +276,9 @@ int settingsOnEdit(int col, int row, CellEditAction action) {
     screenSetup(&screenColorTheme, 0);
     return 0;
   } else if (row == 13 && col == 0 && action == CellEditAction::tap) {
+    screenSetup(&screenTrackVisuals, 0);
+    return 0;
+  } else if (row == 14 && col == 0 && action == CellEditAction::tap) {
     // Trigger exit event
     mainLoopTriggerQuit();
     return 1;

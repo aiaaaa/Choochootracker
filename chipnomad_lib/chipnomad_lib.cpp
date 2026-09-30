@@ -1,3 +1,4 @@
+#include "audio_monitor.h"
 #include "chipnomad_lib.h"
 #include "chipnomad_lib_live_stick.h"
 #include "playback.h"
@@ -454,10 +455,11 @@ static float effectiveTrackSend(ChipNomadState* state, int trackIdx,
 
 static inline void mixTrackSample(ChipNomadState* state, int trackIdx,
                                   float* mix, float* reverb, float* delay,
-                                  float sample, int channel, float reverbSend,
+                                  float sample, int sampleIndex, float reverbSend,
                                   float delaySend) {
-  sample = state->trackTilt[trackIdx].process(sample, channel,
+  sample = state->trackTilt[trackIdx].process(sample, sampleIndex & 1,
     state->audioProject.trackTilt[trackIdx], state->audioProject.tiltPivotHz);
+  state->audioMonitor->add(trackIdx, sampleIndex, sample);
   float previous = *mix;
   *mix += sample;
   *reverb += sample * reverbSend;
@@ -499,6 +501,7 @@ ChipNomadState* chipnomadCreate(void) {
     return NULL;
   }
 
+  state->audioMonitor = new AudioMonitor();
   state->masterEffects = new MasterEffects();
   state->masterEffects->init(96000.0f);
 
@@ -563,6 +566,7 @@ void chipnomadDestroy(ChipNomadState* state) {
   free(state->delayBuffer);
   delete state->masterEffects;
   delete state->audioCommands;
+  delete state->audioMonitor;
 
   free(state);
 }
@@ -626,6 +630,7 @@ static int hasAudioRateModulation(const ChipNomadState* state) {
 int chipnomadReserveRenderBuffers(ChipNomadState* state, int frames) {
   if (!state || frames <= 0 || frames > INT_MAX / 2) return 1;
   int requiredSize = frames * 2;
+  if (!state->audioMonitor->reserve(frames)) return 1;
   return requiredSize <= state->mixBufferSize || resizeMixBuffers(state, requiredSize) ? 0 : 1;
 }
 
@@ -765,6 +770,7 @@ static int prepareRenderChunk(ChipNomadState* state, float* output, int frames) 
     state->audioCommands->setRenderBufferOverflow();
     return 0;
   }
+  state->audioMonitor->beginChunk(frames);
   memset(output, 0, requiredSize * sizeof(float));
   memset(state->reverbBuffer, 0, requiredSize * sizeof(float));
   memset(state->delayBuffer, 0, requiredSize * sizeof(float));
@@ -786,7 +792,7 @@ static void renderChipTracks(ChipNomadState* state, float* output, int frames) {
     float delaySend = effectiveTrackSend(state, chipIdx, false);
     for (int i = 0; i < frames * 2; ++i)
       mixTrackSample(state, chipIdx, &output[i], &state->reverbBuffer[i], &state->delayBuffer[i],
-                     state->mixBuffer[i] * gain, i & 1, reverbSend, delaySend);
+                     state->mixBuffer[i] * gain, i, reverbSend, delaySend);
   }
 }
 
@@ -805,9 +811,9 @@ static void renderMonoVoiceTracks(ChipNomadState* state, Voice* const voices[][C
       for (int i = 0; i < frames; ++i) {
         float sample = state->mixBuffer[i] * 0.25f * trackGain;
         mixTrackSample(state, trackIdx, &output[i * 2], &state->reverbBuffer[i * 2],
-                       &state->delayBuffer[i * 2], sample, 0, reverbSend, delaySend);
+                       &state->delayBuffer[i * 2], sample, i * 2, reverbSend, delaySend);
         mixTrackSample(state, trackIdx, &output[i * 2 + 1], &state->reverbBuffer[i * 2 + 1],
-                       &state->delayBuffer[i * 2 + 1], sample, 1, reverbSend, delaySend);
+                       &state->delayBuffer[i * 2 + 1], sample, i * 2 + 1, reverbSend, delaySend);
       }
     }
   }
@@ -827,7 +833,7 @@ static void renderStereoVoiceTracks(ChipNomadState* state, Voice* const voices[]
       float delaySend = effectiveTrackSend(state, trackIdx, false);
       for (int i = 0; i < frames * 2; ++i)
         mixTrackSample(state, trackIdx, &output[i], &state->reverbBuffer[i], &state->delayBuffer[i],
-                       state->mixBuffer[i] * gain, i & 1, reverbSend, delaySend);
+                       state->mixBuffer[i] * gain, i, reverbSend, delaySend);
     }
   }
 }
@@ -848,6 +854,7 @@ static void processMasterMix(ChipNomadState* state, float* output, int frames) {
 
 int chipnomadRender(ChipNomadState* state, float* buffer, int samples) {
   if (!state || !buffer || samples <= 0 || samples > INT_MAX / 2) return 0;
+  state->audioMonitor->beginRender();
   int samplesLeft = samples;
   while (samplesLeft > 0) {
     if ((int)state->frameSampleCounter == 0 && advancePlaybackFrame(state)) break;
@@ -872,13 +879,19 @@ int chipnomadRender(ChipNomadState* state, float* buffer, int samples) {
       captureVoiceMonitor(state, trackIdx, state->mixBuffer, frames, 2, voice->envelopeLevel());
       float gain = state->audioProject.trackVolume[trackIdx] / 100.0f;
       float reverbSend = effectiveTrackSend(state, trackIdx, true), delaySend = effectiveTrackSend(state, trackIdx, false);
-      for (int i = 0; i < frames * 2; ++i) mixTrackSample(state, trackIdx, &output[i], &state->reverbBuffer[i], &state->delayBuffer[i], state->mixBuffer[i] * gain, i & 1, reverbSend, delaySend);
+      for (int i = 0; i < frames * 2; ++i) mixTrackSample(state, trackIdx, &output[i], &state->reverbBuffer[i], &state->delayBuffer[i], state->mixBuffer[i] * gain, i, reverbSend, delaySend);
     }
     processMasterMix(state, output, frames);
+    state->audioMonitor->finishChunk(output, frames, state->sampleRate);
     samplesLeft -= frames;
     state->frameSampleCounter -= (float)frames;
   }
   if (samplesLeft > 0) memset(buffer + (samples - samplesLeft) * 2, 0, samplesLeft * 2 * sizeof(float));
+  if (samplesLeft > 0) {
+    state->audioMonitor->beginChunk(samplesLeft);
+    state->audioMonitor->finishChunk(buffer + (samples - samplesLeft) * 2, samplesLeft, state->sampleRate);
+  }
+  state->audioMonitor->publish();
   return samples - samplesLeft;
 }
 
