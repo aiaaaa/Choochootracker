@@ -21,7 +21,7 @@ static void settingsDrawField(int col, int row, CellState state);
 static int settingsOnEdit(int col, int row, CellEditAction action);
 
 static ScreenData screenSettingsData = {
-  .rows = 15,
+  .rows = 16,
   .cursorRow = 0,
   .cursorCol = 0,
   .topRow = 0,
@@ -117,9 +117,11 @@ void settingsDrawCursor(int col, int row) {
   } else if (row == 12 && col == 0) {
     gfxCursor(0, 14, 16);
   } else if (row == 13 && col == 0) {
-    gfxCursor(0, 15, 13);
-  } else if (row == 14 && col == 0) {
+    gfxCursor(23, 15, 3);
+  } else if (row == 15 && col == 0) {
     gfxCursor(0, 18, 19);
+  } else if (row == 14 && col == 0) {
+    gfxCursor(0, 16, 13);
   }
 }
 
@@ -196,11 +198,16 @@ void settingsDrawField(int col, int row, CellState state) {
     gfxSetFgColor(state == CellState::focus ? appSettings.colorScheme.textValue : appSettings.colorScheme.textDefault);
     gfxPrint(0, 14, "Edit color theme");
   } else if (row == 13 && col == 0) {
+    gfxSetFgColor(appSettings.colorScheme.textDefault);
+    gfxPrint(0, 15, "Persistent waveform");
     gfxSetFgColor(state == CellState::focus ? appSettings.colorScheme.textValue : appSettings.colorScheme.textDefault);
-    gfxPrint(0, 15, "Track visuals");
-  } else if (row == 14 && col == 0) {
+    gfxPrint(23, 15, appSettings.persistentWaveform ? "ON " : "OFF");
+  } else if (row == 15 && col == 0) {
     gfxSetFgColor(state == CellState::focus ? appSettings.colorScheme.textValue : appSettings.colorScheme.textDefault);
     gfxPrint(0, 18, "Quit ChooChooTracker");
+  } else if (row == 14 && col == 0) {
+    gfxSetFgColor(state == CellState::focus ? appSettings.colorScheme.textValue : appSettings.colorScheme.textDefault);
+    gfxPrint(0, 16, "Track visuals");
   }
 }
 
@@ -275,10 +282,17 @@ int settingsOnEdit(int col, int row, CellEditAction action) {
   } else if (row == 12 && col == 0 && action == CellEditAction::tap) {
     screenSetup(&screenColorTheme, 0);
     return 0;
-  } else if (row == 13 && col == 0 && action == CellEditAction::tap) {
+  } else if (row == 13 && col == 0) {
+    uint8_t value = appSettings.persistentWaveform;
+    if (action == CellEditAction::tap || action == CellEditAction::doubleTap) value ^= 1;
+    else if (!edit8noLast(action, &value, 1, 0, 1)) return 0;
+    appSettings.persistentWaveform = value;
+    if (settingsSave() != 0) screenMessage(MESSAGE_TIME, "Could not save waveform setting");
+    return 1;
+  } else if (row == 14 && col == 0 && action == CellEditAction::tap) {
     screenSetup(&screenTrackVisuals, 0);
     return 0;
-  } else if (row == 14 && col == 0 && action == CellEditAction::tap) {
+  } else if (row == 15 && col == 0 && action == CellEditAction::tap) {
     // Trigger exit event
     mainLoopTriggerQuit();
     return 1;

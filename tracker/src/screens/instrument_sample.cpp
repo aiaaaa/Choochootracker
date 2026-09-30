@@ -12,10 +12,16 @@
 static int sampleButtonDown;
 static constexpr int sourceValueX = 9;
 static constexpr int sourceValueWidth = 7;
-static constexpr int previewRow = 16, previewWidth = 32, previewHeight = 3;
+#define previewRow (appSettings.persistentWaveform ? 15 : 16)
+#define previewWidth (appSettings.persistentWaveform ? 15 : 32)
+#define previewHeight (appSettings.persistentWaveform ? 2 : 3)
 static Bitmap* samplePreviewBitmap;
 
 static void updateSamplePreview(const InstrumentSample* sample) {
+  if (samplePreviewBitmap && (samplePreviewBitmap->widthPixels != previewWidth * gfxGetCharWidth() ||
+      samplePreviewBitmap->heightPixels != previewHeight * gfxGetCharHeight())) {
+    gfxBitmapFree(samplePreviewBitmap); samplePreviewBitmap = nullptr;
+  }
   if (!samplePreviewBitmap) samplePreviewBitmap = gfxBitmapCreate(previewWidth, previewHeight);
   uint32_t start = sample->frameCount ? (uint64_t)sample->start * (sample->frameCount - 1) / 255 : 0;
   uint32_t end = sample->end == 255 ? sample->frameCount :

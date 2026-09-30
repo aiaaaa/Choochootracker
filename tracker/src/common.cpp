@@ -42,6 +42,7 @@ void initDefaultAppSettings(void) {
   appSettings.ayWavetableLfoView = 0;
   appSettings.stickLiveMode = StickLiveMode::hold;
   for (auto& visual : appSettings.trackVisuals) visual = TrackVisualSettings{};
+  appSettings.persistentWaveform = 0;
 
   // Zero out key mapping (platform-specific defaults applied later)
   memset(&appSettings.keyMapping, 0, sizeof(KeyMapping));
@@ -151,6 +152,7 @@ int settingsSave(void) {
     fprintf(file, "trackVisuals%d: %d,%d,%d,%d\n", track + 1,
       (int)visual.mode, visual.wave, visual.envelope, visual.noise);
   }
+  fprintf(file, "persistentWaveform: %d\n", appSettings.persistentWaveform);
 
   // Save key mapping codes
   fprintf(file, "keyUp: %d,%d,%d\n", appSettings.keyMapping.keyUp[0].code, appSettings.keyMapping.keyUp[1].code, appSettings.keyMapping.keyUp[2].code);
@@ -237,6 +239,10 @@ int settingsLoad(void) {
         appSettings.trackVisuals[track - 1] = {
           (TrackVisualMode)mode, (uint8_t)wave, (uint8_t)envelope, (uint8_t)noise};
       }
+    } else if (strncmp(line, "persistentWaveform: ", 20) == 0) {
+      int enabled;
+      if (sscanf(line + 20, "%d", &enabled) == 1 && (enabled == 0 || enabled == 1))
+        appSettings.persistentWaveform = (uint8_t)enabled;
     } else if (strncmp(line, "screenWidth: ", 13) == 0) {
       sscanf(line + 13, "%d", &appSettings.screenWidth);
     } else if (strncmp(line, "screenHeight: ", 14) == 0) {

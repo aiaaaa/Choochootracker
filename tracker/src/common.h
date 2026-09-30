@@ -76,6 +76,7 @@ struct AppSettings {
   int ayWavetableLfoView;
   StickLiveMode stickLiveMode;
   TrackVisualSettings trackVisuals[PROJECT_MAX_TRACKS];
+  uint8_t persistentWaveform;
   KeyMapping keyMapping;
   ColorScheme colorScheme;
   char themeName[THEME_NAME_LENGTH + 1];
