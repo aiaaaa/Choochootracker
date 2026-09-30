@@ -43,4 +43,3 @@ void monitorDisplayDrawMeter(int track, int col, int row) {
     gfxDrawBitmap(meter, col, row);
   }
 }
-
