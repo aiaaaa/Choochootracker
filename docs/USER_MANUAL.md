@@ -991,7 +991,7 @@ Use **Save** before changing instrument types or loading another project.
 - **MIDI** opens the [MIDI](#14-midi) submenu: device selection and the MIDI In channel-to-instrument mapping.
 - **Synths** contains **AY Quality**, **Sample dithering**, and global **Braids BITS / DRFT / SIGN** settings.
 - **Mixer** contains **Mix volume** and the per-project `250-4000 Hz` **Tilt pivot** (default `1 kHz`) used by all Mixer Tilt controls.
-- **Graphics** contains **Load font** and **Edit color theme**. ChipNomad fonts and themes should work.
+- **Graphics** contains **Waveform FPS** (`1-60`, default `30`), the active renderer (`GPU` or `Software`), **Load font**, and **Edit color theme**. ChipNomad fonts and themes should work.
 - **Key mapping** customises the controls.
 - **Quit ChooChooTracker** exits cleanly.
 

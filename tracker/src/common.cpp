@@ -40,6 +40,7 @@ void initDefaultAppSettings(void) {
   appSettings.pitchConflictWarning = 0;
   appSettings.quickHelpReleaseSeen = 0;
   appSettings.ayWavetableLfoView = 0;
+  appSettings.waveformRefreshHz = 30;
   appSettings.stickLiveMode = StickLiveMode::hold;
   appSettings.midiInputDevice = -1;
   appSettings.midiOutputDevice = -1;
@@ -171,6 +172,7 @@ int settingsSave(void) {
   fprintf(file, "pitchConflictWarning: %d\n", appSettings.pitchConflictWarning);
   fprintf(file, "quickHelpReleaseSeen: %d\n", appSettings.quickHelpReleaseSeen);
   fprintf(file, "ayWavetableLfoView: %d\n", appSettings.ayWavetableLfoView);
+  fprintf(file, "waveformRefreshHz: %d\n", appSettings.waveformRefreshHz);
 
   const char* stickLiveMode = appSettings.stickLiveMode == StickLiveMode::free ? "FREE" :
     appSettings.stickLiveMode == StickLiveMode::toggle ? "TOGGLE" : "HOLD";
@@ -294,6 +296,8 @@ int settingsLoad(void) {
       sscanf(line + 22, "%d", &appSettings.quickHelpReleaseSeen);
     } else if (strncmp(line, "ayWavetableLfoView: ", 20) == 0) {
       sscanf(line + 20, "%d", &appSettings.ayWavetableLfoView);
+    } else if (strncmp(line, "waveformRefreshHz: ", 19) == 0) {
+      sscanf(line + 19, "%d", &appSettings.waveformRefreshHz);
     } else if (strncmp(line, "stickLiveMode: ", 15) == 0) {
       appSettings.stickLiveMode = strcmp(line + 15, "FREE") == 0 ? StickLiveMode::free :
         strcmp(line + 15, "TOGGLE") == 0 ? StickLiveMode::toggle : StickLiveMode::hold;
@@ -431,6 +435,7 @@ int settingsLoad(void) {
   if (appSettings.braidsBits < 0 || appSettings.braidsBits > 6) appSettings.braidsBits = 6;
   if (appSettings.braidsDrift < 0 || appSettings.braidsDrift > 4) appSettings.braidsDrift = 0;
   if (appSettings.braidsSignature < 0 || appSettings.braidsSignature > 4) appSettings.braidsSignature = 0;
+  if (appSettings.waveformRefreshHz < 1 || appSettings.waveformRefreshHz > 60) appSettings.waveformRefreshHz = 30;
   for (int i = 0; i < MIDI_CHANNEL_COUNT; i++) {
     if (appSettings.midiChannelInstrument[i] < -1 || appSettings.midiChannelInstrument[i] >= PROJECT_MAX_INSTRUMENTS)
       appSettings.midiChannelInstrument[i] = -1;
