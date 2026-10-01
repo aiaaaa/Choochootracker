@@ -521,8 +521,16 @@ void readPhraseRowDirect(PlaybackState* state, int trackIdx, PhraseRow* phraseRo
     }
   }
 
+  InstrumentType type = track->note.instrument == EMPTY_VALUE_8 ? InstrumentType::none
+    : p->instruments[track->note.instrument].type;
+  uint8_t sampleSlice = type == InstrumentType::Sample
+    ? p->instruments[track->note.instrument].chip.sample.slice : 0;
+  int slicedSample = sampleSlice == 2 || sampleSlice == 4 || sampleSlice == 8 ||
+    sampleSlice == 16 || sampleSlice == 32;
+
   // Keep phrases chromatic; only the pitch sent to the engine is quantized.
-  if (note != EMPTY_VALUE_8 && note != NOTE_OFF && p->scaleApply &&
+  // Sliced PCM samples map notes to windows, so they stay unquantized.
+  if (note != EMPTY_VALUE_8 && note != NOTE_OFF && p->scaleApply && !slicedSample &&
       (p->scaleTracksMask & (1u << trackIdx)) && p->pitchTable.octaveSize == 12) {
     uint16_t mask = state->scalePreset == scaleCustom ? p->scaleCustomMask : scalePresetMask(state->scalePreset);
     track->note.pitchBase = scaleQuantizeNote(track->note.pitchBase, state->scaleRoot, mask, p->pitchTable.length);
@@ -531,13 +539,11 @@ void readPhraseRowDirect(PlaybackState* state, int trackIdx, PhraseRow* phraseRo
   if (note != EMPTY_VALUE_8 && note != NOTE_OFF) {
     track->chordVoiceCount = 1;
     track->chordPitchBase[0] = track->note.pitchBase;
-    InstrumentType type = track->note.instrument == EMPTY_VALUE_8 ? InstrumentType::none
-      : p->instruments[track->note.instrument].type;
     bool ay = type == InstrumentType::AY1 || type == InstrumentType::AY2 || type == InstrumentType::AYSample;
     if (chordValue != EMPTY_VALUE_8 && !ay && p->pitchTable.octaveSize == 12) {
       track->chordVoiceCount = chordBuild(track->note.pitchBase, chordValue & 0x0f, chordValue >> 4,
                                           p->pitchTable.length, track->chordPitchBase);
-      if (p->scaleApply && (p->scaleTracksMask & (1u << trackIdx))) {
+      if (p->scaleApply && !slicedSample && (p->scaleTracksMask & (1u << trackIdx))) {
         uint16_t mask = state->scalePreset == scaleCustom ? p->scaleCustomMask : scalePresetMask(state->scalePreset);
         for (int i = 0; i < track->chordVoiceCount; ++i)
           track->chordPitchBase[i] = scaleQuantizeNote(track->chordPitchBase[i], state->scaleRoot, mask, p->pitchTable.length);

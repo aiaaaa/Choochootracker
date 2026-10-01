@@ -254,6 +254,7 @@ static int loadInstrumentSample(FILE* file, Instrument* instrument) {
     else if (strncmp(line, "- Sample start: ", 16) == 0) sscanf(line, "- Sample start: %hhu", &sample->start);
     else if (strncmp(line, "- Sample end: ", 14) == 0) sscanf(line, "- Sample end: %hhu", &sample->end);
     else if (strncmp(line, "- Sample loop: ", 15) == 0) sscanf(line, "- Sample loop: %hhu", &sample->loopMode);
+    else if (strncmp(line, "- Sample slice: ", 16) == 0) sscanf(line, "- Sample slice: %hhu", &sample->slice);
     else if (strncmp(line, "- Sample volume: ", 17) == 0) sscanf(line, "- Sample volume: %hhu", &instrument->volume);
     else loadVoicePostSetting(line, sample);
     consumeLine(file);
@@ -263,6 +264,7 @@ static int loadInstrumentSample(FILE* file, Instrument* instrument) {
     sampleLoadWav16(sample->path, sample, error, sizeof(error));
   }
   if (sample->loopMode > 2) sample->loopMode = 0;
+  sample->slice = sampleNormalizeSlice(sample->slice);
   return 0;
 }
 
@@ -687,6 +689,7 @@ static int saveInstrumentSample(FILE* file, Instrument* instrument) {
   fprintf(file, "- Sample start: %hhu\n", sample->start);
   fprintf(file, "- Sample end: %hhu\n", sample->end);
   fprintf(file, "- Sample loop: %hhu\n", sample->loopMode);
+  fprintf(file, "- Sample slice: %hhu\n", sampleNormalizeSlice(sample->slice));
   saveVoicePostSettings(file, sample);
   return 0;
 }

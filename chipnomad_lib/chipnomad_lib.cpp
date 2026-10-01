@@ -1168,12 +1168,20 @@ static void updateSampleVoices(ChipNomadState* state) {
     int loopMode = sample->loopMode;
     uint8_t start = sample->start;
     uint8_t end = sample->end;
+    uint8_t sliceCount = sampleNormalizeSlice(sample->slice);
+    uint8_t sliceIndex = 0;
     int cutoff = sample->filterCutoffHz;
     int resonance = sample->filterResonance;
     int attack = sample->attack, decay = sample->decay, sustain = sample->sustain;
     int release = sample->release, shape = sample->envelopeShape;
     int triggerDecay = decay, triggerColor = sustain;
-    if (track->chordPitchFinal[0] != EMPTY_VALUE_8) {
+    if (sliceCount) {
+      uint8_t pitch = track->chordPitchFinal[0] != EMPTY_VALUE_8 ? track->chordPitchFinal[0] : track->note.pitchFinal;
+      if (pitch != EMPTY_VALUE_8) {
+        sliceIndex = pitch;
+        if (sliceIndex >= sliceCount) sliceIndex = sliceCount - 1;
+      }
+    } else if (track->chordPitchFinal[0] != EMPTY_VALUE_8) {
       int rootNote = project->pitchTable.octaveSize * 4;
       if (rootNote >= project->pitchTable.length) rootNote = 0;
       int noteCents = project->linearPitch
@@ -1239,15 +1247,18 @@ static void updateSampleVoices(ChipNomadState* state) {
                               &shape, &triggerDecay, &triggerColor);
     for (int slot = 0; slot < track->chordVoiceCount; ++slot) {
       int voicePitchCents = pitchCents;
+      uint8_t voiceSliceIndex = sliceIndex;
       if (track->chordPitchFinal[slot] != EMPTY_VALUE_8) {
         int noteCents = project->linearPitch ? project->pitchTable.values[track->chordPitchFinal[slot]]
           : track->chordPitchFinal[slot] * 100;
         int rootCents = project->linearPitch ? project->pitchTable.values[track->chordPitchFinal[0]]
           : track->chordPitchFinal[0] * 100;
+        // A sliced sample keeps its root slice; CRD still supplies voice intervals.
         voicePitchCents += noteCents - rootCents;
       }
       voices[slot]->configure(sample, (float)voicePitchCents, gain / track->chordVoiceCount, (float)speedPercent, start, end, (uint8_t)loopMode,
-                              (uint16_t)cutoff, (uint8_t)resonance, attack, decay, sustain, release, shape);
+                              (uint16_t)cutoff, (uint8_t)resonance, attack, decay, sustain, release, shape,
+                              sliceCount, voiceSliceIndex);
     }
   }
 }
