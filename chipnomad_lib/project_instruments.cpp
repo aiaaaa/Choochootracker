@@ -240,6 +240,7 @@ static int initAChChidInstrument(Instrument* instrument) {
   InstrumentAChChid* a = &instrument->chip.achchid;
   a->wave = AChChidWave::saw;
   a->timbre = a->color = 16384;
+  a->saturation = 0;
   a->cutoff = 1000;
   a->resonance = 0;
   a->envMod = 25;
@@ -311,6 +312,21 @@ static int initPDVoiceInstrument(Instrument* instrument) {
 }
 static int freePDInstrument(Instrument* instrument) { freeCommon(instrument); return 0; }
 
+static const char* modNameMidi(int modIndex) {
+  return "Off";
+}
+static int initMidiInstrument(Instrument* instrument) {
+  initCommon(instrument); instrument->type = InstrumentType::Midi;
+  InstrumentMidi* m = &instrument->chip.midi;
+  m->channel = 0;
+  m->program = EMPTY_VALUE_8;
+  m->bankHigh = EMPTY_VALUE_8;
+  m->bankLow = EMPTY_VALUE_8;
+  for (int i = 0; i < 4; ++i) m->ccNumber[i] = EMPTY_VALUE_8;
+  return 0;
+}
+static int freeMidiInstrument(Instrument* instrument) { freeCommon(instrument); return 0; }
+
 // The one source of truth for family metadata.  Values are accessed through
 // typed code below; no union member is addressed by an offset.
 #define D(n, f, r, v) {n, (uint8_t)(f), r, v}
@@ -329,6 +345,7 @@ static const InstrumentModDestination destDrumSynth[] = {N,D("Volume",instrument
 static const InstrumentModDestination destMME[] = {N,D("Volume",instrumentNoFX,255,InstrumentMotionValue::raw),D("Pitch",instrumentNoFX,0,InstrumentMotionValue::raw),D("Waves",fxMWV,255,InstrumentMotionValue::raw),D("Interval",fxMIN,255,InstrumentMotionValue::raw),D("Amount",fxMAM,255,InstrumentMotionValue::raw),D("Flow",fxMFL,255,InstrumentMotionValue::raw),D("Feedback",fxMFB,255,InstrumentMotionValue::raw),D("Shaper",fxMSH,255,InstrumentMotionValue::raw),D("Cutoff",fxMCF,FILTER_CUTOFF_MAX_HZ,InstrumentMotionValue::cutoff),D("Reso",fxMRS,255,InstrumentMotionValue::raw)};
 static const InstrumentModDestination destSintered[] = {N,D("Volume",instrumentNoFX,255,InstrumentMotionValue::raw),D("Pitch",instrumentNoFX,0,InstrumentMotionValue::raw),D("Decay",fxSDC,255,InstrumentMotionValue::raw),D("Mod",fxSMD,255,InstrumentMotionValue::raw),D("A",fxSA,255,InstrumentMotionValue::raw),D("B",fxSB,255,InstrumentMotionValue::raw),D("Motion",fxSMO,255,InstrumentMotionValue::raw),D("C",fxSC,255,InstrumentMotionValue::raw),D("Cutoff",fxSCF3,FILTER_CUTOFF_MAX_HZ,InstrumentMotionValue::cutoff),D("Reso",fxSRS3,255,InstrumentMotionValue::raw)};
 static const InstrumentModDestination destPD[] = {N,D("Volume",instrumentNoFX,255,InstrumentMotionValue::raw),D("Pitch",instrumentNoFX,0,InstrumentMotionValue::raw),D("PD1",fxPD1,255,InstrumentMotionValue::raw),D("PD2",fxPD2,255,InstrumentMotionValue::raw),D("PD3",fxPD3,255,InstrumentMotionValue::raw),D("PD4",fxPD4,255,InstrumentMotionValue::raw),D("PD5",fxPD5,255,InstrumentMotionValue::raw),D("PD6",fxPD6,255,InstrumentMotionValue::raw),D("PD7",fxPD7,255,InstrumentMotionValue::raw),D("PD8",fxPD8,255,InstrumentMotionValue::raw)};
+static const InstrumentModDestination destMidi[] = {N};
 #undef N
 #undef D
 #define F(f, n) {(uint8_t)(f), n}
@@ -340,11 +357,12 @@ static const InstrumentFX fxSample[]={F(fxSPT,"SPT"),F(fxSST,"SST"),F(fxSTA,"STA
 static const InstrumentFX fxSCWF[]={F(fxSDT,"SDT"),F(fxSMX,"SMX"),F(fxSCF2,"SCF"),F(fxSRS2,"SRS")};
 static const InstrumentFX fxBYOWTBL[]={F(fxSDT,"SDT"),F(fxSMX,"SMX"),F(fxBIA,"BIA"),F(fxBIB,"BIB"),F(fxSCF2,"SCF"),F(fxSRS2,"SRS")};
 static const InstrumentFX fxPlaits[]={F(fxPMD,"PMD"),F(fxPHA,"PHA"),F(fxPTM,"PTM"),F(fxPMO,"PMO"),F(fxPAX,"PAX"),F(fxPCF,"PCF"),F(fxPRS,"PRS")};
-static const InstrumentFX fxAChChid[]={F(fxASL,"ASL"),F(fxADC,"ADC"),F(fxAAC,"AAC"),F(fxATM,"ATM"),F(fxACL,"ACL"),F(fxACF,"ACF"),F(fxARS,"ARS"),F(fxAEM,"AEM")};
+static const InstrumentFX fxAChChid[]={F(fxASL,"ASL"),F(fxATY,"ATY"),F(fxADC,"ADC"),F(fxAAC,"AAC"),F(fxATM,"ATM"),F(fxACL,"ACL"),F(fxACF,"ACF"),F(fxARS,"ARS"),F(fxAEM,"AEM")};
 static const InstrumentFX fxDrumSynth[]={F(fxDMD,"DMD"),F(fxDDC,"DDC"),F(fxDTO,"DTO"),F(fxDSW,"DSW"),F(fxDNO,"DNO"),F(fxDFM,"DFM"),F(fxDDR,"DDR"),F(fxDCF,"DCF"),F(fxDRS,"DRS")};
 static const InstrumentFX fxMME[]={F(fxMMD,"MMD"),F(fxMWV,"MWV"),F(fxMIN,"MIN"),F(fxMAM,"MAM"),F(fxMFL,"MFL"),F(fxMFB,"MFB"),F(fxMSH,"MSH"),F(fxMCF,"MCF"),F(fxMRS,"MRS")};
 static const InstrumentFX fxSintered[]={F(fxSMDL,"SMD"),F(fxSDC,"SDC"),F(fxSMD,"SMP"),F(fxSA,"SMA"),F(fxSB,"SMB"),F(fxSMO,"SMO"),F(fxSC,"SMC"),F(fxSCF3,"SCF"),F(fxSRS3,"SRS")};
 static const InstrumentFX fxPD[]={F(fxPD1,"PD1"),F(fxPD2,"PD2"),F(fxPD3,"PD3"),F(fxPD4,"PD4"),F(fxPD5,"PD5"),F(fxPD6,"PD6"),F(fxPD7,"PD7"),F(fxPD8,"PD8")};
+static const InstrumentFX fxMidi[]={F(fxMC1,"MC1"),F(fxMC2,"MC2"),F(fxMC3,"MC3"),F(fxMC4,"MC4")};
 #undef F
 #define COUNT(a) (uint8_t)(sizeof(a) / sizeof((a)[0]))
 static const InstrumentDefinition instrumentDefinitions[] = {
@@ -364,6 +382,7 @@ static const InstrumentDefinition instrumentDefinitions[] = {
   {"Sintered",InstrumentCategory::drums,InstrumentScreenKind::sintered,destSintered,COUNT(destSintered),fxSintered,COUNT(fxSintered),{10,modNameSintered,initSinteredInstrument,freeSinteredInstrument,0,0}},
   {"PD-VCO",InstrumentCategory::synth,InstrumentScreenKind::pd,destPD,COUNT(destPD),fxPD,COUNT(fxPD),{10,modNamePD,initPDVCOInstrument,freePDInstrument,1,0}},
   {"PD-voice",InstrumentCategory::synth,InstrumentScreenKind::pd,destPD,COUNT(destPD),fxPD,COUNT(fxPD),{10,modNamePD,initPDVoiceInstrument,freePDInstrument,0,0}},
+  {"MIDI Out",InstrumentCategory::midi,InstrumentScreenKind::midi,destMidi,COUNT(destMidi),fxMidi,COUNT(fxMidi),{0,modNameMidi,initMidiInstrument,freeMidiInstrument,0,0}},
 };
 #undef COUNT
 

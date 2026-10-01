@@ -7,6 +7,7 @@
 #include "chipnomad_lib.h"
 #include "playback_chips.h"
 #include "synth/braids_voice.h"
+#include "synth/achchid_voice.h"
 #include "synth/plaits_voice.h"
 #include "synth/plaits_alt_voice.h"
 #include "synth/mme_voice.h"
@@ -65,7 +66,7 @@ static void drawVerticalLine(Bitmap* bitmap, int x, int y1, int y2, uint8_t shad
   }
 }
 
-static void drawAYWaveformSlice(Bitmap* bitmap, int x, int amplitude, int toneHigh, int hasEnvelope, int hasNoise, int noiseShadeBase, const TrackVisualSettings& visuals) {
+static void drawAYWaveformSlice(Bitmap* bitmap, int x, int amplitude, int toneHigh, int hasEnvelope, int hasNoise, int noiseShadeBase) {
   static int prevAmplitude = -1;
   static int prevToneHigh = 1;
   static int prevEnvAmplitude = -1;
@@ -81,7 +82,7 @@ static void drawAYWaveformSlice(Bitmap* bitmap, int x, int amplitude, int toneHi
   int y = charH - 1 - amplitude;
   int lowY = charH - 1;
 
-  if (visuals.wave && toneHigh) {
+  if (toneHigh) {
     bitmap->data[y * charW + x] = 255;
 
     if (prevAmplitude >= 0) {
@@ -92,22 +93,22 @@ static void drawAYWaveformSlice(Bitmap* bitmap, int x, int amplitude, int toneHi
         drawVerticalLine(bitmap, x, y, prevY, 255);
       }
     }
-  } else if (visuals.wave) {
+  } else {
     bitmap->data[lowY * charW + x] = 255;
   }
 
-  if (visuals.envelope && hasEnvelope && (!toneHigh || !visuals.wave)) {
+  if (hasEnvelope && !toneHigh) {
     bitmap->data[y * charW + x] = ENVELOPE_DIM_BRIGHTNESS;
     if (prevEnvAmplitude >= 0)
       drawVerticalLine(bitmap, x, y, charH - 1 - prevEnvAmplitude, ENVELOPE_DIM_BRIGHTNESS);
   }
 
   // Keep the legacy tone edge above the dim envelope when both are enabled.
-  if (visuals.wave && !toneHigh && prevToneHigh && prevAmplitude >= 0) {
+  if (!toneHigh && prevToneHigh && prevAmplitude >= 0) {
     drawVerticalLine(bitmap, x, lowY, charH - 1 - prevAmplitude, 255);
   }
 
-  if (visuals.noise && hasNoise && toneHigh && amplitude > 0) {
+  if (hasNoise && toneHigh && amplitude > 0) {
     for (int dy = y + 1; dy < charH; dy++) {
       int noiseShade = noisePattern[noiseAnimIdx] ? noiseShadeBase : 64;
       noiseAnimIdx = (noiseAnimIdx + 1) & 511;
@@ -143,7 +144,7 @@ static int getAYEnvelopeHeight(int x, int envShape) {
   return 0;
 }
 
-static Bitmap* drawVoiceWaveform(int trackIdx, const TrackVisualSettings& visuals) {
+static Bitmap* drawVoiceWaveform(int trackIdx) {
   VoiceMonitor* monitor = &chipnomadState->voiceMonitors[trackIdx];
   if (!monitor->active) {
     displayedVoiceActive[trackIdx] = 0;
@@ -171,7 +172,7 @@ static Bitmap* drawVoiceWaveform(int trackIdx, const TrackVisualSettings& visual
   Bitmap* bitmap = waveformBitmaps[trackIdx];
   memset(bitmap->data, 0, bitmap->widthPixels * bitmap->heightPixels);
   int previousY = charH / 2;
-  for (int x = 0; visuals.wave && x < charW; ++x) {
+  for (int x = 0; x < charW; ++x) {
     int sampleIdx = charW > 1 ? (x * (VOICE_MONITOR_SAMPLES - 1)) / (charW - 1) : 0;
     float sample = displayedVoiceSamples[trackIdx][sampleIdx];
     if (sample > 1.0f) sample = 1.0f;
@@ -183,8 +184,7 @@ static Bitmap* drawVoiceWaveform(int trackIdx, const TrackVisualSettings& visual
 
   int envelopeY = charH - 1 - (int)(displayedVoiceEnvelopes[trackIdx] * (charH - 1));
   envelopeY = std::max(0, std::min(charH - 1, envelopeY));
-  if (visuals.envelope)
-    for (int x = 0; x < charW; ++x) bitmap->data[envelopeY * charW + x] = ENVELOPE_DIM_BRIGHTNESS;
+  for (int x = 0; x < charW; ++x) bitmap->data[envelopeY * charW + x] = ENVELOPE_DIM_BRIGHTNESS;
   return bitmap;
 }
 
@@ -223,7 +223,6 @@ Bitmap* waveformDisplayGetBitmap(int trackIdx) {
   if (!waveformBitmaps[trackIdx]) return nullptr;
   const auto& visuals = appSettings.trackVisuals[trackIdx];
   if (visuals.mode == TrackVisualMode::audio) {
-    if (!visuals.wave) return emptyBitmap;
     renderTrackAudioWaveform(waveformBitmaps[trackIdx], monitorDisplayTrackSamples(trackIdx), AUDIO_MONITOR_SAMPLES);
     return waveformBitmaps[trackIdx];
   }
@@ -231,7 +230,7 @@ Bitmap* waveformDisplayGetBitmap(int trackIdx) {
   if (track->note.instrument == EMPTY_VALUE_8) return emptyBitmap;
   InstrumentType type = chipnomadState->project.instruments[track->note.instrument].type;
   if (type != InstrumentType::AY1 && type != InstrumentType::AY2 && type != InstrumentType::AYSample)
-    return drawVoiceWaveform(trackIdx, visuals);
+    return drawVoiceWaveform(trackIdx);
 
   // Check if track is playing
   if (track->note.pitchFinal == EMPTY_VALUE_8) {
@@ -269,28 +268,28 @@ Bitmap* waveformDisplayGetBitmap(int trackIdx) {
     if (!hasTone && !hasNoise) {
       // Both disabled - horizontal line (tone always HIGH)
       for (int x = 0; x < charW; x++) {
-        drawAYWaveformSlice(bitmap, x, amplitude, 1, 0, 0, 0, visuals);
+        drawAYWaveformSlice(bitmap, x, amplitude, 1, 0, 0, 0);
       }
     } else if (hasTone && !hasNoise) {
       // Tone only - square wave
       for (int x = 0; x < charW / 2; x++) {
-        drawAYWaveformSlice(bitmap, x, amplitude, 1, 0, 0, 0, visuals);
+        drawAYWaveformSlice(bitmap, x, amplitude, 1, 0, 0, 0);
       }
       for (int x = charW / 2; x < charW; x++) {
-        drawAYWaveformSlice(bitmap, x, amplitude, 0, 0, 0, 0, visuals);
+        drawAYWaveformSlice(bitmap, x, amplitude, 0, 0, 0, 0);
       }
     } else if (!hasTone && hasNoise) {
       // Noise only (tone always HIGH)
       for (int x = 0; x < charW; x++) {
-        drawAYWaveformSlice(bitmap, x, amplitude, 1, 0, 1, noiseShadeBase, visuals);
+        drawAYWaveformSlice(bitmap, x, amplitude, 1, 0, 1, noiseShadeBase);
       }
     } else {
       // Tone + noise - square wave with noise
       for (int x = 0; x < charW / 2; x++) {
-        drawAYWaveformSlice(bitmap, x, amplitude, 1, 0, 1, noiseShadeBase, visuals);
+        drawAYWaveformSlice(bitmap, x, amplitude, 1, 0, 1, noiseShadeBase);
       }
       for (int x = charW / 2; x < charW; x++) {
-        drawAYWaveformSlice(bitmap, x, amplitude, 0, 0, 1, noiseShadeBase, visuals);
+        drawAYWaveformSlice(bitmap, x, amplitude, 0, 0, 1, noiseShadeBase);
       }
     }
   } else {
@@ -308,7 +307,7 @@ Bitmap* waveformDisplayGetBitmap(int trackIdx) {
         toneHigh = periodPhase < 0.5f;
       }
 
-      drawAYWaveformSlice(bitmap, x, amplitude, toneHigh, 1, hasNoise, noiseShadeBase, visuals);
+      drawAYWaveformSlice(bitmap, x, amplitude, toneHigh, 1, hasNoise, noiseShadeBase);
     }
   }
 
@@ -477,6 +476,20 @@ void renderBraidsPreview(Bitmap* bitmap, const InstrumentBraids* instrument) {
   voice.setParameters(instrument->timbre, instrument->color);
   voice.setGain(1.0f);
   voice.strike();
+  voice.render(samples, sizeof(samples) / sizeof(samples[0]));
+  renderFloatPreview(bitmap, samples, sizeof(samples) / sizeof(samples[0]));
+}
+
+void renderAChChidPreview(Bitmap* bitmap, const InstrumentAChChid* instrument) {
+  if (!instrument) { if (bitmap) gfxBitmapClear(bitmap); return; }
+  float samples[768];
+  AChChidVoice voice;
+  voice.init(48000.0f);
+  voice.configure((uint8_t)instrument->wave, instrument->fineTune, instrument->model,
+                  instrument->timbre, instrument->color, instrument->saturation,
+                  instrument->cutoff, instrument->resonance, instrument->envMod,
+                  instrument->decay, instrument->accent, 1.0f);
+  voice.noteOn(48, false, false, 0);
   voice.render(samples, sizeof(samples) / sizeof(samples[0]));
   renderFloatPreview(bitmap, samples, sizeof(samples) / sizeof(samples[0]));
 }

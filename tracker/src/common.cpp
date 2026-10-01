@@ -19,7 +19,7 @@ void initDefaultAppSettings(void) {
   appSettings.audioSampleRate = kAudioSampleRate;
 #ifdef WEB_BUILD
   appSettings.audioBufferSize = 1024;
-#elif defined(ANDROID_BUILD)
+#elif defined(ANDROID_BUILD) || defined(DESKTOP_BUILD)
   // Keep playback status and waveform monitors responsive at 30 Hz.
   appSettings.audioBufferSize = 1600;
 #else
@@ -43,6 +43,11 @@ void initDefaultAppSettings(void) {
   appSettings.stickLiveMode = StickLiveMode::hold;
   for (auto& visual : appSettings.trackVisuals) visual = TrackVisualSettings{};
   appSettings.persistentWaveform = 0;
+  appSettings.midiInputDevice = -1;
+  appSettings.midiOutputDevice = -1;
+  appSettings.midiInputDeviceName[0] = '\0';
+  appSettings.midiOutputDeviceName[0] = '\0';
+  for (int i = 0; i < MIDI_CHANNEL_COUNT; i++) appSettings.midiChannelInstrument[i] = -1;
 
   // Zero out key mapping (platform-specific defaults applied later)
   memset(&appSettings.keyMapping, 0, sizeof(KeyMapping));
@@ -78,11 +83,27 @@ void initDefaultAppSettings(void) {
   snprintf(appSettings.scwfPath, sizeof(appSettings.scwfPath), "%s/waveforms", workspace);
   snprintf(appSettings.srWavetablePath, sizeof(appSettings.srWavetablePath), "%s/SR_wavetables", workspace);
 #else
-  strncpy(appSettings.projectPath, "projects", PATH_LENGTH);
-  strncpy(appSettings.samplePath, "samples", PATH_LENGTH);
-  strncpy(appSettings.ayWavetablePath, "AY_wavetables", PATH_LENGTH);
-  strncpy(appSettings.scwfPath, "waveforms", PATH_LENGTH);
-  strncpy(appSettings.srWavetablePath, "SR_wavetables", PATH_LENGTH);
+  // Normally these stay relative: the tar.gz/Windows releases' launcher
+  // scripts cd into the install directory first, so "projects" etc.
+  // resolve next to the bundled packaging/common/ content. An AppImage
+  // mounts read-only, so anchor to the writable per-user directory instead
+  // (see fileGetDefaultDirectory()'s own APPIMAGE handling) - AppRun seeds
+  // that directory with the same bundled content once on first launch.
+  if (fileIsRunningFromAppImage()) {
+    char workspace[PATH_LENGTH];
+    if (fileGetDefaultDirectory(workspace, sizeof(workspace)) != 0) strncpy(workspace, ".", sizeof(workspace));
+    snprintf(appSettings.projectPath, sizeof(appSettings.projectPath), "%s/projects", workspace);
+    snprintf(appSettings.samplePath, sizeof(appSettings.samplePath), "%s/samples", workspace);
+    snprintf(appSettings.ayWavetablePath, sizeof(appSettings.ayWavetablePath), "%s/AY_wavetables", workspace);
+    snprintf(appSettings.scwfPath, sizeof(appSettings.scwfPath), "%s/waveforms", workspace);
+    snprintf(appSettings.srWavetablePath, sizeof(appSettings.srWavetablePath), "%s/SR_wavetables", workspace);
+  } else {
+    strncpy(appSettings.projectPath, "projects", PATH_LENGTH);
+    strncpy(appSettings.samplePath, "samples", PATH_LENGTH);
+    strncpy(appSettings.ayWavetablePath, "AY_wavetables", PATH_LENGTH);
+    strncpy(appSettings.scwfPath, "waveforms", PATH_LENGTH);
+    strncpy(appSettings.srWavetablePath, "SR_wavetables", PATH_LENGTH);
+  }
 #endif
   appSettings.projectPath[PATH_LENGTH] = '\0';
   appSettings.samplePath[PATH_LENGTH] = '\0';
@@ -95,10 +116,19 @@ void initDefaultAppSettings(void) {
   snprintf(appSettings.themePath, sizeof(appSettings.themePath), "%s/themes", workspace);
   snprintf(appSettings.fontFolderPath, sizeof(appSettings.fontFolderPath), "%s/fonts", workspace);
 #else
-  strncpy(appSettings.pitchTablePath, "pitch-tables", PATH_LENGTH);
-  strncpy(appSettings.instrumentPath, "instruments", PATH_LENGTH);
-  strncpy(appSettings.themePath, "themes", PATH_LENGTH);
-  strncpy(appSettings.fontFolderPath, "fonts", PATH_LENGTH);
+  if (fileIsRunningFromAppImage()) {
+    char workspace[PATH_LENGTH];
+    if (fileGetDefaultDirectory(workspace, sizeof(workspace)) != 0) strncpy(workspace, ".", sizeof(workspace));
+    snprintf(appSettings.pitchTablePath, sizeof(appSettings.pitchTablePath), "%s/pitch-tables", workspace);
+    snprintf(appSettings.instrumentPath, sizeof(appSettings.instrumentPath), "%s/instruments", workspace);
+    snprintf(appSettings.themePath, sizeof(appSettings.themePath), "%s/themes", workspace);
+    snprintf(appSettings.fontFolderPath, sizeof(appSettings.fontFolderPath), "%s/fonts", workspace);
+  } else {
+    strncpy(appSettings.pitchTablePath, "pitch-tables", PATH_LENGTH);
+    strncpy(appSettings.instrumentPath, "instruments", PATH_LENGTH);
+    strncpy(appSettings.themePath, "themes", PATH_LENGTH);
+    strncpy(appSettings.fontFolderPath, "fonts", PATH_LENGTH);
+  }
 #endif
   appSettings.pitchTablePath[PATH_LENGTH] = '\0';
   appSettings.instrumentPath[PATH_LENGTH] = '\0';
@@ -149,9 +179,16 @@ int settingsSave(void) {
   fprintf(file, "stickLiveMode: %s\n", stickLiveMode);
   for (int track = 0; track < PROJECT_MAX_TRACKS; ++track) {
     const auto& visual = appSettings.trackVisuals[track];
-    fprintf(file, "trackVisuals%d: %d,%d,%d,%d\n", track + 1,
-      (int)visual.mode, visual.wave, visual.envelope, visual.noise);
+    fprintf(file, "trackVisuals%d: %d\n", track + 1, (int)visual.mode);
   }
+
+  fprintf(file, "midiChannelInstrument: ");
+  for (int i = 0; i < MIDI_CHANNEL_COUNT; i++) {
+    fprintf(file, "%d%s", appSettings.midiChannelInstrument[i], i < MIDI_CHANNEL_COUNT - 1 ? "," : "\n");
+  }
+  fprintf(file, "midiInputDeviceName: %s\n", appSettings.midiInputDeviceName);
+  fprintf(file, "midiOutputDeviceName: %s\n", appSettings.midiOutputDeviceName);
+
   fprintf(file, "persistentWaveform: %d\n", appSettings.persistentWaveform);
 
   // Save key mapping codes
@@ -232,16 +269,16 @@ int settingsLoad(void) {
     }
 
     if (strncmp(line, "trackVisuals", 11) == 0) {
-      int track, mode, wave, envelope, noise;
-      if (sscanf(line, "trackVisuals%d: %d,%d,%d,%d", &track, &mode, &wave, &envelope, &noise) == 5 &&
-          track >= 1 && track <= PROJECT_MAX_TRACKS && mode >= 0 && mode <= 1 &&
-          wave >= 0 && wave <= 1 && envelope >= 0 && envelope <= 1 && noise >= 0 && noise <= 1) {
-        appSettings.trackVisuals[track - 1] = {
-          (TrackVisualMode)mode, (uint8_t)wave, (uint8_t)envelope, (uint8_t)noise};
+      int track, mode;
+      // Earlier versions saved per-layer flags after the mode. Preserve the
+      // mode and ignore those flags: each display now includes all its layers.
+      if (sscanf(line, "trackVisuals%d: %d", &track, &mode) == 2 &&
+          track >= 1 && track <= PROJECT_MAX_TRACKS && mode >= 0 && mode <= 1) {
+        appSettings.trackVisuals[track - 1].mode = (TrackVisualMode)mode;
       }
     } else if (strncmp(line, "persistentWaveform: ", 20) == 0) {
       int enabled;
-      if (sscanf(line + 20, "%d", &enabled) == 1 && (enabled == 0 || enabled == 1))
+      if (sscanf(line + 20, "%d", &enabled) == 1 && enabled >= 0 && enabled <= 1)
         appSettings.persistentWaveform = (uint8_t)enabled;
     } else if (strncmp(line, "screenWidth: ", 13) == 0) {
       sscanf(line + 13, "%d", &appSettings.screenWidth);
@@ -280,6 +317,20 @@ int settingsLoad(void) {
     } else if (strncmp(line, "stickLiveMode: ", 15) == 0) {
       appSettings.stickLiveMode = strcmp(line + 15, "FREE") == 0 ? StickLiveMode::free :
         strcmp(line + 15, "TOGGLE") == 0 ? StickLiveMode::toggle : StickLiveMode::hold;
+    } else if (strncmp(line, "midiChannelInstrument: ", 23) == 0) {
+      char* token = strtok(line + 23, ",");
+      int i = 0;
+      while (token && i < MIDI_CHANNEL_COUNT) {
+        appSettings.midiChannelInstrument[i] = (int8_t)atoi(token);
+        token = strtok(NULL, ",");
+        i++;
+      }
+    } else if (strncmp(line, "midiInputDeviceName: ", 21) == 0) {
+      strncpy(appSettings.midiInputDeviceName, line + 21, MIDI_DEVICE_NAME_LENGTH);
+      appSettings.midiInputDeviceName[MIDI_DEVICE_NAME_LENGTH] = 0;
+    } else if (strncmp(line, "midiOutputDeviceName: ", 22) == 0) {
+      strncpy(appSettings.midiOutputDeviceName, line + 22, MIDI_DEVICE_NAME_LENGTH);
+      appSettings.midiOutputDeviceName[MIDI_DEVICE_NAME_LENGTH] = 0;
     } else if (strncmp(line, "keyUp: ", 7) == 0) {
       sscanf(line + 7, "%d,%d,%d", &appSettings.keyMapping.keyUp[0].code, &appSettings.keyMapping.keyUp[1].code, &appSettings.keyMapping.keyUp[2].code);
     } else if (strncmp(line, "keyDown: ", 9) == 0) {
@@ -393,13 +444,17 @@ int settingsLoad(void) {
   // Browser audio and UI share a thread. Large saved buffers batch playback
   // updates and stall animations; 4906 is rounded up to 8192 by SDL/Web Audio.
   appSettings.audioBufferSize = 1024;
-#elif defined(ANDROID_BUILD)
-  // Migrate the old Android default (about 10 callbacks/s at 48 kHz).
+#elif defined(ANDROID_BUILD) || defined(DESKTOP_BUILD)
+  // Migrate the old 10 Hz default.
   if (appSettings.audioBufferSize == 4906) appSettings.audioBufferSize = 1600;
 #endif
   if (appSettings.braidsBits < 0 || appSettings.braidsBits > 6) appSettings.braidsBits = 6;
   if (appSettings.braidsDrift < 0 || appSettings.braidsDrift > 4) appSettings.braidsDrift = 0;
   if (appSettings.braidsSignature < 0 || appSettings.braidsSignature > 4) appSettings.braidsSignature = 0;
+  for (int i = 0; i < MIDI_CHANNEL_COUNT; i++) {
+    if (appSettings.midiChannelInstrument[i] < -1 || appSettings.midiChannelInstrument[i] >= PROJECT_MAX_INSTRUMENTS)
+      appSettings.midiChannelInstrument[i] = -1;
+  }
   return 0;
 }
 

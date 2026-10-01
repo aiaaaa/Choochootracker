@@ -2,13 +2,13 @@
 #include "common.h"
 #include "corelib_gfx.h"
 
-static constexpr int fieldX[] = {4, 13, 19, 24};
-static constexpr int fieldWidth[] = {6, 3, 3, 3};
+static constexpr int displayX = 4;
+static constexpr int displayWidth = 14;
 static constexpr int allRow = PROJECT_MAX_TRACKS;
 static constexpr int doneRow = allRow + 1;
 static void fullRedraw();
 
-static int columnCount(int row) { return row < allRow ? 4 : row == allRow ? 2 : 1; }
+static int columnCount(int row) { return row == allRow ? 2 : 1; }
 static void drawStatic() {
   gfxSetFgColor(appSettings.colorScheme.textTitles);
   gfxPrint(0, 0, "TRACK VISUALS");
@@ -19,7 +19,7 @@ static void drawStatic() {
   gfxPrint(0, 18, "EDIT toggles; SHIFT+LEFT back");
 }
 static void drawCursor(int col, int row) {
-  if (row < allRow) gfxCursor(fieldX[col], 3 + row, fieldWidth[col]);
+  if (row < allRow) gfxCursor(displayX, 3 + row, displayWidth);
   else if (row == allRow) gfxCursor(col ? 15 : 0, 12, col ? 9 : 12);
   else gfxCursor(0, 14, 4);
 }
@@ -29,28 +29,21 @@ static void drawRowHeader(int row, CellState state) {
   gfxPrintf(0, 3 + row, "%d", row + 1);
 }
 static void drawColHeader(int col, CellState state) {
-  static const char* labels[] = {"MODE", "WAVE", "ENV", "NOISE"};
+  if (col != 0) return;
   gfxSetFgColor(state == CellState::focus ? appSettings.colorScheme.textDefault : appSettings.colorScheme.textTitles);
-  gfxPrint(fieldX[col], 2, labels[col]);
+  gfxPrint(displayX, 2, "DISPLAY");
 }
 static void drawField(int col, int row, CellState state) {
   const auto cs = appSettings.colorScheme;
   gfxSetFgColor(state == CellState::focus ? cs.textDefault : cs.textValue);
   if (row < allRow) {
-    const auto& visual = appSettings.trackVisuals[row];
-    if (col == 0) gfxPrint(fieldX[col], 3 + row, visual.mode == TrackVisualMode::audio ? "AUDIO " : "DETAIL");
-    else if (col > 1 && visual.mode == TrackVisualMode::audio) {
-      gfxSetFgColor(cs.textEmpty);
-      gfxPrint(fieldX[col], 3 + row, "---");
-    } else {
-      bool enabled = col == 1 ? visual.wave : col == 2 ? visual.envelope : visual.noise;
-      gfxPrint(fieldX[col], 3 + row, enabled ? "ON " : "OFF");
-    }
+    gfxPrint(displayX, 3 + row, appSettings.trackVisuals[row].mode == TrackVisualMode::audio ?
+      "Audio waveform" : "Detailed      ");
   } else if (row == allRow) gfxPrint(col ? 15 : 0, 12, col ? "All audio" : "All detailed");
   else gfxPrint(0, 14, "Done");
 }
 static void done() {
-  if (settingsSave() == 0) screenSetup(&screenSettings, 0);
+  if (settingsSave() == 0) screenSetup(&screenGraphicsSettings, 0);
   else screenMessage(MESSAGE_TIME, "Could not save track visuals");
 }
 static int onEdit(int col, int row, CellEditAction action) {
@@ -63,21 +56,15 @@ static int onEdit(int col, int row, CellEditAction action) {
     if (action != CellEditAction::tap) return 0;
     for (auto& visual : appSettings.trackVisuals) {
       visual.mode = col ? TrackVisualMode::audio : TrackVisualMode::detailed;
-      if (col) visual.wave = 1;
     }
     fullRedraw();
     return 1;
   }
   auto& visual = appSettings.trackVisuals[row];
-  if (col > 1 && visual.mode == TrackVisualMode::audio) return 0;
-  uint8_t value = col == 0 ? (uint8_t)visual.mode : col == 1 ? visual.wave : col == 2 ? visual.envelope : visual.noise;
+  uint8_t value = (uint8_t)visual.mode;
   if (action == CellEditAction::tap || action == CellEditAction::doubleTap) value ^= 1;
   else if (!edit8noLast(action, &value, 1, 0, 1)) return 0;
-  if (col == 0) visual.mode = (TrackVisualMode)value;
-  else if (col == 1) visual.wave = value;
-  else if (col == 2) visual.envelope = value;
-  else visual.noise = value;
-  if (col == 0) fullRedraw();
+  visual.mode = (TrackVisualMode)value;
   return 1;
 }
 static ScreenData screen = {

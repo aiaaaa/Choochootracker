@@ -15,6 +15,7 @@
 #include "synth/sintered_voice.h"
 #include "synth/pd_voice.h"
 #include "synth/master_effects.h"
+#include "midi/midi_router.h"
 #include <math.h>
 #include <atomic>
 #include <limits.h>
@@ -32,7 +33,7 @@ static void updateDrumSynthVoices(ChipNomadState* state);
 static void updateMMEVoices(ChipNomadState* state);
 static void updateSinteredVoices(ChipNomadState* state);
 static void updatePDVoices(ChipNomadState* state);
-static void applyVoiceEvents(ChipNomadState* state);
+static void applyVoiceEvents(ChipNomadState* state, uint64_t dueMicros);
 static int hasAudioRateModulation(const ChipNomadState* state);
 static void updateAudioRateModulations(ChipNomadState* state);
 static void motionRecordFrame(ChipNomadState* state);
@@ -481,6 +482,7 @@ ChipNomadState* chipnomadCreate(void) {
   memset(state, 0, sizeof(ChipNomadState));
   state->ownsProjectResources = 1;
   state->audioCommands = new AudioCommandQueue();
+  state->midiRouter = midiRouterCreate();
   fillFXNames();
   projectInit(&state->project);
   state->audioProject = state->project;
@@ -566,6 +568,7 @@ void chipnomadDestroy(ChipNomadState* state) {
   free(state->delayBuffer);
   delete state->masterEffects;
   delete state->audioCommands;
+  midiRouterDestroy(state->midiRouter);
   delete state->audioMonitor;
 
   free(state);
@@ -738,10 +741,13 @@ static void updateAudioRateModulations(ChipNomadState* state) {
   updateSinteredVoices(state); updatePDVoices(state);
 }
 
-static int advancePlaybackFrame(ChipNomadState* state) {
+static int advancePlaybackFrame(ChipNomadState* state, uint64_t dueMicros) {
   state->audioCommands->applyProject(&state->audioProject);
   state->playbackState.p = &state->audioProject;
-  if (state->audioCommands->takeStopRequest()) playbackStop(&state->playbackState);
+  if (state->audioCommands->takeStopRequest()) {
+    chipnomadMidiPanic(state);
+    playbackStop(&state->playbackState);
+  }
   state->audioCommands->applySettings(&state->playbackState);
   state->audioCommands->applyCommands(&state->playbackState);
   float axes[4];
@@ -754,7 +760,7 @@ static int advancePlaybackFrame(ChipNomadState* state) {
   motionRecordFrame(state);
   if (allTracksStopped) playbackUpdateLiveStickModulation(&state->playbackState, axes, enabled);
   updateSampleVoices(state); updateSCWFVoices(state); updateBraidsVoices(state);
-  updatePlaitsVoices(state); updatePlaitsAltVoices(state); updateAChChidVoices(state); updateDrumSynthVoices(state); updateMMEVoices(state); updateSinteredVoices(state); updatePDVoices(state); applyVoiceEvents(state);
+  updatePlaitsVoices(state); updatePlaitsAltVoices(state); updateAChChidVoices(state); updateDrumSynthVoices(state); updateMMEVoices(state); updateSinteredVoices(state); updatePDVoices(state); applyVoiceEvents(state, dueMicros);
   if (state->audioOverload > 0) state->audioOverload--;
   for (int i = 0; i < PROJECT_MAX_TRACKS; ++i)
     if (state->trackClipping[i] > 0) state->trackClipping[i]--;
@@ -854,10 +860,18 @@ static void processMasterMix(ChipNomadState* state, float* output, int frames) {
 
 int chipnomadRender(ChipNomadState* state, float* buffer, int samples) {
   if (!state || !buffer || samples <= 0 || samples > INT_MAX / 2) return 0;
+  // Real wall-clock reference for this callback: a row that lands N samples
+  // into it is due N/sampleRate seconds after "now", not "now" itself - see
+  // midiRouterEmitNoteOn for why this matters (this callback can compute
+  // several rows' worth of MIDI events well ahead of when they actually
+  // play).
+  uint64_t callbackStartMicros = midiRouterNowMicros();
   state->audioMonitor->beginRender();
   int samplesLeft = samples;
   while (samplesLeft > 0) {
-    if ((int)state->frameSampleCounter == 0 && advancePlaybackFrame(state)) break;
+    uint64_t dueMicros = callbackStartMicros +
+      (uint64_t)((double)(samples - samplesLeft) * 1000000.0 / state->sampleRate);
+    if ((int)state->frameSampleCounter == 0 && advancePlaybackFrame(state, dueMicros)) break;
     int frames = (int)state->frameSampleCounter < samplesLeft ? (int)state->frameSampleCounter : samplesLeft;
     if (hasAudioRateModulation(state)) { updateAudioRateModulations(state); frames = 1; }
     float* output = buffer + (samples - samplesLeft) * 2;
@@ -1016,11 +1030,30 @@ int chipnomadAutoMix(ChipNomadState* state, int seconds, uint8_t proposed[PROJEC
   return 0;
 }
 
-static void applyVoiceEvents(ChipNomadState* state) {
+static void applyVoiceEvents(ChipNomadState* state, uint64_t dueMicros) {
   PlaybackState* playback = &state->playbackState;
   Project* project = &state->audioProject;
   for (int trackIdx = 0; trackIdx < project->tracksCount; ++trackIdx) {
     PlaybackTrackState* track = &playback->tracks[trackIdx];
+
+    // MC1-MC4 row FX (see playback_fx_midi.cpp): independent of note
+    // trigger/release, so this runs even on a row that only carries a CC
+    // change. Only meaningful for a MIDI Out instrument; the FX is silently
+    // inert (already recorded as pending, just dropped here) on any other
+    // instrument type since a raw CC number has no equivalent there.
+    for (int slot = 0; slot < 4; ++slot) {
+      if (!track->midiCCPending[slot]) continue;
+      track->midiCCPending[slot] = 0;
+      if (track->note.instrument == EMPTY_VALUE_8) continue;
+      Instrument* instrument = &project->instruments[track->note.instrument];
+      if (instrument->type != InstrumentType::Midi) continue;
+      uint8_t ccNumber = instrument->chip.midi.ccNumber[slot];
+      if (ccNumber == EMPTY_VALUE_8) continue;
+      uint8_t channel = instrument->chip.midi.channel & 0x0f;
+      uint8_t value = (uint8_t)(track->midiCCValue[slot] * 127 / 255);
+      midiRouterEmitCC(state->midiRouter, channel, ccNumber, value, dueMicros);
+    }
+
     if (!track->note.noteTriggered && !track->note.noteReleased && !track->note.noteKilled) continue;
     if (track->note.instrument == EMPTY_VALUE_8) continue;
     auto applyEvent = [&](auto* voices) {
@@ -1082,10 +1115,52 @@ static void applyVoiceEvents(ChipNomadState* state) {
         } else voice->noteOff();
         break;
       }
+      case InstrumentType::Midi: {
+        // No voice object: send real MIDI Note On/Off instead, through the
+        // router (see midi/midi_router.h), which tracks the active note per
+        // slot - so a pitch slide between trigger and release can't turn it
+        // into a stuck note - and the Program/Bank "already sent" cache.
+        InstrumentMidi* midiParams = &project->instruments[track->note.instrument].chip.midi;
+        uint8_t channel = midiParams->channel & 0x0f;
+        if (track->note.noteTriggered) {
+          midiRouterEmitProgramBank(state->midiRouter, channel, midiParams->program, midiParams->bankHigh, midiParams->bankLow, dueMicros);
+        }
+        for (int slot = 0; slot < CHORD_MAX_VOICES; ++slot) {
+          int endSlot = track->note.noteKilled || track->note.noteReleased ||
+                        (track->note.noteTriggered && slot >= track->chordVoiceCount);
+          // midiRouterEmitNoteOff/On are no-ops (Off) or release-then-send
+          // (On, if this slot was still active) on their own, matching the
+          // *active-gated sends this replaced.
+          if (endSlot) midiRouterEmitNoteOff(state->midiRouter, trackIdx, slot, dueMicros);
+          if (track->note.noteTriggered && slot < track->chordVoiceCount) {
+            int midiNote = 12 + track->chordPitchFinal[slot];
+            if (midiNote < 0) midiNote = 0;
+            if (midiNote > 127) midiNote = 127;
+            int volume = clampInt(track->note.volume + track->note.volumeOffset, 0, 15);
+            int velocity = (volume * 127 + 7) / 15;
+            if (velocity < 1) velocity = 1;
+            midiRouterEmitNoteOn(state->midiRouter, trackIdx, slot, channel, (uint8_t)midiNote, (uint8_t)velocity, dueMicros);
+          }
+        }
+        break;
+      }
       default: break;
     }
     track->note.noteTriggered = track->note.noteReleased = track->note.noteKilled = 0;
   }
+}
+
+// InstrumentType::Midi keeps no voice object of its own (see
+// applyVoiceEvents above), so unlike every other instrument type it can't
+// naturally decay through its own release stage: an active note left
+// without an explicit Note Off stays stuck on the external device. The
+// router tracks "still sounding" independently of PlaybackTrackState, so it
+// survives a hard track reset (e.g. Stop) that clears noteTriggered/
+// noteReleased before applyVoiceEvents ever sees them - see
+// midi/midi_router.h's midiRouterPanic for the actual sweep.
+void chipnomadMidiPanic(ChipNomadState* state) {
+  if (!state) return;
+  midiRouterPanic(state->midiRouter);
 }
 
 static void updateSampleVoices(ChipNomadState* state) {
@@ -1106,12 +1181,20 @@ static void updateSampleVoices(ChipNomadState* state) {
     int loopMode = sample->loopMode;
     uint8_t start = sample->start;
     uint8_t end = sample->end;
+    uint8_t sliceCount = sampleNormalizeSlice(sample->slice);
+    uint8_t sliceIndex = 0;
     int cutoff = sample->filterCutoffHz;
     int resonance = sample->filterResonance;
     int attack = sample->attack, decay = sample->decay, sustain = sample->sustain;
     int release = sample->release, shape = sample->envelopeShape;
     int triggerDecay = decay, triggerColor = sustain;
-    if (track->chordPitchFinal[0] != EMPTY_VALUE_8) {
+    if (sliceCount) {
+      uint8_t pitch = track->chordPitchFinal[0] != EMPTY_VALUE_8 ? track->chordPitchFinal[0] : track->note.pitchFinal;
+      if (pitch != EMPTY_VALUE_8) {
+        sliceIndex = pitch;
+        if (sliceIndex >= sliceCount) sliceIndex = sliceCount - 1;
+      }
+    } else if (track->chordPitchFinal[0] != EMPTY_VALUE_8) {
       int rootNote = project->pitchTable.octaveSize * 4;
       if (rootNote >= project->pitchTable.length) rootNote = 0;
       int noteCents = project->linearPitch
@@ -1177,15 +1260,18 @@ static void updateSampleVoices(ChipNomadState* state) {
                               &shape, &triggerDecay, &triggerColor);
     for (int slot = 0; slot < track->chordVoiceCount; ++slot) {
       int voicePitchCents = pitchCents;
+      uint8_t voiceSliceIndex = sliceIndex;
       if (track->chordPitchFinal[slot] != EMPTY_VALUE_8) {
         int noteCents = project->linearPitch ? project->pitchTable.values[track->chordPitchFinal[slot]]
           : track->chordPitchFinal[slot] * 100;
         int rootCents = project->linearPitch ? project->pitchTable.values[track->chordPitchFinal[0]]
           : track->chordPitchFinal[0] * 100;
+        // A sliced sample keeps its root slice; CRD still supplies voice intervals.
         voicePitchCents += noteCents - rootCents;
       }
       voices[slot]->configure(sample, (float)voicePitchCents, gain / track->chordVoiceCount, (float)speedPercent, start, end, (uint8_t)loopMode,
-                              (uint16_t)cutoff, (uint8_t)resonance, attack, decay, sustain, release, shape);
+                              (uint16_t)cutoff, (uint8_t)resonance, attack, decay, sustain, release, shape,
+                              sliceCount, voiceSliceIndex);
     }
   }
 }
@@ -1315,7 +1401,7 @@ static void updateAChChidVoices(ChipNomadState* state) {
       }
     }
     for (int slot = 0; slot < track->chordVoiceCount; ++slot)
-      voices[slot]->configure((uint8_t)a->wave, a->fineTune, a->model, (uint16_t)clampInt(timbre, 0, 32767), (uint16_t)clampInt(color, 0, 32767),
+      voices[slot]->configure((uint8_t)a->wave, a->fineTune, a->model, (uint16_t)clampInt(timbre, 0, 32767), (uint16_t)clampInt(color, 0, 32767), a->saturation,
         (uint16_t)clampInt(cutoff, 200, FILTER_CUTOFF_MAX_HZ), (uint8_t)clampInt(resonance, 0, 100),
         (uint8_t)clampInt(envMod, 0, 100), (uint16_t)clampInt(decay, 200, 2000),
         (uint8_t)clampInt(accent, 0, 100), (gain < 0.0f ? 0.0f : gain) / track->chordVoiceCount);

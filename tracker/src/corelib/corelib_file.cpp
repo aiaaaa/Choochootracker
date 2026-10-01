@@ -10,7 +10,7 @@
 #include <windows.h>
 #endif
 
-#if defined(ANDROID_BUILD) || defined(MACOS_BUILD)
+#ifndef ANDROID_BUILD
 // Helper: Create directory recursively
 static void createDirectoryRecursive(const char* path) {
   char tmp[4096];
@@ -38,7 +38,7 @@ static void createDirectoryRecursive(const char* path) {
   mkdir(tmp, 0755);
   #endif
 }
-#endif
+#endif // !ANDROID_BUILD
 
 // Windows and Linux desktop builds are meant to be portable (see
 // docs/build-notes.md: a Windows release ships as the exe alongside its
@@ -71,6 +71,14 @@ static int fileGetExecutableDirectory(char* buffer, int bufferSize) {
 }
 #endif
 
+int fileIsRunningFromAppImage(void) {
+#if defined(ANDROID_BUILD) || defined(MACOS_BUILD) || defined(_WIN32)
+  return 0;
+#else
+  return getenv("APPIMAGE") != NULL;
+#endif
+}
+
 int fileGetDefaultDirectory(char* buffer, int bufferSize) {
 #ifdef ANDROID_BUILD
   extern int androidGetWorkspacePath(char*, int);
@@ -85,6 +93,24 @@ int fileGetDefaultDirectory(char* buffer, int bufferSize) {
   }
   return 0;
 #else
+  // AppImages run from a read-only squashfs mount, so resolving next to the
+  // executable (below) would put settings.txt/autosave.cct somewhere that
+  // can't be written to. Fall back to a normal writable per-user directory
+  // instead.
+  if (fileIsRunningFromAppImage()) {
+    const char* dataHome = getenv("XDG_DATA_HOME");
+    if (dataHome && dataHome[0] != '\0') {
+      snprintf(buffer, bufferSize, "%s/ChooChooTracker", dataHome);
+      createDirectoryRecursive(buffer);
+      return 0;
+    }
+    const char* home = getenv("HOME");
+    if (home) {
+      snprintf(buffer, bufferSize, "%s/.local/share/ChooChooTracker", home);
+      createDirectoryRecursive(buffer);
+      return 0;
+    }
+  }
   // Fall back to cwd only if the executable's own path can't be resolved
   // (e.g. an unsupported OS/filesystem) - better than failing outright.
   if (fileGetExecutableDirectory(buffer, bufferSize) == 0) return 0;
