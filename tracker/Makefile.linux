@@ -84,7 +84,9 @@ appimage: linux
 	@cp $(BUILD)/choochootracker $(BUILD)/$(APPNAME).AppDir/usr/bin/
 	@for lib in $(APPIMAGE_LIBS); do \
 		if [ ! -f "$$lib" ]; then echo "Error: $$lib not found - install libsdl2-2.0-0" && exit 1; fi; \
+		target="$$(basename "$$(readlink -f "$$lib")")"; \
 		cp -L "$$(readlink -f "$$lib")" $(BUILD)/$(APPNAME).AppDir/usr/lib/ || exit 1; \
+		ln -sf "$$target" "$(BUILD)/$(APPNAME).AppDir/usr/lib/$$(basename "$$lib")"; \
 	done
 	@mkdir -p $(BUILD)/$(APPNAME).AppDir/usr/share/choochootracker/common
 	@cp -r packaging/common/* $(BUILD)/$(APPNAME).AppDir/usr/share/choochootracker/common/
