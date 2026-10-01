@@ -91,6 +91,7 @@ appimage: linux
 	@cp packaging/linux-appimage/AppRun $(BUILD)/$(APPNAME).AppDir/
 	@chmod +x $(BUILD)/$(APPNAME).AppDir/AppRun
 	@cp packaging/linux-appimage/choochootracker.desktop $(BUILD)/$(APPNAME).AppDir/
+	@sed -i 's/\r$$//' $(BUILD)/$(APPNAME).AppDir/choochootracker.desktop
 	@cp ../docs/play-store-assets/ChooChooTracker-play-icon-512.png $(BUILD)/$(APPNAME).AppDir/choochootracker.png
 	@mkdir -p ../releases
 	@command -v appimagetool >/dev/null 2>&1 || { \
