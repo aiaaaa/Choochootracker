@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <strings.h>
 #include <math.h>
+#include <chrono>
 
 extern const AppScreen screenInstrumentPool;
 
@@ -24,6 +25,7 @@ static int typeButtonDown = 0;
 static Bitmap* envelopePreviewBitmap = NULL;
 static Bitmap* livePreviewBitmap = NULL;
 static int livePreviewWasActive = 0;
+static std::chrono::steady_clock::time_point livePreviewRefresh;
 
 static SelectionItem instrumentTypeChip[] = {
   {NULL, (int)InstrumentType::AY1, NULL, 0},
@@ -537,12 +539,20 @@ void instrumentCommonDrawLivePreview(void) {
   if (track < 0) {
     if (livePreviewWasActive) currentScreen->fullRedraw();
     livePreviewWasActive = 0;
+    livePreviewRefresh = {};
     return;
   }
   if (!livePreviewBitmap) livePreviewBitmap = gfxBitmapCreate(32, 3);
-  gfxClearRect(0, 16, 32, 3);
-  renderFloatPreview(livePreviewBitmap, chipnomadState->voiceMonitors[track].samples,
-                     VOICE_MONITOR_SAMPLES);
+  const auto now = std::chrono::steady_clock::now();
+  int hz = appSettings.waveformRefreshHz;
+  if (hz < 1 || hz > 60) hz = 30;
+  if (livePreviewRefresh == std::chrono::steady_clock::time_point() ||
+      std::chrono::duration<float>(now - livePreviewRefresh).count() >= 1.0f / hz) {
+    gfxClearRect(0, 16, 32, 3);
+    renderFloatPreview(livePreviewBitmap, chipnomadState->voiceMonitors[track].samples,
+                       VOICE_MONITOR_SAMPLES);
+    livePreviewRefresh = now;
+  }
   gfxSetFgColor(appSettings.colorScheme.textInfo);
   gfxDrawBitmap(livePreviewBitmap, 0, 16);
   Instrument* instrument = &chipnomadState->project.instruments[cInstrument];
