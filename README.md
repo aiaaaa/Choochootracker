@@ -24,7 +24,7 @@
      CAHORS                                       MONTAUBAN
           >>>  8 TRACKS  / CHIPNOMAD-BASED  >>>
 
-.oO[ AY / BRAIDS / PLAITS / SAMPLES / WTBL / DRUMSYNTH / 303 ]Oo.
+.oO[ AY / BRAIDS / PLAITS / SAMPLES / SYNTHS / DRUMSYNTHS / 303 ]Oo.
 ````
 
 ## Screenshots
