@@ -88,6 +88,7 @@ static void graphicsRedraw(void) { screenFullRedraw(&graphicsData); }
 static int synthInput(int down, int keys, int taps) { return menuInput(&synthData, down, keys, taps); }
 static int mixerInput(int down, int keys, int taps) { return menuInput(&mixerData, down, keys, taps); }
 static int graphicsInput(int down, int keys, int taps) { return menuInput(&graphicsData, down, keys, taps); }
-const AppScreen screenSynthSettings = {NULL, setup, synthRedraw, draw, synthInput, NULL};
-const AppScreen screenMixerSettings = {NULL, setup, mixerRedraw, draw, mixerInput, NULL};
-const AppScreen screenGraphicsSettings = {NULL, setup, graphicsRedraw, draw, graphicsInput, NULL};
+static ScreenPlaybackLevel playbackLevel(void) { return ScreenPlaybackLevel::song; }
+const AppScreen screenSynthSettings = {NULL, setup, synthRedraw, draw, synthInput, playbackLevel};
+const AppScreen screenMixerSettings = {NULL, setup, mixerRedraw, draw, mixerInput, playbackLevel};
+const AppScreen screenGraphicsSettings = {NULL, setup, graphicsRedraw, draw, graphicsInput, playbackLevel};
