@@ -286,10 +286,14 @@ TEST_CASE_FIXTURE(StickLiveFixture, "absent, older and invalid settings default 
 }
 
 TEST_CASE_FIXTURE(StickLiveFixture, "Settings row, padded value, cursor and subsequent actions align") {
-  REQUIRE(screenSettings.draw != nullptr);
-  REQUIRE(screenSynthSettings.draw != nullptr);
-  REQUIRE(screenMixerSettings.draw != nullptr);
-  REQUIRE(screenGraphicsSettings.draw != nullptr);
+    REQUIRE(screenSettings.draw != nullptr);
+    REQUIRE(screenSettings.setup != nullptr);
+    REQUIRE(screenSynthSettings.draw != nullptr);
+    REQUIRE(screenSynthSettings.setup != nullptr);
+    REQUIRE(screenMixerSettings.draw != nullptr);
+    REQUIRE(screenMixerSettings.setup != nullptr);
+    REQUIRE(screenGraphicsSettings.draw != nullptr);
+    REQUIRE(screenGraphicsSettings.setup != nullptr);
   screenSettings.fullRedraw();
   REQUIRE(mockScreenData != nullptr);
   CHECK(mockScreenData->rows == 10);
