@@ -286,56 +286,63 @@ TEST_CASE_FIXTURE(StickLiveFixture, "absent, older and invalid settings default 
 }
 
 TEST_CASE_FIXTURE(StickLiveFixture, "Settings row, padded value, cursor and subsequent actions align") {
+    REQUIRE(screenSettings.draw != nullptr);
+    REQUIRE(screenSettings.setup != nullptr);
+    REQUIRE(screenSynthSettings.draw != nullptr);
+    REQUIRE(screenSynthSettings.setup != nullptr);
+    REQUIRE(screenMixerSettings.draw != nullptr);
+    REQUIRE(screenMixerSettings.setup != nullptr);
+    REQUIRE(screenGraphicsSettings.draw != nullptr);
+    REQUIRE(screenGraphicsSettings.setup != nullptr);
   screenSettings.fullRedraw();
   REQUIRE(mockScreenData != nullptr);
-  CHECK(mockScreenData->rows == 15);
+  CHECK(mockScreenData->rows == 10);
   auto* screen = mockScreenData;
-  CHECK(screen->getColumnCount(9) == 1);
-  screen->drawField(0, 9, CellState::focus);
-  CHECK(std::string(mockGfxCells[11], 15) == "Stick live mode");
-  CHECK(std::string(mockGfxCells[11] + 23, 6) == "HOLD  ");
-  REQUIRE(screen->onEdit(0, 9, CellEditAction::increase) == 1);
-  screen->drawField(0, 9, CellState::focus);
-  CHECK(std::string(mockGfxCells[11] + 23, 6) == "TOGGLE");
-  REQUIRE(screen->onEdit(0, 9, CellEditAction::increase) == 1);
-  screen->drawField(0, 9, CellState::focus);
-  CHECK(std::string(mockGfxCells[11] + 23, 6) == "FREE  ");
+  CHECK(screen->getColumnCount(2) == 1);
+  screen->drawField(0, 2, CellState::focus);
+  CHECK(std::string(mockGfxCells[4], 15) == "Stick live mode");
+  CHECK(std::string(mockGfxCells[4] + 23, 6) == "HOLD  ");
+  REQUIRE(screen->onEdit(0, 2, CellEditAction::increase) == 1);
+  screen->drawField(0, 2, CellState::focus);
+  CHECK(std::string(mockGfxCells[4] + 23, 6) == "TOGGLE");
+  REQUIRE(screen->onEdit(0, 2, CellEditAction::increase) == 1);
+  screen->drawField(0, 2, CellState::focus);
+  CHECK(std::string(mockGfxCells[4] + 23, 6) == "FREE  ");
   CHECK(chipnomadLiveStickIsEnabled());
-  REQUIRE(screen->onEdit(0, 9, CellEditAction::decrease) == 1);
+  REQUIRE(screen->onEdit(0, 2, CellEditAction::decrease) == 1);
   input(keyboardLive, true);
   input(keyboardLive, false);
-  screen->onEdit(0, 9, CellEditAction::tap); // unchanged mode must not clear a latch
+  screen->onEdit(0, 2, CellEditAction::tap); // unchanged mode must not clear a latch
   CHECK(chipnomadLiveStickIsEnabled());
-  REQUIRE(screen->onEdit(0, 9, CellEditAction::decrease) == 1);
+  REQUIRE(screen->onEdit(0, 2, CellEditAction::decrease) == 1);
   CHECK_FALSE(chipnomadLiveStickIsEnabled());
-  screen->drawField(0, 9, CellState::focus);
-  CHECK(std::string(mockGfxCells[11] + 23, 6) == "HOLD  ");
-  screen->drawCursor(0, 9);
+  screen->drawField(0, 2, CellState::focus);
+  CHECK(std::string(mockGfxCells[4] + 23, 6) == "HOLD  ");
+  screen->drawCursor(0, 2);
   CHECK(mockCursorX == 23);
-  CHECK(mockCursorY == 11);
+  CHECK(mockCursorY == 4);
   CHECK(mockCursorWidth == 6);
 
-  const char* labels[] = {"MIDI", "Key mapping", "Load font", "Edit color theme", "Quit ChooChooTracker"};
-  const int lines[] = {12, 13, 14, 15, 18};
-  const int widths[] = {4, 11, 9, 16, 19}; // preserve existing action cursor widths
-  const AppScreen* destinations[] = {&screenMidi, &screenKeyMapping, &screenFileBrowser, &screenColorTheme};
+  const char* labels[] = {"MIDI", "Key mapping", "Synths", "Mixer", "Graphics", "Quit ChooChooTracker"};
+  const int lines[] = {5, 6, 7, 8, 9, 18};
+  const int widths[] = {4, 11, 6, 5, 8, 19};
+  const AppScreen* destinations[] = {&screenMidi, &screenKeyMapping, &screenSynthSettings, &screenMixerSettings, &screenGraphicsSettings};
   mockQuitTriggered = 0;
-  for (int i = 0; i < 5; ++i) {
-    screen->drawField(0, 10 + i, CellState::focus);
+  for (int i = 0; i < 6; ++i) {
+    int row = i < 5 ? 3 + i : 9;
+    screen->drawField(0, row, CellState::focus);
     CHECK(std::string(mockGfxCells[lines[i]], std::string(labels[i]).size()) == labels[i]);
-    screen->drawCursor(0, 10 + i);
+    screen->drawCursor(0, row);
     CHECK(mockCursorX == 0);
     CHECK(mockCursorY == lines[i]);
     CHECK(mockCursorWidth == widths[i]);
-    screen->onEdit(0, 10 + i, CellEditAction::tap);
-    if (i < 4) {
+    screen->onEdit(0, row, CellEditAction::tap);
+    if (i < 5) {
       CHECK(currentScreen == destinations[i]);
       CHECK_FALSE(mockQuitTriggered);
     }
   }
   CHECK(mockQuitTriggered);
-  CHECK(std::string(mockBrowserTitle) == "LOAD FONT");
-  CHECK(std::string(mockBrowserExtension) == ".cnfont");
 }
 }
 

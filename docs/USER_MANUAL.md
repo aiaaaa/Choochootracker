@@ -1027,14 +1027,12 @@ Use **Save** before changing instrument types or loading another project.
 ## 12. Settings
 
 - **Repeat delay / speed** tune held-button repeat.
-- **Mix volume** controls final application output.
-- **Tilt pivot** is a per-project `250-4000 Hz` frequency, defaulting to `1 kHz`. It sets the centre frequency for all Mixer Tilt controls.
-- **AY Quality** changes AY/YM emulation quality only.
-- **Sample dithering** controls AY Sample dithering only.
-- **Braids BITS / DRFT / SIGN** apply globally to every Braids instrument.
 - **Stick live mode** selects `HOLD`, `TOGGLE`, or `FREE` for the existing mapped Stick live button.
 - **MIDI** opens the [MIDI](#14-midi) submenu: device selection and the MIDI In channel-to-instrument mapping.
-- **Key mapping**, **Load font**, and **Edit color theme** customise the interface. ChipNomad fonts and themes should work.
+- **Synths** contains **AY Quality**, **Sample dithering**, and global **Braids BITS / DRFT / SIGN** settings.
+- **Mixer** contains **Mix volume** and the per-project `250-4000 Hz` **Tilt pivot** (default `1 kHz`) used by all Mixer Tilt controls.
+- **Graphics** contains **Load font** and **Edit color theme**. ChipNomad fonts and themes should work.
+- **Key mapping** customises the controls.
 - **Quit ChooChooTracker** exits cleanly.
 
 ## 13. Performance and troubleshooting
