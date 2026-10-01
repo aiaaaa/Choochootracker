@@ -90,6 +90,11 @@ TEST_CASE_FIXTURE(VisualFixture, "Earlier per-layer settings retain modes and di
 }
 
 TEST_CASE_FIXTURE(VisualFixture, "One display choice switches each track and saves bulk choices") {
+  currentScreen = &screenGraphicsSettings;
+  screenGraphicsSettings.fullRedraw();
+  REQUIRE(mockScreenData != nullptr);
+  mockScreenData->onEdit(0, 2, CellEditAction::tap);
+  CHECK(currentScreen == &screenTrackVisuals);
   currentScreen = &screenTrackVisuals;
   screenTrackVisuals.setup(0);
   screenTrackVisuals.fullRedraw();
@@ -112,7 +117,7 @@ TEST_CASE_FIXTURE(VisualFixture, "One display choice switches each track and sav
     CHECK(visual.mode == TrackVisualMode::detailed);
   table->onEdit(0, 2, CellEditAction::tap);
   table->onEdit(0, PROJECT_MAX_TRACKS + 1, CellEditAction::tap);
-  CHECK(currentScreen == &screenSettings);
+  CHECK(currentScreen == &screenGraphicsSettings);
   REQUIRE(settingsLoad() == 0);
   CHECK(appSettings.trackVisuals[2].mode == TrackVisualMode::audio);
   CHECK(appSettings.trackVisuals[1].mode == TrackVisualMode::detailed);

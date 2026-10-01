@@ -89,6 +89,8 @@ const char* instrumentTypeName(InstrumentType type) {
       return "PD-VCO";
     case InstrumentType::PDVoice:
       return "PD-voice";
+    case InstrumentType::Midi:
+      return "MIDI Out";
     case InstrumentType::none:
       return "None";
     default:

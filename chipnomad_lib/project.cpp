@@ -51,7 +51,7 @@ FXGroup fxGroups[] = {
   {"BYOWTBL FX", NULL, 0, 6, InstrumentType::BYOWTBL},
   {"Plaits FX", NULL, 0, 7, InstrumentType::Plaits},
   {"Plaits-Alt FX", NULL, 0, 7, InstrumentType::PlaitsAlt},
-  {"aChChid FX", NULL, 0, 8, InstrumentType::AChChid},
+  {"aChChid FX", NULL, 0, 9, InstrumentType::AChChid},
   {"Bogie FX", NULL, 0, 8, InstrumentType::DrumSynth},
   {"ADSR / Trigger FX", fxNamesEnvelope, 0, 7, InstrumentType::none},
   {"Modulation FX", fxNamesModulation, 0, 5, InstrumentType::none},
@@ -59,6 +59,7 @@ FXGroup fxGroups[] = {
   {"Sintered FX", NULL, 0, 8, InstrumentType::Sintered},
   {"PD-VCO FX", NULL, 0, 8, InstrumentType::PDVCO},
   {"PD-voice FX", NULL, 0, 8, InstrumentType::PDVoice},
+  {"MIDI FX", NULL, 0, 4, InstrumentType::Midi},
 };
 int fxGroupCount = sizeof(fxGroups) / sizeof(FXGroup);
 
@@ -104,7 +105,7 @@ void fillFXNames() {
     fxGroups[16].fxList = names; fxGroups[16].count = definition->fxCount;
     for (int i = 0; i < definition->fxCount; ++i) { names[i].fx = (FX)definition->fxList[i].fx; strcpy(names[i].name, definition->fxList[i].name); }
   }
-  for (int group = 17; group < 19; ++group) {
+  for (int group = 17; group < 20; ++group) {
     InstrumentType type = fxGroups[group].instType;
     const InstrumentDefinition* definition = getInstrumentDefinition(type);
     FXName* names = instrumentGroupNames[(int)type];

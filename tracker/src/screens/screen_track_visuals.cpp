@@ -43,7 +43,7 @@ static void drawField(int col, int row, CellState state) {
   else gfxPrint(0, 14, "Done");
 }
 static void done() {
-  if (settingsSave() == 0) screenSetup(&screenSettings, 0);
+  if (settingsSave() == 0) screenSetup(&screenGraphicsSettings, 0);
   else screenMessage(MESSAGE_TIME, "Could not save track visuals");
 }
 static int onEdit(int col, int row, CellEditAction action) {
