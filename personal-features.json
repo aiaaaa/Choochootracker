@@ -1,7 +1,7 @@
 {
   "upstream": "paiheulevrai/Choochootracker",
   "upstream_branch": "main",
-  "upstream_commit": "f13b8b4033c0a7fd2e9de55928a77d57a9f3a94e",
+  "upstream_commit": "cf7d8660f11f56412a0f0d823e598ad3f1e2a8e9",
   "personal_branch": "personal/r36h",
   "update_policy": "Merge upstream main only; review conflicts, test and package before installing. No unattended updates.",
   "features": [

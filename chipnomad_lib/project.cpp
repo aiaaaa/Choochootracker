@@ -57,8 +57,6 @@ FXGroup fxGroups[] = {
   {"Modulation FX", fxNamesModulation, 0, 5, InstrumentType::none},
   {"MME FX", NULL, 0, 8, InstrumentType::MME},
   {"Sintered FX", NULL, 0, 8, InstrumentType::Sintered},
-  {"PD-VCO FX", NULL, 0, 8, InstrumentType::PDVCO},
-  {"PD-voice FX", NULL, 0, 8, InstrumentType::PDVoice},
   {"MIDI FX", NULL, 0, 4, InstrumentType::Midi},
 };
 int fxGroupCount = sizeof(fxGroups) / sizeof(FXGroup);
@@ -105,7 +103,7 @@ void fillFXNames() {
     fxGroups[16].fxList = names; fxGroups[16].count = definition->fxCount;
     for (int i = 0; i < definition->fxCount; ++i) { names[i].fx = (FX)definition->fxList[i].fx; strcpy(names[i].name, definition->fxList[i].name); }
   }
-  for (int group = 17; group < 20; ++group) {
+  for (int group = 17; group < 18; ++group) {
     InstrumentType type = fxGroups[group].instType;
     const InstrumentDefinition* definition = getInstrumentDefinition(type);
     FXName* names = instrumentGroupNames[(int)type];
