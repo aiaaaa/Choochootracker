@@ -396,6 +396,7 @@ void appDraw(void) {
   if (!chipnomadState) return;
 
   pianoDisplayDraw();
+  waveformDisplayRefresh();
 
   // Tracks
   char digit[2] = "0";

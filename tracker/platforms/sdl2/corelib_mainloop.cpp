@@ -276,12 +276,16 @@ void mainLoopRun(void (*draw)(void), void (*onEvent)(MainLoopEventData eventData
 #endif
       }
       else if (event.type == SDL_RENDER_TARGETS_RESET || event.type == SDL_RENDER_DEVICE_RESET) {
+        gfxHandleRenderReset();
+        eventData.type = MainLoopEvent::fullRedraw;
+        eventData.data.value = 0;
+        onEvent(eventData);
         wakeRedrawFrames = FPS;
       }
       else if (event.type == SDL_WINDOWEVENT) {
         if (event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED ||
             event.window.event == SDL_WINDOWEVENT_RESIZED) {
-          gfxHandleResize();
+          gfxHandleResize(event.window.data1, event.window.data2);
 #ifdef TOUCH_INPUT
 #ifndef ANDROID_BUILD
           releaseFingers();

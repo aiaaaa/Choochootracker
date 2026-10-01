@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <functional>
+#include <chrono>
 
 #define ENVELOPE_DIM_BRIGHTNESS 160
 
@@ -28,6 +29,10 @@ static int noiseAnimIdx = 0;
 static float displayedVoiceSamples[PROJECT_MAX_TRACKS][VOICE_MONITOR_SAMPLES];
 static float displayedVoiceEnvelopes[PROJECT_MAX_TRACKS];
 static uint8_t displayedVoiceActive[PROJECT_MAX_TRACKS];
+static int displayedInstruments[PROJECT_MAX_TRACKS];
+static int displayedPitches[PROJECT_MAX_TRACKS];
+static std::chrono::steady_clock::time_point lastWaveformRefresh;
+static float voiceBlend = 0.3f;
 
 // ============================================================================
 // Playback wavevorm display
@@ -46,6 +51,11 @@ void waveformDisplayInit(void) {
   memset(displayedVoiceSamples, 0, sizeof(displayedVoiceSamples));
   memset(displayedVoiceEnvelopes, 0, sizeof(displayedVoiceEnvelopes));
   memset(displayedVoiceActive, 0, sizeof(displayedVoiceActive));
+  for (int i = 0; i < PROJECT_MAX_TRACKS; ++i) {
+    displayedInstruments[i] = -2;
+    displayedPitches[i] = -2;
+  }
+  lastWaveformRefresh = std::chrono::steady_clock::time_point();
 
   for (int i = 0; i < 512; i++) {
     noisePattern[i] = rand() & 1;
@@ -144,13 +154,13 @@ static Bitmap* drawVoiceWaveform(int trackIdx) {
   VoiceMonitor* monitor = &chipnomadState->voiceMonitors[trackIdx];
   if (!monitor->active) {
     displayedVoiceActive[trackIdx] = 0;
-    return emptyBitmap;
+    Bitmap* bitmap = waveformBitmaps[trackIdx];
+    memset(bitmap->data, 0, bitmap->widthPixels * bitmap->heightPixels);
+    return bitmap;
   }
 
-  // This runs once per rendered UI frame.  The first monitor frame is copied
-  // directly; following callback snapshots glide into place in roughly 4 UI
-  // frames (about 67 ms at 60 Hz).
-  const float blend = 0.3f;
+  // Convert the original 60 Hz smoothing to the selected refresh cadence.
+  const float blend = voiceBlend;
   if (!displayedVoiceActive[trackIdx]) {
     memcpy(displayedVoiceSamples[trackIdx], monitor->samples,
            sizeof(displayedVoiceSamples[trackIdx]));
@@ -184,7 +194,7 @@ static Bitmap* drawVoiceWaveform(int trackIdx) {
   return bitmap;
 }
 
-Bitmap* waveformDisplayGetBitmap(int trackIdx) {
+static Bitmap* renderWaveform(int trackIdx) {
   const PlaybackTrackState* track = &chipnomadGetPlaybackStatus(chipnomadState)->tracks[trackIdx];
 
   if (track->note.instrument != EMPTY_VALUE_8) {
@@ -197,7 +207,9 @@ Bitmap* waveformDisplayGetBitmap(int trackIdx) {
 
   // Check if track is playing
   if (track->note.pitchFinal == EMPTY_VALUE_8) {
-    return emptyBitmap;
+    Bitmap* bitmap = waveformBitmaps[trackIdx];
+    memset(bitmap->data, 0, bitmap->widthPixels * bitmap->heightPixels);
+    return bitmap;
   }
 
   // TODO: Support other chips (FM, SID)
@@ -277,6 +289,44 @@ Bitmap* waveformDisplayGetBitmap(int trackIdx) {
   }
 
   return bitmap;
+}
+
+void waveformDisplayInvalidate(void) {
+  lastWaveformRefresh = std::chrono::steady_clock::time_point();
+}
+
+void waveformDisplayRefresh(void) {
+  if (!chipnomadState) return;
+
+  const PlaybackStatus* status = chipnomadGetPlaybackStatus(chipnomadState);
+  int changed = lastWaveformRefresh == std::chrono::steady_clock::time_point();
+  for (int i = 0; i < chipnomadState->project.tracksCount; ++i) {
+    const PlaybackTrackState* track = &status->tracks[i];
+    if (displayedInstruments[i] != track->note.instrument ||
+        displayedPitches[i] != track->note.pitchFinal) changed = 1;
+  }
+
+  const auto now = std::chrono::steady_clock::now();
+  const int refreshHz = appSettings.waveformRefreshHz < 1 ? 1 :
+    (appSettings.waveformRefreshHz > 60 ? 60 : appSettings.waveformRefreshHz);
+  float elapsedSeconds = lastWaveformRefresh == std::chrono::steady_clock::time_point() ?
+    1.0f / refreshHz : std::chrono::duration<float>(now - lastWaveformRefresh).count();
+  if (!changed && elapsedSeconds < 1.0f / refreshHz) return;
+
+  voiceBlend = 1.0f - powf(0.7f, elapsedSeconds * 60.0f);
+  if (voiceBlend > 1.0f) voiceBlend = 1.0f;
+  for (int i = 0; i < chipnomadState->project.tracksCount; ++i) {
+    const PlaybackTrackState* track = &status->tracks[i];
+    displayedInstruments[i] = track->note.instrument;
+    displayedPitches[i] = track->note.pitchFinal;
+    renderWaveform(i);
+  }
+  lastWaveformRefresh = now;
+}
+
+Bitmap* waveformDisplayGetBitmap(int trackIdx) {
+  if (trackIdx < 0 || trackIdx >= PROJECT_MAX_TRACKS) return emptyBitmap;
+  return waveformBitmaps[trackIdx];
 }
 
 // ============================================================================

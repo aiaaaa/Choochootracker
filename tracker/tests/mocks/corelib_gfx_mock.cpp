@@ -38,5 +38,6 @@ void gfxDrawBitmap(Bitmap* bitmap, int col, int row) {}
 int gfxGetCharWidth(void) { return 8; }
 int gfxGetCharHeight(void) { return 16; }
 void gfxReloadFont(void) {}
+const char* gfxGetRendererType(void) { return "Software"; }
 void gfxDrawHUD(void) {}
 void gfxSetButtonPressed(int buttonIndex, int pressed) {}

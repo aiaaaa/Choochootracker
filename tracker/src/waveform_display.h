@@ -18,6 +18,8 @@ struct InstrumentMME;
  * @brief Initialize waveform display system
  */
 void waveformDisplayInit(void);
+void waveformDisplayRefresh(void);
+void waveformDisplayInvalidate(void);
 
 /**
  * @brief Get waveform bitmap for a track
