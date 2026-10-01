@@ -97,6 +97,7 @@ Articulations
 - Tracker tables (4 FX slots per table row), grooves, chains, and songs
 - Decoupled tables: tracker tables can be free running, or reset on phrase/chain.
 - Jazz mode: play with your computer keyboard (PC only)
+- Chord mode on every engine
 
 We have MIDI in/out: sequence or be sequenced. 
 
