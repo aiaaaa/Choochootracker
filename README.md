@@ -62,7 +62,7 @@ A native Windows build is available for development and desktop testing. It work
 
 You can also test it in your browser on https://choochootracker.vercel.app/ (use the keyboard or gamepad on a computer, use the on-screen gamepad on a mobile device). 
 
-Android version is available in "closed beta", contact me on Discord https://discord.gg/Ut9vM6zgKU to get access.
+Android on Play Store is available in "closed beta", contact me on Discord https://discord.gg/Ut9vM6zgKU to get access.
 
 Other platforms: the app is SDL2 based, it should compile anywhere.
 
