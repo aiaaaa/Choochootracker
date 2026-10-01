@@ -29,8 +29,6 @@ static int noiseAnimIdx = 0;
 static float displayedVoiceSamples[PROJECT_MAX_TRACKS][VOICE_MONITOR_SAMPLES];
 static float displayedVoiceEnvelopes[PROJECT_MAX_TRACKS];
 static uint8_t displayedVoiceActive[PROJECT_MAX_TRACKS];
-static int displayedInstruments[PROJECT_MAX_TRACKS];
-static int displayedPitches[PROJECT_MAX_TRACKS];
 static std::chrono::steady_clock::time_point lastWaveformRefresh;
 static float voiceBlend = 0.3f;
 
@@ -51,10 +49,6 @@ void waveformDisplayInit(void) {
   memset(displayedVoiceSamples, 0, sizeof(displayedVoiceSamples));
   memset(displayedVoiceEnvelopes, 0, sizeof(displayedVoiceEnvelopes));
   memset(displayedVoiceActive, 0, sizeof(displayedVoiceActive));
-  for (int i = 0; i < PROJECT_MAX_TRACKS; ++i) {
-    displayedInstruments[i] = -2;
-    displayedPitches[i] = -2;
-  }
   lastWaveformRefresh = std::chrono::steady_clock::time_point();
 
   for (int i = 0; i < 512; i++) {
@@ -298,27 +292,19 @@ void waveformDisplayInvalidate(void) {
 void waveformDisplayRefresh(void) {
   if (!chipnomadState) return;
 
-  const PlaybackStatus* status = chipnomadGetPlaybackStatus(chipnomadState);
-  int changed = lastWaveformRefresh == std::chrono::steady_clock::time_point();
-  for (int i = 0; i < chipnomadState->project.tracksCount; ++i) {
-    const PlaybackTrackState* track = &status->tracks[i];
-    if (displayedInstruments[i] != track->note.instrument ||
-        displayedPitches[i] != track->note.pitchFinal) changed = 1;
-  }
-
   const auto now = std::chrono::steady_clock::now();
   const int refreshHz = appSettings.waveformRefreshHz < 1 ? 1 :
     (appSettings.waveformRefreshHz > 60 ? 60 : appSettings.waveformRefreshHz);
   float elapsedSeconds = lastWaveformRefresh == std::chrono::steady_clock::time_point() ?
     1.0f / refreshHz : std::chrono::duration<float>(now - lastWaveformRefresh).count();
-  if (!changed && elapsedSeconds < 1.0f / refreshHz) return;
+  // A note can change on every tracker tick.  It must not bypass the selected
+  // waveform cadence, otherwise low settings still redraw at the UI rate.
+  if (lastWaveformRefresh != std::chrono::steady_clock::time_point() &&
+      elapsedSeconds < 1.0f / refreshHz) return;
 
   voiceBlend = 1.0f - powf(0.7f, elapsedSeconds * 60.0f);
   if (voiceBlend > 1.0f) voiceBlend = 1.0f;
   for (int i = 0; i < chipnomadState->project.tracksCount; ++i) {
-    const PlaybackTrackState* track = &status->tracks[i];
-    displayedInstruments[i] = track->note.instrument;
-    displayedPitches[i] = track->note.pitchFinal;
     renderWaveform(i);
   }
   lastWaveformRefresh = now;
