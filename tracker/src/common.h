@@ -51,9 +51,6 @@ enum class StickLiveMode { hold, toggle, free };
 enum class TrackVisualMode : uint8_t { detailed, audio };
 struct TrackVisualSettings {
   TrackVisualMode mode = TrackVisualMode::detailed;
-  uint8_t wave = 1;
-  uint8_t envelope = 1;
-  uint8_t noise = 1;
 };
 
 struct AppSettings {

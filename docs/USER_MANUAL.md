@@ -945,9 +945,9 @@ Use **Save** before changing instrument types or loading another project.
 - **Braids BITS / DRFT / SIGN** apply globally to every Braids instrument.
 - **Stick live mode** selects `HOLD`, `TOGGLE`, or `FREE` for the existing mapped Stick live button.
 - **Key mapping**, **Load font**, and **Edit color theme** customise the interface. ChipNomad fonts and themes should work.
-- **Track visuals** opens a per-track table for the eight right-side mini readouts. `DETAIL` is the default, with `WAVE`, `ENV`, and `NOISE` enabled. These retain the instrument waveform, envelope overlay and AY noise texture where supported. `WAVE` controls the main trace; the other layers can be shown independently.
-- Set a track's mode to `AUDIO` for a simple view of its summed audio after track level/tilt, before shared effects and master volume. This works across engines and chord voices, with a padded centre line and no envelope/noise decorations. `WAVE` hides or shows this readout; `ENV` and `NOISE` show `---` and their Detailed-mode choices are remembered.
-- In **Track visuals**, tap **EDIT** to toggle a field, or use **EDIT + direction**. **All audio** enables the clean readout for every track; **All detailed** returns to each track's saved layer choices. **Done** or **SHIFT + LEFT** saves these application preferences and returns to Settings. They do not alter the song or audio output.
+- **Track visuals** opens a table with one **Display** choice per track for the eight right-side mini readouts. **Detailed** is the default and keeps the instrument waveform, envelope overlay and AY noise texture together where applicable. There are no separate waveform, envelope or noise switches.
+- **Audio waveform** shows the track's summed audio after track level/tilt, before shared effects and master volume. This works across engines and chord voices, with a padded centre line and no envelope/noise decorations.
+- In **Track visuals**, tap **EDIT** to switch displays, or use **EDIT + direction**. **All audio** and **All detailed** switch every track at once. **Done** or **SHIFT + LEFT** saves these application preferences and returns to Settings. They do not alter the song or audio output. Settings from the earlier per-layer version retain each track's mode; the removed layer switches are ignored.
 - **Quit ChooChooTracker** exits cleanly.
 
 ## 13. Performance and troubleshooting

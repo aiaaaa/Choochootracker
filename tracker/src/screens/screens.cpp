@@ -287,8 +287,7 @@ static int screenTouchCellAt(int col, int row, int* targetCol, int* targetRow) {
     int column = -1;
     if (field < 0) return 0;
     if (field < PROJECT_MAX_TRACKS) {
-      const int x[] = {4, 13, 19, 24}, width[] = {6, 3, 3, 3};
-      for (int i = 0; i < 4; ++i) if (col >= x[i] && col < x[i] + width[i]) column = i;
+      if (col >= 4 && col < 18) column = 0;
     } else if (field == PROJECT_MAX_TRACKS) {
       if (col >= 0 && col < 12) column = 0;
       else if (col >= 15 && col < 24) column = 1;
