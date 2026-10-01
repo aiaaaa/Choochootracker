@@ -95,6 +95,8 @@ struct PlaybackTrackState {
   uint8_t speedRatio;
   uint32_t speedPhase;
   uint8_t slewTicks;
+  uint8_t achchidGateTicks;
+  uint8_t achchidGateCounter;
   int16_t slewCurrent[fxTotalCount];
   int16_t slewTarget[fxTotalCount];
   uint8_t slewRemaining[fxTotalCount];
@@ -111,6 +113,13 @@ struct PlaybackTrackState {
   PhraseRow currentPhraseRow;
   // FX auxillary state data for the phrase (used by HOP)
   uint8_t fxAuxState[16][3];
+
+  // One-shot signal for a MIDI Out instrument's MC1-MC4 row FX (see
+  // playback_fx_midi.cpp and chipnomad_lib.cpp's applyVoiceEvents): set when
+  // that FX is freshly read from a row, consumed and cleared by the audio
+  // engine, which is the only layer that knows about real MIDI I/O.
+  uint8_t midiCCPending[4];
+  uint8_t midiCCValue[4];
 };
 
 struct PlaybackAYChipState {

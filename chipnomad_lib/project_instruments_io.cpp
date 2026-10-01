@@ -254,6 +254,7 @@ static int loadInstrumentSample(FILE* file, Instrument* instrument) {
     else if (strncmp(line, "- Sample start: ", 16) == 0) sscanf(line, "- Sample start: %hhu", &sample->start);
     else if (strncmp(line, "- Sample end: ", 14) == 0) sscanf(line, "- Sample end: %hhu", &sample->end);
     else if (strncmp(line, "- Sample loop: ", 15) == 0) sscanf(line, "- Sample loop: %hhu", &sample->loopMode);
+    else if (strncmp(line, "- Sample slice: ", 16) == 0) sscanf(line, "- Sample slice: %hhu", &sample->slice);
     else if (strncmp(line, "- Sample volume: ", 17) == 0) sscanf(line, "- Sample volume: %hhu", &instrument->volume);
     else loadVoicePostSetting(line, sample);
     consumeLine(file);
@@ -263,6 +264,7 @@ static int loadInstrumentSample(FILE* file, Instrument* instrument) {
     sampleLoadWav16(sample->path, sample, error, sizeof(error));
   }
   if (sample->loopMode > 2) sample->loopMode = 0;
+  sample->slice = sampleNormalizeSlice(sample->slice);
   return 0;
 }
 
@@ -276,11 +278,29 @@ static int loadInstrumentAChChid(FILE* file, Instrument* instrument) {
     else if (strncmp(line, "- Model: ", 9) == 0) sscanf(line, "- Model: %hhu", &a->model);
     else if (strncmp(line, "- Timbre: ", 10) == 0) sscanf(line, "- Timbre: %hu", &a->timbre);
     else if (strncmp(line, "- Color: ", 9) == 0) sscanf(line, "- Color: %hu", &a->color);
+    else if (strncmp(line, "- Saturation: ", 14) == 0) sscanf(line, "- Saturation: %hhu", &a->saturation);
     else if (strncmp(line, "- Cutoff: ", 10) == 0) sscanf(line, "- Cutoff: %hu", &a->cutoff);
     else if (strncmp(line, "- Resonance: ", 13) == 0) sscanf(line, "- Resonance: %hhu", &a->resonance);
     else if (strncmp(line, "- Env mod: ", 11) == 0) sscanf(line, "- Env mod: %hhu", &a->envMod);
     else if (strncmp(line, "- Decay: ", 9) == 0) sscanf(line, "- Decay: %hu", &a->decay);
     else if (strncmp(line, "- Accent: ", 10) == 0) sscanf(line, "- Accent: %hhu", &a->accent);
+    consumeLine(file);
+  }
+}
+
+static int loadInstrumentMidi(FILE* file, Instrument* instrument) {
+  InstrumentMidi* m = &instrument->chip.midi;
+  while (1) {
+    char* line = peekLine(file);
+    if (line == NULL || line[0] == '#') return 0;
+    if (strncmp(line, "- Channel: ", 11) == 0) sscanf(line, "- Channel: %hhu", &m->channel);
+    else if (strncmp(line, "- Program: ", 11) == 0) sscanf(line, "- Program: %hhu", &m->program);
+    else if (strncmp(line, "- Bank high: ", 13) == 0) sscanf(line, "- Bank high: %hhu", &m->bankHigh);
+    else if (strncmp(line, "- Bank low: ", 12) == 0) sscanf(line, "- Bank low: %hhu", &m->bankLow);
+    else if (strncmp(line, "- CC1 number: ", 14) == 0) sscanf(line, "- CC1 number: %hhu", &m->ccNumber[0]);
+    else if (strncmp(line, "- CC2 number: ", 14) == 0) sscanf(line, "- CC2 number: %hhu", &m->ccNumber[1]);
+    else if (strncmp(line, "- CC3 number: ", 14) == 0) sscanf(line, "- CC3 number: %hhu", &m->ccNumber[2]);
+    else if (strncmp(line, "- CC4 number: ", 14) == 0) sscanf(line, "- CC4 number: %hhu", &m->ccNumber[3]);
     consumeLine(file);
   }
 }
@@ -541,6 +561,9 @@ int instrumentLoadData(FILE* file, Instrument* instrument, Project* p) {
       case InstrumentType::PDVoice:
         if (loadInstrumentPD(file, instrument)) return 1;
         break;
+      case InstrumentType::Midi:
+        if (loadInstrumentMidi(file, instrument)) return 1;
+        break;
       default:
         break;
     }
@@ -667,6 +690,7 @@ static int saveInstrumentSample(FILE* file, Instrument* instrument) {
   fprintf(file, "- Sample start: %hhu\n", sample->start);
   fprintf(file, "- Sample end: %hhu\n", sample->end);
   fprintf(file, "- Sample loop: %hhu\n", sample->loopMode);
+  fprintf(file, "- Sample slice: %hhu\n", sampleNormalizeSlice(sample->slice));
   saveVoicePostSettings(file, sample);
   return 0;
 }
@@ -678,11 +702,25 @@ static int saveInstrumentAChChid(FILE* file, Instrument* instrument) {
   fprintf(file, "- Model: %hhu\n", a->model);
   fprintf(file, "- Timbre: %hu\n", a->timbre);
   fprintf(file, "- Color: %hu\n", a->color);
+  fprintf(file, "- Saturation: %hhu\n", a->saturation);
   fprintf(file, "- Cutoff: %hu\n", a->cutoff);
   fprintf(file, "- Resonance: %hhu\n", a->resonance);
   fprintf(file, "- Env mod: %hhu\n", a->envMod);
   fprintf(file, "- Decay: %hu\n", a->decay);
   fprintf(file, "- Accent: %hhu\n", a->accent);
+  return 0;
+}
+
+static int saveInstrumentMidi(FILE* file, Instrument* instrument) {
+  InstrumentMidi* m = &instrument->chip.midi;
+  fprintf(file, "- Channel: %hhu\n", m->channel);
+  fprintf(file, "- Program: %hhu\n", m->program);
+  fprintf(file, "- Bank high: %hhu\n", m->bankHigh);
+  fprintf(file, "- Bank low: %hhu\n", m->bankLow);
+  fprintf(file, "- CC1 number: %hhu\n", m->ccNumber[0]);
+  fprintf(file, "- CC2 number: %hhu\n", m->ccNumber[1]);
+  fprintf(file, "- CC3 number: %hhu\n", m->ccNumber[2]);
+  fprintf(file, "- CC4 number: %hhu\n", m->ccNumber[3]);
   return 0;
 }
 
@@ -836,6 +874,9 @@ int instrumentSaveData(FILE* file, int idx, Instrument* instrument) {
     case InstrumentType::PDVCO:
     case InstrumentType::PDVoice:
       saveInstrumentPD(file, instrument);
+      break;
+    case InstrumentType::Midi:
+      saveInstrumentMidi(file, instrument);
       break;
     default:
       break;

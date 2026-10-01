@@ -33,11 +33,12 @@ void drawScreenMap() {
   if (currentScreen == &screenMixer) {
     gfxPrint(34, smY, "R");
     gfxPrint(34, smY + 2, "D");
-  } else if (currentScreen == &screenSong || currentScreen == &screenProject || currentScreen == &screenSettings || currentScreen == &screenTrackVisuals) {
+  } else if (currentScreen == &screenSong || currentScreen == &screenProject || currentScreen == &screenSettings) {
     gfxPrint(35, smY, "P");
   } else if (currentScreen == &screenPhrase || currentScreen == &screenGroove) {
     gfxPrint(37, smY, "G");
-  } else if (currentScreen == &screenInstrument || currentScreen == &screenInstrumentPool) {
+  } else if (currentScreen == &screenInstrument || currentScreen == &screenSampleSettings ||
+             currentScreen == &screenInstrumentPool) {
     gfxPrint(38, smY + 2, "P");
     gfxPrint(38, smY, "M");
   } else if (currentScreen == &screenModulation) {
@@ -47,7 +48,7 @@ void drawScreenMap() {
   }
 
   // Show Settings below Song
-  if (currentScreen == &screenSong || currentScreen == &screenProject || currentScreen == &screenSettings || currentScreen == &screenTrackVisuals) {
+  if (currentScreen == &screenSong || currentScreen == &screenProject || currentScreen == &screenSettings) {
     gfxPrint(35, smY + 2, "S");
   }
 
@@ -62,7 +63,7 @@ void drawScreenMap() {
     gfxPrint(36, smY + 1, "C");
   } else if (currentScreen == &screenPhrase) {
     gfxPrint(37, smY + 1, "P");
-  } else if (currentScreen == &screenInstrument) {
+  } else if (currentScreen == &screenInstrument || currentScreen == &screenSampleSettings) {
     gfxPrint(38, smY + 1, "I");
   } else if (currentScreen == &screenInstrumentPool) {
     gfxPrint(38, smY + 2, "P");
@@ -76,7 +77,7 @@ void drawScreenMap() {
     gfxPrint(35, smY, "P");
   } else if (currentScreen == &screenGroove) {
     gfxPrint(37, smY, "G");
-  } else if (currentScreen == &screenSettings || currentScreen == &screenTrackVisuals) {
+  } else if (currentScreen == &screenSettings) {
     gfxPrint(35, smY + 2, "S");
   }
 }
@@ -273,15 +274,6 @@ static int screenTouchEnvelopeAt(int col, int row, int* targetCol) {
 
 static int screenTouchCellAt(int col, int row, int* targetCol, int* targetRow) {
   if (!touchScreenData || touchScreenData->selectMode == 1) return 0;
-  if (currentScreen == &screenSettings) {
-    int field = row >= 2 && row <= 15 ? row - 2 : row == 18 ? 14 : -1;
-    if (field < 0) return 0;
-    const int actionWidths[] = {11, 9, 16, 13, 19};
-    if (field < 10 ? (col < 23 || col >= 33) : (col < 0 || col >= actionWidths[field - 10])) return 0;
-    if (targetCol) *targetCol = 0;
-    if (targetRow) *targetRow = field;
-    return 1;
-  }
   if (currentScreen == &screenTrackVisuals) {
     int field = row >= 3 && row < 3 + PROJECT_MAX_TRACKS ? row - 3 : row == 12 ? PROJECT_MAX_TRACKS : row == 14 ? PROJECT_MAX_TRACKS + 1 : -1;
     int column = -1;
@@ -293,6 +285,38 @@ static int screenTouchCellAt(int col, int row, int* targetCol, int* targetRow) {
       else if (col >= 15 && col < 24) column = 1;
     } else if (col >= 0 && col < 4) column = 0;
     if (column < 0) return 0;
+    if (targetCol) *targetCol = column;
+    if (targetRow) *targetRow = field;
+    return 1;
+  }
+  if (currentScreen == &screenGraphicsSettings) {
+    int field = row - 2;
+    const int widths[] = {9, 16, 13};
+    if (field < 0 || field >= 3 || col < 0 || col >= widths[field]) return 0;
+    if (targetCol) *targetCol = 0;
+    if (targetRow) *targetRow = field;
+    return 1;
+  }
+  if (currentScreen == &screenProject) {
+    const int fieldY[] = {3, 5, 6, 7, 9, 10, 11, 12, 13, 14, 16};
+    int field = -1, column = 0;
+    for (int i = 0; i < touchScreenData->rows && i < 11; ++i)
+      if (row == fieldY[i]) field = i;
+    if (field < 0) return 0;
+    if (field == 0) {
+      const int x[] = {7, 12, 17, 21, 28}, width[] = {4, 4, 3, 6, 6};
+      column = -1;
+      for (int i = 0; i < 5; ++i) if (col >= x[i] && col < x[i] + width[i]) column = i;
+      if (column < 0) return 0;
+    } else if (field <= 3) {
+      column = col - 7;
+      if (column < 0 || column >= touchScreenData->getColumnCount(field)) return 0;
+    } else if (field == 10) {
+      if (col < 0 || col >= 5) return 0;
+    } else {
+      if (col < 13 || col >= 34) return 0;
+      if (field == 5) column = col >= 17 ? 1 : 0;
+    }
     if (targetCol) *targetCol = column;
     if (targetRow) *targetRow = field;
     return 1;
