@@ -85,10 +85,6 @@ const char* instrumentTypeName(InstrumentType type) {
       return "MME";
     case InstrumentType::Sintered:
       return "Sintered";
-    case InstrumentType::PDVCO:
-      return "PD-VCO";
-    case InstrumentType::PDVoice:
-      return "PD-voice";
     case InstrumentType::Midi:
       return "MIDI Out";
     case InstrumentType::none:
