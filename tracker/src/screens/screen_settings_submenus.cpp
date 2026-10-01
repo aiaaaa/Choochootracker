@@ -9,6 +9,7 @@
 
 static int columnCount(int) { return 1; }
 static void noHeader(int, CellState) {}
+static void draw(void) {}
 
 static void synthStatic(void) { gfxSetFgColor(appSettings.colorScheme.textTitles); gfxPrint(0, 0, "SYNTHS"); }
 static void synthCursor(int, int row) { gfxCursor(23, 2 + row, row == 0 ? 6 : row == 1 ? 3 : row == 2 ? 6 : 4); }
@@ -86,6 +87,6 @@ static void graphicsRedraw(void) { screenFullRedraw(&graphicsData); }
 static int synthInput(int down, int keys, int taps) { return menuInput(&synthData, down, keys, taps); }
 static int mixerInput(int down, int keys, int taps) { return menuInput(&mixerData, down, keys, taps); }
 static int graphicsInput(int down, int keys, int taps) { return menuInput(&graphicsData, down, keys, taps); }
-const AppScreen screenSynthSettings = {NULL, NULL, synthRedraw, NULL, synthInput, NULL};
-const AppScreen screenMixerSettings = {NULL, NULL, mixerRedraw, NULL, mixerInput, NULL};
-const AppScreen screenGraphicsSettings = {NULL, NULL, graphicsRedraw, NULL, graphicsInput, NULL};
+const AppScreen screenSynthSettings = {NULL, NULL, synthRedraw, draw, synthInput, NULL};
+const AppScreen screenMixerSettings = {NULL, NULL, mixerRedraw, draw, mixerInput, NULL};
+const AppScreen screenGraphicsSettings = {NULL, NULL, graphicsRedraw, draw, graphicsInput, NULL};
