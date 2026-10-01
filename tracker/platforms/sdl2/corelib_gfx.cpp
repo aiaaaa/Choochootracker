@@ -113,7 +113,13 @@ static int titleLogicalSizeActive = 0;
 static SDL_Texture* titleTexture = NULL;
 
 static void setTextureNearest(SDL_Texture* texture) {
+#if SDL_VERSION_ATLEAST(2, 0, 12)
   if (texture) SDL_SetTextureScaleMode(texture, SDL_ScaleModeNearest);
+#else
+  // Older PortMaster SDL2 releases do not expose per-texture scale modes.
+  // SDL_HINT_RENDER_SCALE_QUALITY is set to "0" before creating textures.
+  (void)texture;
+#endif
 }
 
 #ifndef WEB_BUILD
@@ -520,6 +526,9 @@ int gfxSetup(int *screenWidth, int *screenHeight) {
     SDL_Quit();
     return 1;
   }
+
+  // This also covers older SDL2 builds without SDL_SetTextureScaleMode.
+  SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
 
   // Prefer a VSync'd GPU renderer. The composition target below removes any
   // dependency on the platform retaining window-backbuffer contents.
