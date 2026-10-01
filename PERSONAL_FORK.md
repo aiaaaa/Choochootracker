@@ -24,7 +24,12 @@ key jazz, Settings submenus and the aChChid workflow improvements.
 
 ## October 1 integration
 
-The upstream base is `f13b8b4`. Fonts/theme, Project spacing, piano and Mixer
+The upstream base is `cf7d866`. This includes PortMaster MIDI support and the
+ArkOS audio-device/playback fixes, and removes the reverted experimental libpd
+engine. Connect an ALSA-compatible USB MIDI device before launching, then choose
+it under Settings → MIDI.
+
+ Fonts/theme, Project spacing, piano and Mixer
 meters are retained through their upstream integrations. The optional persistent
 waveform and revised Track visuals live under **Settings → Graphics**. Track
 visuals now offers only **Detailed** or **Audio waveform** for each track; old

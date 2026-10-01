@@ -312,46 +312,6 @@ Each instrument has a default table with the same number in the `00-7F` range. Y
 - **SHIFT + OPT**: copy the instrument
 - **SHIFT + EDIT**: paste the instrument
 
-### Pure Data instruments (Windows POC)
-
-`PD-VCO` and `PD-voice` load Pd Vanilla `.pd` patches from the instrument
-screen. This POC is available only in the Windows build. Each active tracker
-track owns an independent libpd instance.
-
-- `PD-VCO` treats the patch as a mono oscillator and passes its left output
-  through ChooChooTracker's standard filter and ADSR. The patch should not add
-  its own amplitude envelope.
-- `PD-voice` is a complete voice: its patch owns its envelope and filtering.
-  Its left and right outputs are mixed directly. Without `audio stereo`
-  metadata, the left channel is duplicated to the right.
-- The instrument page shows the patch status and eight `00-FF` macros. Phrase
-  and Table FX `PD1` through `PD8` replace the corresponding macro value for
-  that row.
-- Saved projects use a path relative to the `.cct` when the patch is inside
-  the project folder. Missing patches leave the instrument silent and do not
-  prevent the song from opening.
-
-Only Pd Vanilla objects are supported. Native externals, third-party DLLs and
-community packs are neither loaded nor distributed by ChooChooTracker; custom
-patches run at the user's own risk.
-
-#### Patch contract
-
-Receive MIDI notes on `[r cct-note]`, gate `0/1` on `[r cct-gate]`, and macros
-normalised to `0..1` on `[r cct-m1]` through `[r cct-m8]`. Send audio to
-`[throw~ cct-out-l]` and optionally `[throw~ cct-out-r]`, and include the
-bundled `[cct-output~]` abstraction to route those buses to libpd.
-
-When the tracker bangs `cct-meta`, reply to `cct-meta` with
-`param <1-8> <short_name>` messages. Underscores display as spaces. Send
-`audio stereo` as well only when the patch provides a real right channel.
-Search paths are limited to the patch folder and ChooChooTracker's bundled Pd
-abstractions.
-
-Two intentionally silly examples are installed in the `pd` folder:
-`Warp Wobble.pd` is a phase-warped `PD-VCO`, and `Pigeon Laser.pd` is a noisy
-gliding `PD-voice` with its own envelope.
-
 ### AY Classic, AY Plus and AY Sample
 
 These are the original ChipNomad AY/YM engines. AY Classic exposes hardware-style tone, noise and envelope controls. AY Plus adds software oscillators and richer modulation. AY Sample reproduces a sample through AY-style volume levels and is distinct from the PCM Sample engine.
@@ -1070,7 +1030,7 @@ Adjust Repeat delay and Repeat speed in Settings. If a single press moves twice,
 
 ## 14. MIDI
 
-Desktop only (Linux, Windows, macOS). Settings > **MIDI** opens this submenu: **MIDI In** / **MIDI Out** pick a connected device, cycling through detected ports with `OFF` at either end; both directions need a device selected. The device selection is per session: it is not saved to settings.txt, since a port's position in the list can change across reboots or when devices are plugged in a different order.
+Desktop and PortMaster. Settings > **MIDI** opens this submenu: **MIDI In** / **MIDI Out** pick a connected device, cycling through detected ports with `OFF` at either end; both directions need a device selected. The device selection is per session: it is not saved to settings.txt, since a port's position in the list can change across reboots or when devices are plugged in a different order. The app's **PLAY** control remains available from this screen and starts the song. On PortMaster, connect a USB MIDI device before launching; it must be exposed by the handheld's OS through ALSA.
 
 - **Sound preview from a MIDI keyboard**: with a MIDI In device selected, playing notes on the connected keyboard auditions an instrument on any screen, the same as the on-screen **EDIT + PLAY** shortcut on the [Instrument](#5-instruments) screen. This is preview only - it does not enter notes into the song.
 - **Channel mapping**: opens a list of the 16 MIDI channels; assign each one an instrument (`OFF` by default) so notes received on that channel preview that instrument regardless of which one is selected on the Instrument screen - e.g. channel `01` -> instrument `05`. A channel left `OFF` falls back to the currently selected instrument, the original behavior. This mapping is saved to settings.txt.
@@ -1078,4 +1038,4 @@ Desktop only (Linux, Windows, macOS). Settings > **MIDI** opens this submenu: **
 
 ## 15. Credits and licensing
 
-ChooChooTracker is a fork of ChipNomad and retains its MIT licensing approach. Braids, Plaits, Plaits-Alt, Clouds DSP, Warps-derived MME DSP and stmlib code are derived from Mutable Instruments' open-source releases under their applicable MIT notices. Plaits-Alt is sourced from the lylepmills/eurorack Plaits Lab fork; its retained source notices apply. The aChChid engine uses Open303 by Robin Schmidt, copyright 2009, under the MIT License. The Windows Pure Data POC statically links libpd/Pure Data under the Standard Improved BSD License. Bogie and Sintered are original native implementations. MIDI I/O uses RtMidi by Gary P. Scavone, under its MIT-style license. See the packaged license files for exact attribution.
+ChooChooTracker is a fork of ChipNomad and retains its MIT licensing approach. Braids, Plaits, Plaits-Alt, Clouds DSP, Warps-derived MME DSP and stmlib code are derived from Mutable Instruments' open-source releases under their applicable MIT notices. Plaits-Alt is sourced from the lylepmills/eurorack Plaits Lab fork; its retained source notices apply. The aChChid engine uses Open303 by Robin Schmidt, copyright 2009, under the MIT License. Bogie and Sintered are original native implementations. MIDI I/O uses RtMidi by Gary P. Scavone, under its MIT-style license. See the packaged license files for exact attribution.
