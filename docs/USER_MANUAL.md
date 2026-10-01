@@ -187,6 +187,10 @@ Select one Song row across several columns to queue or stop those tracks togethe
 - **OPT + PLAY**: solo the current track or selected columns (release **OPT** first to keep the solo active)
 - **OPT + [LEFT/RIGHT]**: solo every track to the left or right of the current track
 
+On desktop, key jazz also brings direct hex-index typing plus Phrase-style
+Shift+arrows selection, Delete/Backspace/Insert and Ctrl+C/X/V here — see
+[Key jazz](#key-jazz-desktop-only).
+
 ### Chain
 
 A chain is an ordered list of 16-step phrases with optional transposition. It can contain up to 16 phrases, and the same phrase can appear more than once. The 2nd column sets the transposition in semitones.
@@ -198,6 +202,9 @@ An asterisk (`*`) appears next to a chain that is reused in the project. You can
 - **OPT + [LEFT/RIGHT]**: move between tracks
 - **OPT + [UP/DOWN]**: move between chains in the current track
 - Select a range, then use **SHIFT + EDIT**: clone phrases
+
+On desktop, key jazz also brings direct hex-index typing here — see
+[Key jazz](#key-jazz-desktop-only).
 
 ### Phrase
 
@@ -221,6 +228,53 @@ The FX selector shows common commands plus those supported by the instrument on 
 - **OPT + [UP/DOWN]**: move between phrases in the current chain
 - Select a range in the instrument column, then use **SHIFT + EDIT**: clone instruments
 - Select a range, then use **EDIT + [UP/DOWN]**: rotate the phrase rows
+
+### Key jazz (desktop only)
+
+Press **Esc** on the Phrase screen to toggle key jazz, a QWERTY piano-style
+note entry mode (like [m8c](https://github.com/laamaa/m8c)):
+
+- `Z S X D C V G B H N J M` and `Q 2 W 3 E R 5 T 6 Y 7 U I 9 O 0 P` type notes
+  chromatically across two-plus octaves, using each key's physical position
+  so the layout is the same on AZERTY, QWERTY and QWERTZ keyboards.
+- Each keypress writes the note on the current row and moves to the next row.
+- `[` / `]` shift the octave.
+- **Shift + arrows** select a range of rows and columns; a plain arrow
+  afterwards clears the selection.
+- **Ctrl+C** / **Ctrl+X** copy or cut the selected columns, or the current
+  row's note/instrument/volume if nothing is selected; **Ctrl+V** pastes at
+  the cursor.
+- **Delete** removes the whole row(s) (every column) and shifts the rest of
+  the phrase up to fill the gap; the cursor stays on the same row.
+- **Backspace** removes the element under the cursor in the current column
+  only (or the selection's columns, if one is active), shifts whatever is
+  below it up to fill the gap, and steps the cursor back one row, like a
+  text editor.
+- **Insert** inserts a blank row, pushing the rest of the phrase down.
+- **Ctrl+S** saves the project. Outside key jazz, Ctrl+S does nothing.
+- Esc again turns key jazz off.
+
+While key jazz is on, it takes over the note keys entirely on the Phrase
+screen, including Edit/Opt/Motion shortcuts that share those keys — turn it
+off with Esc to use them again.
+
+Key jazz also works, independently toggled with Esc, on:
+
+- **Song** and **Chain**: type a chain's or phrase's hex index directly
+  (`0-9`, `A-F`) instead of incrementing with Up/Down. The first digit typed
+  on a cell replaces its value; further digits typed without moving shift
+  into it (typing "3" then "F" sets 3F). On Song, **Shift+arrows** select a
+  range, **Delete** removes whole row(s) and shifts the rest up, **Backspace**
+  removes the current/selected column(s) and shifts what's below them up,
+  **Insert** inserts a blank row, and **Ctrl+C**/**Ctrl+X**/**Ctrl+V**
+  copy/cut/paste the selected rows (or the current row if nothing is
+  selected) - the same structure-editing shortcuts as the Phrase screen.
+  This takes over Shift, so Shift+Right/Up no longer jump to Chain/Project
+  while key jazz is active here - Esc to get those shortcuts back.
+- **Project**: type the file name, title and author directly on the
+  keyboard instead of using the on-screen virtual keyboard. Backspace works
+  like a normal text field; Shift types uppercase letters. The virtual
+  keyboard still opens normally when key jazz is off here.
 
 ## 5. Instruments
 
@@ -949,6 +1003,7 @@ The 1st repeat follows the stereo input. Later feedback crosses between the left
 The Project screen provides **Load**, **Save**, **New**, **Export**, **Manage** and **Scale** commands, along with filename, title and author metadata.
 
 **Load** also accepts `.mid`/`.midi` files, imported as a new project: notes are grouped by MIDI channel (one channel per track, up to the track count), quantized to 4 rows per beat, and placed on a single default AY instrument - MIDI program numbers have no chiptune equivalent, so pick real instruments afterward. Only the file's first tempo is used (one global tick rate, no per-section tempo changes). The Export screen's **MIDI** row does the reverse: writes the current arrangement's notes, volume and tempo/groove as a Standard MIDI File (one MIDI track per tracker track); [MIDI Out](#midi-out) instruments and other per-row FX beyond volume and the global groove have no MIDI equivalent and are not translated.
+On desktop, key jazz lets you type the filename, title and author directly on the keyboard instead of using the on-screen virtual keyboard — see [Key jazz](#key-jazz-desktop-only).
 
 ### Scale / Quantize
 
