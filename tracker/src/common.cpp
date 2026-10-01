@@ -148,8 +148,7 @@ int settingsSave(void) {
   fprintf(file, "stickLiveMode: %s\n", stickLiveMode);
   for (int track = 0; track < PROJECT_MAX_TRACKS; ++track) {
     const auto& visual = appSettings.trackVisuals[track];
-    fprintf(file, "trackVisuals%d: %d,%d,%d,%d\n", track + 1,
-      (int)visual.mode, visual.wave, visual.envelope, visual.noise);
+    fprintf(file, "trackVisuals%d: %d\n", track + 1, (int)visual.mode);
   }
 
   // Save key mapping codes
@@ -230,12 +229,12 @@ int settingsLoad(void) {
     }
 
     if (strncmp(line, "trackVisuals", 11) == 0) {
-      int track, mode, wave, envelope, noise;
-      if (sscanf(line, "trackVisuals%d: %d,%d,%d,%d", &track, &mode, &wave, &envelope, &noise) == 5 &&
-          track >= 1 && track <= PROJECT_MAX_TRACKS && mode >= 0 && mode <= 1 &&
-          wave >= 0 && wave <= 1 && envelope >= 0 && envelope <= 1 && noise >= 0 && noise <= 1) {
-        appSettings.trackVisuals[track - 1] = {
-          (TrackVisualMode)mode, (uint8_t)wave, (uint8_t)envelope, (uint8_t)noise};
+      int track, mode;
+      // Earlier versions saved per-layer flags after the mode. Preserve the
+      // mode and ignore those flags: each display now includes all its layers.
+      if (sscanf(line, "trackVisuals%d: %d", &track, &mode) == 2 &&
+          track >= 1 && track <= PROJECT_MAX_TRACKS && mode >= 0 && mode <= 1) {
+        appSettings.trackVisuals[track - 1].mode = (TrackVisualMode)mode;
       }
     } else if (strncmp(line, "screenWidth: ", 13) == 0) {
       sscanf(line + 13, "%d", &appSettings.screenWidth);
