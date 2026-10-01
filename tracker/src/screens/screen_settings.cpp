@@ -8,6 +8,7 @@
 #include "screens.h"
 
 static int columnCount(int) { return 1; }
+static void draw(void) {}
 static void drawStatic(void) { gfxSetFgColor(appSettings.colorScheme.textTitles); gfxPrint(0, 0, "SETTINGS"); }
 static void drawCursor(int, int row) {
   if (row < 2) gfxCursor(23, 2 + row, 3);
@@ -49,4 +50,4 @@ static ScreenData data = {
 static void fullRedraw(void) { screenFullRedraw(&data); }
 static int onInput(int isKeyDown, int keys, int taps) { if (keys == (keyUp | keyShift)) { screenSetup(&screenSong, 0); return 1; } return screenInput(&data, isKeyDown, keys, taps); }
 static ScreenPlaybackLevel playbackLevel(void) { return ScreenPlaybackLevel::song; }
-const AppScreen screenSettings = {NULL, NULL, fullRedraw, NULL, onInput, playbackLevel};
+const AppScreen screenSettings = {NULL, NULL, fullRedraw, draw, onInput, playbackLevel};
