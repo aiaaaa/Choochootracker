@@ -189,6 +189,7 @@ struct InstrumentAChChid {
   uint8_t model;
   uint16_t timbre;
   uint16_t color;
+  uint8_t saturation;
   uint16_t cutoff;
   uint8_t resonance;
   uint8_t envMod;
