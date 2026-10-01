@@ -11,7 +11,7 @@ pull requests are declined. Other contributors' unmerged work is not included.
 | Share Tech Mono, Departure Mono, Spleen, Cozette + NostromoAmberDa2 | [#17](https://github.com/paiheulevrai/Choochootracker/pull/17) | Keep the fonts and theme available |
 | Reactive pixel piano | [#18](https://github.com/paiheulevrai/Choochootracker/pull/18) | Keep the dark keys, orange theme outline and waveform-color highlights |
 | Project page spacing | [#19](https://github.com/paiheulevrai/Choochootracker/pull/19) | Keep version and file actions separated |
-| Track visuals | [#20](https://github.com/paiheulevrai/Choochootracker/pull/20) | Keep per-track layers and the audio-only option |
+| Track visuals | [#20](https://github.com/paiheulevrai/Choochootracker/pull/20) | Keep one Detailed / Audio waveform choice per track |
 | Persistent waveform | [#21](https://github.com/paiheulevrai/Choochootracker/pull/21) | Keep it available with an ON/OFF setting |
 | Mixer level meters | [#22](https://github.com/paiheulevrai/Choochootracker/pull/22) | Keep the meters and numeric TRK labels |
 
@@ -19,8 +19,16 @@ The personal launcher cover also carries a diagonal red **GITHUB FORK** stamp.
 This is a personal-only asset change, separate from the six upstream proposals.
 
 The exact included commits and upstream base are in
-[personal-features.json](personal-features.json). A future MIDI feature is not
-included unless it reaches upstream `main` and passes the same update checks.
+[personal-features.json](personal-features.json). MIDI support is now included through upstream `main`, along with sample slicing,
+key jazz, Settings submenus and the aChChid workflow improvements.
+
+## October 1 integration
+
+The upstream base is `f13b8b4`. Fonts/theme, Project spacing, piano and Mixer
+meters are retained through their upstream integrations. The optional persistent
+waveform and revised Track visuals live under **Settings → Graphics**. Track
+visuals now offers only **Detailed** or **Audio waveform** for each track; old
+per-layer flags are ignored while the selected mode is preserved.
 
 ## Branches
 

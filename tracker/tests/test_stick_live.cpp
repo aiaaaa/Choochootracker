@@ -4,8 +4,10 @@
 #include "app_ui_mock.h"
 #include "chipnomad_lib_live_stick.h"
 #include "corelib_file.h"
+#include "project_utils.h"
 
 #include <chrono>
+#include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <string>
@@ -284,73 +286,191 @@ TEST_CASE_FIXTURE(StickLiveFixture, "absent, older and invalid settings default 
 }
 
 TEST_CASE_FIXTURE(StickLiveFixture, "Settings row, padded value, cursor and subsequent actions align") {
+    REQUIRE(screenSettings.draw != nullptr);
+    REQUIRE(screenSettings.setup != nullptr);
+    REQUIRE(screenSynthSettings.draw != nullptr);
+    REQUIRE(screenSynthSettings.setup != nullptr);
+    REQUIRE(screenMixerSettings.draw != nullptr);
+    REQUIRE(screenMixerSettings.setup != nullptr);
+    REQUIRE(screenGraphicsSettings.draw != nullptr);
+    REQUIRE(screenGraphicsSettings.setup != nullptr);
   screenSettings.fullRedraw();
   REQUIRE(mockScreenData != nullptr);
-  CHECK(mockScreenData->rows == 16);
+  CHECK(mockScreenData->rows == 10);
   auto* screen = mockScreenData;
-  CHECK(screen->getColumnCount(9) == 1);
-  screen->drawField(0, 9, CellState::focus);
-  CHECK(std::string(mockGfxCells[11], 15) == "Stick live mode");
-  CHECK(std::string(mockGfxCells[11] + 23, 6) == "HOLD  ");
-  REQUIRE(screen->onEdit(0, 9, CellEditAction::increase) == 1);
-  screen->drawField(0, 9, CellState::focus);
-  CHECK(std::string(mockGfxCells[11] + 23, 6) == "TOGGLE");
-  REQUIRE(screen->onEdit(0, 9, CellEditAction::increase) == 1);
-  screen->drawField(0, 9, CellState::focus);
-  CHECK(std::string(mockGfxCells[11] + 23, 6) == "FREE  ");
+  CHECK(screen->getColumnCount(2) == 1);
+  screen->drawField(0, 2, CellState::focus);
+  CHECK(std::string(mockGfxCells[4], 15) == "Stick live mode");
+  CHECK(std::string(mockGfxCells[4] + 23, 6) == "HOLD  ");
+  REQUIRE(screen->onEdit(0, 2, CellEditAction::increase) == 1);
+  screen->drawField(0, 2, CellState::focus);
+  CHECK(std::string(mockGfxCells[4] + 23, 6) == "TOGGLE");
+  REQUIRE(screen->onEdit(0, 2, CellEditAction::increase) == 1);
+  screen->drawField(0, 2, CellState::focus);
+  CHECK(std::string(mockGfxCells[4] + 23, 6) == "FREE  ");
   CHECK(chipnomadLiveStickIsEnabled());
-  REQUIRE(screen->onEdit(0, 9, CellEditAction::decrease) == 1);
+  REQUIRE(screen->onEdit(0, 2, CellEditAction::decrease) == 1);
   input(keyboardLive, true);
   input(keyboardLive, false);
-  screen->onEdit(0, 9, CellEditAction::tap); // unchanged mode must not clear a latch
+  screen->onEdit(0, 2, CellEditAction::tap); // unchanged mode must not clear a latch
   CHECK(chipnomadLiveStickIsEnabled());
-  REQUIRE(screen->onEdit(0, 9, CellEditAction::decrease) == 1);
+  REQUIRE(screen->onEdit(0, 2, CellEditAction::decrease) == 1);
   CHECK_FALSE(chipnomadLiveStickIsEnabled());
-  screen->drawField(0, 9, CellState::focus);
-  CHECK(std::string(mockGfxCells[11] + 23, 6) == "HOLD  ");
-  screen->drawCursor(0, 9);
+  screen->drawField(0, 2, CellState::focus);
+  CHECK(std::string(mockGfxCells[4] + 23, 6) == "HOLD  ");
+  screen->drawCursor(0, 2);
   CHECK(mockCursorX == 23);
-  CHECK(mockCursorY == 11);
+  CHECK(mockCursorY == 4);
   CHECK(mockCursorWidth == 6);
 
-  const char* labels[] = {"Key mapping", "Load font", "Edit color theme", "Track visuals", "Quit ChooChooTracker"};
-  const int lines[] = {12, 13, 14, 16, 18};
-  const int rows[] = {10, 11, 12, 14, 15};
-  const int widths[] = {11, 9, 16, 13, 19}; // preserve existing action cursor widths
-  const AppScreen* destinations[] = {&screenKeyMapping, &screenFileBrowser, &screenColorTheme, &screenTrackVisuals};
+  const char* labels[] = {"MIDI", "Key mapping", "Synths", "Mixer", "Graphics", "Quit ChooChooTracker"};
+  const int lines[] = {5, 6, 7, 8, 9, 18};
+  const int widths[] = {4, 11, 6, 5, 8, 19};
+  const AppScreen* destinations[] = {&screenMidi, &screenKeyMapping, &screenSynthSettings, &screenMixerSettings, &screenGraphicsSettings};
   mockQuitTriggered = 0;
-  for (int i = 0; i < 5; ++i) {
-    screen->drawField(0, rows[i], CellState::focus);
+  for (int i = 0; i < 6; ++i) {
+    int row = i < 5 ? 3 + i : 9;
+    screen->drawField(0, row, CellState::focus);
     CHECK(std::string(mockGfxCells[lines[i]], std::string(labels[i]).size()) == labels[i]);
-    screen->drawCursor(0, rows[i]);
+    screen->drawCursor(0, row);
     CHECK(mockCursorX == 0);
     CHECK(mockCursorY == lines[i]);
     CHECK(mockCursorWidth == widths[i]);
-    screen->onEdit(0, rows[i], CellEditAction::tap);
-    if (i < 4) {
+    screen->onEdit(0, row, CellEditAction::tap);
+    if (i < 5) {
       CHECK(currentScreen == destinations[i]);
       CHECK_FALSE(mockQuitTriggered);
     }
   }
   CHECK(mockQuitTriggered);
-  CHECK(std::string(mockBrowserTitle) == "LOAD FONT");
-  CHECK(std::string(mockBrowserExtension) == ".cnfont");
 }
+}
+
+TEST_SUITE("MIDI settings") {
+
+TEST_CASE_FIXTURE(StickLiveFixture, "screenMidi shows device rows and links to channel mapping") {
+  screenMidi.fullRedraw();
+  REQUIRE(mockScreenData != nullptr);
+  CHECK(mockScreenData->rows == 3);
+  auto* screen = mockScreenData;
+
+  screen->drawField(0, 0, CellState::focus);
+  CHECK(std::string(mockGfxCells[2], 7) == "MIDI In");
+  CHECK(std::string(mockGfxCells[2] + 23, 3) == "OFF");
+  screen->drawCursor(0, 0);
+  CHECK(mockCursorX == 23);
+  CHECK(mockCursorY == 2);
+  CHECK(mockCursorWidth == 17);
+  CHECK(screen->onEdit(0, 0, CellEditAction::increase) == 1); // handled, wraps straight back to OFF (no ports)
+  CHECK(appSettings.midiInputDevice == -1);
+
+  screen->drawField(0, 1, CellState::focus);
+  CHECK(std::string(mockGfxCells[3], 8) == "MIDI Out");
+  CHECK(std::string(mockGfxCells[3] + 23, 3) == "OFF");
+
+  screen->drawField(0, 2, CellState::focus);
+  CHECK(std::string(mockGfxCells[5], 15) == "Channel mapping");
+  screen->onEdit(0, 2, CellEditAction::tap);
+  CHECK(currentScreen == &screenMidiChannelMap);
+
+  currentScreen = &screenMidi;
+  CHECK(screenMidi.onInput(1, keyOpt, 0) == 1);
+  CHECK(currentScreen == &screenSettings);
+}
+
+TEST_CASE_FIXTURE(StickLiveFixture, "screenMidi shows NOT FOUND for a configured device that isn't currently available") {
+  strncpy(appSettings.midiInputDeviceName, "Some USB Keyboard", MIDI_DEVICE_NAME_LENGTH);
+  appSettings.midiInputDevice = -1; // Not resolved to a live port (none attached under test).
+
+  screenMidi.fullRedraw();
+  REQUIRE(mockScreenData != nullptr);
+  mockScreenData->drawField(0, 0, CellState::focus);
+  CHECK(std::string(mockGfxCells[2] + 23, 9) == "NOT FOUND");
+}
+
+TEST_CASE_FIXTURE(StickLiveFixture, "MIDI device names round-trip through settings save/load") {
+  strncpy(appSettings.midiInputDeviceName, "Keystation Mini", MIDI_DEVICE_NAME_LENGTH);
+  strncpy(appSettings.midiOutputDeviceName, "FluidSynth virtual port", MIDI_DEVICE_NAME_LENGTH);
+  REQUIRE(settingsSave() == 0);
+
+  initDefaultAppSettings();
+  CHECK(appSettings.midiInputDeviceName[0] == '\0');
+
+  REQUIRE(settingsLoad() == 0);
+  CHECK(std::string(appSettings.midiInputDeviceName) == "Keystation Mini");
+  CHECK(std::string(appSettings.midiOutputDeviceName) == "FluidSynth virtual port");
+}
+
+TEST_CASE_FIXTURE(StickLiveFixture, "screenMidiChannelMap cycles channel-to-instrument assignment") {
+  screenMidiChannelMap.fullRedraw();
+  REQUIRE(mockScreenData != nullptr);
+  CHECK(mockScreenData->rows == MIDI_CHANNEL_COUNT);
+  auto* screen = mockScreenData;
+
+  screen->drawField(0, 0, CellState::focus);
+  CHECK(std::string(mockGfxCells[2], 5) == "CH 01");
+  CHECK(std::string(mockGfxCells[2] + 23, 3) == "OFF");
+
+  REQUIRE(screen->onEdit(0, 0, CellEditAction::increase) == 1);
+  CHECK(appSettings.midiChannelInstrument[0] == 0);
+  screen->drawField(0, 0, CellState::focus);
+  std::string expected = std::string(byteToHex(0)) + ": " + instrumentName(&chipnomadState->project, 0);
+  CHECK(std::string(mockGfxCells[2] + 23, expected.size()) == expected);
+
+  REQUIRE(screen->onEdit(0, 0, CellEditAction::decrease) == 1);
+  CHECK(appSettings.midiChannelInstrument[0] == -1); // back to OFF
+  REQUIRE(screen->onEdit(0, 0, CellEditAction::decrease) == 1);
+  CHECK(appSettings.midiChannelInstrument[0] == PROJECT_MAX_INSTRUMENTS - 1); // wraps the other way
+
+  currentScreen = &screenMidiChannelMap;
+  CHECK(screenMidiChannelMap.onInput(1, keyOpt, 0) == 1);
+  CHECK(currentScreen == &screenMidi);
+}
+
+TEST_CASE_FIXTURE(StickLiveFixture, "midiChannelInstrument round-trips through settings save/load and clamps garbage") {
+  appSettings.midiChannelInstrument[0] = 5;
+  appSettings.midiChannelInstrument[15] = 42;
+  REQUIRE(settingsSave() == 0);
+
+  initDefaultAppSettings();
+  CHECK(appSettings.midiChannelInstrument[0] == -1);
+
+  REQUIRE(settingsLoad() == 0);
+  CHECK(appSettings.midiChannelInstrument[0] == 5);
+  CHECK(appSettings.midiChannelInstrument[15] == 42);
+  for (int i = 1; i < 15; i++) CHECK(appSettings.midiChannelInstrument[i] == -1);
+
+  // Out-of-range values (from a hand-edited or corrupted settings.txt) clamp to OFF.
+  // Written to fileGetDefaultDirectory()'s own resolved path rather than a bare
+  // relative "settings.txt": that call resolves the running test binary's own
+  // executable directory (see fileGetDefaultDirectory()'s desktop fallback),
+  // not this fixture's temp cwd, so a relative write here would silently miss
+  // the file settingsLoad() actually reads.
+  char defaultDir[PATH_LENGTH];
+  REQUIRE(fileGetDefaultDirectory(defaultDir, sizeof(defaultDir)) == 0);
+  std::string settingsPath = std::string(defaultDir) + PATH_SEPARATOR_STR + "settings.txt";
+  std::ofstream(settingsPath) << "midiChannelInstrument: 999,-5,3\n";
+  REQUIRE(settingsLoad() == 0);
+  CHECK(appSettings.midiChannelInstrument[0] == -1);
+  CHECK(appSettings.midiChannelInstrument[1] == -1);
+  CHECK(appSettings.midiChannelInstrument[2] == 3);
+}
+
 }
 
 TEST_CASE_FIXTURE(StickLiveFixture, "Persistent waveform is opt-in and its Settings toggle persists") {
   CHECK(appSettings.persistentWaveform == 0);
-  screenSettings.fullRedraw();
+  screenGraphicsSettings.fullRedraw();
   REQUIRE(mockScreenData != nullptr);
   auto* screen = mockScreenData;
   int modified = projectModified;
-  screen->drawField(0, 13, CellState::focus);
-  CHECK(std::string(mockGfxCells[15] + 23, 3) == "OFF");
-  REQUIRE(screen->onEdit(0, 13, CellEditAction::tap) == 1);
+  screen->drawField(0, 3, CellState::focus);
+  CHECK(std::string(mockGfxCells[5] + 23, 3) == "OFF");
+  REQUIRE(screen->onEdit(0, 3, CellEditAction::tap) == 1);
   CHECK(appSettings.persistentWaveform == 1);
   REQUIRE(settingsLoad() == 0);
   CHECK(appSettings.persistentWaveform == 1);
-  REQUIRE(screen->onEdit(0, 13, CellEditAction::tap) == 1);
+  REQUIRE(screen->onEdit(0, 3, CellEditAction::tap) == 1);
   REQUIRE(settingsLoad() == 0);
   CHECK(appSettings.persistentWaveform == 0);
   CHECK(projectModified == modified);
@@ -359,21 +479,19 @@ TEST_CASE_FIXTURE(StickLiveFixture, "Persistent waveform is opt-in and its Setti
 TEST_CASE_FIXTURE(StickLiveFixture, "Personal visual settings coexist and survive saving either option") {
   mockQuitTriggered = 0;
   appSettings.trackVisuals[0].mode = TrackVisualMode::audio;
-  appSettings.trackVisuals[0].envelope = 0;
-  screenSettings.fullRedraw();
+  screenGraphicsSettings.fullRedraw();
   REQUIRE(mockScreenData != nullptr);
   auto* settings = mockScreenData;
-  REQUIRE(settings->onEdit(0, 13, CellEditAction::tap) == 1);
+  REQUIRE(settings->onEdit(0, 3, CellEditAction::tap) == 1);
   REQUIRE(settingsLoad() == 0);
   CHECK(appSettings.persistentWaveform == 1);
   CHECK(appSettings.trackVisuals[0].mode == TrackVisualMode::audio);
-  CHECK(appSettings.trackVisuals[0].envelope == 0);
-  settings->onEdit(0, 14, CellEditAction::tap);
+  settings->onEdit(0, 2, CellEditAction::tap);
   CHECK(currentScreen == &screenTrackVisuals);
   CHECK_FALSE(mockQuitTriggered);
-  appSettings.trackVisuals[1].noise = 0;
+  appSettings.trackVisuals[1].mode = TrackVisualMode::audio;
   REQUIRE(settingsSave() == 0);
   REQUIRE(settingsLoad() == 0);
   CHECK(appSettings.persistentWaveform == 1);
-  CHECK(appSettings.trackVisuals[1].noise == 0);
+  CHECK(appSettings.trackVisuals[1].mode == TrackVisualMode::audio);
 }

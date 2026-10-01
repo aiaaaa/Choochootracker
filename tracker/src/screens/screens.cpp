@@ -38,7 +38,8 @@ void drawScreenMap() {
     gfxPrint(35, smY, "P");
   } else if (currentScreen == &screenPhrase || currentScreen == &screenGroove) {
     gfxPrint(37, smY, "G");
-  } else if (currentScreen == &screenInstrument || currentScreen == &screenInstrumentPool) {
+  } else if (currentScreen == &screenInstrument || currentScreen == &screenSampleSettings ||
+             currentScreen == &screenInstrumentPool) {
     gfxPrint(38, smY + 2, "P");
     gfxPrint(38, smY, "M");
   } else if (currentScreen == &screenModulation) {
@@ -63,7 +64,7 @@ void drawScreenMap() {
     gfxPrint(36, smY + 1, "C");
   } else if (currentScreen == &screenPhrase) {
     gfxPrint(37, smY + 1, "P");
-  } else if (currentScreen == &screenInstrument) {
+  } else if (currentScreen == &screenInstrument || currentScreen == &screenSampleSettings) {
     gfxPrint(38, smY + 1, "I");
   } else if (currentScreen == &screenInstrumentPool) {
     gfxPrint(38, smY + 2, "P");
@@ -313,29 +314,27 @@ static int screenTouchCellAt(int col, int row, int* targetCol, int* targetRow) {
     if (targetRow) *targetRow = field;
     return 1;
   }
-  if (currentScreen == &screenSettings) {
-    int field = row >= 2 && row <= 16 ? row - 2 : row == 18 ? 15 : -1;
-    if (field < 0) return 0;
-    const int widths[] = {11, 9, 16};
-    if (field < 10 || field == 13) { if (col < 23 || col >= 33) return 0; }
-    else if (col < 0 || col >= (field == 14 ? 13 : field == 15 ? 19 : widths[field - 10])) return 0;
-    if (targetCol) *targetCol = 0;
-    if (targetRow) *targetRow = field;
-    return 1;
-  }
   if (currentScreen == &screenTrackVisuals) {
     int field = row >= 3 && row < 3 + PROJECT_MAX_TRACKS ? row - 3 : row == 12 ? PROJECT_MAX_TRACKS : row == 14 ? PROJECT_MAX_TRACKS + 1 : -1;
     int column = -1;
     if (field < 0) return 0;
     if (field < PROJECT_MAX_TRACKS) {
-      const int x[] = {4, 13, 19, 24}, width[] = {6, 3, 3, 3};
-      for (int i = 0; i < 4; ++i) if (col >= x[i] && col < x[i] + width[i]) column = i;
+      if (col >= 4 && col < 18) column = 0;
     } else if (field == PROJECT_MAX_TRACKS) {
       if (col >= 0 && col < 12) column = 0;
       else if (col >= 15 && col < 24) column = 1;
     } else if (col >= 0 && col < 4) column = 0;
     if (column < 0) return 0;
     if (targetCol) *targetCol = column;
+    if (targetRow) *targetRow = field;
+    return 1;
+  }
+  if (currentScreen == &screenGraphicsSettings) {
+    int field = row - 2;
+    const int widths[] = {9, 16, 13};
+    if (field == 3) { if (col < 23 || col >= 26) return 0; }
+    else if (field < 0 || field >= 3 || col < 0 || col >= widths[field]) return 0;
+    if (targetCol) *targetCol = 0;
     if (targetRow) *targetRow = field;
     return 1;
   }

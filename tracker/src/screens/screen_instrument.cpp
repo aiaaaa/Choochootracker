@@ -48,11 +48,15 @@ static SelectionItem instrumentTypeSample[] = {
   {NULL, (int)InstrumentType::BYOWTBL, NULL, 0},
   {NULL, (int)InstrumentType::Sample, NULL, 0},
 };
+static SelectionItem instrumentTypeMidi[] = {
+  {NULL, (int)InstrumentType::Midi, NULL, 0},
+};
 static const SelectionItem instrumentTypeCategories[] = {
   {"CHIP", -1, instrumentTypeChip, 3},
   {"DRUMS", -1, instrumentTypeDrums, 2},
   {"SAMPLE", -1, instrumentTypeSample, 3},
   {"SYNTH", -1, instrumentTypeSynth, 7},
+  {"MIDI", -1, instrumentTypeMidi, 1},
 };
 
 static const InstrumentType instrumentTypesQuickCycle[] = {
@@ -62,7 +66,7 @@ static const InstrumentType instrumentTypesQuickCycle[] = {
   InstrumentType::AChChid, InstrumentType::Braids,
   InstrumentType::Plaits, InstrumentType::PlaitsAlt,
   InstrumentType::MME,
-  InstrumentType::PDVCO, InstrumentType::PDVoice,
+  InstrumentType::PDVCO, InstrumentType::PDVoice, InstrumentType::Midi,
 };
 
 static int editInstrumentType(CellEditAction action, InstrumentType* type) {
@@ -219,7 +223,8 @@ static int instrumentTypePopupInput(int isKeyDown, int keys, ScreenData* screen)
     return 0;
   }
   if (input == PopupEditInput::open) {
-    selectionPopupSetup("INSTRUMENT TYPE", instrumentTypeCategories, 4,
+    selectionPopupSetup("INSTRUMENT TYPE", instrumentTypeCategories,
+      sizeof(instrumentTypeCategories) / sizeof(instrumentTypeCategories[0]),
       (int)chipnomadState->project.instruments[cInstrument].type,
       selectInstrumentType, cancelInstrumentTypeSelection);
     screenSetup(&screenSelectionPopup, 0);
@@ -262,7 +267,7 @@ static ScreenData* instrumentScreen(void) {
     &screenInstrumentSCWF, &screenInstrumentBYOWTBL, &screenInstrumentPlaits, &screenInstrumentAChChid,
     &screenInstrumentDrumSynth, &screenInstrumentMME,
     &screenInstrumentSintered,
-    &screenInstrumentPD,
+    &screenInstrumentPD, &screenInstrumentMidi,
   };
   InstrumentScreenKind kind = getInstrumentDefinition(chipnomadState->project.instruments[cInstrument].type)->screen;
   ScreenData* data = screens[(int)kind];
@@ -276,9 +281,9 @@ static void init(void) {
   typeButtonDown = 0;
   screenInstrumentNone.cursorRow = 0;
   screenInstrumentNone.cursorCol = 0;
-  SelectionItem* groups[] = {instrumentTypeChip, instrumentTypeSample, instrumentTypeSynth, instrumentTypeDrums};
-  const int counts[] = {3, 3, 7, 2};
-  for (int group = 0; group < 4; ++group)
+  SelectionItem* groups[] = {instrumentTypeChip, instrumentTypeSample, instrumentTypeSynth, instrumentTypeDrums, instrumentTypeMidi};
+  const int counts[] = {3, 3, 7, 2, 1};
+  for (int group = 0; group < 5; ++group)
     for (int item = 0; item < counts[group]; ++item)
       groups[group][item].label = getInstrumentDefinition((InstrumentType)groups[group][item].value)->uiName;
 }

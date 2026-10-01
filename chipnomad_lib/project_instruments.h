@@ -27,6 +27,7 @@ enum class InstrumentType : uint8_t {
   Sintered = 13,
   PDVCO = 14,
   PDVoice = 15,
+  Midi = 16,
   totalCount,
 };
 
@@ -188,6 +189,7 @@ struct InstrumentAChChid {
   uint8_t model;
   uint16_t timbre;
   uint16_t color;
+  uint8_t saturation;
   uint16_t cutoff;
   uint8_t resonance;
   uint8_t envMod;
@@ -254,6 +256,7 @@ struct InstrumentSample : InstrumentVoicePostSettings {
   uint8_t start;
   uint8_t end;
   uint8_t loopMode; // 0: off, 1: loop, 2: ping-pong
+  uint8_t slice; // 0: off, else even divisions 2/4/8/16/32
 };
 
 // 2xSCWF is a pair of forward-looping, one-cycle PCM waveforms.  It shares
@@ -282,6 +285,25 @@ struct InstrumentPDVoice : InstrumentPDBase {
   uint8_t stereo;
 };
 
+// Drives an external MIDI device instead of synthesizing audio: triggering a
+// note sends a MIDI Note On/Off on this channel (see chipnomad_lib/midi_io.h).
+// Program/bank select are sent once, whenever they're about to differ from
+// what that channel was last told (see applyVoiceEvents in chipnomad_lib.cpp) -
+// not before every note, which would needlessly retrigger the receiving
+// device's own envelopes.
+struct InstrumentMidi {
+  uint8_t channel;  // 0-15 (shown to the user as 1-16)
+  uint8_t program;  // 0-127, or EMPTY_VALUE_8 to not send Program Change
+  uint8_t bankHigh; // CC0 (Bank Select MSB), 0-127 or EMPTY_VALUE_8 for none
+  uint8_t bankLow;  // CC32 (Bank Select LSB), 0-127 or EMPTY_VALUE_8 for none
+  // Which CC number each of the 4 generic MC1-MC4 row FX sends to (0-127,
+  // or EMPTY_VALUE_8 to leave that FX slot unconfigured/inert). A single FX
+  // byte only carries one 0-255 value, not a CC number and a value, so the
+  // number is fixed per instrument here and the per-row FX just carries the
+  // value (0-255, rescaled to 0-127 on send) - same idea as Braids' BTM/BCL.
+  uint8_t ccNumber[4];
+};
+
 union InstrumentChipData {
   InstrumentAY1 ay;
   InstrumentAY2 ay2;
@@ -297,6 +319,7 @@ union InstrumentChipData {
   InstrumentSintered sintered;
   InstrumentPDVCO pdVco;
   InstrumentPDVoice pdVoice;
+  InstrumentMidi midi;
 };
 
 struct Instrument {
@@ -320,8 +343,8 @@ struct InstrumentFunctions {
 
 // This is metadata, not an audio abstraction: renderers keep their typed
 // paths while screens, validation and motion routing share this one catalogue.
-enum class InstrumentCategory : uint8_t { none, chip, sample, synth, drums };
-enum class InstrumentScreenKind : uint8_t { none, ay1, ay2, aySample, braids, sample, scwf, byowtbl, plaits, achchid, drumSynth, mme, sintered, pd };
+enum class InstrumentCategory : uint8_t { none, chip, sample, synth, drums, midi };
+enum class InstrumentScreenKind : uint8_t { none, ay1, ay2, aySample, braids, sample, scwf, byowtbl, plaits, achchid, drumSynth, mme, sintered, pd, midi };
 enum class InstrumentMotionValue : uint8_t { raw, speed, cutoff };
 
 static constexpr uint8_t instrumentNoFX = 0xff;

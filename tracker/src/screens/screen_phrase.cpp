@@ -212,6 +212,22 @@ static void draw(void) {
 // Input handling
 //
 
+// Preview a row's note through the audio engine, same as any note edit does.
+static void triggerRowPreview(int row) {
+  if (chipnomadGetPlaybackStatus(chipnomadState)->isPlaying &&
+      chipnomadGetPlaybackStatus(chipnomadState)->tracks[*pSongTrack].mode != PlaybackMode::phraseRow) {
+    return;
+  }
+  PhraseRow* previewSource = &phraseRows[row];
+  if (previewSource->note != EMPTY_VALUE_8 && previewSource->note != NOTE_OFF && previewSource->instrument == EMPTY_VALUE_8) {
+    PhraseRow previewRow = *previewSource;
+    previewRow.instrument = lookupInstrument(&chipnomadState->project, *pSongRow, *pChainRow, row, *pSongTrack);
+    chipnomadQueuePlaybackStartPhraseRow(chipnomadState, *pSongTrack, &previewRow);
+  } else {
+    chipnomadQueuePlaybackStartPhraseRow(chipnomadState, *pSongTrack, previewSource);
+  }
+}
+
 static int editCell(int col, int row, CellEditAction action) {
   int handled = 0;
   uint8_t maxVolume = 15;
@@ -285,16 +301,7 @@ static int editCell(int col, int row, CellEditAction action) {
     }
   }
 
-  if (handled && (!chipnomadGetPlaybackStatus(chipnomadState)->isPlaying || chipnomadGetPlaybackStatus(chipnomadState)->tracks[*pSongTrack].mode == PlaybackMode::phraseRow)) {
-    PhraseRow* row = &phraseRows[screen.cursorRow];
-    if (row->note != EMPTY_VALUE_8 && row->note != NOTE_OFF && row->instrument == EMPTY_VALUE_8) {
-      PhraseRow previewRow = *row;
-      previewRow.instrument = lookupInstrument(&chipnomadState->project, *pSongRow, *pChainRow, screen.cursorRow, *pSongTrack);
-      chipnomadQueuePlaybackStartPhraseRow(chipnomadState, *pSongTrack, &previewRow);
-    } else {
-      chipnomadQueuePlaybackStartPhraseRow(chipnomadState, *pSongTrack, row);
-    }
-  }
+  if (handled) triggerRowPreview(screen.cursorRow);
 
   return handled;
 }
@@ -513,6 +520,252 @@ static LoopRange getLoopRange(void) {
 static ScreenPlaybackLevel getPlaybackLevel(void) {
   return ScreenPlaybackLevel::phrase;
 }
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// Key jazz (desktop only): type notes directly on the QWERTY keyboard,
+// like m8c (https://github.com/laamaa/m8c). Toggled with Esc. While active,
+// this takes over the note keys entirely (they overlap with Edit/Opt/Motion
+// on this screen), so Esc again is needed to get those back.
+//
+
+#ifdef DESKTOP_BUILD
+
+static int keyJazzEnabled = 0;
+static uint8_t keyJazzBaseNote = 48;
+
+static uint8_t keyJazzClampNote(int note) {
+  int maxNote = chipnomadState->project.pitchTable.length - 1;
+  if (note < 0) return 0;
+  if (note > maxNote) return (uint8_t)maxNote;
+  return (uint8_t)note;
+}
+
+// The selection's column/row bounds if one is active, else the note+
+// instrument+volume "bundle" (columns 0-2) at the cursor row - copy/cut
+// treat a single note as those 3 columns together, matching how typing
+// and Delete/Backspace already fill/clear them as one unit.
+static void keyJazzGetActiveRange(int* startCol, int* startRow, int* endCol, int* endRow) {
+  if (screen.selectMode) {
+    getSelectionBounds(&screen, startCol, startRow, endCol, endRow);
+  } else {
+    *startCol = 0;
+    *endCol = 2;
+    *startRow = *endRow = screen.cursorRow;
+  }
+}
+
+static void keyJazzClearColumn(int row, int col) {
+  if (col == 0) phraseRows[row].note = EMPTY_VALUE_8;
+  else if (col == 1) phraseRows[row].instrument = EMPTY_VALUE_8;
+  else if (col == 2) phraseRows[row].volume = EMPTY_VALUE_8;
+  // FX columns are out of scope for key jazz.
+}
+
+static void keyJazzSetColumn(int row, int col, uint8_t value) {
+  if (col == 0) phraseRows[row].note = value;
+  else if (col == 1) phraseRows[row].instrument = value;
+  else if (col == 2) phraseRows[row].volume = value;
+}
+
+static uint8_t keyJazzGetColumn(int row, int col) {
+  if (col == 0) return phraseRows[row].note;
+  if (col == 1) return phraseRows[row].instrument;
+  if (col == 2) return phraseRows[row].volume;
+  return EMPTY_VALUE_8;
+}
+
+// Removes one column's value at startRow and shifts the rows below it (in
+// that same column only) up to fill the gap, clearing the last row.
+// Mirrors what Delete does for a whole row, scoped to a single column.
+static void keyJazzShiftColumnUp(int col, int startRow, int count) {
+  for (int r = startRow; r <= 15 - count; r++) keyJazzSetColumn(r, col, keyJazzGetColumn(r + count, col));
+  for (int r = 16 - count; r <= 15; r++) keyJazzClearColumn(r, col);
+}
+
+static void keyJazzClearRow(int row, int includeFx) {
+  phraseRows[row].note = EMPTY_VALUE_8;
+  phraseRows[row].instrument = EMPTY_VALUE_8;
+  phraseRows[row].volume = EMPTY_VALUE_8;
+  if (includeFx) {
+    for (int i = 0; i < 3; i++) {
+      phraseRows[row].fx[i][0] = EMPTY_VALUE_8;
+      phraseRows[row].fx[i][1] = 0;
+    }
+  }
+}
+
+int phraseKeyJazzHandleRawKey(InputCode input, int isDown) {
+  if (input.deviceType != InputDeviceType::keyboard) return 0;
+
+  if (inputIsKeyJazzToggle(input)) {
+    if (isDown && !isFxEdit) {
+      keyJazzEnabled = !keyJazzEnabled;
+      if (keyJazzEnabled) {
+        uint8_t currentNote = phraseRows[screen.cursorRow].note;
+        uint16_t octaveSize = chipnomadState->project.pitchTable.octaveSize;
+        uint8_t reference = (currentNote != EMPTY_VALUE_8 && currentNote != NOTE_OFF) ? currentNote : lastNote;
+        keyJazzBaseNote = octaveSize > 0 ? (reference / octaveSize) * octaveSize : reference;
+        screenMessage(MESSAGE_TIME, "KEY JAZZ ON (Esc to exit)");
+      } else {
+        screen.selectMode = 0;
+        screenMessage(MESSAGE_TIME, "KEY JAZZ OFF");
+      }
+      fullRedraw();
+    }
+    return 1;
+  }
+
+  if (!keyJazzEnabled) return 0;
+
+  if (inputIsShiftKey(input)) return 1; // Swallow: see inputIsShiftKey's doc comment
+
+  int arrowDir = inputArrowKeyDirection(input);
+  if (arrowDir != 0) {
+    if (inputIsShiftHeld()) {
+      if (isDown && !screen.selectMode) {
+        screen.selectStartRow = screen.cursorRow;
+        screen.selectStartCol = screen.cursorCol;
+        screen.selectAnchorRow = screen.cursorRow;
+        screen.selectAnchorCol = screen.cursorCol;
+        screen.selectMode = 1;
+      }
+    } else if (screen.selectMode) {
+      // A plain arrow (Shift released) collapses the selection, like a
+      // regular text editor, instead of silently continuing to extend it.
+      if (isDown) {
+        screen.selectMode = 0;
+        fullRedraw();
+      }
+    }
+    return 0; // Let normal cursor movement happen (and extend/render the selection)
+  }
+
+  if (inputIsCtrlHeld()) {
+    if (inputIsSaveKey(input)) {
+      if (isDown) {
+        projectSave(&chipnomadState->project, getAutosavePath());
+        screenMessage(MESSAGE_TIME, "KEY JAZZ: project saved");
+      }
+      return 1;
+    }
+    if (inputIsCopyKey(input) || inputIsCutKey(input)) {
+      if (isDown) {
+        int startCol, startRow, endCol, endRow;
+        keyJazzGetActiveRange(&startCol, &startRow, &endCol, &endRow);
+        int isCut = inputIsCutKey(input);
+        copyPhrase(phraseIdx, startCol, startRow, endCol, endRow, isCut);
+        int count = endRow - startRow + 1;
+        screenMessage(MESSAGE_TIME, "KEY JAZZ: %s %d row%s", isCut ? "cut" : "copied", count, count == 1 ? "" : "s");
+        if (isCut) {
+          screen.selectMode = 0;
+          fullRedraw();
+        }
+      }
+      return 1;
+    }
+    if (inputIsPasteKey(input)) {
+      if (isDown) {
+        int rowsPasted = pastePhrase(phraseIdx, screen.cursorCol, screen.cursorRow);
+        if (rowsPasted > 0) {
+          screenMessage(MESSAGE_TIME, "KEY JAZZ: pasted %d row%s", rowsPasted, rowsPasted == 1 ? "" : "s");
+          fullRedraw();
+        }
+      }
+      return 1;
+    }
+    return 0; // Other Ctrl+key combos: not our concern
+  }
+
+  if (inputIsDeleteKey(input)) {
+    // Delete removes the whole row(s) (every column, not just the
+    // selection's columns) and shifts the rest of the phrase up to fill
+    // the gap; the cursor stays on the same row index.
+    if (isDown) {
+      int startRow, endRow;
+      if (screen.selectMode) {
+        int startCol, endCol;
+        getSelectionBounds(&screen, &startCol, &startRow, &endCol, &endRow);
+      } else {
+        startRow = endRow = screen.cursorRow;
+      }
+      int count = endRow - startRow + 1;
+      for (int r = startRow; r <= 15 - count; r++) phraseRows[r] = phraseRows[r + count];
+      for (int r = 16 - count; r <= 15; r++) keyJazzClearRow(r, 1);
+      screen.cursorRow = startRow;
+      screen.selectMode = 0;
+      fullRedraw();
+    }
+    return 1;
+  }
+
+  if (inputIsBackspaceKey(input)) {
+    // Backspace is narrower than Delete: it only touches the current
+    // column (or the selection's actual columns), not the whole row. It
+    // removes the element(s) at the cursor/selection itself (not the row
+    // above) and shifts whatever is below, in that same column, up to
+    // fill the gap - the column equivalent of what Delete does per row.
+    // Like a text editor, it also steps the cursor back one row as it
+    // erases (the reverse of typing a note advancing to the next row).
+    if (isDown) {
+      int startCol, startRow, endCol, endRow;
+      if (screen.selectMode) {
+        getSelectionBounds(&screen, &startCol, &startRow, &endCol, &endRow);
+      } else {
+        startCol = endCol = screen.cursorCol;
+        startRow = endRow = screen.cursorRow;
+      }
+      int count = endRow - startRow + 1;
+      for (int c = startCol; c <= endCol; c++) keyJazzShiftColumnUp(c, startRow, count);
+      screen.cursorRow = startRow > 0 ? startRow - 1 : 0;
+      screen.selectMode = 0;
+      fullRedraw();
+    }
+    return 1;
+  }
+
+  if (inputIsInsertKey(input)) {
+    if (isDown) {
+      int row = screen.cursorRow;
+      if (row < 15) applyPhraseRotation(phraseIdx, row, 15, 1);
+      keyJazzClearRow(row, 1);
+      fullRedraw();
+    }
+    return 1;
+  }
+
+  int octaveDelta = inputKeyJazzOctaveDelta(input);
+  if (octaveDelta != 0) {
+    if (isDown) {
+      uint16_t octaveSize = chipnomadState->project.pitchTable.octaveSize;
+      keyJazzBaseNote = keyJazzClampNote(keyJazzBaseNote + octaveDelta * (int)octaveSize);
+      screenMessage(MESSAGE_TIME, "KEY JAZZ octave: %s", chipnomadState->project.pitchTable.noteNames[keyJazzBaseNote]);
+    }
+    return 1;
+  }
+
+  int offset = inputKeyJazzNoteOffset(input);
+  if (offset < 0) return 0; // Not a note key: let normal input handle it (arrows, Shift, Play...)
+
+  if (isDown) {
+    int row = screen.cursorRow;
+    phraseRows[row].note = keyJazzClampNote(keyJazzBaseNote + offset);
+    if (phraseRows[row].instrument == EMPTY_VALUE_8) phraseRows[row].instrument = lastInstrument;
+    if (phraseRows[row].volume == EMPTY_VALUE_8) phraseRows[row].volume = lastVolume;
+    lastNote = phraseRows[row].note;
+    triggerRowPreview(row);
+    drawField(0, row, CellState::normal);
+    drawField(1, row, CellState::normal);
+    drawField(2, row, CellState::normal);
+    if (row < 15) {
+      screen.cursorRow = row + 1;
+      fullRedraw();
+    }
+  }
+  return 1;
+}
+
+#endif // DESKTOP_BUILD
 
 const AppScreen screenPhrase = {
   .init = init,

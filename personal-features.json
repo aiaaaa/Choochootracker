@@ -1,7 +1,7 @@
 {
   "upstream": "paiheulevrai/Choochootracker",
   "upstream_branch": "main",
-  "upstream_commit": "f9fea3cb2486a09cab6241429ab30fb0e6f58293",
+  "upstream_commit": "f13b8b4033c0a7fd2e9de55928a77d57a9f3a94e",
   "personal_branch": "personal/r36h",
   "update_policy": "Merge upstream main only; review conflicts, test and package before installing. No unattended updates.",
   "features": [
@@ -11,7 +11,8 @@
       "branch": "contribution/fonts-16x24",
       "included_commit": "23934421ee30970314b700e7471e8ef951f6a4c1",
       "upstream_pr": "https://github.com/paiheulevrai/Choochootracker/pull/17",
-      "retain_if_declined": true
+      "retain_if_declined": true,
+      "upstream_status": "integrated in upstream main"
     },
     {
       "id": "piano",
@@ -19,7 +20,8 @@
       "branch": "contribution/piano-visualization",
       "included_commit": "ea5dd1bc039fbcaf12c4f2f748c386ace93d03a7",
       "upstream_pr": "https://github.com/paiheulevrai/Choochootracker/pull/18",
-      "retain_if_declined": true
+      "retain_if_declined": true,
+      "upstream_status": "integrated in upstream main"
     },
     {
       "id": "project-spacing",
@@ -27,15 +29,17 @@
       "branch": "contribution/project-page-spacing",
       "included_commit": "942ec81c502425dae4f8b450e263d7b3723ad169",
       "upstream_pr": "https://github.com/paiheulevrai/Choochootracker/pull/19",
-      "retain_if_declined": true
+      "retain_if_declined": true,
+      "upstream_status": "integrated in upstream main"
     },
     {
       "id": "track-visuals",
-      "title": "Per-track visual options and audio readout",
+      "title": "One Detailed / Audio waveform display choice per track",
       "branch": "contribution/track-visuals",
-      "included_commit": "b336bb3f36309c336c43eba2dc534389a2350a37",
+      "included_commit": "557d718c4db38e467acde80d5fadccf15ed4ab1d",
       "upstream_pr": "https://github.com/paiheulevrai/Choochootracker/pull/20",
-      "retain_if_declined": true
+      "retain_if_declined": true,
+      "upstream_status": "retained personal addition"
     },
     {
       "id": "persistent-waveform",
@@ -43,7 +47,8 @@
       "branch": "contribution/persistent-waveform",
       "included_commit": "40d4a6e6e680e8f5f27c8a80d612ba8b641edb2a",
       "upstream_pr": "https://github.com/paiheulevrai/Choochootracker/pull/21",
-      "retain_if_declined": true
+      "retain_if_declined": true,
+      "upstream_status": "retained personal addition"
     },
     {
       "id": "mixer-meters",
@@ -51,7 +56,8 @@
       "branch": "contribution/mixer-level-meters",
       "included_commit": "d2b93935a879a6bea576c15a614e9d037f8d0a32",
       "upstream_pr": "https://github.com/paiheulevrai/Choochootracker/pull/22",
-      "retain_if_declined": true
+      "retain_if_declined": true,
+      "upstream_status": "integrated in upstream main"
     }
   ],
   "personal_assets": [
