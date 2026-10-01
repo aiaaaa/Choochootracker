@@ -37,7 +37,8 @@ void drawScreenMap() {
     gfxPrint(35, smY, "P");
   } else if (currentScreen == &screenPhrase || currentScreen == &screenGroove) {
     gfxPrint(37, smY, "G");
-  } else if (currentScreen == &screenInstrument || currentScreen == &screenInstrumentPool) {
+  } else if (currentScreen == &screenInstrument || currentScreen == &screenSampleSettings ||
+             currentScreen == &screenInstrumentPool) {
     gfxPrint(38, smY + 2, "P");
     gfxPrint(38, smY, "M");
   } else if (currentScreen == &screenModulation) {
@@ -62,7 +63,7 @@ void drawScreenMap() {
     gfxPrint(36, smY + 1, "C");
   } else if (currentScreen == &screenPhrase) {
     gfxPrint(37, smY + 1, "P");
-  } else if (currentScreen == &screenInstrument) {
+  } else if (currentScreen == &screenInstrument || currentScreen == &screenSampleSettings) {
     gfxPrint(38, smY + 1, "I");
   } else if (currentScreen == &screenInstrumentPool) {
     gfxPrint(38, smY + 2, "P");
