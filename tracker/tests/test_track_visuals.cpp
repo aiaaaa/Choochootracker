@@ -50,63 +50,75 @@ bool blank(Bitmap* bitmap) {
 }
 }
 
-TEST_CASE_FIXTURE(VisualFixture, "Track visual settings preserve legacy defaults and round-trip per track") {
+TEST_CASE_FIXTURE(VisualFixture, "Track display defaults to Detailed and round-trips each mode") {
   { std::ofstream f(settingsPath); f << "themeName: OldTheme\n"; }
   REQUIRE(settingsLoad() == 0);
-  for (const auto& visual : appSettings.trackVisuals) {
+  for (const auto& visual : appSettings.trackVisuals)
     CHECK(visual.mode == TrackVisualMode::detailed);
-    CHECK(visual.wave == 1); CHECK(visual.envelope == 1); CHECK(visual.noise == 1);
-  }
-  appSettings.trackVisuals[0] = {TrackVisualMode::audio, 1, 0, 1};
-  appSettings.trackVisuals[7] = {TrackVisualMode::detailed, 0, 1, 0};
+  appSettings.trackVisuals[0].mode = TrackVisualMode::audio;
+  appSettings.trackVisuals[7].mode = TrackVisualMode::audio;
   REQUIRE(settingsSave() == 0);
   REQUIRE(settingsLoad() == 0);
   CHECK(appSettings.trackVisuals[0].mode == TrackVisualMode::audio);
-  CHECK(appSettings.trackVisuals[0].envelope == 0);
-  CHECK(appSettings.trackVisuals[7].wave == 0);
-  CHECK(appSettings.trackVisuals[7].noise == 0);
+  CHECK(appSettings.trackVisuals[7].mode == TrackVisualMode::audio);
   CHECK(appSettings.trackVisuals[1].mode == TrackVisualMode::detailed);
   CHECK(std::string(appSettings.themeName) == "OldTheme");
-  { std::ofstream f(settingsPath); f << "trackVisuals0: 1,0,0,0\ntrackVisuals9: 1,0,0,0\n"
-    "trackVisuals1: 2,1,1,1\ntrackVisuals2: 1,-1,0,1\ntrackVisuals3: 1,1\n"; }
+  { std::ofstream f(settingsPath); f << "trackVisuals0: 1\ntrackVisuals9: 1\n"
+    "trackVisuals1: 2\ntrackVisuals2: -1\ntrackVisuals3: invalid\n"; }
   REQUIRE(settingsLoad() == 0);
-  for (const auto& visual : appSettings.trackVisuals) {
+  for (const auto& visual : appSettings.trackVisuals)
     CHECK(visual.mode == TrackVisualMode::detailed);
-    CHECK(visual.wave == 1); CHECK(visual.envelope == 1); CHECK(visual.noise == 1);
-  }
 }
 
-TEST_CASE_FIXTURE(VisualFixture, "Track visual table keeps detailed choices when switching modes") {
+TEST_CASE_FIXTURE(VisualFixture, "Earlier per-layer settings retain modes and discard hidden layers") {
+  { std::ofstream f(settingsPath); f << "trackVisuals1: 1,0,0,0\ntrackVisuals8: 0,0,0,0\n"; }
+  REQUIRE(settingsLoad() == 0);
+  CHECK(appSettings.trackVisuals[0].mode == TrackVisualMode::audio);
+  CHECK(appSettings.trackVisuals[7].mode == TrackVisualMode::detailed);
+  REQUIRE(settingsSave() == 0);
+  std::ifstream f(settingsPath);
+  std::string saved((std::istreambuf_iterator<char>(f)), {});
+  CHECK(saved.find("trackVisuals1: 1\n") != std::string::npos);
+  CHECK(saved.find("trackVisuals8: 0\n") != std::string::npos);
+  chipnomadState->project.instruments[0].type = InstrumentType::AY1;
+  auto& track = chipnomadState->uiPlaybackStatus.tracks[7];
+  track.note.instrument = 0; track.note.pitchFinal = 48;
+  chipnomadState->chips[7]->setRegister(7, 0x37);
+  chipnomadState->chips[7]->setRegister(8, 15);
+  CHECK_FALSE(blank(waveformDisplayGetBitmap(7)));
+  CHECK_FALSE(blank(waveformDisplayGetBitmap(0))); // Audio's silent centre line remains visible.
+}
+
+TEST_CASE_FIXTURE(VisualFixture, "One display choice switches each track and saves bulk choices") {
   currentScreen = &screenTrackVisuals;
   screenTrackVisuals.setup(0);
   screenTrackVisuals.fullRedraw();
   ScreenData* table = mockScreenData;
   REQUIRE(table != nullptr);
-  REQUIRE(table->onEdit(2, 2, CellEditAction::tap) == 1);
-  CHECK(appSettings.trackVisuals[2].envelope == 0);
-  CHECK(appSettings.trackVisuals[1].envelope == 1);
-  table->onEdit(0, 2, CellEditAction::tap);
+  CHECK(table->getColumnCount(0) == 1);
+  REQUIRE(table->onEdit(0, 2, CellEditAction::tap) == 1);
   CHECK(appSettings.trackVisuals[2].mode == TrackVisualMode::audio);
-  CHECK(table->onEdit(2, 2, CellEditAction::tap) == 0);
-  CHECK(appSettings.trackVisuals[2].envelope == 0);
-  table->drawField(2, 2, CellState::focus);
-  CHECK(std::string(mockGfxCells[5] + 19, 3) == "---");
+  CHECK(appSettings.trackVisuals[1].mode == TrackVisualMode::detailed);
+  table->drawField(0, 2, CellState::focus);
+  CHECK(std::string(mockGfxCells[5] + 4, 14) == "Audio waveform");
   table->onEdit(0, 2, CellEditAction::tap);
-  CHECK(appSettings.trackVisuals[2].envelope == 0);
+  table->drawField(0, 2, CellState::focus);
+  CHECK(std::string(mockGfxCells[5] + 4, 14) == "Detailed      ");
   table->onEdit(1, PROJECT_MAX_TRACKS, CellEditAction::tap);
-  for (const auto& visual : appSettings.trackVisuals) {
-    CHECK(visual.mode == TrackVisualMode::audio); CHECK(visual.wave == 1);
-  }
+  for (const auto& visual : appSettings.trackVisuals)
+    CHECK(visual.mode == TrackVisualMode::audio);
   table->onEdit(0, PROJECT_MAX_TRACKS, CellEditAction::tap);
-  CHECK(appSettings.trackVisuals[2].mode == TrackVisualMode::detailed);
-  CHECK(appSettings.trackVisuals[2].envelope == 0);
+  for (const auto& visual : appSettings.trackVisuals)
+    CHECK(visual.mode == TrackVisualMode::detailed);
+  table->onEdit(0, 2, CellEditAction::tap);
   table->onEdit(0, PROJECT_MAX_TRACKS + 1, CellEditAction::tap);
   CHECK(currentScreen == &screenSettings);
   REQUIRE(settingsLoad() == 0);
-  CHECK(appSettings.trackVisuals[2].envelope == 0);
+  CHECK(appSettings.trackVisuals[2].mode == TrackVisualMode::audio);
+  CHECK(appSettings.trackVisuals[1].mode == TrackVisualMode::detailed);
 }
 
-TEST_CASE_FIXTURE(VisualFixture, "Detailed voice waveform and envelope are independently visible") {
+TEST_CASE_FIXTURE(VisualFixture, "Detailed voice display includes waveform and envelope together") {
   chipnomadState->project.instruments[0].type = InstrumentType::Braids;
   chipnomadState->uiPlaybackStatus.tracks[0].note.instrument = 0;
   auto& voice = chipnomadState->voiceMonitors[0];
@@ -115,18 +127,12 @@ TEST_CASE_FIXTURE(VisualFixture, "Detailed voice waveform and envelope are indep
   Bitmap* bitmap = waveformDisplayGetBitmap(0);
   REQUIRE(bitmap != nullptr);
   CHECK(bitmap->data[1] == 160); // Full envelope produces the top overlay.
-  appSettings.trackVisuals[0].envelope = 0;
-  CHECK(waveformDisplayGetBitmap(0)->data[1] == 0);
-  CHECK_FALSE(blank(bitmap));
-  appSettings.trackVisuals[0].wave = 0;
-  CHECK(blank(waveformDisplayGetBitmap(0)));
-  appSettings.trackVisuals[0].envelope = 1;
-  CHECK(waveformDisplayGetBitmap(0)->data[1] == 160);
+  CHECK(std::count(bitmap->data, bitmap->data + bitmap->widthPixels * bitmap->heightPixels, 255) > 0);
   voice.active = 0;
   CHECK(blank(waveformDisplayGetBitmap(0)));
 }
 
-TEST_CASE_FIXTURE(VisualFixture, "AY detail reads its own track and independently toggles noise and envelope") {
+TEST_CASE_FIXTURE(VisualFixture, "AY Detailed display reads its own track and includes noise and envelope") {
   chipnomadState->project.instruments[0].type = InstrumentType::AY1;
   auto& track = chipnomadState->uiPlaybackStatus.tracks[5];
   track.note.instrument = 0; track.note.pitchFinal = 48;
@@ -136,20 +142,18 @@ TEST_CASE_FIXTURE(VisualFixture, "AY detail reads its own track and independentl
   Bitmap* bitmap = waveformDisplayGetBitmap(5);
   REQUIRE(bitmap != nullptr);
   CHECK(bitmap->data[0] == 255); // Track 6's own channel A, not chip 2/channel C.
-  auto& visual = appSettings.trackVisuals[5];
-  visual.wave = 0; visual.envelope = 0;
+  CHECK(bitmap->data[bitmap->widthPixels] == 0);
   chip->setRegister(7, 0x37); // Noise only.
   CHECK_FALSE(blank(waveformDisplayGetBitmap(5)));
-  visual.noise = 0;
-  CHECK(blank(waveformDisplayGetBitmap(5)));
-  chip->setRegister(7, 0x3f); chip->setRegister(8, 0x10); chip->setRegister(13, 0);
-  visual.envelope = 1;
-  CHECK_FALSE(blank(waveformDisplayGetBitmap(5)));
-  visual.envelope = 0;
+  CHECK(bitmap->data[bitmap->widthPixels] > 0); // Noise texture below the trace.
+  chip->setRegister(7, 0x3e); chip->setRegister(8, 0x10); chip->setRegister(13, 0);
+  bitmap = waveformDisplayGetBitmap(5);
+  CHECK(std::count(bitmap->data, bitmap->data + bitmap->widthPixels * bitmap->heightPixels, 160) > 0);
+  track.note.pitchFinal = EMPTY_VALUE_8;
   CHECK(blank(waveformDisplayGetBitmap(5)));
 }
 
-TEST_CASE_FIXTURE(VisualFixture, "Audio-only readout uses summed snapshots instead of detailed overlays") {
+TEST_CASE_FIXTURE(VisualFixture, "Audio display uses summed snapshots independently of instrument graphics") {
   auto* monitor = chipnomadState->audioMonitor;
   float mix[128]{};
   monitor->beginRender(); monitor->beginChunk(64);
@@ -159,12 +163,14 @@ TEST_CASE_FIXTURE(VisualFixture, "Audio-only readout uses summed snapshots inste
   Bitmap* bitmap = waveformDisplayGetBitmap(0);
   REQUIRE(bitmap != nullptr);
   std::vector<uint8_t> before(bitmap->data, bitmap->data + bitmap->widthPixels * bitmap->heightPixels);
-  appSettings.trackVisuals[0].envelope = appSettings.trackVisuals[0].noise = 0;
+  chipnomadState->project.instruments[0].type = InstrumentType::AY1;
+  auto& track = chipnomadState->uiPlaybackStatus.tracks[0];
+  track.note.instrument = 0; track.note.pitchFinal = 48;
+  chipnomadState->chips[0]->setRegister(7, 0x37);
+  chipnomadState->chips[0]->setRegister(8, 15);
   bitmap = waveformDisplayGetBitmap(0);
   CHECK(std::equal(before.begin(), before.end(), bitmap->data));
   CHECK_FALSE(blank(bitmap));
-  appSettings.trackVisuals[0].wave = 0;
-  CHECK(blank(waveformDisplayGetBitmap(0)));
 }
 
 TEST_CASE("Audio mini readout preserves narrow peaks and leaves padding clear") {
