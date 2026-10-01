@@ -55,8 +55,6 @@ static KeyboardLayout detectKeyboardLayout(void) {
         strstr(localeLower, "_cz") || strstr(localeLower, ".cz") ||
         strstr(localeLower, "sk_") || strstr(localeLower, "sk.") ||
         strstr(localeLower, "_sk") || strstr(localeLower, ".sk") ||
-        strstr(localeLower, "pl_") || strstr(localeLower, "pl.") ||
-        strstr(localeLower, "_pl") || strstr(localeLower, ".pl") ||
         strstr(localeLower, "hu_") || strstr(localeLower, "hu.") ||
         strstr(localeLower, "_hu") || strstr(localeLower, ".hu")) {
       return LAYOUT_QWERTZ;
