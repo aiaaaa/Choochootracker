@@ -111,13 +111,14 @@ struct GfxImage {
 
 static int titleLogicalSizeActive = 0;
 static SDL_Texture* titleTexture = NULL;
+static void drawTrackerLabel(const char* text, int centerX, int y, int color);
 
 static void setTextureNearest(SDL_Texture* texture) {
 #if SDL_VERSION_ATLEAST(2, 0, 12)
   if (texture) SDL_SetTextureScaleMode(texture, SDL_ScaleModeNearest);
 #else
-  // Older PortMaster SDL2 releases do not expose per-texture scale modes.
-  // SDL_HINT_RENDER_SCALE_QUALITY is set to "0" before creating textures.
+  // Older PortMaster SDL2 releases have no per-texture scale mode. The
+  // renderer-wide nearest-neighbor hint below is their equivalent.
   (void)texture;
 #endif
 }
@@ -125,7 +126,13 @@ static void setTextureNearest(SDL_Texture* texture) {
 #ifndef WEB_BUILD
 static void useCompositionTarget(void) {
   SDL_SetRenderTarget(renderer, compositionTexture);
-  SDL_RenderSetLogicalSize(renderer, logicalW, logicalH);
+  // A render target already has the tracker canvas's native dimensions.
+  // Do not inherit the physical window's logical viewport or scale after a
+  // present: on Android/EGL that state can otherwise clip the first tracker
+  // frame after leaving the title screen.
+  SDL_RenderSetLogicalSize(renderer, 0, 0);
+  SDL_RenderSetViewport(renderer, NULL);
+  SDL_RenderSetScale(renderer, 1.0f, 1.0f);
 }
 
 static int createCompositionTexture(void) {
@@ -161,7 +168,8 @@ static void getAndroidSurfaceSize(int* width, int* height) {
   SDL_SetRenderTarget(renderer, NULL);
   SDL_GetRendererOutputSize(renderer, width, height);
   SDL_SetRenderTarget(renderer, target);
-  if (target) SDL_RenderSetLogicalSize(renderer, logicalW, logicalH);
+  if (target == compositionTexture) useCompositionTarget();
+  else if (target) SDL_RenderSetLogicalSize(renderer, logicalW, logicalH);
 }
 #endif
 
@@ -527,7 +535,7 @@ int gfxSetup(int *screenWidth, int *screenHeight) {
     return 1;
   }
 
-  // This also covers older SDL2 builds without SDL_SetTextureScaleMode.
+  // Also covers older SDL2 builds without SDL_SetTextureScaleMode.
   SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
 
   // Prefer a VSync'd GPU renderer. The composition target below removes any
@@ -1323,7 +1331,14 @@ void gfxDrawHUD(void) {
   extern SDL_Rect recButtonRect, delButtonRect, leftStickRect, rightStickRect;
 #endif
 
-  if (!vpadEnabled) return;
+  if (!vpadEnabled) {
+#ifdef ANDROID_BUILD
+    useWindowPixels();
+    drawTrackerLabel(appBuild, physicalW / 2, physicalH - charH - 4,
+      appSettings.colorScheme.textInfo);
+#endif
+    return;
+  }
 
 #ifdef ANDROID_BUILD
   // The tracker is a centered 640x480 canvas; controls are a physical overlay,
@@ -1356,6 +1371,8 @@ void gfxDrawHUD(void) {
     drawStick(&leftStickRect, 0);
     drawStick(&rightStickRect, 2);
   }
+  drawTrackerLabel(appBuild, physicalW / 2, physicalH - charH - 4,
+    appSettings.colorScheme.textInfo);
 #endif
 #endif
 }
