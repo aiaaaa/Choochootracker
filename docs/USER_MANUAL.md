@@ -414,6 +414,14 @@ The six macros are **Waves**, **Interval**, **Amount**, **Flow**, **Feedback** a
 
 MME uses the shared LP/BP/HP multimode filter and ADSR. All six macros, Cutoff and Resonance are available to modulation and motion recording. Hold **EDIT** on Model to open the model popup.
 
+### MIDI Out
+
+**MIDI Out** (desktop only) drives an external MIDI device instead of synthesizing audio: triggering a note sends a real MIDI Note On on the instrument's **Channel** (`1-16`) and, when the note ends, the matching Note Off. Volume becomes velocity, and a chord track's voices each get their own Note On/Off. There is no audio to hear from ChooChooTracker itself - select the output device under [Settings](#12-settings) first. See [MIDI](#14-midi) for the full picture, including sound preview from a MIDI keyboard.
+
+**Program** and **Bank high/low** (CC0/CC32) are optional - shown as `--` when off, `Clear` toggles a field off and remembers its value. When set, they are sent once, right before the next note, whenever they differ from what that channel was last told (not before every note, which would retrigger the receiving device's own envelopes/patch).
+
+**MC1 number**-**MC4 number** pick which CC number (`00-7F`) each of the four MC1-MC4 row FX sends to - see [MIDI Out FX](#midi-out-fx). Also `--`/optional; a slot left unset makes its FX inert.
+
 ### Subtractive engines
 
 The engines in this category share a VCO to VCF to VCA architecture.
@@ -789,6 +797,12 @@ The value is interpreted as a signed `8-bit` relative change (`01` adds `1`, `FF
 | `SDC`, `SMP`, `SMA`, `SMB`, `SMO`, `SMC` | `00-FF` | Override Decay, Mod, the first two model macros, Motion or the final model macro until the next trigger. |
 | `SCF`, `SRS` | `00-FF` | Filter cutoff and resonance. |
 
+### MIDI Out FX
+
+| FX | Value | Meaning |
+|---|---|---|
+| `MC1`-`MC4` | `00-FF` | Sends a MIDI CC, rescaled to `0-127`. Which CC number each slot sends to is set per-instrument (`MC1 number`-`MC4 number` on the instrument screen), not by the FX itself - a slot with no number set is inert. |
+
 ### Plaits FX
 
 | FX | Value | Meaning |
@@ -921,6 +935,8 @@ The 1st repeat follows the stereo input. Later feedback crosses between the left
 
 The Project screen provides **Load**, **Save**, **New**, **Export**, **Manage** and **Scale** commands, along with filename, title and author metadata.
 
+**Load** also accepts `.mid`/`.midi` files, imported as a new project: notes are grouped by MIDI channel (one channel per track, up to the track count), quantized to 4 rows per beat, and placed on a single default AY instrument - MIDI program numbers have no chiptune equivalent, so pick real instruments afterward. Only the file's first tempo is used (one global tick rate, no per-section tempo changes). The Export screen's **MIDI** row does the reverse: writes the current arrangement's notes, volume and tempo/groove as a Standard MIDI File (one MIDI track per tracker track); [MIDI Out](#midi-out) instruments and other per-row FX beyond volume and the global groove have no MIDI equivalent and are not translated.
+
 ### Scale / Quantize
 
 The Scale screen controls the global 12-TET playback quantizer. Phrase entry remains chromatic: when enabled, notes are rounded downward immediately before reaching the sound engine, so changing root or scale reharmonizes a song without editing its phrases. Choose a root, one of the compact built-in scales, or edit the twelve notes of **Custom**. Each of the eight track checkboxes decides which tracks are quantized. Quantization is bypassed for non-12-note pitch tables; MIDI input is not part of this version.
@@ -940,6 +956,7 @@ Use **Save** before changing instrument types or loading another project.
 - **Sample dithering** controls AY Sample dithering only.
 - **Braids BITS / DRFT / SIGN** apply globally to every Braids instrument.
 - **Stick live mode** selects `HOLD`, `TOGGLE`, or `FREE` for the existing mapped Stick live button.
+- **MIDI** opens the [MIDI](#14-midi) submenu: device selection and the MIDI In channel-to-instrument mapping.
 - **Key mapping**, **Load font**, and **Edit color theme** customise the interface. ChipNomad fonts and themes should work.
 - **Quit ChooChooTracker** exits cleanly.
 
@@ -963,6 +980,14 @@ Check the instrument number, track mute or solo state, track LVL, application Mi
 
 Adjust Repeat delay and Repeat speed in Settings. If a single press moves twice, check that only 1 physical control is mapped to that direction and report the exact screen and shortcut.
 
-## 14. Credits and licensing
+## 14. MIDI
 
-ChooChooTracker is a fork of ChipNomad and retains its MIT licensing approach. Braids, Plaits, Plaits-Alt, Clouds DSP, Warps-derived MME DSP and stmlib code are derived from Mutable Instruments' open-source releases under their applicable MIT notices. Plaits-Alt is sourced from the lylepmills/eurorack Plaits Lab fork; its retained source notices apply. The aChChid engine uses Open303 by Robin Schmidt, copyright 2009, under the MIT License. The Windows Pure Data POC statically links libpd/Pure Data under the Standard Improved BSD License. Bogie and Sintered are original native implementations. See the packaged license files for exact attribution.
+Desktop only (Linux, Windows, macOS). Settings > **MIDI** opens this submenu: **MIDI In** / **MIDI Out** pick a connected device, cycling through detected ports with `OFF` at either end; both directions need a device selected. The device selection is per session: it is not saved to settings.txt, since a port's position in the list can change across reboots or when devices are plugged in a different order.
+
+- **Sound preview from a MIDI keyboard**: with a MIDI In device selected, playing notes on the connected keyboard auditions an instrument on any screen, the same as the on-screen **EDIT + PLAY** shortcut on the [Instrument](#5-instruments) screen. This is preview only - it does not enter notes into the song.
+- **Channel mapping**: opens a list of the 16 MIDI channels; assign each one an instrument (`OFF` by default) so notes received on that channel preview that instrument regardless of which one is selected on the Instrument screen - e.g. channel `01` -> instrument `05`. A channel left `OFF` falls back to the currently selected instrument, the original behavior. This mapping is saved to settings.txt.
+- **Driving an external MIDI device**: give a track the [MIDI Out](#midi-out) instrument type and set its Channel; triggering notes on that track sends real MIDI to the selected MIDI Out device instead of making sound in ChooChooTracker.
+
+## 15. Credits and licensing
+
+ChooChooTracker is a fork of ChipNomad and retains its MIT licensing approach. Braids, Plaits, Plaits-Alt, Clouds DSP, Warps-derived MME DSP and stmlib code are derived from Mutable Instruments' open-source releases under their applicable MIT notices. Plaits-Alt is sourced from the lylepmills/eurorack Plaits Lab fork; its retained source notices apply. The aChChid engine uses Open303 by Robin Schmidt, copyright 2009, under the MIT License. The Windows Pure Data POC statically links libpd/Pure Data under the Standard Improved BSD License. Bogie and Sintered are original native implementations. MIDI I/O uses RtMidi by Gary P. Scavone, under its MIT-style license. See the packaged license files for exact attribution.

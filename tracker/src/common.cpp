@@ -41,6 +41,11 @@ void initDefaultAppSettings(void) {
   appSettings.quickHelpReleaseSeen = 0;
   appSettings.ayWavetableLfoView = 0;
   appSettings.stickLiveMode = StickLiveMode::hold;
+  appSettings.midiInputDevice = -1;
+  appSettings.midiOutputDevice = -1;
+  appSettings.midiInputDeviceName[0] = '\0';
+  appSettings.midiOutputDeviceName[0] = '\0';
+  for (int i = 0; i < MIDI_CHANNEL_COUNT; i++) appSettings.midiChannelInstrument[i] = -1;
 
   // Zero out key mapping (platform-specific defaults applied later)
   memset(&appSettings.keyMapping, 0, sizeof(KeyMapping));
@@ -145,6 +150,13 @@ int settingsSave(void) {
   const char* stickLiveMode = appSettings.stickLiveMode == StickLiveMode::free ? "FREE" :
     appSettings.stickLiveMode == StickLiveMode::toggle ? "TOGGLE" : "HOLD";
   fprintf(file, "stickLiveMode: %s\n", stickLiveMode);
+
+  fprintf(file, "midiChannelInstrument: ");
+  for (int i = 0; i < MIDI_CHANNEL_COUNT; i++) {
+    fprintf(file, "%d%s", appSettings.midiChannelInstrument[i], i < MIDI_CHANNEL_COUNT - 1 ? "," : "\n");
+  }
+  fprintf(file, "midiInputDeviceName: %s\n", appSettings.midiInputDeviceName);
+  fprintf(file, "midiOutputDeviceName: %s\n", appSettings.midiOutputDeviceName);
 
   // Save key mapping codes
   fprintf(file, "keyUp: %d,%d,%d\n", appSettings.keyMapping.keyUp[0].code, appSettings.keyMapping.keyUp[1].code, appSettings.keyMapping.keyUp[2].code);
@@ -260,6 +272,20 @@ int settingsLoad(void) {
     } else if (strncmp(line, "stickLiveMode: ", 15) == 0) {
       appSettings.stickLiveMode = strcmp(line + 15, "FREE") == 0 ? StickLiveMode::free :
         strcmp(line + 15, "TOGGLE") == 0 ? StickLiveMode::toggle : StickLiveMode::hold;
+    } else if (strncmp(line, "midiChannelInstrument: ", 23) == 0) {
+      char* token = strtok(line + 23, ",");
+      int i = 0;
+      while (token && i < MIDI_CHANNEL_COUNT) {
+        appSettings.midiChannelInstrument[i] = (int8_t)atoi(token);
+        token = strtok(NULL, ",");
+        i++;
+      }
+    } else if (strncmp(line, "midiInputDeviceName: ", 21) == 0) {
+      strncpy(appSettings.midiInputDeviceName, line + 21, MIDI_DEVICE_NAME_LENGTH);
+      appSettings.midiInputDeviceName[MIDI_DEVICE_NAME_LENGTH] = 0;
+    } else if (strncmp(line, "midiOutputDeviceName: ", 22) == 0) {
+      strncpy(appSettings.midiOutputDeviceName, line + 22, MIDI_DEVICE_NAME_LENGTH);
+      appSettings.midiOutputDeviceName[MIDI_DEVICE_NAME_LENGTH] = 0;
     } else if (strncmp(line, "keyUp: ", 7) == 0) {
       sscanf(line + 7, "%d,%d,%d", &appSettings.keyMapping.keyUp[0].code, &appSettings.keyMapping.keyUp[1].code, &appSettings.keyMapping.keyUp[2].code);
     } else if (strncmp(line, "keyDown: ", 9) == 0) {
@@ -380,6 +406,10 @@ int settingsLoad(void) {
   if (appSettings.braidsBits < 0 || appSettings.braidsBits > 6) appSettings.braidsBits = 6;
   if (appSettings.braidsDrift < 0 || appSettings.braidsDrift > 4) appSettings.braidsDrift = 0;
   if (appSettings.braidsSignature < 0 || appSettings.braidsSignature > 4) appSettings.braidsSignature = 0;
+  for (int i = 0; i < MIDI_CHANNEL_COUNT; i++) {
+    if (appSettings.midiChannelInstrument[i] < -1 || appSettings.midiChannelInstrument[i] >= PROJECT_MAX_INSTRUMENTS)
+      appSettings.midiChannelInstrument[i] = -1;
+  }
   return 0;
 }
 

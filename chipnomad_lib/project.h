@@ -198,6 +198,10 @@ enum FX {
   // Pure Data instrument macros. Appended to preserve project FX IDs.
   fxPD1, fxPD2, fxPD3, fxPD4, fxPD5, fxPD6, fxPD7, fxPD8,
 
+  // MIDI Out: send a CC whose number is set per-instrument (see
+  // InstrumentMidi's ccNumber[]). Appended to preserve project FX IDs.
+  fxMC1, fxMC2, fxMC3, fxMC4,
+
   // Total count - must be last
   fxTotalCount
 };

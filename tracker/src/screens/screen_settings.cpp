@@ -1,6 +1,7 @@
 #include "screen_settings.h"
 #include "screen_color_theme.h"
 #include "screen_keymapping.h"
+#include "screen_midi.h"
 #include "file_browser.h"
 #include "common.h"
 #include "app.h"
@@ -21,7 +22,7 @@ static void settingsDrawField(int col, int row, CellState state);
 static int settingsOnEdit(int col, int row, CellEditAction action);
 
 static ScreenData screenSettingsData = {
-  .rows = 14,
+  .rows = 15,
   .cursorRow = 0,
   .cursorCol = 0,
   .topRow = 0,
@@ -111,12 +112,14 @@ void settingsDrawCursor(int col, int row) {
   } else if (row == 9 && col == 0) {
     gfxCursor(23, 11, 6);
   } else if (row == 10 && col == 0) {
-    gfxCursor(0, 12, 11);
+    gfxCursor(0, 12, 4);
   } else if (row == 11 && col == 0) {
-    gfxCursor(0, 13, 9);
+    gfxCursor(0, 13, 11);
   } else if (row == 12 && col == 0) {
-    gfxCursor(0, 14, 16);
+    gfxCursor(0, 14, 9);
   } else if (row == 13 && col == 0) {
+    gfxCursor(0, 15, 16);
+  } else if (row == 14 && col == 0) {
     gfxCursor(0, 18, 19);
   }
 }
@@ -186,14 +189,17 @@ void settingsDrawField(int col, int row, CellState state) {
       appSettings.stickLiveMode == StickLiveMode::toggle ? "TOGGLE" : "HOLD  ");
   } else if (row == 10 && col == 0) {
     gfxSetFgColor(state == CellState::focus ? appSettings.colorScheme.textValue : appSettings.colorScheme.textDefault);
-    gfxPrint(0, 12, "Key mapping");
+    gfxPrint(0, 12, "MIDI");
   } else if (row == 11 && col == 0) {
     gfxSetFgColor(state == CellState::focus ? appSettings.colorScheme.textValue : appSettings.colorScheme.textDefault);
-    gfxPrint(0, 13, "Load font");
+    gfxPrint(0, 13, "Key mapping");
   } else if (row == 12 && col == 0) {
     gfxSetFgColor(state == CellState::focus ? appSettings.colorScheme.textValue : appSettings.colorScheme.textDefault);
-    gfxPrint(0, 14, "Edit color theme");
+    gfxPrint(0, 14, "Load font");
   } else if (row == 13 && col == 0) {
+    gfxSetFgColor(state == CellState::focus ? appSettings.colorScheme.textValue : appSettings.colorScheme.textDefault);
+    gfxPrint(0, 15, "Edit color theme");
+  } else if (row == 14 && col == 0) {
     gfxSetFgColor(state == CellState::focus ? appSettings.colorScheme.textValue : appSettings.colorScheme.textDefault);
     gfxPrint(0, 18, "Quit ChooChooTracker");
   }
@@ -259,18 +265,21 @@ int settingsOnEdit(int col, int row, CellEditAction action) {
     if (handled) appSetStickLiveMode((StickLiveMode)value);
     return handled;
   } else if (row == 10 && col == 0 && action == CellEditAction::tap) {
-    screenSetup(&screenKeyMapping, 0);
+    screenSetup(&screenMidi, 0);
     return 0;
   } else if (row == 11 && col == 0 && action == CellEditAction::tap) {
+    screenSetup(&screenKeyMapping, 0);
+    return 0;
+  } else if (row == 12 && col == 0 && action == CellEditAction::tap) {
     fileBrowserSetup("LOAD FONT", ".cnfont", appSettings.fontFolderPath,
       (void (*)(const char*))fontLoadCallback,
       (void (*)(void))fontCancelCallback);
     screenSetup(&screenFileBrowser, 0);
     return 0;
-  } else if (row == 12 && col == 0 && action == CellEditAction::tap) {
+  } else if (row == 13 && col == 0 && action == CellEditAction::tap) {
     screenSetup(&screenColorTheme, 0);
     return 0;
-  } else if (row == 13 && col == 0 && action == CellEditAction::tap) {
+  } else if (row == 14 && col == 0 && action == CellEditAction::tap) {
     // Trigger exit event
     mainLoopTriggerQuit();
     return 1;

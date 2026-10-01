@@ -2,9 +2,39 @@
 #include "chipnomad_lib.h"
 #include "playback_internal.h"
 #include "pitch_table_utils.h"
+#include "midi/midi_router.h"
 
 #include <cstring>
 #include <cmath>
+#include <vector>
+
+namespace {
+// Minimal fake MidiBackend for the two MIDI Out integration tests below:
+// captures every scheduled event so the tests can assert on what actually
+// got sent, without reaching into the router's now-encapsulated internal
+// state (see test_midi_router.cpp for router-level unit tests through this
+// same fake-backend mechanism).
+struct SentMidiEvent { uint8_t type, channel, data1, data2; };
+std::vector<SentMidiEvent> g_sentMidiEvents;
+
+void fakeScheduleOutput(void*, const MidiEvent* event, uint64_t) {
+  g_sentMidiEvents.push_back({event->type, event->channel, event->data1, event->data2});
+}
+void fakeFlushOutputQueue(void*) {}
+uint64_t fakeNowMicros(void*) { return 0; }
+
+const MidiBackend kFakeMidiBackend = {
+  nullptr, // userdata
+  nullptr, nullptr, nullptr, nullptr, // port enumeration - unused here
+  nullptr, nullptr, nullptr, nullptr, // open/close - unused here
+  nullptr, // pollInput - unused here (Out-path only)
+  fakeScheduleOutput,
+  fakeFlushOutputQueue,
+  nullptr, // droppedCount - unused here
+  fakeNowMicros,
+  1, 1, 0, 0,
+};
+}
 
 TEST_SUITE("playback") {
 
@@ -139,6 +169,38 @@ TEST_CASE("playback stop command applies on the audio tick") {
   chipnomadRender(fixture.state, buffer, 1);
 
   CHECK_FALSE(playbackIsPlaying(&fixture.state->playbackState));
+}
+
+TEST_CASE("playback stop sends MIDI Note Off instead of leaving the note stuck") {
+  midiRouterSetBackend(&kFakeMidiBackend);
+  g_sentMidiEvents.clear();
+
+  PlaybackFixture fixture;
+  ChipNomadState* state = fixture.state;
+  getInstrumentFunctions(InstrumentType::Midi).init(&state->project.instruments[0]);
+  REQUIRE(chipnomadQueueProjectRefresh(state));
+  playbackPreviewNote(&state->playbackState, 0, 60, 0);
+
+  // Render a full tick's worth of samples (not just 1) so frameSampleCounter
+  // actually cycles back to 0 within each call and advancePlaybackFrame -
+  // where the preview command, then later the queued stop, are consumed -
+  // runs both times, rather than only on the very first sample ever rendered.
+  float buffer[2048] = {};
+  chipnomadRender(state, buffer, 1024);
+  REQUIRE(g_sentMidiEvents.size() >= 1);
+  CHECK(g_sentMidiEvents.back().type == 0x90); // Note On
+
+  // resetTrack() (called from playbackStop) clears noteTriggered/noteReleased
+  // directly, bypassing the normal path applyVoiceEvents uses to notice a
+  // release and send Note Off - the stop command must still flush it via
+  // chipnomadMidiPanic, or the note stays stuck on the external device.
+  g_sentMidiEvents.clear();
+  chipnomadQueuePlaybackStop(state);
+  chipnomadRender(state, buffer, 1024);
+
+  int sawNoteOff = 0;
+  for (const SentMidiEvent& e : g_sentMidiEvents) if (e.type == 0x80) sawNoteOff = 1;
+  CHECK(sawNoteOff);
 }
 
 TEST_CASE_FIXTURE(PlaybackFixture, "playback init all tracks stopped") {
@@ -455,6 +517,31 @@ TEST_CASE_FIXTURE(PlaybackFixture, "Plaits instrument renders and receives note 
   handleNoteOff(&state->playbackState, 0);
   CHECK(state->playbackState.tracks[0].note.noteReleased == 1);
   CHECK(state->playbackState.tracks[0].note.pitchBase == EMPTY_VALUE_8);
+}
+
+TEST_CASE_FIXTURE(PlaybackFixture, "MIDI Out instrument tracks its active note and panic sends Note Off") {
+  midiRouterSetBackend(&kFakeMidiBackend);
+  g_sentMidiEvents.clear();
+
+  getInstrumentFunctions(InstrumentType::Midi).init(&state->project.instruments[0]);
+  state->project.instruments[0].chip.midi.channel = 3;
+  REQUIRE(chipnomadQueueProjectRefresh(state));
+  playbackPreviewNote(&state->playbackState, 0, 60, 0);
+
+  float buffer[2] = {};
+  chipnomadRender(state, buffer, 1);
+
+  REQUIRE(g_sentMidiEvents.size() >= 1);
+  CHECK(g_sentMidiEvents.back().type == 0x90); // Note On
+  CHECK(g_sentMidiEvents.back().channel == 3);
+
+  g_sentMidiEvents.clear();
+  chipnomadMidiPanic(state);
+  int sawNoteOff = 0;
+  for (const SentMidiEvent& e : g_sentMidiEvents) if (e.type == 0x80 && e.channel == 3) sawNoteOff = 1;
+  CHECK(sawNoteOff);
+  // Router-level cache invalidation (Program/Bank resend after panic) is
+  // covered directly in test_midi_router.cpp.
 }
 
 TEST_CASE_FIXTURE(PlaybackFixture, "SLE reaches every BYOWTBL engine FX destination") {

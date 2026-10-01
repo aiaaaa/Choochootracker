@@ -18,6 +18,7 @@ class MMEVoice;
 class SinteredVoice;
 class PDVoice;
 class AudioCommandQueue;
+struct MidiRouterState;
 
 constexpr int VOICE_MONITOR_SAMPLES = 256;
 
@@ -87,6 +88,11 @@ struct ChipNomadState {
   MMEVoice* mmeVoices[PROJECT_MAX_TRACKS][CHORD_MAX_VOICES];
   SinteredVoice* sinteredVoices[PROJECT_MAX_TRACKS][CHORD_MAX_VOICES];
   PDVoice* pdVoices[PROJECT_MAX_TRACKS];
+  // MIDI-Out active-note tracking, Program/Bank cache, and MIDI-In routing
+  // state now live behind the generic MIDI router (see midi/midi_router.h) -
+  // one instance per ChipNomadState, so independent engine states (e.g. one
+  // per test fixture) never share bookkeeping through a hidden global.
+  MidiRouterState* midiRouter;
   VoiceMonitor voiceMonitors[PROJECT_MAX_TRACKS];
   MasterEffects* masterEffects;
   AudioCommandQueue* audioCommands;
@@ -121,6 +127,11 @@ int chipnomadQueueProjectRefresh(ChipNomadState* state);
 int chipnomadQueuePlaybackScale(ChipNomadState* state, uint8_t root, ScalePreset preset);
 void chipnomadDiscardQueuedProject(ChipNomadState* state);
 void chipnomadQueuePlaybackStop(ChipNomadState* state);
+// Sends Note Off for every currently active MIDI Out note, plus a blanket
+// CC123 (All Notes Off) / CC120 (All Sound Off) on every channel as a final
+// fallback. Call before closing/switching the MIDI output port and on
+// application shutdown, in addition to the automatic call on playback stop.
+void chipnomadMidiPanic(ChipNomadState* state);
 int chipnomadQueuePlaybackStartSong(ChipNomadState* state, int songRow, int chainRow, int loop);
 int chipnomadQueuePlaybackStartChain(ChipNomadState* state, int trackIdx, int songRow, int chainRow, int loop);
 int chipnomadQueuePlaybackStartPhrase(ChipNomadState* state, int trackIdx, int songRow, int chainRow, int loop);
