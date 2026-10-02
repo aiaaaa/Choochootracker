@@ -5,6 +5,8 @@
 #include <memory>
 #include <vector>
 #include "chipnomad_lib.h"
+#include "app.h"
+#include "selection_popup.h"
 #include "doctest.h"
 #include "mocks/app_ui_mock.h"
 #include "pitch_table_utils.h"
@@ -605,4 +607,48 @@ TEST_CASE("one instrument on two tracks modulates independent slot bases with mu
   CHECK(p.trackInserts[1][0].values[0] == 120);
   chipnomadSetLiveStickEnabled(0);
   chipnomadSetLiveStickAxes(0, 0, 0, 0);
+}
+
+TEST_CASE("insert tips return after real key release and wide chooser credits every module") {
+  auto* previous = chipnomadState;
+  auto* previousScreen = currentScreen;
+  chipnomadState = chipnomadCreate();
+  screensInitAll();
+  *pSongTrack = 0;
+  insertSelect(&chipnomadState->project.trackInserts[0][0], insertDistortion);
+  currentScreen = &screenInsertFX;
+  screenInsertFX.setup(-1);
+  screenInsertFX.fullRedraw();
+  auto* d = mockScreenData;
+  REQUIRE(d);
+  d->cursorRow = 1; d->cursorCol = 0;
+  d->drawCursor(0, 1);
+  std::string hint = screenGetActiveMessage();
+  CHECK(hint.find("F11 Input") == 0);
+  MainLoopEventData release{};
+  release.type = MainLoopEvent::keyUp;
+  release.data.input = {InputDeviceType::logical, keyDown};
+  appOnEvent(release);
+  CHECK(std::string(screenGetActiveMessage()).empty());
+  for (int frame = 0; frame < 120; ++frame) {
+    screenInsertFX.draw();
+    CHECK(std::string(screenGetActiveMessage()) == hint);
+  }
+  screenMessage(60, "Saved");
+  screenInsertFX.draw();
+  CHECK(std::string(screenGetActiveMessage()) == "Saved");
+  d->cursorRow = 0;
+  screenInsertFX.onInput(1, keyEdit, 1);
+  screenInsertFX.onInput(0, 0, 1);
+  REQUIRE(currentScreen == &screenSelectionPopup);
+  CHECK(selectionPopupIsFullWidth());
+  screenSelectionPopup.fullRedraw();
+  CHECK(std::string(mockGfxCells[3], 40).find("Compressor - Dynamics - Schwung Work") != std::string::npos);
+  CHECK(std::string(mockGfxCells[7], 40).find("OTT - Multiband - Rui-727") != std::string::npos);
+  // Legacy category choosers keep their two-panel layout.
+  SelectionItem items[] = {{"Existing", 0, nullptr, 0, nullptr}};
+  selectionPopupSetup("Existing", items, 1, 0, nullptr, nullptr);
+  CHECK_FALSE(selectionPopupIsFullWidth());
+  screenMessage(0, "");
+  chipnomadDestroy(chipnomadState); chipnomadState = previous; currentScreen = previousScreen;
 }
