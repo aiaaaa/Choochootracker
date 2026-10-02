@@ -61,6 +61,8 @@ TRACKER_SRC_SOURCES = src/app.cpp \
                       src/screens/screen_layout.cpp \
                       src/scope_display.cpp \
                       src/screens/screen_track_visuals.cpp \
+                      src/screens/screen_insert_fx.cpp \
+                      src/screens/selection_popup.cpp \
                       src/meter_display.cpp \
                       src/monitor_display.cpp \
                       src/piano_display.cpp \

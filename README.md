@@ -1,4 +1,4 @@
-> **Personal R36H build:** upstream `main` plus my chosen additions. See [the feature list and update process](PERSONAL_FORK.md).
+> **Personal Alpha — device build:** current upstream `main`, my retained visual options, and requested experiments. Build/install from `personal/r36h`; `main` is the unchanged upstream mirror. See [what is included and the PR status](PERSONAL_FORK.md).
 
 > ** ALPHA VERSION. Software is not finished. CHOO CHOO.**
 

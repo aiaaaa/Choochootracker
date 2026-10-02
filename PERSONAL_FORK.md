@@ -22,18 +22,33 @@ The exact included commits and upstream base are in
 [personal-features.json](personal-features.json). MIDI support is now included through upstream `main`, along with sample slicing,
 key jazz, Settings submenus and the aChChid workflow improvements.
 
-## October 1 integration
+## Current Alpha
 
-The upstream base is `cf7d866`. This includes PortMaster MIDI support and the
-ArkOS audio-device/playback fixes, and removes the reverted experimental libpd
-engine. Connect an ALSA-compatible USB MIDI device before launching, then choose
-it under Settings → MIDI.
+Upstream base: `0177aa942366103f27f9ed0fb5a1c5e245106adf` (October 2).
+The device channel is **personal Alpha**: current main plus retained personal
+features and experiments explicitly requested for testing. Upstream acceptance
+is not required for a personal feature to remain on the handheld.
 
- Fonts/theme, Project spacing, piano and Mixer
-meters are retained through their upstream integrations. The optional persistent
-waveform and revised Track visuals live under **Settings → Graphics**. Track
-visuals now offers only **Detailed** or **Audio waveform** for each track; old
-per-layer flags are ignored while the selected mode is preserved.
+| PR | GitHub status | How it reaches the handheld |
+| --- | --- | --- |
+| #1 Stick live toggle | Merged | Upstream main, including ALWAYS ON |
+| #17 Fonts/theme | Merged | Upstream main |
+| #18 Piano | Closed as superseded by #23 | Upstream's integrated implementation |
+| #19 Project spacing | Merged | Upstream main |
+| #20 Track visuals | Open | Retained personal Detailed / Audio waveform setting |
+| #21 Persistent waveform | Open | Retained personal ON/OFF setting, default OFF |
+| #22 Mixer meters | Closed as superseded by #23 | Upstream's integrated implementation |
+| Track Insert FX | Alpha experiment; PR pending | Two track slots, five native effects, Fxx and MOD |
+
+Piano/meters are not duplicated just because their original proposal commits
+remain in Git history. GitHub's ahead/behind counts describe history; they are
+not a count of missing features. No original PR needs closing for #18 or #22:
+the maintainer already closed them with an explanation.
+
+Graphics keeps current-main Waveform FPS and renderer information alongside
+Load font, theme, Track visuals and Persistent waveform. MIDI, current rendering
+fixes and Chord mode come from main. The installed `personal-build.json` records
+the exact source commit, upstream base, binary hash, checks and rollback location.
 
 ## Branches
 

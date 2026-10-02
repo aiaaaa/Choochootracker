@@ -7,7 +7,7 @@ int screenScopeRows(const AppScreen* screen) {
   return screen == &screenSong || screen == &screenChain ||
     screen == &screenPhrase || screen == &screenTable ||
     screen == &screenInstrument || screen == &screenInstrumentPool ||
-    screen == &screenModulation || screen == &screenMixer ||
+    screen == &screenModulation || screen == &screenInsertFX || screen == &screenMixer ||
     screen == &screenGroove ? 2 : 0;
 }
 
