@@ -1124,6 +1124,8 @@ Builds made with `CHOOCHOO_EXPERIMENTAL_MOD_LUCKY=1` add one Settings row,
 selects an action and the existing EDIT control activates it. NEXT prepares a
 random module with an animated underline; then release EDIT and activate PLAY
 to listen. LOAD imports the exact prepared module’s embedded PCM sample bank.
+Fetching requires working internet access on the handheld; a USB SSH connection
+alone does not supply internet access.
 The ordinary build omits this experimental row entirely. See
 [the experiment notes](mod-lucky.md) for build instructions, persistence,
 format/loop limitations and validation status.

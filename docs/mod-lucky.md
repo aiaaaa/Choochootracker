@@ -94,7 +94,8 @@ in a separate dependency directory, then add the same flag and ARM prefix to
 libcurl, its TLS backend and a valid CA trust store must exist in that toolchain
 and on the handheld. There is no insecure TLS fallback. The isolated R36H build
 and automated device checks below succeeded. Installing over the working
-handheld application remains a separate, explicitly approved step.
+handheld application requires explicit approval; the personal Alpha installation
+record below documents the user's subsequent approval and completed update.
 
 ## Import, tuning and persistence
 
@@ -294,7 +295,8 @@ published source private.
   failed its success assertion. No DNS, network, clock or TLS-verification
   settings were changed. Desktop live success does not establish handheld
   live-download success.
-  The installed app, settings, projects and launchers remain unchanged.
+  These validation checks left the installed app untouched. The user subsequently
+  approved installation into personal Alpha, as recorded below.
 
 Changed files are confined to the optional Makefile integration, Settings row,
 app/audio/screen lifecycle hooks, the experimental module/network/bank/service
@@ -327,6 +329,27 @@ The harness is developer-only; production builds never include its fixture
 provider or diagnostics. The final adjusted harness also passes again on macOS
 using dummy drivers. The normal desktop executable and disabled web bundle
 were rebuilt from the reconciled application source.
+
+### Personal Alpha installation
+
+After explicit user approval, the tested binary was installed at
+`/roms/ports/choochootracker/choochootracker.aarch64`, reached by the regular
+ChooChooTracker launcher. Open Settings and look immediately above Quit for
+`I'm Feeling Lucky NEXT PLAY LOAD`. No separate test launcher is needed.
+
+`personal-build.json` records fork revision `1840eac`, application source
+`4aefc15`, the enabled compile flag, the binary hash above, and validation results.
+The previous executable and replaced documentation/metadata have checksum-verified
+rollback copies under `/roms/choochootracker-backups/pre-lucky-1840eac`.
+All **738 other existing files** were checked byte-for-byte unchanged, including
+settings, autosave, projects, samples, fonts, themes and controller mappings.
+The launcher script and its older-PortMaster compatibility fixes were retained.
+The installed executable's hash matches the tested ARM artifact and its runtime
+libraries resolve. The libxmp MIT notice is installed under `licenses/`.
+
+The handheld still could not resolve `modarchive.org` at installation time.
+The row is installed and available; fetching songs needs working device internet
+and DNS. USB SSH availability alone does not provide internet connectivity.
 
 ### Files in this change
 
