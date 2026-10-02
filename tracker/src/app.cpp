@@ -183,6 +183,8 @@ static int inputPlayback(int keys, int tapCount) {
     }
 
     chipnomadQueuePlaybackStop(chipnomadState);
+    waveformDisplayInvalidate();
+    waveformDisplayRefresh();
     LoopRange range = screenGetLoopRange(currentScreen);
 
     if (playbackLevel == ScreenPlaybackLevel::song) {
@@ -206,6 +208,8 @@ static int inputPlayback(int keys, int tapCount) {
     }
 
     chipnomadQueuePlaybackStop(chipnomadState);
+    waveformDisplayInvalidate();
+    waveformDisplayRefresh();
     LoopRange range = screenGetLoopRange(currentScreen);
 
     if (playbackLevel == ScreenPlaybackLevel::song) {
