@@ -1112,3 +1112,7 @@ and 24% for OTT, before the cost of the synths and shared effects. Sixteen activ
 Doubler, TAPESCAM or OTT instances exceeded real time. Audio-rate modulation adds
 further cost. Start with a few inserts, watch for audio overload, and bypass
 unused slots; the sixteen available positions are not a guaranteed CPU budget.
+
+The Insert page keeps the selected field's tip visible after button release;
+temporary notices can still take its place. The module chooser shows each
+module's effect type and source project alongside its name.

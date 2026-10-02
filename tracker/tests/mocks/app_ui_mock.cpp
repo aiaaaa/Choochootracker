@@ -1,3 +1,5 @@
+#include <cstdarg>
+#include <cstdio>
 // UI/audio boundaries for exercising the real app and Settings event handlers.
 #include "app_ui_mock.h"
 #include "audio_manager.h"
@@ -38,7 +40,13 @@ void screensInitAll(void) {
 }
 void screenSetup(const AppScreen* screen, int) { currentScreen = screen; }
 void screenDraw(void) {}
-void screenMessage(int, const char*, ...) {}
+static char activeMessage[42]{};
+void screenMessage(int, const char* format, ...) {
+  va_list args; va_start(args, format);
+  vsnprintf(activeMessage, sizeof(activeMessage), format, args);
+  va_end(args);
+}
+const char* screenGetActiveMessage(void) { return activeMessage; }
 void drawScreenMap(void) {}
 ScreenPlaybackLevel screenGetPlaybackLevel(const AppScreen*) { return ScreenPlaybackLevel::none; }
 LoopRange screenGetLoopRange(const AppScreen*) { return {}; }
