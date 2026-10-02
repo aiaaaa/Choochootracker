@@ -17,7 +17,7 @@ TEST_CASE("imports notes on a single channel onto one track, quantized to the ro
   smfTrackNoteOff(&track, 240, 0, 60, 0); // 480 PPQ / 4 rows-per-beat = 120 ticks/row -> 2 rows
   smfTrackEnd(&track, 0);
 
-  const char* path = "/tmp/test_import_midi_note.mid";
+  const char* path = "test_import_midi_note.mid";
   REQUIRE(smfWriteFile(path, 480, &track, 1) == 0);
   smfTrackFree(&track);
 
@@ -48,7 +48,7 @@ TEST_CASE("a retrigger on the same channel cuts the previous note without an exp
   smfTrackNoteOff(&track, 120, 0, 62, 0);
   smfTrackEnd(&track, 0);
 
-  const char* path = "/tmp/test_import_midi_retrigger.mid";
+  const char* path = "test_import_midi_retrigger.mid";
   REQUIRE(smfWriteFile(path, 480, &track, 1) == 0);
   smfTrackFree(&track);
 
@@ -70,7 +70,7 @@ TEST_CASE("a MIDI file with no notes is rejected") {
   smfTrackInit(&track);
   smfTrackEnd(&track, 0);
 
-  const char* path = "/tmp/test_import_midi_empty.mid";
+  const char* path = "test_import_midi_empty.mid";
   REQUIRE(smfWriteFile(path, 480, &track, 1) == 0);
   smfTrackFree(&track);
 

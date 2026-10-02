@@ -64,7 +64,8 @@ ChooChooTracker works best with a gamepad that has a D-pad, 2 analogue sticks an
 
 Mappings can be changed in **Settings > Key mapping**. On PortMaster, custom
 mappings are saved immediately and navigation remains available when returning
-to Settings.
+to Settings. Desktop layout defaults use QWERTZ only for QWERTZ regions;
+Polish keyboards keep the standard QWERTY defaults.
 
 Windows, web, and Android users can also use a game controller. On Android,
 touch controls appear automatically when no gamepad is connected: in portrait
@@ -1001,7 +1002,7 @@ Use **Save** before changing instrument types or loading another project.
 - **MIDI** opens the [MIDI](#14-midi) submenu: device selection and the MIDI In channel-to-instrument mapping.
 - **Synths** contains **AY Quality**, **Sample dithering**, and global **Braids BITS / DRFT / SIGN** settings.
 - **Mixer** contains **Mix volume** and the per-project `250-4000 Hz` **Tilt pivot** (default `1 kHz`) used by all Mixer Tilt controls.
-- **Graphics** contains **Load font** and **Edit color theme**. ChipNomad fonts and themes should work.
+- **Graphics** contains **Waveform FPS** (`1–60`, default `30`), the active renderer, **Load font** and **Edit color theme**. ChipNomad fonts and themes should work.
 - **Graphics → Track visuals** opens a table with one **Display** choice per track for the eight right-side mini readouts. **Detailed** is the default and keeps the instrument waveform, envelope overlay and AY noise texture together where applicable. There are no separate waveform, envelope or noise switches.
 - **Audio waveform** shows the track's summed audio after track level/tilt, before shared effects and master volume. This works across engines and chord voices, with a padded centre line and no envelope/noise decorations.
 - In **Track visuals**, tap **EDIT** to switch displays, or use **EDIT + direction**. **All audio** and **All detailed** switch every track at once. **Done** or **SHIFT + LEFT** saves these application preferences and returns to Graphics. They do not alter the song or audio output. Settings from the earlier per-layer version retain each track's mode; the removed layer switches are ignored.

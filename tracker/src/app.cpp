@@ -399,6 +399,7 @@ void appDraw(void) {
   scopeDisplayDraw();
   ScreenOverlayCoordinates overlay;
   pianoDisplayDraw();
+  waveformDisplayRefresh();
 
   // Tracks
   char digit[2] = "0";

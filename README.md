@@ -26,7 +26,7 @@
      CAHORS                                       MONTAUBAN
           >>>  8 TRACKS  / CHIPNOMAD-BASED  >>>
 
-.oO[ AY / BRAIDS / PLAITS / SAMPLES / WTBL / DRUMSYNTH / 303 ]Oo.
+.oO[ AY / BRAIDS / PLAITS / SAMPLES / SYNTHS / DRUMSYNTHS / 303 ]Oo.
 ````
 
 ## Screenshots
@@ -64,7 +64,7 @@ A native Windows build is available for development and desktop testing. It work
 
 You can also test it in your browser on https://choochootracker.vercel.app/ (use the keyboard or gamepad on a computer, use the on-screen gamepad on a mobile device). 
 
-Android version is available in "closed beta", contact me on Discord https://discord.gg/Ut9vM6zgKU to get access.
+Android on Play Store is available in "closed beta", contact me on Discord https://discord.gg/Ut9vM6zgKU to get access.
 
 Other platforms: the app is SDL2 based, it should compile anywhere.
 
@@ -74,7 +74,7 @@ Synthesis
 - Eight fixed monophonic tracks (with independent instruments)
 - AY Classic, AY Plus, and crunchy AY Sample playback (from Chipnomad)
 - All 47 Braids engines, 24 stock Plaits engines, and 24 additional Plaits-Alt engines
-- Clean mono or stereo PCM8/PCM16 sample playback (one-shot samples, like your Digitakt)
+- Clean mono or stereo PCM8/PCM16 sample playback (one-shot samples with autoslice mode)
 - Dual single cycle waveform oscillator: with mix & detune
 - Dual wavetable oscillator: bring your own Serum wavetables !
 - Achchid: acid engine (open303 based) that can take Braids as VCO
@@ -98,6 +98,10 @@ Articulations
 - Joystick modulation , that can be live recorded as trackFX 
 - Tracker tables (4 FX slots per table row), grooves, chains, and songs
 - Decoupled tables: tracker tables can be free running, or reset on phrase/chain.
+- Jazz mode: play with your computer keyboard (PC only)
+- Chord mode on every engine
+
+We have MIDI in/out: sequence or be sequenced. 
 
 ## One tracker, many engines
 
@@ -106,24 +110,13 @@ Instruments in Choochootracker work like "Machines" in the Elektron world.
 Each instrument has its sound engine, and can be mixed/matched at will: you can have an AY bass on one track, a Braids drum model on another, a Plaits chord engine or a Plaits-Alt texture on the next, and some repitched heehaa samples beside them.
 
 
-## Handheld workflow
-
-The main screens follow the `MSCPIT` layout:
-
-```text
-Rvrb    Proj           Groov    Modulations
-Mixer - Song - Chain - Phrase - Instrument - Table
-Dlay    Sett                    Pool         Wvtbl
-```
-So its kind of like LSDJ, but with a Mixer on the left.
-
 ## Try the alpha
 
-Download the PortMaster package and PDF manual from the [GitHub Releases page](https://github.com/paiheulevrai/Choochootracker/releases).
+Download the PortMaster/Android/Windows packages from the [GitHub Releases page](https://github.com/paiheulevrai/Choochootracker/releases).
 
 The current package targets ARM64 PortMaster devices and has been developed primarily for ArkOS on RG353V. Install `choochootracker.zip` through PortMaster, or extract it into the console's `ports` directory.
 
-This is an early test build. Save often and don't get too attached to your projects.
+This is an early build. Save often and don't get too attached to your projects.
 
 Find bugs or anything? Come discuss on Discord: https://discord.gg/Ut9vM6zgKU
 
@@ -131,16 +124,13 @@ Find bugs or anything? Come discuss on Discord: https://discord.gg/Ut9vM6zgKU
 
 - [User manual](docs/USER_MANUAL.md)
 - [User manual PDF](docs/ChooChooTracker-User-Manual.pdf)
-- [Development overview and roadmap](docs/dev_readme.md)
-- [Development notes](docs/development-notes.md)
-- [Feasibility study](docs/feasibility-2026-08-09.md)
-- [Fork maintenance guide](docs/fork-maintenance.md)
 
 ## Current limits
 
-- Everything is mostly working, you can make music.
-- there may still be some crashes and bugs
+- Everything is mostly working, you can make music. You can even make tracks.
+- there can still be some crashes and bugs
 - Visual identity is not final
+- Feature set isn't frozen
 - need to tweak the scaling of various controls (like linear vs expo, that kind of stuff)
 
 ## Why the train name?

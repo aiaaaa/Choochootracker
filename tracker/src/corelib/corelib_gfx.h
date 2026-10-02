@@ -144,7 +144,9 @@ void gfxReloadFont(void);
  */
 void gfxDrawHUD(void);
 void gfxSetButtonPressed(int buttonIndex, int pressed);
-void gfxHandleResize(void);
+void gfxHandleResize(int width, int height);
+void gfxHandleRenderReset(void);
+const char* gfxGetRendererType(void);
 // Physical drawable dimensions, for overlays whose hitboxes are outside the
 // tracker's fixed logical canvas.
 void gfxGetPhysicalSize(int* width, int* height);

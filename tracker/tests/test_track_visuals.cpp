@@ -50,6 +50,12 @@ bool blank(Bitmap* bitmap) {
 }
 }
 
+static Bitmap* refreshedBitmap(int track) {
+  waveformDisplayInvalidate();
+  waveformDisplayRefresh();
+  return waveformDisplayGetBitmap(track);
+}
+
 TEST_CASE_FIXTURE(VisualFixture, "Track display defaults to Detailed and round-trips each mode") {
   { std::ofstream f(settingsPath); f << "themeName: OldTheme\n"; }
   REQUIRE(settingsLoad() == 0);
@@ -85,15 +91,15 @@ TEST_CASE_FIXTURE(VisualFixture, "Earlier per-layer settings retain modes and di
   track.note.instrument = 0; track.note.pitchFinal = 48;
   chipnomadState->chips[7]->setRegister(7, 0x37);
   chipnomadState->chips[7]->setRegister(8, 15);
-  CHECK_FALSE(blank(waveformDisplayGetBitmap(7)));
-  CHECK_FALSE(blank(waveformDisplayGetBitmap(0))); // Audio's silent centre line remains visible.
+  CHECK_FALSE(blank(refreshedBitmap(7)));
+  CHECK_FALSE(blank(refreshedBitmap(0))); // Audio's silent centre line remains visible.
 }
 
 TEST_CASE_FIXTURE(VisualFixture, "One display choice switches each track and saves bulk choices") {
   currentScreen = &screenGraphicsSettings;
   screenGraphicsSettings.fullRedraw();
   REQUIRE(mockScreenData != nullptr);
-  mockScreenData->onEdit(0, 2, CellEditAction::tap);
+  mockScreenData->onEdit(0, 4, CellEditAction::tap);
   CHECK(currentScreen == &screenTrackVisuals);
   currentScreen = &screenTrackVisuals;
   screenTrackVisuals.setup(0);
@@ -129,12 +135,12 @@ TEST_CASE_FIXTURE(VisualFixture, "Detailed voice display includes waveform and e
   auto& voice = chipnomadState->voiceMonitors[0];
   voice.active = 1; voice.envelope = 1;
   std::fill_n(voice.samples, VOICE_MONITOR_SAMPLES, 0.25f);
-  Bitmap* bitmap = waveformDisplayGetBitmap(0);
+  Bitmap* bitmap = refreshedBitmap(0);
   REQUIRE(bitmap != nullptr);
   CHECK(bitmap->data[1] == 160); // Full envelope produces the top overlay.
   CHECK(std::count(bitmap->data, bitmap->data + bitmap->widthPixels * bitmap->heightPixels, 255) > 0);
   voice.active = 0;
-  CHECK(blank(waveformDisplayGetBitmap(0)));
+  CHECK(blank(refreshedBitmap(0)));
 }
 
 TEST_CASE_FIXTURE(VisualFixture, "AY Detailed display reads its own track and includes noise and envelope") {
@@ -144,18 +150,18 @@ TEST_CASE_FIXTURE(VisualFixture, "AY Detailed display reads its own track and in
   SoundChip* chip = chipnomadState->chips[5];
   REQUIRE(chip != nullptr);
   chip->setRegister(7, 0x3f); chip->setRegister(8, 15);
-  Bitmap* bitmap = waveformDisplayGetBitmap(5);
+  Bitmap* bitmap = refreshedBitmap(5);
   REQUIRE(bitmap != nullptr);
   CHECK(bitmap->data[0] == 255); // Track 6's own channel A, not chip 2/channel C.
   CHECK(bitmap->data[bitmap->widthPixels] == 0);
   chip->setRegister(7, 0x37); // Noise only.
-  CHECK_FALSE(blank(waveformDisplayGetBitmap(5)));
+  CHECK_FALSE(blank(refreshedBitmap(5)));
   CHECK(bitmap->data[bitmap->widthPixels] > 0); // Noise texture below the trace.
   chip->setRegister(7, 0x3e); chip->setRegister(8, 0x10); chip->setRegister(13, 0);
-  bitmap = waveformDisplayGetBitmap(5);
+  bitmap = refreshedBitmap(5);
   CHECK(std::count(bitmap->data, bitmap->data + bitmap->widthPixels * bitmap->heightPixels, 160) > 0);
   track.note.pitchFinal = EMPTY_VALUE_8;
-  CHECK(blank(waveformDisplayGetBitmap(5)));
+  CHECK(blank(refreshedBitmap(5)));
 }
 
 TEST_CASE_FIXTURE(VisualFixture, "Audio display uses summed snapshots independently of instrument graphics") {
@@ -165,7 +171,7 @@ TEST_CASE_FIXTURE(VisualFixture, "Audio display uses summed snapshots independen
   for (int i = 0; i < 128; ++i) monitor->add(0, i, 0.5f);
   monitor->finishChunk(mix, 64, 12000); monitor->publish(); monitorDisplayUpdate();
   appSettings.trackVisuals[0].mode = TrackVisualMode::audio;
-  Bitmap* bitmap = waveformDisplayGetBitmap(0);
+  Bitmap* bitmap = refreshedBitmap(0);
   REQUIRE(bitmap != nullptr);
   std::vector<uint8_t> before(bitmap->data, bitmap->data + bitmap->widthPixels * bitmap->heightPixels);
   chipnomadState->project.instruments[0].type = InstrumentType::AY1;
@@ -173,7 +179,7 @@ TEST_CASE_FIXTURE(VisualFixture, "Audio display uses summed snapshots independen
   track.note.instrument = 0; track.note.pitchFinal = 48;
   chipnomadState->chips[0]->setRegister(7, 0x37);
   chipnomadState->chips[0]->setRegister(8, 15);
-  bitmap = waveformDisplayGetBitmap(0);
+  bitmap = refreshedBitmap(0);
   CHECK(std::equal(before.begin(), before.end(), bitmap->data));
   CHECK_FALSE(blank(bitmap));
 }
