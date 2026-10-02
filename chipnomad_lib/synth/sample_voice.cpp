@@ -22,8 +22,11 @@ static void sampleStorePath(const char* path, InstrumentSample* sample) {
       storedPath = path + length + 1;
     }
   }
-  strncpy(sample->path, storedPath, sizeof(sample->path) - 1);
-  sample->path[sizeof(sample->path) - 1] = 0;
+  // Project reload can pass sample->path itself (or a suffix within it).
+  // memmove handles that overlap while retaining the existing path limit.
+  size_t storedLength = strnlen(storedPath, sizeof(sample->path) - 1);
+  memmove(sample->path, storedPath, storedLength);
+  memset(sample->path + storedLength, 0, sizeof(sample->path) - storedLength);
 }
 
 static float envelopeTime(uint8_t value) {

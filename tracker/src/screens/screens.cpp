@@ -1,3 +1,6 @@
+#ifdef CHOOCHOO_EXPERIMENTAL_MOD_LUCKY
+#include "experimental/mod_lucky/service.h"
+#endif
 #include "selection_popup.h"
 #include <stdarg.h>
 #include <string.h>
@@ -92,6 +95,9 @@ void drawScreenMap() {
 }
 
 void screenSetup(const AppScreen* screen, int input) {
+#ifdef CHOOCHOO_EXPERIMENTAL_MOD_LUCKY
+  if (currentScreen == &screenSettings && screen != &screenSettings) modLucky::service().leave();
+#endif
   touchScreenData = NULL;
   pendingScreen = screen;
   pendingScreenInput = input;

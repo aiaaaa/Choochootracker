@@ -1,3 +1,6 @@
+#ifdef CHOOCHOO_EXPERIMENTAL_MOD_LUCKY
+#include "experimental/mod_lucky/service.h"
+#endif
 #include <string.h>
 #include "corelib_gfx.h"
 #include "corelib_font.h"
@@ -48,6 +51,9 @@ static int motionLiveLatched;
 static int quickHelpSelectHeld;
 static int quickHelpSelectAlone;
 static int audioProjectDirty;
+#ifdef CHOOCHOO_EXPERIMENTAL_MOD_LUCKY
+void appModLuckyImported(void) { projectModified = 1; audioProjectDirty = 1; }
+#endif
 
 // Port indices aren't saved (see common.h's AppSettings comment): this
 // resolves the saved device name back to whatever live port currently has
@@ -184,6 +190,9 @@ static int inputPlayback(int keys, int tapCount) {
       return 0; // This screen doesn't support playback
     }
 
+#ifdef CHOOCHOO_EXPERIMENTAL_MOD_LUCKY
+    modLucky::service().stop(); // Also stop on an explicit start of an empty song.
+#endif
     chipnomadQueuePlaybackStop(chipnomadState);
     LoopRange range = screenGetLoopRange(currentScreen);
 
@@ -207,6 +216,9 @@ static int inputPlayback(int keys, int tapCount) {
       return 0; // This screen doesn't support playback
     }
 
+#ifdef CHOOCHOO_EXPERIMENTAL_MOD_LUCKY
+    modLucky::service().stop(); // Also stop on an explicit start of an empty song.
+#endif
     chipnomadQueuePlaybackStop(chipnomadState);
     LoopRange range = screenGetLoopRange(currentScreen);
 

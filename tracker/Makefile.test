@@ -93,6 +93,15 @@ MOCK_SOURCES = $(wildcard tests/mocks/*.cpp)
 # Combined common sources
 COMMON_SOURCES = $(CHIPNOMAD_LIB_SOURCES) $(TRACKER_SRC_SOURCES)
 
+include Makefile.mod-lucky
+ifeq ($(CHOOCHOO_EXPERIMENTAL_MOD_LUCKY),1)
+CFLAGS += $(MOD_LUCKY_CFLAGS) -DCHOOCHOO_MOD_LUCKY_TEST
+LDFLAGS += $(MOD_LUCKY_LIBS)
+COMMON_SOURCES += $(wildcard $(MOD_LUCKY_DIR)/*.cpp)
+endif
+
+$(eval $(call mod_lucky_config_rule,$(BUILD_DIR)))
+
 # All sources
 ALL_SOURCES = $(TEST_SOURCES) $(COMMON_SOURCES) $(MOCK_SOURCES)
 MEASURE_SOURCES = tests/render_engine_measurements.cpp $(filter-out src/copy_paste.cpp,$(COMMON_SOURCES)) $(MOCK_SOURCES)
@@ -108,7 +117,7 @@ BENCHMARK_OBJECTS := $(foreach source,$(BENCHMARK_SOURCES),$(call object_for,$(s
 DEPS := $(sort $(OBJECTS:.o=.d) $(MEASURE_OBJECTS:.o=.d) $(BENCHMARK_OBJECTS:.o=.d))
 
 define compile_source
-$(call object_for,$(1)): $(1) Makefile.test
+$(call object_for,$(1)): $(1) Makefile.test Makefile.mod-lucky $(BUILD_DIR)/mod-lucky-build-config
 	@mkdir -p $$(dir $$@)
 	@$(CXX) $(CFLAGS) $(INCLUDES) -MMD -MP -c $$< -o $$@
 endef
