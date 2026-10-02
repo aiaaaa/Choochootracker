@@ -22,9 +22,7 @@ static void drawStatic() {
   gfxSetFgColor(appSettings.colorScheme.textTitles);
   gfxPrintf(0, 0, "TRACK %d - INSERT FX", *pSongTrack + 1);
 }
-static void cursor(int col, int row) {
-  gfxCursor(row % 5 == 0 ? (col ? 27 : 4) : col * 17 + 12, y(row),
-            row % 5 == 0 ? (col ? 3 : 11) : 2);
+static void hint(int col, int row) {
   auto& c = config(row);
   int p = parameter(col, row);
   if (row % 5) {
@@ -35,6 +33,11 @@ static void cursor(int col, int row) {
   } else
     screenMessage(0, "TF%d %s", row / 5 + 1,
                   col ? "Bypass retains settings" : "Select insert module");
+}
+static void cursor(int col, int row) {
+  gfxCursor(row % 5 == 0 ? (col ? 27 : 4) : col * 17 + 12, y(row),
+            row % 5 == 0 ? (col ? 3 : 11) : 2);
+  hint(col, row);
 }
 static void field(int col, int row, CellState) {
   auto& c = config(row);
@@ -128,13 +131,21 @@ static int onInput(int down, int keys, int taps) {
       return 1;
     }
     if (input == PopupEditInput::open) {
+      static const char* labels[] = {
+          "OFF",
+          "Compressor - Dynamics - Schwung Work",
+          "Distortion - Drive - Airwindows",
+          "StereoDoubler - Stereo - Airwindows",
+          "TAPESCAM - Tape - Schwung TAPESCAM",
+          "OTT - Multiband - Rui-727"};
+      static_assert(sizeof(labels) / sizeof(labels[0]) == insertModuleCount, "Module credits");
       static SelectionItem items[insertModuleCount];
       for (int i = 0; i < insertModuleCount; ++i)
-        items[i] = {insertDescriptor(i).name, i, nullptr, 0};
+        items[i] = {labels[i], i, nullptr, 0};
       popupSlot = data.cursorRow / 5;
       screenMessage(0, "");
       selectionPopupSetup("INSERT MODULE", items, insertModuleCount, config(data.cursorRow).module,
-                          selected, cancelled);
+                          selected, cancelled, true);
       screenSetup(&screenSelectionPopup, 0);
       return 1;
     }
@@ -161,6 +172,10 @@ static void setup(int) {
   moduleButtonDown = 0;
   if (*pSongTrack >= chipnomadState->project.tracksCount) *pSongTrack = 0;
 }
-static void draw() {}
+static void draw() {
+  // Releasing all buttons clears untimed app messages. Restore the selected
+  // field's context here, leaving nonempty notices alone until they expire.
+  if (!screenGetActiveMessage()[0]) hint(data.cursorCol, data.cursorRow);
+}
 static ScreenPlaybackLevel level() { return ScreenPlaybackLevel::phrase; }
 const AppScreen screenInsertFX = {init, setup, fullRedraw, draw, onInput, level};

@@ -1,3 +1,4 @@
+#include "selection_popup.h"
 #include <stdarg.h>
 #include <string.h>
 #include "screens.h"
@@ -19,6 +20,7 @@ static AppScreen const* pendingScreen;
 static int pendingScreenInput;
 
 void drawScreenMap() {
+  if (currentScreen == &screenSelectionPopup && selectionPopupIsFullWidth()) return;
   const static int smY = 15;
 
   const ColorScheme cs = appSettings.colorScheme;
