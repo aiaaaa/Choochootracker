@@ -23,12 +23,14 @@ CFLAGS = $(COMMON_CFLAGS) $(INCLUDES) $(SDL_CFLAGS) -DPORTMASTER_BUILD -D__LINUX
 TARGET = $(BUILD)/choochootracker.aarch64
 OUTPUT = -o $(TARGET)
 
+$(eval $(call mod_lucky_config_rule,$(BUILD)))
+
 object_for = $(BUILD)/obj/$(subst ../,up/,$(basename $(1))).o
 OBJECTS := $(foreach source,$(SOURCES),$(call object_for,$(source)))
 DEPS := $(OBJECTS:.o=.d)
 
 define compile_source
-$(call object_for,$(1)): $(1) Makefile.portmaster Makefile.common
+$(call object_for,$(1)): $(1) Makefile.portmaster Makefile.common Makefile.mod-lucky $(BUILD)/mod-lucky-build-config
 	@mkdir -p $$(dir $$@)
 	@$(CXX) $(CFLAGS) -MMD -MP -c $$< -o $$@
 endef
@@ -45,7 +47,7 @@ PortMaster: $(BUILD)/choochootracker.aarch64
 
 $(BUILD)/choochootracker.aarch64: $(OBJECTS)
 	mkdir -p $(BUILD)
-	$(CXX) $(COMMON_CFLAGS) $(OBJECTS) $(SDL_LIBS) -lasound -pthread -lm $(OUTPUT)
+	$(CXX) $(COMMON_CFLAGS) $(OBJECTS) $(SDL_LIBS) $(MOD_LUCKY_LIBS) -lasound -pthread -lm $(OUTPUT)
 	$(STRIP) $(BUILD)/choochootracker.aarch64
 
 .PHONY: PortMaster-deploy
@@ -58,6 +60,9 @@ PortMaster-deploy: PortMaster
 	cp ../docs/USER_MANUAL.md $(PORT_DIR)/
 	cp ../LICENSE $(PORT_DIR)/licenses/LICENSE.choochootracker.md
 	cp packaging/portmaster/license/* $(PORT_DIR)/licenses/
+ifeq ($(CHOOCHOO_EXPERIMENTAL_MOD_LUCKY),1)
+	cp src/experimental/mod_lucky/notices/* $(PORT_DIR)/licenses/
+endif
 	cp packaging/portmaster/ChooChooTracker.sh $(PACKAGE_ROOT)/
 	cp packaging/portmaster/port.json packaging/portmaster/README.md packaging/portmaster/gameinfo.xml packaging/portmaster/cover.png packaging/portmaster/screenshot.png $(PORT_DIR)/
 	chmod +x $(PACKAGE_ROOT)/ChooChooTracker.sh $(PORT_DIR)/choochootracker.aarch64

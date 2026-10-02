@@ -1,3 +1,6 @@
+#ifdef CHOOCHOO_EXPERIMENTAL_MOD_LUCKY
+#include "experimental/mod_lucky/service.h"
+#endif
 #include <stdio.h>
 #include <atomic>
 #include <chrono>
@@ -127,6 +130,12 @@ static void audioCallback(int16_t* buffer, int stereoSamples) {
   renderPreview(samplePreviewBuffer, stereoSamples);
   for (int i = 0; i < stereoSamples * 2; ++i) floatBuffer[i] += samplePreviewBuffer[i];
 
+#ifdef CHOOCHOO_EXPERIMENTAL_MOD_LUCKY
+  if (chipnomadGetPlaybackStatus(chipnomadState)->isPlaying)
+    modLucky::service().stopFromAudio();
+  // Bypasses song track/master effects; applies only the existing master gain.
+  modLucky::service().audio(floatBuffer, stereoSamples, chipnomadState->mixVolume);
+#endif
   // Convert float to int16_t
   for (int i = 0; i < stereoSamples * 2; i++) {
     int sample = floatBuffer[i] * 32767;
@@ -148,6 +157,9 @@ static void audioCallback(int16_t* buffer, int stereoSamples) {
 static int start(int sampleRate, int bufferSize) {
   if (sampleRate <= 0 || bufferSize <= 0 || bufferSize > INT_MAX / 2) return 1;
 
+#ifdef CHOOCHOO_EXPERIMENTAL_MOD_LUCKY
+  (void)modLucky::service(); // create the worker off the audio thread
+#endif
   aSampleRate = sampleRate;
   aBufferSize = bufferSize;
   cpuLoadPercent.store(0, std::memory_order_relaxed);
@@ -201,6 +213,9 @@ static void resume(void) {
 
 static void replaceProject(Project* replacement) {
   if (!replacement || !chipnomadState) return;
+#ifdef CHOOCHOO_EXPERIMENTAL_MOD_LUCKY
+  modLucky::service().projectChanged();
+#endif
   pause();
   chipnomadDiscardQueuedProject(chipnomadState);
   projectFree(&chipnomadState->project);
@@ -219,6 +234,9 @@ static void reinitializeChips(void) {
 
 static void stop() {
   audioCleanup();
+#ifdef CHOOCHOO_EXPERIMENTAL_MOD_LUCKY
+  modLucky::service().shutdown();
+#endif
   free(floatBuffer);
   free(samplePreviewBuffer);
   floatBuffer = NULL;

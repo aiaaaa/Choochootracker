@@ -11,6 +11,9 @@ extern "C" {
 
 void appSetup(void);
 void appCleanup(void);
+#ifdef CHOOCHOO_EXPERIMENTAL_MOD_LUCKY
+void appModLuckyImported(void);
+#endif
 void appDraw(void);
 void appSetStickLiveMode(StickLiveMode mode);
 void appOnEvent(MainLoopEventData eventData);

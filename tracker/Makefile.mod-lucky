@@ -1,0 +1,20 @@
+# Personal-build opt-in. Disabled builds do not discover or link these dependencies.
+CHOOCHOO_EXPERIMENTAL_MOD_LUCKY ?= 0
+MOD_LUCKY_PREFIX ?= ../.tmp/mod-lucky/prefix
+ifeq ($(CHOOCHOO_EXPERIMENTAL_MOD_LUCKY),1)
+MOD_LUCKY_CFLAGS = -DCHOOCHOO_EXPERIMENTAL_MOD_LUCKY -I$(MOD_LUCKY_PREFIX)/include
+MOD_LUCKY_LIBS = $(MOD_LUCKY_PREFIX)/lib/libxmp-lite.a -lcurl -pthread
+MOD_LUCKY_DIR = src/experimental/mod_lucky
+endif
+
+# Prevent incremental object builds from retaining the opposite feature setting.
+# Expanded by object-based targets after their build directory is known.
+define mod_lucky_config_rule
+.PHONY: mod-lucky-config-force
+mod-lucky-config-force:
+$(1)/mod-lucky-build-config: mod-lucky-config-force
+	@mkdir -p $$(dir $$@)
+	@printf '%s\n' '$(CHOOCHOO_EXPERIMENTAL_MOD_LUCKY):$(MOD_LUCKY_PREFIX)' > $$@.tmp
+	@cmp -s $$@.tmp $$@ || cp $$@.tmp $$@
+	@rm -f $$@.tmp
+endef

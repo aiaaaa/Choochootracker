@@ -247,3 +247,11 @@ make -f Makefile.test -j4
 If MSYS2 reports exit code 127 after `Built: build/tests/run_tests.exe`, run
 `build/tests/run_tests.exe` directly; the executable is the authoritative test
 result in that environment.
+
+## Optional Mod Lucky personal build
+
+`CHOOCHOO_EXPERIMENTAL_MOD_LUCKY` defaults to `0`. An opt-in native build adds
+one Settings row for preparing/playing a random module and importing its PCM
+bank. Normal builds have no dependency on libxmp or libcurl. See
+[the experiment's build and validation notes](mod-lucky.md) for the pinned
+backend, exact macOS commands, ARM prerequisites and test targets.

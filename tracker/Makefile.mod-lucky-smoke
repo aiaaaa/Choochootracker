@@ -1,0 +1,7 @@
+# Developer-only native SDL integration harness. Run with SDL dummy drivers.
+CHOOCHOO_EXPERIMENTAL_MOD_LUCKY = 1
+include Makefile.desktop
+SOURCES := $(filter-out platforms/shared/main.cpp,$(SOURCES)) tests/mod_lucky_desktop.cpp
+INCLUDES += -Itests -DCHOOCHOO_MOD_LUCKY_TEST
+BUILD_BASE = build/mod-lucky-smoke
+OUTPUT = -o $(BUILD)/choochootracker
