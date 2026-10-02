@@ -1,4 +1,5 @@
 #include "screens.h"
+#include "waveform_display.h"
 #include "common.h"
 #include "corelib_gfx.h"
 
@@ -57,6 +58,7 @@ static int onEdit(int col, int row, CellEditAction action) {
     for (auto& visual : appSettings.trackVisuals) {
       visual.mode = col ? TrackVisualMode::audio : TrackVisualMode::detailed;
     }
+    waveformDisplayInvalidate();
     fullRedraw();
     return 1;
   }
@@ -65,6 +67,7 @@ static int onEdit(int col, int row, CellEditAction action) {
   if (action == CellEditAction::tap || action == CellEditAction::doubleTap) value ^= 1;
   else if (!edit8noLast(action, &value, 1, 0, 1)) return 0;
   visual.mode = (TrackVisualMode)value;
+  waveformDisplayInvalidate();
   return 1;
 }
 static ScreenData screen = {

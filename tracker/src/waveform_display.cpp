@@ -17,6 +17,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <functional>
+#include <chrono>
 
 #define ENVELOPE_DIM_BRIGHTNESS 160
 
@@ -32,6 +33,8 @@ static int noiseAnimIdx = 0;
 static float displayedVoiceSamples[PROJECT_MAX_TRACKS][VOICE_MONITOR_SAMPLES];
 static float displayedVoiceEnvelopes[PROJECT_MAX_TRACKS];
 static uint8_t displayedVoiceActive[PROJECT_MAX_TRACKS];
+static std::chrono::steady_clock::time_point lastWaveformRefresh;
+static float voiceBlend = 0.3f;
 
 // ============================================================================
 // Playback wavevorm display
@@ -52,6 +55,7 @@ void waveformDisplayInit(void) {
   memset(displayedVoiceSamples, 0, sizeof(displayedVoiceSamples));
   memset(displayedVoiceEnvelopes, 0, sizeof(displayedVoiceEnvelopes));
   memset(displayedVoiceActive, 0, sizeof(displayedVoiceActive));
+  lastWaveformRefresh = std::chrono::steady_clock::time_point();
 
   for (int i = 0; i < 512; i++) {
     noisePattern[i] = rand() & 1;
@@ -148,13 +152,13 @@ static Bitmap* drawVoiceWaveform(int trackIdx) {
   VoiceMonitor* monitor = &chipnomadState->voiceMonitors[trackIdx];
   if (!monitor->active) {
     displayedVoiceActive[trackIdx] = 0;
-    return emptyBitmap;
+    Bitmap* bitmap = waveformBitmaps[trackIdx];
+    memset(bitmap->data, 0, bitmap->widthPixels * bitmap->heightPixels);
+    return bitmap;
   }
 
-  // This runs once per rendered UI frame.  The first monitor frame is copied
-  // directly; following callback snapshots glide into place in roughly 4 UI
-  // frames (about 67 ms at 60 Hz).
-  const float blend = 0.3f;
+  // Convert the original 60 Hz smoothing to the selected refresh cadence.
+  const float blend = voiceBlend;
   if (!displayedVoiceActive[trackIdx]) {
     memcpy(displayedVoiceSamples[trackIdx], monitor->samples,
            sizeof(displayedVoiceSamples[trackIdx]));
@@ -216,7 +220,7 @@ void renderTrackAudioWaveform(Bitmap* bitmap, const float* samples, int count) {
   }
 }
 
-Bitmap* waveformDisplayGetBitmap(int trackIdx) {
+static Bitmap* renderWaveform(int trackIdx) {
   if (!chipnomadState || trackIdx < 0 || trackIdx >= chipnomadState->project.tracksCount) return nullptr;
   if (charW != gfxGetCharWidth() || charH != gfxGetCharHeight() || !emptyBitmap)
     waveformDisplayInit();
@@ -227,14 +231,16 @@ Bitmap* waveformDisplayGetBitmap(int trackIdx) {
     return waveformBitmaps[trackIdx];
   }
   const PlaybackTrackState* track = &chipnomadGetPlaybackStatus(chipnomadState)->tracks[trackIdx];
-  if (track->note.instrument == EMPTY_VALUE_8) return emptyBitmap;
+  if (track->note.instrument == EMPTY_VALUE_8) { gfxBitmapClear(waveformBitmaps[trackIdx]); return waveformBitmaps[trackIdx]; }
   InstrumentType type = chipnomadState->project.instruments[track->note.instrument].type;
   if (type != InstrumentType::AY1 && type != InstrumentType::AY2 && type != InstrumentType::AYSample)
     return drawVoiceWaveform(trackIdx);
 
   // Check if track is playing
   if (track->note.pitchFinal == EMPTY_VALUE_8) {
-    return emptyBitmap;
+    Bitmap* bitmap = waveformBitmaps[trackIdx];
+    memset(bitmap->data, 0, bitmap->widthPixels * bitmap->heightPixels);
+    return bitmap;
   }
 
   // Current projects use one AY chip per track, with tone on channel A.
@@ -312,6 +318,36 @@ Bitmap* waveformDisplayGetBitmap(int trackIdx) {
   }
 
   return bitmap;
+}
+
+void waveformDisplayInvalidate(void) {
+  lastWaveformRefresh = std::chrono::steady_clock::time_point();
+}
+
+void waveformDisplayRefresh(void) {
+  if (!chipnomadState) return;
+
+  const auto now = std::chrono::steady_clock::now();
+  const int refreshHz = appSettings.waveformRefreshHz < 1 ? 1 :
+    (appSettings.waveformRefreshHz > 60 ? 60 : appSettings.waveformRefreshHz);
+  float elapsedSeconds = lastWaveformRefresh == std::chrono::steady_clock::time_point() ?
+    1.0f / refreshHz : std::chrono::duration<float>(now - lastWaveformRefresh).count();
+  // A note can change on every tracker tick.  It must not bypass the selected
+  // waveform cadence, otherwise low settings still redraw at the UI rate.
+  if (lastWaveformRefresh != std::chrono::steady_clock::time_point() &&
+      elapsedSeconds < 1.0f / refreshHz) return;
+
+  voiceBlend = 1.0f - powf(0.7f, elapsedSeconds * 60.0f);
+  if (voiceBlend > 1.0f) voiceBlend = 1.0f;
+  for (int i = 0; i < chipnomadState->project.tracksCount; ++i) {
+    renderWaveform(i);
+  }
+  lastWaveformRefresh = now;
+}
+
+Bitmap* waveformDisplayGetBitmap(int trackIdx) {
+  if (trackIdx < 0 || trackIdx >= PROJECT_MAX_TRACKS) return emptyBitmap;
+  return waveformBitmaps[trackIdx];
 }
 
 // ============================================================================

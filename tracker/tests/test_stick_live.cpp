@@ -360,7 +360,7 @@ TEST_CASE_FIXTURE(StickLiveFixture, "screenMidi shows device rows and links to c
   screen->drawCursor(0, 0);
   CHECK(mockCursorX == 23);
   CHECK(mockCursorY == 2);
-  CHECK(mockCursorWidth == 3); // Upstream now fits the cursor to the OFF label.
+  CHECK(mockCursorWidth == 3); // "OFF"
   CHECK(screen->onEdit(0, 0, CellEditAction::increase) == 1); // handled, wraps straight back to OFF (no ports)
   CHECK(appSettings.midiInputDevice == -1);
 
@@ -464,13 +464,13 @@ TEST_CASE_FIXTURE(StickLiveFixture, "Persistent waveform is opt-in and its Setti
   REQUIRE(mockScreenData != nullptr);
   auto* screen = mockScreenData;
   int modified = projectModified;
-  screen->drawField(0, 3, CellState::focus);
-  CHECK(std::string(mockGfxCells[5] + 23, 3) == "OFF");
-  REQUIRE(screen->onEdit(0, 3, CellEditAction::tap) == 1);
+  screen->drawField(0, 5, CellState::focus);
+  CHECK(std::string(mockGfxCells[7] + 23, 3) == "OFF");
+  REQUIRE(screen->onEdit(0, 5, CellEditAction::tap) == 1);
   CHECK(appSettings.persistentWaveform == 1);
   REQUIRE(settingsLoad() == 0);
   CHECK(appSettings.persistentWaveform == 1);
-  REQUIRE(screen->onEdit(0, 3, CellEditAction::tap) == 1);
+  REQUIRE(screen->onEdit(0, 5, CellEditAction::tap) == 1);
   REQUIRE(settingsLoad() == 0);
   CHECK(appSettings.persistentWaveform == 0);
   CHECK(projectModified == modified);
@@ -482,11 +482,11 @@ TEST_CASE_FIXTURE(StickLiveFixture, "Personal visual settings coexist and surviv
   screenGraphicsSettings.fullRedraw();
   REQUIRE(mockScreenData != nullptr);
   auto* settings = mockScreenData;
-  REQUIRE(settings->onEdit(0, 3, CellEditAction::tap) == 1);
+  REQUIRE(settings->onEdit(0, 5, CellEditAction::tap) == 1);
   REQUIRE(settingsLoad() == 0);
   CHECK(appSettings.persistentWaveform == 1);
   CHECK(appSettings.trackVisuals[0].mode == TrackVisualMode::audio);
-  settings->onEdit(0, 2, CellEditAction::tap);
+  settings->onEdit(0, 4, CellEditAction::tap);
   CHECK(currentScreen == &screenTrackVisuals);
   CHECK_FALSE(mockQuitTriggered);
   appSettings.trackVisuals[1].mode = TrackVisualMode::audio;

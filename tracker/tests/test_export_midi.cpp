@@ -31,7 +31,7 @@ TEST_CASE("exports a note and its note-off, quantized to the row grid") {
   setNote(&p, 0, 0, 0, 0, 0, 0, 15);
   p.phrases[0].rows[2].note = NOTE_OFF;
 
-  const char* path = "/tmp/test_export_midi_note.mid";
+  const char* path = "test_export_midi_note.mid";
   REQUIRE(projectExportMidi(&p, path) == 0);
 
   SmfReadResult result;
@@ -58,7 +58,7 @@ TEST_CASE("a chain transpose shifts the exported MIDI note") {
   setNote(&p, 0, 0, 0, 0, 0, 0, 15);
   p.chains[0].rows[0].transpose = 5; // +5 semitones
 
-  const char* path = "/tmp/test_export_midi_transpose.mid";
+  const char* path = "test_export_midi_transpose.mid";
   REQUIRE(projectExportMidi(&p, path) == 0);
 
   SmfReadResult result;
@@ -74,7 +74,7 @@ TEST_CASE("an empty song refuses to export") {
   Project p;
   projectInitAY(&p);
 
-  CHECK(projectExportMidi(&p, "/tmp/test_export_midi_empty.mid") != 0);
+  CHECK(projectExportMidi(&p, "test_export_midi_empty.mid") != 0);
 }
 
 TEST_CASE("a chain ending early advances to the next song row immediately, not after a full 256-row block") {
@@ -88,7 +88,7 @@ TEST_CASE("a chain ending early advances to the next song row immediately, not a
   setNote(&p, 0, 0, 0, 0, 0, 0, 15);
   setNote(&p, 0, 1, 0, 0, 1, 0, 15); // second song row, distinct note
 
-  const char* path = "/tmp/test_export_midi_early_chain_end.mid";
+  const char* path = "test_export_midi_early_chain_end.mid";
   REQUIRE(projectExportMidi(&p, path) == 0);
 
   SmfReadResult result;
