@@ -205,24 +205,24 @@ TEST_CASE_FIXTURE(ProjectFixture, "projectInit tables empty") {
 }
 
 TEST_CASE("modulation destination limits match every engine's routing") {
-  CHECK(instrumentModDestinationMax(InstrumentType::AY1) == 22);
-  CHECK(instrumentModDestinationMax(InstrumentType::AY2) == 28);
-  CHECK(instrumentModDestinationMax(InstrumentType::AYSample) == 24);
-  CHECK(instrumentModDestinationMax(InstrumentType::Braids) == 31);
-  CHECK(instrumentModDestinationMax(InstrumentType::Sample) == 33);
-  CHECK(instrumentModDestinationMax(InstrumentType::SCWF) == 31);
-  CHECK(instrumentModDestinationMax(InstrumentType::BYOWTBL) == 33);
-  CHECK(instrumentModDestinationMax(InstrumentType::Plaits) == 33);
-  CHECK(instrumentModDestinationMax(InstrumentType::PlaitsAlt) == 33);
-  CHECK(instrumentModDestinationMax(InstrumentType::AChChid) == 27);
-  CHECK(instrumentModDestinationMax(InstrumentType::DrumSynth) == 28);
+  CHECK(instrumentModDestinationMax(InstrumentType::AY1) == 49);
+  CHECK(instrumentModDestinationMax(InstrumentType::AY2) == 55);
+  CHECK(instrumentModDestinationMax(InstrumentType::AYSample) == 51);
+  CHECK(instrumentModDestinationMax(InstrumentType::Braids) == 51);
+  CHECK(instrumentModDestinationMax(InstrumentType::Sample) == 53);
+  CHECK(instrumentModDestinationMax(InstrumentType::SCWF) == 51);
+  CHECK(instrumentModDestinationMax(InstrumentType::BYOWTBL) == 53);
+  CHECK(instrumentModDestinationMax(InstrumentType::Plaits) == 53);
+  CHECK(instrumentModDestinationMax(InstrumentType::PlaitsAlt) == 53);
+  CHECK(instrumentModDestinationMax(InstrumentType::AChChid) == 54);
+  CHECK(instrumentModDestinationMax(InstrumentType::DrumSynth) == 55);
 }
 
 TEST_CASE("voice-post modulation destinations keep their labels") {
   static const char* labels[] = {"ADSR A", "ADSR D", "ADSR S", "ADSR R", "ADSR Shape", "Trig D", "Trig C",
                                  "M1 P5", "M2 P5", "M3 P5", "M4 P5"};
   int firstGeneric = getInstrumentFunctions(InstrumentType::Plaits).modDestinationsCount + 1;
-  for (int i = 0; i < genericModTotalCount - genericModEnvelopeAttack; ++i)
+  for (int i = 0; i < genericModFirstInsert - genericModEnvelopeAttack; ++i)
     CHECK(std::strcmp(instrumentModDestinationName(InstrumentType::Plaits,
       firstGeneric + genericModEnvelopeAttack + i), labels[i]) == 0);
 }
