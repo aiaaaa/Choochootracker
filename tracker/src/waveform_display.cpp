@@ -1,6 +1,4 @@
 #include "waveform_display.h"
-#include "monitor_display.h"
-#include "audio_monitor.h"
 #include <algorithm>
 #include <cmath>
 #include "corelib_gfx.h"
@@ -13,10 +11,13 @@
 #include "synth/mme_voice.h"
 #include "synth/sintered_voice.h"
 #include "common.h"
+#include "monitor_display.h"
+#include "audio_monitor.h"
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
 #include <functional>
+#include <chrono>
 
 #define ENVELOPE_DIM_BRIGHTNESS 160
 
@@ -32,6 +33,8 @@ static int noiseAnimIdx = 0;
 static float displayedVoiceSamples[PROJECT_MAX_TRACKS][VOICE_MONITOR_SAMPLES];
 static float displayedVoiceEnvelopes[PROJECT_MAX_TRACKS];
 static uint8_t displayedVoiceActive[PROJECT_MAX_TRACKS];
+static std::chrono::steady_clock::time_point lastWaveformRefresh;
+static float voiceBlend = 0.3f;
 
 // ============================================================================
 // Playback wavevorm display
@@ -42,16 +45,15 @@ void waveformDisplayInit(void) {
   charW = gfxGetCharWidth();
   charH = gfxGetCharHeight();
 
-  if (emptyBitmap) gfxBitmapFree(emptyBitmap);
   emptyBitmap = gfxBitmapCreate(1, 1);
 
   for (int i = 0; i < PROJECT_MAX_TRACKS; i++) {
-    if (waveformBitmaps[i]) gfxBitmapFree(waveformBitmaps[i]);
     waveformBitmaps[i] = gfxBitmapCreate(1, 1);
   }
   memset(displayedVoiceSamples, 0, sizeof(displayedVoiceSamples));
   memset(displayedVoiceEnvelopes, 0, sizeof(displayedVoiceEnvelopes));
   memset(displayedVoiceActive, 0, sizeof(displayedVoiceActive));
+  lastWaveformRefresh = std::chrono::steady_clock::time_point();
 
   for (int i = 0; i < 512; i++) {
     noisePattern[i] = rand() & 1;
@@ -95,17 +97,19 @@ static void drawAYWaveformSlice(Bitmap* bitmap, int x, int amplitude, int toneHi
     }
   } else {
     bitmap->data[lowY * charW + x] = 255;
-  }
 
-  if (hasEnvelope && !toneHigh) {
-    bitmap->data[y * charW + x] = ENVELOPE_DIM_BRIGHTNESS;
-    if (prevEnvAmplitude >= 0)
-      drawVerticalLine(bitmap, x, y, charH - 1 - prevEnvAmplitude, ENVELOPE_DIM_BRIGHTNESS);
-  }
+    if (hasEnvelope) {
+      bitmap->data[y * charW + x] = ENVELOPE_DIM_BRIGHTNESS;
+      if (prevEnvAmplitude >= 0) {
+        int prevY = charH - 1 - prevEnvAmplitude;
+        drawVerticalLine(bitmap, x, y, prevY, ENVELOPE_DIM_BRIGHTNESS);
+      }
+    }
 
-  // Keep the legacy tone edge above the dim envelope when both are enabled.
-  if (!toneHigh && prevToneHigh && prevAmplitude >= 0) {
-    drawVerticalLine(bitmap, x, lowY, charH - 1 - prevAmplitude, 255);
+    if (prevToneHigh && prevAmplitude >= 0) {
+      int prevY = charH - 1 - prevAmplitude;
+      drawVerticalLine(bitmap, x, lowY, prevY, 255);
+    }
   }
 
   if (hasNoise && toneHigh && amplitude > 0) {
@@ -148,13 +152,13 @@ static Bitmap* drawVoiceWaveform(int trackIdx) {
   VoiceMonitor* monitor = &chipnomadState->voiceMonitors[trackIdx];
   if (!monitor->active) {
     displayedVoiceActive[trackIdx] = 0;
-    return emptyBitmap;
+    Bitmap* bitmap = waveformBitmaps[trackIdx];
+    memset(bitmap->data, 0, bitmap->widthPixels * bitmap->heightPixels);
+    return bitmap;
   }
 
-  // This runs once per rendered UI frame.  The first monitor frame is copied
-  // directly; following callback snapshots glide into place in roughly 4 UI
-  // frames (about 67 ms at 60 Hz).
-  const float blend = 0.3f;
+  // Convert the original 60 Hz smoothing to the selected refresh cadence.
+  const float blend = voiceBlend;
   if (!displayedVoiceActive[trackIdx]) {
     memcpy(displayedVoiceSamples[trackIdx], monitor->samples,
            sizeof(displayedVoiceSamples[trackIdx]));
@@ -183,66 +187,37 @@ static Bitmap* drawVoiceWaveform(int trackIdx) {
   }
 
   int envelopeY = charH - 1 - (int)(displayedVoiceEnvelopes[trackIdx] * (charH - 1));
-  envelopeY = std::max(0, std::min(charH - 1, envelopeY));
+  if (envelopeY < 0) envelopeY = 0;
   for (int x = 0; x < charW; ++x) bitmap->data[envelopeY * charW + x] = ENVELOPE_DIM_BRIGHTNESS;
   return bitmap;
 }
 
-void renderTrackAudioWaveform(Bitmap* bitmap, const float* samples, int count) {
-  if (!bitmap) return;
-  gfxBitmapClear(bitmap);
-  if (!samples || count <= 0) return;
-  const int w = bitmap->widthPixels, h = bitmap->heightPixels;
-  if (w < 3 || h < 5) return;
-  const int centre = (h - 1) / 2, radius = (h - 4) / 2;
-  int previous = centre;
-  for (int x = 1; x < w - 1; ++x) {
-    int start = (x - 1) * count / (w - 2);
-    int end = std::max(start + 1, x * count / (w - 2));
-    float low = 1, high = -1;
-    for (int i = start; i < end && i < count; ++i) {
-      float value = std::isfinite(samples[i]) ? samples[i] : 0;
-      value = std::max(-1.0f, std::min(1.0f, value));
-      low = std::min(low, value);
-      high = std::max(high, value);
-    }
-    int upper = centre - (int)lroundf(high * radius);
-    int lower = centre - (int)lroundf(low * radius);
-    int middle = (upper + lower) / 2;
-    if (x > 1) { upper = std::min(upper, previous); lower = std::max(lower, previous); }
-    const uint8_t brightness = low == 0 && high == 0 ? 64 : 255;
-    for (int y = upper; y <= lower; ++y) bitmap->data[y * w + x] = brightness;
-    previous = middle;
-  }
-}
-
-Bitmap* waveformDisplayGetBitmap(int trackIdx) {
-  if (!chipnomadState || trackIdx < 0 || trackIdx >= chipnomadState->project.tracksCount) return nullptr;
-  if (charW != gfxGetCharWidth() || charH != gfxGetCharHeight() || !emptyBitmap)
-    waveformDisplayInit();
-  if (!waveformBitmaps[trackIdx]) return nullptr;
-  const auto& visuals = appSettings.trackVisuals[trackIdx];
-  if (visuals.mode == TrackVisualMode::audio) {
-    renderTrackAudioWaveform(waveformBitmaps[trackIdx], monitorDisplayTrackSamples(trackIdx), AUDIO_MONITOR_SAMPLES);
-    return waveformBitmaps[trackIdx];
-  }
+static Bitmap* renderWaveform(int trackIdx) {
   const PlaybackTrackState* track = &chipnomadGetPlaybackStatus(chipnomadState)->tracks[trackIdx];
-  if (track->note.instrument == EMPTY_VALUE_8) return emptyBitmap;
-  InstrumentType type = chipnomadState->project.instruments[track->note.instrument].type;
-  if (type != InstrumentType::AY1 && type != InstrumentType::AY2 && type != InstrumentType::AYSample)
-    return drawVoiceWaveform(trackIdx);
+
+  if (track->note.instrument != EMPTY_VALUE_8) {
+    InstrumentType type = chipnomadState->project.instruments[track->note.instrument].type;
+    if (type == InstrumentType::Braids || type == InstrumentType::AChChid || type == InstrumentType::Sample ||
+        type == InstrumentType::Plaits || type == InstrumentType::PlaitsAlt || type == InstrumentType::MME || type == InstrumentType::Sintered) {
+      return drawVoiceWaveform(trackIdx);
+    }
+  }
 
   // Check if track is playing
   if (track->note.pitchFinal == EMPTY_VALUE_8) {
-    return emptyBitmap;
+    Bitmap* bitmap = waveformBitmaps[trackIdx];
+    memset(bitmap->data, 0, bitmap->widthPixels * bitmap->heightPixels);
+    return bitmap;
   }
 
-  // Current projects use one AY chip per track, with tone on channel A.
-  int chipIdx = trackIdx;
-  int ayChannel = 0;
+  // TODO: Support other chips (FM, SID)
+  // TODO: Support AY software oscillators
+
+  // Determine which AY/YM chip and channel this track belongs to
+  int chipIdx = trackIdx / 3;
+  int ayChannel = trackIdx % 3;
 
   SoundChipAY* chip = static_cast<SoundChipAY*>(chipnomadState->chips[chipIdx]);
-  if (!chip) return emptyBitmap;
 
   // Read mixer register (reg 7)
   uint8_t mixerReg = chip->getRegister(7);
@@ -312,6 +287,39 @@ Bitmap* waveformDisplayGetBitmap(int trackIdx) {
   }
 
   return bitmap;
+}
+
+void waveformDisplayInvalidate(void) {
+  lastWaveformRefresh = std::chrono::steady_clock::time_point();
+}
+
+void waveformDisplayRefresh(void) {
+  if (!chipnomadState) return;
+
+  const auto now = std::chrono::steady_clock::now();
+  const int refreshHz = appSettings.waveformRefreshHz < 1 ? 1 :
+    (appSettings.waveformRefreshHz > 60 ? 60 : appSettings.waveformRefreshHz);
+  float elapsedSeconds = lastWaveformRefresh == std::chrono::steady_clock::time_point() ?
+    1.0f / refreshHz : std::chrono::duration<float>(now - lastWaveformRefresh).count();
+  // A note can change on every tracker tick.  It must not bypass the selected
+  // waveform cadence, otherwise low settings still redraw at the UI rate.
+  if (lastWaveformRefresh != std::chrono::steady_clock::time_point() &&
+      elapsedSeconds < 1.0f / refreshHz) return;
+
+  voiceBlend = 1.0f - powf(0.7f, elapsedSeconds * 60.0f);
+  if (voiceBlend > 1.0f) voiceBlend = 1.0f;
+  for (int i = 0; i < chipnomadState->project.tracksCount; ++i) {
+    if (appSettings.trackVisuals[i].mode == TrackVisualMode::audio)
+      renderTrackAudioWaveform(waveformBitmaps[i], monitorDisplayTrackSamples(i), AUDIO_MONITOR_SAMPLES);
+    else
+      renderWaveform(i);
+  }
+  lastWaveformRefresh = now;
+}
+
+Bitmap* waveformDisplayGetBitmap(int trackIdx) {
+  if (trackIdx < 0 || trackIdx >= PROJECT_MAX_TRACKS) return emptyBitmap;
+  return waveformBitmaps[trackIdx];
 }
 
 // ============================================================================
@@ -555,4 +563,25 @@ void renderAYWavetableLfoPreview(Bitmap* bitmap, uint8_t* wavetable) {
   const int zeroY = bitmap->heightPixels / 2;
   for (int x = 0; x < bitmap->widthPixels; ++x) bitmap->data[zeroY * bitmap->widthPixels + x] = 64;
   renderWaveformPreview(bitmap, wavetable, 32, ayWavetableLfoPreviewLevel);
+}
+void renderTrackAudioWaveform(Bitmap* bitmap, const float* samples, int count) {
+  if (!bitmap) return;
+  gfxBitmapClear(bitmap);
+  if (!samples || count <= 0) return;
+  const int w = bitmap->widthPixels, h = bitmap->heightPixels;
+  if (w < 3 || h < 5) return;
+  const int centre = (h - 1) / 2, radius = (h - 4) / 2;
+  int previous = centre;
+  for (int x = 1; x < w - 1; ++x) {
+    int start = (x - 1) * count / (w - 2), end = std::max(start + 1, x * count / (w - 2));
+    float low = 1, high = -1;
+    for (int i = start; i < end && i < count; ++i) {
+      float value = std::isfinite(samples[i]) ? samples[i] : 0;
+      low = std::min(low, std::max(-1.0f, value)); high = std::max(high, std::min(1.0f, value));
+    }
+    int upper = centre - (int)lroundf(high * radius), lower = centre - (int)lroundf(low * radius);
+    if (x > 1) { upper = std::min(upper, previous); lower = std::max(lower, previous); }
+    for (int y = upper; y <= lower; ++y) bitmap->data[y * w + x] = low == 0 && high == 0 ? 64 : 255;
+    previous = (upper + lower) / 2;
+  }
 }

@@ -49,11 +49,8 @@ struct KeyMapping {
 };
 
 enum class StickLiveMode { hold, toggle, free };
-
 enum class TrackVisualMode : uint8_t { detailed, audio };
-struct TrackVisualSettings {
-  TrackVisualMode mode = TrackVisualMode::detailed;
-};
+struct TrackVisualSettings { TrackVisualMode mode = TrackVisualMode::detailed; };
 
 struct AppSettings {
   int screenWidth;
@@ -73,6 +70,7 @@ struct AppSettings {
   int pitchConflictWarning;
   int quickHelpReleaseSeen;
   int ayWavetableLfoView;
+  int waveformRefreshHz;
   // Port indices are runtime-only (not saved): enumeration order isn't
   // stable across reboots/replugging. -1 = off. What IS saved is each
   // device's name (below); appSetup() resolves it back to a live index on
@@ -90,6 +88,7 @@ struct AppSettings {
   int8_t midiChannelInstrument[MIDI_CHANNEL_COUNT];
   StickLiveMode stickLiveMode;
   TrackVisualSettings trackVisuals[PROJECT_MAX_TRACKS];
+  uint8_t persistentWaveform;
   KeyMapping keyMapping;
   ColorScheme colorScheme;
   char themeName[THEME_NAME_LENGTH + 1];

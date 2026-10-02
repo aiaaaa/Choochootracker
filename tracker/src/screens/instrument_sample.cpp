@@ -14,11 +14,18 @@ static constexpr int sourceValueX = 9;
 static constexpr int sourceValueWidth = 7;
 static constexpr int editLabelX = 17;
 static constexpr int editLabelWidth = 4;
-static constexpr int previewRow = 16, previewWidth = 32, previewHeight = 3;
 static Bitmap* samplePreviewBitmap;
+static int samplePreviewWidth, samplePreviewHeight;
 
 static void updateSamplePreview(const InstrumentSample* sample) {
-  if (!samplePreviewBitmap) samplePreviewBitmap = gfxBitmapCreate(previewWidth, previewHeight);
+  int width = appSettings.persistentWaveform ? 15 : 32;
+  int height = appSettings.persistentWaveform ? 2 : 3;
+  if (width != samplePreviewWidth || height != samplePreviewHeight) {
+    gfxBitmapFree(samplePreviewBitmap);
+    samplePreviewBitmap = gfxBitmapCreate(width, height);
+    samplePreviewWidth = width;
+    samplePreviewHeight = height;
+  }
   uint32_t start = sample->frameCount ? (uint64_t)sample->start * (sample->frameCount - 1) / 255 : 0;
   uint32_t end = sample->end == 255 ? sample->frameCount :
     (uint64_t)(sample->end + 1) * sample->frameCount / 256;
@@ -29,7 +36,7 @@ static void updateSamplePreview(const InstrumentSample* sample) {
 static void drawSamplePreview(void) {
   if (!samplePreviewBitmap) return;
   gfxSetFgColor(appSettings.colorScheme.textInfo);
-  gfxDrawBitmap(samplePreviewBitmap, 0, previewRow);
+  gfxDrawBitmap(samplePreviewBitmap, 0, appSettings.persistentWaveform ? 15 : 16);
 }
 
 static void onSampleCancelled(void) {

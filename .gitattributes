@@ -1,0 +1,2 @@
+# PortMaster launchers are executed by Bash on the target device.
+*.sh text eol=lf

@@ -38,7 +38,7 @@ static const MidiBackend kDesktopBackend = {
   inputPortCount, inputPortName, outputPortCount, outputPortName,
   openInput, closeInput, openOutput, closeOutput,
   pollInput, scheduleOutput, flushOutputQueue, droppedCount, nowMicros,
-#ifdef DESKTOP_BUILD
+#if defined(DESKTOP_BUILD) || defined(PORTMASTER_BUILD)
   1, 1, 0, 0, // hasInput, hasOutput, hasClockInput, hasClockOutput
 #else
   0, 0, 0, 0,

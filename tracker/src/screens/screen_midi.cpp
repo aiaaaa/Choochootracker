@@ -59,9 +59,12 @@ static void drawStatic(void) {
 
 static void drawCursor(int col, int row) {
   if ((row == 0 || row == 1) && col == 0) {
-    gfxCursor(DEVICE_FIELD_X, 2 + row, DEVICE_FIELD_WIDTH);
+    char name[DEVICE_FIELD_WIDTH + 1];
+    midiDeviceLabel(row == 0, row == 0 ? appSettings.midiInputDevice : appSettings.midiOutputDevice,
+      row == 0 ? appSettings.midiInputDeviceName : appSettings.midiOutputDeviceName, name, sizeof(name));
+    gfxCursor(DEVICE_FIELD_X, 2 + row, (int)strlen(name));
   } else if (row == 2 && col == 0) {
-    gfxCursor(0, 4, 15);
+    gfxCursor(0, 5, (int)strlen("Channel mapping"));
   }
 }
 
@@ -149,7 +152,7 @@ static ScreenData screenMidiData = {
   .selectStartCol = 0,
   .selectAnchorRow = 0,
   .selectAnchorCol = 0,
-  .playbackLevel = ScreenPlaybackLevel::none,
+  .playbackLevel = ScreenPlaybackLevel::song,
   .getColumnCount = columnCount,
   .drawStatic = drawStatic,
   .drawCursor = drawCursor,
@@ -201,11 +204,13 @@ static int onInput(int isKeyDown, int keys, int tapCount) {
   return screenInput(&screenMidiData, isKeyDown, keys, tapCount);
 }
 
+static ScreenPlaybackLevel getPlaybackLevel(void) { return ScreenPlaybackLevel::song; }
+
 const AppScreen screenMidi = {
   .init = NULL,
   .setup = setup,
   .fullRedraw = fullRedraw,
   .draw = draw,
   .onInput = onInput,
-  .getPlaybackLevel = NULL,
+  .getPlaybackLevel = getPlaybackLevel,
 };

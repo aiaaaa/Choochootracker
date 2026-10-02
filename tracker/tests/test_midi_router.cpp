@@ -114,6 +114,51 @@ TEST_CASE("Auto mode legato: releasing a buried (non-current) note does nothing"
   midiRouterDestroy(router);
 }
 
+TEST_CASE("Auto mode keeps identical notes on separate MIDI channels independent") {
+  resetFake();
+  midiRouterSetBackend(&kFakeBackend);
+  MidiRouterState* router = midiRouterCreate();
+  midiRouterSetChannelInstrumentMap(router, kNoChannelMap);
+  MidiPreviewIntent intents[16];
+
+  pushIncoming(0x90, 0, 60, 100);
+  pushIncoming(0x90, 1, 60, 100);
+  REQUIRE(midiRouterTick(router, 5, intents, 16) == 2);
+
+  g_incoming.clear(); g_incomingIndex = 0;
+  pushIncoming(0x80, 0, 60, 0); // Must not release channel 1's note.
+  CHECK(midiRouterTick(router, 5, intents, 16) == 0);
+
+  g_incoming.clear(); g_incomingIndex = 0;
+  pushIncoming(0x80, 1, 60, 0);
+  REQUIRE(midiRouterTick(router, 5, intents, 16) == 1);
+  CHECK(intents[0].stop);
+
+  midiRouterDestroy(router);
+}
+
+TEST_CASE("Auto mode applies Note Offs after its preview buffer is full") {
+  resetFake();
+  midiRouterSetBackend(&kFakeBackend);
+  MidiRouterState* router = midiRouterCreate();
+  midiRouterSetChannelInstrumentMap(router, kNoChannelMap);
+  MidiPreviewIntent intent;
+
+  pushIncoming(0x90, 0, 60, 100);
+  pushIncoming(0x90, 0, 64, 100);
+  pushIncoming(0x80, 0, 64, 0); // This used to be discarded at capacity.
+  REQUIRE(midiRouterTick(router, 5, &intent, 1) == 1);
+  CHECK_FALSE(intent.stop);
+  CHECK(intent.note == 48);
+
+  g_incoming.clear(); g_incomingIndex = 0;
+  pushIncoming(0x80, 0, 60, 0);
+  REQUIRE(midiRouterTick(router, 5, &intent, 1) == 1);
+  CHECK(intent.stop);
+
+  midiRouterDestroy(router);
+}
+
 TEST_CASE("Channel mapping overrides the fallback instrument, per channel") {
   resetFake();
   midiRouterSetBackend(&kFakeBackend);

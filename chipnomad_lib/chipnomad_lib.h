@@ -16,7 +16,6 @@ class AChChidVoice;
 class DrumSynthVoice;
 class MMEVoice;
 class SinteredVoice;
-class PDVoice;
 class AudioCommandQueue;
 struct MidiRouterState;
 class AudioMonitor;
@@ -88,7 +87,6 @@ struct ChipNomadState {
   DrumSynthVoice* drumSynthVoices[PROJECT_MAX_TRACKS][CHORD_MAX_VOICES];
   MMEVoice* mmeVoices[PROJECT_MAX_TRACKS][CHORD_MAX_VOICES];
   SinteredVoice* sinteredVoices[PROJECT_MAX_TRACKS][CHORD_MAX_VOICES];
-  PDVoice* pdVoices[PROJECT_MAX_TRACKS];
   // MIDI-Out active-note tracking, Program/Bank cache, and MIDI-In routing
   // state now live behind the generic MIDI router (see midi/midi_router.h) -
   // one instance per ChipNomadState, so independent engine states (e.g. one

@@ -1,7 +1,7 @@
 #include "midi_router.h"
 #include <string.h>
 
-#define MIDI_ROUTER_HELD_NOTES_MAX (16)
+#define MIDI_ROUTER_HELD_NOTES_MAX (16 * 128)
 
 // See midi_router.h for the overall contract. All state here is per
 // ChipNomadState (via midiRouterCreate/Destroy), except the backend pointer
@@ -26,6 +26,7 @@ struct MidiRouterState {
   // last-note-priority legato held-note stack. -1 = channel not assigned.
   int8_t channelInstrument[16];
   uint8_t heldNotes[MIDI_ROUTER_HELD_NOTES_MAX];
+  uint8_t heldChannels[MIDI_ROUTER_HELD_NOTES_MAX];
   int heldInstrument[MIDI_ROUTER_HELD_NOTES_MAX];
   int heldCount;
 
@@ -171,11 +172,9 @@ int midiRouterTick(MidiRouterState* router, int fallbackInstrument, MidiPreviewI
   if (!router || !g_backend || !g_backend->pollInput || !outIntents || maxIntents <= 0) return 0;
   int count = 0;
   MidiEvent event;
-  // Always drain the poll queue even once outIntents is full, so a keyboard
-  // held/played faster than the caller's buffer doesn't back up in the
-  // backend's own queue and dump a burst of stale notes later.
+  // Always drain and apply the whole poll queue. Keep its final intent when
+  // the caller's buffer fills: dropping a Note Off here leaves a stuck note.
   while (g_backend->pollInput(g_backend->userdata, &event)) {
-    if (count >= maxIntents) continue;
     uint8_t messageType = event.type & 0xf0;
     uint8_t channel = event.channel & 0x0f;
     int8_t mapped = router->channelInstrument[channel];
@@ -189,39 +188,41 @@ int midiRouterTick(MidiRouterState* router, int fallbackInstrument, MidiPreviewI
     if (messageType == 0x90 && event.data2 > 0) {
       int note = (int)event.data1 - 12;
       if (note < 0 || note >= 128) continue;
-      int alreadyHeld = 0;
-      for (int i = 0; i < router->heldCount; i++) if (router->heldNotes[i] == (uint8_t)note) { alreadyHeld = 1; break; }
-      if (!alreadyHeld && router->heldCount < MIDI_ROUTER_HELD_NOTES_MAX) {
+      if (router->heldCount < MIDI_ROUTER_HELD_NOTES_MAX) {
         router->heldNotes[router->heldCount] = (uint8_t)note;
+        router->heldChannels[router->heldCount] = channel;
         router->heldInstrument[router->heldCount] = instrument;
         router->heldCount++;
       }
-      outIntents[count].note = (uint8_t)note;
-      outIntents[count].instrument = instrument;
-      outIntents[count].stop = 0;
-      count++;
+      int outIndex = count < maxIntents ? count++ : maxIntents - 1;
+      outIntents[outIndex].note = (uint8_t)note;
+      outIntents[outIndex].instrument = instrument;
+      outIntents[outIndex].stop = 0;
     } else if (messageType == 0x80 || (messageType == 0x90 && event.data2 == 0)) {
       int note = (int)event.data1 - 12;
       int foundIdx = -1;
-      for (int i = 0; i < router->heldCount; i++) if (router->heldNotes[i] == (uint8_t)note) { foundIdx = i; break; }
+      for (int i = router->heldCount - 1; i >= 0; i--) {
+        if (router->heldNotes[i] == (uint8_t)note && router->heldChannels[i] == channel) { foundIdx = i; break; }
+      }
       if (foundIdx < 0) continue;
       int wasCurrent = foundIdx == router->heldCount - 1;
       for (int i = foundIdx; i < router->heldCount - 1; i++) {
         router->heldNotes[i] = router->heldNotes[i + 1];
+        router->heldChannels[i] = router->heldChannels[i + 1];
         router->heldInstrument[i] = router->heldInstrument[i + 1];
       }
       router->heldCount--;
       if (!wasCurrent) continue;
+      int outIndex = count < maxIntents ? count++ : maxIntents - 1;
       if (router->heldCount > 0) {
-        outIntents[count].note = router->heldNotes[router->heldCount - 1];
-        outIntents[count].instrument = router->heldInstrument[router->heldCount - 1];
-        outIntents[count].stop = 0;
+        outIntents[outIndex].note = router->heldNotes[router->heldCount - 1];
+        outIntents[outIndex].instrument = router->heldInstrument[router->heldCount - 1];
+        outIntents[outIndex].stop = 0;
       } else {
-        outIntents[count].note = 0;
-        outIntents[count].instrument = 0;
-        outIntents[count].stop = 1;
+        outIntents[outIndex].note = 0;
+        outIntents[outIndex].instrument = 0;
+        outIntents[outIndex].stop = 1;
       }
-      count++;
     }
   }
   return count;
