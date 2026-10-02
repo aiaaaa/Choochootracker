@@ -76,7 +76,7 @@ var ENVIRONMENT_IS_SHELL = !ENVIRONMENT_IS_WEB && !ENVIRONMENT_IS_NODE && !ENVIR
 
 // --pre-jses are emitted after the Module integration code, so that they can
 // refer to Module (if they choose; they can also define Module)
-// include: C:\Users\surga\AppData\Local\Temp\tmp7pq64c44.js
+// include: /var/folders/g9/899ky8t11x9g4x5pskvtwrrh0000gn/T/tmpa9u8s8ka.js
 
   if (!Module['expectedDataFileDownloads']) Module['expectedDataFileDownloads'] = 0;
   Module['expectedDataFileDownloads']++;
@@ -171,6 +171,7 @@ Module['FS_createPath']("/", "fonts", true, true);
 Module['FS_createPath']("/fonts", "Pixel16x24", true, true);
 Module['FS_createPath']("/fonts/Pixel16x24", "licenses", true, true);
 Module['FS_createPath']("/", "instruments", true, true);
+Module['FS_createPath']("/", "licenses", true, true);
 Module['FS_createPath']("/", "pitch-tables", true, true);
 Module['FS_createPath']("/", "projects", true, true);
 Module['FS_createPath']("/", "samples", true, true);
@@ -217,25 +218,25 @@ Module['FS_createPath']("/waveforms", "AKWF", true, true);
     }
 
     }
-    loadPackage({"files": [{"filename": "/AY_wavetables/AY-Waves-4.aywave", "start": 0, "end": 132}, {"filename": "/AY_wavetables/FIFTH.aywave", "start": 132, "end": 165}, {"filename": "/AY_wavetables/NESTRI.aywave", "start": 165, "end": 198}, {"filename": "/AY_wavetables/VRC6DSAW.aywave", "start": 198, "end": 231}, {"filename": "/AY_wavetables/VRC6SAW.aywave", "start": 231, "end": 264}, {"filename": "/SR_wavetables/WaveEdit/11-2020_.WAV", "start": 264, "end": 33076}, {"filename": "/SR_wavetables/WaveEdit/111.WAV", "start": 33076, "end": 65888}, {"filename": "/SR_wavetables/WaveEdit/111___00.WAV", "start": 65888, "end": 98700}, {"filename": "/SR_wavetables/WaveEdit/303.WAV", "start": 98700, "end": 131512}, {"filename": "/SR_wavetables/WaveEdit/AAHWOHYE.WAV", "start": 131512, "end": 164324}, {"filename": "/SR_wavetables/WaveEdit/ACCESS_V.WAV", "start": 164324, "end": 197136}, {"filename": "/SR_wavetables/WaveEdit/ACID_RIN.WAV", "start": 197136, "end": 229948}, {"filename": "/SR_wavetables/WaveEdit/ACID_SP.WAV", "start": 229948, "end": 262760}, {"filename": "/SR_wavetables/WaveEdit/ADDITIVE.WAV", "start": 262760, "end": 295572}, {"filename": "/SR_wavetables/WaveEdit/AEIOUTSX.WAV", "start": 295572, "end": 328384}, {"filename": "/SR_wavetables/WaveEdit/AKVF_GRA.WAV", "start": 328384, "end": 361196}, {"filename": "/SR_wavetables/WaveEdit/AKVF_NES.WAV", "start": 361196, "end": 394008}, {"filename": "/SR_wavetables/WaveEdit/AKVF_VID.WAV", "start": 394008, "end": 426820}, {"filename": "/SR_wavetables/WaveEdit/AKWF_FMS.WAV", "start": 426820, "end": 459632}, {"filename": "/SR_wavetables/WaveEdit/ALIEN_SP.WAV", "start": 459632, "end": 492444}, {"filename": "/SR_wavetables/WaveEdit/ALIEN_VO.WAV", "start": 492444, "end": 525256}, {"filename": "/SR_wavetables/WaveEdit/ALPHA_2_.WAV", "start": 525256, "end": 558068}, {"filename": "/SR_wavetables/WaveEdit/ALTO_SAX.WAV", "start": 558068, "end": 590880}, {"filename": "/SR_wavetables/WaveEdit/AMEN.WAV", "start": 590880, "end": 623692}, {"filename": "/SR_wavetables/WaveEdit/AMEN_LOO.WAV", "start": 623692, "end": 656504}, {"filename": "/SR_wavetables/WaveEdit/AM_SINE.WAV", "start": 656504, "end": 689316}, {"filename": "/SR_wavetables/WaveEdit/ANALOG_W.WAV", "start": 689316, "end": 722128}, {"filename": "/SR_wavetables/WaveEdit/ASSYMETR.WAV", "start": 722128, "end": 754940}, {"filename": "/SR_wavetables/WaveEdit/AUDIOTER.WAV", "start": 754940, "end": 787752}, {"filename": "/SR_wavetables/WaveEdit/A_55HZ_-.WAV", "start": 787752, "end": 820564}, {"filename": "/SR_wavetables/WaveEdit/BANK_410.WAV", "start": 820564, "end": 853376}, {"filename": "/SR_wavetables/WaveEdit/BANK_A.WAV", "start": 853376, "end": 886188}, {"filename": "/SR_wavetables/WaveEdit/BANK_B.WAV", "start": 886188, "end": 919000}, {"filename": "/SR_wavetables/WaveEdit/BANK_C.WAV", "start": 919000, "end": 951812}, {"filename": "/SR_wavetables/WaveEdit/BASIC_TH.WAV", "start": 951812, "end": 984624}, {"filename": "/SR_wavetables/WaveEdit/BASIC_WA.WAV", "start": 984624, "end": 1017436}, {"filename": "/SR_wavetables/WaveEdit/BASS_BY_.WAV", "start": 1017436, "end": 1050248}, {"filename": "/SR_wavetables/WaveEdit/BBELLS.WAV", "start": 1050248, "end": 1083060}, {"filename": "/SR_wavetables/WaveEdit/BELL02.WAV", "start": 1083060, "end": 1115872}, {"filename": "/SR_wavetables/WaveEdit/BELL03.WAV", "start": 1115872, "end": 1148684}, {"filename": "/SR_wavetables/WaveEdit/BELLS.WAV", "start": 1148684, "end": 1181496}, {"filename": "/SR_wavetables/WaveEdit/BEST_OF_.WAV", "start": 1181496, "end": 1214308}, {"filename": "/SR_wavetables/WaveEdit/BOWED_00.WAV", "start": 1214308, "end": 1247120}, {"filename": "/SR_wavetables/WaveEdit/BOWED_CY.WAV", "start": 1247120, "end": 1279932}, {"filename": "/SR_wavetables/WaveEdit/BOWING.WAV", "start": 1279932, "end": 1312744}, {"filename": "/SR_wavetables/WaveEdit/BRAIDS01.WAV", "start": 1312744, "end": 1345556}, {"filename": "/SR_wavetables/WaveEdit/BRAIDS02.WAV", "start": 1345556, "end": 1378368}, {"filename": "/SR_wavetables/WaveEdit/BRAIDS03.WAV", "start": 1378368, "end": 1411180}, {"filename": "/SR_wavetables/WaveEdit/BRAIDS04.WAV", "start": 1411180, "end": 1443992}, {"filename": "/SR_wavetables/WaveEdit/CHEBYSHE.WAV", "start": 1443992, "end": 1476804}, {"filename": "/SR_wavetables/WaveEdit/CLOCK_MU.WAV", "start": 1476804, "end": 1509616}, {"filename": "/SR_wavetables/WaveEdit/COLUNDI-.WAV", "start": 1509616, "end": 1542428}, {"filename": "/SR_wavetables/WaveEdit/CRUSH_AD.WAV", "start": 1542428, "end": 1575240}, {"filename": "/SR_wavetables/WaveEdit/CYBERNET.WAV", "start": 1575240, "end": 1608052}, {"filename": "/SR_wavetables/WaveEdit/CYBORG.WAV", "start": 1608052, "end": 1640864}, {"filename": "/SR_wavetables/WaveEdit/CZ-ISH.WAV", "start": 1640864, "end": 1673676}, {"filename": "/SR_wavetables/WaveEdit/DECIDE.WAV", "start": 1673676, "end": 1706488}, {"filename": "/SR_wavetables/WaveEdit/DIGITAL_.WAV", "start": 1706488, "end": 1739300}, {"filename": "/SR_wavetables/WaveEdit/DIRTY_01.WAV", "start": 1739300, "end": 1772112}, {"filename": "/SR_wavetables/WaveEdit/DIRTY_02.WAV", "start": 1772112, "end": 1804924}, {"filename": "/SR_wavetables/WaveEdit/DISCORDA.WAV", "start": 1804924, "end": 1837736}, {"filename": "/SR_wavetables/WaveEdit/DISTORTE.WAV", "start": 1837736, "end": 1870548}, {"filename": "/SR_wavetables/WaveEdit/DOSE_WIT.WAV", "start": 1870548, "end": 1903360}, {"filename": "/SR_wavetables/WaveEdit/DRONE.WAV", "start": 1903360, "end": 1936172}, {"filename": "/SR_wavetables/WaveEdit/DRONE_.WAV", "start": 1936172, "end": 1968984}, {"filename": "/SR_wavetables/WaveEdit/DRUMSTRU.WAV", "start": 1968984, "end": 2001796}, {"filename": "/SR_wavetables/WaveEdit/E.GUITAR.WAV", "start": 2001796, "end": 2034608}, {"filename": "/SR_wavetables/WaveEdit/ELOB_A.WAV", "start": 2034608, "end": 2067420}, {"filename": "/SR_wavetables/WaveEdit/ELOB_B.WAV", "start": 2067420, "end": 2100232}, {"filename": "/SR_wavetables/WaveEdit/ELOB_C.WAV", "start": 2100232, "end": 2133044}, {"filename": "/SR_wavetables/WaveEdit/ENSHTU02.WAV", "start": 2133044, "end": 2165856}, {"filename": "/SR_wavetables/WaveEdit/ENSHTU03.WAV", "start": 2165856, "end": 2198668}, {"filename": "/SR_wavetables/WaveEdit/ENSHTURZ.WAV", "start": 2198668, "end": 2231480}, {"filename": "/SR_wavetables/WaveEdit/ENSONIQ_.WAV", "start": 2231480, "end": 2264292}, {"filename": "/SR_wavetables/WaveEdit/ENVELO00.WAV", "start": 2264292, "end": 2297104}, {"filename": "/SR_wavetables/WaveEdit/ENVELO01.WAV", "start": 2297104, "end": 2329916}, {"filename": "/SR_wavetables/WaveEdit/ENVELOPE.WAV", "start": 2329916, "end": 2362728}, {"filename": "/SR_wavetables/WaveEdit/ESQ1-HI.WAV", "start": 2362728, "end": 2395540}, {"filename": "/SR_wavetables/WaveEdit/ESQ1-LO.WAV", "start": 2395540, "end": 2428352}, {"filename": "/SR_wavetables/WaveEdit/EUCLIDEA.WAV", "start": 2428352, "end": 2461164}, {"filename": "/SR_wavetables/WaveEdit/FAIRLI01.WAV", "start": 2461164, "end": 2493976}, {"filename": "/SR_wavetables/WaveEdit/FAIRLIGH.WAV", "start": 2493976, "end": 2526788}, {"filename": "/SR_wavetables/WaveEdit/FEEDBACK.WAV", "start": 2526788, "end": 2559600}, {"filename": "/SR_wavetables/WaveEdit/FMADDI02.WAV", "start": 2559600, "end": 2592412}, {"filename": "/SR_wavetables/WaveEdit/FM_-_COM.WAV", "start": 2592412, "end": 2625224}, {"filename": "/SR_wavetables/WaveEdit/FOLDFEED.WAV", "start": 2625224, "end": 2658036}, {"filename": "/SR_wavetables/WaveEdit/FOLDING_.WAV", "start": 2658036, "end": 2690848}, {"filename": "/SR_wavetables/WaveEdit/FOURIER.WAV", "start": 2690848, "end": 2723660}, {"filename": "/SR_wavetables/WaveEdit/FOURIER2.WAV", "start": 2723660, "end": 2756472}, {"filename": "/SR_wavetables/WaveEdit/FRACTA01.WAV", "start": 2756472, "end": 2789284}, {"filename": "/SR_wavetables/WaveEdit/FRACTA02.WAV", "start": 2789284, "end": 2822096}, {"filename": "/SR_wavetables/WaveEdit/FRACTA03.WAV", "start": 2822096, "end": 2854908}, {"filename": "/SR_wavetables/WaveEdit/FRED_DUR.WAV", "start": 2854908, "end": 2887720}, {"filename": "/SR_wavetables/WaveEdit/FX_BITNO.WAV", "start": 2887720, "end": 2920532}, {"filename": "/SR_wavetables/WaveEdit/FX_BIT_N.WAV", "start": 2920532, "end": 2953344}, {"filename": "/SR_wavetables/WaveEdit/G2_ASTRA.WAV", "start": 2953344, "end": 2986156}, {"filename": "/SR_wavetables/WaveEdit/GENTLE_M.WAV", "start": 2986156, "end": 3018968}, {"filename": "/SR_wavetables/WaveEdit/GEOMETRI.WAV", "start": 3018968, "end": 3051780}, {"filename": "/SR_wavetables/WaveEdit/GLITCHBO.WAV", "start": 3051780, "end": 3084592}, {"filename": "/SR_wavetables/WaveEdit/GRAV-A1.WAV", "start": 3084592, "end": 3117404}, {"filename": "/SR_wavetables/WaveEdit/GRAV-A10.WAV", "start": 3117404, "end": 3150216}, {"filename": "/SR_wavetables/WaveEdit/GRAV-A2.WAV", "start": 3150216, "end": 3183028}, {"filename": "/SR_wavetables/WaveEdit/GRAV-A3.WAV", "start": 3183028, "end": 3215840}, {"filename": "/SR_wavetables/WaveEdit/GRAV-A4.WAV", "start": 3215840, "end": 3248652}, {"filename": "/SR_wavetables/WaveEdit/GRAV-A5.WAV", "start": 3248652, "end": 3281464}, {"filename": "/SR_wavetables/WaveEdit/GRAV-A6.WAV", "start": 3281464, "end": 3314276}, {"filename": "/SR_wavetables/WaveEdit/GRAV-A7.WAV", "start": 3314276, "end": 3347088}, {"filename": "/SR_wavetables/WaveEdit/GRAV-A8.WAV", "start": 3347088, "end": 3379900}, {"filename": "/SR_wavetables/WaveEdit/GRAV-A9.WAV", "start": 3379900, "end": 3412712}, {"filename": "/SR_wavetables/WaveEdit/GRAV-B1.WAV", "start": 3412712, "end": 3445524}, {"filename": "/SR_wavetables/WaveEdit/GRAV-B10.WAV", "start": 3445524, "end": 3478336}, {"filename": "/SR_wavetables/WaveEdit/GRAV-B2.WAV", "start": 3478336, "end": 3511148}, {"filename": "/SR_wavetables/WaveEdit/GRAV-B3.WAV", "start": 3511148, "end": 3543960}, {"filename": "/SR_wavetables/WaveEdit/GRAV-B4.WAV", "start": 3543960, "end": 3576772}, {"filename": "/SR_wavetables/WaveEdit/GRAV-B5.WAV", "start": 3576772, "end": 3609584}, {"filename": "/SR_wavetables/WaveEdit/GRAV-B6.WAV", "start": 3609584, "end": 3642396}, {"filename": "/SR_wavetables/WaveEdit/GRAV-B7.WAV", "start": 3642396, "end": 3675208}, {"filename": "/SR_wavetables/WaveEdit/GRAV-B8.WAV", "start": 3675208, "end": 3708020}, {"filename": "/SR_wavetables/WaveEdit/GRAV-B9.WAV", "start": 3708020, "end": 3740832}, {"filename": "/SR_wavetables/WaveEdit/GRAV-C1.WAV", "start": 3740832, "end": 3773644}, {"filename": "/SR_wavetables/WaveEdit/GRAV-C10.WAV", "start": 3773644, "end": 3806456}, {"filename": "/SR_wavetables/WaveEdit/GRAV-C2.WAV", "start": 3806456, "end": 3839268}, {"filename": "/SR_wavetables/WaveEdit/GRAV-C3.WAV", "start": 3839268, "end": 3872080}, {"filename": "/SR_wavetables/WaveEdit/GRAV-C5.WAV", "start": 3872080, "end": 3904892}, {"filename": "/SR_wavetables/WaveEdit/GRAV-C6.WAV", "start": 3904892, "end": 3937704}, {"filename": "/SR_wavetables/WaveEdit/GRAV-C7.WAV", "start": 3937704, "end": 3970516}, {"filename": "/SR_wavetables/WaveEdit/GRAV-C8.WAV", "start": 3970516, "end": 4003328}, {"filename": "/SR_wavetables/WaveEdit/GRAV-C9.WAV", "start": 4003328, "end": 4036140}, {"filename": "/SR_wavetables/WaveEdit/HARMOMET.WAV", "start": 4036140, "end": 4068952}, {"filename": "/SR_wavetables/WaveEdit/HARMON00.WAV", "start": 4068952, "end": 4101764}, {"filename": "/SR_wavetables/WaveEdit/HARMONIC.WAV", "start": 4101764, "end": 4134576}, {"filename": "/SR_wavetables/WaveEdit/HARMONIO.WAV", "start": 4134576, "end": 4167388}, {"filename": "/SR_wavetables/WaveEdit/HARMONIX.WAV", "start": 4167388, "end": 4200200}, {"filename": "/SR_wavetables/WaveEdit/HIENHARM.WAV", "start": 4200200, "end": 4233012}, {"filename": "/SR_wavetables/WaveEdit/HIGH_FRE.WAV", "start": 4233012, "end": 4265824}, {"filename": "/SR_wavetables/WaveEdit/HMMMMMMM.WAV", "start": 4265824, "end": 4298636}, {"filename": "/SR_wavetables/WaveEdit/HORROR.WAV", "start": 4298636, "end": 4331448}, {"filename": "/SR_wavetables/WaveEdit/HVOICEA.WAV", "start": 4331448, "end": 4364260}, {"filename": "/SR_wavetables/WaveEdit/HYPERBOL.WAV", "start": 4364260, "end": 4397072}, {"filename": "/SR_wavetables/WaveEdit/ISOBELLE.WAV", "start": 4397072, "end": 4429884}, {"filename": "/SR_wavetables/WaveEdit/ISOLDE.WAV", "start": 4429884, "end": 4462696}, {"filename": "/SR_wavetables/WaveEdit/ITERAT00.WAV", "start": 4462696, "end": 4495508}, {"filename": "/SR_wavetables/WaveEdit/ITERATIV.WAV", "start": 4495508, "end": 4528320}, {"filename": "/SR_wavetables/WaveEdit/I_HEART_.WAV", "start": 4528320, "end": 4561132}, {"filename": "/SR_wavetables/WaveEdit/JUNOX_HO.WAV", "start": 4561132, "end": 4593944}, {"filename": "/SR_wavetables/WaveEdit/JUST_RAN.WAV", "start": 4593944, "end": 4626756}, {"filename": "/SR_wavetables/WaveEdit/KAWAI_K1.WAV", "start": 4626756, "end": 4659568}, {"filename": "/SR_wavetables/WaveEdit/KEEN.WAV", "start": 4659568, "end": 4692380}, {"filename": "/SR_wavetables/WaveEdit/KERMIT00.WAV", "start": 4692380, "end": 4725192}, {"filename": "/SR_wavetables/WaveEdit/KERMIT01.WAV", "start": 4725192, "end": 4758004}, {"filename": "/SR_wavetables/WaveEdit/KERMITEN.WAV", "start": 4758004, "end": 4790816}, {"filename": "/SR_wavetables/WaveEdit/KERMIT_0.WAV", "start": 4790816, "end": 4823628}, {"filename": "/SR_wavetables/WaveEdit/KERMIT_K.WAV", "start": 4823628, "end": 4856440}, {"filename": "/SR_wavetables/WaveEdit/KERMIT_R.WAV", "start": 4856440, "end": 4889252}, {"filename": "/SR_wavetables/WaveEdit/KOMPLE01.WAV", "start": 4889252, "end": 4922064}, {"filename": "/SR_wavetables/WaveEdit/KONBANWA.WAV", "start": 4922064, "end": 4954876}, {"filename": "/SR_wavetables/WaveEdit/KUATO.WAV", "start": 4954876, "end": 4987688}, {"filename": "/SR_wavetables/WaveEdit/KYMA_PAR.WAV", "start": 4987688, "end": 5020500}, {"filename": "/SR_wavetables/WaveEdit/LASER_CR.WAV", "start": 5020500, "end": 5053312}, {"filename": "/SR_wavetables/WaveEdit/LERNING2.WAV", "start": 5053312, "end": 5086124}, {"filename": "/SR_wavetables/WaveEdit/LFO_PL00.WAV", "start": 5086124, "end": 5118936}, {"filename": "/SR_wavetables/WaveEdit/LFO_PLAY.WAV", "start": 5118936, "end": 5151748}, {"filename": "/SR_wavetables/WaveEdit/LICENSE.CC0.md", "start": 5151748, "end": 5152093}, {"filename": "/SR_wavetables/WaveEdit/LIGHT_00.WAV", "start": 5152093, "end": 5184905}, {"filename": "/SR_wavetables/WaveEdit/LIGHT_YE.WAV", "start": 5184905, "end": 5217717}, {"filename": "/SR_wavetables/WaveEdit/LOFIRISE.WAV", "start": 5217717, "end": 5250529}, {"filename": "/SR_wavetables/WaveEdit/LOM_A.WAV", "start": 5250529, "end": 5283341}, {"filename": "/SR_wavetables/WaveEdit/LSDJ_WAV.WAV", "start": 5283341, "end": 5316153}, {"filename": "/SR_wavetables/WaveEdit/MAGNET00.WAV", "start": 5316153, "end": 5348965}, {"filename": "/SR_wavetables/WaveEdit/MAGNETIC.WAV", "start": 5348965, "end": 5381777}, {"filename": "/SR_wavetables/WaveEdit/MELLOW_D.WAV", "start": 5381777, "end": 5414589}, {"filename": "/SR_wavetables/WaveEdit/MERAVIGL.WAV", "start": 5414589, "end": 5447401}, {"filename": "/SR_wavetables/WaveEdit/MICROBRU.WAV", "start": 5447401, "end": 5480213}, {"filename": "/SR_wavetables/WaveEdit/MICROW02.WAV", "start": 5480213, "end": 5513025}, {"filename": "/SR_wavetables/WaveEdit/MICRO_Q_.WAV", "start": 5513025, "end": 5545837}, {"filename": "/SR_wavetables/WaveEdit/MIXED02.WAV", "start": 5545837, "end": 5578649}, {"filename": "/SR_wavetables/WaveEdit/MIXED_AS.WAV", "start": 5578649, "end": 5611461}, {"filename": "/SR_wavetables/WaveEdit/MK_DWG_H.WAV", "start": 5611461, "end": 5644273}, {"filename": "/SR_wavetables/WaveEdit/MODDROP.WAV", "start": 5644273, "end": 5677085}, {"filename": "/SR_wavetables/WaveEdit/MONICS.WAV", "start": 5677085, "end": 5709897}, {"filename": "/SR_wavetables/WaveEdit/MORPHING.WAV", "start": 5709897, "end": 5742709}, {"filename": "/SR_wavetables/WaveEdit/MS2K.WAV", "start": 5742709, "end": 5775521}, {"filename": "/SR_wavetables/WaveEdit/MUTATION.WAV", "start": 5775521, "end": 5808333}, {"filename": "/SR_wavetables/WaveEdit/NOISE_WA.WAV", "start": 5808333, "end": 5841145}, {"filename": "/SR_wavetables/WaveEdit/NOMAD.WAV", "start": 5841145, "end": 5873957}, {"filename": "/SR_wavetables/WaveEdit/ORGANIC_.WAV", "start": 5873957, "end": 5906769}, {"filename": "/SR_wavetables/WaveEdit/ORGANS01.WAV", "start": 5906769, "end": 5939581}, {"filename": "/SR_wavetables/WaveEdit/ORGAN_DI.WAV", "start": 5939581, "end": 5972393}, {"filename": "/SR_wavetables/WaveEdit/OSMAOS.WAV", "start": 5972393, "end": 6005205}, {"filename": "/SR_wavetables/WaveEdit/PD101.WAV", "start": 6005205, "end": 6038017}, {"filename": "/SR_wavetables/WaveEdit/PD102.WAV", "start": 6038017, "end": 6070829}, {"filename": "/SR_wavetables/WaveEdit/PD103.WAV", "start": 6070829, "end": 6103641}, {"filename": "/SR_wavetables/WaveEdit/PD104.WAV", "start": 6103641, "end": 6136453}, {"filename": "/SR_wavetables/WaveEdit/PHANTOMS.WAV", "start": 6136453, "end": 6169265}, {"filename": "/SR_wavetables/WaveEdit/PISTON_H.WAV", "start": 6169265, "end": 6202077}, {"filename": "/SR_wavetables/WaveEdit/PLAITS01.WAV", "start": 6202077, "end": 6234889}, {"filename": "/SR_wavetables/WaveEdit/PLAITS02.WAV", "start": 6234889, "end": 6267701}, {"filename": "/SR_wavetables/WaveEdit/PLAITS03.WAV", "start": 6267701, "end": 6300513}, {"filename": "/SR_wavetables/WaveEdit/PLESANT_.WAV", "start": 6300513, "end": 6333325}, {"filename": "/SR_wavetables/WaveEdit/PPG_BES.WAV", "start": 6333325, "end": 6366137}, {"filename": "/SR_wavetables/WaveEdit/PPG_UPPE.WAV", "start": 6366137, "end": 6398949}, {"filename": "/SR_wavetables/WaveEdit/PPG_WA00.WAV", "start": 6398949, "end": 6431761}, {"filename": "/SR_wavetables/WaveEdit/PPG_WA01.WAV", "start": 6431761, "end": 6464573}, {"filename": "/SR_wavetables/WaveEdit/PPG_WA02.WAV", "start": 6464573, "end": 6497385}, {"filename": "/SR_wavetables/WaveEdit/PPG_WA03.WAV", "start": 6497385, "end": 6530197}, {"filename": "/SR_wavetables/WaveEdit/PPG_WA04.WAV", "start": 6530197, "end": 6563009}, {"filename": "/fonts/Console.cnfont", "start": 6563009, "end": 6764279}, {"filename": "/fonts/Default.cnfont", "start": 6764279, "end": 6965059}, {"filename": "/fonts/IBM_VGA.cnfont", "start": 6965059, "end": 7165867}, {"filename": "/fonts/PSGCAPITAL.cnfont", "start": 7165867, "end": 7367127}, {"filename": "/fonts/Pixel16x24/01_TechMonoAudit.cnfont", "start": 7367127, "end": 7381195}, {"filename": "/fonts/Pixel16x24/02_DepartureMono.cnfont", "start": 7381195, "end": 7395262}, {"filename": "/fonts/Pixel16x24/03_Spleen.cnfont", "start": 7395262, "end": 7409327}, {"filename": "/fonts/Pixel16x24/04_Cozette.cnfont", "start": 7409327, "end": 7423379}, {"filename": "/fonts/Pixel16x24/README.txt", "start": 7423379, "end": 7426621}, {"filename": "/fonts/Pixel16x24/licenses/Cozette-LICENSE.txt", "start": 7426621, "end": 7427722}, {"filename": "/fonts/Pixel16x24/licenses/DepartureMono-OFL.txt", "start": 7427722, "end": 7432172}, {"filename": "/fonts/Pixel16x24/licenses/ShareTechMono-OFL.txt", "start": 7432172, "end": 7436694}, {"filename": "/fonts/Pixel16x24/licenses/Spleen-LICENSE.txt", "start": 7436694, "end": 7438031}, {"filename": "/fonts/RobotoMono.cnfont", "start": 7438031, "end": 7638841}, {"filename": "/fonts/tm-prosto-constructivist.cnfont", "start": 7638841, "end": 7840140}, {"filename": "/instruments/BD 1.cni", "start": 7840140, "end": 7840903}, {"filename": "/instruments/BD Bass 1.cni", "start": 7840903, "end": 7841671}, {"filename": "/instruments/Bass 1.cni", "start": 7841671, "end": 7842438}, {"filename": "/instruments/Bass 2.cni", "start": 7842438, "end": 7843207}, {"filename": "/instruments/Bass Saw 1.cni", "start": 7843207, "end": 7843975}, {"filename": "/instruments/Bass Slap 1.cni", "start": 7843975, "end": 7844746}, {"filename": "/instruments/Bass Slap 2.cni", "start": 7844746, "end": 7845517}, {"filename": "/instruments/Bass Slap 3.cni", "start": 7845517, "end": 7846288}, {"filename": "/instruments/Bass Tri 1.cni", "start": 7846288, "end": 7847056}, {"filename": "/instruments/Clap.cni", "start": 7847056, "end": 7847821}, {"filename": "/instruments/DrumSynth Clap.cni", "start": 7847821, "end": 7848294}, {"filename": "/instruments/DrumSynth Clave.cni", "start": 7848294, "end": 7848769}, {"filename": "/instruments/DrumSynth Cowbell.cni", "start": 7848769, "end": 7849249}, {"filename": "/instruments/DrumSynth Cymbal.cni", "start": 7849249, "end": 7849727}, {"filename": "/instruments/DrumSynth FM.cni", "start": 7849727, "end": 7850201}, {"filename": "/instruments/DrumSynth Hat.cni", "start": 7850201, "end": 7850675}, {"filename": "/instruments/DrumSynth Kick.cni", "start": 7850675, "end": 7851150}, {"filename": "/instruments/DrumSynth Noise.cni", "start": 7851150, "end": 7851624}, {"filename": "/instruments/DrumSynth Rim.cni", "start": 7851624, "end": 7852096}, {"filename": "/instruments/DrumSynth Shaker.cni", "start": 7852096, "end": 7852572}, {"filename": "/instruments/DrumSynth Snare.cni", "start": 7852572, "end": 7853048}, {"filename": "/instruments/DrumSynth Tom.cni", "start": 7853048, "end": 7853521}, {"filename": "/instruments/Fall.cni", "start": 7853521, "end": 7854286}, {"filename": "/instruments/Hat 1.cni", "start": 7854286, "end": 7855049}, {"filename": "/instruments/Lead 1.cni", "start": 7855049, "end": 7855816}, {"filename": "/instruments/Pluck 1.cni", "start": 7855816, "end": 7856582}, {"filename": "/instruments/Rim.cni", "start": 7856582, "end": 7857345}, {"filename": "/instruments/Riser 1.cni", "start": 7857345, "end": 7858112}, {"filename": "/instruments/Sax.cni", "start": 7858112, "end": 7858876}, {"filename": "/instruments/ShortArp 1.cni", "start": 7858876, "end": 7859646}, {"filename": "/instruments/Sintered Burst.cni", "start": 7859646, "end": 7859972}, {"filename": "/instruments/Sintered Comb.cni", "start": 7859972, "end": 7860300}, {"filename": "/instruments/Sintered Knot.cni", "start": 7860300, "end": 7860748}, {"filename": "/instruments/Sintered Logic.cni", "start": 7860748, "end": 7861077}, {"filename": "/instruments/Sintered Melt.cni", "start": 7861077, "end": 7861404}, {"filename": "/instruments/Sintered Shard.cni", "start": 7861404, "end": 7861732}, {"filename": "/instruments/Snare 1.cni", "start": 7861732, "end": 7862495}, {"filename": "/instruments/Snare 2.cni", "start": 7862495, "end": 7863261}, {"filename": "/instruments/Tom 1.cni", "start": 7863261, "end": 7864024}, {"filename": "/instruments/Waves.cni", "start": 7864024, "end": 7864792}, {"filename": "/pitch-tables/24TET Linear.csv", "start": 7864792, "end": 7866787}, {"filename": "/pitch-tables/Just D Phrygian 177 433.csv", "start": 7866787, "end": 7868216}, {"filename": "/pitch-tables/PT3-0.csv", "start": 7868216, "end": 7868980}, {"filename": "/pitch-tables/PT3-1.csv", "start": 7868980, "end": 7869752}, {"filename": "/pitch-tables/PT3-2.csv", "start": 7869752, "end": 7870518}, {"filename": "/pitch-tables/PT3-3.csv", "start": 7870518, "end": 7871284}, {"filename": "/projects/DNB.cct", "start": 7871284, "end": 7877956}, {"filename": "/projects/alf dance.cct", "start": 7877956, "end": 7887911}, {"filename": "/projects/dub-reich.cct", "start": 7887911, "end": 7898197}, {"filename": "/projects/grieg-mountain-king-fm.cct", "start": 7898197, "end": 7983852}, {"filename": "/projects/maple-leaf-rag.cct", "start": 7983852, "end": 8069293}, {"filename": "/projects/psy.cct", "start": 8069293, "end": 8081503}, {"filename": "/samples/909/BT0A0A7.WAV", "start": 8081503, "end": 8106655}, {"filename": "/samples/909/BT0A0D0.WAV", "start": 8106655, "end": 8115677}, {"filename": "/samples/909/BT0A0D3.WAV", "start": 8115677, "end": 8130859}, {"filename": "/samples/909/BT0A0DA.WAV", "start": 8130859, "end": 8174887}, {"filename": "/samples/909/BT0AAD0.WAV", "start": 8174887, "end": 8184515}, {"filename": "/samples/909/BT0AADA.WAV", "start": 8184515, "end": 8228535}, {"filename": "/samples/909/BT3A0D0.WAV", "start": 8228535, "end": 8237275}, {"filename": "/samples/909/BT3A0D3.WAV", "start": 8237275, "end": 8253199}, {"filename": "/samples/909/BT3A0D7.WAV", "start": 8253199, "end": 8281793}, {"filename": "/samples/909/BT3A0DA.WAV", "start": 8281793, "end": 8324673}, {"filename": "/samples/909/BT3AAD0.WAV", "start": 8324673, "end": 8333379}, {"filename": "/samples/909/BT3AADA.WAV", "start": 8333379, "end": 8376279}, {"filename": "/samples/909/BT7A0D0.WAV", "start": 8376279, "end": 8385751}, {"filename": "/samples/909/BT7A0D3.WAV", "start": 8385751, "end": 8400711}, {"filename": "/samples/909/BT7A0D7.WAV", "start": 8400711, "end": 8428255}, {"filename": "/samples/909/BT7A0DA.WAV", "start": 8428255, "end": 8471923}, {"filename": "/samples/909/BT7AAD0.WAV", "start": 8471923, "end": 8481371}, {"filename": "/samples/909/BT7AADA.WAV", "start": 8481371, "end": 8524987}, {"filename": "/samples/909/BTAA0D0.WAV", "start": 8524987, "end": 8534207}, {"filename": "/samples/909/BTAA0D3.WAV", "start": 8534207, "end": 8550517}, {"filename": "/samples/909/BTAA0D7.WAV", "start": 8550517, "end": 8579391}, {"filename": "/samples/909/BTAA0DA.WAV", "start": 8579391, "end": 8622401}, {"filename": "/samples/909/BTAAAD0.WAV", "start": 8622401, "end": 8631617}, {"filename": "/samples/909/BTAAADA.WAV", "start": 8631617, "end": 8674631}, {"filename": "/samples/909/CLOP1.WAV", "start": 8674631, "end": 8713645}, {"filename": "/samples/909/CLOP2.WAV", "start": 8713645, "end": 8736789}, {"filename": "/samples/909/CLOP3.WAV", "start": 8736789, "end": 8789953}, {"filename": "/samples/909/CLOP4.WAV", "start": 8789953, "end": 8810249}, {"filename": "/samples/909/CSHD0.WAV", "start": 8810249, "end": 8908075}, {"filename": "/samples/909/CSHD2.WAV", "start": 8908075, "end": 8999065}, {"filename": "/samples/909/CSHD4.WAV", "start": 8999065, "end": 9078689}, {"filename": "/samples/909/CSHD6.WAV", "start": 9078689, "end": 9143299}, {"filename": "/samples/909/CSHD8.WAV", "start": 9143299, "end": 9198253}, {"filename": "/samples/909/CSHDA.WAV", "start": 9198253, "end": 9245937}, {"filename": "/samples/909/HANDCLP1.WAV", "start": 9245937, "end": 9285329}, {"filename": "/samples/909/HANDCLP2.WAV", "start": 9285329, "end": 9317641}, {"filename": "/samples/909/HHCD0.WAV", "start": 9317641, "end": 9321445}, {"filename": "/samples/909/HHCD2.WAV", "start": 9321445, "end": 9329057}, {"filename": "/samples/909/HHCD4.WAV", "start": 9329057, "end": 9339089}, {"filename": "/samples/909/HHCD6.WAV", "start": 9339089, "end": 9350839}, {"filename": "/samples/909/HHCD8.WAV", "start": 9350839, "end": 9362927}, {"filename": "/samples/909/HHCDA.WAV", "start": 9362927, "end": 9375721}, {"filename": "/samples/909/HHOD0.WAV", "start": 9375721, "end": 9398089}, {"filename": "/samples/909/HHOD2.WAV", "start": 9398089, "end": 9427357}, {"filename": "/samples/909/HHOD4.WAV", "start": 9427357, "end": 9462625}, {"filename": "/samples/909/HHOD6.WAV", "start": 9462625, "end": 9501313}, {"filename": "/samples/909/HHOD8.WAV", "start": 9501313, "end": 9546869}, {"filename": "/samples/909/HHODA.WAV", "start": 9546869, "end": 9592527}, {"filename": "/samples/909/HT0D0.WAV", "start": 9592527, "end": 9613361}, {"filename": "/samples/909/HT0D3.WAV", "start": 9613361, "end": 9638981}, {"filename": "/samples/909/HT0D7.WAV", "start": 9638981, "end": 9673297}, {"filename": "/samples/909/HT0DA.WAV", "start": 9673297, "end": 9710709}, {"filename": "/samples/909/HT3D0.WAV", "start": 9710709, "end": 9730697}, {"filename": "/samples/909/HT3D3.WAV", "start": 9730697, "end": 9756115}, {"filename": "/samples/909/HT3D7.WAV", "start": 9756115, "end": 9791797}, {"filename": "/samples/909/HT3DA.WAV", "start": 9791797, "end": 9829835}, {"filename": "/samples/909/HT7D0.WAV", "start": 9829835, "end": 9850473}, {"filename": "/samples/909/HT7D3.WAV", "start": 9850473, "end": 9876733}, {"filename": "/samples/909/HT7D7.WAV", "start": 9876733, "end": 9913447}, {"filename": "/samples/909/HT7DA.WAV", "start": 9913447, "end": 9952003}, {"filename": "/samples/909/HTAD0.WAV", "start": 9952003, "end": 9972661}, {"filename": "/samples/909/HTAD3.WAV", "start": 9972661, "end": 9999455}, {"filename": "/samples/909/HTAD7.WAV", "start": 9999455, "end": 10034499}, {"filename": "/samples/909/HTADA.WAV", "start": 10034499, "end": 10074733}, {"filename": "/samples/909/LT0D0.WAV", "start": 10074733, "end": 10106305}, {"filename": "/samples/909/LT0D3.WAV", "start": 10106305, "end": 10145241}, {"filename": "/samples/909/LT0D7.WAV", "start": 10145241, "end": 10198483}, {"filename": "/samples/909/LT0DA.WAV", "start": 10198483, "end": 10258559}, {"filename": "/samples/909/LT3D0.WAV", "start": 10258559, "end": 10289741}, {"filename": "/samples/909/LT3D3.WAV", "start": 10289741, "end": 10329061}, {"filename": "/samples/909/LT3D7.WAV", "start": 10329061, "end": 10383641}, {"filename": "/samples/909/LT3DA.WAV", "start": 10383641, "end": 10443229}, {"filename": "/samples/909/LT7D0.WAV", "start": 10443229, "end": 10475809}, {"filename": "/samples/909/LT7D3.WAV", "start": 10475809, "end": 10517915}, {"filename": "/samples/909/LT7D7.WAV", "start": 10517915, "end": 10576105}, {"filename": "/samples/909/LT7DA.WAV", "start": 10576105, "end": 10638099}, {"filename": "/samples/909/LTAD0.WAV", "start": 10638099, "end": 10670501}, {"filename": "/samples/909/LTAD3.WAV", "start": 10670501, "end": 10712481}, {"filename": "/samples/909/LTAD7.WAV", "start": 10712481, "end": 10770097}, {"filename": "/samples/909/LTADA.WAV", "start": 10770097, "end": 10833747}, {"filename": "/samples/909/MT0D0.WAV", "start": 10833747, "end": 10853199}, {"filename": "/samples/909/MT0D3.WAV", "start": 10853199, "end": 10878941}, {"filename": "/samples/909/MT0D7.WAV", "start": 10878941, "end": 10913333}, {"filename": "/samples/909/MT0DA.WAV", "start": 10913333, "end": 10949909}, {"filename": "/samples/909/MT3D0.WAV", "start": 10949909, "end": 10969787}, {"filename": "/samples/909/MT3D3.WAV", "start": 10969787, "end": 10995553}, {"filename": "/samples/909/MT3D7.WAV", "start": 10995553, "end": 11032093}, {"filename": "/samples/909/MT3DA.WAV", "start": 11032093, "end": 11071049}, {"filename": "/samples/909/MT7D0.WAV", "start": 11071049, "end": 11090449}, {"filename": "/samples/909/MT7D3.WAV", "start": 11090449, "end": 11117321}, {"filename": "/samples/909/MT7D7.WAV", "start": 11117321, "end": 11152929}, {"filename": "/samples/909/MT7DA.WAV", "start": 11152929, "end": 11194085}, {"filename": "/samples/909/MTAD0.WAV", "start": 11194085, "end": 11214511}, {"filename": "/samples/909/MTAD3.WAV", "start": 11214511, "end": 11240219}, {"filename": "/samples/909/MTAD7.WAV", "start": 11240219, "end": 11278313}, {"filename": "/samples/909/MTADA.WAV", "start": 11278313, "end": 11319777}, {"filename": "/samples/909/OPCL1.WAV", "start": 11319777, "end": 11354823}, {"filename": "/samples/909/OPCL2.WAV", "start": 11354823, "end": 11381491}, {"filename": "/samples/909/OPCL3.WAV", "start": 11381491, "end": 11402261}, {"filename": "/samples/909/OPCL4.WAV", "start": 11402261, "end": 11452737}, {"filename": "/samples/909/RIDED0.WAV", "start": 11452737, "end": 11555585}, {"filename": "/samples/909/RIDED2.WAV", "start": 11555585, "end": 11651799}, {"filename": "/samples/909/RIDED4.WAV", "start": 11651799, "end": 11721881}, {"filename": "/samples/909/RIDED6.WAV", "start": 11721881, "end": 11791963}, {"filename": "/samples/909/RIDED8.WAV", "start": 11791963, "end": 11849835}, {"filename": "/samples/909/RIDEDA.WAV", "start": 11849835, "end": 11897475}, {"filename": "/samples/909/RIM127.WAV", "start": 11897475, "end": 11901057}, {"filename": "/samples/909/RIM63.WAV", "start": 11901057, "end": 11904639}, {"filename": "/samples/909/ST0T0S0.WAV", "start": 11904639, "end": 11920421}, {"filename": "/samples/909/ST0T0S3.WAV", "start": 11920421, "end": 11933917}, {"filename": "/samples/909/ST0T0S7.WAV", "start": 11933917, "end": 11947725}, {"filename": "/samples/909/ST0T0SA.WAV", "start": 11947725, "end": 11961273}, {"filename": "/samples/909/ST0T3S3.WAV", "start": 11961273, "end": 11976995}, {"filename": "/samples/909/ST0T3S7.WAV", "start": 11976995, "end": 11992961}, {"filename": "/samples/909/ST0T3SA.WAV", "start": 11992961, "end": 12009017}, {"filename": "/samples/909/ST0T7S3.WAV", "start": 12009017, "end": 12030435}, {"filename": "/samples/909/ST0T7S7.WAV", "start": 12030435, "end": 12053329}, {"filename": "/samples/909/ST0T7SA.WAV", "start": 12053329, "end": 12076863}, {"filename": "/samples/909/ST0TAS3.WAV", "start": 12076863, "end": 12099699}, {"filename": "/samples/909/ST0TAS7.WAV", "start": 12099699, "end": 12124763}, {"filename": "/samples/909/ST0TASA.WAV", "start": 12124763, "end": 12150399}, {"filename": "/samples/909/ST3T0S0.WAV", "start": 12150399, "end": 12164425}, {"filename": "/samples/909/ST3T0S3.WAV", "start": 12164425, "end": 12178593}, {"filename": "/samples/909/ST3T0S7.WAV", "start": 12178593, "end": 12192109}, {"filename": "/samples/909/ST3T0SA.WAV", "start": 12192109, "end": 12206883}, {"filename": "/samples/909/ST3T3S3.WAV", "start": 12206883, "end": 12222471}, {"filename": "/samples/909/ST3T3S7.WAV", "start": 12222471, "end": 12238445}, {"filename": "/samples/909/ST3T3SA.WAV", "start": 12238445, "end": 12254391}, {"filename": "/samples/909/ST3T7S3.WAV", "start": 12254391, "end": 12275553}, {"filename": "/samples/909/ST3T7S7.WAV", "start": 12275553, "end": 12298293}, {"filename": "/samples/909/ST3T7SA.WAV", "start": 12298293, "end": 12321825}, {"filename": "/samples/909/ST3TAS3.WAV", "start": 12321825, "end": 12344715}, {"filename": "/samples/909/ST3TAS7.WAV", "start": 12344715, "end": 12369907}, {"filename": "/samples/909/ST3TASA.WAV", "start": 12369907, "end": 12395613}, {"filename": "/samples/909/ST7T0S0.WAV", "start": 12395613, "end": 12409689}, {"filename": "/samples/909/ST7T0S3.WAV", "start": 12409689, "end": 12423695}, {"filename": "/samples/909/ST7T0S7.WAV", "start": 12423695, "end": 12438141}, {"filename": "/samples/909/ST7T0SA.WAV", "start": 12438141, "end": 12452779}, {"filename": "/samples/909/ST7T3S3.WAV", "start": 12452779, "end": 12468541}, {"filename": "/samples/909/ST7T3S7.WAV", "start": 12468541, "end": 12484509}, {"filename": "/samples/909/ST7T3SA.WAV", "start": 12484509, "end": 12500849}, {"filename": "/samples/909/ST7T7S3.WAV", "start": 12500849, "end": 12521821}, {"filename": "/samples/909/ST7T7S7.WAV", "start": 12521821, "end": 12545477}, {"filename": "/samples/909/ST7T7SA.WAV", "start": 12545477, "end": 12569131}, {"filename": "/samples/909/ST7TAS3.WAV", "start": 12569131, "end": 12591895}, {"filename": "/samples/909/ST7TAS7.WAV", "start": 12591895, "end": 12617597}, {"filename": "/samples/909/ST7TASA.WAV", "start": 12617597, "end": 12643495}, {"filename": "/samples/909/STAT0S0.WAV", "start": 12643495, "end": 12657757}, {"filename": "/samples/909/STAT0S3.WAV", "start": 12657757, "end": 12672395}, {"filename": "/samples/909/STAT0S7.WAV", "start": 12672395, "end": 12687031}, {"filename": "/samples/909/STAT0SA.WAV", "start": 12687031, "end": 12701339}, {"filename": "/samples/909/STAT3S3.WAV", "start": 12701339, "end": 12717427}, {"filename": "/samples/909/STAT3S7.WAV", "start": 12717427, "end": 12733963}, {"filename": "/samples/909/STAT3SA.WAV", "start": 12733963, "end": 12750695}, {"filename": "/samples/909/STAT7S3.WAV", "start": 12750695, "end": 12771539}, {"filename": "/samples/909/STAT7S7.WAV", "start": 12771539, "end": 12794991}, {"filename": "/samples/909/STAT7SA.WAV", "start": 12794991, "end": 12818395}, {"filename": "/samples/909/STATAS3.WAV", "start": 12818395, "end": 12841347}, {"filename": "/samples/909/STATAS7.WAV", "start": 12841347, "end": 12867369}, {"filename": "/samples/909/STATASA.WAV", "start": 12867369, "end": 12893077}, {"filename": "/samples/909/TR909SET.TXT", "start": 12893077, "end": 12899893}, {"filename": "/samples/ChocolateAmen/01-kik.wav", "start": 12899893, "end": 12901551}, {"filename": "/samples/ChocolateAmen/02-hat.wav", "start": 12901551, "end": 12903209}, {"filename": "/samples/ChocolateAmen/03-sn1.wav", "start": 12903209, "end": 12904867}, {"filename": "/samples/ChocolateAmen/04-gsn.wav", "start": 12904867, "end": 12906525}, {"filename": "/samples/ChocolateAmen/05-sn2.wav", "start": 12906525, "end": 12908183}, {"filename": "/samples/ChocolateAmen/06-csh.wav", "start": 12908183, "end": 12911193}, {"filename": "/samples/ST-01/Alien.wav", "start": 12911193, "end": 12919037}, {"filename": "/samples/ST-01/Aligator.wav", "start": 12919037, "end": 12921781}, {"filename": "/samples/ST-01/AnalogString.wav", "start": 12921781, "end": 12930625}, {"filename": "/samples/ST-01/Asia.wav", "start": 12930625, "end": 12938869}, {"filename": "/samples/ST-01/BassDrum1.wav", "start": 12938869, "end": 12940013}, {"filename": "/samples/ST-01/BassDrum2.wav", "start": 12940013, "end": 12943057}, {"filename": "/samples/ST-01/BassDrum3.wav", "start": 12943057, "end": 12946501}, {"filename": "/samples/ST-01/BassDrum4.wav", "start": 12946501, "end": 12950045}, {"filename": "/samples/ST-01/BigBow.wav", "start": 12950045, "end": 12957889}, {"filename": "/samples/ST-01/Blast.wav", "start": 12957889, "end": 12967833}, {"filename": "/samples/ST-01/Blubzing.wav", "start": 12967833, "end": 12969177}, {"filename": "/samples/ST-01/Breath.wav", "start": 12969177, "end": 12973021}, {"filename": "/samples/ST-01/Call.wav", "start": 12973021, "end": 12981065}, {"filename": "/samples/ST-01/Celeste.wav", "start": 12981065, "end": 12989109}, {"filename": "/samples/ST-01/Chink.wav", "start": 12989109, "end": 12995053}, {"filename": "/samples/ST-01/Cinema.wav", "start": 12995053, "end": 12999597}, {"filename": "/samples/ST-01/Claps1.wav", "start": 12999597, "end": 13001941}, {"filename": "/samples/ST-01/Claps2.wav", "start": 13001941, "end": 13003385}, {"filename": "/samples/ST-01/Claves.wav", "start": 13003385, "end": 13006429}, {"filename": "/samples/ST-01/CloseHiHat.wav", "start": 13006429, "end": 13007673}, {"filename": "/samples/ST-01/Conga.wav", "start": 13007673, "end": 13009317}, {"filename": "/samples/ST-01/CowBell.wav", "start": 13009317, "end": 13010761}, {"filename": "/samples/ST-01/DXBass.wav", "start": 13010761, "end": 13013505}, {"filename": "/samples/ST-01/Dangerous.wav", "start": 13013505, "end": 13020549}, {"filename": "/samples/ST-01/DeepBass.wav", "start": 13020549, "end": 13028793}, {"filename": "/samples/ST-01/Detune.wav", "start": 13028793, "end": 13034537}, {"filename": "/samples/ST-01/DigDug.wav", "start": 13034537, "end": 13037681}, {"filename": "/samples/ST-01/DigiHarp.wav", "start": 13037681, "end": 13041725}, {"filename": "/samples/ST-01/DreamBells.wav", "start": 13041725, "end": 13050969}, {"filename": "/samples/ST-01/DxTom.wav", "start": 13050969, "end": 13055013}, {"filename": "/samples/ST-01/EPiano.wav", "start": 13055013, "end": 13063057}, {"filename": "/samples/ST-01/ElecTom.wav", "start": 13063057, "end": 13066101}, {"filename": "/samples/ST-01/ExBells.wav", "start": 13066101, "end": 13069645}, {"filename": "/samples/ST-01/FaeryTale.wav", "start": 13069645, "end": 13078589}, {"filename": "/samples/ST-01/FilterBass.wav", "start": 13078589, "end": 13084533}, {"filename": "/samples/ST-01/FunBass.wav", "start": 13084533, "end": 13091077}, {"filename": "/samples/ST-01/FunkBass.wav", "start": 13091077, "end": 13096421}, {"filename": "/samples/ST-01/Gato.wav", "start": 13096421, "end": 13101465}, {"filename": "/samples/ST-01/Great.wav", "start": 13101465, "end": 13106509}, {"filename": "/samples/ST-01/HallBrass.wav", "start": 13106509, "end": 13115953}, {"filename": "/samples/ST-01/Heaven.wav", "start": 13115953, "end": 13122597}, {"filename": "/samples/ST-01/HeavySynth.wav", "start": 13122597, "end": 13132441}, {"filename": "/samples/ST-01/Heifer.wav", "start": 13132441, "end": 13135085}, {"filename": "/samples/ST-01/HiHat1.wav", "start": 13135085, "end": 13136529}, {"filename": "/samples/ST-01/HiHat2.wav", "start": 13136529, "end": 13138573}, {"filename": "/samples/ST-01/Hooman.wav", "start": 13138573, "end": 13145117}, {"filename": "/samples/ST-01/Horns.wav", "start": 13145117, "end": 13147661}, {"filename": "/samples/ST-01/JahrMarkt1.wav", "start": 13147661, "end": 13157505}, {"filename": "/samples/ST-01/JahrMarkt2.wav", "start": 13157505, "end": 13167349}, {"filename": "/samples/ST-01/Jetes.wav", "start": 13167349, "end": 13176993}, {"filename": "/samples/ST-01/Klickorgan.wav", "start": 13176993, "end": 13182737}, {"filename": "/samples/ST-01/KorgBass.wav", "start": 13182737, "end": 13186781}, {"filename": "/samples/ST-01/KorgBeau.wav", "start": 13186781, "end": 13193825}, {"filename": "/samples/ST-01/KorgBow.wav", "start": 13193825, "end": 13199269}, {"filename": "/samples/ST-01/KorgFilter.wav", "start": 13199269, "end": 13202713}, {"filename": "/samples/ST-01/KorgString.wav", "start": 13202713, "end": 13206757}, {"filename": "/samples/ST-01/Koto.wav", "start": 13206757, "end": 13213901}, {"filename": "/samples/ST-01/Leader.wav", "start": 13213901, "end": 13217345}, {"filename": "/samples/ST-01/Licks.wav", "start": 13217345, "end": 13223589}, {"filename": "/samples/ST-01/Magic.wav", "start": 13223589, "end": 13232533}, {"filename": "/samples/ST-01/Marimba.wav", "start": 13232533, "end": 13240577}, {"filename": "/samples/ST-01/Mechanic1.wav", "start": 13240577, "end": 13248121}, {"filename": "/samples/ST-01/Mechanic2.wav", "start": 13248121, "end": 13257865}, {"filename": "/samples/ST-01/MetalKeys.wav", "start": 13257865, "end": 13267309}, {"filename": "/samples/ST-01/MonoBass.wav", "start": 13267309, "end": 13273953}, {"filename": "/samples/ST-01/MonsterBass.wav", "start": 13273953, "end": 13282997}, {"filename": "/samples/ST-01/MuteClav.wav", "start": 13282997, "end": 13288141}, {"filename": "/samples/ST-01/Nice.wav", "start": 13288141, "end": 13294785}, {"filename": "/samples/ST-01/NightMare.wav", "start": 13294785, "end": 13304729}, {"filename": "/samples/ST-01/NoteMan.wav", "start": 13304729, "end": 13311773}, {"filename": "/samples/ST-01/Organ.wav", "start": 13311773, "end": 13318217}, {"filename": "/samples/ST-01/Outlaw.wav", "start": 13318217, "end": 13326661}, {"filename": "/samples/ST-01/PanFlute.wav", "start": 13326661, "end": 13336605}, {"filename": "/samples/ST-01/Perco.wav", "start": 13336605, "end": 13341149}, {"filename": "/samples/ST-01/PingBells.wav", "start": 13341149, "end": 13346593}, {"filename": "/samples/ST-01/Pizza.wav", "start": 13346593, "end": 13356037}, {"filename": "/samples/ST-01/PolySynth.wav", "start": 13356037, "end": 13365981}, {"filename": "/samples/ST-01/PopBass.wav", "start": 13365981, "end": 13368725}, {"filename": "/samples/ST-01/PopSnare1.wav", "start": 13368725, "end": 13370769}, {"filename": "/samples/ST-01/PopSnare2.wav", "start": 13370769, "end": 13374813}, {"filename": "/samples/ST-01/PopSnare3.wav", "start": 13374813, "end": 13377557}, {"filename": "/samples/ST-01/Pulse.wav", "start": 13377557, "end": 13384001}, {"filename": "/samples/ST-01/RichString.wav", "start": 13384001, "end": 13390945}, {"filename": "/samples/ST-01/RingPiano.wav", "start": 13390945, "end": 13400889}, {"filename": "/samples/ST-01/RoomBrass.wav", "start": 13400889, "end": 13405533}, {"filename": "/samples/ST-01/RubberBass.wav", "start": 13405533, "end": 13414577}, {"filename": "/samples/ST-01/Shaker.wav", "start": 13414577, "end": 13416921}, {"filename": "/samples/ST-01/Shamus.wav", "start": 13416921, "end": 13425965}, {"filename": "/samples/ST-01/SineCZ.wav", "start": 13425965, "end": 13429909}, {"filename": "/samples/ST-01/SixTease.wav", "start": 13429909, "end": 13438353}, {"filename": "/samples/ST-01/SlapBass.wav", "start": 13438353, "end": 13443297}, {"filename": "/samples/ST-01/Smash1.wav", "start": 13443297, "end": 13446841}, {"filename": "/samples/ST-01/Smash2.wav", "start": 13446841, "end": 13451285}, {"filename": "/samples/ST-01/Snare1.wav", "start": 13451285, "end": 13453329}, {"filename": "/samples/ST-01/Snare2.wav", "start": 13453329, "end": 13455273}, {"filename": "/samples/ST-01/Snare3.wav", "start": 13455273, "end": 13459117}, {"filename": "/samples/ST-01/Snare4.wav", "start": 13459117, "end": 13461161}, {"filename": "/samples/ST-01/Snare5.wav", "start": 13461161, "end": 13465205}, {"filename": "/samples/ST-01/SoftBass.wav", "start": 13465205, "end": 13470149}, {"filename": "/samples/ST-01/Soundtrack.wav", "start": 13470149, "end": 13480093}, {"filename": "/samples/ST-01/Squares.wav", "start": 13480093, "end": 13490037}, {"filename": "/samples/ST-01/Stabs.wav", "start": 13490037, "end": 13497481}, {"filename": "/samples/ST-01/Steinway.wav", "start": 13497481, "end": 13504425}, {"filename": "/samples/ST-01/Strange.wav", "start": 13504425, "end": 13511469}, {"filename": "/samples/ST-01/Strings1.wav", "start": 13511469, "end": 13520413}, {"filename": "/samples/ST-01/Strings2.wav", "start": 13520413, "end": 13530157}, {"filename": "/samples/ST-01/Strings3.wav", "start": 13530157, "end": 13538701}, {"filename": "/samples/ST-01/Strings4.wav", "start": 13538701, "end": 13548445}, {"filename": "/samples/ST-01/Strings5.wav", "start": 13548445, "end": 13558389}, {"filename": "/samples/ST-01/Strings7.wav", "start": 13558389, "end": 13568333}, {"filename": "/samples/ST-01/Strings8.wav", "start": 13568333, "end": 13576477}, {"filename": "/samples/ST-01/Sweep.wav", "start": 13576477, "end": 13583821}, {"filename": "/samples/ST-01/SynBrass.wav", "start": 13583821, "end": 13587865}, {"filename": "/samples/ST-01/SynClaves.wav", "start": 13587865, "end": 13588909}, {"filename": "/samples/ST-01/SynthPiano.wav", "start": 13588909, "end": 13594453}, {"filename": "/samples/ST-01/SyntheBass.wav", "start": 13594453, "end": 13602397}, {"filename": "/samples/ST-01/TechBass.wav", "start": 13602397, "end": 13607541}, {"filename": "/samples/ST-01/TheEgg.wav", "start": 13607541, "end": 13617485}, {"filename": "/samples/ST-01/TineWave.wav", "start": 13617485, "end": 13627429}, {"filename": "/samples/ST-01/Touch.wav", "start": 13627429, "end": 13636673}, {"filename": "/samples/ST-01/TuneBass.wav", "start": 13636673, "end": 13641517}, {"filename": "/samples/ST-01/Voices.wav", "start": 13641517, "end": 13651461}, {"filename": "/samples/ST-01/WabberString.wav", "start": 13651461, "end": 13655405}, {"filename": "/samples/ST-01/WoodBlock.wav", "start": 13655405, "end": 13656649}, {"filename": "/samples/ST-01/WowBass.wav", "start": 13656649, "end": 13661693}, {"filename": "/samples/ST-01/st-notes.txt", "start": 13661693, "end": 13661927}, {"filename": "/samples/ST-01/strings6.wav", "start": 13661927, "end": 13671973}, {"filename": "/themes/Choo.cth", "start": 13671973, "end": 13672223}, {"filename": "/themes/DarkPink.cth", "start": 13672223, "end": 13672473}, {"filename": "/themes/Default.cth", "start": 13672473, "end": 13672723}, {"filename": "/themes/IDEColorThemes/AbletonDark.cth", "start": 13672723, "end": 13672973}, {"filename": "/themes/IDEColorThemes/AbletonLight.cth", "start": 13672973, "end": 13673223}, {"filename": "/themes/IDEColorThemes/AtomOneDark.cth", "start": 13673223, "end": 13673473}, {"filename": "/themes/IDEColorThemes/AtomOneLight.cth", "start": 13673473, "end": 13673723}, {"filename": "/themes/IDEColorThemes/CatpuccinDrk.cth", "start": 13673723, "end": 13673973}, {"filename": "/themes/IDEColorThemes/CatpuccinLight.cth", "start": 13673973, "end": 13674223}, {"filename": "/themes/IDEColorThemes/CyberpunkDark.cth", "start": 13674223, "end": 13674473}, {"filename": "/themes/IDEColorThemes/CyberpunkLight.cth", "start": 13674473, "end": 13674723}, {"filename": "/themes/IDEColorThemes/DraculaDark.cth", "start": 13674723, "end": 13674973}, {"filename": "/themes/IDEColorThemes/DraculaLight.cth", "start": 13674973, "end": 13675223}, {"filename": "/themes/IDEColorThemes/FLStudioDark.cth", "start": 13675223, "end": 13675473}, {"filename": "/themes/IDEColorThemes/FLStudioLight.cth", "start": 13675473, "end": 13675723}, {"filename": "/themes/IDEColorThemes/GBDMGDark.cth", "start": 13675723, "end": 13675973}, {"filename": "/themes/IDEColorThemes/GBDMGLight.cth", "start": 13675973, "end": 13676223}, {"filename": "/themes/IDEColorThemes/GitHubDark.cth", "start": 13676223, "end": 13676473}, {"filename": "/themes/IDEColorThemes/GitHubLight.cth", "start": 13676473, "end": 13676723}, {"filename": "/themes/IDEColorThemes/GruvDark.cth", "start": 13676723, "end": 13676973}, {"filename": "/themes/IDEColorThemes/GruvLight.cth", "start": 13676973, "end": 13677223}, {"filename": "/themes/IDEColorThemes/MatchaDark.cth", "start": 13677223, "end": 13677473}, {"filename": "/themes/IDEColorThemes/MatchaLight.cth", "start": 13677473, "end": 13677723}, {"filename": "/themes/IDEColorThemes/MonokaiProDark.cth", "start": 13677723, "end": 13677973}, {"filename": "/themes/IDEColorThemes/MonokaiProLight.cth", "start": 13677973, "end": 13678223}, {"filename": "/themes/IDEColorThemes/NordDark.cth", "start": 13678223, "end": 13678473}, {"filename": "/themes/IDEColorThemes/NordLight.cth", "start": 13678473, "end": 13678723}, {"filename": "/themes/IDEColorThemes/NostromoAmberDark.cth", "start": 13678723, "end": 13678973}, {"filename": "/themes/IDEColorThemes/NostromoAmberLight.cth", "start": 13678973, "end": 13679223}, {"filename": "/themes/IDEColorThemes/TokyoNightDark.cth", "start": 13679223, "end": 13679473}, {"filename": "/themes/IDEColorThemes/TokyoNightLight.cth", "start": 13679473, "end": 13679723}, {"filename": "/themes/IDEColorThemes/WLTerminalGreenDark.cth", "start": 13679723, "end": 13679973}, {"filename": "/themes/IDEColorThemes/WLTerminalGreenLight.cth", "start": 13679973, "end": 13680223}, {"filename": "/themes/IDEColorThemes/ZenBurnDark.cth", "start": 13680223, "end": 13680473}, {"filename": "/themes/IDEColorThemes/ZenBurnLight.cth", "start": 13680473, "end": 13680723}, {"filename": "/themes/NostromoAmberDa2.cth", "start": 13680723, "end": 13680983}, {"filename": "/themes/Wood.cth", "start": 13680983, "end": 13681243}, {"filename": "/themes/cndef.cth", "start": 13681243, "end": 13681503}, {"filename": "/themes/nIkO.cth", "start": 13681503, "end": 13681753}, {"filename": "/title/SNES_ART.md", "start": 13681753, "end": 13682814}, {"filename": "/title/snes_foreground.bmp", "start": 13682814, "end": 13818036}, {"filename": "/title/snes_logo.bmp", "start": 13818036, "end": 13834506}, {"filename": "/title/snes_scene.bmp", "start": 13834506, "end": 13981056}, {"filename": "/title/snes_sky.bmp", "start": 13981056, "end": 14325174}, {"filename": "/title/snes_train.bmp", "start": 14325174, "end": 14348268}, {"filename": "/title/snes_viaduct.bmp", "start": 14348268, "end": 14388930}, {"filename": "/waveforms/AKWF/AKWF_cello_0001.wav", "start": 14388930, "end": 14390274}, {"filename": "/waveforms/AKWF/AKWF_cello_0002.wav", "start": 14390274, "end": 14391618}, {"filename": "/waveforms/AKWF/AKWF_cello_0003.wav", "start": 14391618, "end": 14392962}, {"filename": "/waveforms/AKWF/AKWF_clarinett_0001.wav", "start": 14392962, "end": 14394306}, {"filename": "/waveforms/AKWF/AKWF_clarinett_0002.wav", "start": 14394306, "end": 14395650}, {"filename": "/waveforms/AKWF/AKWF_piano_0001.wav", "start": 14395650, "end": 14396994}, {"filename": "/waveforms/AKWF/AKWF_piano_0002.wav", "start": 14396994, "end": 14398338}, {"filename": "/waveforms/AKWF/AKWF_piano_0003.wav", "start": 14398338, "end": 14399682}, {"filename": "/waveforms/AKWF/AKWF_piano_0004.wav", "start": 14399682, "end": 14401026}, {"filename": "/waveforms/AKWF/AKWF_piano_0005.wav", "start": 14401026, "end": 14402370}, {"filename": "/waveforms/AKWF/AKWF_piano_0006.wav", "start": 14402370, "end": 14403714}, {"filename": "/waveforms/AKWF/AKWF_piano_0007.wav", "start": 14403714, "end": 14405058}, {"filename": "/waveforms/AKWF/AKWF_piano_0008.wav", "start": 14405058, "end": 14406402}, {"filename": "/waveforms/AKWF/AKWF_piano_0009.wav", "start": 14406402, "end": 14407746}, {"filename": "/waveforms/AKWF/AKWF_piano_0010.wav", "start": 14407746, "end": 14409090}, {"filename": "/waveforms/AKWF/AKWF_piano_0011.wav", "start": 14409090, "end": 14410434}, {"filename": "/waveforms/AKWF/AKWF_piano_0012.wav", "start": 14410434, "end": 14411778}, {"filename": "/waveforms/AKWF/AKWF_pluckalgo_0001.wav", "start": 14411778, "end": 14413122}, {"filename": "/waveforms/AKWF/AKWF_pluckalgo_0002.wav", "start": 14413122, "end": 14414466}, {"filename": "/waveforms/AKWF/AKWF_pluckalgo_0003.wav", "start": 14414466, "end": 14415810}, {"filename": "/waveforms/AKWF/AKWF_pluckalgo_0004.wav", "start": 14415810, "end": 14417154}, {"filename": "/waveforms/AKWF/AKWF_pluckalgo_0005.wav", "start": 14417154, "end": 14418498}, {"filename": "/waveforms/AKWF/AKWF_pluckalgo_0006.wav", "start": 14418498, "end": 14419842}, {"filename": "/waveforms/AKWF/AKWF_pluckalgo_0007.wav", "start": 14419842, "end": 14421186}, {"filename": "/waveforms/AKWF/AKWF_pluckalgo_0008.wav", "start": 14421186, "end": 14422530}, {"filename": "/waveforms/AKWF/AKWF_pluckalgo_0009.wav", "start": 14422530, "end": 14423874}, {"filename": "/waveforms/AKWF/AKWF_vgame_0001.wav", "start": 14423874, "end": 14425218}, {"filename": "/waveforms/AKWF/AKWF_vgame_0002.wav", "start": 14425218, "end": 14426562}, {"filename": "/waveforms/AKWF/AKWF_vgame_0003.wav", "start": 14426562, "end": 14427906}, {"filename": "/waveforms/AKWF/AKWF_vgame_0004.wav", "start": 14427906, "end": 14429250}, {"filename": "/waveforms/AKWF/AKWF_vgame_0005.wav", "start": 14429250, "end": 14430594}, {"filename": "/waveforms/AKWF/AKWF_vgame_0006.wav", "start": 14430594, "end": 14431938}, {"filename": "/waveforms/AKWF/AKWF_vgame_0007.wav", "start": 14431938, "end": 14433282}, {"filename": "/waveforms/AKWF/AKWF_vgame_0008.wav", "start": 14433282, "end": 14434626}, {"filename": "/waveforms/AKWF/AKWF_vgame_0009.wav", "start": 14434626, "end": 14435970}, {"filename": "/waveforms/AKWF/AKWF_vgame_0010.wav", "start": 14435970, "end": 14437314}, {"filename": "/waveforms/AKWF/AKWF_vgame_0011.wav", "start": 14437314, "end": 14438658}, {"filename": "/waveforms/AKWF/AKWF_vgame_0012.wav", "start": 14438658, "end": 14440002}, {"filename": "/waveforms/AKWF/AKWF_violin_0001.wav", "start": 14440002, "end": 14441346}, {"filename": "/waveforms/AKWF/AKWF_violin_0002.wav", "start": 14441346, "end": 14442690}, {"filename": "/waveforms/AKWF/AKWF_violin_0003.wav", "start": 14442690, "end": 14444034}, {"filename": "/waveforms/AKWF/AKWF_violin_0004.wav", "start": 14444034, "end": 14445378}, {"filename": "/waveforms/AKWF/AKWF_violin_0005.wav", "start": 14445378, "end": 14446722}, {"filename": "/waveforms/AKWF/AKWF_violin_0006.wav", "start": 14446722, "end": 14448066}, {"filename": "/waveforms/AKWF/AKWF_violin_0007.wav", "start": 14448066, "end": 14449410}, {"filename": "/waveforms/AKWF/AKWF_violin_0008.wav", "start": 14449410, "end": 14450754}, {"filename": "/waveforms/AKWF/AKWF_violin_0009.wav", "start": 14450754, "end": 14452098}, {"filename": "/waveforms/AKWF/AKWF_violin_0010.wav", "start": 14452098, "end": 14453442}, {"filename": "/waveforms/AKWF/AKWF_violin_0011.wav", "start": 14453442, "end": 14454786}, {"filename": "/waveforms/AKWF/AKWF_violin_0012.wav", "start": 14454786, "end": 14456130}, {"filename": "/waveforms/AKWF/LICENSE.AKWF-CC0.md", "start": 14456130, "end": 14462801}], "remote_package_size": 14462801});
+    loadPackage({"files": [{"filename": "/AY_wavetables/AY-Waves-4.aywave", "start": 0, "end": 132}, {"filename": "/AY_wavetables/FIFTH.aywave", "start": 132, "end": 165}, {"filename": "/AY_wavetables/NESTRI.aywave", "start": 165, "end": 198}, {"filename": "/AY_wavetables/VRC6DSAW.aywave", "start": 198, "end": 231}, {"filename": "/AY_wavetables/VRC6SAW.aywave", "start": 231, "end": 264}, {"filename": "/SR_wavetables/WaveEdit/11-2020_.WAV", "start": 264, "end": 33076}, {"filename": "/SR_wavetables/WaveEdit/111.WAV", "start": 33076, "end": 65888}, {"filename": "/SR_wavetables/WaveEdit/111___00.WAV", "start": 65888, "end": 98700}, {"filename": "/SR_wavetables/WaveEdit/303.WAV", "start": 98700, "end": 131512}, {"filename": "/SR_wavetables/WaveEdit/AAHWOHYE.WAV", "start": 131512, "end": 164324}, {"filename": "/SR_wavetables/WaveEdit/ACCESS_V.WAV", "start": 164324, "end": 197136}, {"filename": "/SR_wavetables/WaveEdit/ACID_RIN.WAV", "start": 197136, "end": 229948}, {"filename": "/SR_wavetables/WaveEdit/ACID_SP.WAV", "start": 229948, "end": 262760}, {"filename": "/SR_wavetables/WaveEdit/ADDITIVE.WAV", "start": 262760, "end": 295572}, {"filename": "/SR_wavetables/WaveEdit/AEIOUTSX.WAV", "start": 295572, "end": 328384}, {"filename": "/SR_wavetables/WaveEdit/AKVF_GRA.WAV", "start": 328384, "end": 361196}, {"filename": "/SR_wavetables/WaveEdit/AKVF_NES.WAV", "start": 361196, "end": 394008}, {"filename": "/SR_wavetables/WaveEdit/AKVF_VID.WAV", "start": 394008, "end": 426820}, {"filename": "/SR_wavetables/WaveEdit/AKWF_FMS.WAV", "start": 426820, "end": 459632}, {"filename": "/SR_wavetables/WaveEdit/ALIEN_SP.WAV", "start": 459632, "end": 492444}, {"filename": "/SR_wavetables/WaveEdit/ALIEN_VO.WAV", "start": 492444, "end": 525256}, {"filename": "/SR_wavetables/WaveEdit/ALPHA_2_.WAV", "start": 525256, "end": 558068}, {"filename": "/SR_wavetables/WaveEdit/ALTO_SAX.WAV", "start": 558068, "end": 590880}, {"filename": "/SR_wavetables/WaveEdit/AMEN.WAV", "start": 590880, "end": 623692}, {"filename": "/SR_wavetables/WaveEdit/AMEN_LOO.WAV", "start": 623692, "end": 656504}, {"filename": "/SR_wavetables/WaveEdit/AM_SINE.WAV", "start": 656504, "end": 689316}, {"filename": "/SR_wavetables/WaveEdit/ANALOG_W.WAV", "start": 689316, "end": 722128}, {"filename": "/SR_wavetables/WaveEdit/ASSYMETR.WAV", "start": 722128, "end": 754940}, {"filename": "/SR_wavetables/WaveEdit/AUDIOTER.WAV", "start": 754940, "end": 787752}, {"filename": "/SR_wavetables/WaveEdit/A_55HZ_-.WAV", "start": 787752, "end": 820564}, {"filename": "/SR_wavetables/WaveEdit/BANK_410.WAV", "start": 820564, "end": 853376}, {"filename": "/SR_wavetables/WaveEdit/BANK_A.WAV", "start": 853376, "end": 886188}, {"filename": "/SR_wavetables/WaveEdit/BANK_B.WAV", "start": 886188, "end": 919000}, {"filename": "/SR_wavetables/WaveEdit/BANK_C.WAV", "start": 919000, "end": 951812}, {"filename": "/SR_wavetables/WaveEdit/BASIC_TH.WAV", "start": 951812, "end": 984624}, {"filename": "/SR_wavetables/WaveEdit/BASIC_WA.WAV", "start": 984624, "end": 1017436}, {"filename": "/SR_wavetables/WaveEdit/BASS_BY_.WAV", "start": 1017436, "end": 1050248}, {"filename": "/SR_wavetables/WaveEdit/BBELLS.WAV", "start": 1050248, "end": 1083060}, {"filename": "/SR_wavetables/WaveEdit/BELL02.WAV", "start": 1083060, "end": 1115872}, {"filename": "/SR_wavetables/WaveEdit/BELL03.WAV", "start": 1115872, "end": 1148684}, {"filename": "/SR_wavetables/WaveEdit/BELLS.WAV", "start": 1148684, "end": 1181496}, {"filename": "/SR_wavetables/WaveEdit/BEST_OF_.WAV", "start": 1181496, "end": 1214308}, {"filename": "/SR_wavetables/WaveEdit/BOWED_00.WAV", "start": 1214308, "end": 1247120}, {"filename": "/SR_wavetables/WaveEdit/BOWED_CY.WAV", "start": 1247120, "end": 1279932}, {"filename": "/SR_wavetables/WaveEdit/BOWING.WAV", "start": 1279932, "end": 1312744}, {"filename": "/SR_wavetables/WaveEdit/BRAIDS01.WAV", "start": 1312744, "end": 1345556}, {"filename": "/SR_wavetables/WaveEdit/BRAIDS02.WAV", "start": 1345556, "end": 1378368}, {"filename": "/SR_wavetables/WaveEdit/BRAIDS03.WAV", "start": 1378368, "end": 1411180}, {"filename": "/SR_wavetables/WaveEdit/BRAIDS04.WAV", "start": 1411180, "end": 1443992}, {"filename": "/SR_wavetables/WaveEdit/CHEBYSHE.WAV", "start": 1443992, "end": 1476804}, {"filename": "/SR_wavetables/WaveEdit/CLOCK_MU.WAV", "start": 1476804, "end": 1509616}, {"filename": "/SR_wavetables/WaveEdit/COLUNDI-.WAV", "start": 1509616, "end": 1542428}, {"filename": "/SR_wavetables/WaveEdit/CRUSH_AD.WAV", "start": 1542428, "end": 1575240}, {"filename": "/SR_wavetables/WaveEdit/CYBERNET.WAV", "start": 1575240, "end": 1608052}, {"filename": "/SR_wavetables/WaveEdit/CYBORG.WAV", "start": 1608052, "end": 1640864}, {"filename": "/SR_wavetables/WaveEdit/CZ-ISH.WAV", "start": 1640864, "end": 1673676}, {"filename": "/SR_wavetables/WaveEdit/DECIDE.WAV", "start": 1673676, "end": 1706488}, {"filename": "/SR_wavetables/WaveEdit/DIGITAL_.WAV", "start": 1706488, "end": 1739300}, {"filename": "/SR_wavetables/WaveEdit/DIRTY_01.WAV", "start": 1739300, "end": 1772112}, {"filename": "/SR_wavetables/WaveEdit/DIRTY_02.WAV", "start": 1772112, "end": 1804924}, {"filename": "/SR_wavetables/WaveEdit/DISCORDA.WAV", "start": 1804924, "end": 1837736}, {"filename": "/SR_wavetables/WaveEdit/DISTORTE.WAV", "start": 1837736, "end": 1870548}, {"filename": "/SR_wavetables/WaveEdit/DOSE_WIT.WAV", "start": 1870548, "end": 1903360}, {"filename": "/SR_wavetables/WaveEdit/DRONE.WAV", "start": 1903360, "end": 1936172}, {"filename": "/SR_wavetables/WaveEdit/DRONE_.WAV", "start": 1936172, "end": 1968984}, {"filename": "/SR_wavetables/WaveEdit/DRUMSTRU.WAV", "start": 1968984, "end": 2001796}, {"filename": "/SR_wavetables/WaveEdit/E.GUITAR.WAV", "start": 2001796, "end": 2034608}, {"filename": "/SR_wavetables/WaveEdit/ELOB_A.WAV", "start": 2034608, "end": 2067420}, {"filename": "/SR_wavetables/WaveEdit/ELOB_B.WAV", "start": 2067420, "end": 2100232}, {"filename": "/SR_wavetables/WaveEdit/ELOB_C.WAV", "start": 2100232, "end": 2133044}, {"filename": "/SR_wavetables/WaveEdit/ENSHTU02.WAV", "start": 2133044, "end": 2165856}, {"filename": "/SR_wavetables/WaveEdit/ENSHTU03.WAV", "start": 2165856, "end": 2198668}, {"filename": "/SR_wavetables/WaveEdit/ENSHTURZ.WAV", "start": 2198668, "end": 2231480}, {"filename": "/SR_wavetables/WaveEdit/ENSONIQ_.WAV", "start": 2231480, "end": 2264292}, {"filename": "/SR_wavetables/WaveEdit/ENVELO00.WAV", "start": 2264292, "end": 2297104}, {"filename": "/SR_wavetables/WaveEdit/ENVELO01.WAV", "start": 2297104, "end": 2329916}, {"filename": "/SR_wavetables/WaveEdit/ENVELOPE.WAV", "start": 2329916, "end": 2362728}, {"filename": "/SR_wavetables/WaveEdit/ESQ1-HI.WAV", "start": 2362728, "end": 2395540}, {"filename": "/SR_wavetables/WaveEdit/ESQ1-LO.WAV", "start": 2395540, "end": 2428352}, {"filename": "/SR_wavetables/WaveEdit/EUCLIDEA.WAV", "start": 2428352, "end": 2461164}, {"filename": "/SR_wavetables/WaveEdit/FAIRLI01.WAV", "start": 2461164, "end": 2493976}, {"filename": "/SR_wavetables/WaveEdit/FAIRLIGH.WAV", "start": 2493976, "end": 2526788}, {"filename": "/SR_wavetables/WaveEdit/FEEDBACK.WAV", "start": 2526788, "end": 2559600}, {"filename": "/SR_wavetables/WaveEdit/FMADDI02.WAV", "start": 2559600, "end": 2592412}, {"filename": "/SR_wavetables/WaveEdit/FM_-_COM.WAV", "start": 2592412, "end": 2625224}, {"filename": "/SR_wavetables/WaveEdit/FOLDFEED.WAV", "start": 2625224, "end": 2658036}, {"filename": "/SR_wavetables/WaveEdit/FOLDING_.WAV", "start": 2658036, "end": 2690848}, {"filename": "/SR_wavetables/WaveEdit/FOURIER.WAV", "start": 2690848, "end": 2723660}, {"filename": "/SR_wavetables/WaveEdit/FOURIER2.WAV", "start": 2723660, "end": 2756472}, {"filename": "/SR_wavetables/WaveEdit/FRACTA01.WAV", "start": 2756472, "end": 2789284}, {"filename": "/SR_wavetables/WaveEdit/FRACTA02.WAV", "start": 2789284, "end": 2822096}, {"filename": "/SR_wavetables/WaveEdit/FRACTA03.WAV", "start": 2822096, "end": 2854908}, {"filename": "/SR_wavetables/WaveEdit/FRED_DUR.WAV", "start": 2854908, "end": 2887720}, {"filename": "/SR_wavetables/WaveEdit/FX_BITNO.WAV", "start": 2887720, "end": 2920532}, {"filename": "/SR_wavetables/WaveEdit/FX_BIT_N.WAV", "start": 2920532, "end": 2953344}, {"filename": "/SR_wavetables/WaveEdit/G2_ASTRA.WAV", "start": 2953344, "end": 2986156}, {"filename": "/SR_wavetables/WaveEdit/GENTLE_M.WAV", "start": 2986156, "end": 3018968}, {"filename": "/SR_wavetables/WaveEdit/GEOMETRI.WAV", "start": 3018968, "end": 3051780}, {"filename": "/SR_wavetables/WaveEdit/GLITCHBO.WAV", "start": 3051780, "end": 3084592}, {"filename": "/SR_wavetables/WaveEdit/GRAV-A1.WAV", "start": 3084592, "end": 3117404}, {"filename": "/SR_wavetables/WaveEdit/GRAV-A10.WAV", "start": 3117404, "end": 3150216}, {"filename": "/SR_wavetables/WaveEdit/GRAV-A2.WAV", "start": 3150216, "end": 3183028}, {"filename": "/SR_wavetables/WaveEdit/GRAV-A3.WAV", "start": 3183028, "end": 3215840}, {"filename": "/SR_wavetables/WaveEdit/GRAV-A4.WAV", "start": 3215840, "end": 3248652}, {"filename": "/SR_wavetables/WaveEdit/GRAV-A5.WAV", "start": 3248652, "end": 3281464}, {"filename": "/SR_wavetables/WaveEdit/GRAV-A6.WAV", "start": 3281464, "end": 3314276}, {"filename": "/SR_wavetables/WaveEdit/GRAV-A7.WAV", "start": 3314276, "end": 3347088}, {"filename": "/SR_wavetables/WaveEdit/GRAV-A8.WAV", "start": 3347088, "end": 3379900}, {"filename": "/SR_wavetables/WaveEdit/GRAV-A9.WAV", "start": 3379900, "end": 3412712}, {"filename": "/SR_wavetables/WaveEdit/GRAV-B1.WAV", "start": 3412712, "end": 3445524}, {"filename": "/SR_wavetables/WaveEdit/GRAV-B10.WAV", "start": 3445524, "end": 3478336}, {"filename": "/SR_wavetables/WaveEdit/GRAV-B2.WAV", "start": 3478336, "end": 3511148}, {"filename": "/SR_wavetables/WaveEdit/GRAV-B3.WAV", "start": 3511148, "end": 3543960}, {"filename": "/SR_wavetables/WaveEdit/GRAV-B4.WAV", "start": 3543960, "end": 3576772}, {"filename": "/SR_wavetables/WaveEdit/GRAV-B5.WAV", "start": 3576772, "end": 3609584}, {"filename": "/SR_wavetables/WaveEdit/GRAV-B6.WAV", "start": 3609584, "end": 3642396}, {"filename": "/SR_wavetables/WaveEdit/GRAV-B7.WAV", "start": 3642396, "end": 3675208}, {"filename": "/SR_wavetables/WaveEdit/GRAV-B8.WAV", "start": 3675208, "end": 3708020}, {"filename": "/SR_wavetables/WaveEdit/GRAV-B9.WAV", "start": 3708020, "end": 3740832}, {"filename": "/SR_wavetables/WaveEdit/GRAV-C1.WAV", "start": 3740832, "end": 3773644}, {"filename": "/SR_wavetables/WaveEdit/GRAV-C10.WAV", "start": 3773644, "end": 3806456}, {"filename": "/SR_wavetables/WaveEdit/GRAV-C2.WAV", "start": 3806456, "end": 3839268}, {"filename": "/SR_wavetables/WaveEdit/GRAV-C3.WAV", "start": 3839268, "end": 3872080}, {"filename": "/SR_wavetables/WaveEdit/GRAV-C5.WAV", "start": 3872080, "end": 3904892}, {"filename": "/SR_wavetables/WaveEdit/GRAV-C6.WAV", "start": 3904892, "end": 3937704}, {"filename": "/SR_wavetables/WaveEdit/GRAV-C7.WAV", "start": 3937704, "end": 3970516}, {"filename": "/SR_wavetables/WaveEdit/GRAV-C8.WAV", "start": 3970516, "end": 4003328}, {"filename": "/SR_wavetables/WaveEdit/GRAV-C9.WAV", "start": 4003328, "end": 4036140}, {"filename": "/SR_wavetables/WaveEdit/HARMOMET.WAV", "start": 4036140, "end": 4068952}, {"filename": "/SR_wavetables/WaveEdit/HARMON00.WAV", "start": 4068952, "end": 4101764}, {"filename": "/SR_wavetables/WaveEdit/HARMONIC.WAV", "start": 4101764, "end": 4134576}, {"filename": "/SR_wavetables/WaveEdit/HARMONIO.WAV", "start": 4134576, "end": 4167388}, {"filename": "/SR_wavetables/WaveEdit/HARMONIX.WAV", "start": 4167388, "end": 4200200}, {"filename": "/SR_wavetables/WaveEdit/HIENHARM.WAV", "start": 4200200, "end": 4233012}, {"filename": "/SR_wavetables/WaveEdit/HIGH_FRE.WAV", "start": 4233012, "end": 4265824}, {"filename": "/SR_wavetables/WaveEdit/HMMMMMMM.WAV", "start": 4265824, "end": 4298636}, {"filename": "/SR_wavetables/WaveEdit/HORROR.WAV", "start": 4298636, "end": 4331448}, {"filename": "/SR_wavetables/WaveEdit/HVOICEA.WAV", "start": 4331448, "end": 4364260}, {"filename": "/SR_wavetables/WaveEdit/HYPERBOL.WAV", "start": 4364260, "end": 4397072}, {"filename": "/SR_wavetables/WaveEdit/ISOBELLE.WAV", "start": 4397072, "end": 4429884}, {"filename": "/SR_wavetables/WaveEdit/ISOLDE.WAV", "start": 4429884, "end": 4462696}, {"filename": "/SR_wavetables/WaveEdit/ITERAT00.WAV", "start": 4462696, "end": 4495508}, {"filename": "/SR_wavetables/WaveEdit/ITERATIV.WAV", "start": 4495508, "end": 4528320}, {"filename": "/SR_wavetables/WaveEdit/I_HEART_.WAV", "start": 4528320, "end": 4561132}, {"filename": "/SR_wavetables/WaveEdit/JUNOX_HO.WAV", "start": 4561132, "end": 4593944}, {"filename": "/SR_wavetables/WaveEdit/JUST_RAN.WAV", "start": 4593944, "end": 4626756}, {"filename": "/SR_wavetables/WaveEdit/KAWAI_K1.WAV", "start": 4626756, "end": 4659568}, {"filename": "/SR_wavetables/WaveEdit/KEEN.WAV", "start": 4659568, "end": 4692380}, {"filename": "/SR_wavetables/WaveEdit/KERMIT00.WAV", "start": 4692380, "end": 4725192}, {"filename": "/SR_wavetables/WaveEdit/KERMIT01.WAV", "start": 4725192, "end": 4758004}, {"filename": "/SR_wavetables/WaveEdit/KERMITEN.WAV", "start": 4758004, "end": 4790816}, {"filename": "/SR_wavetables/WaveEdit/KERMIT_0.WAV", "start": 4790816, "end": 4823628}, {"filename": "/SR_wavetables/WaveEdit/KERMIT_K.WAV", "start": 4823628, "end": 4856440}, {"filename": "/SR_wavetables/WaveEdit/KERMIT_R.WAV", "start": 4856440, "end": 4889252}, {"filename": "/SR_wavetables/WaveEdit/KOMPLE01.WAV", "start": 4889252, "end": 4922064}, {"filename": "/SR_wavetables/WaveEdit/KONBANWA.WAV", "start": 4922064, "end": 4954876}, {"filename": "/SR_wavetables/WaveEdit/KUATO.WAV", "start": 4954876, "end": 4987688}, {"filename": "/SR_wavetables/WaveEdit/KYMA_PAR.WAV", "start": 4987688, "end": 5020500}, {"filename": "/SR_wavetables/WaveEdit/LASER_CR.WAV", "start": 5020500, "end": 5053312}, {"filename": "/SR_wavetables/WaveEdit/LERNING2.WAV", "start": 5053312, "end": 5086124}, {"filename": "/SR_wavetables/WaveEdit/LFO_PL00.WAV", "start": 5086124, "end": 5118936}, {"filename": "/SR_wavetables/WaveEdit/LFO_PLAY.WAV", "start": 5118936, "end": 5151748}, {"filename": "/SR_wavetables/WaveEdit/LICENSE.CC0.md", "start": 5151748, "end": 5152093}, {"filename": "/SR_wavetables/WaveEdit/LIGHT_00.WAV", "start": 5152093, "end": 5184905}, {"filename": "/SR_wavetables/WaveEdit/LIGHT_YE.WAV", "start": 5184905, "end": 5217717}, {"filename": "/SR_wavetables/WaveEdit/LOFIRISE.WAV", "start": 5217717, "end": 5250529}, {"filename": "/SR_wavetables/WaveEdit/LOM_A.WAV", "start": 5250529, "end": 5283341}, {"filename": "/SR_wavetables/WaveEdit/LSDJ_WAV.WAV", "start": 5283341, "end": 5316153}, {"filename": "/SR_wavetables/WaveEdit/MAGNET00.WAV", "start": 5316153, "end": 5348965}, {"filename": "/SR_wavetables/WaveEdit/MAGNETIC.WAV", "start": 5348965, "end": 5381777}, {"filename": "/SR_wavetables/WaveEdit/MELLOW_D.WAV", "start": 5381777, "end": 5414589}, {"filename": "/SR_wavetables/WaveEdit/MERAVIGL.WAV", "start": 5414589, "end": 5447401}, {"filename": "/SR_wavetables/WaveEdit/MICROBRU.WAV", "start": 5447401, "end": 5480213}, {"filename": "/SR_wavetables/WaveEdit/MICROW02.WAV", "start": 5480213, "end": 5513025}, {"filename": "/SR_wavetables/WaveEdit/MICRO_Q_.WAV", "start": 5513025, "end": 5545837}, {"filename": "/SR_wavetables/WaveEdit/MIXED02.WAV", "start": 5545837, "end": 5578649}, {"filename": "/SR_wavetables/WaveEdit/MIXED_AS.WAV", "start": 5578649, "end": 5611461}, {"filename": "/SR_wavetables/WaveEdit/MK_DWG_H.WAV", "start": 5611461, "end": 5644273}, {"filename": "/SR_wavetables/WaveEdit/MODDROP.WAV", "start": 5644273, "end": 5677085}, {"filename": "/SR_wavetables/WaveEdit/MONICS.WAV", "start": 5677085, "end": 5709897}, {"filename": "/SR_wavetables/WaveEdit/MORPHING.WAV", "start": 5709897, "end": 5742709}, {"filename": "/SR_wavetables/WaveEdit/MS2K.WAV", "start": 5742709, "end": 5775521}, {"filename": "/SR_wavetables/WaveEdit/MUTATION.WAV", "start": 5775521, "end": 5808333}, {"filename": "/SR_wavetables/WaveEdit/NOISE_WA.WAV", "start": 5808333, "end": 5841145}, {"filename": "/SR_wavetables/WaveEdit/NOMAD.WAV", "start": 5841145, "end": 5873957}, {"filename": "/SR_wavetables/WaveEdit/ORGANIC_.WAV", "start": 5873957, "end": 5906769}, {"filename": "/SR_wavetables/WaveEdit/ORGANS01.WAV", "start": 5906769, "end": 5939581}, {"filename": "/SR_wavetables/WaveEdit/ORGAN_DI.WAV", "start": 5939581, "end": 5972393}, {"filename": "/SR_wavetables/WaveEdit/OSMAOS.WAV", "start": 5972393, "end": 6005205}, {"filename": "/SR_wavetables/WaveEdit/PD101.WAV", "start": 6005205, "end": 6038017}, {"filename": "/SR_wavetables/WaveEdit/PD102.WAV", "start": 6038017, "end": 6070829}, {"filename": "/SR_wavetables/WaveEdit/PD103.WAV", "start": 6070829, "end": 6103641}, {"filename": "/SR_wavetables/WaveEdit/PD104.WAV", "start": 6103641, "end": 6136453}, {"filename": "/SR_wavetables/WaveEdit/PHANTOMS.WAV", "start": 6136453, "end": 6169265}, {"filename": "/SR_wavetables/WaveEdit/PISTON_H.WAV", "start": 6169265, "end": 6202077}, {"filename": "/SR_wavetables/WaveEdit/PLAITS01.WAV", "start": 6202077, "end": 6234889}, {"filename": "/SR_wavetables/WaveEdit/PLAITS02.WAV", "start": 6234889, "end": 6267701}, {"filename": "/SR_wavetables/WaveEdit/PLAITS03.WAV", "start": 6267701, "end": 6300513}, {"filename": "/SR_wavetables/WaveEdit/PLESANT_.WAV", "start": 6300513, "end": 6333325}, {"filename": "/SR_wavetables/WaveEdit/PPG_BES.WAV", "start": 6333325, "end": 6366137}, {"filename": "/SR_wavetables/WaveEdit/PPG_UPPE.WAV", "start": 6366137, "end": 6398949}, {"filename": "/SR_wavetables/WaveEdit/PPG_WA00.WAV", "start": 6398949, "end": 6431761}, {"filename": "/SR_wavetables/WaveEdit/PPG_WA01.WAV", "start": 6431761, "end": 6464573}, {"filename": "/SR_wavetables/WaveEdit/PPG_WA02.WAV", "start": 6464573, "end": 6497385}, {"filename": "/SR_wavetables/WaveEdit/PPG_WA03.WAV", "start": 6497385, "end": 6530197}, {"filename": "/SR_wavetables/WaveEdit/PPG_WA04.WAV", "start": 6530197, "end": 6563009}, {"filename": "/fonts/Console.cnfont", "start": 6563009, "end": 6763792}, {"filename": "/fonts/Default.cnfont", "start": 6763792, "end": 6964572}, {"filename": "/fonts/IBM_VGA.cnfont", "start": 6964572, "end": 7165380}, {"filename": "/fonts/PSGCAPITAL.cnfont", "start": 7165380, "end": 7366640}, {"filename": "/fonts/Pixel16x24/01_TechMonoAudit.cnfont", "start": 7366640, "end": 7380606}, {"filename": "/fonts/Pixel16x24/02_DepartureMono.cnfont", "start": 7380606, "end": 7394571}, {"filename": "/fonts/Pixel16x24/03_Spleen.cnfont", "start": 7394571, "end": 7408534}, {"filename": "/fonts/Pixel16x24/04_Cozette.cnfont", "start": 7408534, "end": 7422484}, {"filename": "/fonts/Pixel16x24/README.txt", "start": 7422484, "end": 7425667}, {"filename": "/fonts/Pixel16x24/licenses/Cozette-LICENSE.txt", "start": 7425667, "end": 7426747}, {"filename": "/fonts/Pixel16x24/licenses/DepartureMono-OFL.txt", "start": 7426747, "end": 7431104}, {"filename": "/fonts/Pixel16x24/licenses/ShareTechMono-OFL.txt", "start": 7431104, "end": 7435533}, {"filename": "/fonts/Pixel16x24/licenses/Spleen-LICENSE.txt", "start": 7435533, "end": 7436846}, {"filename": "/fonts/RobotoMono.cnfont", "start": 7436846, "end": 7637656}, {"filename": "/fonts/tm-prosto-constructivist.cnfont", "start": 7637656, "end": 7838468}, {"filename": "/instruments/BD 1.cni", "start": 7838468, "end": 7839231}, {"filename": "/instruments/BD Bass 1.cni", "start": 7839231, "end": 7839999}, {"filename": "/instruments/Bass 1.cni", "start": 7839999, "end": 7840766}, {"filename": "/instruments/Bass 2.cni", "start": 7840766, "end": 7841535}, {"filename": "/instruments/Bass Saw 1.cni", "start": 7841535, "end": 7842303}, {"filename": "/instruments/Bass Slap 1.cni", "start": 7842303, "end": 7843074}, {"filename": "/instruments/Bass Slap 2.cni", "start": 7843074, "end": 7843845}, {"filename": "/instruments/Bass Slap 3.cni", "start": 7843845, "end": 7844616}, {"filename": "/instruments/Bass Tri 1.cni", "start": 7844616, "end": 7845384}, {"filename": "/instruments/Clap.cni", "start": 7845384, "end": 7846149}, {"filename": "/instruments/DrumSynth Clap.cni", "start": 7846149, "end": 7846594}, {"filename": "/instruments/DrumSynth Clave.cni", "start": 7846594, "end": 7847041}, {"filename": "/instruments/DrumSynth Cowbell.cni", "start": 7847041, "end": 7847493}, {"filename": "/instruments/DrumSynth Cymbal.cni", "start": 7847493, "end": 7847943}, {"filename": "/instruments/DrumSynth FM.cni", "start": 7847943, "end": 7848389}, {"filename": "/instruments/DrumSynth Hat.cni", "start": 7848389, "end": 7848835}, {"filename": "/instruments/DrumSynth Kick.cni", "start": 7848835, "end": 7849282}, {"filename": "/instruments/DrumSynth Noise.cni", "start": 7849282, "end": 7849728}, {"filename": "/instruments/DrumSynth Rim.cni", "start": 7849728, "end": 7850172}, {"filename": "/instruments/DrumSynth Shaker.cni", "start": 7850172, "end": 7850620}, {"filename": "/instruments/DrumSynth Snare.cni", "start": 7850620, "end": 7851068}, {"filename": "/instruments/DrumSynth Tom.cni", "start": 7851068, "end": 7851513}, {"filename": "/instruments/Fall.cni", "start": 7851513, "end": 7852278}, {"filename": "/instruments/Hat 1.cni", "start": 7852278, "end": 7853041}, {"filename": "/instruments/Lead 1.cni", "start": 7853041, "end": 7853808}, {"filename": "/instruments/Pluck 1.cni", "start": 7853808, "end": 7854574}, {"filename": "/instruments/Rim.cni", "start": 7854574, "end": 7855337}, {"filename": "/instruments/Riser 1.cni", "start": 7855337, "end": 7856104}, {"filename": "/instruments/Sax.cni", "start": 7856104, "end": 7856868}, {"filename": "/instruments/ShortArp 1.cni", "start": 7856868, "end": 7857638}, {"filename": "/instruments/Sintered Burst.cni", "start": 7857638, "end": 7857964}, {"filename": "/instruments/Sintered Comb.cni", "start": 7857964, "end": 7858292}, {"filename": "/instruments/Sintered Knot.cni", "start": 7858292, "end": 7858740}, {"filename": "/instruments/Sintered Logic.cni", "start": 7858740, "end": 7859069}, {"filename": "/instruments/Sintered Melt.cni", "start": 7859069, "end": 7859396}, {"filename": "/instruments/Sintered Shard.cni", "start": 7859396, "end": 7859724}, {"filename": "/instruments/Snare 1.cni", "start": 7859724, "end": 7860487}, {"filename": "/instruments/Snare 2.cni", "start": 7860487, "end": 7861253}, {"filename": "/instruments/Tom 1.cni", "start": 7861253, "end": 7862016}, {"filename": "/instruments/Waves.cni", "start": 7862016, "end": 7862784}, {"filename": "/licenses/INSERT_FX.txt", "start": 7862784, "end": 7871010}, {"filename": "/pitch-tables/24TET Linear.csv", "start": 7871010, "end": 7873005}, {"filename": "/pitch-tables/Just D Phrygian 177 433.csv", "start": 7873005, "end": 7874317}, {"filename": "/pitch-tables/PT3-0.csv", "start": 7874317, "end": 7875081}, {"filename": "/pitch-tables/PT3-1.csv", "start": 7875081, "end": 7875853}, {"filename": "/pitch-tables/PT3-2.csv", "start": 7875853, "end": 7876619}, {"filename": "/pitch-tables/PT3-3.csv", "start": 7876619, "end": 7877385}, {"filename": "/projects/DNB.cct", "start": 7877385, "end": 7884057}, {"filename": "/projects/alf dance.cct", "start": 7884057, "end": 7894012}, {"filename": "/projects/dub-reich.cct", "start": 7894012, "end": 7904298}, {"filename": "/projects/grieg-mountain-king-fm.cct", "start": 7904298, "end": 7989953}, {"filename": "/projects/maple-leaf-rag.cct", "start": 7989953, "end": 8075394}, {"filename": "/projects/psy.cct", "start": 8075394, "end": 8087604}, {"filename": "/samples/909/BT0A0A7.WAV", "start": 8087604, "end": 8112756}, {"filename": "/samples/909/BT0A0D0.WAV", "start": 8112756, "end": 8121778}, {"filename": "/samples/909/BT0A0D3.WAV", "start": 8121778, "end": 8136960}, {"filename": "/samples/909/BT0A0DA.WAV", "start": 8136960, "end": 8180988}, {"filename": "/samples/909/BT0AAD0.WAV", "start": 8180988, "end": 8190616}, {"filename": "/samples/909/BT0AADA.WAV", "start": 8190616, "end": 8234636}, {"filename": "/samples/909/BT3A0D0.WAV", "start": 8234636, "end": 8243376}, {"filename": "/samples/909/BT3A0D3.WAV", "start": 8243376, "end": 8259300}, {"filename": "/samples/909/BT3A0D7.WAV", "start": 8259300, "end": 8287894}, {"filename": "/samples/909/BT3A0DA.WAV", "start": 8287894, "end": 8330774}, {"filename": "/samples/909/BT3AAD0.WAV", "start": 8330774, "end": 8339480}, {"filename": "/samples/909/BT3AADA.WAV", "start": 8339480, "end": 8382380}, {"filename": "/samples/909/BT7A0D0.WAV", "start": 8382380, "end": 8391852}, {"filename": "/samples/909/BT7A0D3.WAV", "start": 8391852, "end": 8406812}, {"filename": "/samples/909/BT7A0D7.WAV", "start": 8406812, "end": 8434356}, {"filename": "/samples/909/BT7A0DA.WAV", "start": 8434356, "end": 8478024}, {"filename": "/samples/909/BT7AAD0.WAV", "start": 8478024, "end": 8487472}, {"filename": "/samples/909/BT7AADA.WAV", "start": 8487472, "end": 8531088}, {"filename": "/samples/909/BTAA0D0.WAV", "start": 8531088, "end": 8540308}, {"filename": "/samples/909/BTAA0D3.WAV", "start": 8540308, "end": 8556618}, {"filename": "/samples/909/BTAA0D7.WAV", "start": 8556618, "end": 8585492}, {"filename": "/samples/909/BTAA0DA.WAV", "start": 8585492, "end": 8628502}, {"filename": "/samples/909/BTAAAD0.WAV", "start": 8628502, "end": 8637718}, {"filename": "/samples/909/BTAAADA.WAV", "start": 8637718, "end": 8680732}, {"filename": "/samples/909/CLOP1.WAV", "start": 8680732, "end": 8719746}, {"filename": "/samples/909/CLOP2.WAV", "start": 8719746, "end": 8742890}, {"filename": "/samples/909/CLOP3.WAV", "start": 8742890, "end": 8796054}, {"filename": "/samples/909/CLOP4.WAV", "start": 8796054, "end": 8816350}, {"filename": "/samples/909/CSHD0.WAV", "start": 8816350, "end": 8914176}, {"filename": "/samples/909/CSHD2.WAV", "start": 8914176, "end": 9005166}, {"filename": "/samples/909/CSHD4.WAV", "start": 9005166, "end": 9084790}, {"filename": "/samples/909/CSHD6.WAV", "start": 9084790, "end": 9149400}, {"filename": "/samples/909/CSHD8.WAV", "start": 9149400, "end": 9204354}, {"filename": "/samples/909/CSHDA.WAV", "start": 9204354, "end": 9252038}, {"filename": "/samples/909/HANDCLP1.WAV", "start": 9252038, "end": 9291430}, {"filename": "/samples/909/HANDCLP2.WAV", "start": 9291430, "end": 9323742}, {"filename": "/samples/909/HHCD0.WAV", "start": 9323742, "end": 9327546}, {"filename": "/samples/909/HHCD2.WAV", "start": 9327546, "end": 9335158}, {"filename": "/samples/909/HHCD4.WAV", "start": 9335158, "end": 9345190}, {"filename": "/samples/909/HHCD6.WAV", "start": 9345190, "end": 9356940}, {"filename": "/samples/909/HHCD8.WAV", "start": 9356940, "end": 9369028}, {"filename": "/samples/909/HHCDA.WAV", "start": 9369028, "end": 9381822}, {"filename": "/samples/909/HHOD0.WAV", "start": 9381822, "end": 9404190}, {"filename": "/samples/909/HHOD2.WAV", "start": 9404190, "end": 9433458}, {"filename": "/samples/909/HHOD4.WAV", "start": 9433458, "end": 9468726}, {"filename": "/samples/909/HHOD6.WAV", "start": 9468726, "end": 9507414}, {"filename": "/samples/909/HHOD8.WAV", "start": 9507414, "end": 9552970}, {"filename": "/samples/909/HHODA.WAV", "start": 9552970, "end": 9598628}, {"filename": "/samples/909/HT0D0.WAV", "start": 9598628, "end": 9619462}, {"filename": "/samples/909/HT0D3.WAV", "start": 9619462, "end": 9645082}, {"filename": "/samples/909/HT0D7.WAV", "start": 9645082, "end": 9679398}, {"filename": "/samples/909/HT0DA.WAV", "start": 9679398, "end": 9716810}, {"filename": "/samples/909/HT3D0.WAV", "start": 9716810, "end": 9736798}, {"filename": "/samples/909/HT3D3.WAV", "start": 9736798, "end": 9762216}, {"filename": "/samples/909/HT3D7.WAV", "start": 9762216, "end": 9797898}, {"filename": "/samples/909/HT3DA.WAV", "start": 9797898, "end": 9835936}, {"filename": "/samples/909/HT7D0.WAV", "start": 9835936, "end": 9856574}, {"filename": "/samples/909/HT7D3.WAV", "start": 9856574, "end": 9882834}, {"filename": "/samples/909/HT7D7.WAV", "start": 9882834, "end": 9919548}, {"filename": "/samples/909/HT7DA.WAV", "start": 9919548, "end": 9958104}, {"filename": "/samples/909/HTAD0.WAV", "start": 9958104, "end": 9978762}, {"filename": "/samples/909/HTAD3.WAV", "start": 9978762, "end": 10005556}, {"filename": "/samples/909/HTAD7.WAV", "start": 10005556, "end": 10040600}, {"filename": "/samples/909/HTADA.WAV", "start": 10040600, "end": 10080834}, {"filename": "/samples/909/LT0D0.WAV", "start": 10080834, "end": 10112406}, {"filename": "/samples/909/LT0D3.WAV", "start": 10112406, "end": 10151342}, {"filename": "/samples/909/LT0D7.WAV", "start": 10151342, "end": 10204584}, {"filename": "/samples/909/LT0DA.WAV", "start": 10204584, "end": 10264660}, {"filename": "/samples/909/LT3D0.WAV", "start": 10264660, "end": 10295842}, {"filename": "/samples/909/LT3D3.WAV", "start": 10295842, "end": 10335162}, {"filename": "/samples/909/LT3D7.WAV", "start": 10335162, "end": 10389742}, {"filename": "/samples/909/LT3DA.WAV", "start": 10389742, "end": 10449330}, {"filename": "/samples/909/LT7D0.WAV", "start": 10449330, "end": 10481910}, {"filename": "/samples/909/LT7D3.WAV", "start": 10481910, "end": 10524016}, {"filename": "/samples/909/LT7D7.WAV", "start": 10524016, "end": 10582206}, {"filename": "/samples/909/LT7DA.WAV", "start": 10582206, "end": 10644200}, {"filename": "/samples/909/LTAD0.WAV", "start": 10644200, "end": 10676602}, {"filename": "/samples/909/LTAD3.WAV", "start": 10676602, "end": 10718582}, {"filename": "/samples/909/LTAD7.WAV", "start": 10718582, "end": 10776198}, {"filename": "/samples/909/LTADA.WAV", "start": 10776198, "end": 10839848}, {"filename": "/samples/909/MT0D0.WAV", "start": 10839848, "end": 10859300}, {"filename": "/samples/909/MT0D3.WAV", "start": 10859300, "end": 10885042}, {"filename": "/samples/909/MT0D7.WAV", "start": 10885042, "end": 10919434}, {"filename": "/samples/909/MT0DA.WAV", "start": 10919434, "end": 10956010}, {"filename": "/samples/909/MT3D0.WAV", "start": 10956010, "end": 10975888}, {"filename": "/samples/909/MT3D3.WAV", "start": 10975888, "end": 11001654}, {"filename": "/samples/909/MT3D7.WAV", "start": 11001654, "end": 11038194}, {"filename": "/samples/909/MT3DA.WAV", "start": 11038194, "end": 11077150}, {"filename": "/samples/909/MT7D0.WAV", "start": 11077150, "end": 11096550}, {"filename": "/samples/909/MT7D3.WAV", "start": 11096550, "end": 11123422}, {"filename": "/samples/909/MT7D7.WAV", "start": 11123422, "end": 11159030}, {"filename": "/samples/909/MT7DA.WAV", "start": 11159030, "end": 11200186}, {"filename": "/samples/909/MTAD0.WAV", "start": 11200186, "end": 11220612}, {"filename": "/samples/909/MTAD3.WAV", "start": 11220612, "end": 11246320}, {"filename": "/samples/909/MTAD7.WAV", "start": 11246320, "end": 11284414}, {"filename": "/samples/909/MTADA.WAV", "start": 11284414, "end": 11325878}, {"filename": "/samples/909/OPCL1.WAV", "start": 11325878, "end": 11360924}, {"filename": "/samples/909/OPCL2.WAV", "start": 11360924, "end": 11387592}, {"filename": "/samples/909/OPCL3.WAV", "start": 11387592, "end": 11408362}, {"filename": "/samples/909/OPCL4.WAV", "start": 11408362, "end": 11458838}, {"filename": "/samples/909/RIDED0.WAV", "start": 11458838, "end": 11561686}, {"filename": "/samples/909/RIDED2.WAV", "start": 11561686, "end": 11657900}, {"filename": "/samples/909/RIDED4.WAV", "start": 11657900, "end": 11727982}, {"filename": "/samples/909/RIDED6.WAV", "start": 11727982, "end": 11798064}, {"filename": "/samples/909/RIDED8.WAV", "start": 11798064, "end": 11855936}, {"filename": "/samples/909/RIDEDA.WAV", "start": 11855936, "end": 11903576}, {"filename": "/samples/909/RIM127.WAV", "start": 11903576, "end": 11907158}, {"filename": "/samples/909/RIM63.WAV", "start": 11907158, "end": 11910740}, {"filename": "/samples/909/ST0T0S0.WAV", "start": 11910740, "end": 11926522}, {"filename": "/samples/909/ST0T0S3.WAV", "start": 11926522, "end": 11940018}, {"filename": "/samples/909/ST0T0S7.WAV", "start": 11940018, "end": 11953826}, {"filename": "/samples/909/ST0T0SA.WAV", "start": 11953826, "end": 11967374}, {"filename": "/samples/909/ST0T3S3.WAV", "start": 11967374, "end": 11983096}, {"filename": "/samples/909/ST0T3S7.WAV", "start": 11983096, "end": 11999062}, {"filename": "/samples/909/ST0T3SA.WAV", "start": 11999062, "end": 12015118}, {"filename": "/samples/909/ST0T7S3.WAV", "start": 12015118, "end": 12036536}, {"filename": "/samples/909/ST0T7S7.WAV", "start": 12036536, "end": 12059430}, {"filename": "/samples/909/ST0T7SA.WAV", "start": 12059430, "end": 12082964}, {"filename": "/samples/909/ST0TAS3.WAV", "start": 12082964, "end": 12105800}, {"filename": "/samples/909/ST0TAS7.WAV", "start": 12105800, "end": 12130864}, {"filename": "/samples/909/ST0TASA.WAV", "start": 12130864, "end": 12156500}, {"filename": "/samples/909/ST3T0S0.WAV", "start": 12156500, "end": 12170526}, {"filename": "/samples/909/ST3T0S3.WAV", "start": 12170526, "end": 12184694}, {"filename": "/samples/909/ST3T0S7.WAV", "start": 12184694, "end": 12198210}, {"filename": "/samples/909/ST3T0SA.WAV", "start": 12198210, "end": 12212984}, {"filename": "/samples/909/ST3T3S3.WAV", "start": 12212984, "end": 12228572}, {"filename": "/samples/909/ST3T3S7.WAV", "start": 12228572, "end": 12244546}, {"filename": "/samples/909/ST3T3SA.WAV", "start": 12244546, "end": 12260492}, {"filename": "/samples/909/ST3T7S3.WAV", "start": 12260492, "end": 12281654}, {"filename": "/samples/909/ST3T7S7.WAV", "start": 12281654, "end": 12304394}, {"filename": "/samples/909/ST3T7SA.WAV", "start": 12304394, "end": 12327926}, {"filename": "/samples/909/ST3TAS3.WAV", "start": 12327926, "end": 12350816}, {"filename": "/samples/909/ST3TAS7.WAV", "start": 12350816, "end": 12376008}, {"filename": "/samples/909/ST3TASA.WAV", "start": 12376008, "end": 12401714}, {"filename": "/samples/909/ST7T0S0.WAV", "start": 12401714, "end": 12415790}, {"filename": "/samples/909/ST7T0S3.WAV", "start": 12415790, "end": 12429796}, {"filename": "/samples/909/ST7T0S7.WAV", "start": 12429796, "end": 12444242}, {"filename": "/samples/909/ST7T0SA.WAV", "start": 12444242, "end": 12458880}, {"filename": "/samples/909/ST7T3S3.WAV", "start": 12458880, "end": 12474642}, {"filename": "/samples/909/ST7T3S7.WAV", "start": 12474642, "end": 12490610}, {"filename": "/samples/909/ST7T3SA.WAV", "start": 12490610, "end": 12506950}, {"filename": "/samples/909/ST7T7S3.WAV", "start": 12506950, "end": 12527922}, {"filename": "/samples/909/ST7T7S7.WAV", "start": 12527922, "end": 12551578}, {"filename": "/samples/909/ST7T7SA.WAV", "start": 12551578, "end": 12575232}, {"filename": "/samples/909/ST7TAS3.WAV", "start": 12575232, "end": 12597996}, {"filename": "/samples/909/ST7TAS7.WAV", "start": 12597996, "end": 12623698}, {"filename": "/samples/909/ST7TASA.WAV", "start": 12623698, "end": 12649596}, {"filename": "/samples/909/STAT0S0.WAV", "start": 12649596, "end": 12663858}, {"filename": "/samples/909/STAT0S3.WAV", "start": 12663858, "end": 12678496}, {"filename": "/samples/909/STAT0S7.WAV", "start": 12678496, "end": 12693132}, {"filename": "/samples/909/STAT0SA.WAV", "start": 12693132, "end": 12707440}, {"filename": "/samples/909/STAT3S3.WAV", "start": 12707440, "end": 12723528}, {"filename": "/samples/909/STAT3S7.WAV", "start": 12723528, "end": 12740064}, {"filename": "/samples/909/STAT3SA.WAV", "start": 12740064, "end": 12756796}, {"filename": "/samples/909/STAT7S3.WAV", "start": 12756796, "end": 12777640}, {"filename": "/samples/909/STAT7S7.WAV", "start": 12777640, "end": 12801092}, {"filename": "/samples/909/STAT7SA.WAV", "start": 12801092, "end": 12824496}, {"filename": "/samples/909/STATAS3.WAV", "start": 12824496, "end": 12847448}, {"filename": "/samples/909/STATAS7.WAV", "start": 12847448, "end": 12873470}, {"filename": "/samples/909/STATASA.WAV", "start": 12873470, "end": 12899178}, {"filename": "/samples/909/TR909SET.TXT", "start": 12899178, "end": 12905828}, {"filename": "/samples/ChocolateAmen/01-kik.wav", "start": 12905828, "end": 12907486}, {"filename": "/samples/ChocolateAmen/02-hat.wav", "start": 12907486, "end": 12909144}, {"filename": "/samples/ChocolateAmen/03-sn1.wav", "start": 12909144, "end": 12910802}, {"filename": "/samples/ChocolateAmen/04-gsn.wav", "start": 12910802, "end": 12912460}, {"filename": "/samples/ChocolateAmen/05-sn2.wav", "start": 12912460, "end": 12914118}, {"filename": "/samples/ChocolateAmen/06-csh.wav", "start": 12914118, "end": 12917128}, {"filename": "/samples/ST-01/Alien.wav", "start": 12917128, "end": 12924972}, {"filename": "/samples/ST-01/Aligator.wav", "start": 12924972, "end": 12927716}, {"filename": "/samples/ST-01/AnalogString.wav", "start": 12927716, "end": 12936560}, {"filename": "/samples/ST-01/Asia.wav", "start": 12936560, "end": 12944804}, {"filename": "/samples/ST-01/BassDrum1.wav", "start": 12944804, "end": 12945948}, {"filename": "/samples/ST-01/BassDrum2.wav", "start": 12945948, "end": 12948992}, {"filename": "/samples/ST-01/BassDrum3.wav", "start": 12948992, "end": 12952436}, {"filename": "/samples/ST-01/BassDrum4.wav", "start": 12952436, "end": 12955980}, {"filename": "/samples/ST-01/BigBow.wav", "start": 12955980, "end": 12963824}, {"filename": "/samples/ST-01/Blast.wav", "start": 12963824, "end": 12973768}, {"filename": "/samples/ST-01/Blubzing.wav", "start": 12973768, "end": 12975112}, {"filename": "/samples/ST-01/Breath.wav", "start": 12975112, "end": 12978956}, {"filename": "/samples/ST-01/Call.wav", "start": 12978956, "end": 12987000}, {"filename": "/samples/ST-01/Celeste.wav", "start": 12987000, "end": 12995044}, {"filename": "/samples/ST-01/Chink.wav", "start": 12995044, "end": 13000988}, {"filename": "/samples/ST-01/Cinema.wav", "start": 13000988, "end": 13005532}, {"filename": "/samples/ST-01/Claps1.wav", "start": 13005532, "end": 13007876}, {"filename": "/samples/ST-01/Claps2.wav", "start": 13007876, "end": 13009320}, {"filename": "/samples/ST-01/Claves.wav", "start": 13009320, "end": 13012364}, {"filename": "/samples/ST-01/CloseHiHat.wav", "start": 13012364, "end": 13013608}, {"filename": "/samples/ST-01/Conga.wav", "start": 13013608, "end": 13015252}, {"filename": "/samples/ST-01/CowBell.wav", "start": 13015252, "end": 13016696}, {"filename": "/samples/ST-01/DXBass.wav", "start": 13016696, "end": 13019440}, {"filename": "/samples/ST-01/Dangerous.wav", "start": 13019440, "end": 13026484}, {"filename": "/samples/ST-01/DeepBass.wav", "start": 13026484, "end": 13034728}, {"filename": "/samples/ST-01/Detune.wav", "start": 13034728, "end": 13040472}, {"filename": "/samples/ST-01/DigDug.wav", "start": 13040472, "end": 13043616}, {"filename": "/samples/ST-01/DigiHarp.wav", "start": 13043616, "end": 13047660}, {"filename": "/samples/ST-01/DreamBells.wav", "start": 13047660, "end": 13056904}, {"filename": "/samples/ST-01/DxTom.wav", "start": 13056904, "end": 13060948}, {"filename": "/samples/ST-01/EPiano.wav", "start": 13060948, "end": 13068992}, {"filename": "/samples/ST-01/ElecTom.wav", "start": 13068992, "end": 13072036}, {"filename": "/samples/ST-01/ExBells.wav", "start": 13072036, "end": 13075580}, {"filename": "/samples/ST-01/FaeryTale.wav", "start": 13075580, "end": 13084524}, {"filename": "/samples/ST-01/FilterBass.wav", "start": 13084524, "end": 13090468}, {"filename": "/samples/ST-01/FunBass.wav", "start": 13090468, "end": 13097012}, {"filename": "/samples/ST-01/FunkBass.wav", "start": 13097012, "end": 13102356}, {"filename": "/samples/ST-01/Gato.wav", "start": 13102356, "end": 13107400}, {"filename": "/samples/ST-01/Great.wav", "start": 13107400, "end": 13112444}, {"filename": "/samples/ST-01/HallBrass.wav", "start": 13112444, "end": 13121888}, {"filename": "/samples/ST-01/Heaven.wav", "start": 13121888, "end": 13128532}, {"filename": "/samples/ST-01/HeavySynth.wav", "start": 13128532, "end": 13138376}, {"filename": "/samples/ST-01/Heifer.wav", "start": 13138376, "end": 13141020}, {"filename": "/samples/ST-01/HiHat1.wav", "start": 13141020, "end": 13142464}, {"filename": "/samples/ST-01/HiHat2.wav", "start": 13142464, "end": 13144508}, {"filename": "/samples/ST-01/Hooman.wav", "start": 13144508, "end": 13151052}, {"filename": "/samples/ST-01/Horns.wav", "start": 13151052, "end": 13153596}, {"filename": "/samples/ST-01/JahrMarkt1.wav", "start": 13153596, "end": 13163440}, {"filename": "/samples/ST-01/JahrMarkt2.wav", "start": 13163440, "end": 13173284}, {"filename": "/samples/ST-01/Jetes.wav", "start": 13173284, "end": 13182928}, {"filename": "/samples/ST-01/Klickorgan.wav", "start": 13182928, "end": 13188672}, {"filename": "/samples/ST-01/KorgBass.wav", "start": 13188672, "end": 13192716}, {"filename": "/samples/ST-01/KorgBeau.wav", "start": 13192716, "end": 13199760}, {"filename": "/samples/ST-01/KorgBow.wav", "start": 13199760, "end": 13205204}, {"filename": "/samples/ST-01/KorgFilter.wav", "start": 13205204, "end": 13208648}, {"filename": "/samples/ST-01/KorgString.wav", "start": 13208648, "end": 13212692}, {"filename": "/samples/ST-01/Koto.wav", "start": 13212692, "end": 13219836}, {"filename": "/samples/ST-01/Leader.wav", "start": 13219836, "end": 13223280}, {"filename": "/samples/ST-01/Licks.wav", "start": 13223280, "end": 13229524}, {"filename": "/samples/ST-01/Magic.wav", "start": 13229524, "end": 13238468}, {"filename": "/samples/ST-01/Marimba.wav", "start": 13238468, "end": 13246512}, {"filename": "/samples/ST-01/Mechanic1.wav", "start": 13246512, "end": 13254056}, {"filename": "/samples/ST-01/Mechanic2.wav", "start": 13254056, "end": 13263800}, {"filename": "/samples/ST-01/MetalKeys.wav", "start": 13263800, "end": 13273244}, {"filename": "/samples/ST-01/MonoBass.wav", "start": 13273244, "end": 13279888}, {"filename": "/samples/ST-01/MonsterBass.wav", "start": 13279888, "end": 13288932}, {"filename": "/samples/ST-01/MuteClav.wav", "start": 13288932, "end": 13294076}, {"filename": "/samples/ST-01/Nice.wav", "start": 13294076, "end": 13300720}, {"filename": "/samples/ST-01/NightMare.wav", "start": 13300720, "end": 13310664}, {"filename": "/samples/ST-01/NoteMan.wav", "start": 13310664, "end": 13317708}, {"filename": "/samples/ST-01/Organ.wav", "start": 13317708, "end": 13324152}, {"filename": "/samples/ST-01/Outlaw.wav", "start": 13324152, "end": 13332596}, {"filename": "/samples/ST-01/PanFlute.wav", "start": 13332596, "end": 13342540}, {"filename": "/samples/ST-01/Perco.wav", "start": 13342540, "end": 13347084}, {"filename": "/samples/ST-01/PingBells.wav", "start": 13347084, "end": 13352528}, {"filename": "/samples/ST-01/Pizza.wav", "start": 13352528, "end": 13361972}, {"filename": "/samples/ST-01/PolySynth.wav", "start": 13361972, "end": 13371916}, {"filename": "/samples/ST-01/PopBass.wav", "start": 13371916, "end": 13374660}, {"filename": "/samples/ST-01/PopSnare1.wav", "start": 13374660, "end": 13376704}, {"filename": "/samples/ST-01/PopSnare2.wav", "start": 13376704, "end": 13380748}, {"filename": "/samples/ST-01/PopSnare3.wav", "start": 13380748, "end": 13383492}, {"filename": "/samples/ST-01/Pulse.wav", "start": 13383492, "end": 13389936}, {"filename": "/samples/ST-01/RichString.wav", "start": 13389936, "end": 13396880}, {"filename": "/samples/ST-01/RingPiano.wav", "start": 13396880, "end": 13406824}, {"filename": "/samples/ST-01/RoomBrass.wav", "start": 13406824, "end": 13411468}, {"filename": "/samples/ST-01/RubberBass.wav", "start": 13411468, "end": 13420512}, {"filename": "/samples/ST-01/Shaker.wav", "start": 13420512, "end": 13422856}, {"filename": "/samples/ST-01/Shamus.wav", "start": 13422856, "end": 13431900}, {"filename": "/samples/ST-01/SineCZ.wav", "start": 13431900, "end": 13435844}, {"filename": "/samples/ST-01/SixTease.wav", "start": 13435844, "end": 13444288}, {"filename": "/samples/ST-01/SlapBass.wav", "start": 13444288, "end": 13449232}, {"filename": "/samples/ST-01/Smash1.wav", "start": 13449232, "end": 13452776}, {"filename": "/samples/ST-01/Smash2.wav", "start": 13452776, "end": 13457220}, {"filename": "/samples/ST-01/Snare1.wav", "start": 13457220, "end": 13459264}, {"filename": "/samples/ST-01/Snare2.wav", "start": 13459264, "end": 13461208}, {"filename": "/samples/ST-01/Snare3.wav", "start": 13461208, "end": 13465052}, {"filename": "/samples/ST-01/Snare4.wav", "start": 13465052, "end": 13467096}, {"filename": "/samples/ST-01/Snare5.wav", "start": 13467096, "end": 13471140}, {"filename": "/samples/ST-01/SoftBass.wav", "start": 13471140, "end": 13476084}, {"filename": "/samples/ST-01/Soundtrack.wav", "start": 13476084, "end": 13486028}, {"filename": "/samples/ST-01/Squares.wav", "start": 13486028, "end": 13495972}, {"filename": "/samples/ST-01/Stabs.wav", "start": 13495972, "end": 13503416}, {"filename": "/samples/ST-01/Steinway.wav", "start": 13503416, "end": 13510360}, {"filename": "/samples/ST-01/Strange.wav", "start": 13510360, "end": 13517404}, {"filename": "/samples/ST-01/Strings1.wav", "start": 13517404, "end": 13526348}, {"filename": "/samples/ST-01/Strings2.wav", "start": 13526348, "end": 13536092}, {"filename": "/samples/ST-01/Strings3.wav", "start": 13536092, "end": 13544636}, {"filename": "/samples/ST-01/Strings4.wav", "start": 13544636, "end": 13554380}, {"filename": "/samples/ST-01/Strings5.wav", "start": 13554380, "end": 13564324}, {"filename": "/samples/ST-01/Strings7.wav", "start": 13564324, "end": 13574268}, {"filename": "/samples/ST-01/Strings8.wav", "start": 13574268, "end": 13582412}, {"filename": "/samples/ST-01/Sweep.wav", "start": 13582412, "end": 13589756}, {"filename": "/samples/ST-01/SynBrass.wav", "start": 13589756, "end": 13593800}, {"filename": "/samples/ST-01/SynClaves.wav", "start": 13593800, "end": 13594844}, {"filename": "/samples/ST-01/SynthPiano.wav", "start": 13594844, "end": 13600388}, {"filename": "/samples/ST-01/SyntheBass.wav", "start": 13600388, "end": 13608332}, {"filename": "/samples/ST-01/TechBass.wav", "start": 13608332, "end": 13613476}, {"filename": "/samples/ST-01/TheEgg.wav", "start": 13613476, "end": 13623420}, {"filename": "/samples/ST-01/TineWave.wav", "start": 13623420, "end": 13633364}, {"filename": "/samples/ST-01/Touch.wav", "start": 13633364, "end": 13642608}, {"filename": "/samples/ST-01/TuneBass.wav", "start": 13642608, "end": 13647452}, {"filename": "/samples/ST-01/Voices.wav", "start": 13647452, "end": 13657396}, {"filename": "/samples/ST-01/WabberString.wav", "start": 13657396, "end": 13661340}, {"filename": "/samples/ST-01/WoodBlock.wav", "start": 13661340, "end": 13662584}, {"filename": "/samples/ST-01/WowBass.wav", "start": 13662584, "end": 13667628}, {"filename": "/samples/ST-01/st-notes.txt", "start": 13667628, "end": 13667855}, {"filename": "/samples/ST-01/strings6.wav", "start": 13667855, "end": 13677901}, {"filename": "/themes/Choo.cth", "start": 13677901, "end": 13678151}, {"filename": "/themes/DarkPink.cth", "start": 13678151, "end": 13678401}, {"filename": "/themes/Default.cth", "start": 13678401, "end": 13678651}, {"filename": "/themes/IDEColorThemes/AbletonDark.cth", "start": 13678651, "end": 13678901}, {"filename": "/themes/IDEColorThemes/AbletonLight.cth", "start": 13678901, "end": 13679151}, {"filename": "/themes/IDEColorThemes/AtomOneDark.cth", "start": 13679151, "end": 13679401}, {"filename": "/themes/IDEColorThemes/AtomOneLight.cth", "start": 13679401, "end": 13679651}, {"filename": "/themes/IDEColorThemes/CatpuccinDrk.cth", "start": 13679651, "end": 13679901}, {"filename": "/themes/IDEColorThemes/CatpuccinLight.cth", "start": 13679901, "end": 13680151}, {"filename": "/themes/IDEColorThemes/CyberpunkDark.cth", "start": 13680151, "end": 13680401}, {"filename": "/themes/IDEColorThemes/CyberpunkLight.cth", "start": 13680401, "end": 13680651}, {"filename": "/themes/IDEColorThemes/DraculaDark.cth", "start": 13680651, "end": 13680901}, {"filename": "/themes/IDEColorThemes/DraculaLight.cth", "start": 13680901, "end": 13681151}, {"filename": "/themes/IDEColorThemes/FLStudioDark.cth", "start": 13681151, "end": 13681401}, {"filename": "/themes/IDEColorThemes/FLStudioLight.cth", "start": 13681401, "end": 13681651}, {"filename": "/themes/IDEColorThemes/GBDMGDark.cth", "start": 13681651, "end": 13681901}, {"filename": "/themes/IDEColorThemes/GBDMGLight.cth", "start": 13681901, "end": 13682151}, {"filename": "/themes/IDEColorThemes/GitHubDark.cth", "start": 13682151, "end": 13682401}, {"filename": "/themes/IDEColorThemes/GitHubLight.cth", "start": 13682401, "end": 13682651}, {"filename": "/themes/IDEColorThemes/GruvDark.cth", "start": 13682651, "end": 13682901}, {"filename": "/themes/IDEColorThemes/GruvLight.cth", "start": 13682901, "end": 13683151}, {"filename": "/themes/IDEColorThemes/MatchaDark.cth", "start": 13683151, "end": 13683401}, {"filename": "/themes/IDEColorThemes/MatchaLight.cth", "start": 13683401, "end": 13683651}, {"filename": "/themes/IDEColorThemes/MonokaiProDark.cth", "start": 13683651, "end": 13683901}, {"filename": "/themes/IDEColorThemes/MonokaiProLight.cth", "start": 13683901, "end": 13684151}, {"filename": "/themes/IDEColorThemes/NordDark.cth", "start": 13684151, "end": 13684401}, {"filename": "/themes/IDEColorThemes/NordLight.cth", "start": 13684401, "end": 13684651}, {"filename": "/themes/IDEColorThemes/NostromoAmberDark.cth", "start": 13684651, "end": 13684901}, {"filename": "/themes/IDEColorThemes/NostromoAmberLight.cth", "start": 13684901, "end": 13685151}, {"filename": "/themes/IDEColorThemes/TokyoNightDark.cth", "start": 13685151, "end": 13685401}, {"filename": "/themes/IDEColorThemes/TokyoNightLight.cth", "start": 13685401, "end": 13685651}, {"filename": "/themes/IDEColorThemes/WLTerminalGreenDark.cth", "start": 13685651, "end": 13685901}, {"filename": "/themes/IDEColorThemes/WLTerminalGreenLight.cth", "start": 13685901, "end": 13686151}, {"filename": "/themes/IDEColorThemes/ZenBurnDark.cth", "start": 13686151, "end": 13686401}, {"filename": "/themes/IDEColorThemes/ZenBurnLight.cth", "start": 13686401, "end": 13686651}, {"filename": "/themes/NostromoAmberDa2.cth", "start": 13686651, "end": 13686901}, {"filename": "/themes/Wood.cth", "start": 13686901, "end": 13687151}, {"filename": "/themes/cndef.cth", "start": 13687151, "end": 13687401}, {"filename": "/themes/nIkO.cth", "start": 13687401, "end": 13687651}, {"filename": "/title/SNES_ART.md", "start": 13687651, "end": 13688712}, {"filename": "/title/snes_foreground.bmp", "start": 13688712, "end": 13823934}, {"filename": "/title/snes_logo.bmp", "start": 13823934, "end": 13840404}, {"filename": "/title/snes_scene.bmp", "start": 13840404, "end": 13986954}, {"filename": "/title/snes_sky.bmp", "start": 13986954, "end": 14331072}, {"filename": "/title/snes_train.bmp", "start": 14331072, "end": 14354166}, {"filename": "/title/snes_viaduct.bmp", "start": 14354166, "end": 14394828}, {"filename": "/waveforms/AKWF/AKWF_cello_0001.wav", "start": 14394828, "end": 14396172}, {"filename": "/waveforms/AKWF/AKWF_cello_0002.wav", "start": 14396172, "end": 14397516}, {"filename": "/waveforms/AKWF/AKWF_cello_0003.wav", "start": 14397516, "end": 14398860}, {"filename": "/waveforms/AKWF/AKWF_clarinett_0001.wav", "start": 14398860, "end": 14400204}, {"filename": "/waveforms/AKWF/AKWF_clarinett_0002.wav", "start": 14400204, "end": 14401548}, {"filename": "/waveforms/AKWF/AKWF_piano_0001.wav", "start": 14401548, "end": 14402892}, {"filename": "/waveforms/AKWF/AKWF_piano_0002.wav", "start": 14402892, "end": 14404236}, {"filename": "/waveforms/AKWF/AKWF_piano_0003.wav", "start": 14404236, "end": 14405580}, {"filename": "/waveforms/AKWF/AKWF_piano_0004.wav", "start": 14405580, "end": 14406924}, {"filename": "/waveforms/AKWF/AKWF_piano_0005.wav", "start": 14406924, "end": 14408268}, {"filename": "/waveforms/AKWF/AKWF_piano_0006.wav", "start": 14408268, "end": 14409612}, {"filename": "/waveforms/AKWF/AKWF_piano_0007.wav", "start": 14409612, "end": 14410956}, {"filename": "/waveforms/AKWF/AKWF_piano_0008.wav", "start": 14410956, "end": 14412300}, {"filename": "/waveforms/AKWF/AKWF_piano_0009.wav", "start": 14412300, "end": 14413644}, {"filename": "/waveforms/AKWF/AKWF_piano_0010.wav", "start": 14413644, "end": 14414988}, {"filename": "/waveforms/AKWF/AKWF_piano_0011.wav", "start": 14414988, "end": 14416332}, {"filename": "/waveforms/AKWF/AKWF_piano_0012.wav", "start": 14416332, "end": 14417676}, {"filename": "/waveforms/AKWF/AKWF_pluckalgo_0001.wav", "start": 14417676, "end": 14419020}, {"filename": "/waveforms/AKWF/AKWF_pluckalgo_0002.wav", "start": 14419020, "end": 14420364}, {"filename": "/waveforms/AKWF/AKWF_pluckalgo_0003.wav", "start": 14420364, "end": 14421708}, {"filename": "/waveforms/AKWF/AKWF_pluckalgo_0004.wav", "start": 14421708, "end": 14423052}, {"filename": "/waveforms/AKWF/AKWF_pluckalgo_0005.wav", "start": 14423052, "end": 14424396}, {"filename": "/waveforms/AKWF/AKWF_pluckalgo_0006.wav", "start": 14424396, "end": 14425740}, {"filename": "/waveforms/AKWF/AKWF_pluckalgo_0007.wav", "start": 14425740, "end": 14427084}, {"filename": "/waveforms/AKWF/AKWF_pluckalgo_0008.wav", "start": 14427084, "end": 14428428}, {"filename": "/waveforms/AKWF/AKWF_pluckalgo_0009.wav", "start": 14428428, "end": 14429772}, {"filename": "/waveforms/AKWF/AKWF_vgame_0001.wav", "start": 14429772, "end": 14431116}, {"filename": "/waveforms/AKWF/AKWF_vgame_0002.wav", "start": 14431116, "end": 14432460}, {"filename": "/waveforms/AKWF/AKWF_vgame_0003.wav", "start": 14432460, "end": 14433804}, {"filename": "/waveforms/AKWF/AKWF_vgame_0004.wav", "start": 14433804, "end": 14435148}, {"filename": "/waveforms/AKWF/AKWF_vgame_0005.wav", "start": 14435148, "end": 14436492}, {"filename": "/waveforms/AKWF/AKWF_vgame_0006.wav", "start": 14436492, "end": 14437836}, {"filename": "/waveforms/AKWF/AKWF_vgame_0007.wav", "start": 14437836, "end": 14439180}, {"filename": "/waveforms/AKWF/AKWF_vgame_0008.wav", "start": 14439180, "end": 14440524}, {"filename": "/waveforms/AKWF/AKWF_vgame_0009.wav", "start": 14440524, "end": 14441868}, {"filename": "/waveforms/AKWF/AKWF_vgame_0010.wav", "start": 14441868, "end": 14443212}, {"filename": "/waveforms/AKWF/AKWF_vgame_0011.wav", "start": 14443212, "end": 14444556}, {"filename": "/waveforms/AKWF/AKWF_vgame_0012.wav", "start": 14444556, "end": 14445900}, {"filename": "/waveforms/AKWF/AKWF_violin_0001.wav", "start": 14445900, "end": 14447244}, {"filename": "/waveforms/AKWF/AKWF_violin_0002.wav", "start": 14447244, "end": 14448588}, {"filename": "/waveforms/AKWF/AKWF_violin_0003.wav", "start": 14448588, "end": 14449932}, {"filename": "/waveforms/AKWF/AKWF_violin_0004.wav", "start": 14449932, "end": 14451276}, {"filename": "/waveforms/AKWF/AKWF_violin_0005.wav", "start": 14451276, "end": 14452620}, {"filename": "/waveforms/AKWF/AKWF_violin_0006.wav", "start": 14452620, "end": 14453964}, {"filename": "/waveforms/AKWF/AKWF_violin_0007.wav", "start": 14453964, "end": 14455308}, {"filename": "/waveforms/AKWF/AKWF_violin_0008.wav", "start": 14455308, "end": 14456652}, {"filename": "/waveforms/AKWF/AKWF_violin_0009.wav", "start": 14456652, "end": 14457996}, {"filename": "/waveforms/AKWF/AKWF_violin_0010.wav", "start": 14457996, "end": 14459340}, {"filename": "/waveforms/AKWF/AKWF_violin_0011.wav", "start": 14459340, "end": 14460684}, {"filename": "/waveforms/AKWF/AKWF_violin_0012.wav", "start": 14460684, "end": 14462028}, {"filename": "/waveforms/AKWF/LICENSE.AKWF-CC0.md", "start": 14462028, "end": 14468583}], "remote_package_size": 14468583});
 
   })();
 
-// end include: C:\Users\surga\AppData\Local\Temp\tmp7pq64c44.js
-// include: C:\Users\surga\AppData\Local\Temp\tmpdxq60vts.js
+// end include: /var/folders/g9/899ky8t11x9g4x5pskvtwrrh0000gn/T/tmpa9u8s8ka.js
+// include: /var/folders/g9/899ky8t11x9g4x5pskvtwrrh0000gn/T/tmp20mk14m7.js
 
     // All the pre-js content up to here must remain later on, we need to run
     // it.
     if ((typeof ENVIRONMENT_IS_WASM_WORKER != 'undefined' && ENVIRONMENT_IS_WASM_WORKER) || (typeof ENVIRONMENT_IS_PTHREAD != 'undefined' && ENVIRONMENT_IS_PTHREAD) || (typeof ENVIRONMENT_IS_AUDIO_WORKLET != 'undefined' && ENVIRONMENT_IS_AUDIO_WORKLET)) Module['preRun'] = [];
     var necessaryPreJSTasks = Module['preRun'].slice();
-  // end include: C:\Users\surga\AppData\Local\Temp\tmpdxq60vts.js
-// include: C:\Users\surga\AppData\Local\Temp\tmpuk118_l9.js
+  // end include: /var/folders/g9/899ky8t11x9g4x5pskvtwrrh0000gn/T/tmp20mk14m7.js
+// include: /var/folders/g9/899ky8t11x9g4x5pskvtwrrh0000gn/T/tmpt2kvvgp_.js
 
     if (!Module['preRun']) throw 'Module.preRun should exist because file support used it; did a pre-js delete it?';
     necessaryPreJSTasks.forEach((task) => {
       if (Module['preRun'].indexOf(task) < 0) throw 'All preRun tasks that exist before user pre-js code should remain after; did you replace Module or modify Module.preRun?';
     });
-  // end include: C:\Users\surga\AppData\Local\Temp\tmpuk118_l9.js
+  // end include: /var/folders/g9/899ky8t11x9g4x5pskvtwrrh0000gn/T/tmpt2kvvgp_.js
 
 
 var programArgs = [];
@@ -666,7 +667,7 @@ function updateMemoryViews() {
   HEAPF32 = new Float32Array(b);
   HEAPF64 = new Float64Array(b);
   HEAP64 = new BigInt64Array(b);
-  
+
 }
 
 // include: memoryprofiler.js
@@ -822,12 +823,9 @@ async function instantiateAsync(binary, binaryFile, imports) {
   if (!binary
       // Don't use streaming for file:// delivered objects in a webview, fetch them synchronously.
       && !isFileURI(binaryFile)
-      // Avoid instantiateStreaming() on Node.js environment for now, as while
-      // Node.js v18.1.0 implements it, it does not have a full fetch()
-      // implementation yet.
-      //
-      // Reference:
-      //   https://github.com/emscripten-core/emscripten/pull/16917
+      // Avoid using instantiateStreaming() on Node.js since the `fetch()` API
+      // does not support `file://` URLs.
+      // See: https://github.com/emscripten-core/emscripten/pull/16917
       && !ENVIRONMENT_IS_NODE
      ) {
     try {
@@ -972,11 +970,11 @@ async function createWasm() {
       assert(ptr, `null function pointer in dynCall`);
       assert(!promising, 'async dynCall is not supported in this mode')
       var rtn = dynCallLegacy(sig, ptr, args);
-  
+
       function convert(rtn) {
         return rtn;
       }
-  
+
       return convert(rtn);
     };
 
@@ -1002,73 +1000,79 @@ async function createWasm() {
       }
     };
 
-  
 
-  
+
+  var ___call_sighandler = (fp, sig) => ((a1) => dynCall_vi(fp, a1))(sig);
+
+
   class ExceptionInfo {
       // excPtr - Thrown object pointer to wrap. Metadata pointer is calculated from it.
       constructor(excPtr) {
         this.excPtr = excPtr;
         this.ptr = excPtr - 24;
       }
-  
+
       set_type(type) {
         HEAPU32[(((this.ptr)+(4))>>2)] = type;
       }
-  
+
       get_type() {
         return HEAPU32[(((this.ptr)+(4))>>2)];
       }
-  
+
       set_destructor(destructor) {
         HEAPU32[(((this.ptr)+(8))>>2)] = destructor;
       }
-  
+
       get_destructor() {
         return HEAPU32[(((this.ptr)+(8))>>2)];
       }
-  
+
       set_caught(caught) {
         caught = caught ? 1 : 0;
         HEAP8[(this.ptr)+(12)] = caught;
       }
-  
+
       get_caught() {
         return HEAP8[(this.ptr)+(12)] != 0;
       }
-  
+
       set_rethrown(rethrown) {
         rethrown = rethrown ? 1 : 0;
         HEAP8[(this.ptr)+(13)] = rethrown;
       }
-  
+
       get_rethrown() {
         return HEAP8[(this.ptr)+(13)] != 0;
       }
-  
+
       // Initialize native structure fields. Should be called once after allocated.
       init(type, destructor) {
         this.set_adjusted_ptr(0);
         this.set_type(type);
         this.set_destructor(destructor);
       }
-  
+
       set_adjusted_ptr(adjustedPtr) {
         HEAPU32[(((this.ptr)+(16))>>2)] = adjustedPtr;
       }
-  
+
       get_adjusted_ptr() {
         return HEAPU32[(((this.ptr)+(16))>>2)];
       }
     }
-  
+
   var uncaughtExceptionCount = 0;
+
+  var __Unwind_RaiseException = (ex) => {
+      assert(false, 'Exception thrown, but exception catching is not enabled. Compile with -sNO_DISABLE_EXCEPTION_CATCHING or -sEXCEPTION_CATCHING_ALLOWED=[..] to catch.');
+    };
   var ___cxa_throw = (ptr, type, destructor) => {
       var info = new ExceptionInfo(ptr);
       // Initialize ExceptionInfo content after it was allocated in __cxa_allocate_exception.
       info.init(type, destructor);
       uncaughtExceptionCount++;
-      assert(false, 'Exception thrown, but exception catching is not enabled. Compile with -sNO_DISABLE_EXCEPTION_CATCHING or -sEXCEPTION_CATCHING_ALLOWED=[..] to catch.');
+      __Unwind_RaiseException(ptr);
     };
 
   var syscallGetVarargI = () => {
@@ -1079,8 +1083,8 @@ async function createWasm() {
       return ret;
     };
   var syscallGetVarargP = syscallGetVarargI;
-  
-  
+
+
   var PATH = {
   isAbs:(path) => path.charAt(0) === '/',
   splitPath:(filename) => {
@@ -1230,8 +1234,8 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       while (heapOrArray[idx] && !(idx >= maxIdx)) ++idx;
       return idx;
     };
-  
-  
+
+
     /**
    * Given a pointer 'idx' to a null-terminated UTF8-encoded string in the given
    * array that contains uint8 values, returns a copy of that string as a
@@ -1243,9 +1247,9 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
    * @return {string}
    */
   var UTF8ArrayToString = (heapOrArray, idx = 0, maxBytesToRead, ignoreNul) => {
-  
+
       var endPtr = findStringEnd(heapOrArray, idx, maxBytesToRead, ignoreNul);
-  
+
       // When using conditional TextDecoder, skip it for short strings as the overhead of the native call is not worth it.
       if (endPtr - idx > 16 && heapOrArray.buffer && UTF8Decoder) {
         return UTF8Decoder.decode(heapOrArray.subarray(idx, endPtr));
@@ -1267,7 +1271,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
           if ((u0 & 0xF8) != 0xF0) warnOnce(`Invalid UTF-8 leading byte ${ptrToString(u0)} encountered when deserializing a UTF-8 string in wasm memory to a JS string!`);
           u0 = ((u0 & 7) << 18) | (u1 << 12) | (u2 << 6) | (heapOrArray[idx++] & 63);
         }
-  
+
         if (u0 < 0x10000) {
           str += String.fromCharCode(u0);
         } else {
@@ -1277,9 +1281,9 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       }
       return str;
     };
-  
+
   var FS_stdin_getChar_buffer = [];
-  
+
   var lengthBytesUTF8 = (str) => {
       var len = 0;
       for (var i = 0; i < str.length; ++i) {
@@ -1300,14 +1304,14 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       }
       return len;
     };
-  
+
   var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       assert(typeof str === 'string', `stringToUTF8Array expects a string (got ${typeof str})`);
       // Parameter maxBytesToWrite is not optional. Negative values, 0, null,
       // undefined and false each don't write out any bytes.
       if (!(maxBytesToWrite > 0))
         return 0;
-  
+
       var startIdx = outIdx;
       var endIdx = outIdx + maxBytesToWrite - 1; // -1 for string null terminator.
       for (var i = 0; i < str.length; ++i) {
@@ -1359,7 +1363,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
           var BUFSIZE = 256;
           var buf = Buffer.alloc(BUFSIZE);
           var bytesRead = 0;
-  
+
           // For some reason we must suppress a closure warning here, even though
           // fd definitely exists on process.stdin, and is even the proper way to
           // get the fd of stdin,
@@ -1368,7 +1372,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
           // so it is related to the surrounding code in some unclear manner.
           /** @suppress {missingProperties} */
           var fd = process.stdin.fd;
-  
+
           try {
             bytesRead = fs.readSync(fd, buf, 0, BUFSIZE);
           } catch(e) {
@@ -1378,7 +1382,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
             if (e.toString().includes('EOF')) bytesRead = 0;
             else throw e;
           }
-  
+
           if (bytesRead > 0) {
             result = buf.slice(0, bytesRead).toString('utf-8');
           }
@@ -1459,6 +1463,9 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
             if (result === null || result === undefined) break;
             bytesRead++;
             buffer[offset+i] = result;
+            // We currently only support canonical mode (ICANON), where
+            // read(2) returns as soon as a line delimiter is read.
+            if (result === 10) break;
           }
           if (bytesRead) {
             stream.node.atime = Date.now();
@@ -1539,12 +1546,12 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         },
   },
   };
-  
-  
+
+
   var mmapAlloc = (size) => {
       abort('internal error: mmapAlloc called but `emscripten_builtin_memalign` native symbol not exported');
     };
-  
+
   var MEMFS = {
   ops_table:null,
   mount(mount) {
@@ -1768,11 +1775,11 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
           if (buffer.buffer === HEAP8.buffer) {
             canOwn = false;
           }
-  
+
           if (!length) return 0;
           var node = stream.node;
           node.mtime = node.ctime = Date.now();
-  
+
           if (canOwn) {
             assert(!position, 'canOwn must imply no weird position inside the file');
             node.contents = buffer.subarray(offset, offset + length);
@@ -1842,7 +1849,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         },
   },
   };
-  
+
   var FS_modeStringToFlags = (str) => {
       if (typeof str != 'string') return str;
       var flagModes = {
@@ -1859,7 +1866,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       }
       return flags;
     };
-  
+
   var FS_fileDataToTypedArray = (data) => {
       if (typeof data == 'string') {
         data = intArrayFromString(data, true);
@@ -1869,17 +1876,17 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       }
       return data;
     };
-  
+
   var FS_getMode = (canRead, canWrite) => {
       var mode = 0;
       if (canRead) mode |= 292 | 73;
       if (canWrite) mode |= 146;
       return mode;
     };
-  
-  
-  
-  
+
+
+
+
   var IDBFS = {
   dbs:{
   },
@@ -1902,7 +1909,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
           IDBFS.onAutoPersistStateChanged?.(true);
           IDBFS.syncfs(mount, /*populate:*/false, onPersistComplete);
         }
-  
+
         if (!mount.idbPersistState) {
           // Programs typically write/copy/move multiple files in the in-memory
           // filesystem within a single app frame, so when a filesystem sync
@@ -1937,14 +1944,14 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
             node.memfs_stream_ops = node.stream_ops;
             // Clone stream_ops to inject write tracking
             node.stream_ops = {...node.stream_ops};
-  
+
             // Track all file writes
             node.stream_ops.write = (stream, buffer, offset, length, position, canOwn) => {
               // This file has been modified, we must persist IndexedDB when this file closes
               stream.node.isModified = true;
               return node.memfs_stream_ops.write(stream, buffer, offset, length, position, canOwn);
             };
-  
+
             // Persist IndexedDB on file close
             node.stream_ops.close = (stream) => {
               var n = stream.node;
@@ -1954,10 +1961,10 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
               }
               if (n.memfs_stream_ops.close) return n.memfs_stream_ops.close(stream);
             };
-  
+
             // Persist the node we just created to IndexedDB
             IDBFS.queuePersist(mnt.mount);
-  
+
             return node;
           };
           // Also kick off persisting the filesystem on other operations that modify the filesystem.
@@ -1971,13 +1978,13 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
   syncfs:(mount, populate, callback) => {
         IDBFS.getLocalSet(mount, (err, local) => {
           if (err) return callback(err);
-  
+
           IDBFS.getRemoteSet(mount, (err, remote) => {
             if (err) return callback(err);
-  
+
             var src = populate ? remote : local;
             var dst = populate ? local : remote;
-  
+
             IDBFS.reconcile(src, dst, callback);
           });
         });
@@ -1994,7 +2001,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         if (db) {
           return callback(null, db);
         }
-  
+
         var req;
         try {
           req = IDBFS.indexedDB().open(name, IDBFS.DB_VERSION);
@@ -2007,22 +2014,22 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         req.onupgradeneeded = (e) => {
           var db = /** @type {IDBDatabase} */ (e.target.result);
           var transaction = e.target.transaction;
-  
+
           var fileStore;
-  
+
           if (db.objectStoreNames.contains(IDBFS.DB_STORE_NAME)) {
             fileStore = transaction.objectStore(IDBFS.DB_STORE_NAME);
           } else {
             fileStore = db.createObjectStore(IDBFS.DB_STORE_NAME);
           }
-  
+
           if (!fileStore.indexNames.contains('timestamp')) {
             fileStore.createIndex('timestamp', 'timestamp', { unique: false });
           }
         };
         req.onsuccess = () => {
           db = /** @type {IDBDatabase} */ (req.result);
-  
+
           // add to the cache
           IDBFS.dbs[name] = db;
           callback(null, db);
@@ -2034,60 +2041,60 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       },
   getLocalSet:(mount, callback) => {
         var entries = {};
-  
+
         function isRealDir(p) {
           return p !== '.' && p !== '..';
         };
         function toAbsolute(root) {
           return (p) => PATH.join2(root, p);
         };
-  
+
         var check = FS.readdir(mount.mountpoint).filter(isRealDir).map(toAbsolute(mount.mountpoint));
-  
+
         while (check.length) {
           var path = check.pop();
           var stat;
-  
+
           try {
             stat = FS.lstat(path);
           } catch (e) {
             return callback(e);
           }
-  
+
           if (FS.isDir(stat.mode)) {
             check.push(...FS.readdir(path).filter(isRealDir).map(toAbsolute(path)));
           }
-  
+
           entries[path] = { 'timestamp': stat.mtime };
         }
-  
+
         return callback(null, { type: 'local', entries: entries });
       },
   getRemoteSet:(mount, callback) => {
         var entries = {};
-  
+
         IDBFS.getDB(mount.mountpoint, (err, db) => {
           if (err) return callback(err);
-  
+
           try {
             var transaction = db.transaction([IDBFS.DB_STORE_NAME], 'readonly');
             transaction.onerror = (e) => {
               callback(e.target.error);
               e.preventDefault();
             };
-  
+
             var store = transaction.objectStore(IDBFS.DB_STORE_NAME);
             var index = store.index('timestamp');
-  
+
             index.openKeyCursor().onsuccess = (event) => {
               var cursor = event.target.result;
-  
+
               if (!cursor) {
                 return callback(null, { type: 'remote', db, entries });
               }
-  
+
               entries[cursor.primaryKey] = { 'timestamp': cursor.key };
-  
+
               cursor.continue();
             };
           } catch (e) {
@@ -2097,7 +2104,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       },
   loadLocalEntry:(path, callback) => {
         var stat, node;
-  
+
         try {
           var lookup = FS.lookupPath(path);
           node = lookup.node;
@@ -2105,7 +2112,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         } catch (e) {
           return callback(e);
         }
-  
+
         if (FS.isDir(stat.mode)) {
           return callback(null, { 'timestamp': stat.mtime, 'mode': stat.mode });
         } else if (FS.isLink(stat.mode)) {
@@ -2130,19 +2137,19 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
           } else {
             return callback(new Error('node type not supported'));
           }
-  
+
           FS.chmod(path, entry['mode']);
           FS.utime(path, entry['timestamp'], entry['timestamp']);
         } catch (e) {
           return callback(e);
         }
-  
+
         callback(null);
       },
   removeLocalEntry:(path, callback) => {
         try {
           var stat = FS.lstat(path);
-  
+
           if (FS.isDir(stat.mode)) {
             FS.rmdir(path);
           } else {
@@ -2151,7 +2158,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         } catch (e) {
           return callback(e);
         }
-  
+
         callback(null);
       },
   loadRemoteEntry:(store, path, callback) => {
@@ -2185,7 +2192,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       },
   reconcile:(src, dst, callback) => {
         var total = 0;
-  
+
         var create = [];
         for (var [key, e] of Object.entries(src.entries)) {
           var e2 = dst.entries[key];
@@ -2194,7 +2201,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
             total++;
           }
         }
-  
+
         var remove = [];
         for (var key of Object.keys(dst.entries)) {
           if (!src.entries[key]) {
@@ -2202,35 +2209,35 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
             total++;
           }
         }
-  
+
         if (!total) {
           return callback(null);
         }
-  
+
         var errored = false;
         var db = src.type === 'remote' ? src.db : dst.db;
         var transaction = db.transaction([IDBFS.DB_STORE_NAME], 'readwrite');
         var store = transaction.objectStore(IDBFS.DB_STORE_NAME);
-  
+
         function done(err) {
           if (err && !errored) {
             errored = true;
             return callback(err);
           }
         };
-  
+
         // transaction may abort if (for example) there is a QuotaExceededError
         transaction.onerror = transaction.onabort = (e) => {
           done(e.target.error);
           e.preventDefault();
         };
-  
+
         transaction.oncomplete = (e) => {
           if (!errored) {
             callback(null);
           }
         };
-  
+
         // sort paths in ascending order so directory entries are created
         // before the files inside them
         for (const path of create.sort()) {
@@ -2246,7 +2253,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
             });
           }
         }
-  
+
         // sort paths in descending order so files are deleted before their
         // parent directories
         for (var path of remove.sort().reverse()) {
@@ -2258,12 +2265,12 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         }
       },
   };
-  
-  
-  
+
+
+
   /** @type {!Uint8Array} */
   var HEAPU8;
-  
+
     /**
    * Given a pointer 'ptr' to a null-terminated UTF8-encoded string in the
    * emscripten HEAP, returns a copy of that string as a Javascript String object.
@@ -2281,9 +2288,9 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       assert(typeof ptr == 'number', `UTF8ToString expects a number (got ${typeof ptr})`);
       return ptr ? UTF8ArrayToString(HEAPU8, ptr, maxBytesToRead, ignoreNul) : '';
     };
-  
+
   var strError = (errno) => UTF8ToString(_strerror(errno));
-  
+
   var ERRNO_CODES = {
       'EPERM': 63,
       'ENOENT': 44,
@@ -2407,16 +2414,16 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       'EOWNERDEAD': 62,
       'ESTRPIPE': 135,
     };
-  
+
   var asyncLoad = async (url) => {
       var arrayBuffer = await readAsync(url);
       assert(arrayBuffer, `Loading data file "${url}" failed (no arrayBuffer).`);
       return new Uint8Array(arrayBuffer);
     };
-  
-  
+
+
   var FS_createDataFile = (...args) => FS.createDataFile(...args);
-  
+
   var getUniqueRunDependency = (id) => {
       var orig = id;
       while (1) {
@@ -2424,23 +2431,23 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         id = orig + Math.random();
       }
     };
-  
+
   var dependenciesPromise = null;
   var resolveRunDependencies = async () => dependenciesPromise;
   var runDependencies = 0;
-  
-  
+
+
   var dependenciesPromiseResolve = null;
-  
+
   var runDependencyTracking = {
   };
-  
+
   var runDependencyWatcher = null;
   var removeRunDependency = (id) => {
       runDependencies--;
-  
+
       Module['monitorRunDependencies']?.(runDependencies);
-  
+
       assert(id, 'removeRunDependency requires an ID');
       assert(runDependencyTracking[id]);
       delete runDependencyTracking[id];
@@ -2452,18 +2459,18 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         dependenciesPromiseResolve();
       }
     };
-  
-  
-  
-  
+
+
+
+
   var addRunDependency = (id) => {
       if (!runDependencies) {
         dependenciesPromise = new Promise((resolve) => dependenciesPromiseResolve = resolve);
       }
       runDependencies++;
-  
+
       Module['monitorRunDependencies']?.(runDependencies);
-  
+
       assert(id, 'addRunDependency requires an ID')
       assert(!runDependencyTracking[id]);
       runDependencyTracking[id] = 1;
@@ -2492,13 +2499,13 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         runDependencyWatcher.unref?.()
       }
     };
-  
-  
+
+
   var preloadPlugins = [];
   var FS_handledByPreloadPlugin = async (byteArray, fullname) => {
       // Ensure plugins are ready.
       if (typeof Browser != 'undefined') Browser.init();
-  
+
       for (var plugin of preloadPlugins) {
         if (plugin['canHandle'](fullname)) {
           assert(plugin['handle'].constructor.name === 'AsyncFunction', 'Filesystem plugin handlers must be async functions (See #24914)')
@@ -2515,13 +2522,13 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       var fullname = name ? PATH_FS.resolve(PATH.join2(parent, name)) : parent;
       var dep = getUniqueRunDependency(`cp ${fullname}`); // might have several active requests for the same fullname
       addRunDependency(dep);
-  
+
       try {
         var byteArray = url;
         if (typeof url == 'string') {
           byteArray = await asyncLoad(url);
         }
-  
+
         byteArray = await FS_handledByPreloadPlugin(byteArray, fullname);
         preFinish?.();
         if (!dontCreateFile) {
@@ -2534,7 +2541,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
   var FS_createPreloadedFile = (parent, name, url, canRead, canWrite, onload, onerror, dontCreateFile, canOwn, preFinish) => {
       FS_preloadFile(parent, name, url, canRead, canWrite, dontCreateFile, canOwn, preFinish).then(onload).catch(onerror);
     };
-  
+
   var FS = {
   root:null,
   mounts:[],
@@ -2681,31 +2688,31 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
           throw new FS.ErrnoError(44);
         }
         opts.follow_mount ??= true
-  
+
         if (!PATH.isAbs(path)) {
           path = FS.cwd() + '/' + path;
         }
-  
+
         // limit max consecutive symlinks to SYMLOOP_MAX.
         linkloop: for (var nlinks = 0; nlinks < 40; nlinks++) {
           // split the absolute path
           var parts = path.split('/').filter((p) => !!p);
-  
+
           // start at the root
           var current = FS.root;
           var current_path = '/';
-  
+
           for (var i = 0; i < parts.length; i++) {
             var islast = (i === parts.length-1);
             if (islast && opts.parent) {
               // stop resolving
               break;
             }
-  
+
             if (parts[i] === '.') {
               continue;
             }
-  
+
             if (parts[i] === '..') {
               current_path = PATH.dirname(current_path);
               if (FS.isRoot(current)) {
@@ -2719,7 +2726,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
               }
               continue;
             }
-  
+
             current_path = PATH.join2(current_path, parts[i]);
             try {
               current = FS.lookupNode(current, parts[i]);
@@ -2732,12 +2739,12 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
               }
               throw e;
             }
-  
+
             // jump to the mount's root node if this is a mountpoint
             if (FS.isMountpoint(current) && (!islast || opts.follow_mount)) {
               current = current.mounted.root;
             }
-  
+
             // by default, lookupPath will not follow a symlink if it is the final path component.
             // setting opts.follow = true will override this behavior.
             if (FS.isLink(current.mode) && (!islast || opts.follow)) {
@@ -2770,7 +2777,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       },
   hashName(parentid, name) {
         var hash = 0;
-  
+
         for (var i = 0; i < name.length; i++) {
           hash = ((hash << 5) - hash + name.charCodeAt(i)) | 0;
         }
@@ -2814,9 +2821,9 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
   createNode(parent, name, mode, rdev) {
         assert(typeof parent == 'object')
         var node = new FS.FSNode(parent, name, mode, rdev);
-  
+
         FS.hashAddNode(node);
-  
+
         return node;
       },
   destroyNode(node) {
@@ -2955,7 +2962,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
   getStream:(fd) => FS.streams[fd],
   createStream(stream, fd = -1) {
         assert(fd >= -1);
-  
+
         // clone it, so we can return an instance of FSStream
         stream = Object.assign(new FS.FSStream(), stream);
         if (fd == -1) {
@@ -3009,15 +3016,15 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
   getMounts(mount) {
         var mounts = [];
         var check = [mount];
-  
+
         while (check.length) {
           var m = check.pop();
-  
+
           mounts.push(m);
-  
+
           check.push(...m.mounts);
         }
-  
+
         return mounts;
       },
   syncfs(populate, callback) {
@@ -3025,22 +3032,22 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
           callback = populate;
           populate = false;
         }
-  
+
         FS.syncFSRequests++;
-  
+
         if (FS.syncFSRequests > 1) {
           err(`warning: ${FS.syncFSRequests} FS.syncfs operations in flight at once, probably just doing extra work`);
         }
-  
+
         var mounts = FS.getMounts(FS.root.mount);
         var completed = 0;
-  
+
         function doCallback(errCode) {
           assert(FS.syncFSRequests > 0);
           FS.syncFSRequests--;
           return callback(errCode);
         }
-  
+
         function done(errCode) {
           if (errCode) {
             if (!done.errored) {
@@ -3053,7 +3060,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
             doCallback(null);
           }
         };
-  
+
         // sync all mounts
         for (var mount of mounts) {
           if (mount.type.syncfs) {
@@ -3072,77 +3079,77 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         var root = mountpoint === '/';
         var pseudo = !mountpoint;
         var node;
-  
+
         if (root && FS.root) {
           throw new FS.ErrnoError(10);
         } else if (!root && !pseudo) {
           var lookup = FS.lookupPath(mountpoint, { follow_mount: false });
-  
+
           mountpoint = lookup.path;  // use the absolute path
           node = lookup.node;
-  
+
           if (FS.isMountpoint(node)) {
             throw new FS.ErrnoError(10);
           }
-  
+
           if (!FS.isDir(node.mode)) {
             throw new FS.ErrnoError(54);
           }
         }
-  
+
         var mount = {
           type,
           opts,
           mountpoint,
           mounts: []
         };
-  
+
         // create a root node for the fs
         var mountRoot = type.mount(mount);
         mountRoot.mount = mount;
         mount.root = mountRoot;
-  
+
         if (root) {
           FS.root = mountRoot;
         } else if (node) {
           // set as a mountpoint
           node.mounted = mount;
-  
+
           // add the new mount to the current mount's children
           if (node.mount) {
             node.mount.mounts.push(mount);
           }
         }
-  
+
         return mountRoot;
       },
   unmount(mountpoint) {
         var lookup = FS.lookupPath(mountpoint, { follow_mount: false });
-  
+
         if (!FS.isMountpoint(lookup.node)) {
           throw new FS.ErrnoError(28);
         }
-  
+
         // destroy the nodes for this mount, and all its child mounts
         var node = lookup.node;
         var mount = node.mounted;
         var mounts = FS.getMounts(mount);
-  
+
         for (var [hash, current] of Object.entries(FS.nameTable)) {
           while (current) {
             var next = current.name_next;
-  
+
             if (mounts.includes(current.mount)) {
               FS.destroyNode(current);
             }
-  
+
             current = next;
           }
         }
-  
+
         // no longer a mountpoint
         node.mounted = null;
-  
+
         // remove this mount from the child mounts
         var idx = node.mount.mounts.indexOf(mount);
         assert(idx !== -1);
@@ -3195,7 +3202,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
           flags: 2,
           namelen: 255,
         };
-  
+
         if (node.node_ops.statfs) {
           Object.assign(rtn, node.node_ops.statfs(node.mount.opts.root));
         }
@@ -3278,13 +3285,13 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         var new_name = PATH.basename(new_path);
         // parents must exist
         var lookup, old_dir, new_dir;
-  
+
         // let the errors from non existent directories percolate up
         lookup = FS.lookupPath(old_path, { parent: true });
         old_dir = lookup.node;
         lookup = FS.lookupPath(new_path, { parent: true });
         new_dir = lookup.node;
-  
+
         if (!old_dir || !new_dir) throw new FS.ErrnoError(44);
         // need to be part of the same mount
         if (old_dir.mount !== new_dir.mount) {
@@ -3596,7 +3603,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         }
         // we've already handled these, don't pass down to the underlying vfs
         flags &= ~(128 | 512 | 131072);
-  
+
         // register the stream with the filesystem
         var stream = FS.createStream({
           node,
@@ -3868,7 +3875,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         // TODO deprecate the old functionality of a single
         // input / output callback and that utilizes FS.createDevice
         // and instead require a unique set of stream ops
-  
+
         // by default, we symlink the standard streams to the
         // default tty devices. however, if the standard streams
         // have been overwritten we create a unique device for
@@ -3888,7 +3895,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         } else {
           FS.symlink('/dev/tty1', '/dev/stderr');
         }
-  
+
         // open default streams for the stdin, stdout and stderr devices
         var stdin = FS.open('/dev/stdin', 0);
         var stdout = FS.open('/dev/stdout', 1);
@@ -3899,13 +3906,13 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       },
   staticInit() {
         FS.nameTable = new Array(4096);
-  
+
         FS.mount(MEMFS, {}, '/');
-  
+
         FS.createDefaultDirectories();
         FS.createDefaultDevices();
         FS.createSpecialDirectories();
-  
+
         FS.filesystems = {
           'MEMFS': MEMFS,
           'IDBFS': IDBFS,
@@ -3914,12 +3921,12 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
   init(input, output, error) {
         assert(!FS.initialized, 'FS.init was previously called. If you want to initialize later with custom parameters, remove any earlier calls (note that one is automatically added to the generated code)');
         FS.initialized = true;
-  
+
         // Allow Module.stdin etc. to provide defaults, if none explicitly passed to us here
         input ??= Module['stdin'];
         output ??= Module['stdout'];
         error ??= Module['stderr'];
-  
+
         FS.createStandardStreams(input, output, error);
       },
   quit() {
@@ -4100,27 +4107,27 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
             var header;
             var hasByteServing = (header = xhr.getResponseHeader('Accept-Ranges')) && header === 'bytes';
             var usesGzip = (header = xhr.getResponseHeader('Content-Encoding')) && header === 'gzip';
-  
+
             var chunkSize = 1024*1024; // Chunk size in bytes
-  
+
             if (!hasByteServing) chunkSize = datalength;
-  
+
             // Function to get a range from the remote URL.
             var doXHR = (from, to) => {
               if (from > to) abort(`invalid range (${from}, ${to}) or no bytes requested!`);
               if (to > datalength-1) abort(`only ${datalength} bytes available! programmer error!`);
-  
+
               // TODO: Use mozResponseArrayBuffer, responseStream, etc. if available.
               var xhr = new XMLHttpRequest();
               xhr.open('GET', url, false);
               if (datalength !== chunkSize) xhr.setRequestHeader('Range', `bytes=${from}-${to}`);
-  
+
               // Some hints to the browser that we want binary data.
               xhr.responseType = 'arraybuffer';
               if (xhr.overrideMimeType) {
                 xhr.overrideMimeType('text/plain; charset=x-user-defined');
               }
-  
+
               xhr.send(null);
               if (!(xhr.status >= 200 && xhr.status < 300 || xhr.status === 304)) abort(`Couldn't load ${url}. Status: ${xhr.status}`);
               if (xhr.response !== undefined) {
@@ -4139,7 +4146,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
               if (typeof lazyArray.chunks[chunkNum] == 'undefined') abort('doXHR failed!');
               return lazyArray.chunks[chunkNum];
             });
-  
+
             if (usesGzip || !datalength) {
               // if the server uses gzip or doesn't supply the length, we have to download the whole file to get the (uncompressed) length
               chunkSize = datalength = 1; // this will force getter(0)/doXHR do download the whole file
@@ -4147,7 +4154,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
               chunkSize = datalength;
               out('LazyFiles on gzip forces download of the whole file when length is accessed');
             }
-  
+
             this._length = datalength;
             this._chunkSize = chunkSize;
             this.lengthKnown = true;
@@ -4165,7 +4172,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
             return this._chunkSize;
           }
         }
-  
+
         if (globalThis.XMLHttpRequest) {
           if (!ENVIRONMENT_IS_WORKER) abort('Cannot do synchronous binary XHRs outside webworkers in modern browsers. Use --embed-file or --preload-file in emcc');
           var lazyArray = new LazyUint8Array();
@@ -4173,7 +4180,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         } else {
           var properties = { isDevice: false, url: url };
         }
-  
+
         var node = FS.createFile(parent, name, properties, canRead, canWrite);
         // This is a total hack, but I want to get this lazy file code out of the
         // core of MEMFS. If we want to keep this lazy file concept I feel it should
@@ -4234,11 +4241,11 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         return node;
       },
   };
-  
-  
-  
-  
-  
+
+
+
+
+
   /** not-@type {!BigInt64Array} */
   var HEAP64;
   var SYSCALLS = {
@@ -4318,13 +4325,13 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         return ret;
       },
   };
-  
+
   /** @type {!Int16Array} */
   var HEAP16;
   function ___syscall_fcntl64(fd, cmd, varargs) {
   SYSCALLS.varargs = varargs;
   try {
-  
+
       var stream = SYSCALLS.getStreamFromFD(fd);
       switch (cmd) {
         case 0: {
@@ -4371,28 +4378,28 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
     return -e.errno;
   }
   }
-  
+
 
   function ___syscall_fstat64(fd, buf) {
   try {
-  
+
       return SYSCALLS.writeStat(buf, FS.fstat(fd));
     } catch (e) {
     if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
     return -e.errno;
   }
   }
-  
 
-  
-  
+
+
+
   var stringToUTF8 = (str, outPtr, maxBytesToWrite) => {
       assert(typeof maxBytesToWrite == 'number', 'stringToUTF8 requires a third parameter that specifies the length of the output buffer');
       return stringToUTF8Array(str, HEAPU8, outPtr, maxBytesToWrite);
     };
   function ___syscall_getcwd(buf, size) {
   try {
-  
+
       if (!size) return -28;
       var cwd = FS.cwd();
       var cwdLengthInBytes = lengthBytesUTF8(cwd) + 1;
@@ -4404,22 +4411,22 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
     return -e.errno;
   }
   }
-  
 
-  
-  
-  
-  
+
+
+
+
+
   function ___syscall_getdents64(fd, dirp, count) {
   try {
-  
+
       var stream = SYSCALLS.getStreamFromFD(fd)
       stream.getdents ||= FS.readdir(stream.path);
-  
+
       var struct_size = 280;
       var pos = 0;
       var off = FS.llseek(stream, 0, 1);
-  
+
       var startIdx = Math.floor(off / struct_size);
       var endIdx = Math.min(stream.getdents.length, startIdx + Math.floor(count/struct_size))
       for (var idx = startIdx; idx < endIdx; idx++) {
@@ -4468,16 +4475,16 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
     return -e.errno;
   }
   }
-  
 
-  
-  
-  
-  
+
+
+
+
+
   function ___syscall_ioctl(fd, op, varargs) {
   SYSCALLS.varargs = varargs;
   try {
-  
+
       var stream = SYSCALLS.getStreamFromFD(fd);
       switch (op) {
         case 21509: {
@@ -4569,11 +4576,11 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
     return -e.errno;
   }
   }
-  
+
 
   function ___syscall_lstat64(path, buf) {
   try {
-  
+
       path = SYSCALLS.getStr(path);
       return SYSCALLS.writeStat(buf, FS.lstat(path));
     } catch (e) {
@@ -4581,11 +4588,11 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
     return -e.errno;
   }
   }
-  
+
 
   function ___syscall_mkdirat(dirfd, path, mode) {
   try {
-  
+
       path = SYSCALLS.getStr(path);
       path = SYSCALLS.calculateAt(dirfd, path);
       mode &= ~SYSCALLS.currentUmask;
@@ -4596,11 +4603,11 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
     return -e.errno;
   }
   }
-  
+
 
   function ___syscall_newfstatat(dirfd, path, buf, flags) {
   try {
-  
+
       path = SYSCALLS.getStr(path);
       var nofollow = flags & 256;
       var allowEmpty = flags & 4096;
@@ -4613,13 +4620,13 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
     return -e.errno;
   }
   }
-  
 
-  
+
+
   function ___syscall_openat(dirfd, path, flags, varargs) {
   SYSCALLS.varargs = varargs;
   try {
-  
+
       path = SYSCALLS.getStr(path);
       path = SYSCALLS.calculateAt(dirfd, path);
       var mode = varargs ? syscallGetVarargI() : 0;
@@ -4632,19 +4639,19 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
     return -e.errno;
   }
   }
-  
 
-  
-  
-  
+
+
+
+
   function ___syscall_readlinkat(dirfd, path, buf, bufsize) {
   try {
-  
+
       path = SYSCALLS.getStr(path);
       path = SYSCALLS.calculateAt(dirfd, path);
       if (bufsize <= 0) return -28;
       var ret = FS.readlink(path);
-  
+
       var len = Math.min(bufsize, lengthBytesUTF8(ret));
       var endChar = HEAP8[buf+len];
       stringToUTF8(ret, buf, bufsize+1);
@@ -4657,11 +4664,11 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
     return -e.errno;
   }
   }
-  
+
 
   function ___syscall_rmdir(path) {
   try {
-  
+
       path = SYSCALLS.getStr(path);
       FS.rmdir(path);
       return 0;
@@ -4670,11 +4677,11 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
     return -e.errno;
   }
   }
-  
+
 
   function ___syscall_stat64(path, buf) {
   try {
-  
+
       path = SYSCALLS.getStr(path);
       return SYSCALLS.writeStat(buf, FS.stat(path));
     } catch (e) {
@@ -4682,11 +4689,11 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
     return -e.errno;
   }
   }
-  
+
 
   function ___syscall_unlinkat(dirfd, path, flags) {
   try {
-  
+
       path = SYSCALLS.getStr(path);
       path = SYSCALLS.calculateAt(dirfd, path);
       if (!flags) {
@@ -4702,46 +4709,25 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
     return -e.errno;
   }
   }
-  
+
 
   var __abort_js = () =>
       abort('native code called abort()');
 
-  var _emscripten_get_now = () => performance.now();
-  
-  var _emscripten_date_now = () => Date.now();
-  
-  var nowIsMonotonic = 1;
-  
-  var checkWasiClock = (clock_id) => clock_id >= 0 && clock_id <= 3;
-  
-  var INT53_MAX = 9007199254740992;
-  
-  var INT53_MIN = -9007199254740992;
-  var bigintToI53Checked = (num) => (num < INT53_MIN || num > INT53_MAX) ? NaN : Number(num);
-  
-  function _clock_time_get(clk_id, ignored_precision, ptime) {
-    ignored_precision = bigintToI53Checked(ignored_precision);
-  
-  
-      if (!checkWasiClock(clk_id)) {
-        return 28;
+  var runtimeKeepaliveCounter = 0;
+  var __emscripten_runtime_keepalive_clear = () => {
+      noExitRuntime = false;
+      runtimeKeepaliveCounter = 0;
+    };
+
+  var timers = {
+  };
+
+  var clearTimers = () => {
+      for (var t of Object.values(timers)) {
+        clearTimeout(t.id);
       }
-      var now;
-      // all wasi clocks but realtime are monotonic
-      if (clk_id === 0) {
-        now = _emscripten_date_now();
-      } else if (nowIsMonotonic) {
-        now = _emscripten_get_now();
-      } else {
-        return 52;
-      }
-      // "now" is in ms, and wasi times are in ns.
-      var nsec = Math.round(now * 1000 * 1000);
-      HEAP64[((ptime)>>3)] = BigInt(nsec);
-      return 0;
-    ;
-  }
+    };
 
   var handleException = (e) => {
       // Certain exception types we do not treat as errors since they are used for
@@ -4760,9 +4746,8 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       }
       quit_(1, e);
     };
-  
-  
-  var runtimeKeepaliveCounter = 0;
+
+
   var keepRuntimeAlive = () => noExitRuntime || runtimeKeepaliveCounter > 0;
   var _proc_exit = (code) => {
       EXITSTATUS = code;
@@ -4772,25 +4757,25 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       }
       quit_(code, new ExitStatus(code));
     };
-  
-  
+
+
   /** @param {boolean|number=} implicit */
   var exitJS = (status, implicit) => {
       EXITSTATUS = status;
-  
+
       checkUnflushedContent();
-  
+
       // if exit() was called explicitly, warn the user if the runtime isn't actually being shut down
       if (keepRuntimeAlive() && !implicit) {
         var msg = `program exited (with status: ${status}), but keepRuntimeAlive() is set (counter=${runtimeKeepaliveCounter}) due to an async operation, so halting execution but not exiting the runtime or preventing further async execution (you can use emscripten_force_exit, if you want to force a true shutdown)`;
         err(msg);
       }
-  
+
       _proc_exit(status);
     };
   var _exit = exitJS;
-  
-  
+
+
   var maybeExit = () => {
       if (!keepRuntimeAlive()) {
         try {
@@ -4813,26 +4798,89 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         maybeExit();
       }
     };
-  
+
+
+  var _emscripten_get_now = () => performance.now();
+  var __setitimer_js = (which, timeout_ms) => {
+      // First, clear any existing timer.
+      if (timers[which]) {
+        clearTimeout(timers[which].id);
+        delete timers[which];
+      }
+
+      // A timeout of zero simply cancels the current timeout so we have nothing
+      // more to do.
+      if (!timeout_ms) return 0;
+
+      var id = setTimeout(() => {
+        assert(which in timers);
+        delete timers[which];
+        callUserCallback(() => __emscripten_timeout(which, _emscripten_get_now()));
+      }, timeout_ms);
+      timers[which] = { id, timeout_ms };
+      return 0;
+    };
+
+
+  var _emscripten_date_now = () => Date.now();
+
+  var nowIsMonotonic = 1;
+
+  var checkWasiClock = (clock_id) => clock_id >= 0 && clock_id <= 3;
+
+  var INT53_MAX = 9007199254740992;
+
+  var INT53_MIN = -9007199254740992;
+  var bigintToI53Checked = (num) => (num < INT53_MIN || num > INT53_MAX) ? NaN : Number(num);
+
+  function _clock_time_get(clk_id, ignored_precision, ptime) {
+    ignored_precision = bigintToI53Checked(ignored_precision);
+
+
+      if (!checkWasiClock(clk_id)) {
+        return 28;
+      }
+      var now;
+      // all wasi clocks but realtime are monotonic
+      if (clk_id === 0) {
+        now = _emscripten_date_now();
+      } else if (nowIsMonotonic) {
+        now = _emscripten_get_now();
+      } else {
+        return 52;
+      }
+      // "now" is in ms, and wasi times are in ns.
+      var nsec = Math.round(now * 1000 * 1000);
+      HEAP64[((ptime)>>3)] = BigInt(nsec);
+      return 0;
+    ;
+  }
+
+
   function getFullscreenElement() {
       return document.fullscreenElement
              ?? document.webkitFullscreenElement
              ;
     }
-  
+
   /** @param {number=} timeout */
   var safeSetTimeout = (func, timeout) => {
-      
-      return setTimeout(() => {
-        
+
+      // Slot 0 is reserved so that, like setTimeout, ids are always non-zero.
+      safeSetTimeout.mapping ||= [0];
+      var id = safeSetTimeout.mapping.length;
+      safeSetTimeout.mapping[id] = setTimeout(() => {
+        safeSetTimeout.mapping[id] = undefined;
+
         callUserCallback(func);
       }, timeout);
+      return id;
     };
-  
-  
-  
-  
-  
+
+
+
+
+
   var Browser = {
   useWebGL:false,
   isFullscreen:false,
@@ -4846,7 +4894,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
   init() {
         if (Browser.initted) return;
         Browser.initted = true;
-  
+
         // Support for plugins that can process preloaded files. You can add more of these to
         // your app by creating and appending to preloadPlugins.
         //
@@ -4854,7 +4902,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         // it is given the file's raw data. When it is done, it calls a callback with the file's
         // (possibly modified) data. For example, a plugin might decompress a file, or it
         // might create some side data structure for use later (like an Image element, etc.).
-  
+
         var imagePlugin = {};
         imagePlugin['canHandle'] = (name) => {
           return !Module['noImageDecoding'] && /\.(jpg|jpeg|png|bmp|webp)$/i.test(name);
@@ -4887,7 +4935,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
           });
         };
         preloadPlugins.push(imagePlugin);
-  
+
         var audioPlugin = {};
         audioPlugin['canHandle'] = (name) => {
           return !Module['noAudioDecoding'] && name.slice(-4) in { '.ogg': 1, '.wav': 1, '.mp3': 1 };
@@ -4943,9 +4991,9 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
           });
         };
         preloadPlugins.push(audioPlugin);
-  
+
         // Canvas event setup
-  
+
         function pointerLockChange() {
           var canvas = Browser.getCanvas();
           Browser.pointerLock = document.pointerLockElement === canvas;
@@ -4954,9 +5002,9 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         if (canvas) {
           // forced aspect ratio can be enabled by defining 'forcedAspectRatio' on Module
           // Module['forcedAspectRatio'] = 4 / 3;
-  
+
           document.addEventListener('pointerlockchange', pointerLockChange);
-  
+
           if (Module['elementPointerLock']) {
             canvas.addEventListener('click', (ev) => {
               if (!Browser.pointerLock && Browser.getCanvas().requestPointerLock) {
@@ -4969,7 +5017,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       },
   createContext(/** @type {HTMLCanvasElement} */ canvas, useWebGL, setInModule, webGLContextAttributes) {
         if (useWebGL && Module['ctx'] && canvas == Browser.getCanvas()) return Module['ctx']; // no need to recreate GL context if it's already been created for this canvas.
-  
+
         var ctx;
         var contextHandle;
         if (useWebGL) {
@@ -4979,13 +5027,13 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
             alpha: false,
             majorVersion: 1,
           };
-  
+
           if (webGLContextAttributes) {
             for (var attribute in webGLContextAttributes) {
               contextAttributes[attribute] = webGLContextAttributes[attribute];
             }
           }
-  
+
           // This check of existence of GL is here to satisfy Closure compiler, which yells if variable GL is referenced below but GL object is not
           // actually compiled in because application is not doing any GL operations. TODO: Ideally if GL is not being used, this function
           // Browser.createContext() should not even be emitted.
@@ -4998,9 +5046,9 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         } else {
           ctx = canvas.getContext('2d');
         }
-  
+
         if (!ctx) return null;
-  
+
         if (setInModule) {
           if (!useWebGL) assert(typeof GLctx == 'undefined', 'cannot set in module if GLctx is used, but we are a non-GL context that would replace it');
           Module['ctx'] = ctx;
@@ -5019,7 +5067,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         Browser.resizeCanvas = resizeCanvas;
         if (typeof Browser.lockPointer == 'undefined') Browser.lockPointer = true;
         if (typeof Browser.resizeCanvas == 'undefined') Browser.resizeCanvas = false;
-  
+
         var canvas = Browser.getCanvas();
         function fullscreenChange() {
           Browser.isFullscreen = false;
@@ -5037,7 +5085,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
             // remove the full screen specific parent of the canvas again to restore the HTML structure from before going full screen
             canvasContainer.parentNode.insertBefore(canvas, canvasContainer);
             canvasContainer.parentNode.removeChild(canvasContainer);
-  
+
             if (Browser.resizeCanvas) {
               Browser.setWindowedCanvasSize();
             } else {
@@ -5045,25 +5093,25 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
             }
           }
         }
-  
+
         if (!Browser.fullscreenHandlersInstalled) {
           Browser.fullscreenHandlersInstalled = true;
           document.addEventListener('fullscreenchange', fullscreenChange);
           document.addEventListener('webkitfullscreenchange', fullscreenChange);
         }
-  
+
         // create a new parent to ensure the canvas has no siblings. this allows browsers to optimize full screen performance when its parent is the full screen root
         var canvasContainer = document.createElement('div');
         canvas.parentNode.insertBefore(canvasContainer, canvas);
         canvasContainer.appendChild(canvas);
-  
+
         // use parent of canvas as full screen root to allow aspect ratio correction (Firefox stretches the root to screen size)
         // Safari didn't support Element.requestFullscreen until 16.4
         // See: https://developer.mozilla.org/en-US/docs/Web/API/Element/requestFullscreen
         /** @suppress {checkTypes} */
         canvasContainer.requestFullscreen ??= (canvasContainer['webkitRequestFullscreen'] ? () => canvasContainer['webkitRequestFullscreen'](Element.ALLOW_KEYBOARD_INPUT) : null) ??
                                               (canvasContainer['webkitRequestFullScreen'] ? () => canvasContainer['webkitRequestFullScreen'](Element.ALLOW_KEYBOARD_INPUT) : null);
-  
+
         canvasContainer.requestFullscreen();
       },
   exitFullscreen() {
@@ -5073,7 +5121,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         if (!Browser.isFullscreen) {
           return false;
         }
-  
+
         var CFS = document.exitFullscreen ?? document['webkitCancelFullScreen'];
         CFS.apply(document, []);
         return true;
@@ -5146,16 +5194,16 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         // in the coordinates.
         var canvas = Browser.getCanvas();
         var rect = canvas.getBoundingClientRect();
-  
+
         var adjustedX = pageX - (window.scrollX + rect.left);
         var adjustedY = pageY - (window.scrollY + rect.top);
-  
+
         // the canvas might be CSS-scaled compared to its backbuffer;
         // SDL-using content will want mouse coordinates in terms
         // of backbuffer units.
         adjustedX = adjustedX * (canvas.width / rect.width);
         adjustedY = adjustedY * (canvas.height / rect.height);
-  
+
         return { x: adjustedX, y: adjustedY };
       },
   setMouseCoords(pageX, pageY) {
@@ -5171,7 +5219,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
           // based on the movement of the mouse.
           Browser.mouseMovementX = event.movementX;
           Browser.mouseMovementY = event.movementY;
-  
+
           // add the mouse delta to the current absolute mouse position
           Browser.mouseX += Browser.mouseMovementX;
           Browser.mouseY += Browser.mouseMovementY;
@@ -5180,10 +5228,10 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
             var touch = event.touch;
             if (touch === undefined) {
               return; // the 'touch' property is only defined in SDL
-  
+
             }
             var coords = Browser.calculateMouseCoords(touch.pageX, touch.pageY);
-  
+
             if (event.type === 'touchstart') {
               Browser.lastTouches[touch.identifier] = coords;
               Browser.touches[touch.identifier] = coords;
@@ -5195,7 +5243,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
             }
             return;
           }
-  
+
           Browser.setMouseCoords(event.pageX, event.pageY);
         }
       },
@@ -5268,9 +5316,9 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         }
       },
   };
-  
-  
-  
+
+
+
   var EGL = {
   errorCode:12288,
   defaultDisplayInitialized:false,
@@ -5293,7 +5341,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
           EGL.setErrorCode(0x3008 /* EGL_BAD_DISPLAY */);
           return 0;
         }
-  
+
         if (attribList) {
           // read attribList if it is non-null
           for (;;) {
@@ -5322,7 +5370,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
             attribList += 8;
           }
         }
-  
+
         if ((!config || !config_size) && !numConfigs) {
           EGL.setErrorCode(0x300C /* EGL_BAD_PARAMETER */);
           return 0;
@@ -5333,7 +5381,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         if (config && config_size > 0) {
           HEAPU32[((config)>>2)] = 62002;
         }
-  
+
         EGL.setErrorCode(0x3000 /* EGL_SUCCESS */);
         return 1;
       },
@@ -5352,7 +5400,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       EGL.chooseConfig(display, attrib_list, configs, config_size, numConfigs);
 
   var GLctx;
-  
+
   var webgl_enable_ANGLE_instanced_arrays = (ctx) => {
       // Extension available in WebGL 1 from Firefox 26 and Google Chrome 30 onwards. Core feature in WebGL 2.
       var ext = ctx.getExtension('ANGLE_instanced_arrays');
@@ -5366,7 +5414,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         return 1;
       }
     };
-  
+
   var webgl_enable_OES_vertex_array_object = (ctx) => {
       // Extension available in WebGL 1 from Firefox 25 and WebKit 536.28/desktop Safari 6.0.3 onwards. Core feature in WebGL 2.
       var ext = ctx.getExtension('OES_vertex_array_object');
@@ -5378,7 +5426,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         return 1;
       }
     };
-  
+
   var webgl_enable_WEBGL_draw_buffers = (ctx) => {
       // Extension available in WebGL 1 from Firefox 28 onwards. Core feature in WebGL 2.
       var ext = ctx.getExtension('WEBGL_draw_buffers');
@@ -5387,20 +5435,20 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         return 1;
       }
     };
-  
+
   var webgl_enable_EXT_polygon_offset_clamp = (ctx) =>
       !!(ctx.extPolygonOffsetClamp = ctx.getExtension('EXT_polygon_offset_clamp'));
-  
+
   var webgl_enable_EXT_clip_control = (ctx) =>
       !!(ctx.extClipControl = ctx.getExtension('EXT_clip_control'));
-  
+
   var webgl_enable_WEBGL_polygon_mode = (ctx) =>
       !!(ctx.webglPolygonMode = ctx.getExtension('WEBGL_polygon_mode'));
-  
+
   var webgl_enable_WEBGL_multi_draw = (ctx) =>
       // Closure is expected to be allowed to minify the '.multiDrawWebgl' property, so not accessing it quoted.
       !!(ctx.multiDrawWebgl = ctx.getExtension('WEBGL_multi_draw'));
-  
+
   var getEmscriptenSupportedExtensions = (ctx) => {
       // Restrict the list of advertised extensions to those that we actually
       // support.
@@ -5448,10 +5496,10 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       // .getSupportedExtensions() can return null if context is lost, so coerce to empty array.
       return ctx.getSupportedExtensions()?.filter(ext => supportedExtensions.includes(ext)) ?? [];
     };
-  
-  
-  
-  
+
+
+
+
   var GL = {
   counter:1,
   buffers:[],
@@ -5554,7 +5602,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         }
       },
   createContext:(/** @type {HTMLCanvasElement} */ canvas, webGLContextAttributes) => {
-  
+
         // BUG: Workaround Safari WebGL issue: After successfully acquiring WebGL
         // context on a canvas, calling .getContext() will always return that
         // context independent of which 'webgl' or 'webgl2'
@@ -5573,27 +5621,27 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
           }
           canvas.getContext = fixedGetContext;
         }
-  
+
         var ctx =
           canvas.getContext('webgl', webGLContextAttributes);
-  
+
         if (!ctx) return 0;
-  
+
         var handle = GL.registerContext(ctx, webGLContextAttributes);
-  
+
         return handle;
       },
   registerContext:(ctx, webGLContextAttributes) => {
         // without pthreads a context is just an integer ID
         var handle = GL.getNewId(GL.contexts);
-  
+
         var context = {
           handle,
           attributes: webGLContextAttributes,
           version: webGLContextAttributes.majorVersion,
           GLctx: ctx
         };
-  
+
         // Store the created context object so that we can access the context
         // given a canvas without having to pass the parameters again.
         if (ctx.canvas) ctx.canvas.GLctxObject = context;
@@ -5601,11 +5649,11 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         if (typeof webGLContextAttributes.enableExtensionsByDefault == 'undefined' || webGLContextAttributes.enableExtensionsByDefault) {
           GL.initExtensions(context);
         }
-  
+
         return handle;
       },
   makeContextCurrent:(contextHandle) => {
-  
+
         // Active Emscripten GL layer context object.
         GL.currentContext = GL.contexts[contextHandle];
         // Active WebGL context object.
@@ -5635,15 +5683,15 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         // If this function is called without a specific context object, init the
         // extensions of the currently active context.
         context ||= GL.currentContext;
-  
+
         if (context.initExtensionsDone) return;
         context.initExtensionsDone = true;
-  
+
         var GLctx = context.GLctx;
-  
+
         // Detect the presence of a few extensions manually, since the GL interop
         // layer itself will need to know if they exist.
-  
+
         // Extensions that are available in both WebGL 1 and WebGL 2
         webgl_enable_WEBGL_multi_draw(GLctx);
         webgl_enable_EXT_polygon_offset_clamp(GLctx);
@@ -5657,7 +5705,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         {
           GLctx.disjointTimerQueryExt = GLctx.getExtension('EXT_disjoint_timer_query');
         }
-  
+
         for (var ext of getEmscriptenSupportedExtensions(GLctx)) {
           // WEBGL_lose_context, WEBGL_debug_renderer_info and WEBGL_debug_shaders
           // are not enabled by default.
@@ -5668,14 +5716,14 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         }
       },
   };
-  
-  
+
+
   var _eglCreateContext = (display, config, hmm, contextAttribs) => {
       if (display != 62000) {
         EGL.setErrorCode(0x3008 /* EGL_BAD_DISPLAY */);
         return 0;
       }
-  
+
       // EGL 1.4 spec says default EGL_CONTEXT_CLIENT_VERSION is GLES1, but this is not supported by Emscripten.
       // So user must pass EGL_CONTEXT_CLIENT_VERSION == 2 to initialize EGL.
       var glesContextVersion = 1;
@@ -5701,20 +5749,20 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         EGL.setErrorCode(0x3005 /* EGL_BAD_CONFIG */);
         return 0; /* EGL_NO_CONTEXT */
       }
-  
+
       EGL.contextAttributes.majorVersion = glesContextVersion - 1; // WebGL 1 is GLES 2, WebGL2 is GLES3
       EGL.contextAttributes.minorVersion = 0;
-  
+
       EGL.context = GL.createContext(Browser.getCanvas(), EGL.contextAttributes);
-  
+
       if (EGL.context != 0) {
         EGL.setErrorCode(0x3000 /* EGL_SUCCESS */);
-  
+
         // Run callbacks so that GL emulation works
         GL.makeContextCurrent(EGL.context);
         Browser.useWebGL = true;
         Browser.moduleContextCreatedCallbacks.forEach((callback) => callback());
-  
+
         // Note: This function only creates a context, but it shall not make it active.
         GL.makeContextCurrent(null);
         return 62004;
@@ -5741,7 +5789,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       return 62006; /* Magic ID for Emscripten 'default surface' */
     };
 
-  
+
   var _eglDestroyContext = (display, context) => {
       if (display != 62000) {
         EGL.setErrorCode(0x3008 /* EGL_BAD_DISPLAY */);
@@ -5751,7 +5799,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         EGL.setErrorCode(0x3006 /* EGL_BAD_CONTEXT */);
         return 0;
       }
-  
+
       GL.deleteContext(EGL.context);
       EGL.setErrorCode(0x3000 /* EGL_SUCCESS */);
       if (EGL.currentContext == context) {
@@ -5779,7 +5827,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       return 1; /* Magic ID for Emscripten 'default surface' */
     };
 
-  
+
   var _eglGetConfigAttrib = (display, config, attribute, value) => {
       if (display != 62000) {
         EGL.setErrorCode(0x3008 /* EGL_BAD_DISPLAY */);
@@ -5908,7 +5956,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
 
   var _eglGetError = () => EGL.errorCode;
 
-  
+
   var _eglInitialize = (display, majorVersion, minorVersion) => {
       if (display != 62000) {
         EGL.setErrorCode(0x3008 /* EGL_BAD_DISPLAY */);
@@ -5925,7 +5973,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       return 1;
     };
 
-  
+
   var _eglMakeCurrent = (display, draw, read, context) => {
       if (display != 62000) {
         EGL.setErrorCode(0x3008 /* EGL_BAD_DISPLAY */);
@@ -5940,9 +5988,9 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         EGL.setErrorCode(0x300D /* EGL_BAD_SURFACE */);
         return 0;
       }
-  
+
       GL.makeContextCurrent(context ? EGL.context : null);
-  
+
       EGL.currentContext = context;
       EGL.currentDrawSurface = draw;
       EGL.currentReadSurface = read;
@@ -5950,15 +5998,15 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       return 1 /* EGL_TRUE */;
     };
 
-  
-  
+
+
   var stringToNewUTF8 = (str) => {
       var size = lengthBytesUTF8(str) + 1;
       var ret = _malloc(size);
       if (ret) stringToUTF8(str, ret, size);
       return ret;
     };
-  
+
   var _eglQueryString = (display, name) => {
       if (display != 62000) {
         EGL.setErrorCode(0x3008 /* EGL_BAD_DISPLAY */);
@@ -5981,7 +6029,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       return ret;
     };
 
-  
+
   var _eglSwapBuffers = (dpy, surface) => {
       if (!EGL.defaultDisplayInitialized) {
         EGL.setErrorCode(0x3001 /* EGL_NOT_INITIALIZED */);
@@ -6000,10 +6048,10 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       return 0 /* EGL_FALSE */;
     };
 
-  
-  
-  
-  
+
+
+
+
     /**
    * @param {number=} arg
    * @param {boolean=} noSetTiming
@@ -6012,23 +6060,19 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       assert(!MainLoop.func, 'emscripten_set_main_loop: there can only be one main loop function at once')
       MainLoop.func = iterFunc;
       MainLoop.arg = arg;
-  
+
       var thisMainLoopId = MainLoop.currentlyRunningMainloop;
       function checkIsRunning() {
         if (thisMainLoopId < MainLoop.currentlyRunningMainloop) {
-          
           maybeExit();
           return false;
         }
         return true;
       }
-  
+
       // We create the loop runner here but it is not actually running until
       // _emscripten_set_main_loop_timing is called (which might happen at a
-      // later time).  This member signifies that the current runner has not
-      // yet been started so that we can call runtimeKeepalivePush when it
-      // gets its timing set for the first time.
-      MainLoop.running = false;
+      // later time).
       MainLoop.runner = function MainLoop_runner() {
         if (ABORT) return;
         if (MainLoop.queue.length > 0) {
@@ -6047,17 +6091,17 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
             }
           }
           MainLoop.updateStatus();
-  
+
           // catches pause/resume main loop from blocker execution
           if (!checkIsRunning()) return;
-  
+
           setTimeout(MainLoop.runner, 0);
           return;
         }
-  
+
         // catch pauses from non-main loop sources
         if (!checkIsRunning()) return;
-  
+
         // Implement very basic swap interval control
         MainLoop.currentFrameNumber = MainLoop.currentFrameNumber + 1 | 0;
         if (MainLoop.timingMode == 1 && MainLoop.timingValue > 1 && MainLoop.currentFrameNumber % MainLoop.timingValue != 0) {
@@ -6070,15 +6114,15 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
             warnOnce('Looks like you are rendering without using requestAnimationFrame for the main loop. You should use 0 for the frame rate in emscripten_set_main_loop in order to use requestAnimationFrame, as that can greatly improve your frame rates!');
           }
         }
-  
+
         MainLoop.runIter(iterFunc);
-  
+
         // catch pauses from the main loop itself
         if (!checkIsRunning()) return;
-  
+
         MainLoop.scheduler();
       }
-  
+
       if (!noSetTiming) {
         if (fps > 0) {
           _emscripten_set_main_loop_timing(0, 1000.0 / fps);
@@ -6086,21 +6130,20 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
           // Do rAF by rendering each frame (no decimating)
           _emscripten_set_main_loop_timing(1, 1);
         }
-  
+
         MainLoop.scheduler();
       }
-  
+
       if (simulateInfiniteLoop) {
         throw 'unwind';
       }
     };
-  
-  
+
+
   var MainLoop = {
-  running:false,
+  func:null,
   scheduler:null,
   currentlyRunningMainloop:0,
-  func:null,
   arg:0,
   timingMode:0,
   timingValue:0,
@@ -6109,9 +6152,12 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
   preMainLoop:[],
   postMainLoop:[],
   pause() {
-        MainLoop.scheduler = null;
-        // Incrementing this signals the previous main loop that it's now become old, and it must return.
-        MainLoop.currentlyRunningMainloop++;
+        if (MainLoop.scheduler) {
+          MainLoop.scheduler = null;
+          // Incrementing this signals the previous main loop that it's now become old, and it must return.
+          MainLoop.currentlyRunningMainloop++;
+
+        }
       },
   resume() {
         MainLoop.currentlyRunningMainloop++;
@@ -6180,16 +6226,12 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
   var _emscripten_set_main_loop_timing = (mode, value) => {
       MainLoop.timingMode = mode;
       MainLoop.timingValue = value;
-  
+
       if (!MainLoop.func) {
         err('emscripten_set_main_loop_timing: Cannot set timing mode for main loop since a main loop does not exist! Call emscripten_set_main_loop first to set one up.');
         return 1; // Return non-zero on failure, can't set timing mode when there is no main loop.
       }
-  
-      if (!MainLoop.running) {
-        
-        MainLoop.running = true;
-      }
+
       if (mode == 0) {
         MainLoop.scheduler = function MainLoop_scheduler_setTimeout() {
           var timeUntilNextTick = Math.max(0, MainLoop.tickStartTime + value - _emscripten_get_now())|0;
@@ -6237,7 +6279,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       }
       return 0;
     };
-  
+
   var _eglSwapInterval = (display, interval) => {
       if (display != 62000) {
         EGL.setErrorCode(0x3008 /* EGL_BAD_DISPLAY */);
@@ -6245,7 +6287,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       }
       if (interval == 0) _emscripten_set_main_loop_timing(0, 0);
       else _emscripten_set_main_loop_timing(1, interval);
-  
+
       EGL.setErrorCode(0x3000 /* EGL_SUCCESS */);
       return 1;
     };
@@ -6263,7 +6305,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       return 1;
     };
 
-  
+
   var _eglWaitClient = () => {
       EGL.setErrorCode(0x3000 /* EGL_SUCCESS */);
       return 1;
@@ -6276,13 +6318,13 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
     };
 
   var readEmAsmArgsArray = [];
-  
-  
-  
-  
+
+
+
+
   /** @type {!Float64Array} */
   var HEAPF64;
-  
+
   var readEmAsmArgs = (sigPtr, buf) => {
       // Nobody should have mutated _readEmAsmArgsArray underneath us to be something else than an array.
       assert(Array.isArray(readEmAsmArgsArray));
@@ -6353,7 +6395,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
   deferCall(targetFunction, precedence, argsList) {
         function arraysHaveEqualContent(arrA, arrB) {
           if (arrA.length != arrB.length) return false;
-  
+
           for (var i = 0; i < arrA.length; i++) {
             if (arrA[i] != arrB[i]) return false;
           }
@@ -6370,7 +6412,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
           precedence,
           argsList
         });
-  
+
         JSEvents.deferredCalls.sort((x,y) => x.precedence - y.precedence);
       },
   removeDeferredCalls(targetFunction) {
@@ -6385,7 +6427,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
           // and https://caniuse.com/mdn-api_useractivation
           return navigator.userActivation.isActive;
         }
-  
+
         return JSEvents.inEventHandler && JSEvents.currentEventHandler.allowsDeferredCalls;
       },
   runDeferredCalls() {
@@ -6432,7 +6474,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
             // Out of event handler - restore nesting count.
             --JSEvents.inEventHandler;
           };
-  
+
           eventHandler.target.addEventListener(eventHandler.eventTypeString,
                                                eventHandler.eventListenerFunc,
                                                eventHandler.useCapture);
@@ -6475,11 +6517,11 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
          ;
       },
   };
-  
+
   /** @type {Object} */
   var specialHTMLTargets = [0, globalThis.document ?? 0, globalThis.window ?? 0];
-  
-  
+
+
   var maybeCStringToJsString = (cString) => {
       // 'cString > 2' checks if the input is a number, and isn't of the special
       // values we accept here, EMSCRIPTEN_EVENT_TARGET_* (which map to 0, 1, 2).
@@ -6487,25 +6529,25 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       // memory, and points to a C string.
       return cString > 2 ? UTF8ToString(cString) : cString;
     };
-  
+
   var findEventTarget = (target) => {
       target = maybeCStringToJsString(target);
       var domElement = specialHTMLTargets[target] || globalThis.document?.querySelector(target);
       return domElement;
     };
   var findCanvasEventTarget = findEventTarget;
-  
+
   var _emscripten_get_canvas_element_size = (target, width, height) => {
       var canvas = findCanvasEventTarget(target);
       if (!canvas) return -4;
       HEAP32[((width)>>2)] = canvas.width;
       HEAP32[((height)>>2)] = canvas.height;
     };
-  
-  
-  
-  
-  
+
+
+
+
+
   var stackAlloc = (sz) => __emscripten_stack_alloc(sz);
   var stringToUTF8OnStack = (str) => {
       var size = lengthBytesUTF8(str) + 1;
@@ -6513,19 +6555,19 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       stringToUTF8(str, ret, size);
       return ret;
     };
-  
+
   var getCanvasElementSize = (target) => {
       var sp = stackSave();
       var w = stackAlloc(8);
       var h = w + 4;
-  
+
       var targetInt = stringToUTF8OnStack(target.id);
       var ret = _emscripten_get_canvas_element_size(targetInt, w, h);
       var size = [HEAP32[((w)>>2)], HEAP32[((h)>>2)]];
       stackRestore(sp);
       return size;
     };
-  
+
   var _emscripten_set_canvas_element_size = (target, width, height) => {
       var canvas = findCanvasEventTarget(target);
       if (!canvas) return -4;
@@ -6533,9 +6575,9 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       canvas.height = height;
       return 0;
     };
-  
-  
-  
+
+
+
   var setCanvasElementSize = (target, width, height) => {
       if (!target.controlTransferredOffscreen) {
         target.width = width;
@@ -6549,9 +6591,9 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         stackRestore(sp);
       }
     };
-  
+
   var currentFullscreenStrategy = 0;
-  
+
   var callCanvasResizedCallback = (strategy) => {
       if (strategy.canvasResizedCallback) {
         ((a1, a2, a3) => dynCall_iiii(strategy.canvasResizedCallback, a1, a2, a3))(37, 0, strategy.canvasResizedCallbackUserData);
@@ -6578,15 +6620,15 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       var oldDocumentOverflow = document.documentElement.style.overflow; // Chrome, Firefox
       var oldDocumentScroll = document.body.scroll; // IE
       var oldImageRendering = canvas.style.imageRendering;
-  
+
       function restoreOldStyle() {
         if (!getFullscreenElement()) {
           document.removeEventListener('fullscreenchange', restoreOldStyle);
-  
+
           document.removeEventListener('webkitfullscreenchange', restoreOldStyle);
-  
+
           setCanvasElementSize(canvas, oldWidth, oldHeight);
-  
+
           canvas.style.width = oldCssWidth;
           canvas.style.height = oldCssHeight;
           canvas.style.backgroundColor = oldBackgroundColor; // Chrome
@@ -6608,7 +6650,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
           document.body.scroll = oldDocumentScroll; // IE
           canvas.style.imageRendering = oldImageRendering;
           if (canvas.GLctxObject) canvas.GLctxObject.GLctx.viewport(0, 0, oldWidth, oldHeight);
-  
+
           callCanvasResizedCallback(currentFullscreenStrategy);
         }
       }
@@ -6616,15 +6658,15 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       document.addEventListener('webkitfullscreenchange', restoreOldStyle);
       return restoreOldStyle;
     };
-  
-  
+
+
   var setLetterbox = (element, topBottom, leftRight) => {
       // Cannot use margin to specify letterboxes in FF or Chrome, since those ignore margins in fullscreen mode.
       element.style.paddingLeft = element.style.paddingRight = leftRight + 'px';
       element.style.paddingTop = element.style.paddingBottom = topBottom + 'px';
     };
-  
-  
+
+
   var getBoundingClientRect = (e) => specialHTMLTargets.indexOf(e) < 0 ? e.getBoundingClientRect() : {'left':0,'top':0};
   var JSEvents_resizeCanvasForFullscreen = (target, strategy) => {
       var restoreOldStyle = registerRestoreOldStyle(target);
@@ -6636,7 +6678,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       var canvasSize = getCanvasElementSize(target);
       var windowedRttWidth = canvasSize[0];
       var windowedRttHeight = canvasSize[1];
-  
+
       if (strategy.scaleMode == 3) {
         setLetterbox(target, (cssHeight - windowedCssHeight) / 2, (cssWidth - windowedCssWidth) / 2);
         cssWidth = windowedCssWidth;
@@ -6652,17 +6694,17 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
           cssWidth = desiredCssWidth;
         }
       }
-  
+
       // If we are adding padding, must choose a background color or otherwise Chrome will give the
       // padding a default white color. Do it only if user has not customized their own background color.
       target.style.backgroundColor ||= 'black';
       // IE11 does the same, but requires the color to be set in the document body.
       document.body.style.backgroundColor ||= 'black'; // IE11
       // Firefox always shows black letterboxes independent of style color.
-  
+
       target.style.width = cssWidth + 'px';
       target.style.height = cssHeight + 'px';
-  
+
       if (strategy.filteringMode == 1) {
         target.style.imageRendering = 'optimizeSpeed';
         target.style.imageRendering = '-moz-crisp-edges';
@@ -6672,7 +6714,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         target.style.imageRendering = 'crisp-edges';
         target.style.imageRendering = 'pixelated';
       }
-  
+
       var dpiScale = (strategy.canvasResolutionScaleMode == 2) ? devicePixelRatio : 1;
       if (strategy.canvasResolutionScaleMode != 0) {
         var newWidth = (cssWidth * dpiScale)|0;
@@ -6682,13 +6724,13 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       }
       return restoreOldStyle;
     };
-  
+
   var JSEvents_requestFullscreen = (target, strategy) => {
       // EMSCRIPTEN_FULLSCREEN_SCALE_DEFAULT + EMSCRIPTEN_FULLSCREEN_CANVAS_SCALE_NONE is a mode where no extra logic is performed to the DOM elements.
       if (strategy.scaleMode != 0 || strategy.canvasResolutionScaleMode != 0) {
         JSEvents_resizeCanvasForFullscreen(target, strategy);
       }
-  
+
       if (target.requestFullscreen) {
         target.requestFullscreen();
       } else if (target.webkitRequestFullscreen) {
@@ -6698,7 +6740,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       } else {
         return JSEvents.fullscreenEnabled() ? -3 : -1;
       }
-  
+
       currentFullscreenStrategy = strategy;
       callCanvasResizedCallback(strategy);
       return 0;
@@ -6707,7 +6749,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       if (!JSEvents.fullscreenEnabled()) return -1;
       // Make sure no queued up calls will fire after this.
       JSEvents.removeDeferredCalls(JSEvents_requestFullscreen);
-  
+
       var d = specialHTMLTargets[1];
       if (d.exitFullscreen) {
         d.fullscreenElement && d.exitFullscreen();
@@ -6716,11 +6758,11 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       } else {
         return -1;
       }
-  
+
       return 0;
     };
 
-  
+
   var requestPointerLock = (target) => {
       if (target.requestPointerLock) {
         target.requestPointerLock();
@@ -6742,12 +6784,8 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       return 0;
     };
 
-  
-  var __emscripten_runtime_keepalive_clear = () => {
-      noExitRuntime = false;
-      runtimeKeepaliveCounter = 0;
-    };
-  
+
+
   var _emscripten_force_exit = (status) => {
       warnOnce('emscripten_force_exit cannot actually shut down the runtime, as the build does not have EXIT_RUNTIME set');
       __emscripten_runtime_keepalive_clear();
@@ -6758,23 +6796,23 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       return globalThis.devicePixelRatio ?? 1.0;
     };
 
-  
-  
+
+
   var _emscripten_get_element_css_size = (target, width, height) => {
       target = findEventTarget(target);
       if (!target) return -4;
-  
+
       var rect = getBoundingClientRect(target);
       HEAPF64[((width)>>3)] = rect.width;
       HEAPF64[((height)>>3)] = rect.height;
-  
+
       return 0;
     };
 
-  
-  
-  
-  
+
+
+
+
   var fillGamepadEventData = (eventStruct, e) => {
       HEAPF64[((eventStruct)>>3)] = e.timestamp;
       for (var i = 0; i < e.axes.length; ++i) {
@@ -6795,13 +6833,13 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       assert(JSEvents.lastGamepadState, 'emscripten_get_gamepad_status() called before emscripten_sample_gamepad_data()');
       // INVALID_PARAM is returned on a Gamepad index that never was there.
       if (index < 0 || index >= JSEvents.lastGamepadState.length) return -5;
-  
+
       // NO_DATA is returned on a Gamepad index that was removed.
       // For previously disconnected gamepads there should be an empty slot (null/undefined/false) at the index.
       // This is because gamepads must keep their original position in the array.
       // For example, removing the first of two gamepads produces [null/undefined/false, gamepad].
       if (!JSEvents.lastGamepadState[index]) return -7;
-  
+
       fillGamepadEventData(gamepadState, JSEvents.lastGamepadState[index]);
       return 0;
     };
@@ -6814,7 +6852,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       return JSEvents.lastGamepadState.length;
     };
 
-  
+
   var _emscripten_get_screen_size = (width, height) => {
       HEAP32[((width)>>2)] = screen.width;
       HEAP32[((height)>>2)] = screen.height;
@@ -6833,7 +6871,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       GLctx.disjointTimerQueryExt['beginQueryEXT'](target, GL.queries[id]);
     };
 
-  
+
   var _emscripten_glBindAttribLocation = (program, index, name) => {
       GL.validateGLObjectID(GL.programs, program, 'glBindAttribLocation', 'program');
       GLctx.bindAttribLocation(GL.programs[program], index, UTF8ToString(name));
@@ -6841,15 +6879,15 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
 
   var _emscripten_glBindBuffer = (target, buffer) => {
       GL.validateGLObjectID(GL.buffers, buffer, 'glBindBuffer', 'buffer');
-  
+
       GLctx.bindBuffer(target, GL.buffers[buffer]);
     };
 
   var _emscripten_glBindFramebuffer = (target, framebuffer) => {
       GL.validateGLObjectID(GL.framebuffers, framebuffer, 'glBindFramebuffer', 'framebuffer');
-  
+
       GLctx.bindFramebuffer(target, GL.framebuffers[framebuffer]);
-  
+
     };
 
   var _emscripten_glBindRenderbuffer = (target, renderbuffer) => {
@@ -6862,7 +6900,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       GLctx.bindTexture(target, GL.textures[texture]);
     };
 
-  
+
   var _emscripten_glBindVertexArray = (vao) => {
       assert(GLctx.bindVertexArray, 'Must have WebGL2 or OES_vertex_array_object to use vao');
       GLctx.bindVertexArray(GL.vaos[vao]);
@@ -6880,9 +6918,9 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
 
   var _emscripten_glBlendFuncSeparate = (x0, x1, x2, x3) => GLctx.blendFuncSeparate(x0, x1, x2, x3);
 
-  
+
   var _emscripten_glBufferData = (target, size, data, usage) => {
-  
+
       // N.b. here first form specifies a heap subarray, second form an integer
       // size, so the ?: code here is polymorphic. It is advised to avoid
       // randomly mixing both uses in calling code, to avoid any potential JS
@@ -6890,11 +6928,11 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       GLctx.bufferData(target, data ? HEAPU8.subarray(data, data+size) : size, usage);
     };
 
-  
+
   var webglBufferSubData = (target, offset, size, data, src = HEAPU8) => {
       GLctx.bufferSubData(target, offset, src.subarray(data, data + size));
     };
-  
+
   var _emscripten_glBufferSubData = (target, offset, size, data) => webglBufferSubData(target, offset, size, data);
 
   var _emscripten_glCheckFramebufferStatus = (x0) => GLctx.checkFramebufferStatus(x0);
@@ -6921,7 +6959,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       GLctx.compileShader(GL.shaders[shader]);
     };
 
-  
+
   var _emscripten_glCompressedTexImage2D = (target, level, internalFormat, width, height, border, imageSize, data) => {
       // `data` may be null here, which means "allocate uninitialized space but
       // don't upload" in GLES parlance, but `compressedTexImage2D` requires the
@@ -6931,7 +6969,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       GLctx.compressedTexImage2D(target, level, internalFormat, width, height, border, HEAPU8.subarray(data, data + imageSize));
     };
 
-  
+
   var _emscripten_glCompressedTexSubImage2D = (target, level, xoffset, yoffset, width, height, format, imageSize, data) => {
       GLctx.compressedTexSubImage2D(target, level, xoffset, yoffset, width, height, format, HEAPU8.subarray(data, data + imageSize));
     };
@@ -6956,30 +6994,30 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
   var _emscripten_glCreateShader = (shaderType) => {
       var id = GL.getNewId(GL.shaders);
       GL.shaders[id] = GLctx.createShader(shaderType);
-  
+
       return id;
     };
 
   var _emscripten_glCullFace = (x0) => GLctx.cullFace(x0);
 
-  
+
   var _emscripten_glDeleteBuffers = (n, buffers) => {
       for (var i = 0; i < n; i++) {
         var id = HEAP32[(((buffers)+(i*4))>>2)];
         var buffer = GL.buffers[id];
-  
+
         // From spec: "glDeleteBuffers silently ignores 0's and names that do not
         // correspond to existing buffer objects."
         if (!buffer) continue;
-  
+
         GLctx.deleteBuffer(buffer);
         buffer.name = 0;
         GL.buffers[id] = null;
-  
+
       }
     };
 
-  
+
   var _emscripten_glDeleteFramebuffers = (n, framebuffers) => {
       for (var i = 0; i < n; ++i) {
         var id = HEAP32[(((framebuffers)+(i*4))>>2)];
@@ -7005,7 +7043,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       GL.programs[id] = null;
     };
 
-  
+
   var _emscripten_glDeleteQueriesEXT = (n, ids) => {
       for (var i = 0; i < n; i++) {
         var id = HEAP32[(((ids)+(i*4))>>2)];
@@ -7016,7 +7054,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       }
     };
 
-  
+
   var _emscripten_glDeleteRenderbuffers = (n, renderbuffers) => {
       for (var i = 0; i < n; i++) {
         var id = HEAP32[(((renderbuffers)+(i*4))>>2)];
@@ -7041,7 +7079,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       GL.shaders[id] = null;
     };
 
-  
+
   var _emscripten_glDeleteTextures = (n, textures) => {
       for (var i = 0; i < n; i++) {
         var id = HEAP32[(((textures)+(i*4))>>2)];
@@ -7055,8 +7093,8 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       }
     };
 
-  
-  
+
+
   var _emscripten_glDeleteVertexArrays = (n, vaos) => {
       assert(GLctx.deleteVertexArray, 'Must have WebGL2 or OES_vertex_array_object to use vao');
       for (var i = 0; i < n; i++) {
@@ -7089,12 +7127,12 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
     };
 
   var _emscripten_glDrawArrays = (mode, first, count) => {
-  
+
       GLctx.drawArrays(mode, first, count);
-  
+
     };
 
-  
+
   var _emscripten_glDrawArraysInstanced = (mode, first, count, primcount) => {
       assert(GLctx.drawArraysInstanced, 'Must have ANGLE_instanced_arrays extension or WebGL 2 to use WebGL instancing');
       GLctx.drawArraysInstanced(mode, first, count, primcount);
@@ -7102,32 +7140,32 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
   var _glDrawArraysInstanced = _emscripten_glDrawArraysInstanced;
   var _emscripten_glDrawArraysInstancedANGLE = _glDrawArraysInstanced;
 
-  
+
   var tempFixedLengthArray = [];
-  
-  
+
+
   var _emscripten_glDrawBuffers = (n, bufs) => {
       assert(GLctx.drawBuffers, 'Must have WebGL2 or WEBGL_draw_buffers extension to use drawBuffers');
       assert(n < tempFixedLengthArray.length, `Invalid count of numBuffers=${n} passed to glDrawBuffers (that many draw buffer points do not exist in GL)`);
-  
+
       var bufArray = tempFixedLengthArray[n];
       for (var i = 0; i < n; i++) {
         bufArray[i] = HEAP32[(((bufs)+(i*4))>>2)];
       }
-  
+
       GLctx.drawBuffers(bufArray);
     };
   var _glDrawBuffers = _emscripten_glDrawBuffers;
   var _emscripten_glDrawBuffersWEBGL = _glDrawBuffers;
 
-  
+
   var _emscripten_glDrawElements = (mode, count, type, indices) => {
-  
+
       GLctx.drawElements(mode, count, type, indices);
-  
+
     };
 
-  
+
   var _emscripten_glDrawElementsInstanced = (mode, count, type, indices, primcount) => {
       assert(GLctx.drawElementsInstanced, 'Must have ANGLE_instanced_arrays extension or WebGL 2 to use WebGL instancing');
       GLctx.drawElementsInstanced(mode, count, type, indices, primcount);
@@ -7175,7 +7213,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         );
     };
 
-  
+
   var _emscripten_glGenQueriesEXT = (n, ids) => {
       for (var i = 0; i < n; i++) {
         var query = GLctx.disjointTimerQueryExt['createQueryEXT']();
@@ -7204,7 +7242,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         );
     };
 
-  
+
   var _emscripten_glGenVertexArrays = (n, arrays) => {
       assert(GLctx.createVertexArray, 'Must have WebGL2 or OES_vertex_array_object to use vao');
       GL.genObject(n, arrays, 'createVertexArray', GL.vaos
@@ -7216,8 +7254,8 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
 
   var _emscripten_glGenerateMipmap = (x0) => GLctx.generateMipmap(x0);
 
-  
-  
+
+
   var __glGetActiveAttribOrUniform = (funcName, program, index, bufSize, length, size, type, name) => {
       GL.validateGLObjectID(GL.programs, program, funcName, 'program');
       program = GL.programs[program];
@@ -7230,15 +7268,15 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         if (type) HEAP32[((type)>>2)] = info.type;
       }
     };
-  
+
   var _emscripten_glGetActiveAttrib = (program, index, bufSize, length, size, type, name) =>
       __glGetActiveAttribOrUniform('getActiveAttrib', program, index, bufSize, length, size, type, name);
 
-  
+
   var _emscripten_glGetActiveUniform = (program, index, bufSize, length, size, type, name) =>
       __glGetActiveAttribOrUniform('getActiveUniform', program, index, bufSize, length, size, type, name);
 
-  
+
   var _emscripten_glGetAttachedShaders = (program, maxCount, count, shaders) => {
       GL.validateGLObjectID(GL.programs, program, 'glGetAttachedShaders', 'program');
       var result = GLctx.getAttachedShaders(GL.programs[program]);
@@ -7254,19 +7292,19 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       }
     };
 
-  
+
   var _emscripten_glGetAttribLocation = (program, name) =>
       GLctx.getAttribLocation(GL.programs[program], UTF8ToString(name));
 
-  
+
   var readI53FromI64 = (ptr) => {
       return HEAPU32[((ptr)>>2)] + HEAP32[(((ptr)+(4))>>2)] * 4294967296;
     };
-  
+
   var readI53FromU64 = (ptr) => {
       return HEAPU32[((ptr)>>2)] + HEAPU32[(((ptr)+(4))>>2)] * 4294967296;
     };
-  
+
   var writeI53ToI64 = (ptr, num) => {
       HEAPU32[((ptr)>>2)] = num;
       var lower = HEAPU32[((ptr)>>2)];
@@ -7275,10 +7313,10 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       var offset = ((ptr)>>2);
       if (deserialized != num) warnOnce(`writeI53ToI64() out of range: serialized JS Number ${num} to Wasm heap as bytes lo=${ptrToString(HEAPU32[offset])}, hi=${ptrToString(HEAPU32[offset+1])}, which deserializes back to ${deserialized} instead!`);
     };
-  
-  
-  
-  
+
+
+
+
   /** @type {!Float32Array} */
   var HEAPF32;
   var emscriptenWebGLGet = (name_, p, type) => {
@@ -7316,9 +7354,9 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
           var formats = GLctx.getParameter(0x86A3 /*GL_COMPRESSED_TEXTURE_FORMATS*/);
           ret = formats ? formats.length : 0;
           break;
-  
+
       }
-  
+
       if (ret === undefined) {
         var result = GLctx.getParameter(name_);
         switch (typeof result) {
@@ -7384,7 +7422,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
             return;
         }
       }
-  
+
       switch (type) {
         case 1: writeI53ToI64(p, ret); break;
         case 0: HEAP32[((p)>>2)] = ret; break;
@@ -7393,10 +7431,10 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         default: abort(`internal glGet error, bad type: ${type}`);
       }
     };
-  
+
   var _emscripten_glGetBooleanv = (name_, p) => emscriptenWebGLGet(name_, p, 4);
 
-  
+
   var _emscripten_glGetBufferParameteriv = (target, value, data) => {
       if (!data) {
         // GLES2 specification does not specify how to behave if data is a null
@@ -7415,10 +7453,10 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       return error;
     };
 
-  
+
   var _emscripten_glGetFloatv = (name_, p) => emscriptenWebGLGet(name_, p, 2);
 
-  
+
   var _emscripten_glGetFramebufferAttachmentParameteriv = (target, attachment, pname, params) => {
       var result = GLctx.getFramebufferAttachmentParameter(target, attachment, pname);
       if (result instanceof WebGLRenderbuffer ||
@@ -7428,10 +7466,10 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       HEAP32[((params)>>2)] = result;
     };
 
-  
+
   var _emscripten_glGetIntegerv = (name_, p) => emscriptenWebGLGet(name_, p, 0);
 
-  
+
   var _emscripten_glGetProgramInfoLog = (program, maxLength, length, infoLog) => {
       GL.validateGLObjectID(GL.programs, program, 'glGetProgramInfoLog', 'program');
       var log = GLctx.getProgramInfoLog(GL.programs[program]);
@@ -7440,7 +7478,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       if (length) HEAP32[((length)>>2)] = numBytesWrittenExclNull;
     };
 
-  
+
   var _emscripten_glGetProgramiv = (program, pname, p) => {
       if (!p) {
         // GLES2 specification does not specify how to behave if p is a null
@@ -7451,15 +7489,15 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         return;
       }
       GL.validateGLObjectID(GL.programs, program, 'glGetProgramiv', 'program');
-  
+
       if (program >= GL.counter) {
         err(`GL_INVALID_VALUE in glGetProgramiv(program=${program}, pname=${pname}, p=${ptrToString(p)}): The specified program object name was not generated by GL!`);
         GL.recordError(0x501 /* GL_INVALID_VALUE */);
         return;
       }
-  
+
       program = GL.programs[program];
-  
+
       if (pname == 0x8B84) { // GL_INFO_LOG_LENGTH
         var log = GLctx.getProgramInfoLog(program);
         if (log === null) log = '(unknown error)';
@@ -7493,7 +7531,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       }
     };
 
-  
+
   var _emscripten_glGetQueryObjecti64vEXT = (id, pname, params) => {
       if (!params) {
         // GLES2 specification does not specify how to behave if params is a null pointer. Since calling this function does not make sense
@@ -7517,7 +7555,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       writeI53ToI64(params, ret);
     };
 
-  
+
   var _emscripten_glGetQueryObjectivEXT = (id, pname, params) => {
       if (!params) {
         // GLES2 specification does not specify how to behave if params is a null pointer. Since calling this function does not make sense
@@ -7538,15 +7576,15 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       HEAP32[((params)>>2)] = ret;
     };
 
-  
+
   var _glGetQueryObjecti64vEXT = _emscripten_glGetQueryObjecti64vEXT;
   var _emscripten_glGetQueryObjectui64vEXT = _glGetQueryObjecti64vEXT;
 
-  
+
   var _glGetQueryObjectivEXT = _emscripten_glGetQueryObjectivEXT;
   var _emscripten_glGetQueryObjectuivEXT = _glGetQueryObjectivEXT;
 
-  
+
   var _emscripten_glGetQueryivEXT = (target, pname, params) => {
       if (!params) {
         // GLES2 specification does not specify how to behave if params is a null pointer. Since calling this function does not make sense
@@ -7558,7 +7596,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       HEAP32[((params)>>2)] = GLctx.disjointTimerQueryExt['getQueryEXT'](target, pname);
     };
 
-  
+
   var _emscripten_glGetRenderbufferParameteriv = (target, pname, params) => {
       if (!params) {
         // GLES2 specification does not specify how to behave if params is a null pointer. Since calling this function does not make sense
@@ -7570,8 +7608,8 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       HEAP32[((params)>>2)] = GLctx.getRenderbufferParameter(target, pname);
     };
 
-  
-  
+
+
   var _emscripten_glGetShaderInfoLog = (shader, maxLength, length, infoLog) => {
       GL.validateGLObjectID(GL.shaders, shader, 'glGetShaderInfoLog', 'shader');
       var log = GLctx.getShaderInfoLog(GL.shaders[shader]);
@@ -7580,7 +7618,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       if (length) HEAP32[((length)>>2)] = numBytesWrittenExclNull;
     };
 
-  
+
   var _emscripten_glGetShaderPrecisionFormat = (shaderType, precisionType, range, precision) => {
       var result = GLctx.getShaderPrecisionFormat(shaderType, precisionType);
       HEAP32[((range)>>2)] = result.rangeMin;
@@ -7588,7 +7626,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       HEAP32[((precision)>>2)] = result.precision;
     };
 
-  
+
   var _emscripten_glGetShaderSource = (shader, bufSize, length, source) => {
       GL.validateGLObjectID(GL.shaders, shader, 'glGetShaderSource', 'shader');
       var result = GLctx.getShaderSource(GL.shaders[shader]);
@@ -7597,7 +7635,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       if (length) HEAP32[((length)>>2)] = numBytesWrittenExclNull;
     };
 
-  
+
   var _emscripten_glGetShaderiv = (shader, pname, p) => {
       if (!p) {
         // GLES2 specification does not specify how to behave if p is a null
@@ -7628,14 +7666,14 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       }
     };
 
-  
-  
+
+
   var webglGetExtensions = () => {
       var exts = getEmscriptenSupportedExtensions(GLctx);
       exts = exts.concat(exts.map((e) => 'GL_' + e));
       return exts;
     };
-  
+
   var _emscripten_glGetString = (name_) => {
       var ret = GL.stringCache[name_];
       if (!ret) {
@@ -7655,7 +7693,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
             }
             ret = s ? stringToNewUTF8(s) : 0;
             break;
-  
+
           case 0x1F02 /* GL_VERSION */:
             var webGLVersion = GLctx.getParameter(0x1F02 /*GL_VERSION*/);
             // return GLES version string corresponding to the version of the WebGL context
@@ -7683,7 +7721,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       return ret;
     };
 
-  
+
   var _emscripten_glGetTexParameterfv = (target, pname, params) => {
       if (!params) {
         // GLES2 specification does not specify how to behave if params is a null
@@ -7696,7 +7734,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       HEAPF32[((params)>>2)] = GLctx.getTexParameter(target, pname);
     };
 
-  
+
   var _emscripten_glGetTexParameteriv = (target, pname, params) => {
       if (!params) {
         // GLES2 specification does not specify how to behave if params is a null
@@ -7711,15 +7749,15 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
 
   /** @suppress {checkTypes} */
   var jstoi_q = (str) => parseInt(str);
-  
+
   /** @noinline */
   var webglGetLeftBracePos = (name) => name.slice(-1) == ']' && name.lastIndexOf('[');
-  
+
   var webglPrepareUniformLocationsBeforeFirstUse = (program) => {
       var uniformLocsById = program.uniformLocsById, // Maps GLuint -> WebGLUniformLocation
         uniformSizeAndIdsByName = program.uniformSizeAndIdsByName, // Maps name -> [uniform array length, GLuint]
         i, j;
-  
+
       // On the first time invocation of glGetUniformLocation on this shader program:
       // initialize cache data structures and discover which uniforms are arrays.
       if (!uniformLocsById) {
@@ -7727,7 +7765,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         program.uniformLocsById = uniformLocsById = {};
         // maps integer locations back to uniform name strings, so that we can lazily fetch uniform array locations
         program.uniformArrayNamesById = {};
-  
+
         var numActiveUniforms = GLctx.getProgramParameter(program, 0x8B86/*GL_ACTIVE_UNIFORMS*/);
         for (i = 0; i < numActiveUniforms; ++i) {
           var u = GLctx.getActiveUniform(program, i);
@@ -7735,7 +7773,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
           var sz = u.size;
           var lb = webglGetLeftBracePos(nm);
           var arrayName = lb > 0 ? nm.slice(0, lb) : nm;
-  
+
           // Assign a new location.
           var id = program.uniformIdCounter;
           program.uniformIdCounter += sz;
@@ -7745,7 +7783,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
           // application fills arrays always in full starting from the first
           // element of the array.
           uniformSizeAndIdsByName[arrayName] = [sz, id];
-  
+
           // Store placeholder integers in place that highlight that these
           // >0 index locations are array indices pending population.
           for (j = 0; j < sz; ++j) {
@@ -7755,22 +7793,22 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         }
       }
     };
-  
-  
-  
+
+
+
   var _emscripten_glGetUniformLocation = (program, name) => {
-  
+
       GL.validateGLObjectID(GL.programs, program, 'glGetUniformLocation', 'program');
       name = UTF8ToString(name);
-  
+
       assert(!name.includes(' '), `Uniform names passed to glGetUniformLocation() should not contain spaces! (received "${name}")`);
-  
+
       if (program = GL.programs[program]) {
         webglPrepareUniformLocationsBeforeFirstUse(program);
         var uniformLocsById = program.uniformLocsById; // Maps GLuint -> WebGLUniformLocation
         var arrayIndex = 0;
         var uniformBaseName = name;
-  
+
         // Invariant: when populating integer IDs for uniform locations, we must
         // maintain the precondition that arrays reside in contiguous addresses,
         // i.e. for a 'vec4 colors[10];', colors[4] must be at location
@@ -7780,18 +7818,18 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         // way to discover which uniforms are arrays is to enumerate over all the
         // active uniforms in the program.
         var leftBrace = webglGetLeftBracePos(name);
-  
+
         // If user passed an array accessor "[index]", parse the array index off the accessor.
         if (leftBrace > 0) {
           assert(name.slice(leftBrace + 1).length == 1 || !isNaN(jstoi_q(name.slice(leftBrace + 1))), `Malformed input parameter name "${name}" passed to glGetUniformLocation!`);
           arrayIndex = jstoi_q(name.slice(leftBrace + 1)) >>> 0; // "index]", coerce parseInt(']') with >>>0 to treat "foo[]" as "foo[0]" and foo[-1] as unsigned out-of-bounds.
           uniformBaseName = name.slice(0, leftBrace);
         }
-  
+
         // Have we cached the location of this uniform before?
         // A pair [array length, GLint of the uniform location]
         var sizeAndId = program.uniformSizeAndIdsByName[uniformBaseName];
-  
+
         // If a uniform with this name exists, and if its index is within the
         // array limits (if it's even an array), query the WebGLlocation, or
         // return an existing cached location.
@@ -7811,9 +7849,9 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       return -1;
     };
 
-  
+
   var webglGetProgramUniformLocation = (program, location) => {
-  
+
       if (program) {
         var webglLoc = program.uniformLocsById[location];
         // program.uniformLocsById[location] stores either an integer, or a
@@ -7829,10 +7867,10 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         GL.recordError(0x502/*GL_INVALID_OPERATION*/);
       }
     };
-  
-  
-  
-  
+
+
+
+
   /** @suppress{checkTypes} */
   var emscriptenWebGLGetUniform = (program, location, params, type) => {
       if (!params) {
@@ -7864,17 +7902,17 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         }
       }
     };
-  
+
   var _emscripten_glGetUniformfv = (program, location, params) => {
       emscriptenWebGLGetUniform(program, location, params, 2);
     };
 
-  
+
   var _emscripten_glGetUniformiv = (program, location, params) => {
       emscriptenWebGLGetUniform(program, location, params, 0);
     };
 
-  
+
   var _emscripten_glGetVertexAttribPointerv = (index, pname, pointer) => {
       if (!pointer) {
         // GLES2 specification does not specify how to behave if pointer is a null
@@ -7887,8 +7925,8 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       HEAP32[((pointer)>>2)] = GLctx.getVertexAttribOffset(index, pname);
     };
 
-  
-  
+
+
   /** @suppress{checkTypes} */
   var emscriptenWebGLGetVertexAttrib = (index, pname, params, type) => {
       if (!params) {
@@ -7920,7 +7958,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         }
       }
     };
-  
+
   var _emscripten_glGetVertexAttribfv = (index, pname, params) => {
       // N.B. This function may only be called if the vertex attribute was
       // specified using the function glVertexAttrib*f(), otherwise the results
@@ -7928,7 +7966,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       emscriptenWebGLGetVertexAttrib(index, pname, params, 2);
     };
 
-  
+
   var _emscripten_glGetVertexAttribiv = (index, pname, params) => {
       // N.B. This function may only be called if the vertex attribute was
       // specified using the function glVertexAttrib*f(), otherwise the results
@@ -7982,10 +8020,10 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       return GLctx.isTexture(texture);
     };
 
-  
+
   var _emscripten_glIsVertexArray = (array) => {
       assert(GLctx.isVertexArray, 'Must have WebGL2 or OES_vertex_array_object to use vao');
-  
+
       var vao = GL.vaos[array];
       if (!vao) return 0;
       return GLctx.isVertexArray(vao);
@@ -8002,7 +8040,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       // Invalidate earlier computed uniform->ID mappings, those have now become stale
       program.uniformLocsById = 0; // Mark as null-like so that glGetUniformLocation() knows to populate this again.
       program.uniformSizeAndIdsByName = {};
-  
+
     };
 
   var _emscripten_glPixelStorei = (pname, param) => {
@@ -8040,7 +8078,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       var alignedRowSize = roundedToNextMultipleOf(plainRowSize, GL.unpackAlignment);
       return height * alignedRowSize;
     };
-  
+
   var colorChannelsInGlTextureFormat = (format) => {
       // Micro-optimizations for size: map format to size by subtracting smallest
       // enum value (0x1902) from all values first.  Also omit the most common
@@ -8066,32 +8104,32 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       }
       return colorChannels[format - 0x1902]||1;
     };
-  
-  
-  
+
+
+
   /** @type {!Uint16Array} */
   var HEAPU16;
-  
-  
-  
+
+
+
   var heapObjectForWebGLType = (type) => {
       // Micro-optimization for size: Subtract lowest GL enum number (0x1400/* GL_BYTE */) from type to compare
       // smaller values for the heap, for shorter generated code size.
       // Also the type HEAPU16 is not tested for explicitly, but any unrecognized type will return out HEAPU16.
       // (since most types are HEAPU16)
       type -= 0x1400;
-  
+
       if (type == 1) return HEAPU8;
-  
+
       if (type == 4) return HEAP32;
-  
+
       if (type == 6) return HEAPF32;
-  
+
       if (type == 5
         || type == 28922
         )
         return HEAPU32;
-  
+
         if (type != 3
           && type != 27699
           && type != 27700
@@ -8101,10 +8139,10 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         }
       return HEAPU16;
     };
-  
+
   var toTypedArrayIndex = (pointer, heap) =>
       pointer >>> (31 - Math.clz32(heap.BYTES_PER_ELEMENT));
-  
+
   var emscriptenWebGLGetTexPixelData = (type, format, width, height, pixels) => {
       var heap = heapObjectForWebGLType(type);
       var sizePerPixel = colorChannelsInGlTextureFormat(format) * heap.BYTES_PER_ELEMENT;
@@ -8112,7 +8150,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       assert(pixels % heap.BYTES_PER_ELEMENT == 0, 'Pointer to texture data passed to texture get function must be aligned to the byte size of the pixel type');
       return heap.subarray(toTypedArrayIndex(pixels, heap), toTypedArrayIndex(pixels + bytes, heap));
     };
-  
+
   var _emscripten_glReadPixels = (x, y, width, height, format, type, pixels) => {
       var pixelData = emscriptenWebGLGetTexPixelData(type, format, width, height, pixels);
       if (!pixelData) {
@@ -8143,7 +8181,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
   var _emscripten_glShaderSource = (shader, count, string, length) => {
       GL.validateGLObjectID(GL.shaders, shader, 'glShaderSource', 'shader');
       var source = GL.getSource(shader, count, string, length);
-  
+
       GLctx.shaderSource(GL.shaders[shader], source);
     };
 
@@ -8159,7 +8197,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
 
   var _emscripten_glStencilOpSeparate = (x0, x1, x2, x3) => GLctx.stencilOpSeparate(x0, x1, x2, x3);
 
-  
+
   var _emscripten_glTexImage2D = (target, level, internalFormat, width, height, border, format, type, pixels) => {
       var pixelData = pixels ? emscriptenWebGLGetTexPixelData(type, format, width, height, pixels) : null;
       GLctx.texImage2D(target, level, internalFormat, width, height, border, format, type, pixelData);
@@ -8167,7 +8205,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
 
   var _emscripten_glTexParameterf = (x0, x1, x2) => GLctx.texParameterf(x0, x1, x2);
 
-  
+
   var _emscripten_glTexParameterfv = (target, pname, params) => {
       var param = HEAPF32[((params)>>2)];
       GLctx.texParameterf(target, pname, param);
@@ -8175,37 +8213,37 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
 
   var _emscripten_glTexParameteri = (x0, x1, x2) => GLctx.texParameteri(x0, x1, x2);
 
-  
+
   var _emscripten_glTexParameteriv = (target, pname, params) => {
       var param = HEAP32[((params)>>2)];
       GLctx.texParameteri(target, pname, param);
     };
 
-  
+
   var _emscripten_glTexSubImage2D = (target, level, xoffset, yoffset, width, height, format, type, pixels) => {
       var pixelData = pixels ? emscriptenWebGLGetTexPixelData(type, format, width, height, pixels) : null;
       GLctx.texSubImage2D(target, level, xoffset, yoffset, width, height, format, type, pixelData);
     };
 
-  
+
   var webglGetUniformLocation = (location) => {
-  
+
       return webglGetProgramUniformLocation(GLctx.currentProgram, location);
     };
-  
+
   var _emscripten_glUniform1f = (location, v0) => {
       GL.validateGLObjectID(GLctx.currentProgram.uniformLocsById, location, 'glUniform1f', 'location');
       GLctx.uniform1f(webglGetUniformLocation(location), v0);
     };
 
-  
+
   var miniTempWebGLFloatBuffers = [];
-  
-  
+
+
   var _emscripten_glUniform1fv = (location, count, value) => {
       GL.validateGLObjectID(GLctx.currentProgram.uniformLocsById, location, 'glUniform1fv', 'location');
       assert((value & 3) == 0, 'pointer passed to glUniform1fv must be 4-byte aligned');
-  
+
       if (count <= 288) {
         // avoid allocation when uploading few enough uniforms
         var view = miniTempWebGLFloatBuffers[count];
@@ -8219,20 +8257,20 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       GLctx.uniform1fv(webglGetUniformLocation(location), view);
     };
 
-  
+
   var _emscripten_glUniform1i = (location, v0) => {
       GL.validateGLObjectID(GLctx.currentProgram.uniformLocsById, location, 'glUniform1i', 'location');
       GLctx.uniform1i(webglGetUniformLocation(location), v0);
     };
 
-  
+
   var miniTempWebGLIntBuffers = [];
-  
-  
+
+
   var _emscripten_glUniform1iv = (location, count, value) => {
       GL.validateGLObjectID(GLctx.currentProgram.uniformLocsById, location, 'glUniform1iv', 'location');
       assert((value & 3) == 0, 'pointer passed to glUniform1iv must be 4-byte aligned');
-  
+
       if (count <= 288) {
         // avoid allocation when uploading few enough uniforms
         var view = miniTempWebGLIntBuffers[count];
@@ -8246,19 +8284,19 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       GLctx.uniform1iv(webglGetUniformLocation(location), view);
     };
 
-  
+
   var _emscripten_glUniform2f = (location, v0, v1) => {
       GL.validateGLObjectID(GLctx.currentProgram.uniformLocsById, location, 'glUniform2f', 'location');
       GLctx.uniform2f(webglGetUniformLocation(location), v0, v1);
     };
 
-  
-  
-  
+
+
+
   var _emscripten_glUniform2fv = (location, count, value) => {
       GL.validateGLObjectID(GLctx.currentProgram.uniformLocsById, location, 'glUniform2fv', 'location');
       assert((value & 3) == 0, 'pointer passed to glUniform2fv must be 4-byte aligned');
-  
+
       if (count <= 144) {
         // avoid allocation when uploading few enough uniforms
         count *= 2;
@@ -8274,19 +8312,19 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       GLctx.uniform2fv(webglGetUniformLocation(location), view);
     };
 
-  
+
   var _emscripten_glUniform2i = (location, v0, v1) => {
       GL.validateGLObjectID(GLctx.currentProgram.uniformLocsById, location, 'glUniform2i', 'location');
       GLctx.uniform2i(webglGetUniformLocation(location), v0, v1);
     };
 
-  
-  
-  
+
+
+
   var _emscripten_glUniform2iv = (location, count, value) => {
       GL.validateGLObjectID(GLctx.currentProgram.uniformLocsById, location, 'glUniform2iv', 'location');
       assert((value & 3) == 0, 'pointer passed to glUniform2iv must be 4-byte aligned');
-  
+
       if (count <= 144) {
         // avoid allocation when uploading few enough uniforms
         count *= 2;
@@ -8302,19 +8340,19 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       GLctx.uniform2iv(webglGetUniformLocation(location), view);
     };
 
-  
+
   var _emscripten_glUniform3f = (location, v0, v1, v2) => {
       GL.validateGLObjectID(GLctx.currentProgram.uniformLocsById, location, 'glUniform3f', 'location');
       GLctx.uniform3f(webglGetUniformLocation(location), v0, v1, v2);
     };
 
-  
-  
-  
+
+
+
   var _emscripten_glUniform3fv = (location, count, value) => {
       GL.validateGLObjectID(GLctx.currentProgram.uniformLocsById, location, 'glUniform3fv', 'location');
       assert((value % 4) == 0, 'pointer passed to glUniform3fv must be 4-byte aligned');
-  
+
       if (count <= 96) {
         // avoid allocation when uploading few enough uniforms
         count *= 3;
@@ -8331,19 +8369,19 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       GLctx.uniform3fv(webglGetUniformLocation(location), view);
     };
 
-  
+
   var _emscripten_glUniform3i = (location, v0, v1, v2) => {
       GL.validateGLObjectID(GLctx.currentProgram.uniformLocsById, location, 'glUniform3i', 'location');
       GLctx.uniform3i(webglGetUniformLocation(location), v0, v1, v2);
     };
 
-  
-  
-  
+
+
+
   var _emscripten_glUniform3iv = (location, count, value) => {
       GL.validateGLObjectID(GLctx.currentProgram.uniformLocsById, location, 'glUniform3iv', 'location');
       assert((value & 3) == 0, 'pointer passed to glUniform3iv must be 4-byte aligned');
-  
+
       if (count <= 96) {
         // avoid allocation when uploading few enough uniforms
         count *= 3;
@@ -8360,19 +8398,19 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       GLctx.uniform3iv(webglGetUniformLocation(location), view);
     };
 
-  
+
   var _emscripten_glUniform4f = (location, v0, v1, v2, v3) => {
       GL.validateGLObjectID(GLctx.currentProgram.uniformLocsById, location, 'glUniform4f', 'location');
       GLctx.uniform4f(webglGetUniformLocation(location), v0, v1, v2, v3);
     };
 
-  
-  
-  
+
+
+
   var _emscripten_glUniform4fv = (location, count, value) => {
       GL.validateGLObjectID(GLctx.currentProgram.uniformLocsById, location, 'glUniform4fv', 'location');
       assert((value & 3) == 0, 'pointer passed to glUniform4fv must be 4-byte aligned');
-  
+
       if (count <= 72) {
         // avoid allocation when uploading few enough uniforms
         var view = miniTempWebGLFloatBuffers[4*count];
@@ -8394,19 +8432,19 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       GLctx.uniform4fv(webglGetUniformLocation(location), view);
     };
 
-  
+
   var _emscripten_glUniform4i = (location, v0, v1, v2, v3) => {
       GL.validateGLObjectID(GLctx.currentProgram.uniformLocsById, location, 'glUniform4i', 'location');
       GLctx.uniform4i(webglGetUniformLocation(location), v0, v1, v2, v3);
     };
 
-  
-  
-  
+
+
+
   var _emscripten_glUniform4iv = (location, count, value) => {
       GL.validateGLObjectID(GLctx.currentProgram.uniformLocsById, location, 'glUniform4iv', 'location');
       assert((value & 3) == 0, 'pointer passed to glUniform4iv must be 4-byte aligned');
-  
+
       if (count <= 72) {
         // avoid allocation when uploading few enough uniforms
         count *= 4;
@@ -8424,13 +8462,13 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       GLctx.uniform4iv(webglGetUniformLocation(location), view);
     };
 
-  
-  
-  
+
+
+
   var _emscripten_glUniformMatrix2fv = (location, count, transpose, value) => {
       GL.validateGLObjectID(GLctx.currentProgram.uniformLocsById, location, 'glUniformMatrix2fv', 'location');
       assert((value & 3) == 0, 'pointer passed to glUniformMatrix2fv must be 4-byte aligned');
-  
+
       if (count <= 72) {
         // avoid allocation when uploading few enough uniforms
         count *= 4;
@@ -8448,13 +8486,13 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       GLctx.uniformMatrix2fv(webglGetUniformLocation(location), !!transpose, view);
     };
 
-  
-  
-  
+
+
+
   var _emscripten_glUniformMatrix3fv = (location, count, transpose, value) => {
       GL.validateGLObjectID(GLctx.currentProgram.uniformLocsById, location, 'glUniformMatrix3fv', 'location');
       assert((value & 3) == 0, 'pointer passed to glUniformMatrix3fv must be 4-byte aligned');
-  
+
       if (count <= 32) {
         // avoid allocation when uploading few enough uniforms
         count *= 9;
@@ -8477,13 +8515,13 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       GLctx.uniformMatrix3fv(webglGetUniformLocation(location), !!transpose, view);
     };
 
-  
-  
-  
+
+
+
   var _emscripten_glUniformMatrix4fv = (location, count, transpose, value) => {
       GL.validateGLObjectID(GLctx.currentProgram.uniformLocsById, location, 'glUniformMatrix4fv', 'location');
       assert((value & 3) == 0, 'pointer passed to glUniformMatrix4fv must be 4-byte aligned');
-  
+
       if (count <= 18) {
         // avoid allocation when uploading few enough uniforms
         var view = miniTempWebGLFloatBuffers[16*count];
@@ -8533,45 +8571,45 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
 
   var _emscripten_glVertexAttrib1f = (x0, x1) => GLctx.vertexAttrib1f(x0, x1);
 
-  
+
   var _emscripten_glVertexAttrib1fv = (index, v) => {
       assert((v & 3) == 0, 'pointer passed to glVertexAttrib1fv must be 4-byte aligned');
       assert(v != 0, 'null pointer passed to glVertexAttrib1fv');
-  
+
       GLctx.vertexAttrib1f(index, HEAPF32[v>>2]);
     };
 
   var _emscripten_glVertexAttrib2f = (x0, x1, x2) => GLctx.vertexAttrib2f(x0, x1, x2);
 
-  
+
   var _emscripten_glVertexAttrib2fv = (index, v) => {
       assert((v & 3) == 0, 'pointer passed to glVertexAttrib2fv must be 4-byte aligned');
       assert(v != 0, 'null pointer passed to glVertexAttrib2fv');
-  
+
       GLctx.vertexAttrib2f(index, HEAPF32[v>>2], HEAPF32[v+4>>2]);
     };
 
   var _emscripten_glVertexAttrib3f = (x0, x1, x2, x3) => GLctx.vertexAttrib3f(x0, x1, x2, x3);
 
-  
+
   var _emscripten_glVertexAttrib3fv = (index, v) => {
       assert((v & 3) == 0, 'pointer passed to glVertexAttrib3fv must be 4-byte aligned');
       assert(v != 0, 'null pointer passed to glVertexAttrib3fv');
-  
+
       GLctx.vertexAttrib3f(index, HEAPF32[v>>2], HEAPF32[v+4>>2], HEAPF32[v+8>>2]);
     };
 
   var _emscripten_glVertexAttrib4f = (x0, x1, x2, x3, x4) => GLctx.vertexAttrib4f(x0, x1, x2, x3, x4);
 
-  
+
   var _emscripten_glVertexAttrib4fv = (index, v) => {
       assert((v & 3) == 0, 'pointer passed to glVertexAttrib4fv must be 4-byte aligned');
       assert(v != 0, 'null pointer passed to glVertexAttrib4fv');
-  
+
       GLctx.vertexAttrib4f(index, HEAPF32[v>>2], HEAPF32[v+4>>2], HEAPF32[v+8>>2], HEAPF32[v+12>>2]);
     };
 
-  
+
   var _emscripten_glVertexAttribDivisor = (index, divisor) => {
       assert(GLctx.vertexAttribDivisor, 'Must have ANGLE_instanced_arrays extension or WebGL 2 to use WebGL instancing');
       GLctx.vertexAttribDivisor(index, divisor);
@@ -8588,13 +8626,13 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
 
   var _emscripten_has_asyncify = () => 1;
 
-  
-  
+
+
   var doRequestFullscreen = (target, strategy) => {
       if (!JSEvents.fullscreenEnabled()) return -1;
       target = findEventTarget(target);
       if (!target) return -4;
-  
+
       if (!target.requestFullscreen
         // Safari didn't Element.requestFullscreen support until 16.4
         // See: https://developer.mozilla.org/en-US/docs/Web/API/Element/requestFullscreen
@@ -8602,7 +8640,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         ) {
         return -3;
       }
-  
+
       // Queue this function call if we're not currently in an event handler and
       // the user saw it appropriate to do so.
       if (!JSEvents.canPerformEventHandlerRequests()) {
@@ -8612,10 +8650,10 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         }
         return -2;
       }
-  
+
       return JSEvents_requestFullscreen(target, strategy);
     };
-  
+
   var _emscripten_request_fullscreen_strategy = (target, deferUntilInEventHandler, fullscreenStrategy) => {
       var strategy = {
         scaleMode: HEAP32[((fullscreenStrategy)>>2)],
@@ -8625,19 +8663,19 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         canvasResizedCallback: HEAP32[(((fullscreenStrategy)+(12))>>2)],
         canvasResizedCallbackUserData: HEAP32[(((fullscreenStrategy)+(16))>>2)]
       };
-  
+
       return doRequestFullscreen(target, strategy);
     };
 
-  
-  
+
+
   var _emscripten_request_pointerlock = (target, deferUntilInEventHandler) => {
       target = findEventTarget(target);
       if (!target) return -4;
       if (!target.requestPointerLock) {
         return -1;
       }
-  
+
       // Queue this function call if we're not currently in an event handler and
       // the user saw it appropriate to do so.
       if (!JSEvents.canPerformEventHandlerRequests()) {
@@ -8647,7 +8685,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         }
         return -2;
       }
-  
+
       return requestPointerLock(target);
     };
 
@@ -8657,12 +8695,12 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       // for any code that deals with heap sizes, which would require special
       // casing all heap size related code to treat 0 specially.
       2147483648;
-  
+
   var alignMemory = (size, alignment) => {
       assert(alignment, 'alignment argument is required');
       return Math.ceil(size / alignment) * alignment;
     };
-  
+
   var growMemory = (size) => {
       var oldHeapSize = wasmMemory.buffer.byteLength;
       var pages = ((size - oldHeapSize + 65535) / 65536) | 0;
@@ -8677,7 +8715,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       // implicit 0 return to save code size (caller will cast 'undefined' into 0
       // anyhow)
     };
-  
+
   var _emscripten_resize_heap = (requestedSize) => {
       var oldSize = HEAPU8.length;
       // With CAN_ADDRESS_2GB or MEMORY64, pointers are already unsigned.
@@ -8685,7 +8723,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       // With multithreaded builds, races can happen (another thread might increase the size
       // in between), so return a failure, and let the caller retry.
       assert(requestedSize > oldSize);
-  
+
       // Memory resize rules:
       // 1.  Always increase heap size to at least the requested size, rounded up
       //     to next page multiple.
@@ -8702,7 +8740,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       //     over-eager decision to excessively reserve due to (3) above.
       //     Hence if an allocation fails, cut down on the amount of excess
       //     growth, in an attempt to succeed to perform a smaller allocation.
-  
+
       // A limit is set for how much we can grow. We should not exceed that
       // (the wasm binary specifies it, so if we tried, we'd fail anyhow).
       var maxHeapSize = getHeapMax();
@@ -8710,7 +8748,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         err(`Cannot enlarge memory, requested ${requestedSize} bytes, but the limit is ${maxHeapSize} bytes!`);
         return false;
       }
-  
+
       // Loop through potential heap size increases. If we attempt a too eager
       // reservation that fails, cut down on the attempted size and reserve a
       // smaller bump instead. (max 3 times, chosen somewhat arbitrarily)
@@ -8718,12 +8756,12 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         var overGrownHeapSize = oldSize * (1 + 0.2 / cutDown); // ensure geometric growth
         // but limit overreserving (default to capping at +96MB overgrowth at most)
         overGrownHeapSize = Math.min(overGrownHeapSize, requestedSize + 100663296 );
-  
+
         var newSize = Math.min(maxHeapSize, alignMemory(Math.max(requestedSize, overGrownHeapSize), 65536));
-  
+
         var replacement = growMemory(newSize);
         if (replacement) {
-  
+
           return true;
         }
       }
@@ -8743,13 +8781,13 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       return -1;
     };
 
-  
-  
+
+
   var registerBeforeUnloadEventCallback = (target, userData, useCapture, callbackfunc, eventTypeId, eventTypeString) => {
       var beforeUnloadEventHandlerFunc = (e) => {
         // Note: This is always called on the main browser thread, since it needs synchronously return a value!
         var confirmationMessage = ((a1, a2, a3) => dynCall_iiii(callbackfunc, a1, a2, a3))(eventTypeId, 0, userData);
-  
+
         if (confirmationMessage) {
           confirmationMessage = UTF8ToString(confirmationMessage);
         }
@@ -8759,7 +8797,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
           return confirmationMessage;
         }
       };
-  
+
       var eventHandler = {
         target: findEventTarget(target),
         eventTypeString,
@@ -8779,24 +8817,24 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       return registerBeforeUnloadEventCallback(2, userData, true, callbackfunc, 28, 'beforeunload');
     };
 
-  
-  
-  
+
+
+
   var registerFocusEventCallback = (target, userData, useCapture, callbackfunc, eventTypeId, eventTypeString, targetThread) => {
       var eventSize = 256;
       JSEvents.focusEvent ||= _malloc(eventSize);
-  
+
       var focusEventHandlerFunc = (e) => {
         var nodeName = JSEvents.getNodeNameForTarget(e.target);
         var id = e.target.id ?? '';
-  
+
         var focusEvent = JSEvents.focusEvent;
         stringToUTF8(nodeName, focusEvent + 0, 128);
         stringToUTF8(id, focusEvent + 128, 128);
-  
+
         if (((a1, a2, a3) => dynCall_iiii(callbackfunc, a1, a2, a3))(eventTypeId, focusEvent, userData)) e.preventDefault();
       };
-  
+
       var eventHandler = {
         target: findEventTarget(target),
         eventTypeString,
@@ -8815,22 +8853,22 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
   var _emscripten_set_element_css_size = (target, width, height) => {
       target = findEventTarget(target);
       if (!target) return -4;
-  
+
       target.style.width = width + 'px';
       target.style.height = height + 'px';
-  
+
       return 0;
     };
 
   var _emscripten_set_focus_callback_on_thread = (target, userData, useCapture, callbackfunc, targetThread) =>
       registerFocusEventCallback(target, userData, useCapture, callbackfunc, 13, 'focus', targetThread);
 
-  
-  
-  
-  
-  
-  
+
+
+
+
+
+
   var fillFullscreenChangeEventData = (eventStruct) => {
       var fullscreenElement = getFullscreenElement();
       var isFullscreen = !!fullscreenElement;
@@ -8853,18 +8891,18 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         JSEvents.previousFullscreenElement = fullscreenElement;
       }
     };
-  
+
   var registerFullscreenChangeEventCallback = (target, userData, useCapture, callbackfunc, eventTypeId, eventTypeString, targetThread) => {
       var eventSize = 276;
       JSEvents.fullscreenChangeEvent ||= _malloc(eventSize);
-  
+
       var fullscreenChangeEventHandlerFunc = (e) => {
         var fullscreenChangeEvent = JSEvents.fullscreenChangeEvent;
         fillFullscreenChangeEventData(fullscreenChangeEvent);
-  
+
         if (((a1, a2, a3) => dynCall_iiii(callbackfunc, a1, a2, a3))(eventTypeId, fullscreenChangeEvent, userData)) e.preventDefault();
       };
-  
+
       var eventHandler = {
         target,
         eventTypeString,
@@ -8876,32 +8914,32 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       };
       return JSEvents.registerOrRemoveHandler(eventHandler);
     };
-  
+
   var _emscripten_set_fullscreenchange_callback_on_thread = (target, userData, useCapture, callbackfunc, targetThread) => {
       if (!JSEvents.fullscreenEnabled()) return -1;
       target = findEventTarget(target);
       if (!target) return -4;
-  
+
       // TODO: When this block is removed, also change test/test_html5_remove_event_listener.c test expectation on emscripten_set_fullscreenchange_callback().
       registerFullscreenChangeEventCallback(target, userData, useCapture, callbackfunc, 19, 'webkitfullscreenchange', targetThread);
-  
+
       return registerFullscreenChangeEventCallback(target, userData, useCapture, callbackfunc, 19, 'fullscreenchange', targetThread);
     };
 
-  
-  
-  
+
+
+
   var registerGamepadEventCallback = (target, userData, useCapture, callbackfunc, eventTypeId, eventTypeString, targetThread) => {
       var eventSize = 1240;
       JSEvents.gamepadEvent ||= _malloc(eventSize);
-  
+
       var gamepadEventHandlerFunc = (e) => {
         var gamepadEvent = JSEvents.gamepadEvent;
         fillGamepadEventData(gamepadEvent, e['gamepad']);
-  
+
         if (((a1, a2, a3) => dynCall_iiii(callbackfunc, a1, a2, a3))(eventTypeId, gamepadEvent, userData)) e.preventDefault();
       };
-  
+
       var eventHandler = {
         target: findEventTarget(target),
         allowsDeferredCalls: true,
@@ -8914,36 +8952,36 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       };
       return JSEvents.registerOrRemoveHandler(eventHandler);
     };
-  
+
   var _emscripten_set_gamepadconnected_callback_on_thread = (userData, useCapture, callbackfunc, targetThread) => {
       if (_emscripten_sample_gamepad_data()) return -1;
       return registerGamepadEventCallback(2, userData, useCapture, callbackfunc, 26, 'gamepadconnected', targetThread);
     };
 
-  
+
   var _emscripten_set_gamepaddisconnected_callback_on_thread = (userData, useCapture, callbackfunc, targetThread) => {
       if (_emscripten_sample_gamepad_data()) return -1;
       return registerGamepadEventCallback(2, userData, useCapture, callbackfunc, 27, 'gamepaddisconnected', targetThread);
     };
 
-  
-  
-  
-  
-  
-  
+
+
+
+
+
+
   var registerKeyEventCallback = (target, userData, useCapture, callbackfunc, eventTypeId, eventTypeString, targetThread) => {
       var eventSize = 160;
       JSEvents.keyEvent ||= _malloc(eventSize);
-  
+
       var keyEventHandlerFunc = (e) => {
         assert(e);
-  
+
         var keyEventData = JSEvents.keyEvent;
         HEAPF64[((keyEventData)>>3)] = e.timeStamp;
-  
+
         var idx = ((keyEventData)>>2);
-  
+
         HEAP32[idx + 2] = e.location;
         HEAP8[keyEventData + 12] = e.ctrlKey;
         HEAP8[keyEventData + 13] = e.shiftKey;
@@ -8957,10 +8995,10 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         stringToUTF8(e.code ?? '', keyEventData + 64, 32);
         stringToUTF8(e.char ?? '', keyEventData + 96, 32);
         stringToUTF8(e.locale ?? '', keyEventData + 128, 32);
-  
+
         if (((a1, a2, a3) => dynCall_iiii(callbackfunc, a1, a2, a3))(eventTypeId, keyEventData, userData)) e.preventDefault();
       };
-  
+
       var eventHandler = {
         target: findEventTarget(target),
         eventTypeString,
@@ -8986,11 +9024,11 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       setMainLoop(iterFunc, fps, simulateInfiniteLoop, arg);
     };
 
-  
-  
-  
-  
-  
+
+
+
+
+
   var fillMouseEventData = (eventStruct, e, target) => {
       assert(eventStruct % 4 == 0);
       HEAPF64[((eventStruct)>>3)] = e.timeStamp;
@@ -9007,26 +9045,26 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       HEAP16[idx*2 + 15] = e.buttons;
       HEAP32[idx + 8] = e.movementX;
       HEAP32[idx + 9] = e.movementY;
-  
+
       // Note: rect contains doubles (truncated to placate SAFE_HEAP, which is the same behaviour when writing to HEAP32 anyway)
       var rect = getBoundingClientRect(target);
       HEAP32[idx + 10] = e.clientX - (rect.left | 0);
       HEAP32[idx + 11] = e.clientY - (rect.top  | 0);
     };
-  
-  
+
+
   var registerMouseEventCallback = (target, userData, useCapture, callbackfunc, eventTypeId, eventTypeString, targetThread) => {
       var eventSize = 64;
       JSEvents.mouseEvent ||= _malloc(eventSize);
       target = findEventTarget(target);
-  
+
       var mouseEventHandlerFunc = (e) => {
         // TODO: Make this access thread safe, or this could update live while app is reading it.
         fillMouseEventData(JSEvents.mouseEvent, e, target);
-  
+
         if (((a1, a2, a3) => dynCall_iiii(callbackfunc, a1, a2, a3))(eventTypeId, JSEvents.mouseEvent, userData)) e.preventDefault();
       };
-  
+
       var eventHandler = {
         target,
         allowsDeferredCalls: eventTypeString != 'mousemove' && eventTypeString != 'mouseenter' && eventTypeString != 'mouseleave', // Mouse move events do not allow fullscreen/pointer lock requests to be handled in them!
@@ -9054,10 +9092,10 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
   var _emscripten_set_mouseup_callback_on_thread = (target, userData, useCapture, callbackfunc, targetThread) =>
       registerMouseEventCallback(target, userData, useCapture, callbackfunc, 6, 'mouseup', targetThread);
 
-  
-  
-  
-  
+
+
+
+
   var fillPointerlockChangeEventData = (eventStruct) => {
       var pointerLockElement = document.pointerLockElement;
       var isPointerlocked = !!pointerLockElement;
@@ -9069,18 +9107,18 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       stringToUTF8(nodeName, eventStruct + 1, 128);
       stringToUTF8(id, eventStruct + 129, 128);
     };
-  
+
   var registerPointerlockChangeEventCallback = (target, userData, useCapture, callbackfunc, eventTypeId, eventTypeString, targetThread) => {
       var eventSize = 257;
       JSEvents.pointerlockChangeEvent ||= _malloc(eventSize);
-  
+
       var pointerlockChangeEventHandlerFunc = (e) => {
         var pointerlockChangeEvent = JSEvents.pointerlockChangeEvent;
         fillPointerlockChangeEventData(pointerlockChangeEvent);
-  
+
         if (((a1, a2, a3) => dynCall_iiii(callbackfunc, a1, a2, a3))(eventTypeId, pointerlockChangeEvent, userData)) e.preventDefault();
       };
-  
+
       var eventHandler = {
         target,
         eventTypeString,
@@ -9092,26 +9130,26 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       };
       return JSEvents.registerOrRemoveHandler(eventHandler);
     };
-  
+
   var _emscripten_set_pointerlockchange_callback_on_thread = (target, userData, useCapture, callbackfunc, targetThread) => {
       if (!document.body?.requestPointerLock) {
         return -1;
       }
-  
+
       target = findEventTarget(target);
       if (!target) return -4;
       return registerPointerlockChangeEventCallback(target, userData, useCapture, callbackfunc, 20, 'pointerlockchange', targetThread);
     };
 
-  
-  
-  
+
+
+
   var registerUiEventCallback = (target, userData, useCapture, callbackfunc, eventTypeId, eventTypeString, targetThread) => {
       var eventSize = 36;
       JSEvents.uiEvent ||= _malloc(eventSize);
-  
+
       target = findEventTarget(target);
-  
+
       var uiEventHandlerFunc = (e) => {
         if (e.target != target) {
           // Never take ui events such as scroll via a 'bubbled' route, but always from the direct element that
@@ -9137,7 +9175,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         HEAP32[(((uiEvent)+(32))>>2)] = pageYOffset | 0;
         if (((a1, a2, a3) => dynCall_iiii(callbackfunc, a1, a2, a3))(eventTypeId, uiEvent, userData)) e.preventDefault();
       };
-  
+
       var eventHandler = {
         target,
         eventTypeString,
@@ -9152,25 +9190,25 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
   var _emscripten_set_resize_callback_on_thread = (target, userData, useCapture, callbackfunc, targetThread) =>
       registerUiEventCallback(target, userData, useCapture, callbackfunc, 10, 'resize', targetThread);
 
-  
-  
-  
-  
-  
-  
+
+
+
+
+
+
   var registerTouchEventCallback = (target, userData, useCapture, callbackfunc, eventTypeId, eventTypeString, targetThread) => {
       var eventSize = 1552;
       JSEvents.touchEvent ||= _malloc(eventSize);
-  
+
       target = findEventTarget(target);
-  
+
       var touchEventHandlerFunc = (e) => {
         assert(e);
         var t, touches = {}, et = e.touches;
         // To ease marshalling different kinds of touches that browser reports (all touches are listed in e.touches,
         // only changed touches in e.changedTouches, and touches on target at a.targetTouches), mark a boolean in
         // each Touch object so that we can later loop only once over all touches we see to marshall over to Wasm.
-  
+
         for (let t of et) {
           // Browser might recycle the generated Touch objects between each frame (Firefox on Android), so reset any
           // changed/target states we may have set from previous frame.
@@ -9186,7 +9224,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         for (let t of e.targetTouches) {
           touches[t.identifier].onTarget = 1;
         }
-  
+
         var touchEvent = JSEvents.touchEvent;
         HEAPF64[((touchEvent)>>3)] = e.timeStamp;
         HEAP8[touchEvent + 12] = e.ctrlKey;
@@ -9209,18 +9247,18 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
           HEAP8[idx + 29] = t.onTarget;
           HEAP32[idx32 + 8] = t.clientX - (targetRect.left | 0);
           HEAP32[idx32 + 9] = t.clientY - (targetRect.top  | 0);
-  
+
           idx += 48;
-  
+
           if (++numTouches > 31) {
             break;
           }
         }
         HEAP32[(((touchEvent)+(8))>>2)] = numTouches;
-  
+
         if (((a1, a2, a3) => dynCall_iiii(callbackfunc, a1, a2, a3))(eventTypeId, touchEvent, userData)) e.preventDefault();
       };
-  
+
       var eventHandler = {
         target,
         allowsDeferredCalls: eventTypeString == 'touchstart' || eventTypeString == 'touchend',
@@ -9245,29 +9283,29 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
   var _emscripten_set_touchstart_callback_on_thread = (target, userData, useCapture, callbackfunc, targetThread) =>
       registerTouchEventCallback(target, userData, useCapture, callbackfunc, 22, 'touchstart', targetThread);
 
-  
-  
+
+
   var fillVisibilityChangeEventData = (eventStruct) => {
       var visibilityStates = [ 'hidden', 'visible', 'prerender', 'unloaded' ];
       var visibilityState = visibilityStates.indexOf(document.visibilityState);
-  
+
       // Assigning a boolean to HEAP32 with expected type coercion.
       /** @suppress{checkTypes} */
       HEAP8[eventStruct] = document.hidden;
       HEAP32[(((eventStruct)+(4))>>2)] = visibilityState;
     };
-  
+
   var registerVisibilityChangeEventCallback = (target, userData, useCapture, callbackfunc, eventTypeId, eventTypeString, targetThread) => {
       var eventSize = 8;
       JSEvents.visibilityChangeEvent ||= _malloc(eventSize);
-  
+
       var visibilityChangeEventHandlerFunc = (e) => {
         var visibilityChangeEvent = JSEvents.visibilityChangeEvent;
         fillVisibilityChangeEventData(visibilityChangeEvent);
-  
+
         if (((a1, a2, a3) => dynCall_iiii(callbackfunc, a1, a2, a3))(eventTypeId, visibilityChangeEvent, userData)) e.preventDefault();
       };
-  
+
       var eventHandler = {
         target,
         eventTypeString,
@@ -9279,7 +9317,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       };
       return JSEvents.registerOrRemoveHandler(eventHandler);
     };
-  
+
   var _emscripten_set_visibilitychange_callback_on_thread = (userData, useCapture, callbackfunc, targetThread) => {
     if (!specialHTMLTargets[1]) {
       return -4;
@@ -9287,14 +9325,14 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       return registerVisibilityChangeEventCallback(specialHTMLTargets[1], userData, useCapture, callbackfunc, 21, 'visibilitychange', targetThread);
     };
 
-  
-  
-  
-  
+
+
+
+
   var registerWheelEventCallback = (target, userData, useCapture, callbackfunc, eventTypeId, eventTypeString, targetThread) => {
       var eventSize = 96;
       JSEvents.wheelEvent ||= _malloc(eventSize)
-  
+
       // The DOM Level 3 events spec event 'wheel'
       var wheelHandlerFunc = (e) => {
         var wheelEvent = JSEvents.wheelEvent;
@@ -9305,7 +9343,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         HEAP32[(((wheelEvent)+(88))>>2)] = e["deltaMode"];
         if (((a1, a2, a3) => dynCall_iiii(callbackfunc, a1, a2, a3))(eventTypeId, wheelEvent, userData)) e.preventDefault();
       };
-  
+
       var eventHandler = {
         target,
         allowsDeferredCalls: true,
@@ -9318,7 +9356,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       };
       return JSEvents.registerOrRemoveHandler(eventHandler);
     };
-  
+
   var _emscripten_set_wheel_callback_on_thread = (target, userData, useCapture, callbackfunc, targetThread) => {
       target = findEventTarget(target);
       if (!target) return -4;
@@ -9329,7 +9367,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       }
     };
 
-  
+
   var _emscripten_set_window_title = (title) => document.title = UTF8ToString(title);
 
   var _emscripten_sleep = function(ms) {
@@ -9341,7 +9379,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
 
   var ENV = {
   };
-  
+
   var getExecutableName = () => thisProgram;
   var getEnvStrings = () => {
       if (!getEnvStrings.strings) {
@@ -9372,8 +9410,8 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       }
       return getEnvStrings.strings;
     };
-  
-  
+
+
   var _environ_get = (__environ, environ_buf) => {
       var bufSize = 0;
       var envp = 0;
@@ -9386,8 +9424,8 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       return 0;
     };
 
-  
-  
+
+
   var _environ_sizes_get = (penviron_count, penviron_buf_size) => {
       var strings = getEnvStrings();
       HEAPU32[((penviron_count)>>2)] = strings.length;
@@ -9401,7 +9439,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
 
   function _fd_close(fd) {
   try {
-  
+
       var stream = SYSCALLS.getStreamFromFD(fd);
       FS.close(stream);
       return 0;
@@ -9410,9 +9448,9 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
     return e.errno;
   }
   }
-  
 
-  
+
+
   /** @param {number=} offset */
   var doReadv = (stream, iov, iovcnt, offset) => {
       var ret = 0;
@@ -9441,11 +9479,11 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       }
       return ret;
     };
-  
-  
+
+
   function _fd_read(fd, iov, iovcnt, pnum) {
   try {
-  
+
       var stream = SYSCALLS.getStreamFromFD(fd);
       var num = doReadv(stream, iov, iovcnt);
       HEAPU32[((pnum)>>2)] = num;
@@ -9455,16 +9493,16 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
     return e.errno;
   }
   }
-  
 
-  
-  
+
+
+
   function _fd_seek(fd, offset, whence, newOffset) {
     offset = bigintToI53Checked(offset);
-  
-  
+
+
   try {
-  
+
       if (isNaN(offset)) return 22;
       var stream = SYSCALLS.getStreamFromFD(fd);
       FS.llseek(stream, offset, whence);
@@ -9478,8 +9516,8 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
   ;
   }
 
-  
-  
+
+
   /** @param {number=} offset */
   var doWritev = (stream, iov, iovcnt, offset) => {
       // Gather all iovecs into one contiguous buffer and issue a single
@@ -9504,11 +9542,11 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       }
       return FS.write(stream, view, 0, total, offset);
     };
-  
-  
+
+
   function _fd_write(fd, iov, iovcnt, pnum) {
   try {
-  
+
       var stream = SYSCALLS.getStreamFromFD(fd);
       var num = doWritev(stream, iov, iovcnt);
       HEAPU32[((pnum)>>2)] = num;
@@ -9518,7 +9556,8 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
     return e.errno;
   }
   }
-  
+
+
 
 
 
@@ -9545,26 +9584,26 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         abort(e);
       }
     };
-  
-  
+
+
   var createNamedFunction = (name, func) => Object.defineProperty(func, 'name', { value: name });
-  
+
   var runtimeKeepalivePush = () => {
       runtimeKeepaliveCounter += 1;
     };
-  
+
   var runtimeKeepalivePop = () => {
       assert(runtimeKeepaliveCounter > 0);
       runtimeKeepaliveCounter -= 1;
     };
-  
-  
-  
-  
+
+
+
+
   var Asyncify = {
   instrumentWasmImports(imports) {
         var importPattern = /^(invoke_.*|__asyncjs__.*)$/;
-  
+
         for (let [x, original] of Object.entries(imports)) {
           if (typeof original == 'function') {
             let isAsyncifyImport = original.isAsync || importPattern.test(x);
@@ -9661,7 +9700,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
           // the dbg() function itself can call back into WebAssembly to get the
           // current pthread_self() pointer).
           Asyncify.state = Asyncify.State.Normal;
-          
+
           // Keep the runtime alive so that a re-wind can be done later.
           runAndAbortIfError(_asyncify_stop_unwind);
           if (typeof Fibers != 'undefined') {
@@ -9713,7 +9752,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         assert(func);
         // Once we have rewound and the stack we no longer need to artificially
         // keep the runtime alive.
-        
+
         return callUserCallback(func);
       },
   handleSleep(startAsync) {
@@ -9815,13 +9854,13 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
 
 
 
-  
-  
-  
-  
-  
-  
-  
+
+
+
+
+
+
+
     /**
    * @param {number} ptr
    * @param {number} value
@@ -9851,19 +9890,19 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
       assert(func, `Cannot call unknown function ${ident}, make sure it is exported`);
       return func;
     };
-  
+
   var writeArrayToMemory = (array, buffer) => {
       assert(array.length >= 0, 'writeArrayToMemory array must have a length (should be an array or typed array)')
       HEAP8.set(array, buffer);
     };
-  
-  
-  
-  
-  
-  
-  
-  
+
+
+
+
+
+
+
+
     /**
    * @param {string|null=} returnType
    * @param {Array=} argTypes
@@ -9886,7 +9925,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
           return ret;
         }
       };
-  
+
       function convertReturnValue(ret) {
         if (returnType === 'string') {
           return UTF8ToString(ret);
@@ -9894,7 +9933,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         if (returnType === 'boolean') return Boolean(ret);
         return ret;
       }
-  
+
       var func = getCFunc(ident);
       var cArgs = [];
       var stack = 0;
@@ -9919,7 +9958,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         return convertReturnValue(ret);
       }
     var asyncMode = opts?.async;
-  
+
       // Keep the runtime alive through all calls. Note that this call might not be
       // async, but for simplicity we push and pop in all calls.
       runtimeKeepalivePush();
@@ -9938,7 +9977,7 @@ var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
         assert(asyncMode, `The call to ${ident} is running asynchronously. If this was intended, add the async option to the ccall/cwrap call.`);
         return Asyncify.whenDone().then(onDone);
       }
-  
+
       ret = onDone(ret);
       // If this is an async ccall, ensure we return a promise
       if (asyncMode) return Promise.resolve(ret);
@@ -10107,6 +10146,7 @@ if (Module['printErr']) err = Module['printErr'];
   'convertPCtoSourceLocation',
   'wasiRightsToMuslOFlags',
   'wasiOFlagsToMuslOFlags',
+  'safeClearTimeout',
   'setImmediateWrapped',
   'safeRequestAnimationFrame',
   'clearImmediateWrapped',
@@ -10473,22 +10513,22 @@ function checkIncomingModuleAPI() {
   ignoredModuleProp('wasmBinary');
 }
 var ASM_CONSTS = {
-  441456: ($0) => { var str = UTF8ToString($0) + '\n\n' + 'Abort/Retry/Ignore/AlwaysIgnore? [ariA] :'; var reply = window.prompt(str, "i"); if (reply === null) { reply = "i"; } return reply.length === 1 ? reply.charCodeAt(0) : -1; },  
- 441671: () => { if (typeof(AudioContext) !== 'undefined') { return true; } else if (typeof(webkitAudioContext) !== 'undefined') { return true; } return false; },  
- 441818: () => { if ((typeof(navigator.mediaDevices) !== 'undefined') && (typeof(navigator.mediaDevices.getUserMedia) !== 'undefined')) { return true; } else if (typeof(navigator.webkitGetUserMedia) !== 'undefined') { return true; } return false; },  
- 442052: ($0) => { if(typeof(Module['SDL2']) === 'undefined') { Module['SDL2'] = {}; } var SDL2 = Module['SDL2']; if (!$0) { SDL2.audio = {}; } else { SDL2.capture = {}; } if (!SDL2.audioContext) { if (typeof(AudioContext) !== 'undefined') { SDL2.audioContext = new AudioContext(); } else if (typeof(webkitAudioContext) !== 'undefined') { SDL2.audioContext = new webkitAudioContext(); } if (SDL2.audioContext) { if ((typeof navigator.userActivation) === 'undefined') { autoResumeAudioContext(SDL2.audioContext); } } } return SDL2.audioContext === undefined ? -1 : 0; },  
- 442604: () => { var SDL2 = Module['SDL2']; return SDL2.audioContext.sampleRate; },  
- 442672: ($0, $1, $2, $3) => { var SDL2 = Module['SDL2']; var have_microphone = function(stream) { if (SDL2.capture.silenceTimer !== undefined) { clearInterval(SDL2.capture.silenceTimer); SDL2.capture.silenceTimer = undefined; SDL2.capture.silenceBuffer = undefined } SDL2.capture.mediaStreamNode = SDL2.audioContext.createMediaStreamSource(stream); SDL2.capture.scriptProcessorNode = SDL2.audioContext.createScriptProcessor($1, $0, 1); SDL2.capture.scriptProcessorNode.onaudioprocess = function(audioProcessingEvent) { if ((SDL2 === undefined) || (SDL2.capture === undefined)) { return; } audioProcessingEvent.outputBuffer.getChannelData(0).fill(0.0); SDL2.capture.currentCaptureBuffer = audioProcessingEvent.inputBuffer; dynCall('vp', $2, [$3]); }; SDL2.capture.mediaStreamNode.connect(SDL2.capture.scriptProcessorNode); SDL2.capture.scriptProcessorNode.connect(SDL2.audioContext.destination); SDL2.capture.stream = stream; }; var no_microphone = function(error) { }; SDL2.capture.silenceBuffer = SDL2.audioContext.createBuffer($0, $1, SDL2.audioContext.sampleRate); SDL2.capture.silenceBuffer.getChannelData(0).fill(0.0); var silence_callback = function() { SDL2.capture.currentCaptureBuffer = SDL2.capture.silenceBuffer; dynCall('vp', $2, [$3]); }; SDL2.capture.silenceTimer = setInterval(silence_callback, ($1 / SDL2.audioContext.sampleRate) * 1000); if ((navigator.mediaDevices !== undefined) && (navigator.mediaDevices.getUserMedia !== undefined)) { navigator.mediaDevices.getUserMedia({ audio: true, video: false }).then(have_microphone).catch(no_microphone); } else if (navigator.webkitGetUserMedia !== undefined) { navigator.webkitGetUserMedia({ audio: true, video: false }, have_microphone, no_microphone); } },  
- 444365: ($0, $1, $2, $3) => { var SDL2 = Module['SDL2']; SDL2.audio.scriptProcessorNode = SDL2.audioContext['createScriptProcessor']($1, 0, $0); SDL2.audio.scriptProcessorNode['onaudioprocess'] = function (e) { if ((SDL2 === undefined) || (SDL2.audio === undefined)) { return; } if (SDL2.audio.silenceTimer !== undefined) { clearInterval(SDL2.audio.silenceTimer); SDL2.audio.silenceTimer = undefined; SDL2.audio.silenceBuffer = undefined; } SDL2.audio.currentOutputBuffer = e['outputBuffer']; dynCall('vp', $2, [$3]); }; SDL2.audio.scriptProcessorNode['connect'](SDL2.audioContext['destination']); if (SDL2.audioContext.state === 'suspended') { SDL2.audio.silenceBuffer = SDL2.audioContext.createBuffer($0, $1, SDL2.audioContext.sampleRate); SDL2.audio.silenceBuffer.getChannelData(0).fill(0.0); var silence_callback = function() { if ((typeof navigator.userActivation) !== 'undefined') { if (navigator.userActivation.hasBeenActive) { SDL2.audioContext.resume(); } } SDL2.audio.currentOutputBuffer = SDL2.audio.silenceBuffer; dynCall('vp', $2, [$3]); SDL2.audio.currentOutputBuffer = undefined; }; SDL2.audio.silenceTimer = setInterval(silence_callback, ($1 / SDL2.audioContext.sampleRate) * 1000); } },  
- 445540: ($0, $1) => { var SDL2 = Module['SDL2']; var numChannels = SDL2.capture.currentCaptureBuffer.numberOfChannels; for (var c = 0; c < numChannels; ++c) { var channelData = SDL2.capture.currentCaptureBuffer.getChannelData(c); if (channelData.length != $1) { throw 'Web Audio capture buffer length mismatch! Destination size: ' + channelData.length + ' samples vs expected ' + $1 + ' samples!'; } if (numChannels == 1) { for (var j = 0; j < $1; ++j) { setValue($0 + (j * 4), channelData[j], 'float'); } } else { for (var j = 0; j < $1; ++j) { setValue($0 + (((j * numChannels) + c) * 4), channelData[j], 'float'); } } } },  
- 446145: ($0, $1) => { var SDL2 = Module['SDL2']; var buf = $0 >>> 2; var numChannels = SDL2.audio.currentOutputBuffer['numberOfChannels']; for (var c = 0; c < numChannels; ++c) { var channelData = SDL2.audio.currentOutputBuffer['getChannelData'](c); if (channelData.length != $1) { throw 'Web Audio output buffer length mismatch! Destination size: ' + channelData.length + ' samples vs expected ' + $1 + ' samples!'; } for (var j = 0; j < $1; ++j) { channelData[j] = HEAPF32[buf + (j*numChannels + c)]; } } },  
- 446634: ($0) => { var SDL2 = Module['SDL2']; if ($0) { if (SDL2.capture.silenceTimer !== undefined) { clearInterval(SDL2.capture.silenceTimer); } if (SDL2.capture.stream !== undefined) { var tracks = SDL2.capture.stream.getAudioTracks(); for (var i = 0; i < tracks.length; i++) { SDL2.capture.stream.removeTrack(tracks[i]); } } if (SDL2.capture.scriptProcessorNode !== undefined) { SDL2.capture.scriptProcessorNode.onaudioprocess = function(audioProcessingEvent) {}; SDL2.capture.scriptProcessorNode.disconnect(); } if (SDL2.capture.mediaStreamNode !== undefined) { SDL2.capture.mediaStreamNode.disconnect(); } SDL2.capture = undefined; } else { if (SDL2.audio.scriptProcessorNode != undefined) { SDL2.audio.scriptProcessorNode.disconnect(); } if (SDL2.audio.silenceTimer !== undefined) { clearInterval(SDL2.audio.silenceTimer); } SDL2.audio = undefined; } if ((SDL2.audioContext !== undefined) && (SDL2.audio === undefined) && (SDL2.capture === undefined)) { SDL2.audioContext.close(); SDL2.audioContext = undefined; } },  
- 447640: ($0, $1, $2) => { var w = $0; var h = $1; var pixels = $2; if (!Module['SDL2']) Module['SDL2'] = {}; var SDL2 = Module['SDL2']; if (SDL2.ctxCanvas !== Module['canvas']) { SDL2.ctx = Browser.createContext(Module['canvas'], false, true); SDL2.ctxCanvas = Module['canvas']; } if (SDL2.w !== w || SDL2.h !== h || SDL2.imageCtx !== SDL2.ctx) { SDL2.image = SDL2.ctx.createImageData(w, h); SDL2.w = w; SDL2.h = h; SDL2.imageCtx = SDL2.ctx; } var data = SDL2.image.data; var src = pixels / 4; var dst = 0; var num; if (typeof CanvasPixelArray !== 'undefined' && data instanceof CanvasPixelArray) { num = data.length; while (dst < num) { var val = HEAP32[src]; data[dst ] = val & 0xff; data[dst+1] = (val >> 8) & 0xff; data[dst+2] = (val >> 16) & 0xff; data[dst+3] = 0xff; src++; dst += 4; } } else { if (SDL2.data32Data !== data) { SDL2.data32 = new Int32Array(data.buffer); SDL2.data8 = new Uint8Array(data.buffer); SDL2.data32Data = data; } var data32 = SDL2.data32; num = data32.length; data32.set(HEAP32.subarray(src, src + num)); var data8 = SDL2.data8; var i = 3; var j = i + 4*num; if (num % 8 == 0) { while (i < j) { data8[i] = 0xff; i = i + 4 | 0; data8[i] = 0xff; i = i + 4 | 0; data8[i] = 0xff; i = i + 4 | 0; data8[i] = 0xff; i = i + 4 | 0; data8[i] = 0xff; i = i + 4 | 0; data8[i] = 0xff; i = i + 4 | 0; data8[i] = 0xff; i = i + 4 | 0; data8[i] = 0xff; i = i + 4 | 0; } } else { while (i < j) { data8[i] = 0xff; i = i + 4 | 0; } } } SDL2.ctx.putImageData(SDL2.image, 0, 0); },  
- 449106: ($0, $1, $2, $3, $4) => { var w = $0; var h = $1; var hot_x = $2; var hot_y = $3; var pixels = $4; var canvas = document.createElement("canvas"); canvas.width = w; canvas.height = h; var ctx = canvas.getContext("2d"); var image = ctx.createImageData(w, h); var data = image.data; var src = pixels / 4; var dst = 0; var num; if (typeof CanvasPixelArray !== 'undefined' && data instanceof CanvasPixelArray) { num = data.length; while (dst < num) { var val = HEAP32[src]; data[dst ] = val & 0xff; data[dst+1] = (val >> 8) & 0xff; data[dst+2] = (val >> 16) & 0xff; data[dst+3] = (val >> 24) & 0xff; src++; dst += 4; } } else { var data32 = new Int32Array(data.buffer); num = data32.length; data32.set(HEAP32.subarray(src, src + num)); } ctx.putImageData(image, 0, 0); var url = hot_x === 0 && hot_y === 0 ? "url(" + canvas.toDataURL() + "), auto" : "url(" + canvas.toDataURL() + ") " + hot_x + " " + hot_y + ", auto"; var urlBuf = _malloc(url.length + 1); stringToUTF8(url, urlBuf, url.length + 1); return urlBuf; },  
- 450094: ($0) => { if (Module['canvas']) { Module['canvas'].style['cursor'] = UTF8ToString($0); } },  
- 450177: () => { if (Module['canvas']) { Module['canvas'].style['cursor'] = 'none'; } },  
- 450246: () => { return window.innerWidth; },  
- 450276: () => { return window.innerHeight; }
+  385608: ($0) => { var str = UTF8ToString($0) + '\n\n' + 'Abort/Retry/Ignore/AlwaysIgnore? [ariA] :'; var reply = window.prompt(str, "i"); if (reply === null) { reply = "i"; } return reply.length === 1 ? reply.charCodeAt(0) : -1; },
+ 385823: () => { if (typeof(AudioContext) !== 'undefined') { return true; } else if (typeof(webkitAudioContext) !== 'undefined') { return true; } return false; },
+ 385970: () => { if ((typeof(navigator.mediaDevices) !== 'undefined') && (typeof(navigator.mediaDevices.getUserMedia) !== 'undefined')) { return true; } else if (typeof(navigator.webkitGetUserMedia) !== 'undefined') { return true; } return false; },
+ 386204: ($0) => { if(typeof(Module['SDL2']) === 'undefined') { Module['SDL2'] = {}; } var SDL2 = Module['SDL2']; if (!$0) { SDL2.audio = {}; } else { SDL2.capture = {}; } if (!SDL2.audioContext) { if (typeof(AudioContext) !== 'undefined') { SDL2.audioContext = new AudioContext(); } else if (typeof(webkitAudioContext) !== 'undefined') { SDL2.audioContext = new webkitAudioContext(); } if (SDL2.audioContext) { if ((typeof navigator.userActivation) === 'undefined') { autoResumeAudioContext(SDL2.audioContext); } } } return SDL2.audioContext === undefined ? -1 : 0; },
+ 386756: () => { var SDL2 = Module['SDL2']; return SDL2.audioContext.sampleRate; },
+ 386824: ($0, $1, $2, $3) => { var SDL2 = Module['SDL2']; var have_microphone = function(stream) { if (SDL2.capture.silenceTimer !== undefined) { clearInterval(SDL2.capture.silenceTimer); SDL2.capture.silenceTimer = undefined; SDL2.capture.silenceBuffer = undefined } SDL2.capture.mediaStreamNode = SDL2.audioContext.createMediaStreamSource(stream); SDL2.capture.scriptProcessorNode = SDL2.audioContext.createScriptProcessor($1, $0, 1); SDL2.capture.scriptProcessorNode.onaudioprocess = function(audioProcessingEvent) { if ((SDL2 === undefined) || (SDL2.capture === undefined)) { return; } audioProcessingEvent.outputBuffer.getChannelData(0).fill(0.0); SDL2.capture.currentCaptureBuffer = audioProcessingEvent.inputBuffer; dynCall('vp', $2, [$3]); }; SDL2.capture.mediaStreamNode.connect(SDL2.capture.scriptProcessorNode); SDL2.capture.scriptProcessorNode.connect(SDL2.audioContext.destination); SDL2.capture.stream = stream; }; var no_microphone = function(error) { }; SDL2.capture.silenceBuffer = SDL2.audioContext.createBuffer($0, $1, SDL2.audioContext.sampleRate); SDL2.capture.silenceBuffer.getChannelData(0).fill(0.0); var silence_callback = function() { SDL2.capture.currentCaptureBuffer = SDL2.capture.silenceBuffer; dynCall('vp', $2, [$3]); }; SDL2.capture.silenceTimer = setInterval(silence_callback, ($1 / SDL2.audioContext.sampleRate) * 1000); if ((navigator.mediaDevices !== undefined) && (navigator.mediaDevices.getUserMedia !== undefined)) { navigator.mediaDevices.getUserMedia({ audio: true, video: false }).then(have_microphone).catch(no_microphone); } else if (navigator.webkitGetUserMedia !== undefined) { navigator.webkitGetUserMedia({ audio: true, video: false }, have_microphone, no_microphone); } },
+ 388517: ($0, $1, $2, $3) => { var SDL2 = Module['SDL2']; SDL2.audio.scriptProcessorNode = SDL2.audioContext['createScriptProcessor']($1, 0, $0); SDL2.audio.scriptProcessorNode['onaudioprocess'] = function (e) { if ((SDL2 === undefined) || (SDL2.audio === undefined)) { return; } if (SDL2.audio.silenceTimer !== undefined) { clearInterval(SDL2.audio.silenceTimer); SDL2.audio.silenceTimer = undefined; SDL2.audio.silenceBuffer = undefined; } SDL2.audio.currentOutputBuffer = e['outputBuffer']; dynCall('vp', $2, [$3]); }; SDL2.audio.scriptProcessorNode['connect'](SDL2.audioContext['destination']); if (SDL2.audioContext.state === 'suspended') { SDL2.audio.silenceBuffer = SDL2.audioContext.createBuffer($0, $1, SDL2.audioContext.sampleRate); SDL2.audio.silenceBuffer.getChannelData(0).fill(0.0); var silence_callback = function() { if ((typeof navigator.userActivation) !== 'undefined') { if (navigator.userActivation.hasBeenActive) { SDL2.audioContext.resume(); } } SDL2.audio.currentOutputBuffer = SDL2.audio.silenceBuffer; dynCall('vp', $2, [$3]); SDL2.audio.currentOutputBuffer = undefined; }; SDL2.audio.silenceTimer = setInterval(silence_callback, ($1 / SDL2.audioContext.sampleRate) * 1000); } },
+ 389692: ($0, $1) => { var SDL2 = Module['SDL2']; var numChannels = SDL2.capture.currentCaptureBuffer.numberOfChannels; for (var c = 0; c < numChannels; ++c) { var channelData = SDL2.capture.currentCaptureBuffer.getChannelData(c); if (channelData.length != $1) { throw 'Web Audio capture buffer length mismatch! Destination size: ' + channelData.length + ' samples vs expected ' + $1 + ' samples!'; } if (numChannels == 1) { for (var j = 0; j < $1; ++j) { setValue($0 + (j * 4), channelData[j], 'float'); } } else { for (var j = 0; j < $1; ++j) { setValue($0 + (((j * numChannels) + c) * 4), channelData[j], 'float'); } } } },
+ 390297: ($0, $1) => { var SDL2 = Module['SDL2']; var buf = $0 >>> 2; var numChannels = SDL2.audio.currentOutputBuffer['numberOfChannels']; for (var c = 0; c < numChannels; ++c) { var channelData = SDL2.audio.currentOutputBuffer['getChannelData'](c); if (channelData.length != $1) { throw 'Web Audio output buffer length mismatch! Destination size: ' + channelData.length + ' samples vs expected ' + $1 + ' samples!'; } for (var j = 0; j < $1; ++j) { channelData[j] = HEAPF32[buf + (j*numChannels + c)]; } } },
+ 390786: ($0) => { var SDL2 = Module['SDL2']; if ($0) { if (SDL2.capture.silenceTimer !== undefined) { clearInterval(SDL2.capture.silenceTimer); } if (SDL2.capture.stream !== undefined) { var tracks = SDL2.capture.stream.getAudioTracks(); for (var i = 0; i < tracks.length; i++) { SDL2.capture.stream.removeTrack(tracks[i]); } } if (SDL2.capture.scriptProcessorNode !== undefined) { SDL2.capture.scriptProcessorNode.onaudioprocess = function(audioProcessingEvent) {}; SDL2.capture.scriptProcessorNode.disconnect(); } if (SDL2.capture.mediaStreamNode !== undefined) { SDL2.capture.mediaStreamNode.disconnect(); } SDL2.capture = undefined; } else { if (SDL2.audio.scriptProcessorNode != undefined) { SDL2.audio.scriptProcessorNode.disconnect(); } if (SDL2.audio.silenceTimer !== undefined) { clearInterval(SDL2.audio.silenceTimer); } SDL2.audio = undefined; } if ((SDL2.audioContext !== undefined) && (SDL2.audio === undefined) && (SDL2.capture === undefined)) { SDL2.audioContext.close(); SDL2.audioContext = undefined; } },
+ 391792: () => { return window.innerWidth; },
+ 391822: () => { return window.innerHeight; },
+ 391853: ($0, $1, $2) => { var w = $0; var h = $1; var pixels = $2; if (!Module['SDL2']) Module['SDL2'] = {}; var SDL2 = Module['SDL2']; if (SDL2.ctxCanvas !== Module['canvas']) { SDL2.ctx = Browser.createContext(Module['canvas'], false, true); SDL2.ctxCanvas = Module['canvas']; } if (SDL2.w !== w || SDL2.h !== h || SDL2.imageCtx !== SDL2.ctx) { SDL2.image = SDL2.ctx.createImageData(w, h); SDL2.w = w; SDL2.h = h; SDL2.imageCtx = SDL2.ctx; } var data = SDL2.image.data; var src = pixels / 4; var dst = 0; var num; if (typeof CanvasPixelArray !== 'undefined' && data instanceof CanvasPixelArray) { num = data.length; while (dst < num) { var val = HEAP32[src]; data[dst ] = val & 0xff; data[dst+1] = (val >> 8) & 0xff; data[dst+2] = (val >> 16) & 0xff; data[dst+3] = 0xff; src++; dst += 4; } } else { if (SDL2.data32Data !== data) { SDL2.data32 = new Int32Array(data.buffer); SDL2.data8 = new Uint8Array(data.buffer); SDL2.data32Data = data; } var data32 = SDL2.data32; num = data32.length; data32.set(HEAP32.subarray(src, src + num)); var data8 = SDL2.data8; var i = 3; var j = i + 4*num; if (num % 8 == 0) { while (i < j) { data8[i] = 0xff; i = i + 4 | 0; data8[i] = 0xff; i = i + 4 | 0; data8[i] = 0xff; i = i + 4 | 0; data8[i] = 0xff; i = i + 4 | 0; data8[i] = 0xff; i = i + 4 | 0; data8[i] = 0xff; i = i + 4 | 0; data8[i] = 0xff; i = i + 4 | 0; data8[i] = 0xff; i = i + 4 | 0; } } else { while (i < j) { data8[i] = 0xff; i = i + 4 | 0; } } } SDL2.ctx.putImageData(SDL2.image, 0, 0); },
+ 393319: ($0, $1, $2, $3, $4) => { var w = $0; var h = $1; var hot_x = $2; var hot_y = $3; var pixels = $4; var canvas = document.createElement("canvas"); canvas.width = w; canvas.height = h; var ctx = canvas.getContext("2d"); var image = ctx.createImageData(w, h); var data = image.data; var src = pixels / 4; var dst = 0; var num; if (typeof CanvasPixelArray !== 'undefined' && data instanceof CanvasPixelArray) { num = data.length; while (dst < num) { var val = HEAP32[src]; data[dst ] = val & 0xff; data[dst+1] = (val >> 8) & 0xff; data[dst+2] = (val >> 16) & 0xff; data[dst+3] = (val >> 24) & 0xff; src++; dst += 4; } } else { var data32 = new Int32Array(data.buffer); num = data32.length; data32.set(HEAP32.subarray(src, src + num)); } ctx.putImageData(image, 0, 0); var url = hot_x === 0 && hot_y === 0 ? "url(" + canvas.toDataURL() + "), auto" : "url(" + canvas.toDataURL() + ") " + hot_x + " " + hot_y + ", auto"; var urlBuf = _malloc(url.length + 1); stringToUTF8(url, urlBuf, url.length + 1); return urlBuf; },
+ 394307: ($0) => { if (Module['canvas']) { Module['canvas'].style['cursor'] = UTF8ToString($0); } },
+ 394390: () => { if (Module['canvas']) { Module['canvas'].style['cursor'] = 'none'; } }
 };
 function webDownloadExportFile(path) { if (window.choochooDownloadFile) window.choochooDownloadFile(UTF8ToString(path)); }
 
@@ -10503,29 +10543,28 @@ var _strerror = makeInvalidEarlyAccess('_strerror');
 var _fflush = makeInvalidEarlyAccess('_fflush');
 var _emscripten_stack_get_end = makeInvalidEarlyAccess('_emscripten_stack_get_end');
 var _emscripten_stack_get_base = makeInvalidEarlyAccess('_emscripten_stack_get_base');
+var __emscripten_timeout = makeInvalidEarlyAccess('__emscripten_timeout');
+var _setThrew = makeInvalidEarlyAccess('_setThrew');
 var _emscripten_stack_init = makeInvalidEarlyAccess('_emscripten_stack_init');
 var _emscripten_stack_get_free = makeInvalidEarlyAccess('_emscripten_stack_get_free');
 var __emscripten_stack_restore = makeInvalidEarlyAccess('__emscripten_stack_restore');
 var __emscripten_stack_alloc = makeInvalidEarlyAccess('__emscripten_stack_alloc');
 var _emscripten_stack_get_current = makeInvalidEarlyAccess('_emscripten_stack_get_current');
 var dynCall_vii = makeInvalidEarlyAccess('dynCall_vii');
+var dynCall_viii = makeInvalidEarlyAccess('dynCall_viii');
+var dynCall_vi = makeInvalidEarlyAccess('dynCall_vi');
+var dynCall_iiiiii = makeInvalidEarlyAccess('dynCall_iiiiii');
+var dynCall_viiii = makeInvalidEarlyAccess('dynCall_viiii');
 var dynCall_iii = makeInvalidEarlyAccess('dynCall_iii');
 var dynCall_v = makeInvalidEarlyAccess('dynCall_v');
-var dynCall_vi = makeInvalidEarlyAccess('dynCall_vi');
-var dynCall_i = makeInvalidEarlyAccess('dynCall_i');
 var dynCall_ii = makeInvalidEarlyAccess('dynCall_ii');
 var dynCall_iiii = makeInvalidEarlyAccess('dynCall_iiii');
-var dynCall_fif = makeInvalidEarlyAccess('dynCall_fif');
-var dynCall_viiiii = makeInvalidEarlyAccess('dynCall_viiiii');
-var dynCall_viiii = makeInvalidEarlyAccess('dynCall_viiii');
-var dynCall_viiiiii = makeInvalidEarlyAccess('dynCall_viiiiii');
 var dynCall_fi = makeInvalidEarlyAccess('dynCall_fi');
-var dynCall_viii = makeInvalidEarlyAccess('dynCall_viii');
+var dynCall_viiiii = makeInvalidEarlyAccess('dynCall_viiiii');
+var dynCall_viiiiii = makeInvalidEarlyAccess('dynCall_viiiiii');
 var dynCall_iiiii = makeInvalidEarlyAccess('dynCall_iiiii');
-var dynCall_viij = makeInvalidEarlyAccess('dynCall_viij');
+var dynCall_jiji = makeInvalidEarlyAccess('dynCall_jiji');
 var dynCall_ji = makeInvalidEarlyAccess('dynCall_ji');
-var dynCall_viiiiiiii = makeInvalidEarlyAccess('dynCall_viiiiiiii');
-var dynCall_iiiiii = makeInvalidEarlyAccess('dynCall_iiiiii');
 var dynCall_iiiiiiii = makeInvalidEarlyAccess('dynCall_iiiiiiii');
 var dynCall_iiiiiiiiii = makeInvalidEarlyAccess('dynCall_iiiiiiiiii');
 var dynCall_iiiiiiiiiiiiiiff = makeInvalidEarlyAccess('dynCall_iiiiiiiiiiiiiiff');
@@ -10533,9 +10572,10 @@ var dynCall_iiiiiiiii = makeInvalidEarlyAccess('dynCall_iiiiiiiii');
 var dynCall_viiiiiii = makeInvalidEarlyAccess('dynCall_viiiiiii');
 var dynCall_viiiiiiiiiii = makeInvalidEarlyAccess('dynCall_viiiiiiiiiii');
 var dynCall_iiiiiidiiff = makeInvalidEarlyAccess('dynCall_iiiiiidiiff');
-var dynCall_jiji = makeInvalidEarlyAccess('dynCall_jiji');
+var dynCall_i = makeInvalidEarlyAccess('dynCall_i');
 var dynCall_vffff = makeInvalidEarlyAccess('dynCall_vffff');
 var dynCall_vf = makeInvalidEarlyAccess('dynCall_vf');
+var dynCall_viiiiiiii = makeInvalidEarlyAccess('dynCall_viiiiiiii');
 var dynCall_viiiiiiiii = makeInvalidEarlyAccess('dynCall_viiiiiiiii');
 var dynCall_vff = makeInvalidEarlyAccess('dynCall_vff');
 var dynCall_vfi = makeInvalidEarlyAccess('dynCall_vfi');
@@ -10546,6 +10586,8 @@ var dynCall_vifff = makeInvalidEarlyAccess('dynCall_vifff');
 var dynCall_viffff = makeInvalidEarlyAccess('dynCall_viffff');
 var dynCall_vfff = makeInvalidEarlyAccess('dynCall_vfff');
 var dynCall_iidiiiii = makeInvalidEarlyAccess('dynCall_iidiiiii');
+var dynCall_fif = makeInvalidEarlyAccess('dynCall_fif');
+var dynCall_viij = makeInvalidEarlyAccess('dynCall_viij');
 var _asyncify_start_unwind = makeInvalidEarlyAccess('_asyncify_start_unwind');
 var _asyncify_stop_unwind = makeInvalidEarlyAccess('_asyncify_stop_unwind');
 var _asyncify_start_rewind = makeInvalidEarlyAccess('_asyncify_start_rewind');
@@ -10565,29 +10607,28 @@ function assignWasmExports(wasmExports) {
   assert(typeof wasmExports['fflush'] != 'undefined', 'missing Wasm export: fflush');
   assert(typeof wasmExports['emscripten_stack_get_end'] != 'undefined', 'missing Wasm export: emscripten_stack_get_end');
   assert(typeof wasmExports['emscripten_stack_get_base'] != 'undefined', 'missing Wasm export: emscripten_stack_get_base');
+  assert(typeof wasmExports['_emscripten_timeout'] != 'undefined', 'missing Wasm export: _emscripten_timeout');
+  assert(typeof wasmExports['setThrew'] != 'undefined', 'missing Wasm export: setThrew');
   assert(typeof wasmExports['emscripten_stack_init'] != 'undefined', 'missing Wasm export: emscripten_stack_init');
   assert(typeof wasmExports['emscripten_stack_get_free'] != 'undefined', 'missing Wasm export: emscripten_stack_get_free');
   assert(typeof wasmExports['_emscripten_stack_restore'] != 'undefined', 'missing Wasm export: _emscripten_stack_restore');
   assert(typeof wasmExports['_emscripten_stack_alloc'] != 'undefined', 'missing Wasm export: _emscripten_stack_alloc');
   assert(typeof wasmExports['emscripten_stack_get_current'] != 'undefined', 'missing Wasm export: emscripten_stack_get_current');
   assert(typeof wasmExports['dynCall_vii'] != 'undefined', 'missing Wasm export: dynCall_vii');
+  assert(typeof wasmExports['dynCall_viii'] != 'undefined', 'missing Wasm export: dynCall_viii');
+  assert(typeof wasmExports['dynCall_vi'] != 'undefined', 'missing Wasm export: dynCall_vi');
+  assert(typeof wasmExports['dynCall_iiiiii'] != 'undefined', 'missing Wasm export: dynCall_iiiiii');
+  assert(typeof wasmExports['dynCall_viiii'] != 'undefined', 'missing Wasm export: dynCall_viiii');
   assert(typeof wasmExports['dynCall_iii'] != 'undefined', 'missing Wasm export: dynCall_iii');
   assert(typeof wasmExports['dynCall_v'] != 'undefined', 'missing Wasm export: dynCall_v');
-  assert(typeof wasmExports['dynCall_vi'] != 'undefined', 'missing Wasm export: dynCall_vi');
-  assert(typeof wasmExports['dynCall_i'] != 'undefined', 'missing Wasm export: dynCall_i');
   assert(typeof wasmExports['dynCall_ii'] != 'undefined', 'missing Wasm export: dynCall_ii');
   assert(typeof wasmExports['dynCall_iiii'] != 'undefined', 'missing Wasm export: dynCall_iiii');
-  assert(typeof wasmExports['dynCall_fif'] != 'undefined', 'missing Wasm export: dynCall_fif');
-  assert(typeof wasmExports['dynCall_viiiii'] != 'undefined', 'missing Wasm export: dynCall_viiiii');
-  assert(typeof wasmExports['dynCall_viiii'] != 'undefined', 'missing Wasm export: dynCall_viiii');
-  assert(typeof wasmExports['dynCall_viiiiii'] != 'undefined', 'missing Wasm export: dynCall_viiiiii');
   assert(typeof wasmExports['dynCall_fi'] != 'undefined', 'missing Wasm export: dynCall_fi');
-  assert(typeof wasmExports['dynCall_viii'] != 'undefined', 'missing Wasm export: dynCall_viii');
+  assert(typeof wasmExports['dynCall_viiiii'] != 'undefined', 'missing Wasm export: dynCall_viiiii');
+  assert(typeof wasmExports['dynCall_viiiiii'] != 'undefined', 'missing Wasm export: dynCall_viiiiii');
   assert(typeof wasmExports['dynCall_iiiii'] != 'undefined', 'missing Wasm export: dynCall_iiiii');
-  assert(typeof wasmExports['dynCall_viij'] != 'undefined', 'missing Wasm export: dynCall_viij');
+  assert(typeof wasmExports['dynCall_jiji'] != 'undefined', 'missing Wasm export: dynCall_jiji');
   assert(typeof wasmExports['dynCall_ji'] != 'undefined', 'missing Wasm export: dynCall_ji');
-  assert(typeof wasmExports['dynCall_viiiiiiii'] != 'undefined', 'missing Wasm export: dynCall_viiiiiiii');
-  assert(typeof wasmExports['dynCall_iiiiii'] != 'undefined', 'missing Wasm export: dynCall_iiiiii');
   assert(typeof wasmExports['dynCall_iiiiiiii'] != 'undefined', 'missing Wasm export: dynCall_iiiiiiii');
   assert(typeof wasmExports['dynCall_iiiiiiiiii'] != 'undefined', 'missing Wasm export: dynCall_iiiiiiiiii');
   assert(typeof wasmExports['dynCall_iiiiiiiiiiiiiiff'] != 'undefined', 'missing Wasm export: dynCall_iiiiiiiiiiiiiiff');
@@ -10595,9 +10636,10 @@ function assignWasmExports(wasmExports) {
   assert(typeof wasmExports['dynCall_viiiiiii'] != 'undefined', 'missing Wasm export: dynCall_viiiiiii');
   assert(typeof wasmExports['dynCall_viiiiiiiiiii'] != 'undefined', 'missing Wasm export: dynCall_viiiiiiiiiii');
   assert(typeof wasmExports['dynCall_iiiiiidiiff'] != 'undefined', 'missing Wasm export: dynCall_iiiiiidiiff');
-  assert(typeof wasmExports['dynCall_jiji'] != 'undefined', 'missing Wasm export: dynCall_jiji');
+  assert(typeof wasmExports['dynCall_i'] != 'undefined', 'missing Wasm export: dynCall_i');
   assert(typeof wasmExports['dynCall_vffff'] != 'undefined', 'missing Wasm export: dynCall_vffff');
   assert(typeof wasmExports['dynCall_vf'] != 'undefined', 'missing Wasm export: dynCall_vf');
+  assert(typeof wasmExports['dynCall_viiiiiiii'] != 'undefined', 'missing Wasm export: dynCall_viiiiiiii');
   assert(typeof wasmExports['dynCall_viiiiiiiii'] != 'undefined', 'missing Wasm export: dynCall_viiiiiiiii');
   assert(typeof wasmExports['dynCall_vff'] != 'undefined', 'missing Wasm export: dynCall_vff');
   assert(typeof wasmExports['dynCall_vfi'] != 'undefined', 'missing Wasm export: dynCall_vfi');
@@ -10608,6 +10650,8 @@ function assignWasmExports(wasmExports) {
   assert(typeof wasmExports['dynCall_viffff'] != 'undefined', 'missing Wasm export: dynCall_viffff');
   assert(typeof wasmExports['dynCall_vfff'] != 'undefined', 'missing Wasm export: dynCall_vfff');
   assert(typeof wasmExports['dynCall_iidiiiii'] != 'undefined', 'missing Wasm export: dynCall_iidiiiii');
+  assert(typeof wasmExports['dynCall_fif'] != 'undefined', 'missing Wasm export: dynCall_fif');
+  assert(typeof wasmExports['dynCall_viij'] != 'undefined', 'missing Wasm export: dynCall_viij');
   assert(typeof wasmExports['asyncify_start_unwind'] != 'undefined', 'missing Wasm export: asyncify_start_unwind');
   assert(typeof wasmExports['asyncify_stop_unwind'] != 'undefined', 'missing Wasm export: asyncify_stop_unwind');
   assert(typeof wasmExports['asyncify_start_rewind'] != 'undefined', 'missing Wasm export: asyncify_start_rewind');
@@ -10624,29 +10668,28 @@ function assignWasmExports(wasmExports) {
   _fflush = createExportWrapper('fflush', wasmExports['fflush'], 1);
   _emscripten_stack_get_end = wasmExports['emscripten_stack_get_end'];
   _emscripten_stack_get_base = wasmExports['emscripten_stack_get_base'];
+  __emscripten_timeout = createExportWrapper('_emscripten_timeout', wasmExports['_emscripten_timeout'], 2);
+  _setThrew = createExportWrapper('setThrew', wasmExports['setThrew'], 2);
   _emscripten_stack_init = wasmExports['emscripten_stack_init'];
   _emscripten_stack_get_free = wasmExports['emscripten_stack_get_free'];
   __emscripten_stack_restore = wasmExports['_emscripten_stack_restore'];
   __emscripten_stack_alloc = wasmExports['_emscripten_stack_alloc'];
   _emscripten_stack_get_current = wasmExports['emscripten_stack_get_current'];
   dynCall_vii = dynCalls['vii'] = createExportWrapper('dynCall_vii', wasmExports['dynCall_vii'], 3);
+  dynCall_viii = dynCalls['viii'] = createExportWrapper('dynCall_viii', wasmExports['dynCall_viii'], 4);
+  dynCall_vi = dynCalls['vi'] = createExportWrapper('dynCall_vi', wasmExports['dynCall_vi'], 2);
+  dynCall_iiiiii = dynCalls['iiiiii'] = createExportWrapper('dynCall_iiiiii', wasmExports['dynCall_iiiiii'], 6);
+  dynCall_viiii = dynCalls['viiii'] = createExportWrapper('dynCall_viiii', wasmExports['dynCall_viiii'], 5);
   dynCall_iii = dynCalls['iii'] = createExportWrapper('dynCall_iii', wasmExports['dynCall_iii'], 3);
   dynCall_v = dynCalls['v'] = createExportWrapper('dynCall_v', wasmExports['dynCall_v'], 1);
-  dynCall_vi = dynCalls['vi'] = createExportWrapper('dynCall_vi', wasmExports['dynCall_vi'], 2);
-  dynCall_i = dynCalls['i'] = createExportWrapper('dynCall_i', wasmExports['dynCall_i'], 1);
   dynCall_ii = dynCalls['ii'] = createExportWrapper('dynCall_ii', wasmExports['dynCall_ii'], 2);
   dynCall_iiii = dynCalls['iiii'] = createExportWrapper('dynCall_iiii', wasmExports['dynCall_iiii'], 4);
-  dynCall_fif = dynCalls['fif'] = createExportWrapper('dynCall_fif', wasmExports['dynCall_fif'], 3);
-  dynCall_viiiii = dynCalls['viiiii'] = createExportWrapper('dynCall_viiiii', wasmExports['dynCall_viiiii'], 6);
-  dynCall_viiii = dynCalls['viiii'] = createExportWrapper('dynCall_viiii', wasmExports['dynCall_viiii'], 5);
-  dynCall_viiiiii = dynCalls['viiiiii'] = createExportWrapper('dynCall_viiiiii', wasmExports['dynCall_viiiiii'], 7);
   dynCall_fi = dynCalls['fi'] = createExportWrapper('dynCall_fi', wasmExports['dynCall_fi'], 2);
-  dynCall_viii = dynCalls['viii'] = createExportWrapper('dynCall_viii', wasmExports['dynCall_viii'], 4);
+  dynCall_viiiii = dynCalls['viiiii'] = createExportWrapper('dynCall_viiiii', wasmExports['dynCall_viiiii'], 6);
+  dynCall_viiiiii = dynCalls['viiiiii'] = createExportWrapper('dynCall_viiiiii', wasmExports['dynCall_viiiiii'], 7);
   dynCall_iiiii = dynCalls['iiiii'] = createExportWrapper('dynCall_iiiii', wasmExports['dynCall_iiiii'], 5);
-  dynCall_viij = dynCalls['viij'] = createExportWrapper('dynCall_viij', wasmExports['dynCall_viij'], 4);
+  dynCall_jiji = dynCalls['jiji'] = createExportWrapper('dynCall_jiji', wasmExports['dynCall_jiji'], 4);
   dynCall_ji = dynCalls['ji'] = createExportWrapper('dynCall_ji', wasmExports['dynCall_ji'], 2);
-  dynCall_viiiiiiii = dynCalls['viiiiiiii'] = createExportWrapper('dynCall_viiiiiiii', wasmExports['dynCall_viiiiiiii'], 9);
-  dynCall_iiiiii = dynCalls['iiiiii'] = createExportWrapper('dynCall_iiiiii', wasmExports['dynCall_iiiiii'], 6);
   dynCall_iiiiiiii = dynCalls['iiiiiiii'] = createExportWrapper('dynCall_iiiiiiii', wasmExports['dynCall_iiiiiiii'], 8);
   dynCall_iiiiiiiiii = dynCalls['iiiiiiiiii'] = createExportWrapper('dynCall_iiiiiiiiii', wasmExports['dynCall_iiiiiiiiii'], 10);
   dynCall_iiiiiiiiiiiiiiff = dynCalls['iiiiiiiiiiiiiiff'] = createExportWrapper('dynCall_iiiiiiiiiiiiiiff', wasmExports['dynCall_iiiiiiiiiiiiiiff'], 16);
@@ -10654,9 +10697,10 @@ function assignWasmExports(wasmExports) {
   dynCall_viiiiiii = dynCalls['viiiiiii'] = createExportWrapper('dynCall_viiiiiii', wasmExports['dynCall_viiiiiii'], 8);
   dynCall_viiiiiiiiiii = dynCalls['viiiiiiiiiii'] = createExportWrapper('dynCall_viiiiiiiiiii', wasmExports['dynCall_viiiiiiiiiii'], 12);
   dynCall_iiiiiidiiff = dynCalls['iiiiiidiiff'] = createExportWrapper('dynCall_iiiiiidiiff', wasmExports['dynCall_iiiiiidiiff'], 11);
-  dynCall_jiji = dynCalls['jiji'] = createExportWrapper('dynCall_jiji', wasmExports['dynCall_jiji'], 4);
+  dynCall_i = dynCalls['i'] = createExportWrapper('dynCall_i', wasmExports['dynCall_i'], 1);
   dynCall_vffff = dynCalls['vffff'] = createExportWrapper('dynCall_vffff', wasmExports['dynCall_vffff'], 5);
   dynCall_vf = dynCalls['vf'] = createExportWrapper('dynCall_vf', wasmExports['dynCall_vf'], 2);
+  dynCall_viiiiiiii = dynCalls['viiiiiiii'] = createExportWrapper('dynCall_viiiiiiii', wasmExports['dynCall_viiiiiiii'], 9);
   dynCall_viiiiiiiii = dynCalls['viiiiiiiii'] = createExportWrapper('dynCall_viiiiiiiii', wasmExports['dynCall_viiiiiiiii'], 10);
   dynCall_vff = dynCalls['vff'] = createExportWrapper('dynCall_vff', wasmExports['dynCall_vff'], 3);
   dynCall_vfi = dynCalls['vfi'] = createExportWrapper('dynCall_vfi', wasmExports['dynCall_vfi'], 3);
@@ -10667,6 +10711,8 @@ function assignWasmExports(wasmExports) {
   dynCall_viffff = dynCalls['viffff'] = createExportWrapper('dynCall_viffff', wasmExports['dynCall_viffff'], 6);
   dynCall_vfff = dynCalls['vfff'] = createExportWrapper('dynCall_vfff', wasmExports['dynCall_vfff'], 4);
   dynCall_iidiiiii = dynCalls['iidiiiii'] = createExportWrapper('dynCall_iidiiiii', wasmExports['dynCall_iidiiiii'], 8);
+  dynCall_fif = dynCalls['fif'] = createExportWrapper('dynCall_fif', wasmExports['dynCall_fif'], 3);
+  dynCall_viij = dynCalls['viij'] = createExportWrapper('dynCall_viij', wasmExports['dynCall_viij'], 4);
   _asyncify_start_unwind = createExportWrapper('asyncify_start_unwind', wasmExports['asyncify_start_unwind'], 1);
   _asyncify_stop_unwind = createExportWrapper('asyncify_stop_unwind', wasmExports['asyncify_stop_unwind'], 0);
   _asyncify_start_rewind = createExportWrapper('asyncify_start_rewind', wasmExports['asyncify_start_rewind'], 1);
@@ -10676,6 +10722,8 @@ function assignWasmExports(wasmExports) {
 }
 
 var wasmImports = {
+  /** @export */
+  __call_sighandler: ___call_sighandler,
   /** @export */
   __cxa_throw: ___cxa_throw,
   /** @export */
@@ -10706,6 +10754,10 @@ var wasmImports = {
   __syscall_unlinkat: ___syscall_unlinkat,
   /** @export */
   _abort_js: __abort_js,
+  /** @export */
+  _emscripten_runtime_keepalive_clear: __emscripten_runtime_keepalive_clear,
+  /** @export */
+  _setitimer_js: __setitimer_js,
   /** @export */
   clock_time_get: _clock_time_get,
   /** @export */
@@ -11174,6 +11226,8 @@ var wasmImports = {
   fd_seek: _fd_seek,
   /** @export */
   fd_write: _fd_write,
+  /** @export */
+  proc_exit: _proc_exit,
   /** @export */
   webDownloadExportFile
 };

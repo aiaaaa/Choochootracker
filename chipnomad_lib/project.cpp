@@ -38,6 +38,25 @@ FXName fxNamesModulation[] = {
 };
 int fxModulationCount = sizeof(fxNamesModulation) / sizeof(FXName);
 
+FXName fxNamesInsert[] = {
+  {fxF11, "F11"},
+  {fxF12, "F12"},
+  {fxF13, "F13"},
+  {fxF14, "F14"},
+  {fxF15, "F15"},
+  {fxF16, "F16"},
+  {fxF17, "F17"},
+  {fxF18, "F18"},
+  {fxF21, "F21"},
+  {fxF22, "F22"},
+  {fxF23, "F23"},
+  {fxF24, "F24"},
+  {fxF25, "F25"},
+  {fxF26, "F26"},
+  {fxF27, "F27"},
+  {fxF28, "F28"}
+};
+
 // FX Groups array. FX counts are filled in fillFXNames()
 FXGroup fxGroups[] = {
   {"Sequencer FX", fxNamesSequencer, 0, 8, InstrumentType::none},
@@ -58,6 +77,7 @@ FXGroup fxGroups[] = {
   {"MME FX", NULL, 0, 8, InstrumentType::MME},
   {"Sintered FX", NULL, 0, 8, InstrumentType::Sintered},
   {"MIDI FX", NULL, 0, 4, InstrumentType::Midi},
+  {"Insert FX", fxNamesInsert, 16, 8, InstrumentType::none},
 };
 int fxGroupCount = sizeof(fxGroups) / sizeof(FXGroup);
 

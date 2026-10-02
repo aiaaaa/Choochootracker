@@ -101,6 +101,7 @@ extern const AppScreen screenInstrument;
 extern const AppScreen screenSampleSettings;
 extern const AppScreen screenInstrumentPool;
 extern const AppScreen screenModulation;
+extern const AppScreen screenInsertFX;
 extern const AppScreen screenTable;
 extern const AppScreen screenAYWavetable;
 extern const AppScreen screenExport;

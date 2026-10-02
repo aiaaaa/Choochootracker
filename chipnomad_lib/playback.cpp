@@ -833,7 +833,7 @@ static void processModulations(PlaybackState* state, int trackIdx) {
       int parameter = generic - genericModFirstParameter;
       target = parameter / 4;
       targetParameter = parameter % 4;
-    } else if (generic >= genericModFirstP5 && generic < genericModTotalCount) {
+    } else if (generic >= genericModFirstP5 && generic < genericModFirstInsert) {
       target = generic - genericModFirstP5;
       targetParameter = 4;
     } else continue;
@@ -1159,6 +1159,8 @@ void playbackInit(PlaybackState* state, Project* project) {
   initAYSampleTables();
 
   for (int c = 0; c < PROJECT_MAX_TRACKS; c++) {
+    memset(&state->tracks[c].inserts, 0, sizeof(InsertAutomation));
+    state->tracks[c].insertReset = 0;
     resetTrack(state, c);
     state->tracks[c].queue.mode = PlaybackMode::none;
     state->tracks[c].queue.loop = 0;
@@ -1193,6 +1195,10 @@ void playbackClearLoopRange(PlaybackState* state) {
 
 void playbackStartSong(PlaybackState* state, int songRow, int chainRow, int loop) {
   if (playbackIsPlaying(state)) return;
+  for (auto& track : state->tracks) {
+    memset(&track.inserts, 0, sizeof(track.inserts));
+    ++track.insertReset;
+  }
 
   state->scaleRoot = state->p->scaleRoot;
   state->scalePreset = state->p->scalePreset;
@@ -1214,6 +1220,10 @@ void playbackStartSong(PlaybackState* state, int songRow, int chainRow, int loop
 
 void playbackStartChain(PlaybackState* state, int trackIdx, int songRow, int chainRow, int loop) {
   if (playbackIsPlaying(state)) return;
+  for (auto& track : state->tracks) {
+    memset(&track.inserts, 0, sizeof(track.inserts));
+    ++track.insertReset;
+  }
 
   state->scaleRoot = state->p->scaleRoot;
   state->scalePreset = state->p->scalePreset;
@@ -1232,6 +1242,10 @@ void playbackStartChain(PlaybackState* state, int trackIdx, int songRow, int cha
 
 void playbackStartPhrase(PlaybackState* state, int trackIdx, int songRow, int chainRow, int loop) {
   if (playbackIsPlaying(state)) return;
+  for (auto& track : state->tracks) {
+    memset(&track.inserts, 0, sizeof(track.inserts));
+    ++track.insertReset;
+  }
 
   state->scaleRoot = state->p->scaleRoot;
   state->scalePreset = state->p->scalePreset;
@@ -1246,6 +1260,11 @@ void playbackStartPhrase(PlaybackState* state, int trackIdx, int songRow, int ch
 }
 
 void playbackStartPhraseRow(PlaybackState* state, int trackIdx, PhraseRow* phraseRow) {
+  if (!playbackIsPlaying(state)) {
+    auto& track = state->tracks[trackIdx];
+    memset(&track.inserts, 0, sizeof(track.inserts));
+    ++track.insertReset;
+  }
   state->scaleRoot = state->p->scaleRoot;
   state->scalePreset = state->p->scalePreset;
   resetTrack(state, trackIdx);
@@ -1292,6 +1311,8 @@ void playbackStartLiveChain(PlaybackState* state, int trackIdx, int songRow) {
   if (!liveChainValid(state, trackIdx, songRow)) return;
   PlaybackTrackState* track = &state->tracks[trackIdx];
   if (track->mode != PlaybackMode::stopped) return;
+  memset(&track->inserts, 0, sizeof(track->inserts));
+  ++track->insertReset;
   track->queue.mode = PlaybackMode::live;
   track->queue.songRow = songRow;
   track->queue.chainRow = 0;
@@ -1336,6 +1357,10 @@ void playbackPreviewNote(PlaybackState* state, int trackIdx, uint8_t note, uint8
 }
 
 void playbackStop(PlaybackState* state) {
+  for (auto& track : state->tracks) {
+    memset(&track.inserts, 0, sizeof(track.inserts));
+    ++track.insertReset;
+  }
   for (int c = 0; c < PROJECT_MAX_TRACKS; c++) {
     resetTrack(state, c);
     state->tracks[c].queue.mode = PlaybackMode::none;
