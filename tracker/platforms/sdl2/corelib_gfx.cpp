@@ -19,7 +19,7 @@
 #define TEXT_ROWS (20)
 
 #define CHAR_X(x) ((x) * charW + offsetX)
-#define CHAR_Y(y) ((y) * charH + offsetY)
+#define CHAR_Y(y) (((y) + gfxGetContentRowOffset()) * charH + offsetY)
 
 #ifdef TOUCH_INPUT
 #define VPAD_BUTTON_SIZE 110
