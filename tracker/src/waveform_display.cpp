@@ -3,6 +3,7 @@
 #include "chipnomad_lib.h"
 #include "playback_chips.h"
 #include "synth/braids_voice.h"
+#include "synth/achchid_voice.h"
 #include "synth/plaits_voice.h"
 #include "synth/plaits_alt_voice.h"
 #include "synth/mme_voice.h"
@@ -12,6 +13,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <functional>
+#include <chrono>
 
 #define ENVELOPE_DIM_BRIGHTNESS 160
 
@@ -21,6 +23,14 @@ static int charW = 0;
 static int charH = 0;
 static uint8_t noisePattern[512];
 static int noiseAnimIdx = 0;
+// The audio callback may be much slower than the display (notably with a
+// large Android audio buffer).  Keep a UI-side copy so waveform changes are
+// blended over display frames instead of visibly jumping once per callback.
+static float displayedVoiceSamples[PROJECT_MAX_TRACKS][VOICE_MONITOR_SAMPLES];
+static float displayedVoiceEnvelopes[PROJECT_MAX_TRACKS];
+static uint8_t displayedVoiceActive[PROJECT_MAX_TRACKS];
+static std::chrono::steady_clock::time_point lastWaveformRefresh;
+static float voiceBlend = 0.3f;
 
 // ============================================================================
 // Playback wavevorm display
@@ -36,6 +46,10 @@ void waveformDisplayInit(void) {
   for (int i = 0; i < PROJECT_MAX_TRACKS; i++) {
     waveformBitmaps[i] = gfxBitmapCreate(1, 1);
   }
+  memset(displayedVoiceSamples, 0, sizeof(displayedVoiceSamples));
+  memset(displayedVoiceEnvelopes, 0, sizeof(displayedVoiceEnvelopes));
+  memset(displayedVoiceActive, 0, sizeof(displayedVoiceActive));
+  lastWaveformRefresh = std::chrono::steady_clock::time_point();
 
   for (int i = 0; i < 512; i++) {
     noisePattern[i] = rand() & 1;
@@ -132,14 +146,35 @@ static int getAYEnvelopeHeight(int x, int envShape) {
 
 static Bitmap* drawVoiceWaveform(int trackIdx) {
   VoiceMonitor* monitor = &chipnomadState->voiceMonitors[trackIdx];
-  if (!monitor->active) return emptyBitmap;
+  if (!monitor->active) {
+    displayedVoiceActive[trackIdx] = 0;
+    Bitmap* bitmap = waveformBitmaps[trackIdx];
+    memset(bitmap->data, 0, bitmap->widthPixels * bitmap->heightPixels);
+    return bitmap;
+  }
+
+  // Convert the original 60 Hz smoothing to the selected refresh cadence.
+  const float blend = voiceBlend;
+  if (!displayedVoiceActive[trackIdx]) {
+    memcpy(displayedVoiceSamples[trackIdx], monitor->samples,
+           sizeof(displayedVoiceSamples[trackIdx]));
+    displayedVoiceEnvelopes[trackIdx] = monitor->envelope;
+    displayedVoiceActive[trackIdx] = 1;
+  } else {
+    for (int i = 0; i < VOICE_MONITOR_SAMPLES; ++i) {
+      displayedVoiceSamples[trackIdx][i] +=
+        (monitor->samples[i] - displayedVoiceSamples[trackIdx][i]) * blend;
+    }
+    displayedVoiceEnvelopes[trackIdx] +=
+      (monitor->envelope - displayedVoiceEnvelopes[trackIdx]) * blend;
+  }
 
   Bitmap* bitmap = waveformBitmaps[trackIdx];
   memset(bitmap->data, 0, bitmap->widthPixels * bitmap->heightPixels);
   int previousY = charH / 2;
   for (int x = 0; x < charW; ++x) {
     int sampleIdx = charW > 1 ? (x * (VOICE_MONITOR_SAMPLES - 1)) / (charW - 1) : 0;
-    float sample = monitor->samples[sampleIdx];
+    float sample = displayedVoiceSamples[trackIdx][sampleIdx];
     if (sample > 1.0f) sample = 1.0f;
     if (sample < -1.0f) sample = -1.0f;
     int y = (charH - 1) / 2 - (int)(sample * (charH - 1) / 2.0f);
@@ -147,13 +182,13 @@ static Bitmap* drawVoiceWaveform(int trackIdx) {
     previousY = y;
   }
 
-  int envelopeY = charH - 1 - (int)(monitor->envelope * (charH - 1));
+  int envelopeY = charH - 1 - (int)(displayedVoiceEnvelopes[trackIdx] * (charH - 1));
   if (envelopeY < 0) envelopeY = 0;
   for (int x = 0; x < charW; ++x) bitmap->data[envelopeY * charW + x] = ENVELOPE_DIM_BRIGHTNESS;
   return bitmap;
 }
 
-Bitmap* waveformDisplayGetBitmap(int trackIdx) {
+static Bitmap* renderWaveform(int trackIdx) {
   const PlaybackTrackState* track = &chipnomadGetPlaybackStatus(chipnomadState)->tracks[trackIdx];
 
   if (track->note.instrument != EMPTY_VALUE_8) {
@@ -166,7 +201,9 @@ Bitmap* waveformDisplayGetBitmap(int trackIdx) {
 
   // Check if track is playing
   if (track->note.pitchFinal == EMPTY_VALUE_8) {
-    return emptyBitmap;
+    Bitmap* bitmap = waveformBitmaps[trackIdx];
+    memset(bitmap->data, 0, bitmap->widthPixels * bitmap->heightPixels);
+    return bitmap;
   }
 
   // TODO: Support other chips (FM, SID)
@@ -246,6 +283,36 @@ Bitmap* waveformDisplayGetBitmap(int trackIdx) {
   }
 
   return bitmap;
+}
+
+void waveformDisplayInvalidate(void) {
+  lastWaveformRefresh = std::chrono::steady_clock::time_point();
+}
+
+void waveformDisplayRefresh(void) {
+  if (!chipnomadState) return;
+
+  const auto now = std::chrono::steady_clock::now();
+  const int refreshHz = appSettings.waveformRefreshHz < 1 ? 1 :
+    (appSettings.waveformRefreshHz > 60 ? 60 : appSettings.waveformRefreshHz);
+  float elapsedSeconds = lastWaveformRefresh == std::chrono::steady_clock::time_point() ?
+    1.0f / refreshHz : std::chrono::duration<float>(now - lastWaveformRefresh).count();
+  // A note can change on every tracker tick.  It must not bypass the selected
+  // waveform cadence, otherwise low settings still redraw at the UI rate.
+  if (lastWaveformRefresh != std::chrono::steady_clock::time_point() &&
+      elapsedSeconds < 1.0f / refreshHz) return;
+
+  voiceBlend = 1.0f - powf(0.7f, elapsedSeconds * 60.0f);
+  if (voiceBlend > 1.0f) voiceBlend = 1.0f;
+  for (int i = 0; i < chipnomadState->project.tracksCount; ++i) {
+    renderWaveform(i);
+  }
+  lastWaveformRefresh = now;
+}
+
+Bitmap* waveformDisplayGetBitmap(int trackIdx) {
+  if (trackIdx < 0 || trackIdx >= PROJECT_MAX_TRACKS) return emptyBitmap;
+  return waveformBitmaps[trackIdx];
 }
 
 // ============================================================================
@@ -410,6 +477,20 @@ void renderBraidsPreview(Bitmap* bitmap, const InstrumentBraids* instrument) {
   voice.setParameters(instrument->timbre, instrument->color);
   voice.setGain(1.0f);
   voice.strike();
+  voice.render(samples, sizeof(samples) / sizeof(samples[0]));
+  renderFloatPreview(bitmap, samples, sizeof(samples) / sizeof(samples[0]));
+}
+
+void renderAChChidPreview(Bitmap* bitmap, const InstrumentAChChid* instrument) {
+  if (!instrument) { if (bitmap) gfxBitmapClear(bitmap); return; }
+  float samples[768];
+  AChChidVoice voice;
+  voice.init(48000.0f);
+  voice.configure((uint8_t)instrument->wave, instrument->fineTune, instrument->model,
+                  instrument->timbre, instrument->color, instrument->saturation,
+                  instrument->cutoff, instrument->resonance, instrument->envMod,
+                  instrument->decay, instrument->accent, 1.0f);
+  voice.noteOn(48, false, false, 0);
   voice.render(samples, sizeof(samples) / sizeof(samples[0]));
   renderFloatPreview(bitmap, samples, sizeof(samples) / sizeof(samples[0]));
 }

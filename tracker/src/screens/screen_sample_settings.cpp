@@ -28,7 +28,9 @@ static int sliceToIndex(uint8_t slice) {
     if (sliceValues[i] == slice) return i;
   }
   return 0;
-}static const char* sampleFilename(const char* path) {
+}
+
+static const char* sampleFilename(const char* path) {
   const char* separator = strrchr(path, PATH_SEPARATOR);
   return separator ? separator + 1 : path;
 }
@@ -61,25 +63,24 @@ static void updateSamplePreview(const InstrumentSample* sample) {
   Bitmap* markers = ensurePreviewBitmap(&sampleSliceMarkerBitmap);
   Bitmap* startMarker = ensurePreviewBitmap(&sampleStartMarkerBitmap);
   Bitmap* endMarker = ensurePreviewBitmap(&sampleEndMarkerBitmap);
-  
   // Calculate actual start/end positions in frames
   uint32_t frameCount = sample->frameCount;
   uint32_t startFrame = frameCount ? (uint64_t)sample->start * (frameCount - 1) / 255 : 0;
   uint32_t endFrame = sample->end == 255 ? frameCount :
       (uint64_t)(sample->end + 1) * frameCount / 256;
   if (startFrame > endFrame) { uint32_t swap = startFrame; startFrame = endFrame; endFrame = swap + 1; }
-  
+
   // Determine if we should use start/end or full range
   uint8_t slices = sampleSliceDivisions(sample);
-  
+
   // Always show full waveform so we can grey out inactive regions
   // The start/end markers and grey areas will indicate the active loop region
   uint32_t displayStart = 0;
   uint32_t displayEnd = frameCount;
-  
+
   // Render the waveform (always show full sample)
   renderPCM16Preview(waveform, sample->data, displayStart, displayEnd, sample->channels);
-  
+
   // Create start marker bitmap (single vertical line)
   if (startMarker) {
     gfxBitmapClear(startMarker);
@@ -92,7 +93,6 @@ static void updateSamplePreview(const InstrumentSample* sample) {
       }
     }
   }
-  
   // Create end marker bitmap (single vertical line)
   if (endMarker) {
     gfxBitmapClear(endMarker);
@@ -105,7 +105,6 @@ static void updateSamplePreview(const InstrumentSample* sample) {
       }
     }
   }
-  
   // Adjust waveform brightness
   // - Active area (between start/end): waveform at 255 (light blue)
   // - Inactive area (before start, after end): ONLY waveform pixels greyed to 48, background stays 0
@@ -114,7 +113,7 @@ static void updateSamplePreview(const InstrumentSample* sample) {
     int height = waveform->heightPixels;
     int startX = startFrame >= frameCount ? width - 1 : (int)((uint64_t)startFrame * width / frameCount);
     int endX = endFrame >= frameCount ? width - 1 : (int)((uint64_t)endFrame * width / frameCount);
-    
+
     // Apply greying ONLY to waveform pixels (value 255) in inactive regions
     for (int x = 0; x < width; x++) {
       for (int y = 0; y < height; y++) {
@@ -127,22 +126,21 @@ static void updateSamplePreview(const InstrumentSample* sample) {
       }
     }
   }
-  
   // Create slice markers
   if (markers) gfxBitmapClear(markers);
   if (markers && slices && markers->widthPixels > 0) {
     int width = markers->widthPixels;
     int height = markers->heightPixels;
-    
+
     // When in slice mode, slice markers divide the loop region (start to end)
     // This ensures slices follow the start/end markers
     uint32_t loopLength = endFrame > startFrame ? (endFrame - startFrame) : frameCount;
     if (loopLength == 0) loopLength = frameCount;
-    
+
     // Calculate pixel positions for start and end of loop
     int startX = startFrame >= frameCount ? 0 : (int)((uint64_t)startFrame * width / frameCount);
     int endX = endFrame >= frameCount ? width - 1 : (int)((uint64_t)endFrame * width / frameCount);
-    
+
     // Draw slice markers within the loop region
     for (int i = 1; i < slices; ++i) {
       // Position is relative to the loop region, then mapped to full width
@@ -158,25 +156,21 @@ static void updateSamplePreview(const InstrumentSample* sample) {
 static void drawSamplePreview(void) {
   // Clear the waveform area and space for frame
   gfxClearRect(0, previewRow, previewWidth, previewHeight);
-  
   // Draw the waveform with light blue color for active area
   if (samplePreviewBitmap) {
     gfxSetFgColor(0xADD8E6); // Light blue
     gfxDrawBitmap(samplePreviewBitmap, 0, previewRow);
   }
-  
   // Draw start marker (yellow) - always shown
   if (sampleStartMarkerBitmap) {
     gfxSetFgColor(0xFFFF00); // Yellow
     gfxDrawBitmap(sampleStartMarkerBitmap, 0, previewRow);
   }
-  
   // Draw end marker (orange) - always shown
   if (sampleEndMarkerBitmap) {
     gfxSetFgColor(0xFFA500); // Orange
     gfxDrawBitmap(sampleEndMarkerBitmap, 0, previewRow);
   }
-  
   // Draw the slice markers on top
   if (sampleSliceMarkerBitmap) {
     gfxSetFgColor(appSettings.colorScheme.textDefault);
@@ -207,7 +201,9 @@ static void settingsDrawStatic(void) {
 static void settingsDrawCursor(int col, int row) {
   (void)col;
   gfxCursor(valueX, fieldRow0 + row, row == 2 ? 3 : valueWidth);
-}static void settingsDrawRowHeader(int row, CellState state) {
+}
+
+static void settingsDrawRowHeader(int row, CellState state) {
   (void)row;
   (void)state;
 }

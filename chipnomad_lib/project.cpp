@@ -41,7 +41,7 @@ int fxModulationCount = sizeof(fxNamesModulation) / sizeof(FXName);
 // FX Groups array. FX counts are filled in fillFXNames()
 FXGroup fxGroups[] = {
   {"Sequencer FX", fxNamesSequencer, 0, 8, InstrumentType::none},
-  {"Track FX", fxNamesTrack, 0, 2, InstrumentType::none},
+  {"Track FX", fxNamesTrack, 0, 4, InstrumentType::none},
   {"AY Classic FX", NULL, 0, 8, InstrumentType::AY1},
   {"AY Plus FX", NULL, 0, 8, InstrumentType::AY2},
   {"AYSample FX", NULL, 0, 8, InstrumentType::AYSample},
@@ -51,12 +51,13 @@ FXGroup fxGroups[] = {
   {"BYOWTBL FX", NULL, 0, 6, InstrumentType::BYOWTBL},
   {"Plaits FX", NULL, 0, 7, InstrumentType::Plaits},
   {"Plaits-Alt FX", NULL, 0, 7, InstrumentType::PlaitsAlt},
-  {"aChChid FX", NULL, 0, 8, InstrumentType::AChChid},
+  {"aChChid FX", NULL, 0, 9, InstrumentType::AChChid},
   {"Bogie FX", NULL, 0, 8, InstrumentType::DrumSynth},
   {"ADSR / Trigger FX", fxNamesEnvelope, 0, 7, InstrumentType::none},
   {"Modulation FX", fxNamesModulation, 0, 5, InstrumentType::none},
   {"MME FX", NULL, 0, 8, InstrumentType::MME},
   {"Sintered FX", NULL, 0, 8, InstrumentType::Sintered},
+  {"MIDI FX", NULL, 0, 4, InstrumentType::Midi},
 };
 int fxGroupCount = sizeof(fxGroups) / sizeof(FXGroup);
 
@@ -100,6 +101,13 @@ void fillFXNames() {
     const InstrumentDefinition* definition = getInstrumentDefinition(InstrumentType::Sintered);
     FXName* names = instrumentGroupNames[(int)InstrumentType::Sintered];
     fxGroups[16].fxList = names; fxGroups[16].count = definition->fxCount;
+    for (int i = 0; i < definition->fxCount; ++i) { names[i].fx = (FX)definition->fxList[i].fx; strcpy(names[i].name, definition->fxList[i].name); }
+  }
+  for (int group = 17; group < 18; ++group) {
+    InstrumentType type = fxGroups[group].instType;
+    const InstrumentDefinition* definition = getInstrumentDefinition(type);
+    FXName* names = instrumentGroupNames[(int)type];
+    fxGroups[group].fxList = names; fxGroups[group].count = definition->fxCount;
     for (int i = 0; i < definition->fxCount; ++i) { names[i].fx = (FX)definition->fxList[i].fx; strcpy(names[i].name, definition->fxList[i].name); }
   }
 

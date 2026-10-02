@@ -26,7 +26,19 @@ void exportGetBaseDir(char* buffer, int bufferSize) {
   snprintf(buffer, bufferSize, "/user/samples/Exports");
 #else
   char defaultDir[PATH_LENGTH];
-  if (fileGetDefaultDirectory(defaultDir, PATH_LENGTH) != 0) {
+  // Non-AppImage desktop builds keep the historical cwd-relative location:
+  // samplePath defaults to relative "samples" (launcher scripts cd into the
+  // install dir), so exports live next to it and sample paths stored
+  // cwd-relative by sampleStorePath() keep matching after folder renames.
+  // AppImages anchor to the writable seeded workspace instead (matches
+  // initDefaultAppSettings()'s AppImage handling).
+  int resolved;
+  if (fileIsRunningFromAppImage()) {
+    resolved = fileGetDefaultDirectory(defaultDir, PATH_LENGTH) == 0;
+  } else {
+    resolved = getcwd(defaultDir, PATH_LENGTH) != NULL;
+  }
+  if (!resolved) {
     snprintf(buffer, bufferSize, "samples%sExports", PATH_SEPARATOR_STR);
     return;
   }

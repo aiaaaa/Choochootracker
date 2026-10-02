@@ -2,6 +2,7 @@
 #include "project_io_common.h"
 #include "synth/sample_voice.h"
 #include "synth/sr_wavetable_loader.h"
+#include "synth/multimode_filter.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -279,11 +280,29 @@ static int loadInstrumentAChChid(FILE* file, Instrument* instrument) {
     else if (strncmp(line, "- Model: ", 9) == 0) sscanf(line, "- Model: %hhu", &a->model);
     else if (strncmp(line, "- Timbre: ", 10) == 0) sscanf(line, "- Timbre: %hu", &a->timbre);
     else if (strncmp(line, "- Color: ", 9) == 0) sscanf(line, "- Color: %hu", &a->color);
+    else if (strncmp(line, "- Saturation: ", 14) == 0) sscanf(line, "- Saturation: %hhu", &a->saturation);
     else if (strncmp(line, "- Cutoff: ", 10) == 0) sscanf(line, "- Cutoff: %hu", &a->cutoff);
     else if (strncmp(line, "- Resonance: ", 13) == 0) sscanf(line, "- Resonance: %hhu", &a->resonance);
     else if (strncmp(line, "- Env mod: ", 11) == 0) sscanf(line, "- Env mod: %hhu", &a->envMod);
     else if (strncmp(line, "- Decay: ", 9) == 0) sscanf(line, "- Decay: %hu", &a->decay);
     else if (strncmp(line, "- Accent: ", 10) == 0) sscanf(line, "- Accent: %hhu", &a->accent);
+    consumeLine(file);
+  }
+}
+
+static int loadInstrumentMidi(FILE* file, Instrument* instrument) {
+  InstrumentMidi* m = &instrument->chip.midi;
+  while (1) {
+    char* line = peekLine(file);
+    if (line == NULL || line[0] == '#') return 0;
+    if (strncmp(line, "- Channel: ", 11) == 0) sscanf(line, "- Channel: %hhu", &m->channel);
+    else if (strncmp(line, "- Program: ", 11) == 0) sscanf(line, "- Program: %hhu", &m->program);
+    else if (strncmp(line, "- Bank high: ", 13) == 0) sscanf(line, "- Bank high: %hhu", &m->bankHigh);
+    else if (strncmp(line, "- Bank low: ", 12) == 0) sscanf(line, "- Bank low: %hhu", &m->bankLow);
+    else if (strncmp(line, "- CC1 number: ", 14) == 0) sscanf(line, "- CC1 number: %hhu", &m->ccNumber[0]);
+    else if (strncmp(line, "- CC2 number: ", 14) == 0) sscanf(line, "- CC2 number: %hhu", &m->ccNumber[1]);
+    else if (strncmp(line, "- CC3 number: ", 14) == 0) sscanf(line, "- CC3 number: %hhu", &m->ccNumber[2]);
+    else if (strncmp(line, "- CC4 number: ", 14) == 0) sscanf(line, "- CC4 number: %hhu", &m->ccNumber[3]);
     consumeLine(file);
   }
 }
@@ -521,32 +540,35 @@ int instrumentLoadData(FILE* file, Instrument* instrument, Project* p) {
       case InstrumentType::Sintered:
         if (loadInstrumentSintered(file, instrument)) return 1;
         break;
+      case InstrumentType::Midi:
+        if (loadInstrumentMidi(file, instrument)) return 1;
+        break;
       default:
         break;
     }
   }
 
   if (instrument->type == InstrumentType::Braids &&
-      instrument->chip.braids.filterCutoffHz > 20000) {
-    instrument->chip.braids.filterCutoffHz = 20000;
+      instrument->chip.braids.filterCutoffHz > FILTER_CUTOFF_MAX_HZ) {
+    instrument->chip.braids.filterCutoffHz = FILTER_CUTOFF_MAX_HZ;
   } else if ((instrument->type == InstrumentType::Plaits || instrument->type == InstrumentType::PlaitsAlt) &&
-             instrument->chip.plaits.filterCutoffHz > 20000) {
-    instrument->chip.plaits.filterCutoffHz = 20000;
+             instrument->chip.plaits.filterCutoffHz > FILTER_CUTOFF_MAX_HZ) {
+    instrument->chip.plaits.filterCutoffHz = FILTER_CUTOFF_MAX_HZ;
   } else if (instrument->type == InstrumentType::Sample &&
-             instrument->chip.sample.filterCutoffHz > 20000) {
-    instrument->chip.sample.filterCutoffHz = 20000;
+             instrument->chip.sample.filterCutoffHz > FILTER_CUTOFF_MAX_HZ) {
+    instrument->chip.sample.filterCutoffHz = FILTER_CUTOFF_MAX_HZ;
   } else if (instrument->type == InstrumentType::DrumSynth) {
     InstrumentDrumSynth* d = &instrument->chip.drumSynth;
     if ((uint8_t)d->engine >= (uint8_t)DrumSynthEngine::totalCount) d->engine = DrumSynthEngine::kick;
-    if (d->filterCutoffHz > 20000) d->filterCutoffHz = 20000;
+    if (d->filterCutoffHz > FILTER_CUTOFF_MAX_HZ) d->filterCutoffHz = FILTER_CUTOFF_MAX_HZ;
   } else if (instrument->type == InstrumentType::MME) {
     InstrumentMME* m = &instrument->chip.mme;
     if ((uint8_t)m->model >= (uint8_t)MMEModel::totalCount) m->model = MMEModel::ring;
-    if (m->filterCutoffHz > 20000) m->filterCutoffHz = 20000;
+    if (m->filterCutoffHz > FILTER_CUTOFF_MAX_HZ) m->filterCutoffHz = FILTER_CUTOFF_MAX_HZ;
   } else if (instrument->type == InstrumentType::Sintered) {
     InstrumentSintered* s = &instrument->chip.sintered;
     if ((uint8_t)s->model >= (uint8_t)SinteredModel::totalCount) s->model = SinteredModel::knot;
-    if (s->filterCutoffHz > 20000) s->filterCutoffHz = 20000;
+    if (s->filterCutoffHz > FILTER_CUTOFF_MAX_HZ) s->filterCutoffHz = FILTER_CUTOFF_MAX_HZ;
   }
 
   return 0;
@@ -660,11 +682,25 @@ static int saveInstrumentAChChid(FILE* file, Instrument* instrument) {
   fprintf(file, "- Model: %hhu\n", a->model);
   fprintf(file, "- Timbre: %hu\n", a->timbre);
   fprintf(file, "- Color: %hu\n", a->color);
+  fprintf(file, "- Saturation: %hhu\n", a->saturation);
   fprintf(file, "- Cutoff: %hu\n", a->cutoff);
   fprintf(file, "- Resonance: %hhu\n", a->resonance);
   fprintf(file, "- Env mod: %hhu\n", a->envMod);
   fprintf(file, "- Decay: %hu\n", a->decay);
   fprintf(file, "- Accent: %hhu\n", a->accent);
+  return 0;
+}
+
+static int saveInstrumentMidi(FILE* file, Instrument* instrument) {
+  InstrumentMidi* m = &instrument->chip.midi;
+  fprintf(file, "- Channel: %hhu\n", m->channel);
+  fprintf(file, "- Program: %hhu\n", m->program);
+  fprintf(file, "- Bank high: %hhu\n", m->bankHigh);
+  fprintf(file, "- Bank low: %hhu\n", m->bankLow);
+  fprintf(file, "- CC1 number: %hhu\n", m->ccNumber[0]);
+  fprintf(file, "- CC2 number: %hhu\n", m->ccNumber[1]);
+  fprintf(file, "- CC3 number: %hhu\n", m->ccNumber[2]);
+  fprintf(file, "- CC4 number: %hhu\n", m->ccNumber[3]);
   return 0;
 }
 
@@ -804,6 +840,9 @@ int instrumentSaveData(FILE* file, int idx, Instrument* instrument) {
       break;
     case InstrumentType::Sintered:
       saveInstrumentSintered(file, instrument);
+      break;
+    case InstrumentType::Midi:
+      saveInstrumentMidi(file, instrument);
       break;
     default:
       break;

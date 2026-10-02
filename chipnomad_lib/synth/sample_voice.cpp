@@ -106,10 +106,10 @@ void SampleVoice::configure(const InstrumentSample* sample, float pitchCents,
       loopEndFrame = swap + 1;
     }
     uint32_t loopLength = loopEndFrame > loopStartFrame ? loopEndFrame - loopStartFrame : sample_->frameCount;
-    
+
     uint32_t sliceStart, sliceEnd;
     sampleSliceFrames(loopLength, sliceCount, sliceIndex, &sliceStart, &sliceEnd);
-    
+
     // Map slice to absolute frame positions within the loop region
     startFrame_ = loopStartFrame + sliceStart;
     endFrame_ = loopStartFrame + sliceEnd;
