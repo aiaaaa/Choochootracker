@@ -61,7 +61,7 @@ static int mixerEdit(int, int row, CellEditAction action) {
 static ScreenData mixerData = {2, 0, 0, 0, -1, 0, 0, 0, 0, ScreenPlaybackLevel::none, columnCount, mixerStatic, mixerCursor, NULL, noHeader, noHeader, mixerField, mixerEdit, NULL, NULL, NULL, NULL};
 
 static void graphicsStatic(void) { gfxSetFgColor(appSettings.colorScheme.textTitles); gfxPrint(0, 0, "GRAPHICS"); }
-static void graphicsCursor(int, int row) { gfxCursor(row < 2 ? 23 : 0, 2 + row, row == 0 ? 3 : row == 1 ? 8 : row == 2 ? 9 : 16); }
+static void graphicsCursor(int, int row) { gfxCursor(row < 2 || row == 4 ? 23 : 0, 2 + row, row == 0 ? 3 : row == 1 ? 8 : row == 2 ? 9 : row == 3 ? 16 : 3); }
 static void graphicsField(int, int row, CellState state) {
   const ColorScheme cs = appSettings.colorScheme;
   if (row == 0) {
@@ -70,8 +70,11 @@ static void graphicsField(int, int row, CellState state) {
   } else if (row == 1) {
     gfxSetFgColor(cs.textDefault); gfxPrint(0, 3, "Renderer");
     gfxSetFgColor(cs.textInfo); gfxPrint(23, 3, gfxGetRendererType());
-  } else {
+  } else if (row < 4) {
     gfxSetFgColor(state == CellState::focus ? cs.textValue : cs.textDefault); gfxPrint(0, 2 + row, row == 2 ? "Load font" : "Edit color theme");
+  } else {
+    gfxSetFgColor(cs.textDefault); gfxPrint(0, 6, "Persistent waveform");
+    gfxSetFgColor(state == CellState::focus ? cs.textValue : cs.textDefault); gfxPrint(23, 6, appSettings.persistentWaveform ? "ON " : "OFF");
   }
 }
 static void fontLoaded(const char* path) {
@@ -92,12 +95,20 @@ static int graphicsEdit(int, int row, CellEditAction action) {
     if (handled) { appSettings.waveformRefreshHz = hz; waveformDisplayInvalidate(); }
     return handled;
   }
+  if (row == 4) {
+    uint8_t value = appSettings.persistentWaveform;
+    if (action == CellEditAction::tap || action == CellEditAction::doubleTap) value ^= 1;
+    else if (!edit8noLast(action, &value, 1, 0, 1)) return 0;
+    appSettings.persistentWaveform = value;
+    if (settingsSave() != 0) screenMessage(MESSAGE_TIME, "Could not save waveform setting");
+    return 1;
+  }
   if (row == 1 || action != CellEditAction::tap) return 0;
   if (row == 2) { fileBrowserSetup("LOAD FONT", ".cnfont", appSettings.fontFolderPath, fontLoaded, fontCancelled); screenSetup(&screenFileBrowser, 0); }
   else screenSetup(&screenColorTheme, 0);
   return 0;
 }
-static ScreenData graphicsData = {4, 0, 0, 0, -1, 0, 0, 0, 0, ScreenPlaybackLevel::none, columnCount, graphicsStatic, graphicsCursor, NULL, noHeader, noHeader, graphicsField, graphicsEdit, NULL, NULL, NULL, NULL};
+static ScreenData graphicsData = {5, 0, 0, 0, -1, 0, 0, 0, 0, ScreenPlaybackLevel::none, columnCount, graphicsStatic, graphicsCursor, NULL, noHeader, noHeader, graphicsField, graphicsEdit, NULL, NULL, NULL, NULL};
 
 static int menuInput(ScreenData* data, int isKeyDown, int keys, int taps) { if (keys == keyOpt) { screenSetup(&screenSettings, 0); return 1; } return screenInput(data, isKeyDown, keys, taps); }
 static void synthRedraw(void) { screenFullRedraw(&synthData); }
