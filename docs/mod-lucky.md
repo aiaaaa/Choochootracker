@@ -92,9 +92,9 @@ For an existing ARM64 PortMaster toolchain, build the dependency for that target
 in a separate dependency directory, then add the same flag and ARM prefix to
 `make -C tracker -f Makefile.portmaster PortMaster`. Target libcurl headers,
 libcurl, its TLS backend and a valid CA trust store must exist in that toolchain
-and on the handheld. There is no insecure TLS fallback. This step, runtime
-packaging and hardware playback still require device coordination and validation;
-do not deploy over an existing installation as part of a desktop test.
+and on the handheld. There is no insecure TLS fallback. The isolated R36H build
+and automated device checks below succeeded. Installing over the working
+handheld application remains a separate, explicitly approved step.
 
 ## Import, tuning and persistence
 
@@ -211,7 +211,7 @@ SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy \
   tracker/build/mod-lucky-smoke/desktop/choochootracker /tmp/cct-lucky-smoke
 ```
 
-This test requires dummy video and never opens a GUI window. Its captures and
+This test requires dummy or offscreen video and never opens a GUI window. Its captures and
 imported assets are written only into the supplied output directory. No fixture
 selector or test override is present in a production build.
 
@@ -271,12 +271,29 @@ published source private.
   downloaded into the task directory; no system runtime or toolchain was
   installed/replaced. The pinned ARM decoder and initial application built
   successfully, with all runtime libraries resolved. A device restart
-  interrupted test compilation. After reconnection, the reconciled sources
-  were synchronized and the isolated build/tests resumed. The device could
-  not resolve `modarchive.org` (curl exit 6); live acquisition there remains
-  **unverified**. No DNS, network, clock or TLS-verification settings were
-  changed. The device checks use dummy audio/video and do not take over an
-  installed app session; audible hardware playback is still unverified.
+  interrupted test compilation, leaving one truncated generated object and
+  future timestamps after the clock moved backward. Only task build artifacts
+  were repaired; the reconciled source was rebuilt and **all 340 tests passed**
+  with **8,111,206 assertions**. Two opt-in cases were skipped in that suite.
+  The resulting ARM64 binary SHA-256 is
+  `dcbef85cccf7b30d102973fa94111ef2cfd3b969209a60f3219c022e644c1f55`.
+- R36H production SDL integration: **passed** using the installed `offscreen`
+  video driver and real ALSA output. The idle launcher was briefly stopped to
+  release audio, then automatically restored. Controls, animated underline,
+  no autoplay, tracker interruption, exact-cache import, save/reload and leaving
+  during a request passed. A separate process reloaded all four imported
+  instruments successfully (**13 assertions**). These are automated fixture
+  checks on the device, not a subjective listening review of downloaded music.
+  The installed SDL has no dummy drivers. An initial dummy attempt could not
+  initialize; a task-only ALSA null output consumed audio without real-time
+  pacing and could not support the playing-state assertion. The final check
+  used actual hardware pacing. The developer harness also now redraws after
+  observing worker completion, before checking readiness pixels.
+- R36H live network: **blocked**. The device could not resolve `modarchive.org`
+  (curl exit 6); the actual live-acquisition test returned `No connection` and
+  failed its success assertion. No DNS, network, clock or TLS-verification
+  settings were changed. Desktop live success does not establish handheld
+  live-download success.
   The installed app, settings, projects and launchers remain unchanged.
 
 Changed files are confined to the optional Makefile integration, Settings row,
@@ -286,6 +303,30 @@ build script, these build notes, and the focused WAV path-copy fix. Downloaded
 music, extracted third-party audio, builds and captures are not added to Git.
 The feature is integrated into the personal branch with the flag enabled only
 for the dedicated personal build.
+
+The isolated test binary is at
+`/roms/choochootracker-mod-lucky-f6d59cd/tracker/build/portmaster/choochootracker.aarch64`.
+The directory name records the original baseline; its application source was
+updated to reconciled commit `4aefc15` before the successful final build.
+To reproduce the device UI/persistence check with that prepared task directory,
+first exit running apps and stop the idle launcher to release its audio device:
+
+```sh
+cd /roms/choochootracker-mod-lucky-f6d59cd/tracker
+sudo systemctl stop emulationstation.service
+trap 'sudo systemctl start emulationstation.service' EXIT
+SDL_VIDEODRIVER=offscreen SDL_AUDIODRIVER=alsa timeout 45 \
+  build/portmaster/mod-lucky-smoke ../captures-hardware
+CCT_MOD_LUCKY_RELOAD=/roms/choochootracker-mod-lucky-f6d59cd/captures-hardware/imported.cct \
+  build/tests/run_tests --test-case='ModLucky fresh process reload (opt-in)'
+sudo systemctl start emulationstation.service
+trap - EXIT
+```
+
+The harness is developer-only; production builds never include its fixture
+provider or diagnostics. The final adjusted harness also passes again on macOS
+using dummy drivers. The normal desktop executable and disabled web bundle
+were rebuilt from the reconciled application source.
 
 ### Files in this change
 
