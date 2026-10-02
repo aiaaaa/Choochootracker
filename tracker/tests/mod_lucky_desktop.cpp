@@ -23,12 +23,13 @@ static void capture(const char* path) {
 }
 static uint32_t pixel(int x,int y) { uint32_t p=0;SDL_Rect r{x,y,1,1};require(SDL_RenderReadPixels(renderer,&r,SDL_PIXELFORMAT_ARGB8888,&p,4)==0,"pixel");return p&0xffffff; }
 static void finish(Service& s) {
-  for(int i=0;i<2000;++i){appDraw();auto status=s.status();if(!status.busy())return;std::this_thread::sleep_for(std::chrono::milliseconds(2));}
+  for(int i=0;i<2000;++i){appDraw();auto status=s.status();if(!status.busy()){appDraw();return;}std::this_thread::sleep_for(std::chrono::milliseconds(2));}
   require(false,"worker completion");
 }
 int main(int argc,char** argv) {
   require(argc==2,"one output directory argument");
-  require(std::getenv("SDL_VIDEODRIVER") && std::string(std::getenv("SDL_VIDEODRIVER"))=="dummy","headless video required");
+  const char* video=std::getenv("SDL_VIDEODRIVER");
+  require(video && (std::string(video)=="dummy" || std::string(video)=="offscreen"),"headless video required");
   auto output=std::filesystem::absolute(argv[1]);std::filesystem::create_directories(output);std::filesystem::current_path(output);
   std::atomic<bool> release{false};std::atomic<int> calls{0},sequence{0};
   Service s([&](const std::string& url,size_t,const std::atomic<bool>& cancel){
