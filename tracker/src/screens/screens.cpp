@@ -280,6 +280,29 @@ static int screenTouchEnvelopeAt(int col, int row, int* targetCol) {
 
 static int screenTouchCellAt(int col, int row, int* targetCol, int* targetRow) {
   if (!touchScreenData || touchScreenData->selectMode == 1) return 0;
+  if (currentScreen == &screenTrackVisuals) {
+    int field = row >= 3 && row < 3 + PROJECT_MAX_TRACKS ? row - 3 : row == 12 ? PROJECT_MAX_TRACKS : row == 14 ? PROJECT_MAX_TRACKS + 1 : -1;
+    int column = -1;
+    if (field < 0) return 0;
+    if (field < PROJECT_MAX_TRACKS) {
+      if (col >= 4 && col < 18) column = 0;
+    } else if (field == PROJECT_MAX_TRACKS) {
+      if (col >= 0 && col < 12) column = 0;
+      else if (col >= 15 && col < 24) column = 1;
+    } else if (col >= 0 && col < 4) column = 0;
+    if (column < 0) return 0;
+    if (targetCol) *targetCol = column;
+    if (targetRow) *targetRow = field;
+    return 1;
+  }
+  if (currentScreen == &screenGraphicsSettings) {
+    int field = row - 2;
+    const int widths[] = {9, 16, 13};
+    if (field < 0 || field >= 3 || col < 0 || col >= widths[field]) return 0;
+    if (targetCol) *targetCol = 0;
+    if (targetRow) *targetRow = field;
+    return 1;
+  }
   if (currentScreen == &screenProject) {
     const int fieldY[] = {3, 5, 6, 7, 9, 10, 11, 12, 13, 14, 16};
     int field = -1, column = 0;
