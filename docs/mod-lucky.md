@@ -14,6 +14,12 @@ One Settings row immediately above Quit:
 I'm Feeling Lucky NEXT PLAY LOAD
 ```
 
+![Prepared candidate in the experimental Settings row](../screenshots/mod-lucky.png)
+
+Production SDL capture using a self-authored test module. PLAY is selected and
+ready; preparation has not started audio. This is a desktop capture, not a
+handheld validation.
+
 Use the existing logical Up/Down, Left/Right and EDIT controls. NEXT prepares
 one random module. Its underline sweeps in four theme-colored brightness
 steps while downloading, validating and preparing the first audio buffer.
@@ -221,6 +227,11 @@ After desktop validation, the user requested GitHub publication to both an
 experimental branch and `personal/r36h`, and reconciliation with new upstream
 changes. That approved reconciliation targets upstream `a02a880`. No upstream
 PR or device installation is performed by this feature publication.
+The reconciled source was published as `4aefc15` to both
+[`experimental/mod-lucky-integrated`](https://github.com/aiaaaa/Choochootracker/tree/experimental/mod-lucky-integrated)
+and [`personal/r36h`](https://github.com/aiaaaa/Choochootracker/tree/personal/r36h).
+The compile flag hides the feature in normal builds; it does not make the
+published source private.
 
 - Native macOS x86_64 desktop: enabled and disabled builds succeeded. The
   disabled build used a nonexistent dependency prefix; its symbols and linked
@@ -254,12 +265,18 @@ PR or device installation is performed by this feature publication.
   selected player assignment/download-link relationship. This verifies live
   service access from this desktop, not from the handheld.
 - R36H: after the other task finished, USB SSH initially timed out, then
-  reconnected. An isolated ARM build/test is being prepared under
+  reconnected. An isolated ARM build/test was started under
   `/roms/choochootracker-mod-lucky-f6d59cd` using the existing GCC 9 toolchain
   and installed libcurl 7.65.3/TLS trust store. Matching curl headers were
   downloaded into the task directory; no system runtime or toolchain was
-  installed/replaced. The device checks use dummy audio/video and do not take over an installed app
-  session. Hardware results are recorded below when complete.
+  installed/replaced. The pinned ARM decoder and initial application built
+  successfully, with all runtime libraries resolved. A device restart
+  interrupted test compilation. After reconnection, the reconciled sources
+  were synchronized and the isolated build/tests resumed. The device could
+  not resolve `modarchive.org` (curl exit 6); live acquisition there remains
+  **unverified**. No DNS, network, clock or TLS-verification settings were
+  changed. The device checks use dummy audio/video and do not take over an
+  installed app session; audible hardware playback is still unverified.
   The installed app, settings, projects and launchers remain unchanged.
 
 Changed files are confined to the optional Makefile integration, Settings row,
@@ -267,8 +284,8 @@ app/audio/screen lifecycle hooks, the experimental module/network/bank/service
 sources and MIT notice, developer fixtures/tests/headless harness, dependency
 build script, these build notes, and the focused WAV path-copy fix. Downloaded
 music, extracted third-party audio, builds and captures are not added to Git.
-The feature can subsequently be reviewed and integrated into the normal
-personal branch with the flag enabled only for the desired personal build.
+The feature is integrated into the personal branch with the flag enabled only
+for the dedicated personal build.
 
 ### Files in this change
 
