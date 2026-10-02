@@ -556,7 +556,7 @@ static void bounceDrawField(int col, int row, CellState state) {
     gfxClearRect(13, 4, 2, 1);
     gfxPrintf(13, 4, "%d", bitDepths[bounceBitDepthIndex]);
   } else if (row >= BOUNCE_PREFIX_ROW && row < BOUNCE_START_ROW) {
-    static const char* const prefixLabels[] = {"BPM", "[Key]", "[Bars:Beats:16ths]"};
+    static const char* const prefixLabels[] = {"[BPM]", "[Key]", "[Bars:Beats:16ths]"};
     int idx = row - BOUNCE_PREFIX_ROW;
     int enabled = idx == 0 ? bouncePrefixBpm : (idx == 1 ? bouncePrefixKey : bouncePrefixLength);
     gfxPrintf(0, row + 4, "[%c] %s", enabled ? 'x' : ' ', prefixLabels[idx]);
