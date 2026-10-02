@@ -8,7 +8,7 @@ ChooChooTracker is built with AI-assisted and agent-assisted development in mind
 
 ChooChooTracker is a handheld groovebox and tracker. Keep changes focused on fast music-making with a small, readable codebase. Good contributions improve sequencing, sound design, performance controls, file compatibility, portability, or the practical workflow of the instrument. New sound engines are welcome.
 
-Please do not turn it into a conventional DAW. Features that need a mouse-first workflow, a large arrangement view, or deep studio-style editing probably belong somewhere else.
+Please do not turn it into a conventional DAW. Features that need a mouse-first workflow, a large arrangement view, or deep studio-style editing probably belong somewhere else. Avoid 1:1 copies of features from other trackers. We aren't a clone even though all trackers sort of look the same.
 
 ## Before opening a pull request
 
