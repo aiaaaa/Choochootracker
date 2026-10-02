@@ -17,6 +17,9 @@ void appModLuckyImported(void);
 void appDraw(void);
 void appSetStickLiveMode(StickLiveMode mode);
 void appOnEvent(MainLoopEventData eventData);
+// Drop held-button state after changing the input mapping. A key-up event may
+// otherwise resolve through the new mapping instead of the old one.
+void appResetInputState(void);
 
 // Raw input callback for key mapping screen
 extern void (*inputRawCallback)(InputCode input, int isDown);

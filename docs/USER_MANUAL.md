@@ -62,10 +62,10 @@ ChooChooTracker works best with a gamepad that has a D-pad, 2 analogue sticks an
 | **MOTION RECORD** | L2 | W |
 | **MOTION ERASE** | R2 | E |
 
-Mappings can be changed in **Settings > Key mapping**. On PortMaster, custom
-mappings are saved immediately and navigation remains available when returning
-to Settings. Desktop layout defaults use QWERTZ only for QWERTZ regions;
-Polish keyboards keep the standard QWERTY defaults.
+Mappings can be changed in **Settings > Key mapping**. On PortMaster, save a
+remap with **Done**, then release the button before continuing in Settings.
+Desktop layout defaults use QWERTZ only for QWERTZ regions; Polish keyboards
+keep the standard QWERTY defaults.
 
 Windows, web, and Android users can also use a game controller. On Android,
 touch controls appear automatically when no gamepad is connected: in portrait
@@ -1116,3 +1116,14 @@ unused slots; the sixteen available positions are not a guaranteed CPU budget.
 The Insert page keeps the selected field's tip visible after button release;
 temporary notices can still take its place. The module chooser shows each
 module's effect type and source project alongside its name.
+
+### Personal opt-in module discovery
+
+Builds made with `CHOOCHOO_EXPERIMENTAL_MOD_LUCKY=1` add one Settings row,
+**I'm Feeling Lucky — NEXT PLAY LOAD**, immediately above Quit. Left/Right
+selects an action and the existing EDIT control activates it. NEXT prepares a
+random module with an animated underline; then release EDIT and activate PLAY
+to listen. LOAD imports the exact prepared module’s embedded PCM sample bank.
+The ordinary build omits this experimental row entirely. See
+[the experiment notes](mod-lucky.md) for build instructions, persistence,
+format/loop limitations and validation status.

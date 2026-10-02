@@ -216,9 +216,11 @@ Final review worktree: `mod-lucky-current`, branch
 `f6d59cd3392449d7b0783c0d25c92401c29d52bb`. This includes the completed Track Insert
 FX integration and retained personal features. Initial work used
 `experimental/mod-lucky-import` at `e92350c8ae8ef74dbf1876d0472dd4ccd5d2ee65`;
-that scratch worktree is superseded by the current one. The other task's
-personal checkout was not edited. No feature commit, push, merge, PR or device
-installation was performed.
+that scratch worktree is superseded by the current one. The other task's personal checkout was not edited during implementation.
+After desktop validation, the user requested GitHub publication to both an
+experimental branch and `personal/r36h`, and reconciliation with new upstream
+changes. That approved reconciliation targets upstream `a02a880`. No upstream
+PR or device installation is performed by this feature publication.
 
 - Native macOS x86_64 desktop: enabled and disabled builds succeeded. The
   disabled build used a nonexistent dependency prefix; its symbols and linked
@@ -256,7 +258,8 @@ installation was performed.
   `/roms/choochootracker-mod-lucky-f6d59cd` using the existing GCC 9 toolchain
   and installed libcurl 7.65.3/TLS trust store. Matching curl headers were
   downloaded into the task directory; no system runtime or toolchain was
-  installed/replaced. Hardware results are recorded below when complete.
+  installed/replaced. The device checks use dummy audio/video and do not take over an installed app
+  session. Hardware results are recorded below when complete.
   The installed app, settings, projects and launchers remain unchanged.
 
 Changed files are confined to the optional Makefile integration, Settings row,
@@ -295,3 +298,21 @@ personal branch with the flag enabled only for the desired personal build.
 - `tracker/tests/mod_lucky_desktop.cpp`
 - `tracker/tests/mod_lucky_fixtures.h`
 - `tracker/tests/test_mod_lucky.cpp`
+
+### Upstream reconciliation and personal build selection
+
+Upstream `a02a880` includes the accepted persistent-waveform work and the
+maintainer’s input-reset/keymapping and desktop-size corrections. Overlapping
+waveform changes retain the personal Track visuals entry, compact instrument
+previews, sample-settings screen map, and Track Insert FX processing. The web
+bundle is rebuilt from the reconciled source with Mod Lucky **OFF**, using the
+existing Emscripten toolchain. After reconciliation, 340 enabled and 328 disabled
+desktop tests pass again.
+
+`tracker/Makefile.personal` selects the existing PortMaster target with the
+Mod Lucky compile flag enabled; the ordinary platform Makefiles remain OFF by
+default. `personal-features.json` records both the accepted upstream waveform
+feature and the optional sample-discovery experiment, linking these notes.
+Additional reconciliation files: `PERSONAL_FORK.md`, `personal-features.json`,
+`docs/USER_MANUAL.md`, `tracker/Makefile.personal`, the upstream SDL renderer and
+keymapping changes, and regenerated `web/dist/choochootracker.{js,wasm,data}`.

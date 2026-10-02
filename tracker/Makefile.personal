@@ -1,0 +1,4 @@
+# Personal handheld opt-in. The regular Makefiles continue to default OFF.
+CHOOCHOO_EXPERIMENTAL_MOD_LUCKY = 1
+.DEFAULT_GOAL := PortMaster
+include Makefile.portmaster
