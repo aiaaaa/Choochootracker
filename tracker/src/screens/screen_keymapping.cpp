@@ -55,6 +55,13 @@ static void onRawInput(InputCode input, int isDown) {
   }
   if (captureState != STATE_CAPTURING) return;
 
+#ifdef PORTMASTER_BUILD
+  // gptokeyb sends the configured keyboard event for every physical button.
+  // SDL may report that same press as a controller button first; accepting it
+  // makes the saved mapping depend on event order. Keep SDL active for sticks.
+  if (input.deviceType == InputDeviceType::gamepad) return;
+#endif
+
   // Logical buttons (e.g. touch vpad) are not remappable
   if (input.deviceType == InputDeviceType::logical) {
     pendingCapture = input;

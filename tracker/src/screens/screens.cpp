@@ -2,6 +2,7 @@
 #include <string.h>
 #include "screens.h"
 #include "screen_settings.h"
+#include "screen_export.h"
 #include "chipnomad_lib.h"
 #include "corelib_gfx.h"
 #include "corelib_file.h"
@@ -37,7 +38,8 @@ void drawScreenMap() {
     gfxPrint(35, smY, "P");
   } else if (currentScreen == &screenPhrase || currentScreen == &screenGroove) {
     gfxPrint(37, smY, "G");
-  } else if (currentScreen == &screenInstrument || currentScreen == &screenInstrumentPool) {
+  } else if (currentScreen == &screenInstrument || currentScreen == &screenSampleSettings ||
+             currentScreen == &screenInstrumentPool) {
     gfxPrint(38, smY + 2, "P");
     gfxPrint(38, smY, "M");
   } else if (currentScreen == &screenModulation) {
@@ -62,7 +64,7 @@ void drawScreenMap() {
     gfxPrint(36, smY + 1, "C");
   } else if (currentScreen == &screenPhrase) {
     gfxPrint(37, smY + 1, "P");
-  } else if (currentScreen == &screenInstrument) {
+  } else if (currentScreen == &screenInstrument || currentScreen == &screenSampleSettings) {
     gfxPrint(38, smY + 1, "I");
   } else if (currentScreen == &screenInstrumentPool) {
     gfxPrint(38, smY + 2, "P");
@@ -141,6 +143,10 @@ void screenMessage(int time, const char* format, ...) {
   if (strlen(messageBuffer) == 0) {
     gfxClearRect(0, 19, 40, 1);
   }
+}
+
+const char* screenGetActiveMessage(void) {
+  return messageBuffer;
 }
 
 void screensInitAll(void) {
@@ -612,6 +618,36 @@ static int inputSelectMode(ScreenData* screen, int keys, int tapCount) {
       shallowClonePressed = 0;
       screenFullRedraw(screen);
       redrawn = 1;
+    } else if (keys == keyEdit && tapCount == 2 && screen->getLoopRange != NULL) {
+      // Double-tap A: bounce the selection to audio
+      LoopRange range = screen->getLoopRange();
+      if (range.enabled) {
+        ExportSelection selection = {};
+        selection.level = range.level;
+        selection.startSongRow = range.startSongRow;
+        selection.endSongRow = range.endSongRow;
+        selection.startChainRow = range.startChainRow;
+        selection.endChainRow = range.endChainRow;
+        selection.startPhraseRow = range.startPhraseRow;
+        selection.endPhraseRow = range.endPhraseRow;
+
+        if (range.level == 0) {
+          // Song selection columns are tracks
+          int startCol, startRow, endCol, endRow;
+          getSelectionBounds(screen, &startCol, &startRow, &endCol, &endRow);
+          selection.trackMask = 0;
+          for (int t = startCol; t <= endCol; t++) {
+            selection.trackMask |= (uint8_t)(1u << t);
+          }
+        } else {
+          // Chain/phrase bounce the currently viewed track
+          selection.trackMask = (uint8_t)(1u << *pSongTrack);
+        }
+
+        exportBounceBegin(selection);
+        return 1;
+      }
+      handled = 1;
     } else if (keys & keyOpt) {
       optPressed = 1;
     }

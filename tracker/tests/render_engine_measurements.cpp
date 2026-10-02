@@ -8,8 +8,12 @@
 #include <vector>
 
 #include "synth/braids_voice.h"
+#include "synth/drum_synth_voice.h"
+#include "synth/mme_voice.h"
 #include "synth/plaits_alt_voice.h"
 #include "synth/plaits_voice.h"
+#include "synth/sintered_voice.h"
+#include "chips/chips.h"
 
 namespace fs = std::filesystem;
 
@@ -36,9 +40,12 @@ constexpr size_t kPatchCount = std::size(kHarmonics) * std::size(kTimbres) * std
 bool writeWav(const fs::path& path, const std::vector<float>& data) {
   FILE* file = std::fopen(path.string().c_str(), "wb");
   if (!file) return false;
-  const uint32_t dataSize = static_cast<uint32_t>(data.size() * sizeof(int16_t));
+  // Preserve out-of-range peaks for the analyser instead of hiding them in
+  // PCM clipping. Eight times full scale still fits the measurement format.
+  constexpr float kMeasurementScale = 0.125f;
+  const uint32_t dataSize = static_cast<uint32_t>(data.size() * sizeof(int32_t));
   const uint32_t riffSize = 36 + dataSize;
-  const uint16_t channels = 1, bits = 16, blockAlign = 2;
+  const uint16_t channels = 1, bits = 32, blockAlign = 4;
   const uint32_t byteRate = kSampleRate * blockAlign;
   auto u16 = [&](uint16_t value) { std::fwrite(&value, sizeof(value), 1, file); };
   auto u32 = [&](uint32_t value) { std::fwrite(&value, sizeof(value), 1, file); };
@@ -46,13 +53,14 @@ bool writeWav(const fs::path& path, const std::vector<float>& data) {
   u32(16); u16(1); u16(channels); u32(kSampleRate); u32(byteRate); u16(blockAlign); u16(bits);
   std::fwrite("data", 1, 4, file); u32(dataSize);
   for (float sample : data) {
-    sample = std::isfinite(sample) ? std::clamp(sample, -1.0f, 1.0f) : 0.0f;
-    const int16_t pcm = static_cast<int16_t>(std::lrintf(sample * 32767.0f));
+    sample = std::isfinite(sample) ? std::clamp(sample * kMeasurementScale, -1.0f, 1.0f) : 0.0f;
+    const int32_t pcm = static_cast<int32_t>(std::llround(sample * 2147483647.0));
     std::fwrite(&pcm, sizeof(pcm), 1, file);
   }
   return std::fclose(file) == 0;
 }
 
+// Voice is concrete so Plaits/Plaits-Alt model calibration wrappers are measured.
 template <typename Voice>
 bool renderPlaitsFamily(const char* family, bool vcaValidation = false) {
   const fs::path directory = fs::path("measurements") / family;
@@ -123,6 +131,95 @@ bool renderPcmReference() {
   }
   return true;
 }
+
+bool renderAYFamily(bool ym) {
+  const char* family = ym ? "ym" : "ay";
+  const fs::path directory = fs::path("measurements") / family;
+  fs::create_directories(directory);
+  for (int source = 0; source < 3; ++source) {
+    for (size_t note = 0; note < std::size(kNotes); ++note) {
+        ChipSetup setup{};
+        setup.ay.clock = 1773400; setup.ay.isYM = ym; setup.ay.stereoMode = StereoModeAY::ABC;
+        SoundChipAY chip(kSampleRate, setup);
+        const float hz = 440.0f * std::pow(2.0f, (kNotes[note] - 69.0f) / 12.0f);
+        const int period = std::max(1, (int)std::lrintf(setup.ay.clock / (16.0f * hz)));
+        chip.setRegister(0, period & 255); chip.setRegister(1, period >> 8);
+        chip.setRegister(2, period & 255); chip.setRegister(3, period >> 8);
+        chip.setRegister(4, period & 255); chip.setRegister(5, period >> 8);
+        chip.setRegister(6, 7); chip.setRegister(11, 64); chip.setRegister(12, 0); chip.setRegister(13, 14);
+        uint8_t mixer = source == 0 ? 0x38 : source == 1 ? 0x07 : 0x00;
+        chip.setRegister(7, mixer);
+        chip.setRegister(8, source == 2 ? 0x10 : 0x0f);
+        chip.setRegister(9, 0); chip.setRegister(10, 0);
+        std::vector<float> stereo(kFrames * 2), mono(kFrames);
+        chip.render(stereo.data(), kFrames);
+        for (size_t i = 0; i < kFrames; ++i) mono[i] = (stereo[i * 2] + stereo[i * 2 + 1]) * .5f;
+        char name[80];
+        std::snprintf(name, sizeof(name), "%s_%02d_p0_n%.0f.wav", family, source, kNotes[note]);
+        if (!writeWav(directory / name, mono)) return false;
+    }
+  }
+  return true;
+}
+
+bool renderBogie() {
+  const fs::path directory = fs::path("measurements") / "bogie";
+  fs::create_directories(directory);
+  const uint8_t values[] = {48, 128, 208};
+  for (int model = 0; model < (int)DrumSynthEngine::totalCount; ++model) {
+    for (size_t patch = 0; patch < std::size(values); ++patch) {
+      for (size_t note = 0; note < std::size(kNotes); ++note) {
+        InstrumentDrumSynth d{}; d.engine = (DrumSynthEngine)model; d.decay = 192;
+        d.tone = values[patch]; d.sweep = values[patch]; d.noise = values[patch];
+        d.fm = values[patch]; d.drive = values[patch];
+        DrumSynthVoice voice; voice.init(kSampleRate); voice.configure(&d, kNotes[note] * 100.0f, .9f, 20000, 0); voice.noteOn();
+        std::vector<float> buffer(kDrumFrames); voice.render(buffer.data(), buffer.size());
+        char name[80]; std::snprintf(name, sizeof(name), "bogie_%02d_p%zu_n%.0f.wav", model, patch, kNotes[note]);
+        if (!writeWav(directory / name, buffer)) return false;
+      }
+    }
+  }
+  return true;
+}
+
+bool renderMME() {
+  const fs::path directory = fs::path("measurements") / "mme";
+  fs::create_directories(directory);
+  const uint8_t shapers[] = {0, 32, 64, 96, 128, 160, 192, 224, 255};
+  const uint8_t values[] = {64, 128, 192};
+  for (int model = 0; model < (int)MMEModel::totalCount; ++model) {
+    for (size_t patch = 0; patch < std::size(values); ++patch) {
+      for (uint8_t shaper : shapers) for (size_t note = 0; note < std::size(kNotes); ++note) {
+        InstrumentMME m{}; m.model = (MMEModel)model; m.waves = values[patch]; m.interval = 128;
+        m.amount = values[patch]; m.flow = values[2 - patch]; m.feedback = values[patch]; m.shaper = shaper; m.sustain = 255;
+        MMEVoice voice; voice.init(kSampleRate); voice.configure(&m, kNotes[note] * 100.0f, .9f, 20000, 0); voice.noteOn();
+        std::vector<float> buffer(kFrames); voice.render(buffer.data(), buffer.size());
+        char name[96]; std::snprintf(name, sizeof(name), "mme_%02d_p%zu_n%.0f_s%03u.wav", model, patch, kNotes[note], shaper);
+        if (!writeWav(directory / name, buffer)) return false;
+      }
+    }
+  }
+  return true;
+}
+
+bool renderSintered() {
+  const fs::path directory = fs::path("measurements") / "sintered";
+  fs::create_directories(directory);
+  const uint8_t values[] = {32, 80, 128, 176, 224};
+  for (int model = 0; model < (int)SinteredModel::totalCount; ++model) {
+    for (size_t patch = 0; patch < std::size(values); ++patch) {
+      for (size_t note = 0; note < std::size(kNotes); ++note) {
+        InstrumentSintered s{}; s.model = (SinteredModel)model; s.decay = 224; s.mod = values[patch];
+        s.a = values[patch]; s.b = values[2]; s.motion = 128; s.c = values[4 - patch];
+        SinteredVoice voice; voice.init(kSampleRate); voice.configure(&s, kNotes[note] * 100.0f, .9f, 20000, 0); voice.noteOn();
+        std::vector<float> buffer(kDrumFrames); voice.render(buffer.data(), buffer.size());
+        char name[80]; std::snprintf(name, sizeof(name), "sintered_%02d_p%zu_n%.0f.wav", model, patch, kNotes[note]);
+        if (!writeWav(directory / name, buffer)) return false;
+      }
+    }
+  }
+  return true;
+}
 }  // namespace
 
 int main(int argc, char** argv) {
@@ -130,20 +227,27 @@ int main(int argc, char** argv) {
   if (argc > 2 || (std::strcmp(family, "all") && std::strcmp(family, "braids") &&
                    std::strcmp(family, "plaits") && std::strcmp(family, "plaits-alt") &&
                    std::strcmp(family, "plaits-vca") && std::strcmp(family, "plaits-alt-vca") &&
-                   std::strcmp(family, "pcm"))) {
-    std::fputs("Usage: render_engine_measurements [all|braids|plaits|plaits-alt|pcm]\n", stderr);
+                   std::strcmp(family, "pcm") && std::strcmp(family, "ay") && std::strcmp(family, "ym") &&
+                   std::strcmp(family, "bogie") && std::strcmp(family, "mme") && std::strcmp(family, "sintered"))) {
+    std::fputs("Usage: render_engine_measurements [all|braids|plaits|plaits-alt|pcm|ay|ym|bogie|mme|sintered]\n", stderr);
     return 2;
   }
   std::printf("Rendering %s measurement WAVs...\n", family);
   const bool all = !std::strcmp(family, "all");
   if ((all && (!renderBraids() || !renderPlaitsFamily<PlaitsVoice>("plaits") ||
-               !renderPlaitsFamily<PlaitsAltVoice>("plaits-alt") || !renderPcmReference())) ||
+               !renderPlaitsFamily<PlaitsAltVoice>("plaits-alt") || !renderPcmReference() ||
+               !renderAYFamily(false) || !renderAYFamily(true) || !renderBogie() || !renderMME() || !renderSintered())) ||
       (!all && !std::strcmp(family, "braids") && !renderBraids()) ||
       (!all && !std::strcmp(family, "plaits") && !renderPlaitsFamily<PlaitsVoice>("plaits")) ||
       (!all && !std::strcmp(family, "plaits-alt") && !renderPlaitsFamily<PlaitsAltVoice>("plaits-alt")) ||
       (!all && !std::strcmp(family, "plaits-vca") && !renderPlaitsFamily<PlaitsVoice>("plaits-vca", true)) ||
       (!all && !std::strcmp(family, "plaits-alt-vca") && !renderPlaitsFamily<PlaitsAltVoice>("plaits-alt-vca", true)) ||
-      (!all && !std::strcmp(family, "pcm") && !renderPcmReference())) {
+      (!all && !std::strcmp(family, "pcm") && !renderPcmReference()) ||
+      (!all && !std::strcmp(family, "ay") && !renderAYFamily(false)) ||
+      (!all && !std::strcmp(family, "ym") && !renderAYFamily(true)) ||
+      (!all && !std::strcmp(family, "bogie") && !renderBogie()) ||
+      (!all && !std::strcmp(family, "mme") && !renderMME()) ||
+      (!all && !std::strcmp(family, "sintered") && !renderSintered())) {
     std::fputs("Could not write measurement WAVs.\n", stderr);
     return 1;
   }

@@ -320,7 +320,7 @@ static int onEdit(int col, int row, CellEditAction action) {
         int fxIdx = (startCol - 3) / 2;
         // Get instrument index from current phrase row or traverse back
         uint8_t instrumentNum = lookupInstrument(&chipnomadState->project, *pSongRow, *pChainRow, screen.cursorRow, *pSongTrack);
-        fxEditFullDraw(phraseRows[screen.cursorRow].fx[fxIdx][0], instrumentNum);
+        fxEditFullDraw(phraseRows[screen.cursorRow].fx[fxIdx][0], instrumentNum, 0);
         isFxEdit = 1;
       } else {
         // Regular big increase/decrease for note, volume, instrument, FX value

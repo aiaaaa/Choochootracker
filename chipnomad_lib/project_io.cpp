@@ -734,6 +734,7 @@ static int projectLoadInternal(FILE* file, Project* project) {
   line = peekLine(file);
   if (line == NULL) return 1;
   if (sscanf(line, "- Chips count: %d", &p.chipsCount) != 1) return 1;
+  if (p.chipsCount < 1 || p.chipsCount > PROJECT_MAX_TRACKS) return 1;
   consumeLine(file);
 
   line = peekLine(file);
@@ -744,7 +745,6 @@ static int projectLoadInternal(FILE* file, Project* project) {
   for (int i = 0; i < PROJECT_MAX_TRACKS; i++) {
     if (p.trackVolume[i] > 100) p.trackVolume[i] = 100;
   }
-  p.chipsCount = PROJECT_MAX_TRACKS;
   consumeLine(file);
 
   line = peekLine(file);
@@ -815,6 +815,21 @@ static int projectLoadInternal(FILE* file, Project* project) {
   }
   if (line && sscanf(line, "- Perceptual effects: %d", &tempLinearPitch) == 1) {
     p.perceptualEffects = tempLinearPitch != 0;
+    consumeLine(file);
+    line = peekLine(file);
+    if (line == NULL) return 1;
+  }
+  int scaleRoot, scalePreset;
+  unsigned int scaleCustomMask, scaleTracksMask;
+  int scaleFields = line ? sscanf(line, "- Scale: %d,%d,%d,%u,%u", &tempLinearPitch, &scaleRoot,
+                                  &scalePreset, &scaleCustomMask, &scaleTracksMask) : 0;
+  if (scaleFields >= 4) {
+    p.scaleApply = tempLinearPitch != 0;
+    p.scaleRoot = scaleRoot >= 0 && scaleRoot < 12 ? (uint8_t)scaleRoot : 0;
+    p.scalePreset = scalePreset >= 0 && scalePreset < scalePresetCount ? (ScalePreset)scalePreset : scaleChromatic;
+    p.scaleCustomMask = scaleCustomMask & 0x0fff;
+    if (!p.scaleCustomMask) p.scaleCustomMask = 0x0fff;
+    if (scaleFields == 5) p.scaleTracksMask = scaleTracksMask & 0xff;
     consumeLine(file);
     line = peekLine(file);
     if (line == NULL) return 1;
@@ -1239,6 +1254,8 @@ static int projectSaveInternal(FILE* file, Project* project) {
   fprintf(file, "- Linear pitch: %d\n", project->linearPitch);
   fprintf(file, "- Signed track speed: %d\n", project->signedTrackSpeed);
   fprintf(file, "- Perceptual effects: %d\n", project->perceptualEffects);
+  fprintf(file, "- Scale: %d,%d,%d,%u,%u\n", project->scaleApply, project->scaleRoot,
+          project->scalePreset, project->scaleCustomMask, project->scaleTracksMask);
   fprintf(file, "- Chip type: %s\n", chipNames[static_cast<int>(project->chipType)]);
 
   switch (project->chipType) {

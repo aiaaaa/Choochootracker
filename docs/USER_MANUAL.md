@@ -62,7 +62,9 @@ ChooChooTracker works best with a gamepad that has a D-pad, 2 analogue sticks an
 | **MOTION RECORD** | L2 | W |
 | **MOTION ERASE** | R2 | E |
 
-Mappings can be changed in **Settings > Key mapping**.
+Mappings can be changed in **Settings > Key mapping**. On PortMaster, custom
+mappings are saved immediately and navigation remains available when returning
+to Settings.
 
 Windows, web, and Android users can also use a game controller. On Android,
 touch controls appear automatically when no gamepad is connected: in portrait
@@ -171,6 +173,25 @@ Select one Song row across several columns to queue or stop those tracks togethe
 - **OPT + SHIFT**: mute the current track or selected columns (release **OPT** first to keep the mute active)
 - **OPT + PLAY**: solo the current track or selected columns (release **OPT** first to keep the solo active)
 - **OPT + [LEFT/RIGHT]**: solo every track to the left or right of the current track
+- Select a range, then double-tap **EDIT**: open the BOUNCE TO SAMPLE screen (see Bounce below)
+
+#### Bounce
+
+Select a range of Song rows and columns, then double-tap **EDIT** to open the BOUNCE TO SAMPLE screen. The bounce includes every selected track: tracks whose first chain starts later in the selection wait silently and join at their first chain, so the file contains all selected tracks' chains.
+
+The screen offers:
+
+- **File name**: edit with the character keyboard. It starts empty: bounces are named by an automatic per-project sequence number (`001`, `002`, ...), which resets when you load or create a project. A custom name typed here becomes a prefix before the number. The editable field sits on the same row as the **File name** label.
+- **Sample rate** and **Bit depth**: the same options as the export screen
+- **Include in a sample name**: three checkboxes that prepend context tags to the file name when **Start** is pressed (all off by default):
+  - **BPM** — the project's current tempo, e.g. `[120]`
+  - **[Key]** — the project's root note and scale, e.g. `[Cmaj]`, `[F#min Pent]`
+  - **[Bars:Beats:16ths]** — the rendered length of the bounce: one phrase equals one bar (16 sixteenths), a beat is 4 sixteenths. Full phrases show only bars, e.g. `[2]`; partial phrases show `[0:2]` (two beats) or `[0:1:3]` (one beat plus three sixteenths). For multi-track bounces the longest track decides.
+  - Tags are applied in the order `[BPM][Key][Length]` before the file name, and the automatic sequence number (`001`, `002`, ...) is appended after it.
+- **Start**: render the selection to a WAV file in the export folder (see *Export location* under Project screen)
+- **Cancel**: return without bouncing
+
+While the bounce renders, **OPT** cancels it. When the bounce completes or is cancelled, the screen you bounced from returns.
 
 ### Chain
 
@@ -183,6 +204,7 @@ An asterisk (`*`) appears next to a chain that is reused in the project. You can
 - **OPT + [LEFT/RIGHT]**: move between tracks
 - **OPT + [UP/DOWN]**: move between chains in the current track
 - Select a range, then use **SHIFT + EDIT**: clone phrases
+- Select a range, then double-tap **EDIT**: open the BOUNCE TO SAMPLE screen for the selected chain rows of the current track (see Bounce under Song)
 
 ### Phrase
 
@@ -206,6 +228,7 @@ The FX selector shows common commands plus those supported by the instrument on 
 - **OPT + [UP/DOWN]**: move between phrases in the current chain
 - Select a range in the instrument column, then use **SHIFT + EDIT**: clone instruments
 - Select a range, then use **EDIT + [UP/DOWN]**: rotate the phrase rows
+- Select a range, then double-tap **EDIT**: open the BOUNCE TO SAMPLE screen for the selected phrase rows of the current track (see Bounce under Song)
 
 ## 5. Instruments
 
@@ -445,9 +468,10 @@ Tap **Engine** to choose from categorised engine lists.
 This clean Sample engine plays mono or stereo PCM samples loaded into RAM.
 
 - Tap **Sample** to load an uncompressed `8-bit` or `16-bit` PCM WAV. Press **PLAY** in the browser to audition the highlighted file.
+- When a sample is loaded, **EDIT** appears next to its name. Tap it to open Sample Settings. **OPT** or **SELECT + [LEFT]** returns to the instrument.
+- Sample Settings shows the filename, a tall waveform, **Start**, **End**, and **Slice**. **Start** and **End** set normalised playback boundaries (`00-FF`). If Start is after End, the sample plays in reverse. **Slice** is Off, `2`, `4`, `8`, `16`, or `32` (EDIT + left/right) and is saved with the instrument. Off plays the Start/End window. A slice count splits the Start/End window evenly; phrase notes pick a window from **C-1** (first slice) chromatically, and notes past the last slice stay on that last slice. Sliced notes do not transpose pitch and are not Scale-quantized. Thin vertical lines mark each slice start on the waveform except the first.
 - On the Sample instrument screen, use **EDIT + [LEFT/RIGHT]** to load the previous or next WAV in the same folder.
 - **Pitch** transposes by semitones (`-48` to `+48`).
-- **Start** and **End** set normalised playback boundaries (`00-FF`). If Start is after End, the sample plays in reverse.
 - **Loop** selects Off, Loop or Ping-Pong.
 - **Speed** controls granular time-stretching from `0%` to `500%` (`100%` is normal).
 
@@ -516,9 +540,13 @@ LFO trigger types:
 
 ### Motion recording
 
-- Hold **STICK LIVE** (`L1` by default) to apply stick modulation without changing the phrase.
+- **STICK LIVE** (`L1` by default) applies stick modulation without changing the phrase. In **Settings > Stick live mode**, `HOLD` (the default) enables it while held; `TOGGLE` enables it on one press and disables it on the next; `FREE` leaves it permanently enabled. Releasing the button in `TOGGLE` leaves it enabled.
 - During playback, hold **MOTION RECORD** (`L2`) to apply stick modulation and record changed destinations as absolute FX values.
 - Hold **MOTION ERASE** (`R2`) to remove matching destination FX from the current row.
+
+The bottom-right `~` indicates active Stick live. Record (`*`, or `!` for overflow) and Erase (`x`) take indicator priority and remain momentary in both modes. Both enable live stick processing while held; releasing them leaves a separately enabled live toggle intact.
+
+The mode is saved with application settings, but the live toggle always starts off on launch. Changing modes clears the toggle: `HOLD` follows any currently held Stick live button, `TOGGLE` waits for a fresh press, and `FREE` is active immediately.
 
 Motion recording writes track FX into the phrase currently playing. It updates matching FX first, then uses empty slots from right to left. It never overwrites a different FX. If all 3 slots are full, that motion is not recorded on the step. A `!` in the bottom-right corner means that more destinations changed than the 3 FX columns could hold.
 
@@ -528,7 +556,7 @@ Motion recording supports Braids, Plaits, PCM Sample, 2xSCWF, BYOWTBL and Bogie 
 
 Tables are a core sound design tool in trackers. In Vortex Tracker terms, they combine instruments and ornaments, but they can do much more. If you know LSDj or NerdSEQ, the idea should already feel familiar.
 
-The Pitch column accepts relative (`~`) or absolute (`=`) pitch values in semitones. Volume is applied on top of the ADSR envelope. The 4 FX lanes mostly match the lanes in a phrase, although a few FX behave differently in tables.
+The Pitch column accepts relative (`~`) or absolute (`=`) pitch values in semitones. The Volume column is `00`-`0F`, applies to every engine on top of its envelope, and can be used for a gate: alternate `0F` and `00` then loop with `HOP 00`. The 4 FX lanes mostly match the lanes in a phrase, although a few FX behave differently in tables.
 
 Putting a `TIC` FX on the last table row sets the speed of that column and overrides the instrument's default table speed. Each FX column can run at a different tick speed. The Pitch and Volume columns follow the speed of the 1st FX column.
 
@@ -589,6 +617,14 @@ Track FX force sequencer or sound-engine values on individual steps. Other groov
 
 Each FX has a 3-letter command and a hexadecimal value. The in-app help panel gives a short description of the selected command.
 
+### Scale automation
+
+`SCL XY` changes the global playback scale and root without changing the notes stored in phrases. `X` selects a scale (`0` Chromatic, `1` Major, `2` Minor, through `C` Custom); `Y` selects the root (`0` C through `B` B). The command applies to phrase FX only, not tables. If several tracks issue `SCL` on the same tick, the lowest-numbered track wins.
+
+### Chords
+
+`CRD XY` turns the note on its own Phrase row into a chord. `Y` selects: `0` Major, `1` Minor, `2` Dim, `3` Aug, `4` Sus2, `5` Sus4, `6` Power, `7` Maj7, `8` Min7, `9` Dom7, `A` Min7b5, `B` Dim7, `C` Add9, `D` MinAdd9, `E` Maj9, or `F` Min9. `X` selects the voicing: `0` is root position, `1-7` move the lowest voice up by octaves, and `8-F` move it down. The command is not persistent: write it on every chorded row. Each generated note is quantized independently when Scale is active. It is available to software engines only; AY instruments ignore it and remain monophonic.
+
 ### Sequencer FX
 
 | FX | Value | Detailed behaviour |
@@ -601,7 +637,7 @@ Each FX has a 3-letter command and a hexadecimal value. The in-app help panel gi
 | `PIT` | signed `XX` | Accumulated relative offset in pitch-table steps. |
 | `FIN` | signed `XX` | Accumulated fine offset in cents with Linear pitch, period units otherwise. |
 | `PRD` | signed `XX` | Accumulated relative oscillator-period offset. |
-| `VOL` | signed `XX` | Accumulated relative volume offset. |
+| `VOL` | signed `XX` | Accumulated relative volume offset (`FF` is -1, not full volume). |
 | `VSL` | signed `XX` | Adds `XX` to volume on every phrase/table row. Use `00` to stop. |
 | `RET` | `XY` | Retriggers every `Y` ticks; `X` applies a volume change. `Y=0` stops retriggering. |
 | `DEL` | `XX` ticks | Delays note-on. A delay longer than the current groove step skips the note. |
@@ -750,6 +786,7 @@ The value is interpreted as a signed `8-bit` relative change (`01` adds `1`, `FF
 |---|---|---|
 | `SPT` | signed `XX` | Sample transposition in semitones |
 | `SST` | `00-FF` | Normalised playback start |
+| `STA` | `00-FF` | Alias of `SST` (normalised playback start) |
 | `SEN` | `00-FF` | Normalised playback end |
 | `SVL` | `00-FF` | Absolute sample volume |
 | `SCF` | `00-FF` | Exponential cutoff, `20 Hz` to `20 kHz` |
@@ -861,7 +898,26 @@ The 1st repeat follows the stereo input. Later feedback crosses between the left
 
 ## 11. Project screen
 
-The Project screen provides **Load**, **Save**, **New**, **Export** and **Manage** commands, along with filename, title and author metadata.
+The Project screen provides **Load**, **Save**, **New**, **Export**, **Manage** and **Scale** commands, along with filename, title and author metadata.
+
+### Export location
+
+Exports, stems and bounces are written to a per-project folder inside the app's preexisting samples directory:
+
+- **Default**: `<app folder>/samples/Exports/<project name>/`. While the project is unnamed, the folder is `current-project`.
+- On the web build the default is `/user/samples/Exports/<project name>/`.
+- On Android the samples folder is inside the app's private workspace.
+
+The **Folder** row on the EXPORT screen shows the active destination:
+
+- Tap **EDIT** to pick a custom folder with the folder browser. The chosen folder is used exactly as selected (no project subfolder is added) and is remembered in settings.
+- **EDIT + OPT** (clear) resets to the default location.
+
+When a named project is saved under a new name, the default export folder is renamed to match, keeping previously exported files with the project. Renaming does not apply to a custom folder, and the folder is not renamed by autosave. If a folder with the target name already exists, both folders are kept. If the tracker lost track of the folder (for example after a restart), saving a named project renames the existing `current-project` folder instead. Instruments keep working after a rename: loaded sample paths that point into the renamed folder are updated automatically.
+
+### Scale / Quantize
+
+The Scale screen controls the global 12-TET playback quantizer. Phrase entry remains chromatic: when enabled, notes are rounded downward immediately before reaching the sound engine, so changing root or scale reharmonizes a song without editing its phrases. Choose a root, one of the compact built-in scales, or edit the twelve notes of **Custom**. Each of the eight track checkboxes decides which tracks are quantized. Quantization is bypassed for non-12-note pitch tables and for PCM Sample instruments whose **Slice** is not Off; MIDI input is not part of this version.
 
 - **Linear pitch** selects the pitch-table mode. **Off** is the default and the hardware-validated setting for correct AY, Braids and Plaits octave tracking.
 - **Tick rate** sets tracker timing and displays the corresponding BPM (`tick rate x 60 / 24`).
@@ -877,6 +933,7 @@ Use **Save** before changing instrument types or loading another project.
 - **AY Quality** changes AY/YM emulation quality only.
 - **Sample dithering** controls AY Sample dithering only.
 - **Braids BITS / DRFT / SIGN** apply globally to every Braids instrument.
+- **Stick live mode** selects `HOLD`, `TOGGLE`, or `FREE` for the existing mapped Stick live button.
 - **Key mapping**, **Load font**, and **Edit color theme** customise the interface. ChipNomad fonts and themes should work.
 - **Quit ChooChooTracker** exits cleanly.
 
@@ -888,7 +945,7 @@ CPU cost depends on the active engines and effects. Plaits physical models and C
 
 The CPU display is a smoothed measure of audio rendering time. It does not measure delays before the audio callback runs or in the device's audio output, so crackles can occur even with a low reading.
 
-On Android, audio output now prefers AAudio to avoid intermittent crackling observed with OpenSL ES on the Pixel 7a. This buffered output prioritises stable playback and can add some response latency. If crackling persists, report the song, phone model, Android version and whether you are using the speaker, headphones or Bluetooth.
+On Android, audio output now prefers AAudio to avoid intermittent crackling observed with OpenSL ES on the Pixel 7a. This buffered output prioritises stable playback and can add some response latency. The tracker canvas keeps its full 4:3 layout on square and other unusual screen ratios; unused space is shown as borders rather than cropping columns. If crackling persists, report the song, phone model, Android version and whether you are using the speaker, headphones or Bluetooth.
 
 If you run into pops, crashes or slowdowns, send us the `.cct` file that triggers them.
 

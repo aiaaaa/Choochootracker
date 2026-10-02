@@ -141,7 +141,8 @@ reimplement, do not merge architecture rewrites. See
 
 WAV sample data is not embedded in `.cct`. The project stores a path. Missing
 samples load silent with a UI warning. Relative `samples/` paths are still
-incomplete; treat paths as not portable yet.
+incomplete; treat paths as not portable yet. `InstrumentSample.slice` is a
+count (`0`/`2`/`4`/`8`/`16`/`32`); a missing field loads Off.
 
 ## Instrument catalogue
 
@@ -174,6 +175,8 @@ clock. The scheduler advances at most one row per audio tick.
 Notes trigger voices or AY registers. Instrument FX are absolute and last
 until the next note trigger, which restores instrument defaults then applies
 that row's FX. Modulation FX (`M1A`..`M44`) are relative and accumulate.
+Scale quantize rewrites `pitchBase` only; PCM Sample with `slice` not Off is
+excluded so chromatic slice maps stay intact.
 
 Conditions: `PRO` (0-100%), `MOD` (visit modulo). Conditions on one row AND.
 Tables can retrigger on instrument, phrase, chain, or run free.

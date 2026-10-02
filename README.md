@@ -149,6 +149,8 @@ I wanted a mobile groovebox to make techno... but none of the available option t
 
 ChooChooTracker is a fork of [ChipNomad](https://github.com/Megus/chipnomad-tracker). Its Braids, Plaits, Clouds, and stmlib code comes from Mutable Instruments' open-source releases. See the included license files for exact attribution.
 
+Thanks to [luginf](https://github.com/luginf) for project-loading and VT2 import fixes, and to [aiaaaa](https://github.com/aiaaaa) for Stick live mode improvements.
+
 The project is released under the [MIT License](LICENSE).
 
 Mad respects to the people I stole code from:

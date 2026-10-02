@@ -273,8 +273,8 @@ static const char* modNameMME(int modIndex) {
 static int initMMEInstrument(Instrument* instrument) {
   initCommon(instrument); instrument->type = InstrumentType::MME;
   InstrumentMME* m = &instrument->chip.mme;
-  m->model = MMEModel::ring; m->waves = 0; m->interval = 128;
-  m->amount = m->feedback = m->shaper = 0; m->flow = 128;
+  m->model = MMEModel::ring; m->waves = 80; m->interval = 128;
+  m->amount = 255; m->feedback = m->shaper = 0; m->flow = 128;
   initVoicePostSettings(m); return 0;
 }
 static int freeMMEInstrument(Instrument* instrument) { freeCommon(instrument); return 0; }
@@ -449,4 +449,32 @@ const char* instrumentModDestinationName(InstrumentType type, int destination) {
   const InstrumentModDestination* definition = instrumentModDestination(type, destination);
   if (definition) return definition->name;
   return genericModName(instrumentGenericModDestination(type, destination));
+}
+
+const char* instrumentModDestinationNameForInstrument(const Instrument* instrument, int destination) {
+  if (instrument && destination >= 3 && destination <= 8) {
+    if (instrument->type == InstrumentType::MME) {
+      static const char* sync[] = {"Waves", "Interval", "SyncAmt", "Reset", "Feedback", "Shaper"};
+      static const char* logic[] = {"Waves", "Interval", "Amount", "Logic", "Feedback", "Shaper"};
+      static const char* vocode[] = {"Waves", "Interval", "Analyze", "Formant", "Feedback", "Shaper"};
+      static const char* ring[] = {"Waves", "Interval", "Amount", "RingType", "Feedback", "Shaper"};
+      const char* const* names = instrument->chip.mme.model == MMEModel::sync ? sync :
+        instrument->chip.mme.model == MMEModel::logic ? logic :
+        instrument->chip.mme.model == MMEModel::vocode ? vocode :
+        instrument->chip.mme.model == MMEModel::ring ? ring : NULL;
+      if (names) return names[destination - 3];
+    } else if (instrument->type == InstrumentType::Sintered) {
+      static const char* names[][6] = {
+        {"Decay", "Mod", "Ratio", "Spread", "Motion", "Fold"},
+        {"Decay", "Mod", "Ratio", "Feedback", "Motion", "Bite"},
+        {"Decay", "Mod", "Noise", "Color", "Motion", "Feedback"},
+        {"Decay", "Mod", "Time", "Damping", "Motion", "Regen"},
+        {"Decay", "Mod", "Rate", "Pattern", "Motion", "Crush"},
+        {"Decay", "Mod", "Ratio", "Chaos", "Motion", "Drive"}
+      };
+      int model = (int)instrument->chip.sintered.model;
+      return names[model >= 0 && model < (int)SinteredModel::totalCount ? model : 0][destination - 3];
+    }
+  }
+  return instrumentModDestinationName(instrument ? instrument->type : InstrumentType::none, destination);
 }

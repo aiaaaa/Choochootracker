@@ -45,24 +45,84 @@ void SampleVoice::init(float outputSampleRate) {
   startFrame_ = 0;
   endFrame_ = 0;
   active_ = false;
+  useStretch_ = false;
+#if defined(PORTMASTER_BUILD) || defined(ANDROID_BUILD) || defined(WEB_BUILD)
+  stretch_.init(outputSampleRate_, true);
+#else
+  stretch_.init(outputSampleRate_, false);
+#endif
   post_.init(outputSampleRate_);
+}
+
+uint8_t sampleNormalizeSlice(uint8_t slice) {
+  if (slice == 2 || slice == 4 || slice == 8 || slice == 16 || slice == 32) return slice;
+  return 0;
+}
+
+void sampleSliceFrames(uint32_t frameCount, uint8_t sliceCount, uint8_t sliceIndex,
+                       uint32_t* startFrame, uint32_t* endFrame) {
+  if (!startFrame || !endFrame) return;
+  if (frameCount == 0 || sliceCount == 0) {
+    *startFrame = 0;
+    *endFrame = frameCount;
+    return;
+  }
+  if (sliceIndex >= sliceCount) sliceIndex = sliceCount - 1;
+  *startFrame = (uint32_t)((uint64_t)sliceIndex * frameCount / sliceCount);
+  *endFrame = (uint32_t)((uint64_t)(sliceIndex + 1) * frameCount / sliceCount);
+  if (*endFrame <= *startFrame) *endFrame = *startFrame + 1;
+  if (*endFrame > frameCount) *endFrame = frameCount;
 }
 
 void SampleVoice::configure(const InstrumentSample* sample, float pitchCents,
                             float gain, float speedPercent, uint8_t start, uint8_t end, uint8_t loopMode,
                             uint16_t cutoffHz, uint8_t resonance, int attack, int decay,
-                            int sustain, int release, int envelopeShape) {
+                            int sustain, int release, int envelopeShape, uint8_t sliceCount,
+                            uint8_t sliceIndex, uint8_t stretchMode, float tickRateHz) {
   sample_ = sample;
   post_.setGain(gain);
   if (!sample_ || !sample_->data || sample_->frameCount == 0) return;
 
-  uint32_t startFrame = (uint32_t)((uint64_t)start * (sample_->frameCount - 1) / 255);
-  uint32_t endFrame = end == 255
-    ? sample_->frameCount
-    : (uint32_t)((uint64_t)(end + 1) * sample_->frameCount / 256);
-  reverse_ = start > end;
-  startFrame_ = reverse_ ? endFrame - 1 : startFrame;
-  endFrame_ = reverse_ ? startFrame + 1 : endFrame;
+  // Stretch mode bypasses the granular speedPercent path entirely: the
+  // stretcher applies pitch via transpose and drives its own source cursor.
+  useStretch_ = stretchMode != 0 && sliceCount == 0;
+  if (useStretch_) {
+    stretch_.configure(sample, stretchMode, tickRateHz, pitchCents / 100.0f, start, end);
+  }
+
+  uint32_t startFrame;
+  uint32_t endFrame;
+  sliceCount = sampleNormalizeSlice(sliceCount);
+  if (sliceCount) {
+    // When slicing is enabled, divide the LOOP REGION (start to end) into slices
+    // This ensures slices follow the start/end markers
+    uint32_t loopStartFrame = (uint32_t)((uint64_t)start * (sample_->frameCount - 1) / 255);
+    uint32_t loopEndFrame = end == 255
+      ? sample_->frameCount
+      : (uint32_t)((uint64_t)(end + 1) * sample_->frameCount / 256);
+    if (loopStartFrame > loopEndFrame) {
+      uint32_t swap = loopStartFrame;
+      loopStartFrame = loopEndFrame;
+      loopEndFrame = swap + 1;
+    }
+    uint32_t loopLength = loopEndFrame > loopStartFrame ? loopEndFrame - loopStartFrame : sample_->frameCount;
+    
+    uint32_t sliceStart, sliceEnd;
+    sampleSliceFrames(loopLength, sliceCount, sliceIndex, &sliceStart, &sliceEnd);
+    
+    // Map slice to absolute frame positions within the loop region
+    startFrame_ = loopStartFrame + sliceStart;
+    endFrame_ = loopStartFrame + sliceEnd;
+    reverse_ = false;
+  } else {
+    startFrame = (uint32_t)((uint64_t)start * (sample_->frameCount - 1) / 255);
+    endFrame = end == 255
+      ? sample_->frameCount
+      : (uint32_t)((uint64_t)(end + 1) * sample_->frameCount / 256);
+    reverse_ = start > end;
+    startFrame_ = reverse_ ? endFrame - 1 : startFrame;
+    endFrame_ = reverse_ ? startFrame + 1 : endFrame;
+  }
   if (endFrame_ <= startFrame_) endFrame_ = startFrame_ + 1;
   if (endFrame_ > sample_->frameCount) endFrame_ = sample_->frameCount;
   step_ = (sample_->sampleRate / outputSampleRate_) * pow(2.0, pitchCents / 1200.0);
@@ -82,6 +142,16 @@ void SampleVoice::configure(const InstrumentSample* sample, float pitchCents,
 
 void SampleVoice::noteOn() {
   if (!sample_ || !sample_->data || endFrame_ <= startFrame_) return;
+  if (useStretch_) {
+    // A new note always restarts the stretched playback from the top of the
+    // source window: tracks are monophonic, so a retrigger must kill the
+    // previous playhead and every note keeps its full stretch length.
+    // (Stretch enabled mid-note WITHOUT a retrigger lazy-primes in render().)
+    stretch_.noteOn();
+    active_ = true;
+    post_.noteOn(true);
+    return;
+  }
   position_ = startFrame_;
   direction_ = reverse_ ? -1 : 1;
   grainExhausted_ = false;
@@ -155,12 +225,30 @@ void SampleVoice::noteOff() {
 
 void SampleVoice::kill() {
   active_ = false;
+  stretch_.reset();
   post_.kill();
 }
 
 void SampleVoice::render(float* output, size_t frames) {
   memset(output, 0, frames * 2 * sizeof(float));
   if (!active_ || !sample_ || !sample_->data) return;
+
+  if (useStretch_) {
+    // Stretch enabled mid-note (per-tick configure, no new noteOn): prime now.
+    if (!stretch_.primed()) stretch_.noteOn();
+    if (!stretch_.process(output, frames)) { kill(); return; }
+    // One-shot material: when the stretcher has drained its tail the note is
+    // over, matching the plain path's behavior on source exhaustion.
+    if (!stretch_.active()) { kill(); return; }
+    for (size_t i = 0; i < frames; i++) {
+      if (!post_.envelopeActive()) { kill(); break; }
+      for (int channel = 0; channel < 2; channel++) {
+        output[i * 2 + channel] = post_.process(output[i * 2 + channel], channel);
+      }
+    }
+    if (!post_.envelopeActive()) kill();
+    return;
+  }
 
   for (size_t i = 0; i < frames; i++) {
     if (!post_.envelopeActive()) { kill(); break; }

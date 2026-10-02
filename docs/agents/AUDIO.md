@@ -108,7 +108,7 @@ high so rising-edge engines retrigger. Legacy Plaits `LEVEL` loads as VCA.
 | Braids | `BraidsVoice` | 96->48 | yes | 47 models 0-46. Percussive STRIKE vs tonal ADSR. App-wide BITS/DRFT/SIGN |
 | Plaits | `PlaitsVoice` | 48 | yes | 24 stock engines. IDs frozen. TRIG vs VCA |
 | Plaits-Alt | `PlaitsAltVoice` | 48 | yes | Separate registry. Do not reuse stock engine IDs |
-| Sample | `SampleVoice` | 48 | yes | PCM8/16 RAM, interp, loop/pp, no streaming |
+| Sample | `SampleVoice` | 48 | yes | PCM8/16 RAM, interp, loop/pp, no streaming. `slice` 0/2/4/8/16/32; note-on windows from C-1 |
 | SCWF | `SCWFVoice` | 48 | yes | Dual single-cycle osc, detune, mix |
 | BYOWTBL | SCWF + loader | 48 | yes | Serum tables, frame index A/B |
 | aChChid | `AChChidVoice` | 48 | 303 filter | Open303; optional Braids as VCO |
@@ -241,3 +241,11 @@ Also follow CORE_ARCHITECTURE's subsystem list.
 - Rule: master mix is 48 kHz; Braids internal 96 kHz only
 - Files: `tracker/packaging/portmaster/README.md`
 - Status: open (docs)
+
+### 2026-09-29 — Sample slice is note-mapped windows
+
+- Symptom: Slice UI did not change playback and was not saved
+- Cause: session-only index; `configure` used Start/End only
+- Rule: `InstrumentSample.slice` is 0/2/4/8/16/32; missing `.cct` field loads Off; C-1 = slice 0; extra notes clamp; sliced notes skip chromatic pitch, ignore Start/End, and skip Scale quantize
+- Files: `chipnomad_lib/synth/sample_voice.cpp` `sampleSliceFrames`, `chipnomad_lib/chipnomad_lib.cpp` `updateSampleVoices`
+- Status: fixed

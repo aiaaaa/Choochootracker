@@ -177,6 +177,16 @@ Display order is not `InstrumentType` numeric order. Serialized IDs stay put.
 
 Load/Save sit in the header. File browser is a modal `AppScreen`.
 
+PCM Sample: when `InstrumentSample.path` is set, an **EDIT** cell sits on the
+same line as the filename (`instrument_sample.cpp` row 3 col 1). It opens
+`screenSampleSettings` (name, 32x6 PCM preview, Start, End, Slice). Hide
+EDIT when no sample is loaded. OPT / SELECT+Left return to Instrument. Start
+and End live on that screen; leave their instrument-form rows blank in place.
+Slice is `InstrumentSample.slice`: Off/`0`, `2`, `4`, `8`, `16`, `32`. Missing
+`.cct` field loads Off. Do not pack Pitch/Loop/Speed into Sample Settings.
+ADSR Shape stays on the shared ADSR row, not the left column. Sample Settings
+draws 1px `textDefault` lines at each slice start except x=0; Off has no marks.
+
 ## Color and type
 
 `ColorScheme` slots only:

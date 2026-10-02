@@ -69,11 +69,11 @@ static void cycleDestination(Instrument* instrument, Modulation* mod, int direct
   } while (!instrumentModDestinationAvailable(instrument, mod->destination) && mod->destination != previous);
 }
 
-static void setModulationType(Modulation* mod, ModulationType type) {
+static void setModulationType(Modulation* mod, ModulationType type, int modIndex) {
   ModulationType oldType = mod->type;
   mod->type = type;
   if (oldType == type || (modulationIsLiveStick(oldType) && modulationIsLiveStick(type))) return;
-  mod->p1 = 0;
+  mod->p1 = modulationIsLiveStick(type) ? modIndex : 0;
   mod->p2 = type == ModulationType::StickRate ? 24 : 0;
   mod->p3 = type == ModulationType::ADSR ? 255 :
             (type == ModulationType::FLFO ? 0 : (type == ModulationType::SLFO ? 24 : 6));
@@ -83,7 +83,7 @@ static void setModulationType(Modulation* mod, ModulationType type) {
 
 static void sourceSelected(int value) {
   setModulationType(&chipnomadState->project.instruments[cInstrument].modulation[editedModIndex],
-                    static_cast<ModulationType>(value));
+                    static_cast<ModulationType>(value), editedModIndex);
   projectModified = 1;
   screenSetup(&screenModulation, cInstrument);
 }
@@ -139,7 +139,7 @@ static void openDestinationPopup(int modIndex) {
   int engineDestinationCount = 0;
   for (int i = 0; i <= functions.modDestinationsCount; ++i)
     if (instrumentModDestinationAvailable(instrument, i))
-      engineDestinations[engineDestinationCount++] = {instrumentModDestinationName(instrument->type, i), i, NULL, 0};
+      engineDestinations[engineDestinationCount++] = {instrumentModDestinationNameForInstrument(instrument, i), i, NULL, 0};
   int firstGeneric = functions.modDestinationsCount + 1;
   sendDestinations[0] = {"REVERB SEND", firstGeneric + genericModReverbSend, NULL, 0};
   sendDestinations[1] = {"DELAY SEND", firstGeneric + genericModDelaySend, NULL, 0};
@@ -492,7 +492,7 @@ static int onEdit(int col, int row, enum CellEditAction action) {
         type = oldType < type ? static_cast<uint8_t>(ModulationType::StickRate)
                               : static_cast<uint8_t>(ModulationType::StickLinear);
       }
-      setModulationType(mod, static_cast<ModulationType>(type));
+      setModulationType(mod, static_cast<ModulationType>(type), modIdx);
       if (oldType != type) screenFullRedraw(&screenData);
       break;
     }
@@ -583,12 +583,6 @@ static int onInput(int isKeyDown, int keys, int tapCount) {
   if (getModRow(screenData.cursorRow) == 1) {
     Instrument* instrument = &chipnomadState->project.instruments[cInstrument];
     Modulation* mod = &instrument->modulation[getModIndex(screenData.cursorCol, screenData.cursorRow)];
-    if (isKeyDown && (keys == keyLeft || keys == keyRight)) {
-      cycleDestination(instrument, mod, keys == keyRight ? 1 : -1);
-      projectModified = 1;
-      drawField(screenData.cursorCol, screenData.cursorRow, CellState::focus);
-      return 1;
-    }
     PopupEditInput input = popupEditInput(isKeyDown, keys, &destinationButtonDown);
     if (input == PopupEditInput::cycle) {
       cycleDestination(instrument, mod, keys == (keyEdit | keyRight) ? 1 : -1);

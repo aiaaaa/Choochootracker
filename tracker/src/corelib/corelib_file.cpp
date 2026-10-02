@@ -7,6 +7,10 @@
 #include <dirent.h>
 #include <unistd.h>
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 #if defined(ANDROID_BUILD) || defined(MACOS_BUILD)
 // Helper: Create directory recursively
 static void createDirectoryRecursive(const char* path) {
@@ -36,6 +40,47 @@ static void createDirectoryRecursive(const char* path) {
   #endif
 }
 #endif
+
+int fileCreateDirectoryRecursive(const char* path) {
+  if (path == NULL || path[0] == 0) return -1;
+  if (fileDirectoryExists(path)) return 0;
+
+  char tmp[4096];
+  snprintf(tmp, sizeof(tmp), "%s", path);
+  size_t len = strlen(tmp);
+  if (len == 0) return -1;
+  if (tmp[len - 1] == '/' || tmp[len - 1] == '\\') tmp[len - 1] = 0;
+  if (tmp[0] == 0) return -1;
+
+  // Create each path level in turn; existing levels report EEXIST and are fine
+  for (char* p = tmp + 1; *p; p++) {
+    if (*p == '/' || *p == '\\') {
+      *p = 0;
+      if (!fileDirectoryExists(tmp)) {
+        if (fileCreateDirectory(tmp) != 0) return -1;
+      }
+      *p = '/';
+    }
+  }
+  if (!fileDirectoryExists(tmp)) {
+    if (fileCreateDirectory(tmp) != 0) return -1;
+  }
+  return 0;
+}
+
+int fileRename(const char* oldPath, const char* newPath) {
+  if (oldPath == NULL || newPath == NULL || oldPath[0] == 0 || newPath[0] == 0) return -1;
+#ifdef WEB_BUILD
+  // The virtual FS has no rename; callers must treat failure as non-fatal
+  (void)oldPath;
+  (void)newPath;
+  return -1;
+#elif defined(_WIN32)
+  return MoveFileA(oldPath, newPath) ? 0 : -1;
+#else
+  return rename(oldPath, newPath) == 0 ? 0 : -1;
+#endif
+}
 
 int fileGetDefaultDirectory(char* buffer, int bufferSize) {
 #ifdef ANDROID_BUILD

@@ -7,6 +7,7 @@
 
 #include <cstring>
 #include <cstdlib>
+#include <cstdio>
 
 TEST_SUITE("project") {
 
@@ -60,6 +61,102 @@ TEST_CASE("track tilt project settings survive save and load") {
   CHECK(loaded.trackTilt[0] == 0x00);
   CHECK(loaded.trackTilt[7] == 0xff);
   CHECK(loaded.tiltPivotHz == 2500);
+}
+
+TEST_CASE("scale project settings survive save and load") {
+  Project saved, loaded;
+  projectInit(&saved);
+  projectInit(&loaded);
+  saved.chipsCount = 1;
+  saved.tracksCount = 1;
+  saved.chipType = ChipType::AY;
+  saved.tickRate = 50;
+  saved.pitchTable.length = 1;
+  saved.pitchTable.octaveSize = 12;
+  std::strcpy(saved.pitchTable.name, "Test");
+  std::strcpy(saved.pitchTable.noteNames[0], "C-4");
+  saved.pitchTable.values[0] = 1000;
+  saved.scaleApply = 0;
+  saved.scaleTracksMask = 0xa5;
+  saved.scaleRoot = 9;
+  saved.scalePreset = scaleCustom;
+  saved.scaleCustomMask = 0x0491;
+  const char* path = "build/tests/scale_io.cct";
+  REQUIRE(projectSave(&saved, path) == 0);
+  REQUIRE(projectLoad(&loaded, path) == 0);
+  CHECK(loaded.scaleApply == 0);
+  CHECK(loaded.scaleTracksMask == 0xa5);
+  CHECK(loaded.scaleRoot == 9);
+  CHECK(loaded.scalePreset == scaleCustom);
+  CHECK(loaded.scaleCustomMask == 0x0491);
+}
+
+TEST_CASE("a project with fewer than 8 tracks survives save and load") {
+  // Regression test: projectLoadInternal used to force chipsCount back to
+  // PROJECT_MAX_TRACKS after reading it from the file, so any project saved
+  // with fewer tracks (e.g. a VT2 import, which is 3 tracks) would then be
+  // read back expecting a wider Song section than what was actually written,
+  // and fail to load at all.
+  Project saved, loaded;
+  projectInitAY(&saved);
+  projectInitAY(&loaded);
+  saved.tracksCount = saved.chipsCount = 3;
+
+  saved.song[0][2] = 0;
+  saved.chains[0].rows[0].phrase = 0;
+  saved.phrases[0].rows[0].note = 40;
+  saved.phrases[0].rows[0].instrument = 0;
+  saved.phrases[0].rows[0].volume = 15;
+
+  const char* path = "build/tests/reduced_tracks_io.cct";
+  REQUIRE(projectSave(&saved, path) == 0);
+  INFO(projectFileError);
+  REQUIRE(projectLoad(&loaded, path) == 0);
+  INFO(projectFileError);
+  CHECK(loaded.tracksCount == 3);
+  CHECK(loaded.chipsCount == 3);
+  CHECK(loaded.song[0][2] == 0);
+  CHECK(loaded.phrases[0].rows[0].note == 40);
+}
+
+TEST_CASE("sample slice survives save and load; missing field is Off") {
+  Project saved, loaded;
+  projectInit(&saved);
+  projectInit(&loaded);
+  saved.chipsCount = 1;
+  saved.tracksCount = 1;
+  saved.chipType = ChipType::AY;
+  std::strcpy(saved.pitchTable.name, "Test");
+  saved.pitchTable.length = 1;
+  std::strcpy(saved.pitchTable.noteNames[0], "C-4");
+  saved.pitchTable.values[0] = 1000;
+  getInstrumentFunctions(InstrumentType::Sample).init(&saved.instruments[0]);
+  saved.instruments[0].chip.sample.slice = 16;
+  const char* path = "build/tests/sample_slice_io.cct";
+  REQUIRE(projectSave(&saved, path) == 0);
+  INFO(projectFileError);
+  REQUIRE(projectLoad(&loaded, path) == 0);
+  CHECK(loaded.instruments[0].type == InstrumentType::Sample);
+  CHECK(loaded.instruments[0].chip.sample.slice == 16);
+
+  FILE* in = std::fopen(path, "r");
+  REQUIRE(in != nullptr);
+  const char* stripped = "build/tests/sample_slice_missing.cct";
+  FILE* out = std::fopen(stripped, "w");
+  REQUIRE(out != nullptr);
+  char line[512];
+  while (std::fgets(line, sizeof(line), in)) {
+    if (std::strncmp(line, "- Sample slice:", 15) == 0) continue;
+    std::fputs(line, out);
+  }
+  std::fclose(in);
+  std::fclose(out);
+
+  Project missing;
+  projectInit(&missing);
+  REQUIRE(projectLoad(&missing, stripped) == 0);
+  CHECK(missing.instruments[0].type == InstrumentType::Sample);
+  CHECK(missing.instruments[0].chip.sample.slice == 0);
 }
 
 TEST_CASE("new projects initialize the validated period pitch table") {
@@ -285,6 +382,7 @@ TEST_CASE("new instruments use audible synth defaults") {
   CHECK(instrument.chip.sample.end == 255);
   CHECK(instrument.chip.sample.loopMode == 0);
   CHECK(instrument.chip.sample.speedPercent == 100);
+  CHECK(instrument.chip.sample.slice == 0);
 
   const InstrumentType voiceTypes[] = {InstrumentType::Braids, InstrumentType::Sample,
     InstrumentType::SCWF, InstrumentType::BYOWTBL, InstrumentType::Plaits, InstrumentType::PlaitsAlt};

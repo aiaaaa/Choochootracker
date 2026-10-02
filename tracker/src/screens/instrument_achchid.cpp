@@ -3,6 +3,8 @@
 #include "utils.h"
 #include "model_catalog.h"
 #include "selection_popup.h"
+#include <string.h>
+#include <stdio.h>
 
 static int modelButtonDown;
 static InstrumentAChChid* instrument() { return &chipnomadState->project.instruments[cInstrument].chip.achchid; }
@@ -23,7 +25,20 @@ static void drawStatic() {
   gfxPrint(20,7,"Cutoff"); gfxPrint(20,8,"Reso"); gfxPrint(20,9,"Env Mod"); gfxPrint(20,10,"Decay"); gfxPrint(20,11,"Accent");
 }
 // The track status panel starts at column 34; keep values and cursors before it.
-static void drawCursor(int col,int row) { if(row<3) return instrumentCommonDrawCursor(col,row); gfxCursor(col ? 28 : 11, row+4, col ? 6 : 8); }
+static void drawCursor(int col,int row) {
+  if (row < 3) return instrumentCommonDrawCursor(col, row);
+  InstrumentAChChid* a = instrument();
+  if (!col) {
+    if (row == 3) gfxCursor(11, 7, strlen(a->wave == AChChidWave::square ? "Square" : a->wave == AChChidWave::saw ? "Saw" : "Braids"));
+    else if (row == 4) gfxCursor(11, 8, isBraids() ? 3 + min((int)strlen(modelCatalogName(InstrumentType::Braids, a->model)), 6) : 3);
+    else if (row == 5 || row == 6) gfxCursor(11, row + 4, 2);
+  } else {
+    char value[12];
+    snprintf(value, sizeof(value), "%u Hz", a->cutoff);
+    int width = row == 3 ? (int)strlen(value) : row == 6 ? 6 : 2;
+    gfxCursor(28, row + 4, width);
+  }
+}
 static void drawField(int col,int row,CellState state) {
   if(row<3) return instrumentCommonDrawField(col,row,state);
   InstrumentAChChid* a=instrument();

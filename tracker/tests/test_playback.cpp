@@ -173,6 +173,18 @@ TEST_CASE_FIXTURE(PlaybackFixture, "Live chains loop and switch at the requested
   CHECK(state->playbackState.tracks[0].chainRow == 0);
 }
 
+TEST_CASE_FIXTURE(PlaybackFixture, "table volume and VOL apply to the shared voice gain") {
+  PlaybackTrackState* track = &state->playbackState.tracks[0];
+  track->note.volume = 15;
+  track->note.volumeOffset = -1;
+  tableInit(&state->playbackState, 0, &track->note.instrumentTable, 0, 0, 1);
+  state->project.tables[0].rows[0].volume = 15;
+  CHECK(playbackVolumeGain(&state->playbackState, track) == doctest::Approx(14.0f / 15.0f));
+
+  state->project.tables[0].rows[0].volume = 0;
+  CHECK(playbackVolumeGain(&state->playbackState, track) == 0.0f);
+}
+
 TEST_CASE_FIXTURE(PlaybackFixture, "Live urgent switches at a phrase boundary and stop is quantized") {
   Project* p = &state->project;
   for (int i = 0; i < 16; ++i) p->grooves[0].speed[i] = 1;

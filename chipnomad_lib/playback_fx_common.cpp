@@ -393,9 +393,12 @@ static void handleFX_PSL(PlaybackState* state, PlaybackTrackState* track, int tr
 
 void initFX(PlaybackState* state, int trackIdx, uint8_t* fx, PlaybackTableState* tableState, int tableFXColumn) {
   if (fx[0] == EMPTY_VALUE_8 || fx[0] >= fxTotalCount) return;
+  if (tableState != NULL && (fx[0] == fxSCL || fx[0] == fxCRD)) return;
 
   PlaybackTrackState* track = &state->tracks[trackIdx];
-  uint8_t fxIdx = fx[0];
+  // STA is a spelling alias for SST, so both commands share one runtime
+  // state and the most recent one wins just like two SST commands would.
+  uint8_t fxIdx = fx[0] == fxSTA ? fxSST : fx[0];
   PlaybackFXState* fxState = &track->note.fx[fxIdx];
 
   fxState->isOn = 1;

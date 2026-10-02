@@ -3,7 +3,7 @@
 
 # Compiler settings
 CXX = c++
-CFLAGS = -std=c++17 -Wall -g -O0 -DTEST
+CFLAGS = -std=c++17 -Wall -g -O0 -DTEST -DTEST_PORTMASTER_INPUT
 LDFLAGS = -lm
 
 # Build directory
@@ -13,7 +13,8 @@ BUILD_DIR = build/tests
 # Include paths
 INCLUDES = -I. -Isrc -Isrc/corelib -Isrc/screens -Isrc/import -Itests/mocks -Iexternal \
            -I../chipnomad_lib -I../chipnomad_lib/chips -I../chipnomad_lib/external/ayumi \
-           -I../chipnomad_lib/external/mutable -I../chipnomad_lib/external/open303/Source/DSPCode
+           -I../chipnomad_lib/external/mutable -I../chipnomad_lib/external/open303/Source/DSPCode \
+           -I../chipnomad_lib/external/signalsmith
 
 # Test executable
 TEST_EXECUTABLE = $(BUILD_DIR)/run_tests$(if $(filter Windows_NT,$(OS)),.exe,)
@@ -32,6 +33,7 @@ TEST_SOURCES = $(filter-out $(TEST_SOURCES_EXCLUDED),$(TEST_SOURCES_ALL))
 CHIPNOMAD_LIB_SOURCES = $(wildcard ../chipnomad_lib/*.cpp) \
                         $(wildcard ../chipnomad_lib/chips/*.cpp) \
                         $(wildcard ../chipnomad_lib/synth/*.cpp) \
+                        $(wildcard ../chipnomad_lib/export/*.cpp) \
                         $(wildcard ../chipnomad_lib/external/open303/Source/DSPCode/*.cpp) \
                         $(wildcard ../chipnomad_lib/external/ayumi/*.cpp) \
                         $(wildcard ../chipnomad_lib/external/mutable/braids/*.cc) \
@@ -54,8 +56,11 @@ CHIPNOMAD_LIB_SOURCES = $(wildcard ../chipnomad_lib/*.cpp) \
                         $(wildcard ../chipnomad_lib/external/mutable/plaits_alt/dsp/physical_modelling/*.cc) \
                         $(wildcard ../chipnomad_lib/external/mutable/plaits_alt/dsp/speech/*.cc)
 
-TRACKER_SRC_SOURCES = src/string_utils.cpp \
+TRACKER_SRC_SOURCES = src/app.cpp \
+                      src/screens/screen_settings.cpp \
+                      src/string_utils.cpp \
                       src/common.cpp \
+                      src/export_path.cpp \
                       src/copy_paste.cpp \
                       src/project_utils.cpp \
                       src/pitch_table_utils.cpp \
@@ -78,7 +83,7 @@ COMMON_SOURCES = $(CHIPNOMAD_LIB_SOURCES) $(TRACKER_SRC_SOURCES)
 
 # All sources
 ALL_SOURCES = $(TEST_SOURCES) $(COMMON_SOURCES) $(MOCK_SOURCES)
-MEASURE_SOURCES = tests/render_engine_measurements.cpp $(COMMON_SOURCES) $(MOCK_SOURCES)
+MEASURE_SOURCES = tests/render_engine_measurements.cpp $(filter-out src/copy_paste.cpp,$(COMMON_SOURCES)) $(MOCK_SOURCES)
 BENCHMARK_SOURCES = tests/benchmark_song.cpp $(COMMON_SOURCES) $(MOCK_SOURCES)
 ALL_COMPILE_SOURCES = $(sort $(ALL_SOURCES) $(MEASURE_SOURCES) $(BENCHMARK_SOURCES))
 
@@ -88,7 +93,7 @@ object_for = $(BUILD_DIR)/obj/$(subst ../,up/,$(basename $(1))).o
 OBJECTS := $(foreach source,$(ALL_SOURCES),$(call object_for,$(source)))
 MEASURE_OBJECTS := $(foreach source,$(MEASURE_SOURCES),$(call object_for,$(source)))
 BENCHMARK_OBJECTS := $(foreach source,$(BENCHMARK_SOURCES),$(call object_for,$(source)))
-DEPS := $(OBJECTS:.o=.d)
+DEPS := $(sort $(OBJECTS:.o=.d) $(MEASURE_OBJECTS:.o=.d) $(BENCHMARK_OBJECTS:.o=.d))
 
 define compile_source
 $(call object_for,$(1)): $(1) Makefile.test

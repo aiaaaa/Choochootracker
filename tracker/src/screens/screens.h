@@ -5,6 +5,9 @@
 #include "../chipnomad_lib/playback.h"
 
 #define MESSAGE_TIME (60)
+// Errors are unexpected and need to be read, not just glanced at like a
+// routine confirmation ("Copied selection") - give them much longer on screen.
+#define MESSAGE_TIME_ERROR (300)
 
 enum class CellState : int {
   normal = 0,
@@ -86,6 +89,7 @@ extern const AppScreen screenProjectLoad;
 extern const AppScreen screenProjectSave;
 extern const AppScreen screenConfirm;
 extern const AppScreen screenPitchTable;
+extern const AppScreen screenScale;
 extern const AppScreen screenFileBrowser;
 extern const AppScreen screenCreateFolder;
 extern const AppScreen screenEnterName;
@@ -94,11 +98,13 @@ extern const AppScreen screenChain;
 extern const AppScreen screenPhrase;
 extern const AppScreen screenGroove;
 extern const AppScreen screenInstrument;
+extern const AppScreen screenSampleSettings;
 extern const AppScreen screenInstrumentPool;
 extern const AppScreen screenModulation;
 extern const AppScreen screenTable;
 extern const AppScreen screenAYWavetable;
 extern const AppScreen screenExport;
+extern const AppScreen screenBounce;
 extern const AppScreen screenManage;
 extern const AppScreen screenSettings;
 extern const AppScreen screenMixer;
@@ -114,6 +120,10 @@ extern const AppScreen* currentScreen;
 void screenSetup(const AppScreen* screen, int input);
 void screenDraw(void);
 void screenMessage(int time, const char* format, ...);
+// Current message text set by screenMessage(), or "" if none is active.
+// screenTitle draws through its own gfxTitle* calls (see screenDraw()), so it
+// needs this to show a message instead of the normal gfxPrint-based banner.
+const char* screenGetActiveMessage(void);
 void screensInitAll(void);
 void drawScreenMap(void);
 enum ScreenPlaybackLevel screenGetPlaybackLevel(const AppScreen* screen);
@@ -165,7 +175,7 @@ char charEditInput(int keys, int tapCount, char* str, int idx, int maxLen);
 int editFX(CellEditAction action, uint8_t* fx, uint8_t* lastFX, int isTable, uint8_t instrumentIdx);
 int editFXValue(CellEditAction action, uint8_t* fx, uint8_t* lastFX, int isTable, uint8_t instrumentIdx);
 int fxEditInput(int keys, int tapCount, uint8_t* fx, uint8_t* lastFX);
-void fxEditFullDraw(uint8_t currentFX, uint8_t instrumentIdx);
+void fxEditFullDraw(uint8_t currentFX, uint8_t instrumentIdx, int isTable);
 
 // Manage screen functions
 // TODO: Remove this

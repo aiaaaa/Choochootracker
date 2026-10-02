@@ -348,7 +348,7 @@ static int onEdit(int col, int row, CellEditAction action) {
         // FX type column: show FX selection
         int fxIdx = (startCol - 3) / 2;
         uint8_t instrumentIdx = getTableInstrumentIdx();
-        fxEditFullDraw(tableRows[screen.cursorRow - 1].fx[fxIdx][0], instrumentIdx);
+        fxEditFullDraw(tableRows[screen.cursorRow - 1].fx[fxIdx][0], instrumentIdx, 1);
         isFxEdit = 1;
         return 0;
       } else {
