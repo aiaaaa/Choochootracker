@@ -110,6 +110,7 @@ extern const AppScreen screenSettings;
 extern const AppScreen screenSynthSettings;
 extern const AppScreen screenMixerSettings;
 extern const AppScreen screenGraphicsSettings;
+extern const AppScreen screenTrackVisuals;
 extern const AppScreen screenMixer;
 extern const AppScreen screenSelectionPopup;
 int screenMixerGetPage(void);
