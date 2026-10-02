@@ -203,13 +203,13 @@ Select a range of Song rows and columns, then double-tap **EDIT** to open the BO
 
 The screen offers:
 
-- **File name**: edit with the character keyboard. It starts empty: bounces are named by an automatic per-project sequence number (`001`, `002`, ...), which resets when you load or create a project. A custom name typed here becomes a prefix before the number. The editable field sits on the same row as the **File name** label.
+- **File name**: edit with the character keyboard. When the screen opens, the next free sequence number (`001`, `002`, ...) is proposed here: the first number whose `.wav` file does not exist yet in the export folder. Edit it freely — the name is used as-is. If a file with that name already exists, a `_001`, `_002`, ... suffix is added so existing files are never overwritten. The counter resets when you load or create a project.
 - **Sample rate** and **Bit depth**: the same options as the export screen
 - **Include in a sample name**: three checkboxes that prepend context tags to the file name when **Start** is pressed (all off by default):
   - **BPM** — the project's current tempo, e.g. `[120]`
   - **[Key]** — the project's root note and scale, e.g. `[Cmaj]`, `[F#min Pent]`
-  - **[Bars:Beats:16ths]** — the rendered length of the bounce: one phrase equals one bar (16 sixteenths), a beat is 4 sixteenths. Full phrases show only bars, e.g. `[2]`; partial phrases show `[0:2]` (two beats) or `[0:1:3]` (one beat plus three sixteenths). For multi-track bounces the longest track decides.
-  - Tags are applied in the order `[BPM][Key][Length]` before the file name, and the automatic sequence number (`001`, `002`, ...) is appended after it.
+  - **[Bars:Beats:16ths]** — the rendered length of the bounce: one phrase equals one bar (16 sixteenths), a beat is 4 sixteenths. Full phrases show only bars, e.g. `[2]`; partial phrases show `[0:2]` (two beats) or `[0:1:3]` (one beat plus three sixteenths). For multi-track bounces the longest track decides. A selection ending mid-beat counts one sixteenth less: the last selected row is the cut point, so its note-off lands at the end of the previous sixteenth.
+  - Tags are applied in the order `[BPM][Key][Length]` before the file name.
 - **Start**: render the selection to a WAV file in the export folder (see *Export location* under Project screen)
 - **Cancel**: return without bouncing
 

@@ -17,6 +17,12 @@ static const char* kCurrentProjectFolder = "current-project";
 // Per-project bounce counter (1-based); reset on project load / new project
 static int bounceCounter = 0;
 
+// Formats the current counter value without advancing it
+static void formatBounceNumber(char* buffer, int bufferSize, int number) {
+  if (number > 999) number = 999;
+  snprintf(buffer, bufferSize, "%03d", number);
+}
+
 void exportGetBaseDir(char* buffer, int bufferSize) {
   if (appSettings.exportPath[0]) {
     snprintf(buffer, bufferSize, "%s", appSettings.exportPath);
@@ -180,10 +186,41 @@ void exportResetFolderTracking(void) {
   bounceCounter = 0;
 }
 
-void exportNextBounceNumber(char* buffer, int bufferSize) {
-  bounceCounter++;
-  if (bounceCounter > 999) bounceCounter = 999;
-  snprintf(buffer, bufferSize, "%03d", bounceCounter);
+// Proposes the next bounce file name for the file name field: the next
+// sequence number that is not already taken in the export folder (001.wav,
+// 002.wav, ...). The proposal is a plain name, not a suffix - the user can
+// edit it freely before starting the bounce.
+void exportProposeBounceName(char* buffer, int bufferSize) {
+  char projectDir[EXPORT_PATH_MAX];
+  exportGetProjectDir(projectDir, sizeof(projectDir));
+
+  // bounceCounter counts claimed bounces, so the next candidate is +1
+  char candidate[8];
+  int number = bounceCounter + 1;
+  if (number > 999) number = 999;
+  for (;;) {
+    formatBounceNumber(candidate, sizeof(candidate), number);
+    char path[EXPORT_PATH_MAX + 16];
+    snprintf(path, sizeof(path), "%s%s%s.wav", projectDir, PATH_SEPARATOR_STR, candidate);
+    FILE* probe = fopen(path, "r");
+    if (probe == NULL) break; // Free
+    fclose(probe);
+    if (number >= 999) break; // All sequence numbers taken
+    number++;
+  }
+  snprintf(buffer, bufferSize, "%s", candidate);
+}
+
+// Records a bounce name for the per-project sequence. A plain sequence
+// number ("001") advances the counter past it; a custom name leaves the
+// counter untouched. Collision handling (_001.._999 suffixes) is done by
+// exportBuildFilePath when the file is written.
+void exportClaimBounceName(const char* name) {
+  char proposed[8];
+  formatBounceNumber(proposed, sizeof(proposed), bounceCounter + 1);
+  if (strcmp(name, proposed) == 0) {
+    if (bounceCounter < 999) bounceCounter++;
+  }
 }
 
 // Rewrites sample paths that live under <baseDir>/<oldFolder>/ so they point

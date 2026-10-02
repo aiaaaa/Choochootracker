@@ -46,10 +46,17 @@ int exportSyncFolderWithProjectName(void);
 // a new project is created)
 void exportResetFolderTracking(void);
 
-// Per-project bounce counter: returns the next bounce number (1, 2, 3, ...)
-// formatted as "001", "002", ... The counter resets when a project is loaded
-// or a new project is created (exportResetFolderTracking).
-void exportNextBounceNumber(char* buffer, int bufferSize);
+// Proposes the next bounce file name for the bounce screen's file name
+// field: the next sequence number ("001", "002", ...) whose .wav file does
+// not exist yet in the export folder. The proposal is a plain name the user
+// can edit freely - it is not a mandatory suffix.
+void exportProposeBounceName(char* buffer, int bufferSize);
+
+// Records a bounce name when a bounce starts. A plain sequence number
+// ("001") advances the per-project counter; a custom name leaves it
+// untouched. File collisions are resolved with _001.._999 suffixes when the
+// file is written (exportBuildFilePath).
+void exportClaimBounceName(const char* name);
 
 // Rewrite instrument sample paths after the export folder was renamed, so
 // loaded samples keep pointing at the moved files. Matches paths under

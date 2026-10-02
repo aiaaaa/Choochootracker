@@ -274,19 +274,43 @@ TEST_CASE_FIXTURE(ExportPathFixture, "exportRefreshSamplePaths handles absolute 
   CHECK(strcmp(project.instruments[0].chip.sample.path, expected) == 0);
 }
 
-TEST_CASE_FIXTURE(ExportPathFixture, "exportNextBounceNumber counts up and resets") {
-  char number[8];
-  exportNextBounceNumber(number, sizeof(number));
-  CHECK(strcmp(number, "001") == 0);
-  exportNextBounceNumber(number, sizeof(number));
-  CHECK(strcmp(number, "002") == 0);
-  exportNextBounceNumber(number, sizeof(number));
-  CHECK(strcmp(number, "003") == 0);
+TEST_CASE_FIXTURE(ExportPathFixture, "exportProposeBounceName skips taken numbers") {
+  CHECK(exportEnsureProjectDir() == 0);
+  char name[32];
+  exportProposeBounceName(name, sizeof(name));
+  CHECK(strcmp(name, "001") == 0);
+
+  // 001.wav exists on disk: the proposal advances to the next free number
+  char filePath[700];
+  snprintf(filePath, sizeof(filePath), "%s/samples/Exports/current-project/001.wav", workDir);
+  FILE* f = fopen(filePath, "w");
+  REQUIRE(f != NULL);
+  fputs("data", f);
+  fclose(f);
+
+  exportProposeBounceName(name, sizeof(name));
+  CHECK(strcmp(name, "002") == 0);
+}
+
+TEST_CASE_FIXTURE(ExportPathFixture, "exportClaimBounceName advances only for sequence names") {
+  char name[32];
+  exportProposeBounceName(name, sizeof(name));
+  CHECK(strcmp(name, "001") == 0);
+
+  // Claiming the proposed sequence number advances the counter
+  exportClaimBounceName("001");
+  exportProposeBounceName(name, sizeof(name));
+  CHECK(strcmp(name, "002") == 0);
+
+  // A custom name leaves the counter untouched
+  exportClaimBounceName("my-take");
+  exportProposeBounceName(name, sizeof(name));
+  CHECK(strcmp(name, "002") == 0);
 
   // Loading a project / creating a new one resets the counter
   exportResetFolderTracking();
-  exportNextBounceNumber(number, sizeof(number));
-  CHECK(strcmp(number, "001") == 0);
+  exportProposeBounceName(name, sizeof(name));
+  CHECK(strcmp(name, "001") == 0);
 }
 
 TEST_CASE_FIXTURE(ExportPathFixture, "exportSyncFolderWithProjectName keeps files across rename") {
