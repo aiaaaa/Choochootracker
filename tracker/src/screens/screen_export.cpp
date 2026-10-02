@@ -7,6 +7,8 @@
 #include "file_browser.h"
 #include "export_path.h"
 #include "export/export.h"
+#include "export/export_midi.h"
+#include "midi/smf_file.h"
 #include <string.h>
 
 #ifdef WEB_BUILD
@@ -160,6 +162,8 @@ int exportCommonColumnCount(int row) {
     return 1;
   } else if (row == 4) {
     return 1;
+  } else if (row == 5) {
+    return 1;
   }
   return 0;
 }
@@ -180,6 +184,8 @@ void exportCommonDrawStatic(void) {
   gfxPrint(0, 6, "Bit depth");
   gfxPrint(0, 7, "Folder");
 
+  gfxSetFgColor(cs.textValue);
+  gfxPrint(0, 8, "MIDI");
 }
 
 void exportCommonDrawCursor(int col, int row) {
@@ -197,6 +203,8 @@ void exportCommonDrawCursor(int col, int row) {
     gfxCursor(13, 6, 2);
   } else if (row == 4) {
     gfxCursor(13, 7, 26);
+  } else if (row == 5) {
+    gfxCursor(13, 8, 6);
   }
 }
 
@@ -232,6 +240,8 @@ void exportCommonDrawField(int col, int row, CellState state) {
     } else {
       gfxPrint(13, 7, "Default");
     }
+  } else if (row == 5) {
+    gfxPrint(13, 8, "Export");
   }
 }
 
@@ -389,6 +399,22 @@ int exportCommonOnEdit(int col, int row, CellEditAction action) {
       }
       handled = 1;
     }
+  } else if (row == 5) {
+    if (currentExporter) return 1;
+    char exportPath[1024];
+    generateExportPath(exportPath, sizeof(exportPath), "mid");
+    if (projectExportMidi(&chipnomadState->project, exportPath) == 0) {
+      screenMessage(MESSAGE_TIME, "Exported %s", exportPath);
+#ifdef WEB_BUILD
+      webDownloadExportFile(exportPath);
+#endif
+#ifdef ANDROID_BUILD
+      fileExportDocument(exportPath, "audio/midi");
+#endif
+    } else {
+      screenMessage(MESSAGE_TIME_ERROR, "%s", smfFileError);
+    }
+    handled = 1;
   }
 
   return handled;

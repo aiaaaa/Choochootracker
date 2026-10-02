@@ -189,7 +189,12 @@ static int onEdit(int col, int row, CellEditAction action) {
     case 8:
       // Speed is inert while Stretch drives the duration.
       if (sample->stretchMode != 0) return 0;
-      handled=!col?editNormalized16(action,&sample->speedPercent,500):0;
+      if (!col && action == CellEditAction::clear) {
+        handled = sample->speedPercent != 100;
+        sample->speedPercent = 100;
+      } else {
+        handled = !col ? editNormalized16(action, &sample->speedPercent, 500) : 0;
+      }
       break;
   }
   if (handled) projectModified = 1;

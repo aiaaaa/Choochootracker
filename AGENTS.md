@@ -1,14 +1,5 @@
 # ChooChooTracker agent notes
 
-## Agent docs
-
-Layer docs for coding agents live in `docs/agents/`. Load only the file that
-matches the change. Append caveats there when hardware or code surprises you.
-
-- Index and load rules: `docs/agents/README.md`
-- How to update those docs: `docs/agents/DOC_PROTOCOL.md`
-- Core / PortMaster / handheld / UI / audio: `docs/agents/*.md`
-
 ## Builds
 
 - Windows: run from `tracker` with MSYS2 UCRT64: `make -j4 windows`.
@@ -20,6 +11,9 @@ matches the change. Append caveats there when hardware or code surprises you.
   It writes `releases/choochootracker.zip`; validate it with
   `unzip -t releases/choochootracker.zip`. Final releases still require a
   hardware check on the target console.
+- Linux AppImage: run `make -j4 -f Makefile.linux appimage` from `tracker`.
+  Writes `releases/ChooChooTracker-<date>-<version>-x86_64.AppImage`. See
+  `docs/build-notes.md` for what it bundles and why.
 - Web: Emscripten is already installed at `.tmp/emsdk`. Use PowerShell, not
   MSYS2 Bash. The SDK requires its bundled Python:
 

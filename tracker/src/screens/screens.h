@@ -104,14 +104,18 @@ extern const AppScreen screenModulation;
 extern const AppScreen screenTable;
 extern const AppScreen screenAYWavetable;
 extern const AppScreen screenExport;
-extern const AppScreen screenBounce;
 extern const AppScreen screenManage;
 extern const AppScreen screenSettings;
+extern const AppScreen screenSynthSettings;
+extern const AppScreen screenMixerSettings;
+extern const AppScreen screenGraphicsSettings;
 extern const AppScreen screenMixer;
 extern const AppScreen screenSelectionPopup;
 int screenMixerGetPage(void);
 extern const AppScreen screenColorTheme;
 extern const AppScreen screenKeyMapping;
+extern const AppScreen screenMidi;
+extern const AppScreen screenMidiChannelMap;
 extern const AppScreen screenQuickHelp;
 extern const AppScreen screenTitle;
 
@@ -176,6 +180,16 @@ int editFX(CellEditAction action, uint8_t* fx, uint8_t* lastFX, int isTable, uin
 int editFXValue(CellEditAction action, uint8_t* fx, uint8_t* lastFX, int isTable, uint8_t instrumentIdx);
 int fxEditInput(int keys, int tapCount, uint8_t* fx, uint8_t* lastFX);
 void fxEditFullDraw(uint8_t currentFX, uint8_t instrumentIdx, int isTable);
+
+// Key jazz (desktop): lets screen_phrase.cpp own its toggle/note-entry state
+// while app.cpp only needs to route raw keyboard events to it. Returns 1 if
+// the key was consumed by key jazz, 0 to let normal input processing continue.
+#ifdef DESKTOP_BUILD
+int phraseKeyJazzHandleRawKey(InputCode input, int isDown);
+int songKeyJazzHandleRawKey(InputCode input, int isDown);
+int chainKeyJazzHandleRawKey(InputCode input, int isDown);
+int projectKeyJazzHandleRawKey(InputCode input, int isDown);
+#endif
 
 // Manage screen functions
 // TODO: Remove this

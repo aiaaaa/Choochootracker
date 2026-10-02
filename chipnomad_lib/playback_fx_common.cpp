@@ -296,6 +296,8 @@ static void handleFX_OFF(PlaybackState* state, PlaybackTrackState* track, int tr
 static void handleFX_KIL(PlaybackState* state, PlaybackTrackState* track, int trackIdx, int chipIdx, PlaybackFXState* fx) {
   if (fx->counter >= fx->fxValue) {
     fx->isOn = 0;
+    track->achchidGateTicks = 0;
+    track->achchidGateCounter = 0;
     track->note.pitchBase = EMPTY_VALUE_8;
     track->note.noteKilled = 1;
   }
@@ -430,6 +432,7 @@ void initFXHandlers(void) {
   fxHandlers[fxGGR] = (PlaybackFXHandler){NULL, handleFX_GGR, NULL};
   registerFXHandlers_Modulation();
   registerFXHandlers_AY();
+  registerFXHandlers_Midi();
 }
 
 int handleFX(PlaybackState* state, int trackIdx, int chipIdx) {

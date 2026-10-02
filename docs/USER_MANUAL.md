@@ -64,7 +64,8 @@ ChooChooTracker works best with a gamepad that has a D-pad, 2 analogue sticks an
 
 Mappings can be changed in **Settings > Key mapping**. On PortMaster, custom
 mappings are saved immediately and navigation remains available when returning
-to Settings.
+to Settings. Desktop layout defaults use QWERTZ only for QWERTZ regions;
+Polish keyboards keep the standard QWERTY defaults.
 
 Windows, web, and Android users can also use a game controller. On Android,
 touch controls appear automatically when no gamepad is connected: in portrait
@@ -72,7 +73,8 @@ they sit below the tracker, with a square D-pad, A/EDIT, B/OPT, START/PLAY and
 SELECT/SHIFT controls, then a separate Live/Motion section with two modulation
 sticks and momentary REC/DEL controls. Landscape keeps the D-pad on the left
 and the action buttons on the right. Android projects and samples stay private to
-the app; use the Android file picker to import files and save WAV exports.
+the app; use the Android file picker to import `.cct` projects and `.wav` samples,
+and to choose where WAV exports are saved.
 
 ### Navigation
 
@@ -145,6 +147,26 @@ Song -> Chain -> Phrase row -> Note + Instrument + FX
 
 A song has 8 tracks. Each track contains a sequence of chains, and each chain contains a sequence of phrases. Phrases are 16-step sequences of notes. A note contains a pitch, an instrument, a velocity and up to 3 track FX. An instrument is the thing that makes the sound.
 
+### Optional 16x24 fonts and NostromoAmberDa2
+
+Settings → Load font → fonts/Pixel16x24 contains TechMonoAudit (converted from Share Tech Mono), Departure Mono, Spleen and Cozette. Each supplies the complete printable ASCII set in 16×24 cells for a 640×480 display. Pixel-built fonts keep their native pixels or integer scaling with padding; Cozette remains smaller because doubling its 13-pixel ink height would exceed the cell. The NostromoAmberDa2 theme is available through Settings → Edit color theme → Load. It retains the Nostromo amber background and informational text, with red primary text, darker orange values and a teal cursor. Loading the assets does not change your selected font or theme. See the accompanying README.txt for attribution and licenses.
+
+### Project page spacing
+
+The Project page puts the application version on its own line and separates Load, Save, New, Export and Manage from the project metadata with blank rows. Cursor positions and touch targets follow the displayed fields; project settings and file operations are unchanged.
+
+### Audio display telemetry
+
+Audio readouts use a UI-owned snapshot of the final mix and individual track contributions. Track samples and stereo peaks are captured after track level and tilt, before shared effect returns and master gain. Monitoring does not change the audio signal. The audio callback publishes fixed-size snapshots without locks or allocation; display history spans about 21 ms.
+
+### Playback piano
+
+A code-drawn pixel piano below the eight right-side track rows lights sounding pitch classes, folded into one octave. It includes chord notes and respects muted/stopped tracks. The outline uses the theme value color and all active keys use the waveform color; idle keys have dark fills and subtle shadows. Its grid uses integer scaling and fixed-width borders. The piano is a playback indicator, not a note-entry control. Popups and the wavetable editor keep their own content in this area.
+
+### Mixer meters
+
+The Mixer labels its tracks with a TRK heading and numeric rows. An unlabeled one-character column before LVL shows each track’s stereo peak after level and tilt, before shared effects and master gain. The meter spans -48 to 0 dBFS and decays between updates. Its lower and middle bands use theme colors, while the top band is bright red near full scale.
+
 ## 4. Song, Chain and Phrase
 
 ### Song
@@ -193,6 +215,10 @@ The screen offers:
 
 While the bounce renders, **OPT** cancels it. When the bounce completes or is cancelled, the screen you bounced from returns.
 
+On desktop, key jazz also brings direct hex-index typing plus Phrase-style
+Shift+arrows selection, Delete/Backspace/Insert and Ctrl+C/X/V here — see
+[Key jazz](#key-jazz-desktop-only).
+
 ### Chain
 
 A chain is an ordered list of 16-step phrases with optional transposition. It can contain up to 16 phrases, and the same phrase can appear more than once. The 2nd column sets the transposition in semitones.
@@ -205,6 +231,9 @@ An asterisk (`*`) appears next to a chain that is reused in the project. You can
 - **OPT + [UP/DOWN]**: move between chains in the current track
 - Select a range, then use **SHIFT + EDIT**: clone phrases
 - Select a range, then double-tap **EDIT**: open the BOUNCE TO SAMPLE screen for the selected chain rows of the current track (see Bounce under Song)
+
+On desktop, key jazz also brings direct hex-index typing here — see
+[Key jazz](#key-jazz-desktop-only).
 
 ### Phrase
 
@@ -229,6 +258,53 @@ The FX selector shows common commands plus those supported by the instrument on 
 - Select a range in the instrument column, then use **SHIFT + EDIT**: clone instruments
 - Select a range, then use **EDIT + [UP/DOWN]**: rotate the phrase rows
 - Select a range, then double-tap **EDIT**: open the BOUNCE TO SAMPLE screen for the selected phrase rows of the current track (see Bounce under Song)
+
+### Key jazz (desktop only)
+
+Press **Esc** on the Phrase screen to toggle key jazz, a QWERTY piano-style
+note entry mode (like [m8c](https://github.com/laamaa/m8c)):
+
+- `Z S X D C V G B H N J M` and `Q 2 W 3 E R 5 T 6 Y 7 U I 9 O 0 P` type notes
+  chromatically across two-plus octaves, using each key's physical position
+  so the layout is the same on AZERTY, QWERTY and QWERTZ keyboards.
+- Each keypress writes the note on the current row and moves to the next row.
+- `[` / `]` shift the octave.
+- **Shift + arrows** select a range of rows and columns; a plain arrow
+  afterwards clears the selection.
+- **Ctrl+C** / **Ctrl+X** copy or cut the selected columns, or the current
+  row's note/instrument/volume if nothing is selected; **Ctrl+V** pastes at
+  the cursor.
+- **Delete** removes the whole row(s) (every column) and shifts the rest of
+  the phrase up to fill the gap; the cursor stays on the same row.
+- **Backspace** removes the element under the cursor in the current column
+  only (or the selection's columns, if one is active), shifts whatever is
+  below it up to fill the gap, and steps the cursor back one row, like a
+  text editor.
+- **Insert** inserts a blank row, pushing the rest of the phrase down.
+- **Ctrl+S** saves the project. Outside key jazz, Ctrl+S does nothing.
+- Esc again turns key jazz off.
+
+While key jazz is on, it takes over the note keys entirely on the Phrase
+screen, including Edit/Opt/Motion shortcuts that share those keys — turn it
+off with Esc to use them again.
+
+Key jazz also works, independently toggled with Esc, on:
+
+- **Song** and **Chain**: type a chain's or phrase's hex index directly
+  (`0-9`, `A-F`) instead of incrementing with Up/Down. The first digit typed
+  on a cell replaces its value; further digits typed without moving shift
+  into it (typing "3" then "F" sets 3F). On Song, **Shift+arrows** select a
+  range, **Delete** removes whole row(s) and shifts the rest up, **Backspace**
+  removes the current/selected column(s) and shifts what's below them up,
+  **Insert** inserts a blank row, and **Ctrl+C**/**Ctrl+X**/**Ctrl+V**
+  copy/cut/paste the selected rows (or the current row if nothing is
+  selected) - the same structure-editing shortcuts as the Phrase screen.
+  This takes over Shift, so Shift+Right/Up no longer jump to Chain/Project
+  while key jazz is active here - Esc to get those shortcuts back.
+- **Project**: type the file name, title and author directly on the
+  keyboard instead of using the on-screen virtual keyboard. Backspace works
+  like a normal text field; Shift types uppercase letters. The virtual
+  keyboard still opens normally when key jazz is off here.
 
 ## 5. Instruments
 
@@ -363,12 +439,13 @@ Global Braids settings are available in the app settings:
 
 ### aChChid
 
-**aChChid** is a monophonic acid bass engine based on Open303. `Square` and `Saw` use its native TB-303 oscillator, filter, envelope and accent behaviour. `Braids` replaces only the oscillator, then continues through the same 303 filter and amplifier path. It exposes Model, Timbre and Color instead of Fine tune. aChChid does not use ChooChooTracker's unified post-filter or ADSR.
+**aChChid** is a monophonic acid bass engine based on Open303. `Square` and `Saw` use its native TB-303 oscillator, filter, envelope and accent behaviour. `Braids` replaces only the oscillator, then continues through the same 303 filter and amplifier path. It exposes Model, Timbre, Color and Shaper instead of Fine tune. Shaper progresses from soft saturation into wavefolding. aChChid does not use ChooChooTracker's unified post-filter or ADSR.
 
-Cutoff is displayed in Hz: **EDIT + LEFT/RIGHT** changes it by 1 Hz, and
-**EDIT + UP/DOWN** changes it by 100 Hz. Decay is displayed in milliseconds.
+Cutoff and Decay use logarithmic editing: **EDIT + LEFT/RIGHT** moves by one
+musical control step, while **EDIT + UP/DOWN** moves by sixteen steps. Cutoff
+covers 200 Hz to 20 kHz; Decay covers 200 ms to 2 s.
 
-An `F` in the note volume column triggers an accent. `ASL` slides to that note from the previous pitch without retriggering the 303 envelope. `ASL 00` gives a `60 ms` glide. Notes without `ASL` always retrigger. Modulation destinations include Decay and Accent, plus Timbre and Color in Braids wave mode.
+An `F` in the note volume column triggers an accent. Normal notes use a half-step gate (3 ticks in the default 6-tick groove). `ASL` slides to that note from the previous pitch without retriggering the 303 envelope; it automatically holds the preceding gate, and `ASL 00` gives a `60 ms` glide. `ATY` keeps its note open for the whole current step. Notes without `ASL` always retrigger. Modulation destinations include Decay and Accent, plus Timbre and Color in Braids wave mode.
 
 ### Bogie
 
@@ -393,6 +470,14 @@ Motion is an internal macro envelope, not pitch glide: values below `80` use an 
 The six macros are **Waves**, **Interval**, **Amount**, **Flow**, **Feedback** and **Shaper**. Waves selects musical A/B waveform pairs. Amount controls the model's core interaction, Flow changes its direction or algorithm variant, and Feedback is bounded but becomes deliberately wild at the end of its range. Shaper is a shared final stage which moves from clean through saturation to wavefolding.
 
 MME uses the shared LP/BP/HP multimode filter and ADSR. All six macros, Cutoff and Resonance are available to modulation and motion recording. Hold **EDIT** on Model to open the model popup.
+
+### MIDI Out
+
+**MIDI Out** (desktop only) drives an external MIDI device instead of synthesizing audio: triggering a note sends a real MIDI Note On on the instrument's **Channel** (`1-16`) and, when the note ends, the matching Note Off. Volume becomes velocity, and a chord track's voices each get their own Note On/Off. There is no audio to hear from ChooChooTracker itself - select the output device under [Settings](#12-settings) first. See [MIDI](#14-midi) for the full picture, including sound preview from a MIDI keyboard.
+
+**Program** and **Bank high/low** (CC0/CC32) are optional - shown as `--` when off, `Clear` toggles a field off and remembers its value. When set, they are sent once, right before the next note, whenever they differ from what that channel was last told (not before every note, which would retrigger the receiving device's own envelopes/patch).
+
+**MC1 number**-**MC4 number** pick which CC number (`00-7F`) each of the four MC1-MC4 row FX sends to - see [MIDI Out FX](#midi-out-fx). Also `--`/optional; a slot left unset makes its FX inert.
 
 ### Subtractive engines
 
@@ -469,7 +554,7 @@ This clean Sample engine plays mono or stereo PCM samples loaded into RAM.
 
 - Tap **Sample** to load an uncompressed `8-bit` or `16-bit` PCM WAV. Press **PLAY** in the browser to audition the highlighted file.
 - When a sample is loaded, **EDIT** appears next to its name. Tap it to open Sample Settings. **OPT** or **SELECT + [LEFT]** returns to the instrument.
-- Sample Settings shows the filename, a tall waveform, **Start**, **End**, and **Slice**. **Start** and **End** set normalised playback boundaries (`00-FF`). If Start is after End, the sample plays in reverse. **Slice** is Off, `2`, `4`, `8`, `16`, or `32` (EDIT + left/right) and is saved with the instrument. Off plays the Start/End window. A slice count splits the Start/End window evenly; phrase notes pick a window from **C-1** (first slice) chromatically, and notes past the last slice stay on that last slice. Sliced notes do not transpose pitch and are not Scale-quantized. Thin vertical lines mark each slice start on the waveform except the first.
+- Sample Settings shows the filename, a tall waveform, **Start**, **End**, and **Slice**. **Start** and **End** also remain available on the Sample instrument screen. They set normalised playback boundaries (`00-FF`); if Start is after End, the sample plays in reverse. **Slice** is Off, `2`, `4`, `8`, `16`, or `32` (EDIT + left/right) and is saved with the instrument. Off plays the Start/End window. A slice count divides that window evenly; phrase notes select slices chromatically from **C-0**, and notes past the last slice stay on that last slice. Sliced notes do not transpose pitch or use Scale quantization, but **CRD** keeps the selected slice and transposes its voices as a chord. Thin vertical lines mark each slice start on the waveform except the first.
 - On the Sample instrument screen, use **EDIT + [LEFT/RIGHT]** to load the previous or next WAV in the same folder.
 - **Pitch** transposes by semitones (`-48` to `+48`).
 - **Loop** selects Off, Loop or Ping-Pong.
@@ -508,6 +593,8 @@ The available modulation types are:
 - SRAT - rate-based joystick control
 
 The list of modulation destinations depends on the instrument type.
+
+For a `Cutoff` destination, Amount is exponential with a quadratic response: 25% reaches 4.5 semitones, 50% reaches 18 semitones, 75% reaches 40.5 semitones, and 100% reaches six octaves. This keeps fine control at low amounts while still allowing deep sweeps.
 
 When an ADSR or AHD envelope targets Volume, it becomes the instrument's volume envelope. An LFO targeting Volume offsets the current output volume instead.
 
@@ -623,7 +710,7 @@ Each FX has a 3-letter command and a hexadecimal value. The in-app help panel gi
 
 ### Chords
 
-`CRD XY` turns the note on its own Phrase row into a chord. `Y` selects: `0` Major, `1` Minor, `2` Dim, `3` Aug, `4` Sus2, `5` Sus4, `6` Power, `7` Maj7, `8` Min7, `9` Dom7, `A` Min7b5, `B` Dim7, `C` Add9, `D` MinAdd9, `E` Maj9, or `F` Min9. `X` selects the voicing: `0` is root position, `1-7` move the lowest voice up by octaves, and `8-F` move it down. The command is not persistent: write it on every chorded row. Each generated note is quantized independently when Scale is active. It is available to software engines only; AY instruments ignore it and remain monophonic.
+`CRD XY` turns the note on its own Phrase row into a chord. `Y` selects: `0` Major, `1` Minor, `2` Dim, `3` Aug, `4` Sus2, `5` Sus4, `6` Power, `7` Maj7, `8` Min7, `9` Dom7, `A` Min7b5, `B` Dim7, `C` Add9, `D` MinAdd9, `E` Maj9, or `F` Min9. `X` selects the musical inversion: `0` is root position; three-note chords offer `1-2`, and four-note chords offer `1-3`. The command is not persistent: write it on every chorded row. Each generated note is quantized independently when Scale is active. It is available to software engines only; AY instruments ignore it and remain monophonic.
 
 ### Sequencer FX
 
@@ -767,6 +854,12 @@ The value is interpreted as a signed `8-bit` relative change (`01` adds `1`, `FF
 | `SMD` | `00-05` | Selects the Sintered model until the next trigger. |
 | `SDC`, `SMP`, `SMA`, `SMB`, `SMO`, `SMC` | `00-FF` | Override Decay, Mod, the first two model macros, Motion or the final model macro until the next trigger. |
 | `SCF`, `SRS` | `00-FF` | Filter cutoff and resonance. |
+
+### MIDI Out FX
+
+| FX | Value | Meaning |
+|---|---|---|
+| `MC1`-`MC4` | `00-FF` | Sends a MIDI CC, rescaled to `0-127`. Which CC number each slot sends to is set per-instrument (`MC1 number`-`MC4 number` on the instrument screen), not by the FX itself - a slot with no number set is inert. |
 
 ### Plaits FX
 
@@ -915,6 +1008,9 @@ The **Folder** row on the EXPORT screen shows the active destination:
 
 When a named project is saved under a new name, the default export folder is renamed to match, keeping previously exported files with the project. Renaming does not apply to a custom folder, and the folder is not renamed by autosave. If a folder with the target name already exists, both folders are kept. If the tracker lost track of the folder (for example after a restart), saving a named project renames the existing `current-project` folder instead. Instruments keep working after a rename: loaded sample paths that point into the renamed folder are updated automatically.
 
+**Load** also accepts `.mid`/`.midi` files, imported as a new project: notes are grouped by MIDI channel (one channel per track, up to the track count), quantized to 4 rows per beat, and placed on a single default AY instrument - MIDI program numbers have no chiptune equivalent, so pick real instruments afterward. Only the file's first tempo is used (one global tick rate, no per-section tempo changes). The Export screen's **MIDI** row does the reverse: writes the current arrangement's notes, volume and tempo/groove as a Standard MIDI File (one MIDI track per tracker track); [MIDI Out](#midi-out) instruments and other per-row FX beyond volume and the global groove have no MIDI equivalent and are not translated.
+On desktop, key jazz lets you type the filename, title and author directly on the keyboard instead of using the on-screen virtual keyboard — see [Key jazz](#key-jazz-desktop-only).
+
 ### Scale / Quantize
 
 The Scale screen controls the global 12-TET playback quantizer. Phrase entry remains chromatic: when enabled, notes are rounded downward immediately before reaching the sound engine, so changing root or scale reharmonizes a song without editing its phrases. Choose a root, one of the compact built-in scales, or edit the twelve notes of **Custom**. Each of the eight track checkboxes decides which tracks are quantized. Quantization is bypassed for non-12-note pitch tables and for PCM Sample instruments whose **Slice** is not Off; MIDI input is not part of this version.
@@ -928,13 +1024,12 @@ Use **Save** before changing instrument types or loading another project.
 ## 12. Settings
 
 - **Repeat delay / speed** tune held-button repeat.
-- **Mix volume** controls final application output.
-- **Tilt pivot** is a per-project `250-4000 Hz` frequency, defaulting to `1 kHz`. It sets the centre frequency for all Mixer Tilt controls.
-- **AY Quality** changes AY/YM emulation quality only.
-- **Sample dithering** controls AY Sample dithering only.
-- **Braids BITS / DRFT / SIGN** apply globally to every Braids instrument.
 - **Stick live mode** selects `HOLD`, `TOGGLE`, or `FREE` for the existing mapped Stick live button.
-- **Key mapping**, **Load font**, and **Edit color theme** customise the interface. ChipNomad fonts and themes should work.
+- **MIDI** opens the [MIDI](#14-midi) submenu: device selection and the MIDI In channel-to-instrument mapping.
+- **Synths** contains **AY Quality**, **Sample dithering**, and global **Braids BITS / DRFT / SIGN** settings.
+- **Mixer** contains **Mix volume** and the per-project `250-4000 Hz` **Tilt pivot** (default `1 kHz`) used by all Mixer Tilt controls.
+- **Graphics** contains **Waveform FPS** (`1-60`, default `30`), the active renderer (`GPU` or `Software`), **Load font**, and **Edit color theme**. ChipNomad fonts and themes should work.
+- **Key mapping** customises the controls.
 - **Quit ChooChooTracker** exits cleanly.
 
 ## 13. Performance and troubleshooting
@@ -957,6 +1052,14 @@ Check the instrument number, track mute or solo state, track LVL, application Mi
 
 Adjust Repeat delay and Repeat speed in Settings. If a single press moves twice, check that only 1 physical control is mapped to that direction and report the exact screen and shortcut.
 
-## 14. Credits and licensing
+## 14. MIDI
 
-ChooChooTracker is a fork of ChipNomad and retains its MIT licensing approach. Braids, Plaits, Plaits-Alt, Clouds DSP, Warps-derived MME DSP and stmlib code are derived from Mutable Instruments' open-source releases under their applicable MIT notices. Plaits-Alt is sourced from the lylepmills/eurorack Plaits Lab fork; its retained source notices apply. The aChChid engine uses Open303 by Robin Schmidt, copyright 2009, under the MIT License. Bogie and Sintered are original native implementations. See the packaged license files for exact attribution.
+Desktop and PortMaster. Settings > **MIDI** opens this submenu: **MIDI In** / **MIDI Out** pick a connected device, cycling through detected ports with `OFF` at either end; both directions need a device selected. The device selection is per session: it is not saved to settings.txt, since a port's position in the list can change across reboots or when devices are plugged in a different order. The app's **PLAY** control remains available from this screen and starts the song. On PortMaster, connect a USB MIDI device before launching; it must be exposed by the handheld's OS through ALSA.
+
+- **Sound preview from a MIDI keyboard**: with a MIDI In device selected, playing notes on the connected keyboard auditions an instrument on any screen, the same as the on-screen **EDIT + PLAY** shortcut on the [Instrument](#5-instruments) screen. This is preview only - it does not enter notes into the song.
+- **Channel mapping**: opens a list of the 16 MIDI channels; assign each one an instrument (`OFF` by default) so notes received on that channel preview that instrument regardless of which one is selected on the Instrument screen - e.g. channel `01` -> instrument `05`. A channel left `OFF` falls back to the currently selected instrument, the original behavior. This mapping is saved to settings.txt.
+- **Driving an external MIDI device**: give a track the [MIDI Out](#midi-out) instrument type and set its Channel; triggering notes on that track sends real MIDI to the selected MIDI Out device instead of making sound in ChooChooTracker.
+
+## 15. Credits and licensing
+
+ChooChooTracker is a fork of ChipNomad and retains its MIT licensing approach. Braids, Plaits, Plaits-Alt, Clouds DSP, Warps-derived MME DSP and stmlib code are derived from Mutable Instruments' open-source releases under their applicable MIT notices. Plaits-Alt is sourced from the lylepmills/eurorack Plaits Lab fork; its retained source notices apply. The aChChid engine uses Open303 by Robin Schmidt, copyright 2009, under the MIT License. Bogie and Sintered are original native implementations. MIDI I/O uses RtMidi by Gary P. Scavone, under its MIT-style license. See the packaged license files for exact attribution.
