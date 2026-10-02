@@ -24,6 +24,8 @@ Please do not turn it into a conventional DAW. Features that need a mouse-first 
 
 If an agent wrote some or all of a change, that is fine. Review the result before submitting it, keep the diff narrow, and include the same tests and context you would for handwritten code. A clear pull request is more useful than a claim about who wrote it. Do not include agent generated doc such as project architecture, etc. We already have it. Keep your agents.md to yourself.
 
+Thorough human testing is strongly encouraged. Hunt for edge cases, do stupid things. If it breaks, it's probably not ready for PR.
+
 ## Getting started
 
 Open an issue if you want to discuss a larger idea before writing code. For a small fix, a pull request with a short description is usually enough.
