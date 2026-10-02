@@ -388,7 +388,8 @@ enum GenericModDestination {
   genericModTriggerDecay,
   genericModTriggerColor,
   genericModFirstP5,
-  genericModTotalCount = genericModFirstP5 + 4,
+  genericModFirstInsert = genericModFirstP5 + 4,
+  genericModTotalCount = genericModFirstInsert + 16,
 };
 
 #endif // __CHIPNOMAD_LIB__PROJECT_INSTRUMENTS_H__

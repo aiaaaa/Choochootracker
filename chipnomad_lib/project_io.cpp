@@ -663,6 +663,25 @@ static int projectLoadAYWavetables(FILE* file, Project* p) {
   return 0;
 }
 
+// Strict byte CSV reader for the optional insert section. Reject overflow,
+// signs, trailing fields and truncated data before narrowing any value.
+static bool readInsertFields(const char* line, const char* prefix, unsigned* values, int count) {
+  size_t length = strlen(prefix);
+  if (!line || strncmp(line, prefix, length)) return false;
+  const char* cursor = line + length;
+  for (int field = 0; field < count; ++field) {
+    if (*cursor < '0' || *cursor > '9') return false;
+    unsigned value = 0;
+    do {
+      value = value * 10 + (*cursor++ - '0');
+      if (value > 255) return false;
+    } while (*cursor >= '0' && *cursor <= '9');
+    values[field] = value;
+    if (field + 1 < count) { if (*cursor++ != ',') return false; }
+  }
+  return *cursor == 0;
+}
+
 static int projectLoadInternal(FILE* file, Project* project) {
   char buf[128];
   Project p;
@@ -738,6 +757,22 @@ static int projectLoadInternal(FILE* file, Project* project) {
   consumeLine(file);
 
   line = peekLine(file);
+  if (line && strncmp(line, "- Track inserts: ", 17) == 0) {
+    unsigned header[3];
+    if (!readInsertFields(line, "- Track inserts: ", header, 3) ||
+        header[0] != 1 || header[1] != PROJECT_MAX_TRACKS || header[2] != 2) return 1;
+    consumeLine(file);
+    for (int t = 0; t < PROJECT_MAX_TRACKS; ++t) for (int slot = 0; slot < 2; ++slot) {
+      unsigned fields[12];
+      if (!readInsertFields(peekLine(file), "- Insert: ", fields, 12) ||
+          fields[0] != (unsigned)t || fields[1] != (unsigned)slot ||
+          fields[2] >= insertModuleCount || fields[3] > 1) return 1;
+      auto& c = p.trackInserts[t][slot]; c.module = fields[2]; c.bypass = fields[3];
+      for (int i = 0; i < 8; ++i) c.values[i] = insertClamp(c.module, i, fields[i + 4]);
+      consumeLine(file);
+    }
+    line = peekLine(file);
+  }
   if (line == NULL || strncmp(line, "- Track volumes: ", 17) != 0) return 1;
   if (sscanf(line + 17, "%hhu,%hhu,%hhu,%hhu,%hhu,%hhu,%hhu,%hhu",
       &p.trackVolume[0], &p.trackVolume[1], &p.trackVolume[2], &p.trackVolume[3],
@@ -1234,6 +1269,13 @@ static int projectSaveInternal(FILE* file, Project* project) {
 
   fprintf(file, "- Frame rate: %f\n", project->tickRate);
   fprintf(file, "- Chips count: %d\n", project->chipsCount);
+  fprintf(file, "- Track inserts: 1,8,2\n");
+  for (int t = 0; t < PROJECT_MAX_TRACKS; ++t) for (int slot = 0; slot < 2; ++slot) {
+    const auto& c = project->trackInserts[t][slot];
+    fprintf(file, "- Insert: %d,%d,%u,%u",t,slot,c.module,c.bypass);
+    for (int i = 0; i < 8; ++i) fprintf(file, ",%u", c.values[i]);
+    fprintf(file, "\n");
+  }
   fprintf(file, "- Track volumes: %hhu,%hhu,%hhu,%hhu,%hhu,%hhu,%hhu,%hhu\n",
     project->trackVolume[0], project->trackVolume[1], project->trackVolume[2], project->trackVolume[3],
     project->trackVolume[4], project->trackVolume[5], project->trackVolume[6], project->trackVolume[7]);

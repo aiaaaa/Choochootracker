@@ -395,7 +395,15 @@ int instrumentFXAvailableForInstrument(const Instrument* instrument, uint8_t fx)
 }
 
 int instrumentModDestinationAvailable(const Instrument* instrument, int destination) {
-  if (!instrumentModDestination(instrument ? instrument->type : InstrumentType::none, destination)) return 0;
+  InstrumentType type = instrument ? instrument->type : InstrumentType::none;
+  int generic = instrumentGenericModDestination(type, destination);
+  if (generic >= genericModFirstInsert) return 1;
+  if (generic >= 0) {
+    auto f = getInstrumentFunctions(type);
+    return generic < genericModDestinationCount || generic >= genericModFirstP5 ||
+      (f.supportsVoicePost && (generic < genericModTriggerDecay || f.supportsTrigger));
+  }
+  if (!instrumentModDestination(type, destination)) return 0;
   return !instrument || instrument->type != InstrumentType::DrumSynth ||
     destination < 3 || destination > 8 || drumSynthMacroUsed(instrument->chip.drumSynth.engine, destination - 3);
 }
@@ -451,7 +459,8 @@ static const char* genericModName(int index) {
     "M3 P1", "M3 P2", "M3 P3", "M3 P4",
     "M4 P1", "M4 P2", "M4 P3", "M4 P4",
     "ADSR A", "ADSR D", "ADSR S", "ADSR R", "ADSR Shape", "Trig D", "Trig C",
-    "M1 P5", "M2 P5", "M3 P5", "M4 P5"
+    "M1 P5", "M2 P5", "M3 P5", "M4 P5",
+    "F11", "F12", "F13", "F14", "F15", "F16", "F17", "F18", "F21", "F22", "F23", "F24", "F25", "F26", "F27", "F28"
   };
   return index >= 0 && index < genericModTotalCount ? names[index] : "Misc";
 }
@@ -463,8 +472,7 @@ int instrumentGenericModDestination(InstrumentType type, int destination) {
 
 int instrumentModDestinationMax(InstrumentType type) {
   InstrumentFunctions functions = getInstrumentFunctions(type);
-  int genericCount = functions.supportsVoicePost ? genericModFirstP5 : genericModDestinationCount;
-  return functions.modDestinationsCount + genericCount;
+  return functions.modDestinationsCount + genericModTotalCount;
 }
 
 const char* instrumentModDestinationName(InstrumentType type, int destination) {

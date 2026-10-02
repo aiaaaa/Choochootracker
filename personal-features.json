@@ -1,9 +1,9 @@
 {
   "upstream": "paiheulevrai/Choochootracker",
   "upstream_branch": "main",
-  "upstream_commit": "cf7d8660f11f56412a0f0d823e598ad3f1e2a8e9",
+  "upstream_commit": "0177aa942366103f27f9ed0fb5a1c5e245106adf",
   "personal_branch": "personal/r36h",
-  "update_policy": "Merge upstream main only; review conflicts, test and package before installing. No unattended updates.",
+  "update_policy": "Current upstream main plus retained personal choices and explicitly requested experiments. Test, preserve user data, record commit, and retain rollback before installation.",
   "features": [
     {
       "id": "fonts-theme",
@@ -12,7 +12,7 @@
       "included_commit": "23934421ee30970314b700e7471e8ef951f6a4c1",
       "upstream_pr": "https://github.com/paiheulevrai/Choochootracker/pull/17",
       "retain_if_declined": true,
-      "upstream_status": "integrated in upstream main"
+      "upstream_status": "merged directly"
     },
     {
       "id": "piano",
@@ -21,7 +21,7 @@
       "included_commit": "ea5dd1bc039fbcaf12c4f2f748c386ace93d03a7",
       "upstream_pr": "https://github.com/paiheulevrai/Choochootracker/pull/18",
       "retain_if_declined": true,
-      "upstream_status": "integrated in upstream main"
+      "upstream_status": "integrated via upstream PR #23; original PR closed as superseded"
     },
     {
       "id": "project-spacing",
@@ -30,7 +30,7 @@
       "included_commit": "942ec81c502425dae4f8b450e263d7b3723ad169",
       "upstream_pr": "https://github.com/paiheulevrai/Choochootracker/pull/19",
       "retain_if_declined": true,
-      "upstream_status": "integrated in upstream main"
+      "upstream_status": "merged directly"
     },
     {
       "id": "track-visuals",
@@ -39,7 +39,7 @@
       "included_commit": "557d718c4db38e467acde80d5fadccf15ed4ab1d",
       "upstream_pr": "https://github.com/paiheulevrai/Choochootracker/pull/20",
       "retain_if_declined": true,
-      "upstream_status": "retained personal addition"
+      "upstream_status": "open; retained personal addition"
     },
     {
       "id": "persistent-waveform",
@@ -48,7 +48,7 @@
       "included_commit": "40d4a6e6e680e8f5f27c8a80d612ba8b641edb2a",
       "upstream_pr": "https://github.com/paiheulevrai/Choochootracker/pull/21",
       "retain_if_declined": true,
-      "upstream_status": "retained personal addition"
+      "upstream_status": "open; retained personal addition"
     },
     {
       "id": "mixer-meters",
@@ -57,7 +57,7 @@
       "included_commit": "d2b93935a879a6bea576c15a614e9d037f8d0a32",
       "upstream_pr": "https://github.com/paiheulevrai/Choochootracker/pull/22",
       "retain_if_declined": true,
-      "upstream_status": "integrated in upstream main"
+      "upstream_status": "integrated via upstream PR #23; original PR closed as superseded"
     }
   ],
   "personal_assets": [
@@ -65,6 +65,15 @@
       "path": "tracker/packaging/portmaster/cover.png",
       "description": "Existing cover with a diagonal red GITHUB FORK stamp",
       "upstream_pr": null
+    }
+  ],
+  "channel": "personal-alpha",
+  "experiments": [
+    {
+      "id": "track-insert-fx",
+      "branch": "feature/track-insert-fx",
+      "included_commit": "08b9eea",
+      "status": "personal Alpha testing; upstream PR pending review"
     }
   ]
 }
