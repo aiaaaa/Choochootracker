@@ -24,7 +24,7 @@ key jazz, Settings submenus and the aChChid workflow improvements.
 
 ## Current Alpha
 
-Upstream base: `0177aa942366103f27f9ed0fb5a1c5e245106adf` (October 2).
+Upstream base: `a02a88098a03b10518806268f039b9d9b8b2f5a9` (October 2).
 The device channel is **personal Alpha**: current main plus retained personal
 features and experiments explicitly requested for testing. Upstream acceptance
 is not required for a personal feature to remain on the handheld.
@@ -36,9 +36,10 @@ is not required for a personal feature to remain on the handheld.
 | #18 Piano | Closed as superseded by #23 | Upstream's integrated implementation |
 | #19 Project spacing | Merged | Upstream main |
 | #20 Track visuals | Open | Retained personal Detailed / Audio waveform setting |
-| #21 Persistent waveform | Open | Retained personal ON/OFF setting, default OFF |
+| #21 Persistent waveform | Merged | Upstream feature with retained personal layout, default OFF |
 | #22 Mixer meters | Closed as superseded by #23 | Upstream's integrated implementation |
 | Track Insert FX | Alpha experiment; PR pending | Two track slots, five native effects, Fxx and MOD |
+| I’m Feeling Lucky | Personal experiment; no upstream PR | One Settings row, compiled only with `CHOOCHOO_EXPERIMENTAL_MOD_LUCKY=1` |
 
 Piano/meters are not duplicated just because their original proposal commits
 remain in Git history. GitHub's ahead/behind counts describe history; they are
@@ -103,3 +104,18 @@ Retire the extra test launcher only after the combined package is validated.
 Install builds made from `personal/r36h`. A stock PortMaster update can replace
 the custom executable, so use this fork's tested packages for future updates.
 A source-commit record alongside the installed binary identifies its exact build.
+
+## Optional sample discovery build
+
+The code and reproducible build instructions live in this fork. Normal builds
+default `CHOOCHOO_EXPERIMENTAL_MOD_LUCKY` to **0** and omit the row and its
+dependencies. The dedicated personal PortMaster target enables it:
+
+```sh
+make -C tracker -f Makefile.personal PortMaster
+```
+
+Prepare the pinned backend with the existing target toolchain first; see
+[Mod Lucky](docs/mod-lucky.md) for dependency setup, desktop commands, limits,
+source attribution, test results and device status. This build selection is
+compile-time only. It does not add a runtime toggle or submenu.

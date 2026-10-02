@@ -1,7 +1,7 @@
 {
   "upstream": "paiheulevrai/Choochootracker",
   "upstream_branch": "main",
-  "upstream_commit": "0177aa942366103f27f9ed0fb5a1c5e245106adf",
+  "upstream_commit": "a02a88098a03b10518806268f039b9d9b8b2f5a9",
   "personal_branch": "personal/r36h",
   "update_policy": "Current upstream main plus retained personal choices and explicitly requested experiments. Test, preserve user data, record commit, and retain rollback before installation.",
   "features": [
@@ -48,7 +48,7 @@
       "included_commit": "40d4a6e6e680e8f5f27c8a80d612ba8b641edb2a",
       "upstream_pr": "https://github.com/paiheulevrai/Choochootracker/pull/21",
       "retain_if_declined": true,
-      "upstream_status": "open; retained personal addition"
+      "upstream_status": "merged in upstream main; personal waveform/layout coexistence retained"
     },
     {
       "id": "mixer-meters",
@@ -74,6 +74,15 @@
       "branch": "feature/track-insert-fx",
       "included_commit": "6014ec51437e5b23ec49a825c8990c2e955b0786",
       "status": "personal Alpha testing; upstream PR pending review"
+    },
+    {
+      "id": "mod-lucky",
+      "branch": "experimental/mod-lucky-integrated",
+      "included_commit": "38de2454a5bf0de6a89874d2b2b105266bffb8d6",
+      "status": "personal opt-in experiment; no upstream proposal",
+      "build_flag": "CHOOCHOO_EXPERIMENTAL_MOD_LUCKY=1",
+      "normal_build_default": "OFF",
+      "documentation": "docs/mod-lucky.md"
     }
   ]
 }
