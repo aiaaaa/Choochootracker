@@ -132,6 +132,7 @@ static int onInput(int down, int keys, int taps) {
       for (int i = 0; i < insertModuleCount; ++i)
         items[i] = {insertDescriptor(i).name, i, nullptr, 0};
       popupSlot = data.cursorRow / 5;
+      screenMessage(0, "");
       selectionPopupSetup("INSERT MODULE", items, insertModuleCount, config(data.cursorRow).module,
                           selected, cancelled);
       screenSetup(&screenSelectionPopup, 0);
@@ -140,6 +141,7 @@ static int onInput(int down, int keys, int taps) {
   }
   if (down) {
     if (keys == (keyShift | keyDown)) {
+      screenMessage(0, "");
       screenSetup(&screenModulation, -1);
       return 1;
     }
