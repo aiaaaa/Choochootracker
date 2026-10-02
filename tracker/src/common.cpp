@@ -40,13 +40,16 @@ void initDefaultAppSettings(void) {
   appSettings.pitchConflictWarning = 0;
   appSettings.quickHelpReleaseSeen = 0;
   appSettings.ayWavetableLfoView = 0;
+  appSettings.waveformRefreshHz = 30;
   appSettings.stickLiveMode = StickLiveMode::hold;
-  for (auto& visual : appSettings.trackVisuals) visual = TrackVisualSettings{};
+  for (auto& visual : appSettings.trackVisuals)
+    visual.mode = TrackVisualMode::detailed;
   appSettings.midiInputDevice = -1;
   appSettings.midiOutputDevice = -1;
   appSettings.midiInputDeviceName[0] = '\0';
   appSettings.midiOutputDeviceName[0] = '\0';
   for (int i = 0; i < MIDI_CHANNEL_COUNT; i++) appSettings.midiChannelInstrument[i] = -1;
+  appSettings.persistentWaveform = 0;
 
   // Zero out key mapping (platform-specific defaults applied later)
   memset(&appSettings.keyMapping, 0, sizeof(KeyMapping));
@@ -172,14 +175,14 @@ int settingsSave(void) {
   fprintf(file, "pitchConflictWarning: %d\n", appSettings.pitchConflictWarning);
   fprintf(file, "quickHelpReleaseSeen: %d\n", appSettings.quickHelpReleaseSeen);
   fprintf(file, "ayWavetableLfoView: %d\n", appSettings.ayWavetableLfoView);
+  fprintf(file, "waveformRefreshHz: %d\n", appSettings.waveformRefreshHz);
 
   const char* stickLiveMode = appSettings.stickLiveMode == StickLiveMode::free ? "FREE" :
     appSettings.stickLiveMode == StickLiveMode::toggle ? "TOGGLE" : "HOLD";
   fprintf(file, "stickLiveMode: %s\n", stickLiveMode);
-  for (int track = 0; track < PROJECT_MAX_TRACKS; ++track) {
-    const auto& visual = appSettings.trackVisuals[track];
-    fprintf(file, "trackVisuals%d: %d\n", track + 1, (int)visual.mode);
-  }
+  fprintf(file, "persistentWaveform: %d\n", appSettings.persistentWaveform);
+  for (int track = 0; track < PROJECT_MAX_TRACKS; ++track)
+    fprintf(file, "trackVisuals%d: %d\n", track + 1, (int)appSettings.trackVisuals[track].mode);
 
   fprintf(file, "midiChannelInstrument: ");
   for (int i = 0; i < MIDI_CHANNEL_COUNT; i++) {
@@ -265,14 +268,15 @@ int settingsLoad(void) {
       len--;
     }
 
-    if (strncmp(line, "trackVisuals", 11) == 0) {
+    if (strncmp(line, "persistentWaveform: ", 20) == 0) {
+      int enabled;
+      if (sscanf(line + 20, "%d", &enabled) == 1 && (enabled == 0 || enabled == 1))
+        appSettings.persistentWaveform = (uint8_t)enabled;
+    } else if (strncmp(line, "trackVisuals", 11) == 0) {
       int track, mode;
-      // Earlier versions saved per-layer flags after the mode. Preserve the
-      // mode and ignore those flags: each display now includes all its layers.
       if (sscanf(line, "trackVisuals%d: %d", &track, &mode) == 2 &&
-          track >= 1 && track <= PROJECT_MAX_TRACKS && mode >= 0 && mode <= 1) {
+          track >= 1 && track <= PROJECT_MAX_TRACKS && mode >= 0 && mode <= 1)
         appSettings.trackVisuals[track - 1].mode = (TrackVisualMode)mode;
-      }
     } else if (strncmp(line, "screenWidth: ", 13) == 0) {
       sscanf(line + 13, "%d", &appSettings.screenWidth);
     } else if (strncmp(line, "screenHeight: ", 14) == 0) {
@@ -307,6 +311,8 @@ int settingsLoad(void) {
       sscanf(line + 22, "%d", &appSettings.quickHelpReleaseSeen);
     } else if (strncmp(line, "ayWavetableLfoView: ", 20) == 0) {
       sscanf(line + 20, "%d", &appSettings.ayWavetableLfoView);
+    } else if (strncmp(line, "waveformRefreshHz: ", 19) == 0) {
+      sscanf(line + 19, "%d", &appSettings.waveformRefreshHz);
     } else if (strncmp(line, "stickLiveMode: ", 15) == 0) {
       appSettings.stickLiveMode = strcmp(line + 15, "FREE") == 0 ? StickLiveMode::free :
         strcmp(line + 15, "TOGGLE") == 0 ? StickLiveMode::toggle : StickLiveMode::hold;
@@ -444,6 +450,7 @@ int settingsLoad(void) {
   if (appSettings.braidsBits < 0 || appSettings.braidsBits > 6) appSettings.braidsBits = 6;
   if (appSettings.braidsDrift < 0 || appSettings.braidsDrift > 4) appSettings.braidsDrift = 0;
   if (appSettings.braidsSignature < 0 || appSettings.braidsSignature > 4) appSettings.braidsSignature = 0;
+  if (appSettings.waveformRefreshHz < 1 || appSettings.waveformRefreshHz > 60) appSettings.waveformRefreshHz = 30;
   for (int i = 0; i < MIDI_CHANNEL_COUNT; i++) {
     if (appSettings.midiChannelInstrument[i] < -1 || appSettings.midiChannelInstrument[i] >= PROJECT_MAX_INSTRUMENTS)
       appSettings.midiChannelInstrument[i] = -1;

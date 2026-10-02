@@ -2,6 +2,7 @@
 #define __SCREENS_H__
 
 #include "common.h"
+#include "screen_layout.h"
 #include "../chipnomad_lib/playback.h"
 
 #define MESSAGE_TIME (60)
@@ -110,6 +111,7 @@ extern const AppScreen screenTrackVisuals;
 extern const AppScreen screenSynthSettings;
 extern const AppScreen screenMixerSettings;
 extern const AppScreen screenGraphicsSettings;
+extern const AppScreen screenTrackVisuals;
 extern const AppScreen screenMixer;
 extern const AppScreen screenSelectionPopup;
 int screenMixerGetPage(void);

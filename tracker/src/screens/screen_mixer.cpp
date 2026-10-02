@@ -55,8 +55,14 @@ static void drawCursor(int col, int row) {
     if (col < 0 || col >= 6 || row < 0 || row >= PROJECT_MAX_TRACKS) return;
     gfxCursor(x[col], 3 + row, width[col]);
   } else if (row >= 0 && row < (mixerPage == 2 ? 5 : 4)) {
-    int width = row == (mixerPage == 2 ? 4 : 3) ? 8 : 4;
-    if (mixerPage == 2 && row == 2) width = 2;
+    int filterRow = mixerPage == 2 ? 4 : 3;
+    int width = 2;
+    if (row == filterRow) {
+      char value[12];
+      unsigned int cutoff = mixerPage == 1 ? chipnomadState->project.reverbFilterCutoffHz : chipnomadState->project.delayFilterCutoffHz;
+      snprintf(value, sizeof(value), "%u Hz", cutoff);
+      width = (int)strlen(value);
+    }
     gfxCursor(12, 3 + row, width);
   }
 }
@@ -87,13 +93,19 @@ static void drawField(int col, int row, CellState state) {
     if (row == 0) gfxPrint(12, 3, byteToHex(controlFromRange(p->reverbReturn, 100)));
     else if (row == 1) gfxPrint(12, 4, byteToHex(p->reverbTime));
     else if (row == 2) gfxPrint(12, 5, byteToHex(p->reverbDamping));
-    else gfxPrintf(12, 6, "%u Hz", p->reverbFilterCutoffHz);
+    else {
+      gfxClearRect(12, 6, 8, 1);
+      gfxPrintf(12, 6, "%u Hz", p->reverbFilterCutoffHz);
+    }
   } else {
     if (row == 0) gfxPrint(12, 3, byteToHex(controlFromRange(p->delayReturn, 100)));
     else if (row == 1) gfxPrint(12, 4, byteToHex(controlFromRange(p->delayReverbSend, 100)));
     else if (row == 2) gfxPrintf(12, 5, "%02X", p->delayTicks);
     else if (row == 3) gfxPrint(12, 6, byteToHex(controlFromRange(p->delayFeedback, 95)));
-    else gfxPrintf(12, 7, "%u Hz", p->delayFilterCutoffHz);
+    else {
+      gfxClearRect(12, 7, 8, 1);
+      gfxPrintf(12, 7, "%u Hz", p->delayFilterCutoffHz);
+    }
   }
 }
 
@@ -173,8 +185,8 @@ static void draw(void) {
   if (cpuLoad == displayedCpuLoad) return;
   displayedCpuLoad = cpuLoad;
   gfxSetFgColor(appSettings.colorScheme.textTitles);
-  gfxClearRect(31, 1, 9, 1);
-  gfxPrintf(31, 1, "CPU %03d%%", cpuLoad);
+  gfxClearRect(31, 0, 9, 1);
+  gfxPrintf(31, 0, "CPU %03d%%", cpuLoad);
 }
 
 static void setPage(int page) {

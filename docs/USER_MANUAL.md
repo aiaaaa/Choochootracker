@@ -62,9 +62,10 @@ ChooChooTracker works best with a gamepad that has a D-pad, 2 analogue sticks an
 | **MOTION RECORD** | L2 | W |
 | **MOTION ERASE** | R2 | E |
 
-Mappings can be changed in **Settings > Key mapping**. On PortMaster, custom
-mappings are saved immediately and navigation remains available when returning
-to Settings.
+Mappings can be changed in **Settings > Key mapping**. On PortMaster, save a
+remap with **Done**, then release the button before continuing in Settings.
+Desktop layout defaults use QWERTZ only for QWERTZ regions; Polish keyboards
+keep the standard QWERTY defaults.
 
 Windows, web, and Android users can also use a game controller. On Android,
 touch controls appear automatically when no gamepad is connected: in portrait
@@ -157,6 +158,10 @@ The Project page puts the application version on its own line and separates Load
 ### Audio display telemetry
 
 Audio readouts use a UI-owned snapshot of the final mix and individual track contributions. Track samples and stereo peaks are captured after track level and tilt, before shared effect returns and master gain. Monitoring does not change the audio signal. The audio callback publishes fixed-size snapshots without locks or allocation; display history spans about 21 ms.
+
+### Persistent waveform
+
+Graphics → Persistent waveform is OFF by default. Tap EDIT to toggle it, or use EDIT + direction; the choice is saved as an app preference. OFF restores full-height pages and the existing instrument waveform previews. When enabled, a two-row waveform above editing pages shows the final mix summed to mono. Instrument and Modulation pages show the output of a track using the selected instrument; the selected Song track wins if several tracks use it. Project, Settings, wavetable and popups keep their full-height content. Lists scroll within the remaining rows. Instrument footers retain ADSR/sample previews, and Modulation fields are compacted to keep all controls accessible. Its touch targets follow the displayed fields in both waveform modes.
 
 ### Playback piano
 
@@ -301,46 +306,6 @@ Each instrument has a default table with the same number in the `00-7F` range. Y
 - **EDIT + PLAY**: preview the instrument
 - **SHIFT + OPT**: copy the instrument
 - **SHIFT + EDIT**: paste the instrument
-
-### Pure Data instruments (Windows POC)
-
-`PD-VCO` and `PD-voice` load Pd Vanilla `.pd` patches from the instrument
-screen. This POC is available only in the Windows build. Each active tracker
-track owns an independent libpd instance.
-
-- `PD-VCO` treats the patch as a mono oscillator and passes its left output
-  through ChooChooTracker's standard filter and ADSR. The patch should not add
-  its own amplitude envelope.
-- `PD-voice` is a complete voice: its patch owns its envelope and filtering.
-  Its left and right outputs are mixed directly. Without `audio stereo`
-  metadata, the left channel is duplicated to the right.
-- The instrument page shows the patch status and eight `00-FF` macros. Phrase
-  and Table FX `PD1` through `PD8` replace the corresponding macro value for
-  that row.
-- Saved projects use a path relative to the `.cct` when the patch is inside
-  the project folder. Missing patches leave the instrument silent and do not
-  prevent the song from opening.
-
-Only Pd Vanilla objects are supported. Native externals, third-party DLLs and
-community packs are neither loaded nor distributed by ChooChooTracker; custom
-patches run at the user's own risk.
-
-#### Patch contract
-
-Receive MIDI notes on `[r cct-note]`, gate `0/1` on `[r cct-gate]`, and macros
-normalised to `0..1` on `[r cct-m1]` through `[r cct-m8]`. Send audio to
-`[throw~ cct-out-l]` and optionally `[throw~ cct-out-r]`, and include the
-bundled `[cct-output~]` abstraction to route those buses to libpd.
-
-When the tracker bangs `cct-meta`, reply to `cct-meta` with
-`param <1-8> <short_name>` messages. Underscores display as spaces. Send
-`audio stereo` as well only when the patch provides a real right channel.
-Search paths are limited to the patch folder and ChooChooTracker's bundled Pd
-abstractions.
-
-Two intentionally silly examples are installed in the `pd` folder:
-`Warp Wobble.pd` is a phase-warped `PD-VCO`, and `Pigeon Laser.pd` is a noisy
-gliding `PD-voice` with its own envelope.
 
 ### AY Classic, AY Plus and AY Sample
 
@@ -1031,10 +996,7 @@ Use **Save** before changing instrument types or loading another project.
 - **MIDI** opens the [MIDI](#14-midi) submenu: device selection and the MIDI In channel-to-instrument mapping.
 - **Synths** contains **AY Quality**, **Sample dithering**, and global **Braids BITS / DRFT / SIGN** settings.
 - **Mixer** contains **Mix volume** and the per-project `250-4000 Hz` **Tilt pivot** (default `1 kHz`) used by all Mixer Tilt controls.
-- **Graphics** contains **Load font** and **Edit color theme**. ChipNomad fonts and themes should work.
-- **Graphics → Track visuals** opens a table with one **Display** choice per track for the eight right-side mini readouts. **Detailed** is the default and keeps the instrument waveform, envelope overlay and AY noise texture together where applicable. There are no separate waveform, envelope or noise switches.
-- **Audio waveform** shows the track's summed audio after track level/tilt, before shared effects and master volume. This works across engines and chord voices, with a padded centre line and no envelope/noise decorations.
-- In **Track visuals**, tap **EDIT** to switch displays, or use **EDIT + direction**. **All audio** and **All detailed** switch every track at once. **Done** or **SHIFT + LEFT** saves these application preferences and returns to Graphics. They do not alter the song or audio output. Settings from the earlier per-layer version retain each track's mode; the removed layer switches are ignored.
+- **Graphics** contains **Edit color theme**, **Load font**, **Persistent waveform**, **Track visuals**, and the active renderer (`GPU` or `Software`). Track visuals selects **Detailed** (the synth waveform and its overlays) or **Audio waveform** (the actual summed output of that track) independently for every track; audio waveform clears any prior ADSR overlay immediately when playback starts. ChipNomad fonts and themes should work.
 - **Key mapping** customises the controls.
 - **Quit ChooChooTracker** exits cleanly.
 
@@ -1060,7 +1022,7 @@ Adjust Repeat delay and Repeat speed in Settings. If a single press moves twice,
 
 ## 14. MIDI
 
-Desktop only (Linux, Windows, macOS). Settings > **MIDI** opens this submenu: **MIDI In** / **MIDI Out** pick a connected device, cycling through detected ports with `OFF` at either end; both directions need a device selected. The device selection is per session: it is not saved to settings.txt, since a port's position in the list can change across reboots or when devices are plugged in a different order.
+Desktop and PortMaster. Settings > **MIDI** opens this submenu: **MIDI In** / **MIDI Out** pick a connected device, cycling through detected ports with `OFF` at either end; both directions need a device selected. The device selection is per session: it is not saved to settings.txt, since a port's position in the list can change across reboots or when devices are plugged in a different order. The app's **PLAY** control remains available from this screen and starts the song. On PortMaster, connect a USB MIDI device before launching; it must be exposed by the handheld's OS through ALSA.
 
 - **Sound preview from a MIDI keyboard**: with a MIDI In device selected, playing notes on the connected keyboard auditions an instrument on any screen, the same as the on-screen **EDIT + PLAY** shortcut on the [Instrument](#5-instruments) screen. This is preview only - it does not enter notes into the song.
 - **Channel mapping**: opens a list of the 16 MIDI channels; assign each one an instrument (`OFF` by default) so notes received on that channel preview that instrument regardless of which one is selected on the Instrument screen - e.g. channel `01` -> instrument `05`. A channel left `OFF` falls back to the currently selected instrument, the original behavior. This mapping is saved to settings.txt.
@@ -1068,4 +1030,4 @@ Desktop only (Linux, Windows, macOS). Settings > **MIDI** opens this submenu: **
 
 ## 15. Credits and licensing
 
-ChooChooTracker is a fork of ChipNomad and retains its MIT licensing approach. Braids, Plaits, Plaits-Alt, Clouds DSP, Warps-derived MME DSP and stmlib code are derived from Mutable Instruments' open-source releases under their applicable MIT notices. Plaits-Alt is sourced from the lylepmills/eurorack Plaits Lab fork; its retained source notices apply. The aChChid engine uses Open303 by Robin Schmidt, copyright 2009, under the MIT License. The Windows Pure Data POC statically links libpd/Pure Data under the Standard Improved BSD License. Bogie and Sintered are original native implementations. MIDI I/O uses RtMidi by Gary P. Scavone, under its MIT-style license. See the packaged license files for exact attribution.
+ChooChooTracker is a fork of ChipNomad and retains its MIT licensing approach. Braids, Plaits, Plaits-Alt, Clouds DSP, Warps-derived MME DSP and stmlib code are derived from Mutable Instruments' open-source releases under their applicable MIT notices. Plaits-Alt is sourced from the lylepmills/eurorack Plaits Lab fork; its retained source notices apply. The aChChid engine uses Open303 by Robin Schmidt, copyright 2009, under the MIT License. Bogie and Sintered are original native implementations. MIDI I/O uses RtMidi by Gary P. Scavone, under its MIT-style license. See the packaged license files for exact attribution.
