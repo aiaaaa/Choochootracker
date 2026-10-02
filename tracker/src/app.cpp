@@ -6,6 +6,7 @@
 #include "audio_manager.h"
 #include "app.h"
 #include "screens.h"
+#include "screens/selection_popup.h"
 #include "chipnomad_lib.h"
 #include "project_utils.h"
 #include "waveform_display.h"
@@ -392,7 +393,8 @@ void appDraw(void) {
   monitorDisplayUpdate();
   screenDraw();
 
-  if (currentScreen == &screenTitle) return;
+  if (currentScreen == &screenTitle ||
+      (currentScreen == &screenSelectionPopup && selectionPopupIsFullWidth())) return;
 
   if (!chipnomadState) return;
 
