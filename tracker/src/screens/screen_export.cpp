@@ -503,6 +503,8 @@ static int bouncePrefixLength = 0;
 #define BOUNCE_NAME_FIELD_W (24)
 #define BOUNCE_PREFIX_ROW (3)
 #define BOUNCE_START_ROW (6)
+// Screen row of Start/Cancel: one blank row below the checkboxes
+#define BOUNCE_START_SCREEN_Y (11)
 
 static int bounceColumnCount(int row) {
   if (row == 0) return BOUNCE_NAME_FIELD_W; // File name field
@@ -534,9 +536,9 @@ static void bounceDrawCursor(int col, int row) {
     gfxCursor(0, row + 4, 1); // On the checkbox bracket
   } else if (row == BOUNCE_START_ROW) {
     if (col == 0) {
-      gfxCursor(0, 10, 5);
+      gfxCursor(0, BOUNCE_START_SCREEN_Y, 5);
     } else {
-      gfxCursor(9, 10, 6);
+      gfxCursor(9, BOUNCE_START_SCREEN_Y, 6);
     }
   }
 }
@@ -560,15 +562,17 @@ static void bounceDrawField(int col, int row, CellState state) {
     gfxPrintf(0, row + 4, "[%c] %s", enabled ? 'x' : ' ', prefixLabels[idx]);
   } else if (row == BOUNCE_START_ROW) {
     if (col == 0) {
-      gfxPrint(0, 10, "Start");
+      gfxPrint(0, BOUNCE_START_SCREEN_Y, "Start");
     } else {
-      gfxPrint(9, 10, "Cancel");
+      gfxPrint(9, BOUNCE_START_SCREEN_Y, "Cancel");
     }
   }
 }
 
 // Builds the final file name on Start: optional [BPM][Key][length] prefixes
-// followed by the sanitized user name and the per-project bounce counter
+// followed by the sanitized user name. The sequence number is not appended
+// here: it is proposed in the file name field when the bounce screen opens
+// (exportProposeBounceName) and used as the name itself.
 static void buildBounceFileName(char* output, int maxLen, const char* cleanName) {
   Project* p = &chipnomadState->project;
 
@@ -604,6 +608,10 @@ static void buildBounceFileName(char* output, int maxLen, const char* cleanName)
 
   if (bouncePrefixLength) {
     int rows = exportSelectionLengthRows(p, pendingBounceSelection);
+    // A selection ending mid-beat reads one sixteenth shorter: the last
+    // selected row acts as the cut point. Selections ending on a whole beat
+    // or bar keep the full count.
+    if (rows % 4 != 0) rows--;
     char lengthText[32];
     if (rows % 16 == 0) {
       // Whole phrases: just the bar count
@@ -618,17 +626,19 @@ static void buildBounceFileName(char* output, int maxLen, const char* cleanName)
     strncat(prefix, "]", sizeof(prefix) - strlen(prefix) - 1);
   }
 
-  char counter[8];
-  exportNextBounceNumber(counter, sizeof(counter));
-
-  snprintf(output, maxLen, "%s%s%s", prefix, cleanName, counter);
+  snprintf(output, maxLen, "%s%s", prefix, cleanName);
 }
 
 static void startBounce(void) {
   char cleanName[64];
-  // An empty name is allowed: the bounce is then named just by its
-  // per-project sequence number (001, 002, ...)
-  if (!sanitizeBounceName(bounceName, cleanName, sizeof(cleanName))) cleanName[0] = 0;
+  // An empty name falls back to the proposed sequence number
+  if (!sanitizeBounceName(bounceName, cleanName, sizeof(cleanName))) {
+    exportProposeBounceName(cleanName, sizeof(cleanName));
+  }
+
+  // A plain sequence-number name advances the per-project counter; custom
+  // names leave it untouched. Claimed only when the bounce actually starts,
+  // so a failed start does not skip a number.
 
   char finalName[192];
   buildBounceFileName(finalName, sizeof(finalName), cleanName);
@@ -638,7 +648,10 @@ static void startBounce(void) {
                               bitDepths[bounceBitDepthIndex])) {
     screenMessage(MESSAGE_TIME_ERROR, "Bounce failed to start");
     bounceReturnToOrigin();
+    return;
   }
+
+  exportClaimBounceName(cleanName);
 }
 
 static int bounceOnEdit(int col, int row, CellEditAction action) {
@@ -777,10 +790,12 @@ void exportBounceBegin(const ExportSelection& selection) {
   }
   pendingBounceSelection = selection;
   bounceReturnScreen = currentScreen;
-  // The file name starts empty: bounces follow the per-project sequence
-  // number (001, 002, ...) and never inherit the project name. A custom
-  // name typed here becomes a prefix before the number.
-  bounceName[0] = 0;
+  // The file name field proposes the next free sequence number (001, 002,
+  // ...); the user keeps it or types a custom name. A custom name is written
+  // as-is when it does not collide with an existing file, and gets a
+  // _001.._999 suffix on collision - the sequence number is never appended
+  // to it.
+  exportProposeBounceName(bounceName, sizeof(bounceName));
   bounceSampleRateIndex = 0;
   bounceBitDepthIndex = 0;
   screenSetup(&screenBounce, 0);
