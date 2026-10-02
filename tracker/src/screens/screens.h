@@ -107,6 +107,7 @@ extern const AppScreen screenAYWavetable;
 extern const AppScreen screenExport;
 extern const AppScreen screenManage;
 extern const AppScreen screenSettings;
+extern const AppScreen screenTrackVisuals;
 extern const AppScreen screenSynthSettings;
 extern const AppScreen screenMixerSettings;
 extern const AppScreen screenGraphicsSettings;
