@@ -12,6 +12,7 @@ import subprocess
 import sys
 import uuid
 import zipfile
+from vita_assets import validate_livearea
 
 ROOT=Path(__file__).resolve().parent.parent
 
@@ -93,6 +94,7 @@ def verify(path, expected_profile=None):
         if files!=set(m['files']): raise RuntimeError('Manifest file inventory mismatch')
         for name,digest in m['files'].items():
             if hashlib.sha256(z.read(name)).hexdigest()!=digest: raise RuntimeError('Asset checksum mismatch: '+name)
+        validate_livearea(z.read)
         if z.read('eboot.bin')[:4]!=b'SCE\0': raise RuntimeError('eboot is not a Vita SELF')
     print(f'Verified {profile}: {path}\nSHA256 {sha(path)}')
     return m
@@ -102,6 +104,7 @@ def doctor(root=ROOT):
     print('Working tree:',git('status','--short',cwd=root) or 'clean')
     print('SDK:',pin(root)['image'])
     check_ids(root)
+    validate_livearea(lambda name: (root/'tracker/packaging/vita'/name).read_bytes())
     if not shutil.which('docker'): raise RuntimeError('Install/start Docker with Linux containers; no desktop/PortMaster toolchain changes are needed.')
     run(['docker','info','--format','{{.ServerVersion}}'])
     try: run(['docker','image','inspect',pin(root)['image']],capture=True)
@@ -112,6 +115,7 @@ def doctor(root=ROOT):
 
 def build(root, profile):
     clean(root); check_ids(root)
+    validate_livearea(lambda name: (root/'tracker/packaging/vita'/name).read_bytes())
     run([sys.executable, root/"scripts/test_vita_workflow.py"], root)
     revision=git('rev-parse','HEAD',cwd=root)
     personal=json.loads((root/'personal-features.json').read_text())

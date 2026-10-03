@@ -9,6 +9,7 @@ import subprocess
 import tempfile
 import unittest
 import zipfile
+from vita_assets import IMAGES, validate_livearea, validate_png
 
 spec=importlib.util.spec_from_file_location('vita',Path(__file__).with_name('vita.py'))
 vita=importlib.util.module_from_spec(spec); spec.loader.exec_module(vita)
@@ -93,8 +94,10 @@ class Workflow(unittest.TestCase):
         sfo=struct.pack('<5I',0x46535000,0x101,36,36+len(keys),1)
         sfo+=struct.pack('<HHIII',0,0x204,len(title),len(title),0)+keys+title
         files={'eboot.bin':b'SCE\0fixture','sce_sys/param.sfo':sfo,
-               'sce_sys/icon0.png':b'fixture','VITA.md':b'fixture',
+               'VITA.md':b'fixture',
                'licenses/ChooChooTracker.md':b'fixture'}
+        for name in (*IMAGES, 'sce_sys/livearea/contents/template.xml'):
+            files[name]=(vita.ROOT/'tracker/packaging/vita'/name).read_bytes()
         for folder in ('fonts','title','projects','pitch-tables'):
             files['assets/'+folder+'/fixture']=b'fixture'
         manifest={'profile':'ordinary','flags':{'CHOOCHOO_EXPERIMENTAL_MOD_LUCKY':0},
@@ -110,10 +113,11 @@ class Workflow(unittest.TestCase):
         write()
         self.assertEqual(vita.verify(package,'ordinary')['application_commit'],self.previous)
         with self.assertRaisesRegex(RuntimeError,'profile'): vita.verify(package,'personal')
+        icon=files['sce_sys/icon0.png']
         files['sce_sys/icon0.png']=b'changed'
         write()
         with self.assertRaisesRegex(RuntimeError,'Asset checksum'): vita.verify(package)
-        files['sce_sys/icon0.png']=b'fixture'
+        files['sce_sys/icon0.png']=icon
         manifest['application_commit']='moving-branch'
         write()
         with self.assertRaisesRegex(RuntimeError,'identity'): vita.verify(package)
@@ -121,5 +125,19 @@ class Workflow(unittest.TestCase):
         del files['assets/fonts/fixture']
         write()
         with self.assertRaisesRegex(RuntimeError,'Missing assets/fonts'): vita.verify(package)
+
+    def test_livearea_rejects_installer_incompatible_pngs(self):
+        root=vita.ROOT/'tracker/packaging/vita'
+        validate_livearea(lambda name: (root/name).read_bytes())
+        name='sce_sys/icon0.png'
+        good=(root/name).read_bytes()
+        for byte,value in ((24,16),(25,2),(25,6),(28,1)):
+            bad=bytearray(good); bad[byte]=value
+            with self.assertRaisesRegex(RuntimeError,'encoding'):
+                validate_png(bytes(bad),name,(128,128))
+        with self.assertRaisesRegex(RuntimeError,'dimensions'):
+            validate_png(good,name,(960,544))
+        with self.assertRaisesRegex(RuntimeError,'truncated|incomplete'):
+            validate_png(good[:-8],name,(128,128))
 
 if __name__=='__main__': unittest.main()

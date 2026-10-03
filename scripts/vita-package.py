@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 import shutil
 import subprocess
+from vita_assets import validate_livearea
 
 def run(*args):
     return subprocess.check_output(args, text=True).strip()
@@ -21,6 +22,7 @@ def main(profile):
     stage.mkdir()
     shutil.copytree(src/'tracker/packaging/common', stage/'assets')
     shutil.copytree(src/'tracker/packaging/vita/sce_sys', stage/'sce_sys')
+    validate_livearea(lambda name: (stage/name).read_bytes())
     notices = stage/'licenses'
     shutil.copytree(src/'tracker/packaging/portmaster/license', notices)
     shutil.copy(src/'LICENSE', notices/'ChooChooTracker.md')

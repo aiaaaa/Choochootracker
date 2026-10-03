@@ -2,9 +2,12 @@
 
 Native cross-compilation, package verification, host fixtures and the repeatable
 update workflow passed. The personal candidate was transferred to VitaShell over
-FTP and read back with a matching SHA256. Installation, launch and runtime checks
-are pending user confirmation. No emulator was run and no Vita HTTPS/audio/touch
-success is claimed here.
+FTP and read back with a matching SHA256. **The first installation failed at 99%
+with 0x8010113D and created no home-screen icon.** Its RGB LiveArea artwork was
+outside the required indexed format; the initial verifier missed that restriction.
+The packaging correction converts those assets and validates their encoding before
+building or packaging. Launch and runtime checks remain pending. No emulator was
+run and no Vita HTTPS/audio/touch success is claimed here.
 
 ## Source and isolation
 
@@ -91,6 +94,10 @@ directory. GitHub Actions is configured but has not been run or published here.
 
 ## Artifacts
 
+The initial artifacts listed below are retained as evidence, but **do not install
+them**: they contain the rejected RGB LiveArea assets. A corrected candidate must
+pass the new indexed-PNG checks and a fresh device installation attempt.
+
 Paths are relative to this worktree unless noted. Each has `.sha256` and
 `.manifest.json` sidecars. The title ID is **CCTRK0001** for both profiles.
 
@@ -141,8 +148,8 @@ The first personal VPK and checksum were uploaded via VitaShell FTP to:
 
 `ux0:/data/choochootracker-candidates/b04a45a0c361-personal-94801a94.vpk`
 
-Read-back SHA256 matched the local VPK exactly. FTP transfer is the only completed
-real-device check at this point. Runtime validation uses the checklist in
+Read-back SHA256 matched the local VPK exactly. The subsequent device installation
+failed at 99% with 0x8010113D; no application icon appeared. Runtime validation uses the checklist in
 [vita.md](vita.md#integration-points-and-hardware-checklist): launch/navigation,
 audio format and sustained playback, both sticks/panels and physical rear
 orientation, MOD routing/Insert FX, save/reopen, Lucky HTTPS/preview/import/reload,
