@@ -13,6 +13,8 @@
 #include "synth/drum_synth_voice.h"
 #include "synth/mme_voice.h"
 #include "synth/sintered_voice.h"
+#include "synth/opll_voice.h"
+#include "opll_presets.h"
 #include "synth/master_effects.h"
 #include "midi/midi_router.h"
 #include <math.h>
@@ -32,6 +34,7 @@ static void updateAChChidVoices(ChipNomadState* state);
 static void updateDrumSynthVoices(ChipNomadState* state);
 static void updateMMEVoices(ChipNomadState* state);
 static void updateSinteredVoices(ChipNomadState* state);
+static void updateOPLLVoices(ChipNomadState* state);
 static void applyVoiceEvents(ChipNomadState* state, uint64_t dueMicros);
 static int hasAudioRateModulation(const ChipNomadState* state);
 static void updateAudioRateModulations(ChipNomadState* state);
@@ -87,7 +90,7 @@ class AudioCommandQueue {
   }
 
   int pushCommand(uint8_t type, int a = 0, int b = 0, int c = 0, int d = 0,
-                  const PhraseRow* row = NULL) {
+                  const PhraseRow* row = NULL, const InstrumentOPLL* patch = NULL) {
     unsigned int head = commandHead_.load(std::memory_order_relaxed);
     unsigned int next = (head + 1) % kCommandCapacity;
     if (next == commandTail_.load(std::memory_order_acquire)) {
@@ -97,6 +100,7 @@ class AudioCommandQueue {
     AudioCommand& command = commands_[head];
     command.type = type; command.a = a; command.b = b; command.c = c; command.d = d;
     if (row) command.row = *row;
+    if (patch) command.patch = *patch;
     commandHead_.store(next, std::memory_order_release);
     return 1;
   }
@@ -117,7 +121,8 @@ class AudioCommandQueue {
     settingsSlots_[slot].state.store(kFree, std::memory_order_release);
   }
 
-  void applyCommands(PlaybackState* playback) {
+  void applyCommands(ChipNomadState* state) {
+    PlaybackState* playback = &state->playbackState;
     unsigned int tail = commandTail_.load(std::memory_order_relaxed);
     unsigned int head = commandHead_.load(std::memory_order_acquire);
     while (tail != head) {
@@ -131,6 +136,12 @@ class AudioCommandQueue {
         case kStartLiveChain: playbackStartLiveChain(playback, command.a, command.b); break;
         case kQueueLiveChain: playbackQueueLiveChain(playback, command.a, command.b, command.c); break;
         case kPreviewNote: playbackPreviewNote(playback, command.a, (uint8_t)command.b, (uint8_t)command.c); break;
+        case kChipPreview:
+          if (command.b && !playbackIsPlaying(playback)) {
+            state->opllPreview->kill(); state->opllPreviewTrack = command.a;
+            state->opllPreview->configure(&command.patch, 6000, .7f); state->opllPreview->noteOn();
+          } else if (!command.b) { state->opllPreview->kill(); state->opllPreviewTrack = -1; }
+          break;
         case kStopPreview: playbackStopPreview(playback, command.a); break;
         case kClearTrackFX: memset(playback->tracks[command.a].note.fx, 0, sizeof(playback->tracks[command.a].note.fx)); break;
         case kSetScale:
@@ -174,8 +185,8 @@ class AudioCommandQueue {
   enum { kFree, kPublished, kReading };
   template <typename T> struct Slot { T value; std::atomic<int> state{kFree}; };
   struct Settings { uint64_t trackMask = ~UINT64_C(0); LoopRange loopRange{}; uint8_t loopDirty = 0; };
-  struct AudioCommand { uint8_t type; int a, b, c, d; PhraseRow row; };
-  enum CommandType { kStartSong, kStartChain, kStartPhrase, kStartPhraseRow, kQueuePhrase, kPreviewNote, kStopPreview, kClearTrackFX, kStartLiveChain, kQueueLiveChain, kSetScale };
+  struct AudioCommand { uint8_t type; int a, b, c, d; PhraseRow row; InstrumentOPLL patch; };
+  enum CommandType { kStartSong, kStartChain, kStartPhrase, kStartPhraseRow, kQueuePhrase, kPreviewNote, kStopPreview, kClearTrackFX, kStartLiveChain, kQueueLiveChain, kSetScale, kChipPreview };
   static constexpr unsigned int kSlotCount = 3;
   static constexpr unsigned int kCommandCapacity = 64;
 
@@ -539,6 +550,8 @@ ChipNomadState* chipnomadCreate(void) {
   state->masterEffects = new MasterEffects();
   state->masterEffects->init(96000.0f);
 
+  state->opllPreview = new OPLLVoice();
+  state->opllPreview->init(96000.0f); state->opllPreviewTrack = -1;
   for (int i = 0; i < PROJECT_MAX_TRACKS; i++) {
     for (int voice = 0; voice < CHORD_MAX_VOICES; ++voice) {
       state->braidsVoices[i][voice] = new BraidsVoice();
@@ -557,6 +570,8 @@ ChipNomadState* chipnomadCreate(void) {
       state->drumSynthVoices[i][voice]->init(96000.0f);
       state->mmeVoices[i][voice] = new MMEVoice();
       state->mmeVoices[i][voice]->init(96000.0f);
+      state->opllVoices[i][voice] = new OPLLVoice();
+      state->opllVoices[i][voice]->init(96000.0f);
       state->sinteredVoices[i][voice] = new SinteredVoice();
       state->sinteredVoices[i][voice]->init(96000.0f);
     }
@@ -576,6 +591,7 @@ void chipnomadDestroy(ChipNomadState* state) {
     }
   }
 
+  delete state->opllPreview;
   for (int i = 0; i < PROJECT_MAX_TRACKS; i++) {
     for (int voice = 0; voice < CHORD_MAX_VOICES; ++voice) {
       delete state->braidsVoices[i][voice];
@@ -586,6 +602,7 @@ void chipnomadDestroy(ChipNomadState* state) {
       delete state->achchidVoices[i][voice];
       delete state->drumSynthVoices[i][voice];
       delete state->mmeVoices[i][voice];
+      delete state->opllVoices[i][voice];
       delete state->sinteredVoices[i][voice];
     }
   }
@@ -625,6 +642,7 @@ void chipnomadInitChips(ChipNomadState* state, int sampleRate, ChipFactory facto
   memset(state->chips, 0, sizeof(state->chips));
   state->sampleRate = sampleRate;
   state->masterEffects->init((float)sampleRate);
+  state->opllPreview->init((float)sampleRate); state->opllPreviewTrack = -1;
   for (int i = 0; i < PROJECT_MAX_TRACKS; i++) {
     state->trackTilt[i].init((float)sampleRate);
     delete state->insertChains[i];
@@ -640,6 +658,7 @@ void chipnomadInitChips(ChipNomadState* state, int sampleRate, ChipFactory facto
       state->achchidVoices[i][voice]->init((float)sampleRate);
       state->drumSynthVoices[i][voice]->init((float)sampleRate);
       state->mmeVoices[i][voice]->init((float)sampleRate);
+      state->opllVoices[i][voice]->init((float)sampleRate);
       state->sinteredVoices[i][voice]->init((float)sampleRate);
     }
   }
@@ -773,7 +792,7 @@ static void updateAudioRateModulations(ChipNomadState* state) {
   updateAChChidVoices(state);
   updateDrumSynthVoices(state);
   updateMMEVoices(state);
-  updateSinteredVoices(state);
+  updateSinteredVoices(state); updateOPLLVoices(state);
   updateInsertValues(state);
 }
 
@@ -783,6 +802,7 @@ static int advancePlaybackFrame(ChipNomadState* state, uint64_t dueMicros) {
   if (state->audioCommands->takeStopRequest()) {
     chipnomadMidiPanic(state);
     playbackStop(&state->playbackState);
+    state->opllPreview->kill(); state->opllPreviewTrack = -1;
   }
   for (int t = 0; t < PROJECT_MAX_TRACKS; ++t) {
     if (!state->insertChains[t]) continue;
@@ -794,7 +814,7 @@ static int advancePlaybackFrame(ChipNomadState* state, uint64_t dueMicros) {
     }
   }
   state->audioCommands->applySettings(&state->playbackState);
-  state->audioCommands->applyCommands(&state->playbackState);
+  state->audioCommands->applyCommands(state);
   for (int t = 0; t < PROJECT_MAX_TRACKS; ++t) {
     auto& track = state->playbackState.tracks[t];
     if (track.insertReset != state->insertResetSeen[t]) {
@@ -812,14 +832,17 @@ static int advancePlaybackFrame(ChipNomadState* state, uint64_t dueMicros) {
   motionRecordFrame(state);
   if (allTracksStopped) playbackUpdateLiveStickModulation(&state->playbackState, axes, enabled);
   updateSampleVoices(state); updateSCWFVoices(state); updateBraidsVoices(state);
-  updatePlaitsVoices(state); updatePlaitsAltVoices(state); updateAChChidVoices(state); updateDrumSynthVoices(state); updateMMEVoices(state); updateSinteredVoices(state); applyVoiceEvents(state, dueMicros);
+  updatePlaitsVoices(state); updatePlaitsAltVoices(state); updateAChChidVoices(state); updateDrumSynthVoices(state); updateMMEVoices(state); updateSinteredVoices(state); updateOPLLVoices(state); applyVoiceEvents(state, dueMicros);
   if (state->audioOverload > 0) state->audioOverload--;
   for (int i = 0; i < PROJECT_MAX_TRACKS; ++i)
     if (state->trackClipping[i] > 0) state->trackClipping[i]--;
   updateInsertValues(state);
   detectAYPitchConflicts(state);
   state->audioCommands->publishStatus(&state->playbackState);
-  return allTracksStopped;
+  if (playbackIsPlaying(&state->playbackState) && state->opllPreviewTrack >= 0) {
+    state->opllPreview->kill(); state->opllPreviewTrack = -1;
+  }
+  return allTracksStopped && state->opllPreviewTrack < 0;
 }
 
 static int prepareRenderChunk(ChipNomadState* state, float* output, int frames) {
@@ -984,6 +1007,15 @@ int chipnomadRender(ChipNomadState* state, float* buffer, int samples) {
     renderMonoVoiceTracks(state, state->drumSynthVoices, output, frames);
     renderMonoVoiceTracks(state, state->mmeVoices, output, frames);
     renderMonoVoiceTracks(state, state->sinteredVoices, output, frames);
+    renderMonoVoiceTracks(state, state->opllVoices, output, frames);
+    if (state->opllPreviewTrack >= 0 && state->opllPreview->active()) {
+      const int track = state->opllPreviewTrack;
+      state->opllPreview->render(state->mixBuffer, frames);
+      for (int i = 0; i < frames * 2; ++i)
+        mixTrackSample(state, track, &output[i], &state->reverbBuffer[i], &state->delayBuffer[i],
+          state->mixBuffer[i / 2] * .25f * state->audioProject.trackVolume[track] / 100.0f,
+          i, effectiveTrackSend(state, track, true), effectiveTrackSend(state, track, false));
+    }
     processTrackInserts(state, output, frames);
     processMasterMix(state, output, frames);
     state->audioMonitor->finishChunk(output, frames, state->sampleRate);
@@ -1185,6 +1217,10 @@ static void applyVoiceEvents(ChipNomadState* state, uint64_t dueMicros) {
         for (int slot = 0; slot < CHORD_MAX_VOICES; ++slot)
           if (track->note.noteKilled || (track->note.noteTriggered && slot >= track->chordVoiceCount)) state->drumSynthVoices[trackIdx][slot]->kill();
           else if (track->note.noteTriggered) state->drumSynthVoices[trackIdx][slot]->noteOn();
+        break;
+      case InstrumentType::OPLL:
+      case InstrumentType::VRC7:
+        applyEvent(state->opllVoices[trackIdx]);
         break;
       case InstrumentType::MME:
         applyEvent(state->mmeVoices[trackIdx]);
@@ -1917,3 +1953,35 @@ void chipnomadSetBraidsSettings(ChipNomadState* state, uint8_t bits,
   }
 }
 
+
+static void updateOPLLVoices(ChipNomadState* state) {
+  auto* project = &state->audioProject;
+  auto* playback = &state->playbackState;
+  for (int t = 0; t < project->tracksCount; ++t) {
+    auto* track = &playback->tracks[t]; auto* voices = state->opllVoices[t];
+    if (track->note.instrument == EMPTY_VALUE_8 || !isOPLL(project->instruments[track->note.instrument].type)) {
+      for (int v = 0; v < CHORD_MAX_VOICES; ++v) voices[v]->kill();
+      continue;
+    }
+    auto* instrument = &project->instruments[track->note.instrument];
+    float gain = phraseGain(playback, track, instrument); int pitch = 0;
+    for (auto& mod : track->note.modulation) {
+      if (!mod.modulation) continue;
+      if (mod.modulation->destination == 1) {
+        float value = playbackModScaleToRange(mod.outValue, 255) / 255.0f;
+        gain = modulationIsAdditive(mod.modulation->type) ? gain + value : value;
+      } else if (mod.modulation->destination == 2) pitch += playbackModScaleToRange(mod.outValue, 1200);
+    }
+    for (int v = 0; v < track->chordVoiceCount; ++v) {
+      uint8_t note = track->chordPitchFinal[v];
+      int cents = note == EMPTY_VALUE_8 ? 6000 :
+        (project->linearPitch ? project->pitchTable.values[note] : (note + 12) * 100) + track->note.fineOffset + pitch;
+      voices[v]->configure(&instrument->chip.opll, cents, gain / track->chordVoiceCount);
+    }
+  }
+}
+
+int chipnomadQueueOPLLPreview(ChipNomadState* state, int track, const InstrumentOPLL* patch) {
+  if (!state || !state->audioCommands || track < 0 || track >= PROJECT_MAX_TRACKS) return 0;
+  return state->audioCommands->pushCommand(11, track, patch ? 1 : 0, 0, 0, nullptr, patch);
+}

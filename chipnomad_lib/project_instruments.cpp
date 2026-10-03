@@ -1,6 +1,7 @@
 #include <string.h>
 #include "project_instruments.h"
 #include "project.h"
+#include "opll_presets.h"
 #include "synth/multimode_filter.h"
 
 // Convention: the first modulation destination should be volume
@@ -280,6 +281,18 @@ static int initMMEInstrument(Instrument* instrument) {
 }
 static int freeMMEInstrument(Instrument* instrument) { freeCommon(instrument); return 0; }
 
+static const char* modNameOPLL(int index) {
+  static const char* names[] = {"Off", "Volume", "Pitch"};
+  return index >= 0 && index < 3 ? names[index] : "Off";
+}
+static int initOPLLInstrument(Instrument* instrument) {
+  initCommon(instrument); instrument->type = InstrumentType::OPLL;
+  opllApplyPreset(instrument, 3); return 0;
+}
+static int initVRC7Instrument(Instrument* instrument) {
+  initCommon(instrument); instrument->type = InstrumentType::VRC7;
+  opllApplyPreset(instrument, 3); return 0;
+}
 static const char* modNameSintered(int modIndex) {
   static const char* names[] = {"Off", "Volume", "Pitch", "Decay", "Mod", "A", "B", "Motion", "C", "Cutoff", "Reso"};
   return modIndex >= 0 && modIndex < 11 ? names[modIndex] : "Off";
@@ -325,6 +338,7 @@ static const InstrumentModDestination destDrumSynth[] = {N,D("Volume",instrument
 static const InstrumentModDestination destMME[] = {N,D("Volume",instrumentNoFX,255,InstrumentMotionValue::raw),D("Pitch",instrumentNoFX,0,InstrumentMotionValue::raw),D("Waves",fxMWV,255,InstrumentMotionValue::raw),D("Interval",fxMIN,255,InstrumentMotionValue::raw),D("Amount",fxMAM,255,InstrumentMotionValue::raw),D("Flow",fxMFL,255,InstrumentMotionValue::raw),D("Feedback",fxMFB,255,InstrumentMotionValue::raw),D("Shaper",fxMSH,255,InstrumentMotionValue::raw),D("Cutoff",fxMCF,FILTER_CUTOFF_MAX_HZ,InstrumentMotionValue::cutoff),D("Reso",fxMRS,255,InstrumentMotionValue::raw)};
 static const InstrumentModDestination destSintered[] = {N,D("Volume",instrumentNoFX,255,InstrumentMotionValue::raw),D("Pitch",instrumentNoFX,0,InstrumentMotionValue::raw),D("Decay",fxSDC,255,InstrumentMotionValue::raw),D("Mod",fxSMD,255,InstrumentMotionValue::raw),D("A",fxSA,255,InstrumentMotionValue::raw),D("B",fxSB,255,InstrumentMotionValue::raw),D("Motion",fxSMO,255,InstrumentMotionValue::raw),D("C",fxSC,255,InstrumentMotionValue::raw),D("Cutoff",fxSCF3,FILTER_CUTOFF_MAX_HZ,InstrumentMotionValue::cutoff),D("Reso",fxSRS3,255,InstrumentMotionValue::raw)};
 static const InstrumentModDestination destMidi[] = {N};
+static const InstrumentModDestination destOPLL[] = {N,D("Volume",instrumentNoFX,255,InstrumentMotionValue::raw),D("Pitch",instrumentNoFX,0,InstrumentMotionValue::raw)};
 #undef N
 #undef D
 #define F(f, n) {(uint8_t)(f), n}
@@ -362,6 +376,8 @@ static const InstrumentDefinition instrumentDefinitions[] = {
   {"Retired",InstrumentCategory::none,InstrumentScreenKind::none,destNone,COUNT(destNone),NULL,0,{0,modNameNone,initNoneInstrument,freeNoneInstrument,0,0}},
   {"Retired",InstrumentCategory::none,InstrumentScreenKind::none,destNone,COUNT(destNone),NULL,0,{0,modNameNone,initNoneInstrument,freeNoneInstrument,0,0}},
   {"MIDI Out",InstrumentCategory::midi,InstrumentScreenKind::midi,destMidi,COUNT(destMidi),fxMidi,COUNT(fxMidi),{0,modNameMidi,initMidiInstrument,freeMidiInstrument,0,0}},
+  {"OPLL / MSX",InstrumentCategory::fm,InstrumentScreenKind::opll,destOPLL,COUNT(destOPLL),NULL,0,{2,modNameOPLL,initOPLLInstrument,freeNoneInstrument,0,0}},
+  {"VRC7",InstrumentCategory::fm,InstrumentScreenKind::opll,destOPLL,COUNT(destOPLL),NULL,0,{2,modNameOPLL,initVRC7Instrument,freeNoneInstrument,0,0}},
 };
 #undef COUNT
 

@@ -16,6 +16,7 @@ class AChChidVoice;
 class DrumSynthVoice;
 class MMEVoice;
 class SinteredVoice;
+class OPLLVoice;
 class AudioCommandQueue;
 struct MidiRouterState;
 class AudioMonitor;
@@ -91,6 +92,9 @@ struct ChipNomadState {
   AChChidVoice* achchidVoices[PROJECT_MAX_TRACKS][CHORD_MAX_VOICES];
   DrumSynthVoice* drumSynthVoices[PROJECT_MAX_TRACKS][CHORD_MAX_VOICES];
   MMEVoice* mmeVoices[PROJECT_MAX_TRACKS][CHORD_MAX_VOICES];
+  OPLLVoice* opllPreview;
+  int opllPreviewTrack;
+  OPLLVoice* opllVoices[PROJECT_MAX_TRACKS][CHORD_MAX_VOICES];
   SinteredVoice* sinteredVoices[PROJECT_MAX_TRACKS][CHORD_MAX_VOICES];
   // MIDI-Out active-note tracking, Program/Bank cache, and MIDI-In routing
   // state now live behind the generic MIDI router (see midi/midi_router.h) -
@@ -145,6 +149,8 @@ int chipnomadQueuePlaybackQueuePhrase(ChipNomadState* state, int trackIdx, int s
 int chipnomadQueuePlaybackStartLiveChain(ChipNomadState* state, int trackIdx, int songRow);
 int chipnomadQueuePlaybackQueueLiveChain(ChipNomadState* state, int trackIdx, int songRow, int urgent);
 int chipnomadQueuePlaybackPreviewNote(ChipNomadState* state, int trackIdx, uint8_t note, uint8_t instrument);
+// Copies the bounded native patch into the existing audio command queue.
+int chipnomadQueueOPLLPreview(ChipNomadState* state, int track, const InstrumentOPLL* patch);
 int chipnomadQueuePlaybackStopPreview(ChipNomadState* state, int trackIdx);
 int chipnomadQueuePlaybackClearTrackFX(ChipNomadState* state, int trackIdx);
 void chipnomadQueueLoopRange(ChipNomadState* state, LoopRange range);

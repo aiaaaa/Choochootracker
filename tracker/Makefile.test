@@ -29,7 +29,8 @@ TEST_SOURCES_EXCLUDED = tests/test_project_io.cpp tests/test_screen_instrument.c
 TEST_SOURCES = $(filter-out $(TEST_SOURCES_EXCLUDED),$(TEST_SOURCES_ALL))
 
 # Common sources needed by tests - use wildcards for automatic discovery
-CHIPNOMAD_LIB_SOURCES = $(wildcard ../chipnomad_lib/*.cpp) \
+CHIPNOMAD_LIB_SOURCES = $(wildcard ../chipnomad_lib/external/ymfm/*.cpp) \
+                        $(wildcard ../chipnomad_lib/*.cpp) \
                         $(wildcard ../chipnomad_lib/chips/*.cpp) \
                         $(wildcard ../chipnomad_lib/synth/*.cpp) \
                         $(wildcard ../chipnomad_lib/export/*.cpp) \

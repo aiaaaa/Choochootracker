@@ -4,6 +4,8 @@
 #include <ctype.h>
 #include <stdarg.h>
 #include "project.h"
+#include "opll_presets.h"
+#include <memory>
 #include "project_io_common.h"
 #include "synth/sample_voice.h"
 #include "synth/sr_wavetable_loader.h"
@@ -702,7 +704,9 @@ static int projectLoadInternal(FILE* file, Project* project) {
 
   // Detect version
   if (strlen(version) > 0) {
-    if (strncmp(version, " 5.0", 4) == 0) {
+    if (strncmp(version, " 6.0", 4) == 0) {
+      projectFileVersion = 6;
+    } else if (strncmp(version, " 5.0", 4) == 0) {
       projectFileVersion = 5;
     } else if (strncmp(version, " 4.0", 4) == 0) {
       projectFileVersion = 4;
@@ -1262,7 +1266,9 @@ static int projectSaveAYWavetables(FILE* file, Project* project) {
 }
 
 static int projectSaveInternal(FILE* file, Project* project) {
-  fprintf(file, "# ChooChooTracker Module 5.0\n\n");
+  bool nativeChips = false;
+  for (const auto& instrument : project->instruments) nativeChips |= isOPLL(instrument.type);
+  fprintf(file, "# ChooChooTracker Module %d.0\n\n", nativeChips ? 6 : 5);
 
   fprintf(file, "- Title: %s\n", project->title);
   fprintf(file, "- Author: %s\n", project->author);
@@ -1357,7 +1363,7 @@ int instrumentSave(Project* project, const char* path, int instrumentIdx) {
     return 1;
   }
 
-  fprintf(file, "# ChipNomad Instrument 5.0\n\n");
+  fprintf(file, "# ChipNomad Instrument %d.0\n\n", isOPLL(project->instruments[instrumentIdx].type) ? 6 : 5);
   instrumentSaveData(file, 0, &project->instruments[instrumentIdx]);
   saveTable(file, 0, &project->tables[instrumentIdx]);
 
@@ -1375,7 +1381,9 @@ static int instrumentLoadInternal(FILE* file, Project* project, int instrumentId
 
   // Detect version
   if (strlen(line) > 22) {
-    if (strncmp(line + 22, " 5.0", 4) == 0) {
+    if (strncmp(line + 22, " 6.0", 4) == 0) {
+      projectFileVersion = 6;
+    } else if (strncmp(line + 22, " 5.0", 4) == 0) {
       projectFileVersion = 5;
     } else if (strncmp(line + 22, " 4.0", 4) == 0) {
       projectFileVersion = 4;
@@ -1430,7 +1438,20 @@ int instrumentLoad(Project* project, const char* path, int instrumentIdx) {
     return 1;
   }
 
-  int result = instrumentLoadInternal(file, project, instrumentIdx);
+  int result;
+  const char* header = peekLine(file);
+  if (header && strncmp(header, "# ChipNomad Instrument 6.0", 25) == 0) {
+    auto temporary = std::make_unique<Project>();
+    projectInit(temporary.get());
+    result = instrumentLoadInternal(file, temporary.get(), instrumentIdx);
+    if (!result && !isOPLL(temporary->instruments[instrumentIdx].type)) result = 1;
+    if (!result) {
+      instrumentClear(&project->instruments[instrumentIdx]);
+      project->instruments[instrumentIdx] = temporary->instruments[instrumentIdx];
+      project->tables[instrumentIdx] = temporary->tables[instrumentIdx];
+    }
+    projectFree(temporary.get());
+  } else result = instrumentLoadInternal(file, project, instrumentIdx);
   fclose(file);
   return result;
 }

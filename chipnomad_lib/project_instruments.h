@@ -26,6 +26,8 @@ enum class InstrumentType : uint8_t {
   MME = 12,
   Sintered = 13,
   Midi = 16,
+  OPLL = 17,
+  VRC7 = 18,
   totalCount,
 };
 
@@ -291,7 +293,15 @@ struct InstrumentMidi {
   uint8_t ccNumber[4];
 };
 
+struct InstrumentOPLL {
+  uint8_t schema;
+  uint8_t program; // 1..15, zero is custom and is not exposed in R1
+  int8_t fineTune; // cents
+  uint8_t patch[8]; // complete pinned tone, portable with the song
+};
+
 union InstrumentChipData {
+  InstrumentOPLL opll;
   InstrumentAY1 ay;
   InstrumentAY2 ay2;
   InstrumentAYSample aySample;
@@ -328,8 +338,8 @@ struct InstrumentFunctions {
 
 // This is metadata, not an audio abstraction: renderers keep their typed
 // paths while screens, validation and motion routing share this one catalogue.
-enum class InstrumentCategory : uint8_t { none, chip, sample, synth, drums, midi };
-enum class InstrumentScreenKind : uint8_t { none, ay1, ay2, aySample, braids, sample, scwf, byowtbl, plaits, achchid, drumSynth, mme, sintered, midi };
+enum class InstrumentCategory : uint8_t { none, chip, sample, synth, drums, midi, fm };
+enum class InstrumentScreenKind : uint8_t { none, ay1, ay2, aySample, braids, sample, scwf, byowtbl, plaits, achchid, drumSynth, mme, sintered, midi, opll };
 enum class InstrumentMotionValue : uint8_t { raw, speed, cutoff };
 
 static constexpr uint8_t instrumentNoFX = 0xff;

@@ -1,4 +1,5 @@
 #include "project.h"
+#include "opll_presets.h"
 #include "project_io_common.h"
 #include "synth/sample_voice.h"
 #include "synth/sr_wavetable_loader.h"
@@ -449,6 +450,32 @@ static int loadModulation(FILE* file, Instrument* instrument) {
   return 0;
 }
 
+static int loadInstrumentOPLL(FILE* file, Instrument* instrument) {
+  InstrumentOPLL value{}; unsigned seen = 0;
+  while (char* line = peekLine(file)) {
+    if (line[0] == '#') break;
+    int a[8]{}; char extra;
+    if (strncmp(line, "- OPLL schema: ", 15) == 0) {
+      if ((seen & 1) || sscanf(line + 15, "%d %c", &a[0], &extra) != 1 || a[0] != 1) return 1;
+      value.schema = 1; seen |= 1;
+    } else if (strncmp(line, "- Program: ", 11) == 0) {
+      if ((seen & 2) || sscanf(line + 11, "%d %c", &a[0], &extra) != 1 || a[0] < 1 || a[0] > 15) return 1;
+      value.program = a[0]; seen |= 2;
+    } else if (strncmp(line, "- Fine tune: ", 13) == 0) {
+      if ((seen & 4) || sscanf(line + 13, "%d %c", &a[0], &extra) != 1 || a[0] < -100 || a[0] > 100) return 1;
+      value.fineTune = a[0]; seen |= 4;
+    } else if (strncmp(line, "- Tone bytes: ", 14) == 0) {
+      if ((seen & 8) || sscanf(line + 14, "%d,%d,%d,%d,%d,%d,%d,%d %c", &a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7], &extra) != 8) return 1;
+      for (int i = 0; i < 8; ++i) { if (a[i] < 0 || a[i] > 255) return 1; value.patch[i] = a[i]; }
+      seen |= 8;
+    } else return 1;
+    consumeLine(file);
+  }
+  if (seen != 15) return 1;
+  instrument->chip.opll = value;
+  return 0;
+}
+
 // Main load function
 int instrumentLoadData(FILE* file, Instrument* instrument, Project* p) {
   instrumentClear(instrument);
@@ -460,9 +487,12 @@ int instrumentLoadData(FILE* file, Instrument* instrument, Project* p) {
     if (line[0] == '#') return 0;
 
     if (strncmp(line, "- Name: ", 8) == 0) {
-      sscanf(line, "- Name: %[^\n]", instrument->name);
+      snprintf(instrument->name, sizeof(instrument->name), "%s", line + 8);
+      instrument->name[strcspn(instrument->name, "\r\n")] = 0;
     } else if (strncmp(line, "- Type: ", 8) == 0) {
-      sscanf(line, "- Type: %hhd", reinterpret_cast<uint8_t*>(&instrument->type));
+      int type; char extra;
+      if (sscanf(line + 8, "%d %c", &type, &extra) != 1 || type < 0 || type >= (int)InstrumentType::totalCount) return 1;
+      instrument->type = (InstrumentType)type;
     } else if (strncmp(line, "- Table speed: ", 15) == 0) {
       sscanf(line, "- Table speed: %hhu", &instrument->tableSpeed);
     } else if (strncmp(line, "- Volume: ", 10) == 0) {
@@ -537,6 +567,10 @@ int instrumentLoadData(FILE* file, Instrument* instrument, Project* p) {
         break;
       case InstrumentType::Sintered:
         if (loadInstrumentSintered(file, instrument)) return 1;
+        break;
+      case InstrumentType::OPLL:
+      case InstrumentType::VRC7:
+        if (projectFileVersion < 6 || loadInstrumentOPLL(file, instrument)) return 1;
         break;
       case InstrumentType::Midi:
         if (loadInstrumentMidi(file, instrument)) return 1;
@@ -838,6 +872,13 @@ int instrumentSaveData(FILE* file, int idx, Instrument* instrument) {
     case InstrumentType::Sintered:
       saveInstrumentSintered(file, instrument);
       break;
+    case InstrumentType::OPLL:
+    case InstrumentType::VRC7: {
+      const auto& v = instrument->chip.opll;
+      fprintf(file, "- OPLL schema: %u\n- Program: %u\n- Fine tune: %d\n", v.schema, v.program, v.fineTune);
+      fprintf(file, "- Tone bytes: %u,%u,%u,%u,%u,%u,%u,%u\n", v.patch[0], v.patch[1], v.patch[2], v.patch[3], v.patch[4], v.patch[5], v.patch[6], v.patch[7]);
+      break;
+    }
     case InstrumentType::Midi:
       saveInstrumentMidi(file, instrument);
       break;

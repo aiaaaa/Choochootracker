@@ -48,6 +48,10 @@ static SelectionItem instrumentTypeSample[] = {
   {NULL, (int)InstrumentType::BYOWTBL, NULL, 0},
   {NULL, (int)InstrumentType::Sample, NULL, 0},
 };
+static SelectionItem instrumentTypeFM[] = {
+  {"OPLL / YM2413", (int)InstrumentType::OPLL, NULL, 0},
+  {"VRC7 / DS1001", (int)InstrumentType::VRC7, NULL, 0},
+};
 static SelectionItem instrumentTypeMidi[] = {
   {NULL, (int)InstrumentType::Midi, NULL, 0},
 };
@@ -57,6 +61,7 @@ static const SelectionItem instrumentTypeCategories[] = {
   {"SAMPLE", -1, instrumentTypeSample, 3},
   {"SYNTH", -1, instrumentTypeSynth, 5},
   {"MIDI", -1, instrumentTypeMidi, 1},
+  {"FM", -1, instrumentTypeFM, 2},
 };
 
 static const InstrumentType instrumentTypesQuickCycle[] = {
@@ -66,7 +71,7 @@ static const InstrumentType instrumentTypesQuickCycle[] = {
   InstrumentType::AChChid, InstrumentType::Braids,
   InstrumentType::Plaits, InstrumentType::PlaitsAlt,
   InstrumentType::MME,
-  InstrumentType::Midi,
+  InstrumentType::Midi, InstrumentType::OPLL, InstrumentType::VRC7,
 };
 
 static int editInstrumentType(CellEditAction action, InstrumentType* type) {
@@ -267,7 +272,7 @@ static ScreenData* instrumentScreen(void) {
     &screenInstrumentSCWF, &screenInstrumentBYOWTBL, &screenInstrumentPlaits, &screenInstrumentAChChid,
     &screenInstrumentDrumSynth, &screenInstrumentMME,
     &screenInstrumentSintered,
-    &screenInstrumentMidi,
+    &screenInstrumentMidi, &screenInstrumentOPLL,
   };
   InstrumentScreenKind kind = getInstrumentDefinition(chipnomadState->project.instruments[cInstrument].type)->screen;
   ScreenData* data = screens[(int)kind];
