@@ -1,5 +1,22 @@
 # ChooChooTracker changelog
 
+## v0.1.0-prealpha.5 (October 3, 2026)
+
+- Expanded the PCM Sample screen into a sample editor: the waveform zooms
+  in around the Start/End marker while fine-adjusting and returns to the
+  full view on coarse steps.
+- Added an independent processing selection (Sel.S/Sel.E) in absolute
+  frames with zoom-aware handles, tap-to-copy from the playback markers
+  and one-key clear.
+- Added destructive process operations — Crop, Normalize, Delete, Silence,
+  Fade In, Fade Out — with a one-level toggle undo, running with the audio
+  callback suspended.
+- Added Save (overwrite with confirm), Save As (name + folder browser) and
+  Rename flows backed by a new 16-bit PCM WAV writer, plus a `*` marker
+  when the sample in RAM differs from the file on disk.
+- Added end-to-end engine tests for the editor workflows and a 32 MB
+  large-sample stress case (392 test cases total).
+
 ## v0.1.0-prealpha.4 (August 17, 2026)
 
 - Added PCM Sample speed control and one-shot, looping and ping-pong playback.
