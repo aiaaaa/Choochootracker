@@ -1,12 +1,13 @@
 # Vita candidate validation — 2026-10-03
 
-Current hardware status: the user successfully launched personal candidate
-`02960371386f-personal-a007771b.vpk` and auditioned a drum. The device log confirms
-48 kHz stereo PCM16 with a 1024-frame buffer; 21,819 callbacks recorded no
-render-budget overruns. This does not prove absence of audible underruns.
-Controls, fractional font scaling, song selection and Lucky's “No connection”
-were reported during that session. Touch, save/reopen, Lucky acquisition/import,
-suspend/resume and extended mixed-engine playback remain unvalidated.
+Current hardware status: the user successfully launched candidate
+`91cd87f086eb-personal-a6fc019d.vpk` and opened Mountain King. The on-device
+C99 scanner probe passed and `vita.log` records the project load succeeding.
+The previous NESW correction was user-confirmed. Mountain King playback exceeds
+the audio render budget, and Lucky still fails to parse the CA trust bundle.
+These are unresolved device issues; the port is not yet validated for this
+workload. Touch, save/reopen, Lucky acquisition/import, suspend/resume and
+extended mixed-engine playback remain unvalidated.
 
 Earlier installation/startup failures and their corrections are retained below
 as history. Native builds, package verification and host fixtures passed, but
@@ -114,6 +115,45 @@ The green FPS overlay can be hidden from LiveArea with physical Select+Down;
 PSVshell's `src/gui.c` decrements the display mode down to hidden. This does not
 change clock settings. No plugin/configuration files were modified.
 
+
+## Hardware performance review of 91cd87f
+
+The user reported about 120% CPU during Mountain King. ChooChoo's own mixer CPU
+meter measures smoothed audio-render time divided by the buffer deadline; it is
+not total usage across all Vita cores. Retrieved log evidence:
+
+- Output: 48,000 Hz, stereo PCM16, 1,024 frames; deadline 21.333 ms.
+- After loading `projects/grieg-mountain-king-fm.cct`, maximum callback times
+  reached 28.034–28.660 ms. Two consecutive reporting intervals had every callback
+  over budget: 185/185, then 183/183. This is sustained overload, not only a spike.
+- 606 of 3,842 total-session callbacks exceeded budget. That whole-session ratio
+  includes idle/stopped time and must not be presented as the song's overload rate.
+- Heap headroom stayed near 159.5 million bytes after loading; no out-of-memory
+  event appeared. Native free memory was roughly 32–34 MiB outside the reserved heap.
+- The actual compiler defaults and ELF attributes confirm ARMv7-A, NEON/VFPv3
+  and hard-float ABI. Software float is not the cause. Current application flags
+  use `-Os -flto`; performance-oriented compiler settings remain an unmeasured
+  next experiment. No clock, quality, engine or project changes were made.
+
+This establishes a real performance limit for this workload/current build, not a
+proof that the hardware can never run it. A useful next comparison is an optimized
+build at the same clocks and audio quality, followed by profiling the active
+Plaits FM voices, filters and mixer path. A larger buffer alone would not cure
+sustained rendering slower than real time. Audible symptoms were not described
+in this report; render-budget counters are not direct hardware underrun counts.
+
+Lucky reaches the in-memory trust loader but fails with curl 77:
+`error adding trust anchors from certificate blob: 77`. Reading the CA file into
+memory therefore did not solve the TLS backend problem. It occurs before HTTP
+success/module acquisition and independently of song playback. Next diagnosis
+needs OpenSSL's underlying PEM/X509 error, not weaker TLS verification or an
+assumption that the Vita is too old. No live module preview/import has succeeded.
+
+Raw log and derived interval metrics are saved outside Git in the sibling
+`vita-validation/91cd87f-device-runtime.log` and
+`vita-validation/91cd87f-performance-summary.json`. The current package and all
+user files remain unchanged; no replacement build or GitHub push was made during
+this read-only runtime diagnosis.
 
 ## Source and isolation
 
