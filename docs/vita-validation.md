@@ -91,8 +91,29 @@ still requires retesting; no claim is made that host tests prove device TLS.
 Host checks passed: OFF 336 tests / 8,101,255 assertions; ON 349 tests /
 8,111,298 assertions (two opt-in skips), plus Vita adapters and fixture
 prepare/reload. Eleven workflow tests passed. The isolated scanner object
-cross-compiled against the pinned SDK. Application rebuild/package and device
-retesting are recorded after completion.
+cross-compiled against the pinned SDK. Both complete native builds and their
+336-test container suites passed, as did package verification (including the C99
+scanner linkage check). Actual device project loading and HTTPS retesting remain
+pending; compilation and host tests do not establish those results.
+
+Application revision: `91cd87f086ebb31d0458d71d5298a76ff8c74409` on local
+`personal/vita`. Commands: `scripts/vita.sh build --profile ordinary` and
+`scripts/vita.sh build --profile personal`.
+
+| Artifact under `releases/vita/candidates/` | Bytes | SHA256 |
+| --- | ---: | --- |
+| `91cd87f086eb-ordinary-b3542cdf.vpk` | 15,041,462 | `42b6a91f5cf0c2402080929a0955e8ed697092f2a68766e3f3c24bdc4499e080` |
+| `91cd87f086eb-personal-a6fc019d.vpk` | 18,872,095 | `d25d12c18aff00348327e514bc67a5c153770a7eb0428c6c2e72845462cc22a7` |
+
+The personal installer and checksum were transferred to
+`ux0:/data/choochootracker-candidates/91cd87f086eb-personal-a6fc019d.vpk`.
+Full FTP read-back matched the SHA256 above. Installation remains manual; prior
+installers, installed application and user data were preserved. No GitHub push.
+
+The green FPS overlay can be hidden from LiveArea with physical Select+Down;
+PSVshell's `src/gui.c` decrements the display mode down to hidden. This does not
+change clock settings. No plugin/configuration files were modified.
+
 
 ## Source and isolation
 
