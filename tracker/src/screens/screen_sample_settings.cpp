@@ -6,11 +6,17 @@
 #include "screen_instrument.h"
 #include "waveform_display.h"
 #include "synth/sample_voice.h"
+#include "synth/sample_ops.h"
+#include "audio_manager.h"
 #include <stdio.h>
 #include <string.h>
 
 static constexpr int valueX = 9;
 static constexpr int valueWidth = 7;
+static constexpr int goX = 9;
+static constexpr int goWidth = 3;
+static constexpr int undoX = 16;
+static constexpr int undoWidth = 6;
 static constexpr int previewRow = 4;
 static constexpr int previewWidth = 32;
 static constexpr int previewHeight = 7;
@@ -19,6 +25,21 @@ static constexpr int fieldRow0 = 12;
 static const char* sliceLabels[] = {"Off", "2", "4", "8", "16", "32"};
 static const uint8_t sliceValues[] = {0, 2, 4, 8, 16, 32};
 static constexpr int sliceCount = 6;
+
+// Process toolbox: one selected operation plus GO/UNDO buttons. The op is
+// cycled with Edit+Left/Right; Edit+Opt clears it to "none".
+static const char* processOpLabels[] = {"Crop", "Norm", "Del", "Sil", "F.In", "F.Out"};
+static const char* processOpDoneMessages[] = {"Cropped", "Normalized", "Deleted", "Silenced", "Faded in", "Faded out"};
+static constexpr int processOpCount = 6;
+static int processOp; // index into processOpLabels, -1 = none
+
+// One-level undo slot for the process tools. Screen module state: never
+// saved with the project, dropped when the screen is (re)entered.
+static SampleUndo editorUndo;
+
+// Set when a process op changes sample data relative to the file on disk.
+// Phase 3 adds the Save flows that clear it and the '*' filename marker.
+static int sampleDirtyToDisk;
 
 static Bitmap* samplePreviewBitmap;
 static Bitmap* sampleSliceMarkerBitmap;
@@ -315,7 +336,8 @@ static void drawSamplePreview(void) {
 }
 
 static int settingsColumnCount(int row) {
-  (void)row;
+  // GO/UNDO share one row as two columns
+  if (row == 6) return 2;
   return 1;
 }
 
@@ -357,11 +379,15 @@ static void settingsDrawStatic(void) {
   gfxPrint(0, fieldRow0 + 2, "Sel.S");
   gfxPrint(0, fieldRow0 + 3, "Sel.E");
   gfxPrint(0, fieldRow0 + 4, "Slice");
+  gfxPrint(0, fieldRow0 + 5, "Process");
 }
 
 static void settingsDrawCursor(int col, int row) {
-  (void)col;
-  gfxCursor(valueX, fieldRow0 + row, row == 4 ? 3 : valueWidth);
+  if (row == 6) {
+    gfxCursor(col ? undoX : goX, fieldRow0 + row, col ? undoWidth : goWidth);
+  } else {
+    gfxCursor(valueX, fieldRow0 + row, row == 4 ? 3 : valueWidth);
+  }
 }
 
 static void settingsDrawRowHeader(int row, CellState state) {
@@ -375,8 +401,28 @@ static void settingsDrawColHeader(int col, CellState state) {
 }
 
 static void settingsDrawField(int col, int row, CellState state) {
-  (void)col;
   InstrumentSample* sample = currentSample();
+  gfxSetFgColor(state == CellState::focus ? appSettings.colorScheme.textValue : appSettings.colorScheme.textDefault);
+  if (row == 5) {
+    // Process op selector
+    gfxClearRect(valueX, fieldRow0 + row, valueWidth, 1);
+    if (processOp < 0) gfxSetFgColor(appSettings.colorScheme.textEmpty);
+    gfxPrint(valueX, fieldRow0 + row, processOp < 0 ? "-" : processOpLabels[processOp]);
+    return;
+  }
+  if (row == 6) {
+    // GO / UNDO buttons
+    if (col == 0) {
+      gfxClearRect(goX, fieldRow0 + row, goWidth, 1);
+      gfxPrint(goX, fieldRow0 + row, "GO");
+    } else {
+      gfxClearRect(undoX, fieldRow0 + row, undoWidth, 1);
+      // UNDO is inert without a prepared slot: dim it
+      if (!editorUndo.active) gfxSetFgColor(appSettings.colorScheme.textEmpty);
+      gfxPrint(undoX, fieldRow0 + row, "UNDO");
+    }
+    return;
+  }
   gfxSetFgColor(state == CellState::focus ? appSettings.colorScheme.textValue : appSettings.colorScheme.textDefault);
   gfxClearRect(valueX, fieldRow0 + row, valueWidth, 1);
   if (row == 0) gfxPrint(valueX, fieldRow0, byteToHex(sample->start));
@@ -434,11 +480,121 @@ static void sampleEditorNormalizeState(const InstrumentSample* sample,
   updateSamplePreview(sample, view, selection);
 }
 
+// Repaints everything a process op can invalidate: the preview, the view
+// readout, the marker/selection fields and the Process row.
+static void settingsRepaintAfterOp(void) {
+  InstrumentSample* sample = currentSample();
+  drawSamplePreview();
+  drawViewReadout();
+  for (int row = 0; row < 5; ++row) settingsDrawField(0, row, CellState::normal);
+  settingsDrawField(0, 5, CellState::normal);
+  settingsDrawField(0, 6, CellState::normal);
+  settingsDrawField(1, 6, CellState::normal);
+}
+
+// Runs the selected process op on the current selection (or the whole
+// sample when no selection is active). Pauses audio while the buffer is
+// swapped or edited, prepares the one-level undo slot first.
+static void settingsRunProcessOp(void) {
+  InstrumentSample* sample = currentSample();
+  if (processOp < 0) {
+    screenMessage(MESSAGE_TIME, "Select operation");
+    return;
+  }
+  // Crop and Delete reshape the sample: they need an explicit region.
+  if ((processOp == 0 || processOp == 2) && !editorSelection.active) {
+    screenMessage(MESSAGE_TIME, "Select region first");
+    return;
+  }
+
+  uint32_t selStart = editorSelection.active ? editorSelection.start : 0;
+  uint32_t selEnd = editorSelection.active ? editorSelection.end : 0;
+
+  audioManager.pause();
+  int result = sampleOpPrepareUndo(sample, &editorUndo);
+  if (result == sampleOpOk) {
+    switch (processOp) {
+      case 0: result = sampleOpCrop(sample, selStart, selEnd); break;
+      case 1: result = sampleOpNormalize(sample, selStart, selEnd); break;
+      case 2: result = sampleOpDelete(sample, selStart, selEnd); break;
+      case 3: result = sampleOpSilence(sample, selStart, selEnd); break;
+      case 4: result = sampleOpFade(sample, selStart, selEnd, 1); break;
+      case 5: result = sampleOpFade(sample, selStart, selEnd, 0); break;
+    }
+  }
+  audioManager.resume();
+
+  if (result != sampleOpOk) {
+    sampleOpFreeUndo(&editorUndo);
+    const char* error = "Operation failed";
+    switch (result) {
+      case sampleOpErrorNoSample: error = "No sample loaded"; break;
+      case sampleOpErrorRange: error = "Empty range"; break;
+      case sampleOpErrorWholeSample: error = "Delete whole sample not allowed"; break;
+      case sampleOpErrorMemory: error = "Out of memory"; break;
+    }
+    screenMessage(MESSAGE_TIME_ERROR, "%s", error);
+    return;
+  }
+
+  projectModified = 1;
+  sampleDirtyToDisk = 1;
+  // Crop/Delete reshape the sample: drop the selection and zoom back out
+  if (processOp == 0 || processOp == 2) {
+    editorSelection.start = 0;
+    editorSelection.end = 0;
+    editorSelection.active = 0;
+    zoomOutFull(sample, &editorView);
+  }
+  sampleEditorNormalizeState(sample, &editorSelection, &editorView);
+  settingsRepaintAfterOp();
+  screenMessage(MESSAGE_TIME, "%s", processOpDoneMessages[processOp]);
+}
+
+static void settingsRunUndo(void) {
+  if (!editorUndo.active) return;
+  InstrumentSample* sample = currentSample();
+  audioManager.pause();
+  int result = sampleOpApplyUndo(sample, &editorUndo);
+  audioManager.resume();
+  if (result != sampleOpOk) {
+    screenMessage(MESSAGE_TIME_ERROR, "Undo failed");
+    return;
+  }
+  projectModified = 1;
+  zoomOutFull(sample, &editorView);
+  sampleEditorNormalizeState(sample, &editorSelection, &editorView);
+  settingsRepaintAfterOp();
+  screenMessage(MESSAGE_TIME, "Undone");
+}
+
 static int settingsOnEdit(int col, int row, CellEditAction action) {
-  (void)col;
   InstrumentSample* sample = currentSample();
   int handled = 0;
   int marker = 0; // 1 = Start, 2 = End
+  if (row == 5) {
+    // Cycle the operation; Edit+Opt clears it to none
+    if (action == CellEditAction::clear) {
+      if (processOp < 0) return 0;
+      processOp = -1;
+    } else if (action == CellEditAction::increase || action == CellEditAction::increaseBig) {
+      processOp = processOp < 0 ? 0 : (processOp + 1) % processOpCount;
+    } else if (action == CellEditAction::decrease || action == CellEditAction::decreaseBig) {
+      processOp = processOp < 0 ? processOpCount - 1 : (processOp + processOpCount - 1) % processOpCount;
+    } else if (action == CellEditAction::tap || action == CellEditAction::doubleTap) {
+      processOp = processOp < 0 ? 0 : (processOp + 1) % processOpCount;
+    } else {
+      return 0;
+    }
+    settingsDrawField(0, 5, CellState::focus);
+    return 1;
+  }
+  if (row == 6) {
+    if (action != CellEditAction::tap && action != CellEditAction::doubleTap) return 0;
+    if (col == 0) settingsRunProcessOp();
+    else settingsRunUndo();
+    return 1;
+  }
   if (row == 0) {
     handled = edit8noLast(action, &sample->start, 16, 0, 255);
     marker = kViewAnchorStart;
@@ -543,7 +699,7 @@ static int settingsIsCellValid(int col, int row) {
 }
 
 static ScreenData screenSampleSettingsData = {
-  .rows = 5,
+  .rows = 7,
   .cursorRow = 0,
   .cursorCol = 0,
   .topRow = 0,
@@ -570,11 +726,14 @@ static ScreenData screenSampleSettingsData = {
 static void setup(int input) {
   if (input != -1) cInstrument = input;
   // Entering the screen always starts at the full-sample view with an
-  // empty selection: both are session-only editor state
+  // empty selection: both are session-only editor state. The undo slot is
+  // dropped too - undo never survives leaving the screen.
+  sampleOpFreeUndo(&editorUndo);
   zoomOutFull(currentSample(), &editorView);
   editorSelection.start = 0;
   editorSelection.end = 0;
   editorSelection.active = 0;
+  sampleDirtyToDisk = 0;
 }
 
 static void fullRedraw(void) {
