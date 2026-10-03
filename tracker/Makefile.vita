@@ -1,0 +1,33 @@
+# Native Vita only. scripts/vita.sh selects the pinned SDK and isolated profile.
+.DEFAULT_GOAL := vita
+PLATFORM = vita
+include Makefile.common
+LIBS = $(COMMON_LIBS) platforms/sdl2 platforms/vita
+CXX = arm-vita-eabi-g++
+PKG_CONFIG = PKG_CONFIG_LIBDIR=$(VITASDK)/arm-vita-eabi/lib/pkgconfig pkg-config
+SDL_CFLAGS := $(shell $(PKG_CONFIG) --cflags sdl2)
+SDL_LIBS := $(shell $(PKG_CONFIG) --libs --static sdl2)
+ifeq ($(CHOOCHOO_EXPERIMENTAL_MOD_LUCKY),1)
+VITA_CURL_PREFIX ?= /deps/curl/prefix
+MOD_LUCKY_CFLAGS += -I$(VITA_CURL_PREFIX)/include
+MOD_LUCKY_LIBS = $(MOD_LUCKY_PREFIX)/lib/libxmp-lite.a $(VITA_CURL_PREFIX)/lib/libcurl.a -lssl -lcrypto -lz -lSceNet_stub -lSceNetCtl_stub
+endif
+CFLAGS = $(COMMON_CFLAGS) $(INCLUDES) $(SDL_CFLAGS) -D_GNU_SOURCE -DVITA_BUILD -DGAMEPAD_SUPPORT -DMOBILE_LIFECYCLE -ffunction-sections -fdata-sections
+TARGET = $(BUILD)/choochootracker.elf
+$(eval $(call mod_lucky_config_rule,$(BUILD)))
+object_for = $(BUILD)/obj/$(subst ../,up/,$(basename $(1))).o
+OBJECTS := $(foreach source,$(SOURCES),$(call object_for,$(source)))
+define compile_source
+$(call object_for,$(1)): $(1) Makefile.vita Makefile.common Makefile.mod-lucky $(BUILD)/mod-lucky-build-config
+	@mkdir -p $$(dir $$@)
+	@$(CXX) $(CFLAGS) -MMD -MP -c $$< -o $$@
+endef
+$(foreach source,$(SOURCES),$(eval $(call compile_source,$(source))))
+-include $(OBJECTS:.o=.d)
+.PHONY: vita
+vita: $(BUILD)/eboot.bin
+$(TARGET): $(OBJECTS)
+	$(CXX) $(COMMON_CFLAGS) -Wl,-u,sceUserMainThreadStackSize -Wl,--gc-sections,-Map,$(BUILD)/link.map -o $@ $(OBJECTS) -Wl,--start-group $(SDL_LIBS) $(MOD_LUCKY_LIBS) -lpthread -Wl,--end-group
+$(BUILD)/eboot.bin: $(TARGET)
+	vita-elf-create $< $(BUILD)/choochootracker.velf
+	vita-make-fself -s $(BUILD)/choochootracker.velf $@

@@ -49,7 +49,7 @@ static void createDirectoryRecursive(const char* path) {
 // different from one run to the next. Resolve the running executable's own
 // directory instead, so the app always finds "its" files regardless of the
 // caller's cwd.
-#if !defined(ANDROID_BUILD) && !defined(MACOS_BUILD)
+#if !defined(ANDROID_BUILD) && !defined(MACOS_BUILD) && !defined(VITA_BUILD)
 static int fileGetExecutableDirectory(char* buffer, int bufferSize) {
 #ifdef _WIN32
   char exePath[4096];
@@ -80,7 +80,10 @@ int fileIsRunningFromAppImage(void) {
 }
 
 int fileGetDefaultDirectory(char* buffer, int bufferSize) {
-#ifdef ANDROID_BUILD
+#ifdef VITA_BUILD
+  snprintf(buffer, bufferSize, "ux0:data/choochootracker");
+  return 0;
+#elif defined(ANDROID_BUILD)
   extern int androidGetWorkspacePath(char*, int);
   return androidGetWorkspacePath(buffer, bufferSize);
 #elif defined(MACOS_BUILD)

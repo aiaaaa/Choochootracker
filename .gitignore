@@ -25,3 +25,5 @@ rg_log.txt
 chipnomad_log.txt
 
 .vercel
+
+/scripts/__pycache__/

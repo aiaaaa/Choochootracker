@@ -1,3 +1,4 @@
+#include "touch_modulation.h"
 #ifdef CHOOCHOO_EXPERIMENTAL_MOD_LUCKY
 #include "experimental/mod_lucky/service.h"
 #endif
@@ -272,6 +273,7 @@ static int autosaveCounter = 0;
 //
 
 void appResetInputState(void) {
+  touchModReset();
   pressedButtons = 0;
   tapTimerCount = 0;
   tapButton = 0;
@@ -728,6 +730,13 @@ void appOnEvent(MainLoopEventData eventData) {
     settingsSave();
     break;
   case MainLoopEvent::sleep:
+    appResetInputState();
+    motionRecordHeld = motionEraseHeld = motionLiveHeld = motionLiveLatched = 0;
+    updateMotionRecordMode();
+    chipnomadSetLiveStickAxes(0,0,0,0);
+#ifdef CHOOCHOO_EXPERIMENTAL_MOD_LUCKY
+    modLucky::service().leave();
+#endif
     // Pause audio when app goes to background
     audioManager.pause();
     if (chipnomadState) {
@@ -740,6 +749,9 @@ void appOnEvent(MainLoopEventData eventData) {
     settingsSave();
     break;
   case MainLoopEvent::wake:
+#ifdef CHOOCHOO_EXPERIMENTAL_MOD_LUCKY
+    if (currentScreen == &screenSettings) modLucky::service().enter();
+#endif
     // Resume audio when app comes back to foreground
     audioManager.resume();
     break;

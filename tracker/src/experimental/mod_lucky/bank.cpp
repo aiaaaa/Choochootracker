@@ -59,7 +59,17 @@ std::unique_ptr<Bank> stageBank(std::shared_ptr<const Candidate> candidate,const
   namespace fs=std::filesystem;
   // The user-selected sample root may legitimately be a symlink (e.g. /var on macOS).
   // Resolve that trusted root, then reject symlinks in our generated bank namespace.
+#ifdef VITA_BUILD
+  // Vita mount-qualified paths are absolute to newlib, but not to std::filesystem.
+  // Only the application data root is writable by this importer.
+  const std::string dataRoot="ux0:data/choochootracker/";
+  fs::path absolute=sampleRoot.rfind(dataRoot,0)==0 ? fs::path(sampleRoot) : fs::path(dataRoot)/sampleRoot;
+  absolute=absolute.lexically_normal();
+  if(absolute.string().rfind(dataRoot,0)!=0) throw Error("Unsafe sample destination");
+  fs::path root=absolute/"mod_lucky";
+#else
   fs::path root=fs::weakly_canonical(fs::absolute(sampleRoot))/"mod_lucky";
+#endif
   if(fs::is_symlink(fs::symlink_status(root))) throw Error("Unsafe sample destination");
   fs::create_directories(root);
   std::string base=candidate->id+"-"+candidate->hash;

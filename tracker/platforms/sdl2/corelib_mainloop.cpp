@@ -7,6 +7,10 @@
 #include "corelib_input.h"
 #include "../../src/corelib/corelib_assets.h"
 
+#ifdef VITA_BUILD
+#include "../vita/platform.h"
+#endif
+
 #define FPS 60
 
 #ifdef GAMEPAD_SUPPORT
@@ -216,7 +220,13 @@ void mainLoopRun(void (*draw)(void), void (*onEvent)(MainLoopEventData eventData
   initGamepad();
 #endif
 
+  #ifdef VITA_BUILD
+  vitaInputInit();
+  #endif
   while (1) {
+#ifdef VITA_BUILD
+    vitaPlatformPoll();
+#endif
     start = SDL_GetTicks();
 
     while (SDL_PollEvent(&event)) {
@@ -226,6 +236,9 @@ void mainLoopRun(void (*draw)(void), void (*onEvent)(MainLoopEventData eventData
       // silently quit the app instead of doing nothing (or saving, in key
       // jazz mode) - keep the combo off there and use the in-app Quit menu.
       if (event.type == SDL_QUIT ||
+#ifdef VITA_BUILD
+          event.type == SDL_APP_TERMINATING ||
+#endif
 #ifndef DESKTOP_BUILD
           (event.type == SDL_KEYDOWN && (menu && event.key.keysym.sym == BTN_X))
 #else
@@ -301,6 +314,11 @@ void mainLoopRun(void (*draw)(void), void (*onEvent)(MainLoopEventData eventData
           wakeRedrawFrames = FPS;
         }
         if (event.window.event == SDL_WINDOWEVENT_FOCUS_LOST) {
+#ifdef VITA_BUILD
+          vitaInputReset();
+          eventData.type = MainLoopEvent::sleep;
+          onEvent(eventData);
+#endif
 #ifdef TOUCH_INPUT
           releaseFingers();
 #endif
@@ -308,6 +326,10 @@ void mainLoopRun(void (*draw)(void), void (*onEvent)(MainLoopEventData eventData
         if (event.window.event == SDL_WINDOWEVENT_RESTORED ||
             event.window.event == SDL_WINDOWEVENT_EXPOSED ||
             event.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
+#ifdef VITA_BUILD
+          eventData.type = MainLoopEvent::wake;
+          onEvent(eventData);
+#endif
           wakeRedrawFrames = FPS;
         }
       }

@@ -38,6 +38,8 @@ enum class ModulationType : uint8_t {
   StickLinear = 5,
   StickVelocity = 6, // Legacy project value, no longer exposed.
   StickRate = 7,
+  FrontTouch = 8,
+  RearTouch = 9,
   totalCount,
 };
 
@@ -372,6 +374,9 @@ const char* instrumentModDestinationName(InstrumentType type, int destination);
 const char* instrumentModDestinationNameForInstrument(const Instrument* instrument, int destination);
 int instrumentModDestinationMax(InstrumentType type);
 int instrumentGenericModDestination(InstrumentType type, int destination);
+inline bool modulationIsTouch(ModulationType type) {
+  return type == ModulationType::FrontTouch || type == ModulationType::RearTouch;
+}
 int modulationIsLiveStick(ModulationType type);
 int modulationIsAdditive(ModulationType type);
 

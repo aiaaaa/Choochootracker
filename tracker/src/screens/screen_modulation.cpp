@@ -22,12 +22,14 @@
 #define ROWS_PER_MOD 8
 
 static SelectionItem destinationCategories[7];
-static SelectionItem sourceCategories[3];
+static SelectionItem sourceCategories[4];
 static SelectionItem insertDestinations[16];
 static char insertHelpers[16][64];
 static const SelectionItem envelopeSources[] = {{"ADSR", (int)ModulationType::ADSR, NULL, 0}, {"AHD", (int)ModulationType::AHD, NULL, 0}};
 static const SelectionItem lfoSources[] = {{"LFO", (int)ModulationType::LFO, NULL, 0}, {"SYNC LFO", (int)ModulationType::SLFO, NULL, 0}, {"FAST LFO", (int)ModulationType::FLFO, NULL, 0}};
 static const SelectionItem stickSources[] = {{"LINEAR", (int)ModulationType::StickLinear, NULL, 0}, {"RATE", (int)ModulationType::StickRate, NULL, 0}};
+static const SelectionItem touchSources[] = {{"FRONT", (int)ModulationType::FrontTouch, NULL, 0}, {"REAR", (int)ModulationType::RearTouch, NULL, 0}};
+static const char* touchParameterNames[] = {"X     ", "Y     ", "Gate  "};
 static SelectionItem engineDestinations[32];
 static SelectionItem sendDestinations[2];
 static SelectionItem parameterDestinations[16];
@@ -74,7 +76,8 @@ static void openSourcePopup(int modIndex) {
   sourceCategories[0] = {"ENVELOPES", -1, envelopeSources, 2};
   sourceCategories[1] = {"LFO", -1, lfoSources, 3};
   sourceCategories[2] = {"STICKS", -1, stickSources, 2};
-  selectionPopupSetup("SOURCE", sourceCategories, 3,
+  sourceCategories[3] = {"TOUCH", -1, touchSources, 2};
+  selectionPopupSetup("SOURCE", sourceCategories, 4,
     (int)chipnomadState->project.instruments[cInstrument].modulation[modIndex].type,
     sourceSelected, sourceCancelled);
   screenSetup(&screenSelectionPopup, 0);
@@ -101,7 +104,7 @@ static const char* modulationParameterName(ModulationType type, int parameter) {
   else if (type == ModulationType::AHD) names = ahd;
   else if (type == ModulationType::SLFO) names = slfo;
   else if (type == ModulationType::FLFO) names = flfo;
-  else if (type == ModulationType::StickLinear) names = stick;
+  else if (type == ModulationType::StickLinear || modulationIsTouch(type)) names = stick;
   else if (type == ModulationType::StickRate) names = stickRate;
   return names[parameter];
 }
@@ -229,6 +232,8 @@ static const char* modTypeName(ModulationType type) {
     case ModulationType::FLFO: return "FLFO";
     case ModulationType::StickLinear: return "STKLIN";
     case ModulationType::StickRate: return "STKRAT";
+    case ModulationType::FrontTouch: return "FRONT";
+    case ModulationType::RearTouch: return "REAR";
     default:      return "?   ";
   }
 }
@@ -295,6 +300,8 @@ static const char* paramLabel(ModulationType type, int paramIdx) {
       if (paramIdx == 2) return "Freq";
       if (paramIdx == 3) return "WaveTb";
       break;
+    case ModulationType::FrontTouch:
+    case ModulationType::RearTouch:
     case ModulationType::StickLinear:
       if (paramIdx == 0) return "Axis";
       break;
@@ -316,6 +323,8 @@ static int paramCount(const Modulation* mod) {
     case ModulationType::LFO:  return mod->p1 == static_cast<uint8_t>(LFOShape::wavetable) ? 4 : 3;
     case ModulationType::SLFO: return mod->p1 == static_cast<uint8_t>(LFOShape::wavetable) ? 5 : 4;
     case ModulationType::FLFO: return mod->p1 == static_cast<uint8_t>(LFOShape::wavetable) ? 4 : 3;
+    case ModulationType::FrontTouch:
+    case ModulationType::RearTouch:
     case ModulationType::StickLinear: return 1;
     case ModulationType::StickRate: return 2;
     default:      return 0;
@@ -379,7 +388,7 @@ static void drawCursor(int col, int row) {
     default:
       if ((mod->type == ModulationType::LFO && (modRow - 3) <= 1) ||
           (mod->type == ModulationType::FLFO && modRow == 5) ||
-          ((mod->type == ModulationType::StickLinear || mod->type == ModulationType::StickRate) &&
+          ((modulationIsTouch(mod->type) || mod->type == ModulationType::StickLinear || mod->type == ModulationType::StickRate) &&
            modRow == 3)) {
         gfxCursor(valX, y, 6);
       } else if (mod->type == ModulationType::StickRate && modRow == 4) {
@@ -448,6 +457,8 @@ static void drawField(int col, int row, CellState state) {
         } else if (paramIdx == 4) {
           gfxPrint(valX, y, byteToHex(mod->p5));
         }
+      } else if (modulationIsTouch(mod->type)) {
+        gfxPrint(valX, y, touchParameterNames[mod->p1 < 3 ? mod->p1 : 0]);
       } else if (mod->type == ModulationType::StickLinear || mod->type == ModulationType::StickRate) {
         if (paramIdx == 0) gfxPrint(valX, y, stickAxisName(mod->p1));
         else if (paramIdx == 1 && mod->type == ModulationType::StickRate) gfxPrintf(valX, y, "%3u", mod->p2);
@@ -545,6 +556,8 @@ static int onEdit(int col, int row, enum CellEditAction action) {
           handled = edit8noLast(action, &mod->p5, 16, 0, 255);
           if (handled) screenMessage(0, "AY wavetable %02X", mod->p5);
         }
+      } else if (modulationIsTouch(mod->type)) {
+        handled = edit8noLast(action, &mod->p1, 1, 0, 2);
       } else if (mod->type == ModulationType::StickLinear || mod->type == ModulationType::StickRate) {
         if (paramIdx == 0) {
           handled = edit8noLast(action, &mod->p1, 1, 0, static_cast<uint8_t>(StickAxis::totalCount) - 1);

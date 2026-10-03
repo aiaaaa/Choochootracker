@@ -93,10 +93,23 @@ int audioSetup(AudioCallback* audioCallback, int sampleRate, int bufferSize) {
   spec.callback = sdlAudioCallback;
   spec.userdata = (void *)audioCallback;
 
+#ifdef VITA_BUILD
+  SDL_AudioSpec obtained{};
+  if (SDL_OpenAudio(&spec, &obtained) < 0) {
+#else
   if (SDL_OpenAudio(&spec, NULL) < 0) {
+#endif
     fprintf(stderr, "Failed to open audio: %s\n", SDL_GetError());
     return 1;
   }
+#ifdef VITA_BUILD
+  fprintf(stderr, "Audio backend=%s rate=%d format=%u channels=%u frames=%u\n", SDL_GetCurrentAudioDriver(), obtained.freq, obtained.format, obtained.channels, obtained.samples);
+  if (obtained.freq != sampleRate || obtained.format != AUDIO_S16SYS || obtained.channels != 2) {
+    SDL_CloseAudio();
+    fprintf(stderr, "Unsupported audio format; refusing rate mismatch\n");
+    return 1;
+  }
+#endif
 #ifdef ANDROID_BUILD
   if (audioDiagnostics::enabled) {
     __android_log_print(ANDROID_LOG_INFO, "CCTAudio",

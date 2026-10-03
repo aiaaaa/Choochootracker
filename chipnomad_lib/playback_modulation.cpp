@@ -1,3 +1,4 @@
+#include "touch_modulation.h"
 #include "playback_modulation.h"
 #include "synth/multimode_filter.h"
 #include "utils.h"
@@ -385,6 +386,10 @@ void playbackModNext(PlaybackModState* state) {
       break;
     case ModulationType::SLFO:
       handleLFO(state, (uint16_t)GET_P3(state) * (GET_P4(state) ? GET_P4(state) : 1));
+      break;
+    case ModulationType::FrontTouch:
+    case ModulationType::RearTouch:
+      state->outValue = touchModOutput(GET_TYPE(state)==ModulationType::RearTouch, GET_P1(state), GET_AMOUNT(state));
       break;
     default:
       state->outValue = 0;

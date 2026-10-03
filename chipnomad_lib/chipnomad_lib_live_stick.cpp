@@ -1,3 +1,4 @@
+#include "touch_modulation.h"
 #include "chipnomad_lib.h"
 #include "chipnomad_lib_live_stick.h"
 
@@ -32,7 +33,9 @@ void chipnomadSetLiveStickAxes(float leftVertical, float leftHorizontal,
     liveStickAxes[i].store((int32_t)(deadzoneStickAxis(axes[i]) * 1000000.0f), std::memory_order_relaxed);
 }
 
-void chipnomadSetLiveStickEnabled(int enabled) { liveStickEnabled.store(enabled ? 1 : 0, std::memory_order_relaxed); }
+void chipnomadSetLiveStickEnabled(int enabled) {
+  if (liveStickEnabled.exchange(enabled ? 1 : 0) && !enabled) touchModReset();
+}
 
 void chipnomadSetMotionRecordMode(int record, int erase) {
   int mode = erase ? 2 : record ? 1 : 0;

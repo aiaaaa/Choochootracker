@@ -493,7 +493,7 @@ int gfxSetup(int *screenWidth, int *screenHeight) {
 
   // Desktop deliberately uses the tracker's native window size.  Do not
   // restore a DPI-scaled drawable size from a prior run as a window size.
-#ifdef DESKTOP_BUILD
+#if defined(DESKTOP_BUILD) || defined(VITA_BUILD)
   screenW = 640;
   screenH = 480;
   if (screenWidth != NULL) *screenWidth = screenW;
@@ -528,7 +528,11 @@ int gfxSetup(int *screenWidth, int *screenHeight) {
 
   window = SDL_CreateWindow(printBuffer,
     SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+    #ifdef VITA_BUILD
+    960, 544,
+    #else
     screenW, screenH,
+    #endif
     SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI
 #ifdef ANDROID_BUILD
     | SDL_WINDOW_RESIZABLE
@@ -567,7 +571,7 @@ int gfxSetup(int *screenWidth, int *screenHeight) {
   // Desktop and web keep the requested logical window size. SDL's drawable
   // size may be the physical monitor size with the software renderer.
   int drawableW, drawableH;
-#if defined(DESKTOP_BUILD) || defined(WEB_BUILD)
+#if defined(DESKTOP_BUILD) || defined(WEB_BUILD) || defined(VITA_BUILD)
   drawableW = screenW;
   drawableH = screenH;
 #else
