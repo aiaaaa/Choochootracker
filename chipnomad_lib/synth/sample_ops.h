@@ -69,6 +69,11 @@ int sampleOpSilence(InstrumentSample* s, uint32_t selStart, uint32_t selEnd);
 // fade out by (len-1-i)/len. Both channels share the per-frame gain.
 int sampleOpFade(InstrumentSample* s, uint32_t selStart, uint32_t selEnd, int fadeIn);
 
+// Reverse the frame order of the selection (play it backwards). In-place
+// frame swaps with no allocation; both channels of a frame move together so
+// the stereo image is preserved. Length and markers are unchanged.
+int sampleOpReverse(InstrumentSample* s, uint32_t selStart, uint32_t selEnd);
+
 // One-level undo. The slot lives in the editor screen module state, not in
 // the engine or the project. Depth-1 semantics: preparing again overwrites
 // the slot, and applying swaps current state with the slot contents, so

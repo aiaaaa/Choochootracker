@@ -16,6 +16,20 @@
   when the sample in RAM differs from the file on disk.
 - Added end-to-end engine tests for the editor workflows and a 32 MB
   large-sample stress case (392 test cases total).
+- Compressed the Sample Edit screen into five rows (Select, Region, Slice,
+  Process, File) with a taller waveform: the zoom readout and the frame
+  count in the format line are gone, Select/Region show START and END
+  values side by side, process operations use their full names, and the
+  File row cycles Save/Save As with a single GO (Rename removed).
+- Fixed the waveform zoom to a constant one-eighth-of-sample window on
+  fine adjustments instead of halving per step; coarse steps still return
+  to the full view.
+- Added the Reverse process operation, which plays the selected region
+  backwards in place (stereo image preserved, length and markers
+  unchanged).
+- Fixed a build failure on non-ARM hosts: the vendored stmlib dsp header
+  selected ARM `vsqrt` inline assembly whenever `TEST` was undefined;
+  the guards are now architecture-aware (398 test cases total).
 
 ## v0.1.0-prealpha.4 (August 17, 2026)
 

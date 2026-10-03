@@ -380,4 +380,89 @@ TEST_CASE("WAV save rejects empty samples and overlong paths") {
   CHECK(error[0] != 0);
 }
 
+TEST_CASE("Reverse mirrors a mono selection in place") {
+  OpSample t;
+  t.init(50, 1);
+  int res = sampleOpReverse(&t.s, 10, 20);
+  REQUIRE(res == sampleOpOk);
+  // [10,20) holds the mirrored frames; outside is untouched
+  for (uint32_t i = 10; i < 20; ++i) {
+    CHECK(t.s.data[i] == OpSample::value(29 - i, 0));
+  }
+  CHECK(t.s.data[9] == OpSample::value(9, 0));
+  CHECK(t.s.data[20] == OpSample::value(20, 0));
+  CHECK(t.s.data[49] == OpSample::value(49, 0));
+  // Length and markers are unchanged
+  CHECK(t.s.frameCount == 50);
+  CHECK(t.s.start == 0);
+  CHECK(t.s.end == 255);
+}
+
+TEST_CASE("Reverse preserves stereo channel pairing") {
+  OpSample t;
+  t.init(40, 2);
+  int res = sampleOpReverse(&t.s, 0, 40);
+  REQUIRE(res == sampleOpOk);
+  for (uint32_t i = 0; i < 40; ++i) {
+    CHECK(t.s.data[i * 2] == OpSample::value(39 - i, 0));
+    CHECK(t.s.data[i * 2 + 1] == OpSample::value(39 - i, 1));
+  }
+}
+
+TEST_CASE("Reverse of an odd-length selection keeps the middle frame") {
+  OpSample t;
+  t.init(21, 1);
+  int res = sampleOpReverse(&t.s, 0, 21);
+  REQUIRE(res == sampleOpOk);
+  for (uint32_t i = 0; i < 21; ++i) {
+    CHECK(t.s.data[i] == OpSample::value(20 - i, 0));
+  }
+  // The middle frame (10) maps onto itself
+  CHECK(t.s.data[10] == OpSample::value(10, 0));
+}
+
+TEST_CASE("Reverse with equal bounds falls back to the whole sample") {
+  OpSample t;
+  t.init(30, 1);
+  int res = sampleOpReverse(&t.s, 25, 25);
+  REQUIRE(res == sampleOpOk);
+  for (uint32_t i = 0; i < 30; ++i) {
+    CHECK(t.s.data[i] == OpSample::value(29 - i, 0));
+  }
+}
+
+TEST_CASE("Reverse is an involution and integrates with undo") {
+  OpSample t;
+  t.init(24, 1);
+  REQUIRE(sampleOpReverse(&t.s, 4, 20) == sampleOpOk);
+  REQUIRE(sampleOpReverse(&t.s, 4, 20) == sampleOpOk);
+  t.expectUnchanged();
+
+  // Undo round trip through the shared slot
+  SampleUndo slot;
+  memset(&slot, 0, sizeof(slot));
+  REQUIRE(sampleOpPrepareUndo(&t.s, &slot) == sampleOpOk);
+  REQUIRE(sampleOpReverse(&t.s, 4, 20) == sampleOpOk);
+  REQUIRE(sampleOpApplyUndo(&t.s, &slot) == sampleOpOk);
+  t.expectUnchanged();
+  sampleOpFreeUndo(&slot);
+}
+
+TEST_CASE("Reverse rejects empty samples and clamps ranges") {
+  OpSample t;
+  t.init(0, 1);
+  t.s.data = NULL;
+  CHECK(sampleOpReverse(&t.s, 0, 10) == sampleOpErrorNoSample);
+
+  OpSample t2;
+  t2.init(20, 1);
+  // Inverted range swaps on the fly; out-of-bounds clamps
+  REQUIRE(sampleOpReverse(&t2.s, 15, 5) == sampleOpOk);
+  for (uint32_t i = 5; i < 15; ++i) {
+    CHECK(t2.s.data[i] == OpSample::value(19 - i, 0));
+  }
+  CHECK(t2.s.data[4] == OpSample::value(4, 0));
+  CHECK(t2.s.data[15] == OpSample::value(15, 0));
+}
+
 } // TEST_SUITE("sample_ops")
