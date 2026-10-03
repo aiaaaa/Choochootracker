@@ -95,7 +95,27 @@ Additional checks passed:
 Local logs are in sibling `../vita-validation/` and each build's `.tmp/vita/`
 directory. GitHub Actions is configured but has not been run or published here.
 
-## Corrected installer candidates
+## Current startup-fix candidates
+
+Revision: `d3aa310bfbc09c49c31161024bc7244d7885c4c8`. Both canonical profiles
+passed cross-compilation, the 334-test OFF suite, the Vita input adapter, nine
+workflow tests and package verification. Host Lucky tests remain the previously
+passing run: this fix changes target linking and validation, not the engine.
+
+| Artifact | Bytes | SHA256 |
+| --- | ---: | --- |
+| `releases/vita/candidates/d3aa310bfbc0-personal-e86dbb82.vpk` | 18,828,838 | `c3ee3f5f659bc594600c5a36eeb99743bf7633123cebf3de93818305d21f6a87` |
+| `releases/vita/candidates/d3aa310bfbc0-ordinary-50868df6.vpk` | 15,254,103 | `a34f356905209d85fb96eff779bfc2dc9c0f59dc9fed3b7879699db432d2ed55` |
+
+Personal ELF: 110,032 code relocations and 11 constructor relocations.
+Ordinary ELF: 38,598 code relocations and 9 constructor relocations.
+These counts are recorded in each package manifest; current verification rejects
+the earlier packages that lack checked relocation metadata. Both retain the
+corrected indexed LiveArea images. The personal VPK was uploaded and read back
+over FTP with matching SHA256; the superseded device-side candidate was removed.
+A fresh hardware launch result is pending.
+
+## Indexed-PNG candidates — installed but crashed
 
 Packaging fix revision: `ab2686b5c1dd325f6efb79a4ed8d62e24902ee0e`.
 All three LiveArea images are now opaque, non-interlaced, 8-bit indexed PNGs;
@@ -114,10 +134,9 @@ verification. No runtime code changed in this correction.
 | `releases/vita/candidates/ab2686b5c1dd-personal-84ca9aad.vpk` | 17,103,614 | `68d977ed57f448b4e4901d26b3a4f0c8175391c7bb4ab4f156f757a96089ffa7` |
 | `releases/vita/candidates/ab2686b5c1dd-ordinary-d6e93e38.vpk` | 14,366,995 | `4673f97e2cbf5b37c9824c760331eac9e4503a07271d8ed1bea3dc8cbd62e9ee` |
 
-The corrected personal candidate was uploaded to the same Vita candidate folder
-and read back over FTP; SHA256 matched exactly. It is ready for the installation
-retry in the historical record, but is now superseded: installation succeeded
-and launch failed. Do not reinstall it for runtime testing.
+The indexed-PNG personal candidate was uploaded to the same Vita candidate folder
+and read back over FTP; SHA256 matched exactly. Installation succeeded and launch
+failed. It is superseded; do not reinstall it for runtime testing.
 
 ### Launch crash diagnosis
 
