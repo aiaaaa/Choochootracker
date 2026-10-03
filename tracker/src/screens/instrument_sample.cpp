@@ -230,7 +230,7 @@ static int onInput(int isKeyDown, int keys, int tapCount) {
   }
   if (input == PopupEditInput::hold) return 1;
   if (input == PopupEditInput::open) {
-    fileBrowserSetupWithPreview("LOAD SAMPLER", ".wav", appSettings.samplePath,
+    fileBrowserSetupWithPreview("LOAD SAMPLE", ".wav", appSettings.samplePath,
       onSampleLoaded, onSampleCancelled, onSamplePreview);
     screenSetup(&screenFileBrowser, 0);
     return 1;
