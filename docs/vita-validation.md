@@ -289,6 +289,21 @@ withheld by the over-strict symbol check; rebuilding after the check correction
 is required before reporting an ordinary package success. The correction changes
 packaging/tests/docs only; the application source is unchanged.
 
+The corrected ordinary build from `0bf5dad40de51f7073528b69ead6a93da41ea16d`
+then passed cross-compilation, the same host/touch/seed tests, 10 workflow tests,
+and package verification (Lucky symbols/dependencies excluded). Artifact:
+`releases/vita/candidates/0bf5dad40de5-ordinary-a136931e.vpk`, 15,022,932 bytes,
+SHA256 `57caec53078369b3a11b481f545cd04ffc889240bad61f77893815cb42b4913a`.
+Its activation proxy is defined; unused POSIX create/once are omitted as expected.
+
+The successful personal 0296037 installer and checksum were uploaded to
+`ux0:/data/choochootracker-candidates/`. Read-back SHA256 matched, and the previous
+954af1c installer was removed from that folder under the existing authorization.
+The current verifier also accepts this personal package; no application-code
+change was needed for the ordinary verifier correction. The user was invited to
+install/launch it. Visible unpacking, successful tracker startup and audio/Lucky
+runtime remain pending user/device confirmation; none is inferred from these builds.
+
 ## Initial rejected artifacts (historical)
 
 The initial artifacts listed below are retained as evidence, but **do not install
