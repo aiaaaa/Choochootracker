@@ -1,12 +1,15 @@
 #include "platform.h"
 #include <SDL2/SDL.h>
 #include <psp2/kernel/threadmgr.h>
+#include <psp2/kernel/sysmem.h>
 #include <psp2/power.h>
 #include <psp2/sysmodule.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <cstdio>
 #include <filesystem>
+#include <atomic>
+#include <malloc.h>
 #ifdef CHOOCHOO_EXPERIMENTAL_MOD_LUCKY
 #include <psp2/net/net.h>
 #include <psp2/net/netctl.h>
@@ -21,6 +24,22 @@ extern "C" {
 }
 static SceUID powerCallback = -1;
 static bool powerRegistered;
+static std::atomic<uint32_t> audioCallbacks, audioOverBudget, audioMaxUs;
+std::size_t vitaHeapAvailable() {
+  const auto used=mallinfo().uordblks;
+  // Also reserve room for allocator overhead and ordinary project/UI activity.
+  constexpr std::size_t budget=248 * 1024 * 1024;
+  return used>=0 && std::size_t(used)<budget ? budget-used : 0;
+}
+void vitaAudioRecord(uint64_t started, unsigned frames, unsigned rate) {
+  const auto elapsed=SDL_GetPerformanceCounter()-started;
+  const auto frequency=SDL_GetPerformanceFrequency();
+  const uint32_t us=uint32_t(elapsed*1000000/frequency);
+  auto previous=audioMaxUs.load(std::memory_order_relaxed);
+  while(previous<us && !audioMaxUs.compare_exchange_weak(previous,us,std::memory_order_relaxed)) {}
+  audioCallbacks.fetch_add(1,std::memory_order_relaxed);
+  if(elapsed*rate>uint64_t(frames)*frequency) audioOverBudget.fetch_add(1,std::memory_order_relaxed);
+}
 static int onPower(int, int, int flags, void*) {
   SDL_Event event{};
   if (flags & (SCE_POWER_CB_APP_SUSPEND | SCE_POWER_CB_SYSTEM_SUSPEND)) event.type = SDL_APP_WILLENTERBACKGROUND;
@@ -56,7 +75,18 @@ bool vitaPlatformInit() {
   if (powerCallback >= 0) powerRegistered = scePowerRegisterCallback(powerCallback) >= 0;
   return true;
 }
-void vitaPlatformPoll() { sceKernelCheckCallback(); }
+void vitaPlatformPoll() {
+  sceKernelCheckCallback();
+  static uint32_t previous=0;
+  const auto now=SDL_GetTicks();
+  if(now-previous<5000) return;
+  previous=now;
+  SceKernelFreeMemorySizeInfo free{}; free.size=sizeof(free);
+  sceKernelGetFreeMemorySize(&free);
+  fprintf(stderr,"Vita stats: callbacks=%u render_max_us=%u over_budget=%u heap_room=%u system_free=%d cdram_free=%d\n",
+    audioCallbacks.load(),audioMaxUs.exchange(0),audioOverBudget.load(),unsigned(vitaHeapAvailable()),free.size_user,free.size_cdram);
+  fflush(stderr); // UI thread only; never in the audio callback.
+}
 void vitaPlatformQuit() {
   if (powerRegistered) scePowerUnregisterCallback(powerCallback);
   if (powerCallback >= 0) sceKernelDeleteCallback(powerCallback);

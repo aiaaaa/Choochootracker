@@ -126,8 +126,25 @@ $(foreach source,$(ALL_COMPILE_SOURCES),$(eval $(call compile_source,$(source)))
 -include $(DEPS)
 
 # Default target: build and run all tests
-all: build
+all: build $(BUILD_DIR)/vita_input_test
 	@$(TEST_EXECUTABLE)
+	@$(BUILD_DIR)/vita_input_test
+ifeq ($(CHOOCHOO_EXPERIMENTAL_MOD_LUCKY),1)
+	@$(BUILD_DIR)/vita_lucky_paths prepare "$(abspath $(BUILD_DIR))/vita-fixture-data"
+	@$(BUILD_DIR)/vita_lucky_paths reload "$(abspath $(BUILD_DIR))/vita-fixture-data"
+endif
+
+ifeq ($(CHOOCHOO_EXPERIMENTAL_MOD_LUCKY),1)
+VITA_LUCKY_REPLACED = $(MOD_LUCKY_DIR)/module.cpp $(MOD_LUCKY_DIR)/bank.cpp $(MOD_LUCKY_DIR)/network.cpp
+VITA_LUCKY_BASE = $(foreach source,$(filter-out src/copy_paste.cpp $(VITA_LUCKY_REPLACED),$(COMMON_SOURCES)) $(MOCK_SOURCES),$(call object_for,$(source)))
+all: $(BUILD_DIR)/vita_lucky_paths
+$(BUILD_DIR)/vita_lucky_paths: tests/vita_adapter/lucky_paths.cpp tests/mod_lucky_fixtures.h $(VITA_LUCKY_REPLACED) platforms/vita/platform.h $(VITA_LUCKY_BASE)
+	$(CXX) $(CFLAGS) $(INCLUDES) -Itests -DVITA_BUILD tests/vita_adapter/lucky_paths.cpp $(VITA_LUCKY_REPLACED) $(VITA_LUCKY_BASE) $(LDFLAGS) -o $@
+endif
+
+$(BUILD_DIR)/vita_input_test: tests/vita_adapter/main.cpp tests/vita_adapter/mock/SDL2/SDL.h platforms/vita/input.cpp platforms/vita/platform.h ../chipnomad_lib/touch_modulation.cpp ../chipnomad_lib/touch_modulation.h
+	@mkdir -p $(BUILD_DIR)
+	$(CXX) -std=c++17 -Wall -Itests/vita_adapter/mock -I../chipnomad_lib -I../chipnomad_lib/external/mutable tests/vita_adapter/main.cpp platforms/vita/input.cpp ../chipnomad_lib/touch_modulation.cpp -o $@
 
 # Build the test executable incrementally
 .PHONY: build

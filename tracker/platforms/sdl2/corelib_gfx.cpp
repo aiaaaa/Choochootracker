@@ -135,8 +135,15 @@ static void useCompositionTarget(void) {
   SDL_RenderSetScale(renderer, 1.0f, 1.0f);
 }
 
+// Native GXM render targets use ABGR; avoid SDL conversion wrappers for targets.
+#ifdef VITA_BUILD
+static constexpr Uint32 targetTextureFormat = SDL_PIXELFORMAT_ABGR8888;
+#else
+static constexpr Uint32 targetTextureFormat = SDL_PIXELFORMAT_RGBA8888;
+#endif
+
 static int createCompositionTexture(void) {
-  compositionTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888,
+  compositionTexture = SDL_CreateTexture(renderer, targetTextureFormat,
     SDL_TEXTUREACCESS_TARGET, logicalW, logicalH);
   if (!compositionTexture) return 0;
   compositionW = logicalW;
@@ -437,7 +444,13 @@ static void createFontTexture(void) {
   int fontW = (currentResolution->charWidth + 7) / 8;  // Bytes per row
   const uint8_t* fontData = currentResolution->data;
 
-  fontTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, charW * 95, charH);
+  fontTexture = SDL_CreateTexture(renderer,
+#ifdef VITA_BUILD
+    SDL_PIXELFORMAT_ABGR8888,
+#else
+    SDL_PIXELFORMAT_RGBA8888,
+#endif
+    SDL_TEXTUREACCESS_TARGET, charW * 95, charH);
   SDL_SetTextureBlendMode(fontTexture, SDL_BLENDMODE_BLEND);
   setTextureNearest(fontTexture);
 

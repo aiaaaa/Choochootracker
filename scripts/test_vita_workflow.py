@@ -60,6 +60,15 @@ class Workflow(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError,'Conflicts:.*',): vita.prepare_candidate(self.root,source,False)
         self.preserved()
 
+    def test_failed_candidate_build_keeps_last_known_good(self):
+        (self.root/'scripts').mkdir()
+        launcher=self.root/'scripts/vita.sh'
+        launcher.write_text('#!/bin/sh\nexit 23 # controlled build failure\n'); launcher.chmod(0o755)
+        self.commit('controlled build failure'); self.previous=self.git('rev-parse','HEAD')
+        with self.assertRaises(subprocess.CalledProcessError):
+            vita.update(self.root,self.source,'personal',False)
+        self.preserved()
+
     def test_dirty_source_refuses_without_new_worktree(self):
         (self.root/'shared.txt').write_text('unsaved\n')
         with self.assertRaisesRegex(RuntimeError,'dirty'): vita.prepare_candidate(self.root,self.source,False)

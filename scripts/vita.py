@@ -38,7 +38,9 @@ def docker_base(root, mounts=()):
 
 def check_ids(root, source=None):
     text=git('show',source+':chipnomad_lib/project_instruments.h',cwd=root) if source else (root/'chipnomad_lib/project_instruments.h').read_text()
-    enum=text.split('enum class ModulationType : uint8_t {',1)[1].split('}',1)[0]
+    match=re.search(r'enum\s+class\s+ModulationType\s*:\s*uint8_t\s*\{([^}]+)',text)
+    if not match: raise RuntimeError('Cannot inspect MOD source IDs; review the upstream source model before updating.')
+    enum=match.group(1)
     expected={'ADSR':0,'AHD':1,'LFO':2,'SLFO':3,'FLFO':4,'StickLinear':5,'StickVelocity':6,'StickRate':7,'FrontTouch':8,'RearTouch':9}
     value=-1
     for part in re.sub(r'//[^\n]*','',enum).split(','):
@@ -115,7 +117,8 @@ def build(root, profile):
     personal=json.loads((root/'personal-features.json').read_text())
     source=personal['ports']['vita']['source_commit']
     git('merge-base','--is-ancestor',source,revision,cwd=root)
-    config=hashlib.sha256((json.dumps(pin(root),sort_keys=True)+profile).encode()).hexdigest()[:16]
+    recipes=''.join(sha(root/'scripts'/name) for name in ('build-vita-curl.sh','build-mod-lucky-dependency.sh'))
+    config=hashlib.sha256((json.dumps(pin(root),sort_keys=True)+profile+recipes).encode()).hexdigest()[:16]
     work=root/'.tmp/vita'/config/revision
     deps=root/'.tmp/vita'/config/'deps'
     work.mkdir(parents=True,exist_ok=True); deps.mkdir(parents=True,exist_ok=True)
@@ -150,7 +153,7 @@ def build(root, profile):
 def prepare_candidate(root, source_ref, fetch=True):
     clean(root)
     if fetch: git('fetch','origin',cwd=root)
-    source=git('rev-parse','--verify',source_ref+'^{commit}',cwd=root)
+    source=git('rev-parse','--verify','--end-of-options',source_ref+'^{commit}',cwd=root)
     previous=git('rev-parse','HEAD',cwd=root)
     old_manifest=json.loads((root/'personal-features.json').read_text())
     check_ids(root,source)
@@ -159,9 +162,14 @@ def prepare_candidate(root, source_ref, fetch=True):
     git('worktree','add','-b',branch,str(path),previous,cwd=root)
     record={'previous_vita_revision':previous,'previous_source_base':old_manifest['ports']['vita']['source_commit'],
             'selected_source_ref':source_ref,'selected_source_commit':source,'candidate_branch':branch,'worktree':str(path)}
+    (path/'.tmp').mkdir(exist_ok=True)
+    record_path=path/'.tmp/vita-update.json'
+    record_path.write_text(json.dumps(record,indent=2)+'\n')
     try: git('merge','--no-edit',source,cwd=path)
     except subprocess.CalledProcessError:
         conflicts=git('diff','--name-only','--diff-filter=U',cwd=path)
+        record['conflicts']=conflicts.splitlines()
+        record_path.write_text(json.dumps(record,indent=2)+'\n')
         raise RuntimeError(f'Merge stopped in {path} on {branch}. Original branch/artifacts unchanged.\nConflicts:\n{conflicts}\nResolve there and commit, or leave candidate for review; no automatic resolution.')
     check_ids(path)
     manifest=json.loads((path/'personal-features.json').read_text())
@@ -172,9 +180,16 @@ def prepare_candidate(root, source_ref, fetch=True):
         git('add','personal-features.json',cwd=path)
         git('commit','-m','Record personal source for Vita update candidate',cwd=path)
     (path/'.tmp').mkdir(exist_ok=True)
-    (path/'.tmp/vita-update.json').write_text(json.dumps(record,indent=2)+'\n')
+    record['candidate_revision']=git('rev-parse','HEAD',cwd=path)
+    record_path.write_text(json.dumps(record,indent=2)+'\n')
     print('Prepared candidate:',path)
     return path
+
+def update(root, source_ref, profile, fetch=True):
+    candidate=prepare_candidate(root,source_ref,fetch)
+    # Execute the merged script, so subsequent port updates take effect too.
+    run([candidate/"scripts/vita.sh","build","--profile",profile],candidate)
+    return candidate
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
@@ -188,10 +203,7 @@ def main():
     if args.command=='doctor': doctor()
     elif args.command=='verify': verify(args.artifact,args.profile)
     elif args.command=='build': build(ROOT,args.profile)
-    else:
-        candidate=prepare_candidate(ROOT,args.source_ref)
-        # Execute the merged script, so subsequent port updates take effect too.
-        run([candidate/'scripts/vita.sh','build','--profile',args.profile],candidate)
+    else: update(ROOT,args.source_ref,args.profile)
 
 if __name__=='__main__':
     try: main()
