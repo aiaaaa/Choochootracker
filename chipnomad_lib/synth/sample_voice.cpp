@@ -325,10 +325,10 @@ int sampleLoadWav16(const char* path, InstrumentSample* sample,
   }
 
   if (!ok || format != 1 || (channels != 1 && channels != 2) ||
-      (bits != 8 && bits != 16) || sampleRate < 1000 ||
+      (bits != 8 && bits != 16 && bits != 24) || sampleRate < 1000 ||
       sampleRate > 192000 || !dataOffset) {
     fclose(file);
-    snprintf(error, errorSize, "Need PCM8/16 mono/stereo WAV");
+    snprintf(error, errorSize, "Need PCM8/16/24 mono/stereo WAV");
     return 1;
   }
   uint32_t bytesPerSample = bits / 8;
@@ -348,11 +348,21 @@ int sampleLoadWav16(const char* path, InstrumentSample* sample,
   }
   if (bits == 16) {
     ok = fread(data, sizeof(int16_t), sampleCount, file) == sampleCount;
-  } else {
+  } else if (bits == 8) {
     for (uint32_t i = 0; i < sampleCount; i++) {
       int value = fgetc(file);
       if (value == EOF) { ok = false; break; }
       data[i] = (int16_t)((value - 128) << 8);
+    }
+  } else {
+    // 24-bit: three little-endian bytes per sample, sign-extended and
+    // scaled down to 16-bit (arithmetic shift keeps the full-scale range).
+    for (uint32_t i = 0; i < sampleCount; i++) {
+      uint8_t bytes[3];
+      if (fread(bytes, 1, 3, file) != 3) { ok = false; break; }
+      int32_t value = (int32_t)(bytes[0] | (bytes[1] << 8) | (bytes[2] << 16));
+      if (value & 0x800000) value |= 0xFF000000;
+      data[i] = (int16_t)(value >> 8);
     }
   }
   if (!ok) {

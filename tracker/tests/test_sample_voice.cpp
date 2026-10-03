@@ -228,6 +228,36 @@ TEST_CASE("Sample loader accepts unsigned PCM8 WAV") {
   remove(path);
 }
 
+TEST_CASE("Sample loader accepts signed PCM24 WAV") {
+  const char* path = "build/tests/test_pcm24.wav";
+  FILE* file = fopen(path, "wb");
+  REQUIRE(file != nullptr);
+  fwrite("RIFF", 1, 4, file); writeU32(file, 48);
+  fwrite("WAVEfmt ", 1, 8, file); writeU32(file, 16);
+  writeU16(file, 1); writeU16(file, 1); writeU32(file, 8000);
+  writeU32(file, 24000); writeU16(file, 3); writeU16(file, 24);
+  fwrite("data", 1, 4, file); writeU32(file, 12);
+  // Little-endian 24-bit frames: -8388608, 8388607, 0, 4194304
+  const uint8_t pcm[] = {
+    0x00, 0x00, 0x80, 0xFF, 0xFF, 0x7F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40,
+  };
+  fwrite(pcm, 1, sizeof(pcm), file);
+  fclose(file);
+
+  InstrumentSample sample;
+  std::memset(&sample, 0, sizeof(sample));
+  char error[64];
+  CHECK(sampleLoadWav16(path, &sample, error, sizeof(error)) == 0);
+  REQUIRE(sample.data != nullptr);
+  CHECK(sample.frameCount == 4);
+  CHECK(sample.data[0] == -32768);
+  CHECK(sample.data[1] == 32767);
+  CHECK(sample.data[2] == 0);
+  CHECK(sample.data[3] == 16384);
+  free(sample.data);
+  remove(path);
+}
+
 TEST_CASE("SampleVoice stretch mode 0 keeps plain playback behavior") {
   int16_t pcm[64];
   for (int i = 0; i < 64; ++i) pcm[i] = (int16_t)(i * 500);

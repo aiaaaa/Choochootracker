@@ -25,7 +25,7 @@ static constexpr int undoX = 24;
 static constexpr int undoWidth = 6;
 static constexpr int fileGoX = 19;
 static constexpr int fileGoWidth = 3;
-// Select/Region rows carry two values: "START [] END []"
+// Region/Select rows carry two values: "START [] END []"
 static constexpr int markerLabelX = 9;   // "START"
 static constexpr int selValX = 15;
 static constexpr int selValWidth = 6;
@@ -155,13 +155,17 @@ static SampleEditorSelection editorSelection;
 // Smallest zoomed window in frames
 static constexpr uint32_t kMinViewSpan = 8;
 
-// Fixed zoom span for fine adjustments: one eighth of the sample. The
-// zoom row is gone, so the span is a constant ratio instead of a notch
-// counter - every fine step shows the same window size.
+// Fixed zoom span for fine adjustments: two seconds of audio, clamped to
+// the sample length. Samples that fit inside the window keep the full 1:1
+// view; longer ones always show the same time span, so the window stays
+// readable on short one-shots and long recordings alike.
 static uint32_t zoomSpan(const InstrumentSample* sample) {
   const uint32_t frameCount = sample->frameCount;
-  if (frameCount < kMinViewSpan * 2) return frameCount; // too small to zoom
-  uint32_t span = frameCount / 8;
+  uint32_t rate = sample->sampleRate;
+  if (rate == 0) rate = 44100; // fresh samples: assume the default rate
+  const uint64_t window = (uint64_t)rate * 2;
+  if (frameCount <= window) return frameCount; // whole sample fits: 1:1
+  uint32_t span = (uint32_t)window;
   if (span < kMinViewSpan) span = kMinViewSpan;
   return span;
 }
@@ -198,8 +202,8 @@ static int frameToPixel(uint32_t frame, const SampleEditorView* view, int width,
   return x < width ? x : width - 1;
 }
 
-// Zooms to the fixed span (frameCount/8) around markerFrame, keeping the
-// marker at its relative position inside the window (the first zoom from
+// Zooms to the fixed span (two seconds of audio) around markerFrame, keeping
+// the marker at its relative position inside the window (the first zoom from
 // the full view centers it). When the marker would sit at a window edge it
 // pans just enough to keep a small margin, so repeated fine steps follow
 // the marker without drift. The span never shrinks: every fine step shows
@@ -384,7 +388,7 @@ static void drawSamplePreview(void) {
 }
 
 static int settingsColumnCount(int row) {
-  // Select/Region rows: START + END; Process row: op + GO + UNDO; File row:
+  // Region/Select rows: START + END; Process row: op + GO + UNDO; File row:
   // action + GO
   if (row == 0 || row == 1) return 2;
   if (row == 3) return 3;
@@ -422,10 +426,10 @@ static void settingsDrawStatic(void) {
   updateSamplePreview(sample, &editorView, &editorSelection);
   drawSamplePreview();
   gfxSetFgColor(cs.textDefault);
-  gfxPrint(0, fieldRow0, "Select");
+  gfxPrint(0, fieldRow0, "Region");
   gfxPrint(markerLabelX, fieldRow0, "START");
   gfxPrint(endLabelX, fieldRow0, "END");
-  gfxPrint(0, fieldRow0 + 1, "Region");
+  gfxPrint(0, fieldRow0 + 1, "Select");
   gfxPrint(markerLabelX, fieldRow0 + 1, "START");
   gfxPrint(endLabelX, fieldRow0 + 1, "END");
   gfxPrint(0, fieldRow0 + 2, "Slice");
@@ -492,7 +496,7 @@ static void settingsDrawField(int col, int row, CellState state) {
     return;
   }
   if (row == 0 || row == 1) {
-    // Select (hex markers) and Region (frame handles): two values per row
+    // Region (hex markers) and Select (frame handles): two values per row
     const int x = col == 0 ? selValX : selEndValX;
     gfxClearRect(x, fieldRow0 + row, selValWidth, 1);
     if (row == 0) {
@@ -775,14 +779,17 @@ static int settingsOnEdit(int col, int row, CellEditAction action) {
     return 1;
   }
   if (row == 0) {
+    // Region row: the playback Start/End markers, stored on the sample as
+    // normalised 00-FF values.
     uint8_t* value = col == 0 ? &sample->start : &sample->end;
     handled = edit8noLast(action, value, 16, 0, 255);
     marker = col == 0 ? kViewAnchorStart : kViewAnchorEnd;
   } else if (row == 1) {
-    // Selection handles: fine steps move one frame and zoom onto the
-    // handle; coarse steps jump frameCount/64 (min 16) and return to the
-    // full-sample view. Tap copies the matching playback marker position;
-    // clear empties the whole selection. Start/End are untouched.
+    // Select row: processing-selection handles. Fine steps move one frame
+    // and zoom onto the handle; coarse steps jump frameCount/64 (min 16)
+    // and return to the full-sample view. Tap copies the matching Region
+    // marker position; clear empties the whole selection. Start/End are
+    // untouched.
     const uint32_t frameCount = sample->frameCount;
     if (frameCount == 0) return 0;
     uint32_t* handle = col == 0 ? &editorSelection.start : &editorSelection.end;
