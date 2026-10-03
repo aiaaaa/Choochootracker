@@ -143,7 +143,7 @@ static SampleEditorView editorView;
 // Processing selection: the region the process tools (editor phase 2) act
 // on. Independent from the playback Start/End markers and stored in frames,
 // not 0-255 normalized values. Session-only editor state: never saved with
-// the project, reset when the screen is entered.
+// the project; entering the screen seeds it with the playback Region span.
 struct SampleEditorSelection {
   uint32_t start;  // inclusive frame
   uint32_t end;    // exclusive frame; start == end => empty
@@ -151,6 +151,10 @@ struct SampleEditorSelection {
 };
 
 static SampleEditorSelection editorSelection;
+
+// Set while a fine adjustment (EDIT+LEFT/RIGHT) holds the zoomed view in;
+// releasing EDIT drops the view back to the full sample. Session-only.
+static int zoomHoldActive;
 
 // Smallest zoomed window in frames
 static constexpr uint32_t kMinViewSpan = 8;
@@ -780,12 +784,32 @@ static int settingsOnEdit(int col, int row, CellEditAction action) {
   }
   if (row == 0) {
     // Region row: the playback Start/End markers, stored on the sample as
-    // normalised 00-FF values.
+    // normalised 00-FF values. Fine steps move ten units, coarse steps 16;
+    // edit8noLast hardcodes a fine step of one, so the clamping is spelled
+    // out here (same shape as the Select row below).
+    action = convertMultiAction(action);
     uint8_t* value = col == 0 ? &sample->start : &sample->end;
-    handled = edit8noLast(action, value, 16, 0, 255);
+    if (action == CellEditAction::tap) {
+      handled = 1;
+    } else if (action == CellEditAction::clear) {
+      if (*value != 0) handled = 1;
+      *value = 0;
+    } else if (action == CellEditAction::increase || action == CellEditAction::decrease ||
+               action == CellEditAction::increaseBig || action == CellEditAction::decreaseBig) {
+      const int fine = action == CellEditAction::increase || action == CellEditAction::decrease;
+      const int up = action == CellEditAction::increase || action == CellEditAction::increaseBig;
+      const uint8_t step = fine ? 10 : 16;
+      uint8_t next;
+      if (up) next = *value > 255 - step ? 255 : (uint8_t)(*value + step);
+      else next = *value < step ? 0 : (uint8_t)(*value - step);
+      if (next != *value) {
+        *value = next;
+        handled = 1;
+      }
+    }
     marker = col == 0 ? kViewAnchorStart : kViewAnchorEnd;
   } else if (row == 1) {
-    // Select row: processing-selection handles. Fine steps move one frame
+    // Select row: processing-selection handles. Fine steps move ten frames
     // and zoom onto the handle; coarse steps jump frameCount/64 (min 16)
     // and return to the full-sample view. Tap copies the matching Region
     // marker position; clear empties the whole selection. Start/End are
@@ -805,8 +829,8 @@ static int settingsOnEdit(int col, int row, CellEditAction action) {
       editorSelection.end = 0;
       handled = 1;
     } else {
-      // Fine steps move one frame; coarse steps jump frameCount/64 (min 16)
-      uint32_t step = 1;
+      // Fine steps move ten frames; coarse steps jump frameCount/64 (min 16)
+      uint32_t step = 10;
       if (action == CellEditAction::increaseBig || action == CellEditAction::decreaseBig) {
         step = frameCount / 64;
         if (step < 16) step = 16;
@@ -829,9 +853,11 @@ static int settingsOnEdit(int col, int row, CellEditAction action) {
       if (action == CellEditAction::increase || action == CellEditAction::decrease) {
         editorView.anchor = col == 0 ? kViewAnchorSelStart : kViewAnchorSelEnd;
         zoomToMarker(sample, &editorView, *handle);
+        zoomHoldActive = 1;
       } else if (action == CellEditAction::increaseBig || action == CellEditAction::decreaseBig ||
                  action == CellEditAction::clear) {
         zoomOutFull(sample, &editorView);
+        zoomHoldActive = 0;
       }
       sampleEditorNormalizeState(sample, &editorSelection, &editorView);
       drawSamplePreview();
@@ -859,13 +885,16 @@ static int settingsOnEdit(int col, int row, CellEditAction action) {
     projectModified = 1;
     // Fine steps zoom onto the edited marker so the waveform shows exactly
     // what is being adjusted; coarse steps (and clear) return to the
-    // full-sample view.
+    // full-sample view. The zoom holds while EDIT stays down
+    // (zoomHoldActive); EDIT release drops back to the full view.
     if (action == CellEditAction::increase || action == CellEditAction::decrease) {
       editorView.anchor = marker;
       zoomToMarker(sample, &editorView, anchorFrame(sample, &editorSelection, marker));
+      zoomHoldActive = 1;
     } else if (action == CellEditAction::increaseBig || action == CellEditAction::decreaseBig ||
                action == CellEditAction::clear) {
       zoomOutFull(sample, &editorView);
+      zoomHoldActive = 0;
     }
     updateSamplePreview(sample, &editorView, &editorSelection);
     drawSamplePreview();
@@ -911,15 +940,21 @@ static ScreenData screenSampleSettingsData = {
 
 static void setup(int input) {
   if (input != -1) cInstrument = input;
-  // Entering the screen always starts at the full-sample view with an
-  // empty selection: both are session-only editor state. The undo slot is
-  // dropped too - undo never survives leaving the screen. The dirty flag is
-  // restored from pendingDirtyRestore when a dialog round trip re-enters.
+  // Entering the screen always starts at the full-sample view. The
+  // selection is seeded with the playback Region span - the whole sample
+  // with the default markers - so the process tools act on the region out
+  // of the box. Both are session-only editor state, re-derived on every
+  // entry; the undo slot is dropped too - undo never survives leaving the
+  // screen. The dirty flag is restored from pendingDirtyRestore when a
+  // dialog round trip re-enters.
+  InstrumentSample* sample = currentSample();
   sampleOpFreeUndo(&editorUndo);
-  zoomOutFull(currentSample(), &editorView);
-  editorSelection.start = 0;
-  editorSelection.end = 0;
-  editorSelection.active = 0;
+  zoomOutFull(sample, &editorView);
+  editorSelection.start = sampleMarkerToStartFrame(sample->frameCount, sample->start);
+  editorSelection.end = sampleMarkerToEndFrame(sample->frameCount, sample->end);
+  editorSelection.active = 1;
+  sampleEditorNormalizeState(sample, &editorSelection, &editorView);
+  zoomHoldActive = 0;
   sampleDirtyToDisk = pendingDirtyRestore;
   pendingDirtyRestore = 0;
 }
@@ -963,6 +998,20 @@ static int inputScreenNavigation(int keys) {
 }
 
 static int onInput(int isKeyDown, int keys, int tapCount) {
+  // EDIT release ends a zoom hold: fine adjustments zoom in while EDIT is
+  // down, and letting go of it returns to the full-sample view. Key-up
+  // events carry the still-held buttons, so EDIT counts as released only
+  // when its bit is gone (releasing another key while EDIT is held keeps
+  // the zoom).
+  if (zoomHoldActive && !isKeyDown && !(keys & keyEdit)) {
+    zoomHoldActive = 0;
+    InstrumentSample* sample = currentSample();
+    if (editorView.viewStart != 0 || editorView.viewEnd != sample->frameCount) {
+      zoomOutFull(sample, &editorView);
+      updateSamplePreview(sample, &editorView, &editorSelection);
+      drawSamplePreview();
+    }
+  }
   if (inputScreenNavigation(keys)) return 1;
   return screenInput(&screenSampleSettingsData, isKeyDown, keys, tapCount);
 }
