@@ -172,9 +172,18 @@ not permission to discard a project or omit engines.
 
 First-run seed copying uses a bounded Vita adapter with exclusive destination
 creation; the pinned runtime's `std::filesystem::copy_file` failed on device.
+Graphics initializes first and shows **Unpacking...** with the existing font/theme
+and a files-checked counter. The first setup copies hundreds of files; later starts
+preserve existing files. Quit/background events stop setup between file copies.
 Existing files are retained, and reported copy failures clean up only that call's
 new file. A power interruption during first-run copying may require restoring the
 affected seed from `app0:/assets`; never replace user songs/settings wholesale.
+
+Native compilation and linking use **-pthread**, not only `-lpthread`: the pinned
+GCC driver retains the `pthread_cancel` activation proxy that libstdc++ tests
+before starting C++ threads. Packaging rejects missing/weak pthread activation
+symbols. Both profiles need this for the existing audio worker; personal also uses
+the established Lucky worker. No separate threading implementation is introduced.
 
 ## Integration points and hardware checklist
 

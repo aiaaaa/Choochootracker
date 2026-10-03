@@ -31,6 +31,13 @@ int main(int argv, char** args) {
 
   if (gfxSetup(&appSettings.screenWidth, &appSettings.screenHeight) != 0) return 1;
 
+#ifdef VITA_BUILD
+  if (!vitaPlatformPrepareAssets(appSettings.colorScheme.textDefault, appSettings.colorScheme.background)) {
+    gfxCleanup();
+    vitaPlatformQuit();
+    return 1;
+  }
+#endif
   appSetup();
   mainLoopRun(appDraw, appOnEvent);
 #ifndef WEB_BUILD

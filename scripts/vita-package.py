@@ -6,7 +6,7 @@ from pathlib import Path
 import shutil
 import subprocess
 from vita_assets import validate_livearea
-from vita_elf import validate_relocations
+from vita_elf import validate_relocations, validate_threads
 
 def run(*args):
     return subprocess.check_output(args, text=True).strip()
@@ -49,6 +49,7 @@ def main(profile):
                                         'libxmp_library_sha256':sha(Path('/deps/target/prefix/lib/libxmp-lite.a')),
                                         'CA_sha256':sha(stage/'certs/ca-certificates.crt')})
     symbols=run('arm-vita-eabi-nm','-C',str(out/'native/choochootracker.elf'))
+    threads=validate_threads(symbols)
     relocations=validate_relocations(run('arm-vita-eabi-readelf','-rW',str(out/'native/choochootracker.elf')))
     has_lucky='modLucky::' in symbols
     if has_lucky != (profile=='personal'):
@@ -59,6 +60,7 @@ def main(profile):
             raise RuntimeError('Disabled build linked Lucky dependencies')
     manifest['validation']={'host_lucky_disabled':'passed', 'vita_cross_compile':'passed',
                             'elf_relocations':relocations,
+                            'pthread_symbols':threads,
                             'lucky_enabled_host':'run separately; see validation report',
                             'hardware':'pending', 'vita_https':'pending', 'emulator':'not run'}
     manifest['elf_size']=run('arm-vita-eabi-size',str(out/'native/choochootracker.elf'))

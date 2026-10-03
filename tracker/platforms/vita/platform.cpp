@@ -1,5 +1,6 @@
 #include "platform.h"
 #include "seed_assets.h"
+#include "corelib_gfx.h"
 #include <SDL2/SDL.h>
 #include <psp2/kernel/threadmgr.h>
 #include <psp2/kernel/sysmem.h>
@@ -96,27 +97,12 @@ bool vitaPlatformInit() {
   // Open diagnostics before asset setup, so filesystem failures are visible.
   freopen("ux0:data/choochootracker/vita.log", "w", stderr);
   setvbuf(stderr, nullptr, _IONBF, 0);
-  fprintf(stderr, "Vita startup: heap=%u reserve=%u; copying missing assets\n",
+  fprintf(stderr, "Vita startup: heap=%u reserve=%u\n",
           heapBytes, heapReserveBytes);
-  namespace fs = std::filesystem;
-  try {
-    fs::create_directories("ux0:data/choochootracker");
-    // Copy seeds only when absent. Never replace user settings, fonts or samples.
-    for (const auto& entry : fs::recursive_directory_iterator("app0:/assets")) {
-      auto dest = fs::path("ux0:data/choochootracker") / entry.path().lexically_relative("app0:/assets");
-      if (entry.is_directory()) fs::create_directories(dest);
-      else if (entry.is_regular_file()) {
-        const int error = vitaCopySeedIfMissing(entry.path().c_str(), dest.c_str());
-        if (error) throw fs::filesystem_error("Vita seed copy", entry.path(), dest,
-                                             std::error_code(error, std::generic_category()));
-      }
-    }
-  } catch (const std::exception& e) { fprintf(stderr, "Vita asset setup: %s\n", e.what()); return false; }
   if (chdir("ux0:data/choochootracker") != 0) {
     fprintf(stderr, "Vita data directory: errno=%d\n", errno);
     return false;
   }
-  fprintf(stderr, "Vita assets ready\n");
   SDL_SetHint(SDL_HINT_THREAD_STACK_SIZE, "1048576");
   SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS, "0");
   SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "0");
@@ -130,6 +116,57 @@ bool vitaPlatformInit() {
 #endif
   powerCallback = sceKernelCreateCallback("CCTPower", 0, onPower, nullptr);
   if (powerCallback >= 0) powerRegistered = scePowerRegisterCallback(powerCallback) >= 0;
+  return true;
+}
+bool vitaPlatformPrepareAssets(int foreground, int background) {
+  // The normal renderer and built-in font are ready, but no project/audio or
+  // Lucky worker exists yet. Existing custom fonts/settings were loaded normally.
+  gfxSetContentRowOffset(0);
+  gfxSetBgColor(background);
+  gfxSetFgColor(foreground);
+  gfxClear();
+  gfxPrint(14, 9, "Unpacking...");
+  gfxUpdateScreen();
+  fprintf(stderr, "Vita unpacking: renderer=%s\n", gfxGetRendererType());
+  const auto started = SDL_GetTicks();
+  auto lastDraw = started;
+  unsigned files = 0;
+  namespace fs = std::filesystem;
+  try {
+    // Copy seeds only when absent. Never replace user settings, fonts or samples.
+    for (const auto& entry : fs::recursive_directory_iterator("app0:/assets")) {
+      sceKernelCheckCallback();
+      SDL_Event event{};
+      while (SDL_PollEvent(&event)) {
+        if (event.type == SDL_QUIT || event.type == SDL_APP_WILLENTERBACKGROUND ||
+            (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE)) {
+          fprintf(stderr, "Vita unpacking interrupted after %u files\n", files);
+          return false; // Exit between complete files; no late project startup.
+        }
+      }
+      const auto source = entry.path();
+      const auto dest = fs::path("ux0:data/choochootracker") / source.lexically_relative("app0:/assets");
+      if (entry.is_directory()) fs::create_directories(dest);
+      else if (entry.is_regular_file()) {
+        const int error = vitaCopySeedIfMissing(source.c_str(), dest.c_str());
+        if (error) throw fs::filesystem_error("Vita seed copy", source, dest,
+                                             std::error_code(error, std::generic_category()));
+        ++files;
+        if ((files % 64) == 0) fprintf(stderr, "Vita unpacking: checked %u files\n", files);
+      }
+      const auto now = SDL_GetTicks();
+      if (now - lastDraw >= 100) {
+        gfxClearRect(8, 11, 24, 1);
+        gfxPrintf(8, 11, "Files checked: %u", files);
+        gfxUpdateScreen();
+        lastDraw = now;
+      }
+    }
+  } catch (const std::exception& e) {
+    fprintf(stderr, "Vita asset setup: %s\n", e.what());
+    return false;
+  }
+  fprintf(stderr, "Vita assets ready: %u files, %u ms\n", files, SDL_GetTicks() - started);
   return true;
 }
 void vitaPlatformPoll() {
