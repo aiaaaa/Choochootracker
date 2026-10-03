@@ -1,7 +1,9 @@
 #include "doctest.h"
 #include "../../chipnomad_lib/project_instruments.h"
 #include "../../chipnomad_lib/synth/sample_ops.h"
+#include "../../chipnomad_lib/synth/sample_voice.h"
 
+#include <cstdio>
 #include <cstring>
 #include <vector>
 
@@ -320,6 +322,62 @@ TEST_CASE("Marker round-trip helpers hit boundary values") {
   CHECK(sampleFrameToEndMarker(0, 0) == 0);
   CHECK(sampleFrameToEndMarker(1, 0) == 0);
   CHECK(sampleFrameToEndMarker(1, 1) == 255);
+}
+
+TEST_CASE("WAV save round-trips through load") {
+  const char* path = "test_save_roundtrip.wav";
+
+  // Mono round trip
+  {
+    OpSample t;
+    t.init(257, 1);
+    char error[64] = {0};
+    REQUIRE(sampleSaveWav16(&t.s, path, error, sizeof(error)) == 0);
+    CHECK(error[0] == 0);
+
+    OpSample loaded;
+    REQUIRE(sampleLoadWav16(path, &loaded.s, error, sizeof(error)) == 0);
+    CHECK(loaded.s.frameCount == 257);
+    CHECK(loaded.s.channels == 1);
+    CHECK(loaded.s.sampleRate == 44100);
+    REQUIRE(loaded.s.data != NULL);
+    for (uint32_t i = 0; i < 257; ++i) CHECK(loaded.s.data[i] == OpSample::value(i, 0));
+  }
+
+  // Stereo round trip
+  {
+    OpSample t;
+    t.init(64, 2);
+    char error[64] = {0};
+    REQUIRE(sampleSaveWav16(&t.s, path, error, sizeof(error)) == 0);
+
+    OpSample loaded;
+    REQUIRE(sampleLoadWav16(path, &loaded.s, error, sizeof(error)) == 0);
+    CHECK(loaded.s.frameCount == 64);
+    CHECK(loaded.s.channels == 2);
+    CHECK(loaded.s.sampleRate == 44100);
+    REQUIRE(loaded.s.data != NULL);
+    for (uint32_t i = 0; i < 64 * 2; ++i) CHECK(loaded.s.data[i] == t.original[i]);
+  }
+
+  std::remove(path);
+}
+
+TEST_CASE("WAV save rejects empty samples and overlong paths") {
+  OpSample t;
+  t.init(0, 1);
+  char error[64] = {0};
+  CHECK(sampleSaveWav16(&t.s, "test_save_empty.wav", error, sizeof(error)) == 1);
+  CHECK(error[0] != 0);
+
+  t.init(10, 1);
+  // PROJECT_SAMPLE_PATH_LENGTH is 255; a 256-char path must be rejected
+  char longPath[257];
+  memset(longPath, 'a', sizeof(longPath) - 1);
+  longPath[sizeof(longPath) - 1] = 0;
+  CHECK(strlen(longPath) == 256);
+  CHECK(sampleSaveWav16(&t.s, longPath, error, sizeof(error)) == 1);
+  CHECK(error[0] != 0);
 }
 
 } // TEST_SUITE("sample_ops")
