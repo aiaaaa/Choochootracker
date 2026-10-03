@@ -86,8 +86,15 @@ int projectLoadFromPath(const char* path) {
     }
   } else {
     projectFree(&replacement);
+#ifdef VITA_BUILD
+    fprintf(stderr, "Vita project load failed: %s: %s\n", path, projectFileError);
+#endif
     screenMessage(MESSAGE_TIME_ERROR, "%s", projectFileError);
   }
+
+#ifdef VITA_BUILD
+  if (loadResult == 0) fprintf(stderr, "Vita project loaded: %s\n", path);
+#endif
 
   return loadResult;
 }

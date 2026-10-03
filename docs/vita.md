@@ -105,8 +105,13 @@ checking notices and SDL panel IDs, rerunning tests, then hardware validation.
 ## Controls and touch MOD sources
 
 Controller navigation remains primary. Defaults are remappable in existing input
-settings: D-pad navigation, Cross EDIT, Circle OPT, Start transport, Select SHIFT,
-L live/motion arm, Square record, Triangle erase. R is available for remapping.
+settings: D-pad navigation, Triangle PLAY (north), Circle EDIT (east), Cross OPT
+(south), Square SELECT/SHIFT (west), matching the personal R36H's physical NESW
+layout. Start also starts/stops transport; L arms live/motion, R records, and the
+physical Select button erases. The original Vita defaults migrate once on launch
+only if the entire gamepad map is unchanged; custom maps and keyboard bindings
+are preserved. Square+Up now navigates without using physical Select+Up, which
+PSVshell reserves for its system overlay. That plugin shortcut is not modified.
 Both analog sticks retain their independent existing axes. No essential action
 requires L2/R2 or stick clicks; rear touch is not a substitute button bank.
 
@@ -131,6 +136,11 @@ on that panel before a fresh gesture. Front/rear numeric contact IDs are indepen
 Every Vita touch is consumed before the UI/renderer path, and synthetic mouse events
 are disabled/filtered; touches cannot edit cells or press virtual buttons. Existing
 stick recording/erase remains available; R1 does not add touch automation recording.
+
+The tracker uses a centered 640×480 canvas at exact 1× on the 960×544 display,
+with 160-pixel side borders and 32-pixel top/bottom borders. Bitmap glyphs use
+nearest-neighbor sampling without fractional enlargement. The 256×224 title
+artwork uses exact 2× within that canvas. Existing font/theme choices are retained.
 
 ## Data, audio and Lucky
 
@@ -157,6 +167,11 @@ Animated NEXT prepares; ready PLAY waits for a fresh press; LOAD uses that exact
 cached candidate. Existing capacity checks, cancellation, bank staging, attribution,
 loop fallbacks and tuning rules apply (see [mod-lucky.md](mod-lucky.md)). Limits stay
 8 MiB module, 16 MiB decoded samples, 256 KiB HTML and bounded preview buffers.
+On Vita, failed HTTPS requests log curl's error code/detail in `vita.log`; the
+existing message area distinguishes DNS, timeout and TLS errors. Certificate
+verification stays enabled. A host request is not evidence of device connectivity.
+Project load success/failure is also logged there for device-only diagnosis.
+
 The Vita heap requests 192 MiB as one fixed newlib block. The previous 256 MiB
 reservation failed on hardware before the first filesystem allocation; this
 smaller request leaves space for native libraries and graphics. Preparation requires 96 MiB

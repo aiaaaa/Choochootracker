@@ -10,6 +10,7 @@
 
 #ifdef VITA_BUILD
 #include "../vita/platform.h"
+#include "../vita/controls.h"
 #endif
 
 int main(int argv, char** args) {
@@ -17,6 +18,12 @@ int main(int argv, char** args) {
   if (!vitaPlatformInit()) return 1;
 #endif
   settingsLoad();
+#ifdef VITA_BUILD
+  if (vitaMigrateDefaultControls(appSettings.keyMapping)) {
+    fprintf(stderr, "Vita controls: migrated original defaults to R36H NESW\n");
+    settingsSave();
+  }
+#endif
 
   // Load custom font before gfxSetup so it uses the correct font
   if (appSettings.fontPath[0] != '\0') {

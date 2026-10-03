@@ -336,7 +336,12 @@ void gfxTitlePresent(void) {
   if (!titleTexture) return;
   SDL_RenderFlush(renderer);
   useCompositionTarget();
+#ifdef VITA_BUILD
+  // The 256x224 title artwork/text fits the tracker canvas at an exact 2x.
+  SDL_Rect destination = {(logicalW - 512) / 2, (logicalH - 448) / 2, 512, 448};
+#else
   SDL_Rect destination = {0, 0, logicalW, logicalH};
+#endif
   SDL_RenderCopy(renderer, titleTexture, NULL, &destination);
 #else
   if (!titleTexture) return;
@@ -580,6 +585,11 @@ int gfxSetup(int *screenWidth, int *screenHeight) {
     SDL_Quit();
     return 1;
   }
+
+#ifdef VITA_BUILD
+  // 640x480 -> 960x544 must stay at 1x, centered (160px sides, 32px top/bottom).
+  SDL_RenderSetIntegerScale(renderer, SDL_TRUE);
+#endif
 
   // Desktop and web keep the requested logical window size. SDL's drawable
   // size may be the physical monitor size with the software renderer.

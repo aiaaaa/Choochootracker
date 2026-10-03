@@ -1,18 +1,39 @@
 # Vita candidate validation — 2026-10-03
 
-Native cross-compilation, package verification, host fixtures and the repeatable
-update workflow passed. The personal candidate was transferred to VitaShell over
-FTP and read back with a matching SHA256. **The first installation failed at 99%
-with 0x8010113D and created no home-screen icon.** Its RGB LiveArea artwork was
-outside the required indexed format; the initial verifier missed that restriction.
-The packaging correction converts those assets and validates their encoding before
-building or packaging. That corrected package installed, but crashed immediately
-on launch with C2-12828-1. Core analysis identified missing ELF relocation records
-and a crash in global-constructor startup before `main`. A linker correction and
-packaging regression check follow below. The next device attempt reached `main`
-but aborted after a tiny allocation failed; the newlib heap reservation fix is
-described below. No successful runtime, emulator or Vita
-HTTPS/audio/touch result is claimed here.
+Current hardware status: the user successfully launched personal candidate
+`02960371386f-personal-a007771b.vpk` and auditioned a drum. The device log confirms
+48 kHz stereo PCM16 with a 1024-frame buffer; 21,819 callbacks recorded no
+render-budget overruns. This does not prove absence of audible underruns.
+Controls, fractional font scaling, song selection and Lucky's “No connection”
+were reported during that session. Touch, save/reopen, Lucky acquisition/import,
+suspend/resume and extended mixed-engine playback remain unvalidated.
+
+Earlier installation/startup failures and their corrections are retained below
+as history. Native builds, package verification and host fixtures passed, but
+these are distinct from device testing. Vita remains local: no GitHub push.
+
+## Runtime follow-up candidate
+
+- Adopt the R36H physical NESW actions: Triangle PLAY, Circle EDIT, Cross OPT,
+  Square SELECT; Start is a PLAY alias, L live, R record, physical Select erase.
+  Migrate only untouched old Vita defaults; preserve custom maps, fonts and themes.
+- Use integer scaling: 640×480 at 1× centered on 960×544, title artwork at 2×.
+- All seven device `.cct` seeds were downloaded and compared byte-for-byte with
+  the package. All seven load using the host project parser. Controls may explain
+  failed selection, but actual Vita loading still needs confirmation; log results.
+- A live host random-page request returned HTTP 200 with TLS validation. The old
+  device log did not capture curl errors. The installed 182,140-byte CA bundle
+  matches the prior package exactly. Add precise errors and worker-side logs;
+  **the device Lucky connection failure has not yet been diagnosed or fixed**.
+- Host OFF regression passed: 335 tests / 8,101,254 assertions, plus touch, seed
+  copy and new control-migration adapters. Host ON passed 347 tests / 8,111,292
+  assertions (two opt-in skips), including Vita-guarded fixture import and a fresh
+  process reload. Native candidate build results are recorded after completion.
+  No random music is used in automated tests.
+
+The previously booted personal VPK remains locally available as a rollback
+candidate (not a fully validated release), SHA256
+`1031cf024a8551f906bc71496cbb17bff587adc04269020e18c62bd5d623d050`.
 
 ## Source and isolation
 
