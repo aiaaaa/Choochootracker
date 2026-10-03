@@ -49,7 +49,7 @@ def main(profile):
                                         'libxmp_library_sha256':sha(Path('/deps/target/prefix/lib/libxmp-lite.a')),
                                         'CA_sha256':sha(stage/'certs/ca-certificates.crt')})
     symbols=run('arm-vita-eabi-nm','-C',str(out/'native/choochootracker.elf'))
-    threads=validate_threads(symbols)
+    threads=validate_threads(symbols, personal=profile=='personal')
     relocations=validate_relocations(run('arm-vita-eabi-readelf','-rW',str(out/'native/choochootracker.elf')))
     has_lucky='modLucky::' in symbols
     if has_lucky != (profile=='personal'):

@@ -182,8 +182,9 @@ affected seed from `app0:/assets`; never replace user songs/settings wholesale.
 Native compilation and linking use **-pthread**, not only `-lpthread`: the pinned
 GCC driver retains the `pthread_cancel` activation proxy that libstdc++ tests
 before starting C++ threads. Packaging rejects missing/weak pthread activation
-symbols. Both profiles need this for the existing audio worker; personal also uses
-the established Lucky worker. No separate threading implementation is introduced.
+symbols in both profiles, plus create/once for the personal profile's Lucky worker.
+SDL audio uses native threads; unused POSIX create/once functions can be removed
+from ordinary builds. No separate threading implementation is introduced.
 
 ## Integration points and hardware checklist
 

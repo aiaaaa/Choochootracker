@@ -1,10 +1,11 @@
 """Check relocation records required when VitaSDK converts the linked ELF."""
 import re
 
-def validate_threads(nm_report):
+def validate_threads(nm_report, personal=False):
     defined = set(re.findall(r'^\s*[0-9a-fA-F]+\s+[Tt]\s+(pthread_\w+)\s*$',
                              nm_report, re.MULTILINE))
-    required = ('pthread_cancel', 'pthread_create', 'pthread_once')
+    # Ordinary may garbage-collect unused create/once: SDL uses native threads.
+    required = ('pthread_cancel', 'pthread_create', 'pthread_once') if personal else ('pthread_cancel',)
     if not set(required).issubset(defined):
         raise RuntimeError('Vita ELF lacks active C++ pthread support. Compile/link '
                            'with -pthread; -lpthread alone leaves the weak '

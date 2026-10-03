@@ -103,7 +103,7 @@ class Workflow(unittest.TestCase):
             files['assets/'+folder+'/fixture']=b'fixture'
         manifest={'profile':'ordinary','flags':{'CHOOCHOO_EXPERIMENTAL_MOD_LUCKY':0},
                   'validation':{'elf_relocations':{'.rel.text':1,'.rel.init_array':1},
-                                'pthread_symbols':['pthread_cancel','pthread_create','pthread_once']},
+                                'pthread_symbols':['pthread_cancel']},
                   'application_commit':self.previous,'personal_source_commit':self.source,
                   'vita_integration_revision':self.previous,
                   'files':{name:hashlib.sha256(data).hexdigest() for name,data in files.items()}}
@@ -159,9 +159,12 @@ class Workflow(unittest.TestCase):
 
     def test_weak_pthread_proxy_fails_packaging(self):
         symbols='812abc90 T pthread_create\n812ac32c T pthread_once\n'
-        self.assertIn('pthread_cancel',validate_threads(symbols+'812ac990 T pthread_cancel\n'))
+        self.assertIn('pthread_cancel',validate_threads(symbols+'812ac990 T pthread_cancel\n', personal=True))
+        self.assertEqual(validate_threads('812ac990 T pthread_cancel\n'),['pthread_cancel'])
+        with self.assertRaisesRegex(RuntimeError,'pthread support'):
+            validate_threads('812ac990 T pthread_cancel\n', personal=True)
         for missing in ('', '         w pthread_cancel\n', '         U pthread_cancel\n'):
             with self.assertRaisesRegex(RuntimeError,'pthread support'):
-                validate_threads(symbols+missing)
+                validate_threads(symbols+missing, personal=True)
 
 if __name__=='__main__': unittest.main()

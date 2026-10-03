@@ -243,8 +243,6 @@ The personal installer and checksum are in `ux0:/data/choochootracker-candidates
 the FTP read-back hash matches the local VPK. The superseded e146dee installer
 and sidecar were removed from that candidate folder, retaining local artifacts.
 
-## Initial rejected artifacts
-
 ## Completed unpacking, then C++ thread startup failure
 
 On the first 954af1c launch, the user returned to VitaShell in under 30 seconds.
@@ -264,7 +262,9 @@ unresolved. The pinned libstdc++ uses that symbol to determine whether threading
 is active. Vita GCC's `-pthread` driver specs retain the full pthread archive;
 the port's manual `-lpthread` did not. The correction uses `-pthread` for compilation
 and linking in both profiles. Packaging now checks and records strong definitions
-of cancel/create/once, and verification rejects missing activation metadata.
+of cancel in both profiles and create/once in personal, and verification rejects
+missing activation metadata. Ordinary legitimately discards unused create/once;
+an initially over-strict packaging check was corrected after its build caught this.
 The regression test reproduces the weak-symbol case; it does not emulate a Vita.
 
 The requested **Unpacking...** text and a file counter now draw through the normal
@@ -273,9 +273,21 @@ audio setup. It handles quit/background events between copies. Other platform
 startup paths are unchanged by the Vita-only entry hook.
 
 After the crash, the interrupted zero-byte MICROBRU file was downloaded and
-preserved as `MICROBRU.interrupted-954af1c.WAV`; next startup can seed its missing
+preserved as `MICROBRU.WAV.interrupted-954af1c`; next startup can seed its missing
 original without overwriting user assets. Threaded runtime and visible unpacking
 still require a new device test.
+
+Personal built from `02960371386fc8d6d3559fdb53573ef3ae282190`, passed the
+334-test/8,101,239-assertion host suite plus touch/seed fixtures, and package
+verification confirms strong cancel/create/once definitions. The 10 workflow
+tests pass, including unresolved/weak activation and profile-specific checks.
+Artifact: `releases/vita/candidates/02960371386f-personal-a007771b.vpk`,
+18,837,206 bytes, SHA256
+`1031cf024a8551f906bc71496cbb17bff587adc04269020e18c62bd5d623d050`.
+Ordinary cross-compilation and tests passed at that revision, but its package was
+withheld by the over-strict symbol check; rebuilding after the check correction
+is required before reporting an ordinary package success. The correction changes
+packaging/tests/docs only; the application source is unchanged.
 
 ## Initial rejected artifacts (historical)
 
