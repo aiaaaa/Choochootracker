@@ -19,11 +19,13 @@ jobs:
       - name: Host regression and update workflow
         run: |
           sudo apt-get update
-          sudo apt-get install -y libcurl4-openssl-dev
           python3 scripts/test_vita_workflow.py
-          MOD_LUCKY_DEPS_DIR="$PWD/.tmp/vita-host-xmp" scripts/build-mod-lucky-dependency.sh
           make -C tracker -f Makefile.test -j4 BUILD_DIR=build/vita-host-off
-          make -C tracker -f Makefile.test -j4 BUILD_DIR=build/vita-host-on CHOOCHOO_EXPERIMENTAL_MOD_LUCKY=1 MOD_LUCKY_PREFIX="$PWD/.tmp/vita-host-xmp/prefix"
+          if [ '${{ matrix.profile }}' = personal ]; then
+            sudo apt-get install -y libcurl4-openssl-dev
+            MOD_LUCKY_DEPS_DIR="$PWD/.tmp/vita-host-xmp" scripts/build-mod-lucky-dependency.sh
+            make -C tracker -f Makefile.test -j4 BUILD_DIR=build/vita-host-on CHOOCHOO_EXPERIMENTAL_MOD_LUCKY=1 MOD_LUCKY_PREFIX="$PWD/.tmp/vita-host-xmp/prefix"
+          fi
       - name: Pinned SDK and native candidate
         run: |
           docker pull "$(python3 -c 'import json; print(json.load(open("scripts/vita-sdk.json"))["image"])')"

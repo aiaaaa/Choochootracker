@@ -4,6 +4,7 @@ import importlib.util
 import json
 from pathlib import Path
 import shutil
+import struct
 import subprocess
 import tempfile
 import unittest
@@ -84,5 +85,41 @@ class Workflow(unittest.TestCase):
         package=self.root/'bad.vpk'; package.write_bytes(b'broken archive')
         Path(str(package)+'.sha256').write_text('0'*64+'  bad.vpk\n')
         with self.assertRaisesRegex(RuntimeError,'checksum'): vita.verify(package)
+
+    def test_package_inventory_profile_identity_and_asset_hashes(self):
+        # Self-authored structural fixture, not a runnable Vita executable.
+        title=vita.pin()['title_id'].encode()+b'\0'
+        keys=b'TITLE_ID\0'
+        sfo=struct.pack('<5I',0x46535000,0x101,36,36+len(keys),1)
+        sfo+=struct.pack('<HHIII',0,0x204,len(title),len(title),0)+keys+title
+        files={'eboot.bin':b'SCE\0fixture','sce_sys/param.sfo':sfo,
+               'sce_sys/icon0.png':b'fixture','VITA.md':b'fixture',
+               'licenses/ChooChooTracker.md':b'fixture'}
+        for folder in ('fonts','title','projects','pitch-tables'):
+            files['assets/'+folder+'/fixture']=b'fixture'
+        manifest={'profile':'ordinary','flags':{'CHOOCHOO_EXPERIMENTAL_MOD_LUCKY':0},
+                  'application_commit':self.previous,'personal_source_commit':self.source,
+                  'vita_integration_revision':self.previous,
+                  'files':{name:hashlib.sha256(data).hexdigest() for name,data in files.items()}}
+        package=self.root/'structural-fixture.vpk'
+        def write():
+            with zipfile.ZipFile(package,'w') as z:
+                for name,data in files.items(): z.writestr(name,data)
+                z.writestr('build-manifest.json',json.dumps(manifest))
+            Path(str(package)+'.sha256').write_text(vita.sha(package)+'  '+package.name+'\n')
+        write()
+        self.assertEqual(vita.verify(package,'ordinary')['application_commit'],self.previous)
+        with self.assertRaisesRegex(RuntimeError,'profile'): vita.verify(package,'personal')
+        files['sce_sys/icon0.png']=b'changed'
+        write()
+        with self.assertRaisesRegex(RuntimeError,'Asset checksum'): vita.verify(package)
+        files['sce_sys/icon0.png']=b'fixture'
+        manifest['application_commit']='moving-branch'
+        write()
+        with self.assertRaisesRegex(RuntimeError,'identity'): vita.verify(package)
+        manifest['application_commit']=self.previous
+        del files['assets/fonts/fixture']
+        write()
+        with self.assertRaisesRegex(RuntimeError,'Missing assets/fonts'): vita.verify(package)
 
 if __name__=='__main__': unittest.main()

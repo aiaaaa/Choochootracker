@@ -185,4 +185,4 @@ GXM renderer and suspend notifications. Re-run both profile builds after changes
   confirm existing projects/banks, then test backup/rollback.
 
 No Vita hardware or emulator validation is implied by this document. See the
-adjacent validation report for commands actually run and current results.
+[validation report](vita-validation.md) for commands actually run and current results.
