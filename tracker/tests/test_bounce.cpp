@@ -211,7 +211,8 @@ TEST_CASE_FIXTURE(BounceFixture, "stopRange kills the sounding note at the bound
 
   // After the boundary the track is stopped: further render calls produce
   // silence (zero-filled remainder)
-  float tail[256];
+  // chipnomadRender writes interleaved stereo: samples * 2 floats
+  float tail[512];
   int tailRendered = chipnomadRender(state, tail, 256);
   CHECK(tailRendered == 256);
   for (int i = 0; i < 256 * 2; i++) {
