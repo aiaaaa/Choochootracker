@@ -6,8 +6,11 @@ FTP and read back with a matching SHA256. **The first installation failed at 99%
 with 0x8010113D and created no home-screen icon.** Its RGB LiveArea artwork was
 outside the required indexed format; the initial verifier missed that restriction.
 The packaging correction converts those assets and validates their encoding before
-building or packaging. Launch and runtime checks remain pending. No emulator was
-run and no Vita HTTPS/audio/touch success is claimed here.
+building or packaging. That corrected package installed, but crashed immediately
+on launch with C2-12828-1. Core analysis identified missing ELF relocation records
+and a crash in global-constructor startup before `main`. A linker correction and
+packaging regression check follow below. No successful runtime, emulator or Vita
+HTTPS/audio/touch result is claimed here.
 
 ## Source and isolation
 
@@ -113,7 +116,25 @@ verification. No runtime code changed in this correction.
 
 The corrected personal candidate was uploaded to the same Vita candidate folder
 and read back over FTP; SHA256 matched exactly. It is ready for the installation
-retry. Successful installation and runtime checks still require a device result.
+retry in the historical record, but is now superseded: installation succeeded
+and launch failed. Do not reinstall it for runtime testing.
+
+### Launch crash diagnosis
+
+Dump `psp2core-1790907681-0x0000662ced-eboot.bin.psp2dmp` was retrieved from the
+Vita. No ChooChoo data folder/log had been created. The main thread stopped with
+prefetch abort 0x30003, PC `0xffb41000`, LR `0x813658bb`; its code segment loaded
+at `0x8106a000`. Mapping LR to the exact ab2686b ELF gives `0x812fb8bb`, inside
+`__libc_init_array` immediately after its indirect constructor call. Register R5
+still held the unrelocated init-array address `0x81410004`, while the data segment
+was actually loaded at `0x81500000`.
+
+The linked ELF reported **no relocations**. The native Makefile had omitted the
+required VitaSDK `-Wl,-q` setting. The fix retains relocations and disables copy
+relocations (`-Wl,-q,-z,nocopyreloc`), matching the pinned SDK toolchain. Packaging
+now requires nonempty `.rel.text` and `.rel.init_array` records and records their
+counts in the manifest. Host tests reject the missing/partial-relocation reports.
+This diagnosis concerns port startup, not project corruption or the Lucky decoder.
 
 ## Initial rejected artifacts
 

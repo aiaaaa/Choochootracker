@@ -4,6 +4,9 @@ This is a native VitaSDK/SDL2 candidate port, not a PortMaster package. Title ID
 `CCTRK0001` stays fixed across updates. No proprietary PVR files, graphics plugin,
 clock override, reduced engine list or altered audio quality is required by the build.
 Compilation is not hardware validation; use the checklist below before promotion.
+The native link retains relocation records (`-Wl,-q,-z,nocopyreloc`), matching
+VitaSDK's toolchain rules. Packaging checks code and constructor relocations;
+omitting them can produce an installable executable that crashes before `main`.
 
 ## Branches and updates
 
