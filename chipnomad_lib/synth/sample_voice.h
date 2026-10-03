@@ -56,4 +56,11 @@ void sampleSliceFrames(uint32_t frameCount, uint8_t sliceCount, uint8_t sliceInd
 int sampleLoadWav16(const char* path, InstrumentSample* sample,
                     char* error, size_t errorSize);
 
+// Writes the sample as an uncompressed 16-bit PCM WAV (44-byte RIFF header,
+// little-endian fields written byte-wise so the code is endian-agnostic).
+// Returns 0 on success, 1 on failure with a message in error. The sample is
+// not modified; markers and path are the caller's business.
+int sampleSaveWav16(const InstrumentSample* sample, const char* path,
+                    char* error, size_t errorSize);
+
 #endif

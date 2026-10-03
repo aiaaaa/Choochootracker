@@ -5,6 +5,8 @@
 #include "chipnomad_lib.h"
 #include "screen_instrument.h"
 #include "waveform_display.h"
+#include "file_browser.h"
+#include "screen_enter_name.h"
 #include "synth/sample_voice.h"
 #include "synth/sample_ops.h"
 #include "audio_manager.h"
@@ -17,11 +19,19 @@ static constexpr int goX = 9;
 static constexpr int goWidth = 3;
 static constexpr int undoX = 16;
 static constexpr int undoWidth = 6;
-static constexpr int previewRow = 4;
+static constexpr int saveX = 9;
+static constexpr int saveWidth = 5;
+static constexpr int saveAsX = 16;
+static constexpr int saveAsWidth = 7;
+static constexpr int renameX = 25;
+static constexpr int renameWidth = 7;
+// The field block starts one row higher than the preview height would suggest
+// so the Save row fits above the message line (screen row 19).
+static constexpr int previewRow = 3;
 static constexpr int previewWidth = 32;
 static constexpr int previewHeight = 7;
-static constexpr int viewReadoutRow = 11;
-static constexpr int fieldRow0 = 12;
+static constexpr int viewReadoutRow = 10;
+static constexpr int fieldRow0 = 11;
 static const char* sliceLabels[] = {"Off", "2", "4", "8", "16", "32"};
 static const uint8_t sliceValues[] = {0, 2, 4, 8, 16, 32};
 static constexpr int sliceCount = 6;
@@ -37,9 +47,18 @@ static int processOp; // index into processOpLabels, -1 = none
 // saved with the project, dropped when the screen is (re)entered.
 static SampleUndo editorUndo;
 
-// Set when a process op changes sample data relative to the file on disk.
-// Phase 3 adds the Save flows that clear it and the '*' filename marker.
+// Set when the sample data in RAM differs from the file on disk. Cleared by
+// the Save flows; shown as a '*' before the filename.
 static int sampleDirtyToDisk;
+
+// Dialog round trips re-enter the screen, which resets the session state.
+// The dirty flag travels through this slot so a cancelled save or a rename
+// cannot make unsaved changes look saved.
+static int pendingDirtyRestore;
+
+// File name (without extension) captured between the Save As name entry and
+// the folder browser.
+static char saveAsName[64];
 
 static Bitmap* samplePreviewBitmap;
 static Bitmap* sampleSliceMarkerBitmap;
@@ -63,6 +82,17 @@ static const char* shortSampleFilename(const char* path, size_t maxLength) {
   const char* name = sampleFilename(path);
   size_t length = strlen(name);
   return length > maxLength ? name + length - maxLength : name;
+}
+
+// Basename without extension: "dir/loop.wav" -> "loop". A name with no dot
+// (or a leading dot) is returned unchanged.
+static void sampleBasenameSansExt(const char* path, char* out, size_t outSize) {
+  const char* name = sampleFilename(path);
+  const char* dot = strrchr(name, '.');
+  size_t length = dot && dot != name ? (size_t)(dot - name) : strlen(name);
+  if (length >= outSize) length = outSize - 1;
+  memcpy(out, name, length);
+  out[length] = 0;
 }
 
 static InstrumentSample* currentSample(void) {
@@ -336,8 +366,9 @@ static void drawSamplePreview(void) {
 }
 
 static int settingsColumnCount(int row) {
-  // GO/UNDO share one row as two columns
+  // GO/UNDO share one row as two columns, Save/Save As/Rename another as three
   if (row == 6) return 2;
+  if (row == 7) return 3;
   return 1;
 }
 
@@ -356,13 +387,26 @@ static void drawViewReadout(void) {
   }
 }
 
+// Filename row with the '*' dirty marker. Called from the static draw and
+// after process ops so the marker appears without a full redraw.
+static void drawFilenameRow(void) {
+  InstrumentSample* sample = currentSample();
+  gfxSetFgColor(appSettings.colorScheme.textDefault);
+  gfxClearRect(0, 1, 32, 1);
+  int nameX = 0;
+  if (sampleDirtyToDisk) {
+    gfxPrint(0, 1, "*");
+    nameX = 1;
+  }
+  gfxPrint(nameX, 1, shortSampleFilename(sample->path, 32 - nameX));
+}
+
 static void settingsDrawStatic(void) {
   const ColorScheme cs = appSettings.colorScheme;
   InstrumentSample* sample = currentSample();
   gfxSetFgColor(cs.textTitles);
   gfxPrint(0, 0, "SAMPLE EDIT");
-  gfxSetFgColor(cs.textDefault);
-  gfxPrint(0, 1, shortSampleFilename(sample->path, 32));
+  drawFilenameRow();
   gfxSetFgColor(cs.textInfo);
   if (sample->data && sample->frameCount) {
     char formatText[40];
@@ -380,11 +424,16 @@ static void settingsDrawStatic(void) {
   gfxPrint(0, fieldRow0 + 3, "Sel.E");
   gfxPrint(0, fieldRow0 + 4, "Slice");
   gfxPrint(0, fieldRow0 + 5, "Process");
+  gfxPrint(0, fieldRow0 + 7, "File");
 }
 
 static void settingsDrawCursor(int col, int row) {
   if (row == 6) {
     gfxCursor(col ? undoX : goX, fieldRow0 + row, col ? undoWidth : goWidth);
+  } else if (row == 7) {
+    int x = col == 0 ? saveX : col == 1 ? saveAsX : renameX;
+    int width = col == 0 ? saveWidth : col == 1 ? saveAsWidth : renameWidth;
+    gfxCursor(x, fieldRow0 + row, width);
   } else {
     gfxCursor(valueX, fieldRow0 + row, row == 4 ? 3 : valueWidth);
   }
@@ -420,6 +469,24 @@ static void settingsDrawField(int col, int row, CellState state) {
       // UNDO is inert without a prepared slot: dim it
       if (!editorUndo.active) gfxSetFgColor(appSettings.colorScheme.textEmpty);
       gfxPrint(undoX, fieldRow0 + row, "UNDO");
+    }
+    return;
+  }
+  if (row == 7) {
+    // Save / Save As / Rename buttons. Save and Rename need a file path,
+    // Save As needs sample data (it can assign a path to a fresh sample).
+    if (col == 0) {
+      gfxClearRect(saveX, fieldRow0 + row, saveWidth, 1);
+      if (!sample->path[0]) gfxSetFgColor(appSettings.colorScheme.textEmpty);
+      gfxPrint(saveX, fieldRow0 + row, "Save");
+    } else if (col == 1) {
+      gfxClearRect(saveAsX, fieldRow0 + row, saveAsWidth, 1);
+      if (!sample->data || !sample->frameCount) gfxSetFgColor(appSettings.colorScheme.textEmpty);
+      gfxPrint(saveAsX, fieldRow0 + row, "Save As");
+    } else {
+      gfxClearRect(renameX, fieldRow0 + row, renameWidth, 1);
+      if (!sample->path[0]) gfxSetFgColor(appSettings.colorScheme.textEmpty);
+      gfxPrint(renameX, fieldRow0 + row, "Rename");
     }
     return;
   }
@@ -483,7 +550,7 @@ static void sampleEditorNormalizeState(const InstrumentSample* sample,
 // Repaints everything a process op can invalidate: the preview, the view
 // readout, the marker/selection fields and the Process row.
 static void settingsRepaintAfterOp(void) {
-  InstrumentSample* sample = currentSample();
+  drawFilenameRow();
   drawSamplePreview();
   drawViewReadout();
   for (int row = 0; row < 5; ++row) settingsDrawField(0, row, CellState::normal);
@@ -568,6 +635,126 @@ static void settingsRunUndo(void) {
   screenMessage(MESSAGE_TIME, "Undone");
 }
 
+// Return to the sample editor from a dialog. Re-entering the screen resets
+// the session state, so the dirty flag travels through pendingDirtyRestore:
+// keep it whenever the file on disk may still differ from the sample in RAM.
+static void settingsReturnFromDialog(int keepDirty) {
+  pendingDirtyRestore = keepDirty ? sampleDirtyToDisk : 0;
+  screenSetup(&screenSampleSettings, cInstrument);
+}
+
+static void settingsCancelDialog(void) {
+  settingsReturnFromDialog(1);
+}
+
+// Save: overwrite the WAV the sample was loaded from, after confirmation.
+static void settingsDoSave(void) {
+  InstrumentSample* sample = currentSample();
+  char error[128];
+  audioManager.pause();
+  int result = sampleSaveWav16(sample, sample->path, error, sizeof(error));
+  audioManager.resume();
+  if (result != 0) {
+    screenMessage(MESSAGE_TIME_ERROR, "%s", error);
+    settingsReturnFromDialog(1);
+    return;
+  }
+  screenMessage(MESSAGE_TIME, "Saved %s", shortSampleFilename(sample->path, 24));
+  settingsReturnFromDialog(0);
+}
+
+static void settingsRunSave(void) {
+  InstrumentSample* sample = currentSample();
+  if (!sample->path[0]) return;
+  char message[128];
+  snprintf(message, sizeof(message), "Overwrite %s?", shortSampleFilename(sample->path, 48));
+  confirmSetup(message, settingsDoSave, settingsCancelDialog);
+  screenSetup(&screenConfirm, 0);
+}
+
+// Save As: pick a name, then a folder; the sample is written as
+// <folder>/<name>.wav and the instrument points at the new file.
+static void settingsSaveAsFolderSelected(const char* folderPath) {
+  InstrumentSample* sample = currentSample();
+  // folder + separator + name + ".wav" must fit the stored path length
+  if (strlen(folderPath) + strlen(saveAsName) + 5 > PROJECT_SAMPLE_PATH_LENGTH) {
+    screenMessage(MESSAGE_TIME_ERROR, "Path too long");
+    settingsReturnFromDialog(1);
+    return;
+  }
+  char newPath[PROJECT_SAMPLE_PATH_LENGTH + 2];
+  snprintf(newPath, sizeof(newPath), "%s%s%s.wav", folderPath, PATH_SEPARATOR_STR, saveAsName);
+  char error[128];
+  audioManager.pause();
+  int result = sampleSaveWav16(sample, newPath, error, sizeof(error));
+  audioManager.resume();
+  if (result != 0) {
+    screenMessage(MESSAGE_TIME_ERROR, "%s", error);
+    settingsReturnFromDialog(1);
+    return;
+  }
+  strncpy(sample->path, newPath, PROJECT_SAMPLE_PATH_LENGTH);
+  sample->path[PROJECT_SAMPLE_PATH_LENGTH] = 0;
+  strncpy(appSettings.samplePath, folderPath, PATH_LENGTH);
+  appSettings.samplePath[PATH_LENGTH] = 0;
+  projectModified = 1;
+  screenMessage(MESSAGE_TIME, "Saved %s", saveAsName);
+  settingsReturnFromDialog(0);
+}
+
+static void settingsSaveAsNameEntered(const char* name) {
+  strncpy(saveAsName, name, sizeof(saveAsName) - 1);
+  saveAsName[sizeof(saveAsName) - 1] = 0;
+  fileBrowserSetupFolderMode("SAVE SAMPLE", appSettings.samplePath, saveAsName, ".wav",
+                             settingsSaveAsFolderSelected, settingsCancelDialog);
+  screenSetup(&screenFileBrowser, 0);
+}
+
+static void settingsRunSaveAs(void) {
+  InstrumentSample* sample = currentSample();
+  if (!sample->data || !sample->frameCount) return;
+  char initialName[25]; // the name entry field holds 24 characters
+  sampleBasenameSansExt(sample->path, initialName, sizeof(initialName));
+  enterNameSetup("SAVE SAMPLE", "File name:", initialName, settingsSaveAsNameEntered, settingsCancelDialog);
+  screenSetup(&screenEnterName, 0);
+}
+
+// Rename: replace the file name component of the sample path on disk. The
+// directory and the data are untouched; the dirty flag survives a rename
+// because the file content does not change.
+static void settingsRenameEntered(const char* name) {
+  InstrumentSample* sample = currentSample();
+  const char* separator = strrchr(sample->path, PATH_SEPARATOR);
+  size_t dirLength = separator ? (size_t)(separator - sample->path) + 1 : 0;
+  // directory prefix + name + ".wav" must fit the stored path length
+  if (dirLength + strlen(name) + 4 > PROJECT_SAMPLE_PATH_LENGTH) {
+    screenMessage(MESSAGE_TIME_ERROR, "Path too long");
+    settingsReturnFromDialog(1);
+    return;
+  }
+  char newPath[PROJECT_SAMPLE_PATH_LENGTH + 2];
+  snprintf(newPath, sizeof(newPath), "%.*s%s.wav", (int)dirLength, sample->path, name);
+  if (fileRename(sample->path, newPath) != 0) {
+    screenMessage(MESSAGE_TIME_ERROR, "Rename failed");
+    settingsReturnFromDialog(1);
+    return;
+  }
+  strncpy(sample->path, newPath, PROJECT_SAMPLE_PATH_LENGTH);
+  sample->path[PROJECT_SAMPLE_PATH_LENGTH] = 0;
+  projectModified = 1;
+  screenMessage(MESSAGE_TIME, "Renamed");
+  settingsReturnFromDialog(1);
+}
+
+static void settingsRunRename(void) {
+  InstrumentSample* sample = currentSample();
+  if (!sample->path[0]) return;
+  char initialName[25]; // the name entry field holds 24 characters
+  sampleBasenameSansExt(sample->path, initialName, sizeof(initialName));
+  enterNameSetup("RENAME SAMPLE", "New name:", initialName, settingsRenameEntered, settingsCancelDialog);
+  screenSetup(&screenEnterName, 0);
+}
+
 static int settingsOnEdit(int col, int row, CellEditAction action) {
   InstrumentSample* sample = currentSample();
   int handled = 0;
@@ -593,6 +780,13 @@ static int settingsOnEdit(int col, int row, CellEditAction action) {
     if (action != CellEditAction::tap && action != CellEditAction::doubleTap) return 0;
     if (col == 0) settingsRunProcessOp();
     else settingsRunUndo();
+    return 1;
+  }
+  if (row == 7) {
+    if (action != CellEditAction::tap && action != CellEditAction::doubleTap) return 0;
+    if (col == 0) settingsRunSave();
+    else if (col == 1) settingsRunSaveAs();
+    else settingsRunRename();
     return 1;
   }
   if (row == 0) {
@@ -692,14 +886,19 @@ static int settingsOnEdit(int col, int row, CellEditAction action) {
 }
 
 // Slice is inert while Stretch drives the duration: skip it in navigation.
+// Save/Rename need a file path, Save As needs sample data.
 static int settingsIsCellValid(int col, int row) {
-  (void)col;
-  if (row == 4 && currentSample()->stretchMode != 0) return 0;
+  InstrumentSample* sample = currentSample();
+  if (row == 4 && sample->stretchMode != 0) return 0;
+  if (row == 7) {
+    if (col == 1) return sample->data != NULL && sample->frameCount > 0;
+    return sample->path[0] != 0;
+  }
   return 1;
 }
 
 static ScreenData screenSampleSettingsData = {
-  .rows = 7,
+  .rows = 8,
   .cursorRow = 0,
   .cursorCol = 0,
   .topRow = 0,
@@ -727,19 +926,27 @@ static void setup(int input) {
   if (input != -1) cInstrument = input;
   // Entering the screen always starts at the full-sample view with an
   // empty selection: both are session-only editor state. The undo slot is
-  // dropped too - undo never survives leaving the screen.
+  // dropped too - undo never survives leaving the screen. The dirty flag is
+  // restored from pendingDirtyRestore when a dialog round trip re-enters.
   sampleOpFreeUndo(&editorUndo);
   zoomOutFull(currentSample(), &editorView);
   editorSelection.start = 0;
   editorSelection.end = 0;
   editorSelection.active = 0;
-  sampleDirtyToDisk = 0;
+  sampleDirtyToDisk = pendingDirtyRestore;
+  pendingDirtyRestore = 0;
 }
 
 static void fullRedraw(void) {
   // The cursor persists across screens: if it is parked on Slice while Stretch
   // is active, move it up so it never rests on a disabled cell.
   if (screenSampleSettingsData.cursorRow == 4 && currentSample()->stretchMode != 0) {
+    screenSampleSettingsData.cursorRow = 1;
+  }
+  // Same for the Save row: the previous instrument may have left the cursor
+  // on a button the current sample cannot use.
+  if (screenSampleSettingsData.cursorRow == 7 &&
+      !settingsIsCellValid(screenSampleSettingsData.cursorCol, 7)) {
     screenSampleSettingsData.cursorRow = 1;
   }
   screenFullRedraw(&screenSampleSettingsData);

@@ -371,3 +371,62 @@ int sampleLoadWav16(const char* path, InstrumentSample* sample,
   error[0] = 0;
   return 0;
 }
+
+static void writeU16(FILE* file, uint16_t value, bool* ok) {
+  uint8_t bytes[2] = { (uint8_t)(value & 0xFF), (uint8_t)(value >> 8) };
+  if (fwrite(bytes, 1, 2, file) != 2) *ok = false;
+}
+
+static void writeU32(FILE* file, uint32_t value, bool* ok) {
+  uint8_t bytes[4] = { (uint8_t)(value & 0xFF), (uint8_t)((value >> 8) & 0xFF),
+                       (uint8_t)((value >> 16) & 0xFF), (uint8_t)(value >> 24) };
+  if (fwrite(bytes, 1, 4, file) != 4) *ok = false;
+}
+
+int sampleSaveWav16(const InstrumentSample* sample, const char* path,
+                    char* error, size_t errorSize) {
+  if (!sample->data || sample->frameCount == 0) {
+    snprintf(error, errorSize, "No sample to save");
+    return 1;
+  }
+  if (strlen(path) > PROJECT_SAMPLE_PATH_LENGTH) {
+    snprintf(error, errorSize, "Path too long");
+    return 1;
+  }
+  FILE* file = fopen(path, "wb");
+  if (!file) {
+    snprintf(error, errorSize, "Cannot create WAV");
+    return 1;
+  }
+
+  const uint16_t channels = sample->channels >= 2 ? 2 : 1;
+  const uint16_t bits = 16;
+  const uint32_t dataBytes = (uint32_t)sample->frameCount * channels * 2;
+  bool ok = true;
+  fwrite("RIFF", 1, 4, file);
+  writeU32(file, 36 + dataBytes, &ok);
+  fwrite("WAVE", 1, 4, file);
+  fwrite("fmt ", 1, 4, file);
+  writeU32(file, 16, &ok);            // fmt chunk size
+  writeU16(file, 1, &ok);             // PCM
+  writeU16(file, channels, &ok);
+  writeU32(file, sample->sampleRate, &ok);
+  writeU32(file, sample->sampleRate * channels * 2, &ok); // byte rate
+  writeU16(file, channels * 2, &ok);  // block align
+  writeU16(file, bits, &ok);
+  fwrite("data", 1, 4, file);
+  writeU32(file, dataBytes, &ok);
+  if (ok && fwrite(sample->data, sizeof(int16_t), (size_t)sample->frameCount * channels, file) !=
+      (size_t)sample->frameCount * channels) {
+    ok = false;
+  }
+
+  if (fclose(file) != 0) ok = false;
+  if (!ok) {
+    remove(path);
+    snprintf(error, errorSize, "Cannot write WAV");
+    return 1;
+  }
+  error[0] = 0;
+  return 0;
+}
