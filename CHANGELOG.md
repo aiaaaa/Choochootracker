@@ -27,6 +27,13 @@
 - Fixed the waveform zoom to a constant two-second window on fine
   adjustments instead of one eighth of the sample; samples that fit inside
   the window keep the full 1:1 view and coarse steps still return to it.
+- Made the fine-adjust zoom transient: the waveform zooms in while EDIT is
+  held and returns to the full 1:1 view when EDIT is released.
+- Stepped the fine adjustment on the Region and Select rows by 10 instead
+  of 1 (marker units on Region, frames on Select).
+- Seeded the processing selection with the playback Region span when the
+  Sample Edit screen is entered - the whole sample with the default
+  markers - so process operations act on the region out of the box.
 - Added the Reverse process operation, which plays the selected region
   backwards in place (stereo image preserved, length and markers
   unchanged).
