@@ -159,7 +159,7 @@ static int zoomHoldActive;
 // Smallest zoomed window in frames
 static constexpr uint32_t kMinViewSpan = 8;
 
-// Fixed zoom span for fine adjustments: two seconds of audio, clamped to
+// Fixed zoom span for fine adjustments: one second of audio, clamped to
 // the sample length. Samples that fit inside the window keep the full 1:1
 // view; longer ones always show the same time span, so the window stays
 // readable on short one-shots and long recordings alike.
@@ -167,7 +167,7 @@ static uint32_t zoomSpan(const InstrumentSample* sample) {
   const uint32_t frameCount = sample->frameCount;
   uint32_t rate = sample->sampleRate;
   if (rate == 0) rate = 44100; // fresh samples: assume the default rate
-  const uint64_t window = (uint64_t)rate * 2;
+  const uint64_t window = (uint64_t)rate;
   if (frameCount <= window) return frameCount; // whole sample fits: 1:1
   uint32_t span = (uint32_t)window;
   if (span < kMinViewSpan) span = kMinViewSpan;
@@ -206,7 +206,7 @@ static int frameToPixel(uint32_t frame, const SampleEditorView* view, int width,
   return x < width ? x : width - 1;
 }
 
-// Zooms to the fixed span (two seconds of audio) around markerFrame, keeping
+// Zooms to the fixed span (one second of audio) around markerFrame, keeping
 // the marker at its relative position inside the window (the first zoom from
 // the full view centers it). When the marker would sit at a window edge it
 // pans just enough to keep a small margin, so repeated fine steps follow
@@ -784,7 +784,7 @@ static int settingsOnEdit(int col, int row, CellEditAction action) {
   }
   if (row == 0) {
     // Region row: the playback Start/End markers, stored on the sample as
-    // normalised 00-FF values. Fine steps move ten units, coarse steps 16;
+    // normalised 00-FF values. Fine steps move five units, coarse steps 16;
     // edit8noLast hardcodes a fine step of one, so the clamping is spelled
     // out here (same shape as the Select row below).
     action = convertMultiAction(action);
@@ -798,7 +798,7 @@ static int settingsOnEdit(int col, int row, CellEditAction action) {
                action == CellEditAction::increaseBig || action == CellEditAction::decreaseBig) {
       const int fine = action == CellEditAction::increase || action == CellEditAction::decrease;
       const int up = action == CellEditAction::increase || action == CellEditAction::increaseBig;
-      const uint8_t step = fine ? 10 : 16;
+      const uint8_t step = fine ? 5 : 16;
       uint8_t next;
       if (up) next = *value > 255 - step ? 255 : (uint8_t)(*value + step);
       else next = *value < step ? 0 : (uint8_t)(*value - step);
@@ -809,7 +809,7 @@ static int settingsOnEdit(int col, int row, CellEditAction action) {
     }
     marker = col == 0 ? kViewAnchorStart : kViewAnchorEnd;
   } else if (row == 1) {
-    // Select row: processing-selection handles. Fine steps move ten frames
+    // Select row: processing-selection handles. Fine steps move five frames
     // and zoom onto the handle; coarse steps jump frameCount/64 (min 16)
     // and return to the full-sample view. Tap copies the matching Region
     // marker position; clear empties the whole selection. Start/End are
@@ -829,8 +829,8 @@ static int settingsOnEdit(int col, int row, CellEditAction action) {
       editorSelection.end = 0;
       handled = 1;
     } else {
-      // Fine steps move ten frames; coarse steps jump frameCount/64 (min 16)
-      uint32_t step = 10;
+      // Fine steps move five frames; coarse steps jump frameCount/64 (min 16)
+      uint32_t step = 5;
       if (action == CellEditAction::increaseBig || action == CellEditAction::decreaseBig) {
         step = frameCount / 64;
         if (step < 16) step = 16;
