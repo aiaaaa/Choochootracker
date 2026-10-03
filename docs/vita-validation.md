@@ -181,6 +181,26 @@ fails, startup returns cleanly. `vita.log` also opens before seed copying to
 capture filesystem setup errors. The revised request still needs a real-device
 launch test; compilation alone cannot establish that the memory budget fits.
 
+Both profiles built from exact revision
+`e146dee64d578c4364feb354baa04a6901053848` using `scripts/vita.sh build --profile
+personal` and `--profile ordinary`. Both passed the 334-test/8,101,239-assertion
+host suite, SDL touch adapter checks and package verification. The 9 workflow
+tests passed. Relocation counts remain nonzero: personal 110,069 text/11 init-array,
+ordinary 38,632 text/9 init-array. The ordinary ELF's heap variable was also
+inspected and contains exactly 201,326,592 bytes (192 MiB).
+
+| Heap-fix candidate | Bytes | SHA256 |
+| --- | ---: | --- |
+| `releases/vita/candidates/e146dee64d57-personal-0f5269b7.vpk` | 18,831,692 | `2d6c03dbffbcba37be0b6e3de066906fd04f69b822f5b0a20701cc9a207d6806` |
+| `releases/vita/candidates/e146dee64d57-ordinary-d1393048.vpk` | 15,256,417 | `fcea560b8370394361c34df1d42240f96362e8cf7d66f232b6c7a69b714a0472` |
+
+The personal package retains Lucky, all existing engines/Insert FX, and both touch
+MOD sources. The latest changes affect only the Vita adapter and documentation;
+shared engine and the existing Lucky implementation are unchanged.
+The personal VPK and checksum were uploaded to
+`ux0:/data/choochootracker-candidates/`; read-back SHA256 matched the local package.
+User installation and launch results for this heap-fix candidate remain pending.
+
 ## Initial rejected artifacts
 
 The initial artifacts listed below are retained as evidence, but **do not install
