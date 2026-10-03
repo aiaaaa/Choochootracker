@@ -92,7 +92,30 @@ Additional checks passed:
 Local logs are in sibling `../vita-validation/` and each build's `.tmp/vita/`
 directory. GitHub Actions is configured but has not been run or published here.
 
-## Artifacts
+## Corrected installer candidates
+
+Packaging fix revision: `ab2686b5c1dd325f6efb79a4ed8d62e24902ee0e`.
+All three LiveArea images are now opaque, non-interlaced, 8-bit indexed PNGs;
+decoded RGB pixel comparison against the original images is exactly equal.
+Doctor, build, packaging and verification check dimensions, encoding, palette,
+PNG chunk CRCs, bounded decoded rows and the referenced XML assets. The exact
+original VPK is rejected by these new checks. Eight workflow tests pass, including
+RGB, RGBA, 16-bit, interlaced, wrong-dimension and truncated-PNG rejection cases.
+
+Both canonical builds were run again at this exact revision and passed native
+cross-compilation, the 334-test OFF suite, the Vita input adapter test and package
+verification. No runtime code changed in this correction.
+
+| Corrected artifact | Bytes | SHA256 |
+| --- | ---: | --- |
+| `releases/vita/candidates/ab2686b5c1dd-personal-84ca9aad.vpk` | 17,103,614 | `68d977ed57f448b4e4901d26b3a4f0c8175391c7bb4ab4f156f757a96089ffa7` |
+| `releases/vita/candidates/ab2686b5c1dd-ordinary-d6e93e38.vpk` | 14,366,995 | `4673f97e2cbf5b37c9824c760331eac9e4503a07271d8ed1bea3dc8cbd62e9ee` |
+
+The corrected personal candidate was uploaded to the same Vita candidate folder
+and read back over FTP; SHA256 matched exactly. It is ready for the installation
+retry. Successful installation and runtime checks still require a device result.
+
+## Initial rejected artifacts
 
 The initial artifacts listed below are retained as evidence, but **do not install
 them**: they contain the rejected RGB LiveArea assets. A corrected candidate must
