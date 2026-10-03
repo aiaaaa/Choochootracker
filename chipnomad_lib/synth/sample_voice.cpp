@@ -96,10 +96,8 @@ void SampleVoice::configure(const InstrumentSample* sample, float pitchCents,
   if (sliceCount) {
     // When slicing is enabled, divide the LOOP REGION (start to end) into slices
     // This ensures slices follow the start/end markers
-    uint32_t loopStartFrame = (uint32_t)((uint64_t)start * (sample_->frameCount - 1) / 255);
-    uint32_t loopEndFrame = end == 255
-      ? sample_->frameCount
-      : (uint32_t)((uint64_t)(end + 1) * sample_->frameCount / 256);
+    uint32_t loopStartFrame = sampleMarkerToStartFrame(sample_->frameCount, start);
+    uint32_t loopEndFrame = sampleMarkerToEndFrame(sample_->frameCount, end);
     if (loopStartFrame > loopEndFrame) {
       uint32_t swap = loopStartFrame;
       loopStartFrame = loopEndFrame;
@@ -115,10 +113,8 @@ void SampleVoice::configure(const InstrumentSample* sample, float pitchCents,
     endFrame_ = loopStartFrame + sliceEnd;
     reverse_ = false;
   } else {
-    startFrame = (uint32_t)((uint64_t)start * (sample_->frameCount - 1) / 255);
-    endFrame = end == 255
-      ? sample_->frameCount
-      : (uint32_t)((uint64_t)(end + 1) * sample_->frameCount / 256);
+    startFrame = sampleMarkerToStartFrame(sample_->frameCount, start);
+    endFrame = sampleMarkerToEndFrame(sample_->frameCount, end);
     reverse_ = start > end;
     startFrame_ = reverse_ ? endFrame - 1 : startFrame;
     endFrame_ = reverse_ ? startFrame + 1 : endFrame;

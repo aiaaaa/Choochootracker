@@ -258,6 +258,18 @@ struct InstrumentSample : InstrumentVoicePostSettings {
   uint8_t stretchMode; // 0: off, 1: 1 beat, 2: 2 beats, 3: 1 bar, 4: 2 bars, 5: 4 bars, 6: 8 bars
 };
 
+// Playback window mapping: Start/End are stored as 0-255 normalized values;
+// these convert them to absolute frame positions. Shared by the sample
+// voice, the stretch processor and the sample editor screen - do not fork
+// the formulas.
+static inline uint32_t sampleMarkerToStartFrame(uint32_t frameCount, uint8_t start) {
+  return frameCount ? (uint32_t)((uint64_t)start * (frameCount - 1) / 255) : 0;
+}
+
+static inline uint32_t sampleMarkerToEndFrame(uint32_t frameCount, uint8_t end) {
+  return end == 255 ? frameCount : (uint32_t)((uint64_t)(end + 1) * frameCount / 256);
+}
+
 // 2xSCWF is a pair of forward-looping, one-cycle PCM waveforms.  It shares
 // the sample loader and post-processing settings, but is a synthesizer voice,
 // not a sample-playback mode.

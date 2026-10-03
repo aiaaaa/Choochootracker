@@ -432,3 +432,36 @@ TEST_CASE("SampleVoice stretch retrigger restarts the playhead") {
   // remained of the old playhead if the retrigger were swallowed.
   CHECK(frames > 60000);
 }
+
+TEST_CASE("Sample marker-to-frame helpers match the playback mapping") {
+  // Empty sample: both helpers return 0
+  CHECK(sampleMarkerToStartFrame(0, 128) == 0);
+  CHECK(sampleMarkerToEndFrame(0, 128) == 0);
+
+  // Single-frame sample: start maps to 0, end 255 covers the frame
+  CHECK(sampleMarkerToStartFrame(1, 0) == 0);
+  CHECK(sampleMarkerToStartFrame(1, 255) == 0);
+  CHECK(sampleMarkerToEndFrame(1, 255) == 1);
+  CHECK(sampleMarkerToEndFrame(1, 0) == 0);
+
+  // Known mapping: 256 frames, start 128 -> frame 128 (start * 255 / 255)
+  CHECK(sampleMarkerToStartFrame(256, 128) == 128);
+  // end 127 -> frame 128 (half the sample), end 255 -> frameCount
+  CHECK(sampleMarkerToEndFrame(256, 127) == 128);
+  CHECK(sampleMarkerToEndFrame(256, 255) == 256);
+
+  // Monotonicity across the full marker range on a large sample
+  uint32_t frameCount = 100000;
+  uint32_t previousStart = 0;
+  uint32_t previousEnd = 0;
+  for (int marker = 0; marker <= 255; ++marker) {
+    uint32_t s = sampleMarkerToStartFrame(frameCount, (uint8_t)marker);
+    uint32_t e = sampleMarkerToEndFrame(frameCount, (uint8_t)marker);
+    CHECK(s >= previousStart);
+    CHECK(e >= previousEnd);
+    CHECK(s < frameCount);
+    CHECK(e <= frameCount);
+    previousStart = s;
+    previousEnd = e;
+  }
+}

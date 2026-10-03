@@ -78,10 +78,8 @@ void StretchProcessor::configure(const InstrumentSample* sample, uint8_t stretch
 
   // Source window: same Start/End mapping as the plain playback path, with
   // the same reverse detection (Start > End plays the window backwards).
-  uint32_t startFrame = (uint32_t)((uint64_t)startMarker * (sampleFrames_ - 1) / 255);
-  uint32_t endFrame = endMarker == 255
-    ? sampleFrames_
-    : (uint32_t)((uint64_t)(endMarker + 1) * sampleFrames_ / 256);
+  uint32_t startFrame = sampleMarkerToStartFrame(sampleFrames_, startMarker);
+  uint32_t endFrame = sampleMarkerToEndFrame(sampleFrames_, endMarker);
   bool reverse = startMarker > endMarker;
   if (reverse) {
     uint32_t swap = startFrame;
