@@ -10,6 +10,7 @@ import tempfile
 import unittest
 import zipfile
 from vita_assets import IMAGES, validate_livearea, validate_png
+from vita_elf import validate_relocations
 
 spec=importlib.util.spec_from_file_location('vita',Path(__file__).with_name('vita.py'))
 vita=importlib.util.module_from_spec(spec); spec.loader.exec_module(vita)
@@ -101,6 +102,7 @@ class Workflow(unittest.TestCase):
         for folder in ('fonts','title','projects','pitch-tables'):
             files['assets/'+folder+'/fixture']=b'fixture'
         manifest={'profile':'ordinary','flags':{'CHOOCHOO_EXPERIMENTAL_MOD_LUCKY':0},
+                  'validation':{'elf_relocations':{'.rel.text':1,'.rel.init_array':1}},
                   'application_commit':self.previous,'personal_source_commit':self.source,
                   'vita_integration_revision':self.previous,
                   'files':{name:hashlib.sha256(data).hexdigest() for name,data in files.items()}}
@@ -139,5 +141,14 @@ class Workflow(unittest.TestCase):
             validate_png(good,name,(960,544))
         with self.assertRaisesRegex(RuntimeError,'truncated|incomplete'):
             validate_png(good[:-8],name,(128,128))
+
+    def test_missing_runtime_relocations_fail_packaging(self):
+        report="Relocation section '.rel.text' at offset 0x123 contains 123 entries:\n"
+        report+="Relocation section '.rel.init_array' at offset 0x345 contains 1 entry:\n"
+        self.assertEqual(validate_relocations(report)['.rel.init_array'],1)
+        for invalid in ('There are no relocations in this file.',
+                        report.splitlines()[0], report.replace('123 entries','0 entries')):
+            with self.assertRaisesRegex(RuntimeError,'missing code/constructor relocations'):
+                validate_relocations(invalid)
 
 if __name__=='__main__': unittest.main()

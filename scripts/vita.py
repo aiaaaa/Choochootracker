@@ -82,6 +82,10 @@ def verify(path, expected_profile=None):
             raise RuntimeError('Feature/profile mismatch')
         for key in ('application_commit','personal_source_commit','vita_integration_revision'):
             if not re.fullmatch('[0-9a-f]{40}',m[key]): raise RuntimeError('Missing exact identity: '+key)
+        relocations=m.get('validation',{}).get('elf_relocations',{})
+        if any(not isinstance(relocations.get(name),int) or relocations[name]<=0
+               for name in ('.rel.text','.rel.init_array')):
+            raise RuntimeError('Package lacks verified Vita code/constructor relocations; rebuild with the corrected linker settings')
         required={'eboot.bin','sce_sys/param.sfo','sce_sys/icon0.png','VITA.md','licenses/ChooChooTracker.md'}
         if profile=='personal': required|={'certs/ca-certificates.crt','licenses/Lucky/LICENSE.libxmp.txt'}
         elif any(n.startswith(('certs/','licenses/Lucky/')) for n in names): raise RuntimeError('Ordinary package contains Lucky-only assets')

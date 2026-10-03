@@ -27,7 +27,7 @@ $(foreach source,$(SOURCES),$(eval $(call compile_source,$(source))))
 .PHONY: vita
 vita: $(BUILD)/eboot.bin
 $(TARGET): $(OBJECTS)
-	$(CXX) $(COMMON_CFLAGS) -Wl,-u,sceUserMainThreadStackSize -Wl,--gc-sections,-Map,$(BUILD)/link.map -o $@ $(OBJECTS) -Wl,--start-group $(SDL_LIBS) $(MOD_LUCKY_LIBS) -lpthread -Wl,--end-group
+	$(CXX) $(COMMON_CFLAGS) -Wl,-q,-z,nocopyreloc -Wl,-u,sceUserMainThreadStackSize -Wl,--gc-sections,-Map,$(BUILD)/link.map -o $@ $(OBJECTS) -Wl,--start-group $(SDL_LIBS) $(MOD_LUCKY_LIBS) -lpthread -Wl,--end-group
 $(BUILD)/eboot.bin: $(TARGET)
 	vita-elf-create $< $(BUILD)/choochootracker.velf
 	vita-make-fself -s $(BUILD)/choochootracker.velf $@
