@@ -7,5 +7,10 @@
   "libxmp_lite": "4.7.3",
   "libxmp_archive_sha256": "b6a98797e4fb9c9a705f5d53112aa5214561857e929a644928b9e658930d9440",
   "title_id": "CCTRK0001",
-  "curl_archive_sha256": "e8e74cdeefe5fb78b3ae6e90cd542babf788fa9480029cfcee6fd9ced42b7910"
+  "curl_archive_sha256": "e8e74cdeefe5fb78b3ae6e90cd542babf788fa9480029cfcee6fd9ced42b7910",
+  "newlib_c99_scanner": {
+    "version": "4.1.0",
+    "revision": "415fdd4279b85eeec9d54775ce13c5c412451e08",
+    "archive_sha256": "e1462faf0f21fcdafce194b8b255a43139ede175173d1978df173fbf8fd9efd4"
+  }
 }

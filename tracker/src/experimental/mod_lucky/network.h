@@ -13,6 +13,9 @@ struct PageSelection { std::string id, filename; };
 PageSelection parsePlayerPage(const std::string& html);
 bool allowedUrl(const std::string& url);
 unsigned retryDelay(const std::string& value,time_t now);
+// Bounded worker-side input for Vita's in-memory TLS trust store.
+constexpr size_t maxCertificateBytes = 256 * 1024;
+std::vector<uint8_t> readCertificateBundle(const char* path);
 HttpResponse httpsGet(const std::string& url,size_t limit,const std::atomic<bool>& cancel);
 void checkResponse(const HttpResponse& response);
 std::shared_ptr<Candidate> acquire(const std::string& previous,uint64_t generation,

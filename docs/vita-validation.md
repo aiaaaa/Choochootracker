@@ -65,6 +65,35 @@ The previously booted personal VPK remains locally available as a rollback
 candidate (not a fully validated release), SHA256
 `1031cf024a8551f906bc71496cbb17bff587adc04269020e18c62bd5d623d050`.
 
+## Certificate and project-parser follow-up
+
+The user confirmed that candidate `c1df82a` boots and the NESW buttons align.
+Its log reports a first DNS timeout (curl 28), followed by curl 77 while loading
+`app0:/certs/ca-certificates.crt`. Mountain King was opened successfully but failed
+with `Invalid project settings`. These are actual device failures, not host-only
+results. The user also reports a persistent green 60; the device plugin list
+contains PSVshell, while ChooChoo has no FPS overlay drawing code. System/plugin
+configuration and clock settings have not been changed.
+
+The SDK's installed `newlib.h` disables `_WANT_IO_C99_FORMATS`. Matching newlib
+4.1.0 scanner source rejects the second `h` in `%hhu`; the project's required
+track-volume header uses eight such conversions. Rather than edit many shared
+parsers or alter saved-file syntax, build just newlib's string scanner with C99
+support in an isolated dependency directory. Package checks require this object,
+and the device startup probe validates conversion widths before project I/O.
+
+Lucky now reads the packaged CA bytes in its worker and passes them through
+curl's documented in-memory trust-bundle API. Maximum CA input is 256 KiB, with
+missing/empty/oversized inputs covered; peer and hostname verification stay on.
+This avoids the failing OpenSSL file-store path. Actual device HTTPS success
+still requires retesting; no claim is made that host tests prove device TLS.
+
+Host checks passed: OFF 336 tests / 8,101,255 assertions; ON 349 tests /
+8,111,298 assertions (two opt-in skips), plus Vita adapters and fixture
+prepare/reload. Eleven workflow tests passed. The isolated scanner object
+cross-compiled against the pinned SDK. Application rebuild/package and device
+retesting are recorded after completion.
+
 ## Source and isolation
 
 - Worktree: `/Users/hifi/workspace/r36h/choochootracker/vita`, branch `personal/vita`.

@@ -33,6 +33,22 @@ HttpResponse page(const std::string& id) {
   return {200,{html.begin(),html.end()}};
 }
 }
+TEST_CASE("ModLucky certificate reads are exact and bounded") {
+  Temp temp;
+  const auto file=temp.path/"trust.pem";
+  CHECK_THROWS(readCertificateBundle(file.string().c_str()));
+  { std::ofstream out(file,std::ios::binary); }
+  CHECK_THROWS(readCertificateBundle(file.string().c_str()));
+  // This tests transport to the TLS library, not whether fake PEM is trusted.
+  std::string bytes="synthetic certificate bytes\r\n";
+  { std::ofstream out(file,std::ios::binary); out<<bytes; }
+  auto read=readCertificateBundle(file.string().c_str());
+  CHECK(std::string(read.begin(),read.end())==bytes);
+  { std::ofstream out(file,std::ios::binary); out<<std::string(maxCertificateBytes,'x'); }
+  CHECK(readCertificateBundle(file.string().c_str()).size()==maxCertificateBytes);
+  { std::ofstream out(file,std::ios::binary|std::ios::app); out<<'x'; }
+  CHECK_THROWS(readCertificateBundle(file.string().c_str()));
+}
 TEST_CASE("ModLucky decoded PCM and strict validation for four formats") {
   std::atomic<bool> cancel{false};
   for(int type=0;type<4;++type) for(int bits=0;bits<2;++bits) for(int stereo=0;stereo<2;++stereo) {

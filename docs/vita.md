@@ -69,6 +69,18 @@ OpenSSL and zlib. An ARM Mac needs Docker's amd64 emulation; no native Mac SDK o
 replacement desktop/PortMaster compiler is installed. No moving SDK `latest` tag.
 The manifest includes the complete installed target package inventory.
 
+The pinned SDK's newlib **4.1.0** disables C99 input formats, including `%hhu`
+used throughout normal project/instrument loading. `build-vita-stdio.sh` builds
+only upstream `vfscanf.c`'s string-scanner object with `STRING_ONLY` and
+`_WANT_IO_C99_FORMATS=1`, then links that object before the SDK's libc archive.
+It does not replace SDK libraries or introduce another project parser. Source is
+pinned to newlib 4.1.0 commit `415fdd4279b85eeec9d54775ce13c5c412451e08`, archive
+SHA256 `e1462faf0f21fcdafce194b8b255a43139ede175173d1978df173fbf8fd9efd4`.
+Both profiles need this object. Its hash and notices are packaged; verification
+checks its linkage. A compiler ABI guard rejects other newlib versions, and a
+small on-device startup probe checks byte-width, signed, hex, word and float
+conversions before loading user data. Review this override on SDK updates.
+
 Lucky keeps libxmp-lite **4.7.3**, archive SHA256
 `b6a98797e4fb9c9a705f5d53112aa5214561857e929a644928b9e658930d9440`.
 Curl **8.17.0**, archive SHA256
@@ -77,7 +89,10 @@ against the SDK's actual OpenSSL. The image's prebuilt curl has an OpenSSL ABI
 mismatch. The focused recipe follows the SDK's Vita configuration, with threaded
 DNS and HTTP(S) only; OpenSSL’s unavailable console password UI is disabled. TLS peer and hostname verification remain ON, using the
 image's pinned Mozilla-derived CA bundle packaged at `app0:/certs/` and hashed in
-the manifest. Correct device time and on-device certificate/network testing are
+the manifest. The pinned OpenSSL file-store loader failed with curl error 77 on
+hardware despite an intact CA file. The worker now reads that exact file into a
+bounded buffer (256 KiB maximum) and supplies `CURLOPT_CAINFO_BLOB`; it never
+falls back to unverified TLS. The buffer outlives each request's curl handle. Correct device time and on-device certificate/network testing are
 still required. Updating trust roots requires a deliberate pin/build review.
 
 The same wrapper runs ordinary host regression tests inside the SDK container,

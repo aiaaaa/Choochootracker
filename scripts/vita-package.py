@@ -6,7 +6,7 @@ from pathlib import Path
 import shutil
 import subprocess
 from vita_assets import validate_livearea
-from vita_elf import validate_relocations, validate_threads
+from vita_elf import validate_relocations, validate_threads, validate_stdio
 
 def run(*args):
     return subprocess.check_output(args, text=True).strip()
@@ -30,6 +30,8 @@ def main(profile):
     shutil.copytree(sdk/'arm-vita-eabi/share/licenses/SDL2', notices/'SDL2')
     shutil.copy(sdk/'share/vdpm/THIRD_PARTY_NOTICES.md', notices/'VitaSDK.md')
     shutil.copytree(sdk/'share/vdpm/licenses', notices/'VitaSDK')
+    shutil.copy('/deps/newlib/LICENSE.newlib.txt', notices/'newlib.txt')
+    shutil.copy('/deps/newlib/LICENSE.scanner.txt', notices/'newlib-scanner.txt')
     shutil.copy(src/'docs/vita.md', stage/'VITA.md')
     if profile == 'personal':
         shutil.copytree(src/'tracker/src/experimental/mod_lucky/notices', notices/'Lucky')
@@ -41,6 +43,8 @@ def main(profile):
     manifest['toolchain']={'pin':pin, 'compiler':run('arm-vita-eabi-g++','--version'),
                          'packages':sorted(p.name for p in (sdk/'var/lib/pacman/local').iterdir() if p.is_dir())}
     manifest['dependencies']={'SDL2':run('pkg-config','--modversion','sdl2')}
+    manifest['dependencies']['newlib_c99_scanner']={**pin['newlib_c99_scanner'],
+        'object_sha256':sha(Path('/deps/newlib/c99-scanf.o'))}
     if profile=='personal':
         manifest['dependencies'].update({'curl':pin['curl'], 'curl_archive_sha256':pin['curl_archive_sha256'],
                                         'curl_library_sha256':sha(Path('/deps/curl/prefix/lib/libcurl.a')),
@@ -50,6 +54,7 @@ def main(profile):
                                         'CA_sha256':sha(stage/'certs/ca-certificates.crt')})
     symbols=run('arm-vita-eabi-nm','-C',str(out/'native/choochootracker.elf'))
     threads=validate_threads(symbols, personal=profile=='personal')
+    stdio=validate_stdio(symbols,(out/'native/link.map').read_text())
     relocations=validate_relocations(run('arm-vita-eabi-readelf','-rW',str(out/'native/choochootracker.elf')))
     has_lucky='modLucky::' in symbols
     if has_lucky != (profile=='personal'):
@@ -61,6 +66,7 @@ def main(profile):
     manifest['validation']={'host_lucky_disabled':'passed', 'vita_cross_compile':'passed',
                             'elf_relocations':relocations,
                             'pthread_symbols':threads,
+                            'c99_stdio':stdio,
                             'lucky_enabled_host':'run separately; see validation report',
                             'hardware':'pending', 'vita_https':'pending', 'emulator':'not run'}
     manifest['elf_size']=run('arm-vita-eabi-size',str(out/'native/choochootracker.elf'))

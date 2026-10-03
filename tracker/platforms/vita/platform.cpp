@@ -1,5 +1,6 @@
 #include "platform.h"
 #include "seed_assets.h"
+#include "stdio_check.h"
 #include "corelib_gfx.h"
 #include <SDL2/SDL.h>
 #include <psp2/kernel/threadmgr.h>
@@ -97,6 +98,11 @@ bool vitaPlatformInit() {
   // Open diagnostics before asset setup, so filesystem failures are visible.
   freopen("ux0:data/choochootracker/vita.log", "w", stderr);
   setvbuf(stderr, nullptr, _IONBF, 0);
+  if (!vitaStdioCompatible()) {
+    fprintf(stderr,"Vita stdio: C99 scanner unavailable; refusing unsafe project reads\n");
+    return false;
+  }
+  fprintf(stderr,"Vita stdio: C99 byte/word/float scan passed\n");
   fprintf(stderr, "Vita startup: heap=%u reserve=%u\n",
           heapBytes, heapReserveBytes);
   if (chdir("ux0:data/choochootracker") != 0) {

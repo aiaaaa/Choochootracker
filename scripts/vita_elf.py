@@ -1,6 +1,12 @@
 """Check relocation records required when VitaSDK converts the linked ELF."""
 import re
 
+def validate_stdio(nm_report, link_map):
+    if (not re.search(r'^\s*[0-9a-fA-F]+\s+T\s+__ssvfscanf_r\s*$',nm_report,re.MULTILINE)
+        or not re.search(r'^LOAD /deps/newlib/c99-scanf\.o\s*$',link_map,re.MULTILINE)):
+        raise RuntimeError('Vita ELF lacks the C99 string scanner; projects require hh formats.')
+    return 'newlib-4.1.0-c99-string-scanner'
+
 def validate_threads(nm_report, personal=False):
     defined = set(re.findall(r'^\s*[0-9a-fA-F]+\s+[Tt]\s+(pthread_\w+)\s*$',
                              nm_report, re.MULTILINE))
