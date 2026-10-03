@@ -3,6 +3,8 @@
 #include "common.h"
 #include "app_ui_mock.h"
 #include <memory>
+#include <string>
+#include <initializer_list>
 
 // Exercise the real MOD picker/parameter editing while keeping the standard
 // test suite's screen boundary mocks for unrelated navigation.

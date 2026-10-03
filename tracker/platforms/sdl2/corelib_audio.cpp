@@ -1,6 +1,10 @@
 #include "corelib_audio.h"
 #include <SDL2/SDL.h>
 #include <stdio.h>
+#ifdef VITA_BUILD
+#include "../vita/platform.h"
+static unsigned vitaAudioRate;
+#endif
 #ifdef ANDROID_BUILD
 #include "../android/audio_diagnostics.h"
 #include <android/log.h>
@@ -38,6 +42,9 @@ static int reportAudioDiagnostics(void*) {
 #endif
 
 static void sdlAudioCallback(void* userdata, uint8_t* buffer, int bufferBytes) {
+#ifdef VITA_BUILD
+  const auto vitaStarted=SDL_GetPerformanceCounter();
+#endif
   AudioCallback* callback = (AudioCallback *)userdata;
 #ifdef ANDROID_BUILD
   if (audioDiagnostics::enabled) {
@@ -67,6 +74,9 @@ static void sdlAudioCallback(void* userdata, uint8_t* buffer, int bufferBytes) {
   }
 #endif
   callback((int16_t *)buffer, bufferBytes / sizeof(int16_t) / 2); // Divide by 2 to get number of stereo samples
+#ifdef VITA_BUILD
+  vitaAudioRecord(vitaStarted,bufferBytes/sizeof(int16_t)/2,vitaAudioRate);
+#endif
 }
 
 int audioSetup(AudioCallback* audioCallback, int sampleRate, int bufferSize) {
@@ -95,6 +105,7 @@ int audioSetup(AudioCallback* audioCallback, int sampleRate, int bufferSize) {
 
 #ifdef VITA_BUILD
   SDL_AudioSpec obtained{};
+  vitaAudioRate=sampleRate;
   if (SDL_OpenAudio(&spec, &obtained) < 0) {
 #else
   if (SDL_OpenAudio(&spec, NULL) < 0) {

@@ -1,3 +1,6 @@
+#ifdef VITA_BUILD
+#include "../../../platforms/vita/platform.h"
+#endif
 #include "module.h"
 #include <algorithm>
 #include <cmath>
@@ -154,6 +157,10 @@ std::vector<Sample> inspectModule(const std::vector<uint8_t>& bytes, std::string
 Decoder::Decoder():context(xmp_create_context()) { if(!context) throw Error("Decoder allocation failed"); }
 Decoder::~Decoder() { if(context) { if(started) xmp_end_player(context); xmp_release_module(context); xmp_free_context(context); } }
 std::unique_ptr<Decoder> prepare(Candidate& candidate,int rate,const std::atomic<bool>& cancel) {
+#ifdef VITA_BUILD
+  constexpr size_t preparationHeadroom=96*1024*1024;
+  if(vitaHeapAvailable()<preparationHeadroom) throw Error("Not enough memory for module");
+#endif
   auto slots=inspectModule(candidate.bytes,candidate.format);
   if(cancel) throw Error("Cancelled");
   auto decoder=std::make_unique<Decoder>();

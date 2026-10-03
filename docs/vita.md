@@ -47,7 +47,7 @@ records the new exact source and previous Vita revision. To follow local work,
 commit only intended changes in its own checkout and pass that local ref.
 
 Objects and dependencies are isolated under `.tmp/vita/<configuration>/<revision>`;
-the configuration key includes SDK pin and profile. Each successful build writes
+the configuration key includes SDK pin, dependency recipes and profile. Each successful build writes
 a new candidate VPK, `.sha256`, and `.manifest.json` into `releases/vita/candidates/`.
 Repeated builds reuse compatible objects and do not merge features or copy assets
 into user data. A lock prevents simultaneous builds sharing an output directory.
@@ -92,6 +92,9 @@ python3 scripts/test_vita_workflow.py
 
 Host-enabled tests require the host's curl development library and C++17 compiler.
 They use authored MOD/XM/S3M/IT fixtures; no random music is downloaded by tests.
+The enabled suite also runs a separate process through the Vita-guarded Lucky
+backend and bank paths, then a fresh process reload. This checks the mount-path
+logic on a host filesystem; it does not emulate Vita newlib, device TLS or audio.
 CI runs these tests and the same wrapper, uploading candidate artifacts only.
 Dependency updates mean editing reviewed immutable pins, rebuilding both profiles,
 checking notices and SDL panel IDs, rerunning tests, then hardware validation.
@@ -151,8 +154,12 @@ Animated NEXT prepares; ready PLAY waits for a fresh press; LOAD uses that exact
 cached candidate. Existing capacity checks, cancellation, bank staging, attribution,
 loop fallbacks and tuning rules apply (see [mod-lucky.md](mod-lucky.md)). Limits stay
 8 MiB module, 16 MiB decoded samples, 256 KiB HTML and bounded preview buffers.
-The Vita heap is 256 MiB, with OS/GPU headroom; combined engines/project plus bank
-staging must be measured on hardware. Allocation failure remains a failed import,
+The Vita heap is 256 MiB, with OS/GPU headroom. Preparation requires 96 MiB
+allocator headroom and import 64 MiB, including an 8 MiB reserve. Main/worker
+stacks are 2 MiB and SDL threads 1 MiB. The UI logs free memory, callback counts,
+maximum render duration and over-budget callbacks every five seconds; these
+are diagnostics, not proof that no hardware underruns occurred. Combined
+engines/project plus bank staging still must be measured on hardware. Allocation failure remains a failed import,
 not permission to discard a project or omit engines.
 
 ## Integration points and hardware checklist

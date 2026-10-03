@@ -375,6 +375,13 @@ void mainLoopRun(void (*draw)(void), void (*onEvent)(MainLoopEventData eventData
         }
       }
       else if (event.type == SDL_CONTROLLERDEVICEREMOVED) {
+#ifdef VITA_BUILD
+        vitaInputReset();
+        eventData.type = MainLoopEvent::sleep;
+        onEvent(eventData);
+        eventData.type = MainLoopEvent::wake;
+        onEvent(eventData);
+#endif
         if (gameController && event.cdevice.which == SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(gameController))) {
           SDL_GameControllerClose(gameController);
           gameController = NULL;

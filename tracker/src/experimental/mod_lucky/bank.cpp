@@ -1,3 +1,6 @@
+#ifdef VITA_BUILD
+#include "../../../platforms/vita/platform.h"
+#endif
 #include "bank.h"
 #include "synth/sample_voice.h"
 #include <algorithm>
@@ -55,6 +58,10 @@ std::unique_ptr<Bank> stageBank(std::shared_ptr<const Candidate> candidate,const
                               const std::string& sampleRoot,const std::atomic<bool>& cancel) {
   if(!candidate || slots.size()!=candidate->samples.size() || slots.empty()) throw Error("Invalid bank allocation");
   if(!std::all_of(candidate->id.begin(),candidate->id.end(),[](char c){return c>='0' && c<='9';}) || candidate->id.empty()) throw Error("Invalid module ID");
+  #ifdef VITA_BUILD
+  constexpr size_t importHeadroom=64*1024*1024;
+  if(vitaHeapAvailable()<importHeadroom) throw Error("Not enough memory for sample bank");
+  #endif
   auto bank=std::make_unique<Bank>(); bank->candidate=candidate; bank->slots=slots;
   namespace fs=std::filesystem;
   // The user-selected sample root may legitimately be a symlink (e.g. /var on macOS).

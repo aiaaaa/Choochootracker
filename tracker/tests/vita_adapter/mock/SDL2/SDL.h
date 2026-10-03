@@ -1,0 +1,17 @@
+#pragma once
+// Event-boundary mock for the actual Vita adapter; no SDL device is opened.
+#include <cstdint>
+using Uint32=uint32_t;
+enum { SDL_FINGERDOWN=0x700, SDL_FINGERUP, SDL_FINGERMOTION,
+  SDL_MOUSEMOTION=0x400, SDL_MOUSEBUTTONDOWN, SDL_MOUSEBUTTONUP,
+  SDL_WINDOWEVENT=0x200, SDL_APP_WILLENTERBACKGROUND=0x103, SDL_APP_DIDENTERFOREGROUND=0x106 };
+enum { SDL_WINDOWEVENT_FOCUS_GAINED=12, SDL_WINDOWEVENT_FOCUS_LOST=13 };
+constexpr uint32_t SDL_TOUCH_MOUSEID=uint32_t(-1);
+struct SDL_Event {
+  uint32_t type=0;
+  struct { int64_t touchId=0,fingerId=0; float x=0,y=0; } tfinger;
+  struct { uint32_t which=0; } button,motion;
+  struct { uint8_t event=0; } window;
+};
+using SDL_EventFilter=int(*)(void*,SDL_Event*);
+void SDL_SetEventFilter(SDL_EventFilter,void*);
