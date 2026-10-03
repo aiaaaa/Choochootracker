@@ -26,10 +26,40 @@ these are distinct from device testing. Vita remains local: no GitHub push.
   matches the prior package exactly. Add precise errors and worker-side logs;
   **the device Lucky connection failure has not yet been diagnosed or fixed**.
 - Host OFF regression passed: 335 tests / 8,101,254 assertions, plus touch, seed
-  copy and new control-migration adapters. Host ON passed 347 tests / 8,111,292
+  copy and new control-migration adapters. Host ON passed 347 tests / 8,111,291
   assertions (two opt-in skips), including Vita-guarded fixture import and a fresh
-  process reload. Native candidate build results are recorded after completion.
+  process reload. Both native profiles passed their 335-test SDK-container suite,
+  all three adapters, ten workflow tests each, and package verification.
   No random music is used in automated tests.
+
+Final application revision: `c1df82a3c4b0f88a51d1ebe2002eb0018cca651e`.
+Local changes are commits `8a67385` (controls, scaling, diagnostics and tests) and
+`c1df82a` (keep the fixed canvas across resize and renderer fallback). Both commands
+completed successfully:
+
+```sh
+scripts/vita.sh build --profile ordinary
+scripts/vita.sh build --profile personal
+```
+
+| Artifact under `releases/vita/candidates/` | Bytes | SHA256 |
+| --- | ---: | --- |
+| `c1df82a3c4b0-ordinary-089cc029.vpk` | 15,029,753 | `06dabe8164d32b5c837c9f4839aa06c390035887a08ab80b692dc5dd40a03d54` |
+| `c1df82a3c4b0-personal-5373d90d.vpk` | 18,846,730 | `02e93f7585e75eaa357e5dbb1efe2913bd8ad724d1cfef1e768c9656c308ca1e` |
+
+Each has `.sha256` and `.manifest.json` sidecars with profile, exact commits,
+SDK/dependency identities and validation results. Personal includes Lucky;
+ordinary excludes it. New NESW/graphics behavior and song loading require a
+manual device check. Lucky networking is diagnostic-only in this update: do not
+report it fixed until an on-device NEXT/PLAY/LOAD sequence succeeds.
+
+The final personal VPK and checksum were uploaded to
+`ux0:/data/choochootracker-candidates/c1df82a3c4b0-personal-5373d90d.vpk`.
+The full FTP read-back matched SHA256
+`02e93f7585e75eaa357e5dbb1efe2913bd8ad724d1cfef1e768c9656c308ca1e`.
+Installation remains manual. The existing installed app, user data and previous
+bootable installer were preserved. Current settings and autosave were backed up
+locally under the sibling `vita-validation/` directory. No GitHub push occurred.
 
 The previously booted personal VPK remains locally available as a rollback
 candidate (not a fully validated release), SHA256
