@@ -397,3 +397,12 @@ feature and the optional sample-discovery experiment, linking these notes.
 Additional reconciliation files: `PERSONAL_FORK.md`, `personal-features.json`,
 `docs/USER_MANUAL.md`, `tracker/Makefile.personal`, the upstream SDL renderer and
 keymapping changes, and regenerated `web/dist/choochootracker.{js,wasm,data}`.
+
+### Vita profile
+
+The downstream personal Vita profile uses this same implementation, with a
+packaged CA bundle and mount-qualified durable paths. It enables the flag; the
+ordinary Vita profile excludes decoder/HTTP dependencies and the Settings row.
+See [vita.md](vita.md) for native builds and separate hardware/network checks.
+The dependency script downloads the official 4.7.3 release archive matching the
+existing SHA256, rather than GitHub’s different generated source archive.

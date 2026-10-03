@@ -1,3 +1,4 @@
+#include "touch_modulation.h"
 #ifdef CHOOCHOO_EXPERIMENTAL_MOD_LUCKY
 #include "experimental/mod_lucky/service.h"
 #endif
@@ -213,6 +214,7 @@ static void resume(void) {
 
 static void replaceProject(Project* replacement) {
   if (!replacement || !chipnomadState) return;
+  touchModReset();
 #ifdef CHOOCHOO_EXPERIMENTAL_MOD_LUCKY
   modLucky::service().projectChanged();
 #endif

@@ -255,3 +255,12 @@ one Settings row for preparing/playing a random module and importing its PCM
 bank. Normal builds have no dependency on libxmp or libcurl. See
 [the experiment's build and validation notes](mod-lucky.md) for the pinned
 backend, exact macOS commands, ARM prerequisites and test targets.
+
+## PlayStation Vita candidates
+
+Use `scripts/vita.sh doctor`, then `scripts/vita.sh build --profile personal`.
+The ordinary profile is the default and excludes Lucky. Update with
+`scripts/vita.sh update --source-ref origin/personal/r36h --profile personal`
+only after the established personal integration step. See [vita.md](vita.md)
+for the immutable SDK pin, prerequisites, validation, data paths and rollback.
+No Vita command deploys, pushes, or promotes a build.

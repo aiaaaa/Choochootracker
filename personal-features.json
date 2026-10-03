@@ -84,5 +84,16 @@
       "normal_build_default": "OFF",
       "documentation": "docs/mod-lucky.md"
     }
-  ]
+  ],
+  "ports": {
+    "vita": {
+      "branch": "personal/vita",
+      "source_branch": "personal/r36h",
+      "source_commit": "c0a8c7e9ee7e177e94294ede7e6cad09c59f06c8",
+      "title_id": "CCTRK0001",
+      "documentation": "docs/vita.md",
+      "personal_profile": "CHOOCHOO_EXPERIMENTAL_MOD_LUCKY=1",
+      "normal_profile": "CHOOCHOO_EXPERIMENTAL_MOD_LUCKY=0"
+    }
+  }
 }

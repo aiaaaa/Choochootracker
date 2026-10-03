@@ -8,7 +8,14 @@
 #include "app.h"
 #include "common.h"
 
+#ifdef VITA_BUILD
+#include "../vita/platform.h"
+#endif
+
 int main(int argv, char** args) {
+#ifdef VITA_BUILD
+  if (!vitaPlatformInit()) return 1;
+#endif
   settingsLoad();
 
   // Load custom font before gfxSetup so it uses the correct font
@@ -32,6 +39,9 @@ int main(int argv, char** args) {
   mainLoopQuit();
 #endif
 
+  #ifdef VITA_BUILD
+  vitaPlatformQuit();
+  #endif
   return 0;
 }
 

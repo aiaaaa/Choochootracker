@@ -119,3 +119,11 @@ Prepare the pinned backend with the existing target toolchain first; see
 [Mod Lucky](docs/mod-lucky.md) for dependency setup, desktop commands, limits,
 source attribution, test results and device status. This build selection is
 compile-time only. It does not add a runtime toggle or submenu.
+
+## Downstream Vita candidates
+
+`personal/vita` consumes the combined `personal/r36h` source through isolated
+merge candidates; it does not duplicate individual feature cherry-picks. The
+Vita wrapper never synchronizes upstream into `personal/r36h` itself. Complete
+the integration described above, then follow [docs/vita.md](docs/vita.md).
+The personal Vita profile enables Lucky; normal builds remain default OFF.

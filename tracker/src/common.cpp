@@ -17,7 +17,7 @@ void initDefaultAppSettings(void) {
   appSettings.screenWidth = 0; // 0 to auto-detect resolution
   appSettings.screenHeight = 0;
   appSettings.audioSampleRate = kAudioSampleRate;
-#ifdef WEB_BUILD
+#if defined(WEB_BUILD) || defined(VITA_BUILD)
   appSettings.audioBufferSize = 1024;
 #elif defined(ANDROID_BUILD) || defined(DESKTOP_BUILD)
   // Keep playback status and waveform monitors responsive at 30 Hz.

@@ -1,0 +1,11 @@
+{
+  "image": "vitasdk/vitasdk@sha256:2e92c60b69cb06d3f20814f6c882e943d8efd80fc96e643e043803bc702fc4ac",
+  "release": "2026.08-20260912",
+  "platform": "linux/amd64",
+  "sdl": "2.32.8",
+  "curl": "8.17.0",
+  "libxmp_lite": "4.7.3",
+  "libxmp_archive_sha256": "b6a98797e4fb9c9a705f5d53112aa5214561857e929a644928b9e658930d9440",
+  "title_id": "CCTRK0001",
+  "curl_archive_sha256": "e8e74cdeefe5fb78b3ae6e90cd542babf788fa9480029cfcee6fd9ced42b7910"
+}

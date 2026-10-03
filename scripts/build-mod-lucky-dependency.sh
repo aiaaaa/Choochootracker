@@ -15,7 +15,7 @@ if [ ! -f "$lucky_archive" ]; then
   curl --fail --location --proto '=https' --proto-redir '=https' --max-redirs 3 \
     --connect-timeout 10 --max-time 120 --max-filesize 5242880 \
     --user-agent 'ChooChooTracker-ModLucky-build/0.1' \
-    "https://codeload.github.com/libxmp/libxmp/tar.gz/refs/tags/libxmp-$lucky_version" \
+    "https://github.com/libxmp/libxmp/releases/download/libxmp-$lucky_version/libxmp-$lucky_version.tar.gz" \
     --output "$lucky_archive.part"
   mv "$lucky_archive.part" "$lucky_archive"
 fi

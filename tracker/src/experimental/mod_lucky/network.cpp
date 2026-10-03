@@ -74,6 +74,9 @@ HttpResponse httpsGet(const std::string& first,size_t limit,const std::atomic<bo
     if(!curl) throw NetworkError("HTTPS allocation failed");
     Transfer t{{},limit,cancel}; auto c=curl.get();
     curl_easy_setopt(c,CURLOPT_URL,url.c_str());
+#ifdef VITA_BUILD
+    curl_easy_setopt(c,CURLOPT_CAINFO,"app0:/certs/ca-certificates.crt");
+#endif
     curl_easy_setopt(c,CURLOPT_USERAGENT,"ChooChooTracker-ModLucky/0.1 (personal experiment; aiaaaa)");
     curl_easy_setopt(c,CURLOPT_SSL_VERIFYPEER,1L); curl_easy_setopt(c,CURLOPT_SSL_VERIFYHOST,2L);
     curl_easy_setopt(c,CURLOPT_CONNECTTIMEOUT_MS,5000L); curl_easy_setopt(c,CURLOPT_TIMEOUT_MS,remaining);

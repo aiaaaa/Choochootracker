@@ -1129,3 +1129,12 @@ alone does not supply internet access.
 The ordinary build omits this experimental row entirely. See
 [the experiment notes](mod-lucky.md) for build instructions, persistence,
 format/loop limitations and validation status.
+
+## Vita device personal build
+
+See [Vita controls and build notes](vita.md) for this optional native port. MOD
+Source → TOUCH offers FRONT and REAR, each with X, Y or Gate. Axis output is
+neutral without contact, and respects the current live/motion arming mode.
+Lift all fingers on a panel before re-arming after its primary finger lifts.
+Vita touch does not edit the tracker UI. Controller navigation remains primary.
+The personal profile includes the existing Lucky NEXT / PLAY / LOAD workflow.
