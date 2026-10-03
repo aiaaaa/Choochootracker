@@ -170,6 +170,12 @@ probe and free memory in hexadecimal bytes. A failed probe exits before filesyst
 setup. `vita.log` starts before asset copying. Allocation failure remains a failed import,
 not permission to discard a project or omit engines.
 
+First-run seed copying uses a bounded Vita adapter with exclusive destination
+creation; the pinned runtime's `std::filesystem::copy_file` failed on device.
+Existing files are retained, and reported copy failures clean up only that call's
+new file. A power interruption during first-run copying may require restoring the
+affected seed from `app0:/assets`; never replace user songs/settings wholesale.
+
 ## Integration points and hardware checklist
 
 Review conflicts in `Makefile.common` source discovery, SDL mainloop/gfx/audio/input,

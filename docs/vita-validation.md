@@ -199,7 +199,29 @@ MOD sources. The latest changes affect only the Vita adapter and documentation;
 shared engine and the existing Lucky implementation are unchanged.
 The personal VPK and checksum were uploaded to
 `ux0:/data/choochootracker-candidates/`; read-back SHA256 matched the local package.
-User installation and launch results for this heap-fix candidate remain pending.
+The user installed and launched this candidate: it returned to the OS after
+about two seconds, without the previous crash dialog. Retrieved logs confirm
+`malloc_32_ok=1`, a valid heap break, 192 MiB reserved, 51 MiB system memory free
+and 112 MiB CDRAM free at startup. These are startup measurements, not peak-load
+or audio-performance results.
+
+## First-run asset copy failure
+
+The e146dee `vita.log` reports `filesystem error: cannot copy file: File exists`
+for `app0:/assets/licenses/INSERT_FX.txt`. Its destination was created as a
+zero-byte file. Startup catches that exception and returns before graphics
+initialization, explaining the clean exit. Successful installation and heap
+initialization still do not establish a working tracker UI.
+
+The Vita seed adapter now uses bounded basic read/write calls and an exclusive
+destination open instead of `std::filesystem::copy_file`. Existing regular files
+(including empty user files) are preserved; write/close errors remove only the
+destination newly created by that call. Other filesystem errors remain visible.
+The host seed test covers binary data spanning multiple buffers, repeat copying,
+existing nonempty/empty files, empty sources, missing sources, directory conflicts,
+and a forced partial write failure with cleanup. The test is part of Makefile.test
+and both canonical Vita profile builds. It does not claim power-loss recovery for
+a copy interrupted by process termination.
 
 ## Initial rejected artifacts
 

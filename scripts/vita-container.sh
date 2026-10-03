@@ -22,8 +22,8 @@ make -C /src/tracker -f Makefile.vita -j"${VITA_JOBS:-4}" BUILD=/out/native \
 # Ordinary host regression tests run in this same immutable environment. The
 # Lucky-enabled host suite is a separate host-toolchain command (see vita.md).
 make -C /src/tracker -f Makefile.test -j"${VITA_JOBS:-4}" BUILD_DIR=/out/tests \
-  CHOOCHOO_EXPERIMENTAL_MOD_LUCKY=0 /out/tests/run_tests /out/tests/vita_input_test
+  CHOOCHOO_EXPERIMENTAL_MOD_LUCKY=0 /out/tests/run_tests /out/tests/vita_input_test /out/tests/vita_seed_test
 mkdir -p /out/build/tests
 ln -sfn /src/tracker/packaging /out/packaging
-(cd /out && ./tests/run_tests && ./tests/vita_input_test)
+(cd /out && ./tests/run_tests && ./tests/vita_input_test && ./tests/vita_seed_test)
 python3 /src/scripts/vita-package.py "$profile"
