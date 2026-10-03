@@ -157,12 +157,17 @@ Animated NEXT prepares; ready PLAY waits for a fresh press; LOAD uses that exact
 cached candidate. Existing capacity checks, cancellation, bank staging, attribution,
 loop fallbacks and tuning rules apply (see [mod-lucky.md](mod-lucky.md)). Limits stay
 8 MiB module, 16 MiB decoded samples, 256 KiB HTML and bounded preview buffers.
-The Vita heap is 256 MiB, with OS/GPU headroom. Preparation requires 96 MiB
+The Vita heap requests 192 MiB as one fixed newlib block. The previous 256 MiB
+reservation failed on hardware before the first filesystem allocation; this
+smaller request leaves space for native libraries and graphics. Preparation requires 96 MiB
 allocator headroom and import 64 MiB, including an 8 MiB reserve. Main/worker
 stacks are 2 MiB and SDL threads 1 MiB. The UI logs free memory, callback counts,
 maximum render duration and over-budget callbacks every five seconds; these
 are diagnostics, not proof that no hardware underruns occurred. Combined
-engines/project plus bank staging still must be measured on hardware. Allocation failure remains a failed import,
+engines/project plus bank staging still must be measured on hardware. Early
+`startup-memory.log` uses native I/O without heap allocation and records the heap
+probe and free memory in hexadecimal bytes. A failed probe exits before filesystem
+setup. `vita.log` starts before asset copying. Allocation failure remains a failed import,
 not permission to discard a project or omit engines.
 
 ## Integration points and hardware checklist

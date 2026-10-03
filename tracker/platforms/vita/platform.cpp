@@ -4,9 +4,13 @@
 #include <psp2/kernel/sysmem.h>
 #include <psp2/power.h>
 #include <psp2/sysmodule.h>
+#include <psp2/io/fcntl.h>
+#include <psp2/io/stat.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <cstdio>
+#include <cstdlib>
+#include <cerrno>
 #include <filesystem>
 #include <atomic>
 #include <malloc.h>
@@ -16,9 +20,13 @@
 static unsigned char netMemory[512 * 1024];
 static bool netStarted, netctlStarted;
 #endif
-// Leave GPU/OS headroom; no clock override. Peak use still needs hardware measurement.
+// Newlib reserves ONE fixed block before main. A 256 MiB request failed on
+// hardware with the ordinary application memory budget, leaving malloc unusable.
+// Keep space outside this block for SDL/GXM, threads and system libraries.
+static constexpr unsigned heapBytes = 192 * 1024 * 1024;
+static constexpr unsigned heapReserveBytes = 8 * 1024 * 1024;
 extern "C" {
-  unsigned int _newlib_heap_size_user = 256 * 1024 * 1024;
+  unsigned int _newlib_heap_size_user = heapBytes;
   unsigned int sceUserMainThreadStackSize = 2 * 1024 * 1024;
   unsigned int _pthread_stack_default_user = 2 * 1024 * 1024;
 }
@@ -28,7 +36,7 @@ static std::atomic<uint32_t> audioCallbacks, audioOverBudget, audioMaxUs;
 std::size_t vitaHeapAvailable() {
   const auto used=mallinfo().uordblks;
   // Also reserve room for allocator overhead and ordinary project/UI activity.
-  constexpr std::size_t budget=248 * 1024 * 1024;
+  constexpr std::size_t budget=heapBytes - heapReserveBytes;
   return used>=0 && std::size_t(used)<budget ? budget-used : 0;
 }
 void vitaAudioRecord(uint64_t started, unsigned frames, unsigned rate) {
@@ -47,7 +55,48 @@ static int onPower(int, int, int flags, void*) {
   if (event.type) SDL_PushEvent(&event);
   return 0;
 }
+// Native I/O and stack-only formatting: leave evidence even if newlib's heap
+// could not be reserved. stdio/filesystem/exception reporting need that heap.
+static void startupValue(SceUID fd, const char* label, uint32_t value) {
+  if (fd < 0) return;
+  unsigned length = 0;
+  while (label[length]) ++length;
+  sceIoWrite(fd, label, length);
+  char hex[11] = {'0', 'x'};
+  for (unsigned i = 0; i < 8; ++i)
+    hex[2 + i] = "0123456789abcdef"[(value >> (28 - i * 4)) & 15];
+  hex[10] = '\n';
+  sceIoWrite(fd, hex, sizeof(hex));
+}
+static bool checkStartupHeap() {
+  sceIoMkdir("ux0:data", 0777);
+  const int mkdirResult = sceIoMkdir("ux0:data/choochootracker", 0777);
+  const SceUID fd = sceIoOpen("ux0:data/choochootracker/startup-memory.log",
+                            SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0666);
+  SceKernelFreeMemorySizeInfo freeMemory{};
+  freeMemory.size = sizeof(freeMemory);
+  const int memoryResult = sceKernelGetFreeMemorySize(&freeMemory);
+  void* const currentBreak = sbrk(0);
+  void* const probe = malloc(32);
+  const bool usable = currentBreak != reinterpret_cast<void*>(-1) && probe;
+  startupValue(fd, "mkdir_result=", uint32_t(mkdirResult));
+  startupValue(fd, "heap_requested_bytes=", heapBytes);
+  startupValue(fd, "heap_break=", uint32_t(reinterpret_cast<uintptr_t>(currentBreak)));
+  startupValue(fd, "malloc_32_ok=", probe != nullptr);
+  startupValue(fd, "memory_query_result=", uint32_t(memoryResult));
+  startupValue(fd, "system_free_bytes=", uint32_t(freeMemory.size_user));
+  startupValue(fd, "cdram_free_bytes=", uint32_t(freeMemory.size_cdram));
+  if (fd >= 0) sceIoClose(fd);
+  std::free(probe);
+  return usable;
+}
 bool vitaPlatformInit() {
+  if (!checkStartupHeap()) return false;
+  // Open diagnostics before asset setup, so filesystem failures are visible.
+  freopen("ux0:data/choochootracker/vita.log", "w", stderr);
+  setvbuf(stderr, nullptr, _IONBF, 0);
+  fprintf(stderr, "Vita startup: heap=%u reserve=%u; copying missing assets\n",
+          heapBytes, heapReserveBytes);
   namespace fs = std::filesystem;
   try {
     fs::create_directories("ux0:data/choochootracker");
@@ -58,8 +107,11 @@ bool vitaPlatformInit() {
       else if (entry.is_regular_file()) fs::copy_file(entry.path(), dest, fs::copy_options::skip_existing);
     }
   } catch (const std::exception& e) { fprintf(stderr, "Vita asset setup: %s\n", e.what()); return false; }
-  if (chdir("ux0:data/choochootracker") != 0) return false;
-  freopen("vita.log", "w", stderr);
+  if (chdir("ux0:data/choochootracker") != 0) {
+    fprintf(stderr, "Vita data directory: errno=%d\n", errno);
+    return false;
+  }
+  fprintf(stderr, "Vita assets ready\n");
   SDL_SetHint(SDL_HINT_THREAD_STACK_SIZE, "1048576");
   SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS, "0");
   SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "0");
