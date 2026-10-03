@@ -586,11 +586,6 @@ int gfxSetup(int *screenWidth, int *screenHeight) {
     return 1;
   }
 
-#ifdef VITA_BUILD
-  // 640x480 -> 960x544 must stay at 1x, centered (160px sides, 32px top/bottom).
-  SDL_RenderSetIntegerScale(renderer, SDL_TRUE);
-#endif
-
   // Desktop and web keep the requested logical window size. SDL's drawable
   // size may be the physical monitor size with the software renderer.
   int drawableW, drawableH;
@@ -627,6 +622,11 @@ int gfxSetup(int *screenWidth, int *screenHeight) {
     }
   }
 #endif
+#ifdef VITA_BUILD
+  // 640x480 -> 960x544 must stay at 1x, centered (160px sides, 32px top/bottom).
+  SDL_RenderSetIntegerScale(renderer, SDL_TRUE);
+#endif
+
 #ifdef ANDROID_BUILD
   useCompositionTarget();
 #else
@@ -1008,6 +1008,12 @@ void gfxReloadFont(void) {
 
 void gfxHandleResize(int width, int height) {
   if (!window || !renderer) return;
+#ifdef VITA_BUILD
+  // SDL may report the physical display at startup/resume. It is not the
+  // tracker's logical canvas: keep font selection and the composition at 1x.
+  width = 640;
+  height = 480;
+#endif
 #ifdef ANDROID_BUILD
   getAndroidSurfaceSize(&width, &height);
 #endif
