@@ -9,7 +9,9 @@ The packaging correction converts those assets and validates their encoding befo
 building or packaging. That corrected package installed, but crashed immediately
 on launch with C2-12828-1. Core analysis identified missing ELF relocation records
 and a crash in global-constructor startup before `main`. A linker correction and
-packaging regression check follow below. No successful runtime, emulator or Vita
+packaging regression check follow below. The next device attempt reached `main`
+but aborted after a tiny allocation failed; the newlib heap reservation fix is
+described below. No successful runtime, emulator or Vita
 HTTPS/audio/touch result is claimed here.
 
 ## Source and isolation
@@ -154,6 +156,30 @@ relocations (`-Wl,-q,-z,nocopyreloc`), matching the pinned SDK toolchain. Packag
 now requires nonempty `.rel.text` and `.rel.init_array` records and records their
 counts in the manifest. Host tests reject the missing/partial-relocation reports.
 This diagnosis concerns port startup, not project corruption or the Lucky decoder.
+
+## Second launch failure: heap reservation
+
+The installed d3aa310 executable was downloaded and its SHA256 matched the new
+VPK's `eboot.bin`: `58ce6d9e3ecc8a7efbd1287993489f5ab84a405b796b878285a4242f68c097c0`.
+Core `psp2core-1790909730-0x0000cc2003-eboot.bin.psp2dmp` loads code at
+`0x81058000`. PC `0x8135e62e` resolves to `_kill_r`, the intentional SIGABRT trap.
+The stack resolves through `abort`, failed C++ exception allocation, `operator
+new`, `filesystem::path`, `vitaPlatformInit` and `main`. This confirms progress
+past the constructor relocation failure; it is not another missing-relocation
+crash. The dump's memory-block records contain no newlib heap block.
+
+The pinned SDK allocator reserves a single fixed block before `main`; if the
+request fails, `_sbrk_r` returns ENOMEM even for tiny allocations. The port had
+requested 256 MiB. The correction requests 192 MiB, derives the Lucky headroom
+budget from that same constant minus the existing 8 MiB reserve, and retains
+all engines and the 96/64 MiB preparation/import thresholds. No SFO extended
+memory privilege or clock override is introduced. Peak usage remains unmeasured.
+
+Before any allocating filesystem code, native I/O now records the heap break,
+32-byte malloc probe, and free memory in `startup-memory.log`. If the heap probe
+fails, startup returns cleanly. `vita.log` also opens before seed copying to
+capture filesystem setup errors. The revised request still needs a real-device
+launch test; compilation alone cannot establish that the memory budget fits.
 
 ## Initial rejected artifacts
 
