@@ -12,7 +12,10 @@ VITA_CURL_PREFIX ?= /deps/curl/prefix
 MOD_LUCKY_CFLAGS += -I$(VITA_CURL_PREFIX)/include
 MOD_LUCKY_LIBS = $(MOD_LUCKY_PREFIX)/lib/libxmp-lite.a $(VITA_CURL_PREFIX)/lib/libcurl.a -lssl -lcrypto -lz -lSceNet_stub -lSceNetCtl_stub
 endif
-CFLAGS = $(COMMON_CFLAGS) $(INCLUDES) $(SDL_CFLAGS) -D_GNU_SOURCE -DVITA_BUILD -DGAMEPAD_SUPPORT -DMOBILE_LIFECYCLE -ffunction-sections -fdata-sections
+# Vita GCC's -pthread specs retain the activation proxy used by libstdc++.
+# Merely linking -lpthread leaves weak pthread_cancel unresolved: std::thread
+# then throws "Enable multithreading" even though SDL pthreads can run.
+CFLAGS = $(COMMON_CFLAGS) -pthread $(INCLUDES) $(SDL_CFLAGS) -D_GNU_SOURCE -DVITA_BUILD -DGAMEPAD_SUPPORT -DMOBILE_LIFECYCLE -ffunction-sections -fdata-sections
 TARGET = $(BUILD)/choochootracker.elf
 $(eval $(call mod_lucky_config_rule,$(BUILD)))
 object_for = $(BUILD)/obj/$(subst ../,up/,$(basename $(1))).o
@@ -27,7 +30,7 @@ $(foreach source,$(SOURCES),$(eval $(call compile_source,$(source))))
 .PHONY: vita
 vita: $(BUILD)/eboot.bin
 $(TARGET): $(OBJECTS)
-	$(CXX) $(COMMON_CFLAGS) -Wl,-q,-z,nocopyreloc -Wl,-u,sceUserMainThreadStackSize -Wl,--gc-sections,-Map,$(BUILD)/link.map -o $@ $(OBJECTS) -Wl,--start-group $(SDL_LIBS) $(MOD_LUCKY_LIBS) -lpthread -Wl,--end-group
+	$(CXX) $(COMMON_CFLAGS) -pthread -Wl,-q,-z,nocopyreloc -Wl,-u,sceUserMainThreadStackSize -Wl,--gc-sections,-Map,$(BUILD)/link.map -o $@ $(OBJECTS) -Wl,--start-group $(SDL_LIBS) $(MOD_LUCKY_LIBS) -Wl,--end-group
 $(BUILD)/eboot.bin: $(TARGET)
 	vita-elf-create $< $(BUILD)/choochootracker.velf
 	vita-make-fself -s $(BUILD)/choochootracker.velf $@

@@ -10,7 +10,7 @@ import tempfile
 import unittest
 import zipfile
 from vita_assets import IMAGES, validate_livearea, validate_png
-from vita_elf import validate_relocations
+from vita_elf import validate_relocations, validate_threads
 
 spec=importlib.util.spec_from_file_location('vita',Path(__file__).with_name('vita.py'))
 vita=importlib.util.module_from_spec(spec); spec.loader.exec_module(vita)
@@ -102,7 +102,8 @@ class Workflow(unittest.TestCase):
         for folder in ('fonts','title','projects','pitch-tables'):
             files['assets/'+folder+'/fixture']=b'fixture'
         manifest={'profile':'ordinary','flags':{'CHOOCHOO_EXPERIMENTAL_MOD_LUCKY':0},
-                  'validation':{'elf_relocations':{'.rel.text':1,'.rel.init_array':1}},
+                  'validation':{'elf_relocations':{'.rel.text':1,'.rel.init_array':1},
+                                'pthread_symbols':['pthread_cancel','pthread_create','pthread_once']},
                   'application_commit':self.previous,'personal_source_commit':self.source,
                   'vita_integration_revision':self.previous,
                   'files':{name:hashlib.sha256(data).hexdigest() for name,data in files.items()}}
@@ -114,6 +115,11 @@ class Workflow(unittest.TestCase):
             Path(str(package)+'.sha256').write_text(vita.sha(package)+'  '+package.name+'\n')
         write()
         self.assertEqual(vita.verify(package,'ordinary')['application_commit'],self.previous)
+        threads=manifest['validation'].pop('pthread_symbols')
+        write()
+        with self.assertRaisesRegex(RuntimeError,'pthread activation'): vita.verify(package)
+        manifest['validation']['pthread_symbols']=threads
+        write()
         with self.assertRaisesRegex(RuntimeError,'profile'): vita.verify(package,'personal')
         icon=files['sce_sys/icon0.png']
         files['sce_sys/icon0.png']=b'changed'
@@ -150,5 +156,12 @@ class Workflow(unittest.TestCase):
                         report.splitlines()[0], report.replace('123 entries','0 entries')):
             with self.assertRaisesRegex(RuntimeError,'missing code/constructor relocations'):
                 validate_relocations(invalid)
+
+    def test_weak_pthread_proxy_fails_packaging(self):
+        symbols='812abc90 T pthread_create\n812ac32c T pthread_once\n'
+        self.assertIn('pthread_cancel',validate_threads(symbols+'812ac990 T pthread_cancel\n'))
+        for missing in ('', '         w pthread_cancel\n', '         U pthread_cancel\n'):
+            with self.assertRaisesRegex(RuntimeError,'pthread support'):
+                validate_threads(symbols+missing)
 
 if __name__=='__main__': unittest.main()

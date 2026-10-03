@@ -86,6 +86,8 @@ def verify(path, expected_profile=None):
         if any(not isinstance(relocations.get(name),int) or relocations[name]<=0
                for name in ('.rel.text','.rel.init_array')):
             raise RuntimeError('Package lacks verified Vita code/constructor relocations; rebuild with the corrected linker settings')
+        if m.get('validation',{}).get('pthread_symbols') != ['pthread_cancel','pthread_create','pthread_once']:
+            raise RuntimeError('Package lacks verified C++ pthread activation; rebuild with -pthread')
         required={'eboot.bin','sce_sys/param.sfo','sce_sys/icon0.png','VITA.md','licenses/ChooChooTracker.md'}
         if profile=='personal': required|={'certs/ca-certificates.crt','licenses/Lucky/LICENSE.libxmp.txt'}
         elif any(n.startswith(('certs/','licenses/Lucky/')) for n in names): raise RuntimeError('Ordinary package contains Lucky-only assets')

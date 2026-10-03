@@ -245,6 +245,40 @@ and sidecar were removed from that candidate folder, retaining local artifacts.
 
 ## Initial rejected artifacts
 
+## Completed unpacking, then C++ thread startup failure
+
+On the first 954af1c launch, the user returned to VitaShell in under 30 seconds.
+A size audit found 530 of 666 bundled files complete, 135 missing, and one
+zero-byte interrupted wavetable (`SR_wavetables/WaveEdit/MICROBRU.WAV`). The
+black screen was during first-run copying, before the render loop.
+
+After allowing setup to finish, `vita.log` reported `Vita assets ready`, successful
+network subsystem initialization (not an HTTPS test), then an uncaught
+`std::system_error`: `Enable multithreading to use std::thread: Not owner`.
+Core `psp2core-1790913577-0x0001c42ae3-eboot.bin.psp2dmp` loads application code at
+`0x8102c000`; its stack maps to `std::thread::_M_start_thread`, Lucky's Service
+constructor and audio startup. SDL timer and GXM display threads exist in the dump.
+
+The exact ELF defines pthread_create/once but leaves pthread_cancel weak and
+unresolved. The pinned libstdc++ uses that symbol to determine whether threading
+is active. Vita GCC's `-pthread` driver specs retain the full pthread archive;
+the port's manual `-lpthread` did not. The correction uses `-pthread` for compilation
+and linking in both profiles. Packaging now checks and records strong definitions
+of cancel/create/once, and verification rejects missing activation metadata.
+The regression test reproduces the weak-symbol case; it does not emulate a Vita.
+
+The requested **Unpacking...** text and a file counter now draw through the normal
+renderer after settings/font initialization and before asset copying or project/
+audio setup. It handles quit/background events between copies. Other platform
+startup paths are unchanged by the Vita-only entry hook.
+
+After the crash, the interrupted zero-byte MICROBRU file was downloaded and
+preserved as `MICROBRU.interrupted-954af1c.WAV`; next startup can seed its missing
+original without overwriting user assets. Threaded runtime and visible unpacking
+still require a new device test.
+
+## Initial rejected artifacts (historical)
+
 The initial artifacts listed below are retained as evidence, but **do not install
 them**: they contain the rejected RGB LiveArea assets. A corrected candidate must
 pass the new indexed-PNG checks and a fresh device installation attempt.
