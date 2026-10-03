@@ -24,12 +24,12 @@
 - Rebound the Region and Select rows: Region now owns the playback
   Start/End markers and Select is the processing selection only, and the
   rows swapped places so playback boundaries sit on top.
-- Fixed the waveform zoom to a constant two-second window on fine
+- Fixed the waveform zoom to a constant one-second window on fine
   adjustments instead of one eighth of the sample; samples that fit inside
   the window keep the full 1:1 view and coarse steps still return to it.
 - Made the fine-adjust zoom transient: the waveform zooms in while EDIT is
   held and returns to the full 1:1 view when EDIT is released.
-- Stepped the fine adjustment on the Region and Select rows by 10 instead
+- Stepped the fine adjustment on the Region and Select rows by 5 instead
   of 1 (marker units on Region, frames on Select).
 - Seeded the processing selection with the playback Region span when the
   Sample Edit screen is entered - the whole sample with the default
