@@ -126,9 +126,10 @@ $(foreach source,$(ALL_COMPILE_SOURCES),$(eval $(call compile_source,$(source)))
 -include $(DEPS)
 
 # Default target: build and run all tests
-all: build $(BUILD_DIR)/vita_input_test
+all: build $(BUILD_DIR)/vita_input_test $(BUILD_DIR)/vita_seed_test
 	@$(TEST_EXECUTABLE)
 	@$(BUILD_DIR)/vita_input_test
+	@$(BUILD_DIR)/vita_seed_test
 ifeq ($(CHOOCHOO_EXPERIMENTAL_MOD_LUCKY),1)
 	@$(BUILD_DIR)/vita_lucky_paths prepare "$(abspath $(BUILD_DIR))/vita-fixture-data"
 	@$(BUILD_DIR)/vita_lucky_paths reload "$(abspath $(BUILD_DIR))/vita-fixture-data"
@@ -147,6 +148,10 @@ $(BUILD_DIR)/vita_input_test: tests/vita_adapter/main.cpp tests/vita_adapter/moc
 	$(CXX) -std=c++17 -Wall -Itests/vita_adapter/mock -I../chipnomad_lib -I../chipnomad_lib/external/mutable tests/vita_adapter/main.cpp platforms/vita/input.cpp ../chipnomad_lib/touch_modulation.cpp -o $@
 
 # Build the test executable incrementally
+$(BUILD_DIR)/vita_seed_test: tests/vita_adapter/seed_assets.cpp platforms/vita/seed_assets.cpp platforms/vita/seed_assets.h
+	@mkdir -p $(BUILD_DIR)
+	$(CXX) -std=c++17 -Wall tests/vita_adapter/seed_assets.cpp platforms/vita/seed_assets.cpp -o $@
+
 .PHONY: build
 build: $(TEST_EXECUTABLE)
 

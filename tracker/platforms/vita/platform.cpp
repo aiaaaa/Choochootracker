@@ -1,4 +1,5 @@
 #include "platform.h"
+#include "seed_assets.h"
 #include <SDL2/SDL.h>
 #include <psp2/kernel/threadmgr.h>
 #include <psp2/kernel/sysmem.h>
@@ -104,7 +105,11 @@ bool vitaPlatformInit() {
     for (const auto& entry : fs::recursive_directory_iterator("app0:/assets")) {
       auto dest = fs::path("ux0:data/choochootracker") / entry.path().lexically_relative("app0:/assets");
       if (entry.is_directory()) fs::create_directories(dest);
-      else if (entry.is_regular_file()) fs::copy_file(entry.path(), dest, fs::copy_options::skip_existing);
+      else if (entry.is_regular_file()) {
+        const int error = vitaCopySeedIfMissing(entry.path().c_str(), dest.c_str());
+        if (error) throw fs::filesystem_error("Vita seed copy", entry.path(), dest,
+                                             std::error_code(error, std::generic_category()));
+      }
     }
   } catch (const std::exception& e) { fprintf(stderr, "Vita asset setup: %s\n", e.what()); return false; }
   if (chdir("ux0:data/choochootracker") != 0) {
