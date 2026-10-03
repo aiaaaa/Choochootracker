@@ -223,6 +223,26 @@ and a forced partial write failure with cleanup. The test is part of Makefile.te
 and both canonical Vita profile builds. It does not claim power-loss recovery for
 a copy interrupted by process termination.
 
+Both canonical profiles built from
+`954af1ca2527954e70e787e3d4527374637dba13` and passed package verification,
+the 334-test/8,101,239-assertion suite, touch adapter checks, seed-copy checks and
+9 workflow tests. The separate Lucky-enabled host command also passed 346 tests,
+8,111,276 assertions (2 existing opt-in skips), touch/seed checks and Vita-guarded
+prepare/import/reload fixtures. No random music was downloaded by these tests.
+
+| Asset-copy fix candidate | Bytes | SHA256 |
+| --- | ---: | --- |
+| `releases/vita/candidates/954af1ca2527-personal-31d067ef.vpk` | 18,830,123 | `67711b3556a103b4b3402cbdc327a5fd39908d7a51659ec70ada17673465db46` |
+| `releases/vita/candidates/954af1ca2527-ordinary-06aa252d.vpk` | 15,010,603 | `0c66e5730d58c121bbfc3b96e46b86db17feb8b726160a2fea4b0474d326f955` |
+
+The device's empty `licenses/INSERT_FX.txt` was downloaded, checked as zero bytes,
+and preserved under `licenses/INSERT_FX.failed-copy-e146dee.txt`, allowing the
+new seed copy to populate its original path. No user songs/settings were changed.
+Launch and all tracker runtime validation for this candidate remain pending.
+The personal installer and checksum are in `ux0:/data/choochootracker-candidates/`;
+the FTP read-back hash matches the local VPK. The superseded e146dee installer
+and sidecar were removed from that candidate folder, retaining local artifacts.
+
 ## Initial rejected artifacts
 
 The initial artifacts listed below are retained as evidence, but **do not install
