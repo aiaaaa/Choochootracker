@@ -3,6 +3,9 @@
 set -euo pipefail
 profile=$1
 export PKG_CONFIG_LIBDIR="$VITASDK/arm-vita-eabi/lib/pkgconfig"
+if [[ ! -f /deps/newlib/c99-scanf.o ]]; then
+  /src/scripts/build-vita-stdio.sh
+fi
 flag=0
 if [[ "$profile" == personal ]]; then
   flag=1

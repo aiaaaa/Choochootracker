@@ -6,8 +6,26 @@
 #include <mutex>
 #include <regex>
 #include <cstdio>
+#include <cerrno>
 
 namespace modLucky {
+std::vector<uint8_t> readCertificateBundle(const char* path) {
+  std::unique_ptr<FILE,decltype(&fclose)> file(fopen(path,"rb"),fclose);
+  if(!file) {
+#ifdef VITA_BUILD
+    fprintf(stderr,"ModLucky CA open failed: errno=%d\n",errno);
+#endif
+    throw NetworkError("CA certificate unavailable");
+  }
+  std::vector<uint8_t> bytes;
+  uint8_t chunk[4096];
+  while(size_t count=fread(chunk,1,sizeof(chunk),file.get())) {
+    if(count>maxCertificateBytes-bytes.size()) throw NetworkError("CA certificate too large");
+    bytes.insert(bytes.end(),chunk,chunk+count);
+  }
+  if(ferror(file.get()) || bytes.empty()) throw NetworkError("CA certificate unreadable");
+  return bytes; // PEM parsing and trust validation belong to the TLS backend.
+}
 bool allowedUrl(const std::string& url) {
   return url.rfind("https://modarchive.org/",0)==0 || url.rfind("https://api.modarchive.org/",0)==0;
 }
@@ -64,6 +82,13 @@ int progress(void* opaque,curl_off_t,curl_off_t,curl_off_t,curl_off_t) { return 
 HttpResponse httpsGet(const std::string& first,size_t limit,const std::atomic<bool>& cancel) {
   static std::once_flag init;
   std::call_once(init,[]{ if(curl_global_init(CURL_GLOBAL_DEFAULT)) throw NetworkError("HTTPS unavailable"); });
+#ifdef VITA_BUILD
+  // The pinned OpenSSL file-store loader fails on the installed bundle. Read
+  // the same packaged trust roots through application stdio, then use curl's
+  // supported blob API. Keep the immutable bytes alive until every easy handle
+  // has been cleaned up; no fallback to unverified TLS or system trust paths.
+  const auto certificates=readCertificateBundle("app0:/certs/ca-certificates.crt");
+#endif
   std::string url=first;
   const auto deadline=std::chrono::steady_clock::now()+std::chrono::seconds(25);
   for(unsigned redirect=0;redirect<=3;++redirect) {
@@ -78,7 +103,11 @@ HttpResponse httpsGet(const std::string& first,size_t limit,const std::atomic<bo
     curl_easy_setopt(c,CURLOPT_ERRORBUFFER,detail);
     curl_easy_setopt(c,CURLOPT_URL,url.c_str());
 #ifdef VITA_BUILD
-    curl_easy_setopt(c,CURLOPT_CAINFO,"app0:/certs/ca-certificates.crt");
+    curl_blob trust{const_cast<uint8_t*>(certificates.data()),certificates.size(),CURL_BLOB_NOCOPY};
+    if(curl_easy_setopt(c,CURLOPT_CAINFO_BLOB,&trust)!=CURLE_OK ||
+       curl_easy_setopt(c,CURLOPT_CAINFO,static_cast<const char*>(nullptr))!=CURLE_OK ||
+       curl_easy_setopt(c,CURLOPT_CAPATH,static_cast<const char*>(nullptr))!=CURLE_OK)
+      throw NetworkError("CA setup failed");
 #endif
     curl_easy_setopt(c,CURLOPT_USERAGENT,"ChooChooTracker-ModLucky/0.1 (personal experiment; aiaaaa)");
     curl_easy_setopt(c,CURLOPT_SSL_VERIFYPEER,1L); curl_easy_setopt(c,CURLOPT_SSL_VERIFYHOST,2L);

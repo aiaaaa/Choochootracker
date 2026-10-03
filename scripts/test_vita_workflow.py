@@ -10,7 +10,7 @@ import tempfile
 import unittest
 import zipfile
 from vita_assets import IMAGES, validate_livearea, validate_png
-from vita_elf import validate_relocations, validate_threads
+from vita_elf import validate_relocations, validate_threads, validate_stdio
 
 spec=importlib.util.spec_from_file_location('vita',Path(__file__).with_name('vita.py'))
 vita=importlib.util.module_from_spec(spec); spec.loader.exec_module(vita)
@@ -96,13 +96,15 @@ class Workflow(unittest.TestCase):
         sfo+=struct.pack('<HHIII',0,0x204,len(title),len(title),0)+keys+title
         files={'eboot.bin':b'SCE\0fixture','sce_sys/param.sfo':sfo,
                'VITA.md':b'fixture',
-               'licenses/ChooChooTracker.md':b'fixture'}
+               'licenses/ChooChooTracker.md':b'fixture',
+               'licenses/newlib.txt':b'fixture','licenses/newlib-scanner.txt':b'fixture'}
         for name in (*IMAGES, 'sce_sys/livearea/contents/template.xml'):
             files[name]=(vita.ROOT/'tracker/packaging/vita'/name).read_bytes()
         for folder in ('fonts','title','projects','pitch-tables'):
             files['assets/'+folder+'/fixture']=b'fixture'
         manifest={'profile':'ordinary','flags':{'CHOOCHOO_EXPERIMENTAL_MOD_LUCKY':0},
                   'validation':{'elf_relocations':{'.rel.text':1,'.rel.init_array':1},
+                                'c99_stdio':'newlib-4.1.0-c99-string-scanner',
                                 'pthread_symbols':['pthread_cancel']},
                   'application_commit':self.previous,'personal_source_commit':self.source,
                   'vita_integration_revision':self.previous,
@@ -119,6 +121,10 @@ class Workflow(unittest.TestCase):
         write()
         with self.assertRaisesRegex(RuntimeError,'pthread activation'): vita.verify(package)
         manifest['validation']['pthread_symbols']=threads
+        stdio=manifest['validation'].pop('c99_stdio')
+        write()
+        with self.assertRaisesRegex(RuntimeError,'C99 stdio'): vita.verify(package)
+        manifest['validation']['c99_stdio']=stdio
         write()
         with self.assertRaisesRegex(RuntimeError,'profile'): vita.verify(package,'personal')
         icon=files['sce_sys/icon0.png']
@@ -133,6 +139,13 @@ class Workflow(unittest.TestCase):
         del files['assets/fonts/fixture']
         write()
         with self.assertRaisesRegex(RuntimeError,'Missing assets/fonts'): vita.verify(package)
+
+    def test_c99_scanner_must_be_linked_from_the_isolated_override(self):
+        symbols='81000100 T __ssvfscanf_r\n'
+        link='LOAD /deps/newlib/c99-scanf.o\n'
+        self.assertEqual(validate_stdio(symbols,link),'newlib-4.1.0-c99-string-scanner')
+        for nm,report in ((symbols,''),('',link),(symbols.replace(' T ',' U '),link)):
+            with self.assertRaisesRegex(RuntimeError,'C99 string scanner'): validate_stdio(nm,report)
 
     def test_livearea_rejects_installer_incompatible_pngs(self):
         root=vita.ROOT/'tracker/packaging/vita'

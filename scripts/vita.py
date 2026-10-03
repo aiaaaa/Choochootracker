@@ -89,7 +89,10 @@ def verify(path, expected_profile=None):
         thread_symbols=['pthread_cancel','pthread_create','pthread_once'] if profile=='personal' else ['pthread_cancel']
         if m.get('validation',{}).get('pthread_symbols') != thread_symbols:
             raise RuntimeError('Package lacks verified C++ pthread activation; rebuild with -pthread')
+        if m.get('validation',{}).get('c99_stdio') != 'newlib-4.1.0-c99-string-scanner':
+            raise RuntimeError('Package lacks verified C99 stdio; rebuild for safe project loading')
         required={'eboot.bin','sce_sys/param.sfo','sce_sys/icon0.png','VITA.md','licenses/ChooChooTracker.md'}
+        required|={'licenses/newlib.txt','licenses/newlib-scanner.txt'}
         if profile=='personal': required|={'certs/ca-certificates.crt','licenses/Lucky/LICENSE.libxmp.txt'}
         elif any(n.startswith(('certs/','licenses/Lucky/')) for n in names): raise RuntimeError('Ordinary package contains Lucky-only assets')
         if not required.issubset(names): raise RuntimeError('Missing required package assets')
@@ -128,7 +131,7 @@ def build(root, profile):
     personal=json.loads((root/'personal-features.json').read_text())
     source=personal['ports']['vita']['source_commit']
     git('merge-base','--is-ancestor',source,revision,cwd=root)
-    recipes=''.join(sha(root/'scripts'/name) for name in ('build-vita-curl.sh','build-mod-lucky-dependency.sh'))
+    recipes=''.join(sha(root/'scripts'/name) for name in ('build-vita-curl.sh','build-mod-lucky-dependency.sh','build-vita-stdio.sh'))
     config=hashlib.sha256((json.dumps(pin(root),sort_keys=True)+profile+recipes).encode()).hexdigest()[:16]
     work=root/'.tmp/vita'/config/revision
     deps=root/'.tmp/vita'/config/'deps'

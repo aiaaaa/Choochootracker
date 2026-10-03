@@ -3,6 +3,11 @@
 #include "project_utils.h"
 #include <memory>
 #include <filesystem>
+#include "../platforms/vita/stdio_check.h"
+
+TEST_CASE("Vita startup stdio probe checks byte widths and numeric conversions") {
+  CHECK(vitaStdioCompatible()); // Host libc here; also runs on Vita before project I/O.
+}
 
 TEST_CASE("Bundled native projects parse into standalone project data") {
   // These files already ship with the app; no network fixtures are acquired.
