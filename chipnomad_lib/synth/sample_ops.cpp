@@ -173,6 +173,28 @@ int sampleOpFade(InstrumentSample* s, uint32_t selStart, uint32_t selEnd, int fa
   return sampleOpOk;
 }
 
+int sampleOpReverse(InstrumentSample* s, uint32_t selStart, uint32_t selEnd) {
+  uint32_t start = selStart;
+  uint32_t end = selEnd;
+  int res = resolveRange(s, &start, &end);
+  if (res) return res;
+  const uint32_t length = end - start;
+
+  // Swap mirrored frames; a frame's channels move as one unit so the
+  // stereo image is preserved. The middle frame of an odd-length selection
+  // stays in place.
+  for (uint32_t i = 0; i < length / 2; ++i) {
+    int16_t* a = s->data + (size_t)(start + i) * s->channels;
+    int16_t* b = s->data + (size_t)(start + (length - 1 - i)) * s->channels;
+    for (uint8_t c = 0; c < s->channels; ++c) {
+      int16_t tmp = a[c];
+      a[c] = b[c];
+      b[c] = tmp;
+    }
+  }
+  return sampleOpOk;
+}
+
 int sampleOpPrepareUndo(InstrumentSample* s, SampleUndo* slot) {
   if (!s->data || s->frameCount == 0) return sampleOpErrorNoSample;
   int16_t* data = (int16_t*)malloc((size_t)s->frameCount * s->channels * sizeof(int16_t));

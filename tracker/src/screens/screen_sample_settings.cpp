@@ -13,35 +13,43 @@
 #include <stdio.h>
 #include <string.h>
 
+// Field geometry (32 columns; the shared instrument panel starts at x=34).
+// Row labels sit at x=0; values start at x=9.
 static constexpr int valueX = 9;
-static constexpr int valueWidth = 7;
-static constexpr int goX = 9;
+// Process op and File action share the widest field ("Normalize" = 9 chars)
+static constexpr int opWidth = 9;
+static constexpr int sliceWidth = 6;
+static constexpr int goX = 19;
 static constexpr int goWidth = 3;
-static constexpr int undoX = 16;
+static constexpr int undoX = 24;
 static constexpr int undoWidth = 6;
-static constexpr int saveX = 9;
-static constexpr int saveWidth = 5;
-static constexpr int saveAsX = 16;
-static constexpr int saveAsWidth = 7;
-static constexpr int renameX = 25;
-static constexpr int renameWidth = 7;
-// The field block starts one row higher than the preview height would suggest
-// so the Save row fits above the message line (screen row 19).
+static constexpr int fileGoX = 19;
+static constexpr int fileGoWidth = 3;
+// Select/Region rows carry two values: "START [] END []"
+static constexpr int markerLabelX = 9;   // "START"
+static constexpr int selValX = 15;
+static constexpr int selValWidth = 6;
+static constexpr int endLabelX = 22;     // "END"
+static constexpr int selEndValX = 26;
+// A blank row separates the preview from the field block; the File row
+// stays above the message line (screen row 19).
 static constexpr int previewRow = 3;
 static constexpr int previewWidth = 32;
-static constexpr int previewHeight = 7;
-static constexpr int viewReadoutRow = 10;
-static constexpr int fieldRow0 = 11;
+static constexpr int previewHeight = 8;
+static constexpr int fieldRow0 = 12;
 static const char* sliceLabels[] = {"Off", "2", "4", "8", "16", "32"};
 static const uint8_t sliceValues[] = {0, 2, 4, 8, 16, 32};
 static constexpr int sliceCount = 6;
 
 // Process toolbox: one selected operation plus GO/UNDO buttons. The op is
 // cycled with Edit+Left/Right; Edit+Opt clears it to "none".
-static const char* processOpLabels[] = {"Crop", "Norm", "Del", "Sil", "F.In", "F.Out"};
-static const char* processOpDoneMessages[] = {"Cropped", "Normalized", "Deleted", "Silenced", "Faded in", "Faded out"};
-static constexpr int processOpCount = 6;
+static const char* processOpLabels[] = {"Crop", "Normalize", "Delete", "Silence", "Fade In", "Fade Out", "Reverse"};
+static const char* processOpDoneMessages[] = {"Cropped", "Normalized", "Deleted", "Silenced", "Faded in", "Faded out", "Reversed"};
+static constexpr int processOpCount = 7;
 static int processOp; // index into processOpLabels, -1 = none
+
+// File row action: 0 = Save (overwrite), 1 = Save As (new file). GO runs it.
+static int fileAction;
 
 // One-level undo slot for the process tools. Screen module state: never
 // saved with the project, dropped when the screen is (re)entered.
@@ -147,6 +155,17 @@ static SampleEditorSelection editorSelection;
 // Smallest zoomed window in frames
 static constexpr uint32_t kMinViewSpan = 8;
 
+// Fixed zoom span for fine adjustments: one eighth of the sample. The
+// zoom row is gone, so the span is a constant ratio instead of a notch
+// counter - every fine step shows the same window size.
+static uint32_t zoomSpan(const InstrumentSample* sample) {
+  const uint32_t frameCount = sample->frameCount;
+  if (frameCount < kMinViewSpan * 2) return frameCount; // too small to zoom
+  uint32_t span = frameCount / 8;
+  if (span < kMinViewSpan) span = kMinViewSpan;
+  return span;
+}
+
 // Frame position of the view anchor: a playback marker (1 = Start, 2 = End,
 // before the reverse-order swap - the zoom anchor follows the marker itself,
 // not the active region) or a selection handle (3/4).
@@ -179,13 +198,12 @@ static int frameToPixel(uint32_t frame, const SampleEditorView* view, int width,
   return x < width ? x : width - 1;
 }
 
-// Zooms in one notch around markerFrame, keeping the marker at its relative
-// position inside the window (the first zoom from the full view centers it).
-// When the marker would sit at a window edge it pans just enough to keep a
-// small margin, so repeated fine steps follow the marker without drift.
-// The span floors at the marker quantum (one fine step moves a marker by
-// roughly frameCount/255 frames), so the window always shows the frames the
-// fine steps actually cross.
+// Zooms to the fixed span (frameCount/8) around markerFrame, keeping the
+// marker at its relative position inside the window (the first zoom from
+// the full view centers it). When the marker would sit at a window edge it
+// pans just enough to keep a small margin, so repeated fine steps follow
+// the marker without drift. The span never shrinks: every fine step shows
+// the same window size.
 static void zoomToMarker(const InstrumentSample* sample, SampleEditorView* view,
                          uint32_t markerFrame) {
   const uint32_t frameCount = sample->frameCount;
@@ -194,13 +212,13 @@ static void zoomToMarker(const InstrumentSample* sample, SampleEditorView* view,
     return;
   }
 
-  const uint32_t span = view->viewEnd - view->viewStart;
-  uint32_t minSpan = frameCount / 255 + 1;
-  if (minSpan < kMinViewSpan) minSpan = kMinViewSpan;
-  uint32_t newSpan = span / 2;
-  if (newSpan < minSpan) newSpan = minSpan;
-  if (newSpan > frameCount) newSpan = frameCount;
+  const uint32_t newSpan = zoomSpan(sample);
+  if (newSpan >= frameCount) {
+    zoomOutFull(sample, view);
+    return;
+  }
 
+  const uint32_t span = view->viewEnd - view->viewStart;
   uint32_t viewStart;
   const int fullView = span == 0 || (view->viewStart == 0 && view->viewEnd == frameCount);
   if (fullView || markerFrame < view->viewStart || markerFrame > view->viewEnd) {
@@ -366,25 +384,12 @@ static void drawSamplePreview(void) {
 }
 
 static int settingsColumnCount(int row) {
-  // GO/UNDO share one row as two columns, Save/Save As/Rename another as three
-  if (row == 6) return 2;
-  if (row == 7) return 3;
+  // Select/Region rows: START + END; Process row: op + GO + UNDO; File row:
+  // action + GO
+  if (row == 0 || row == 1) return 2;
+  if (row == 3) return 3;
+  if (row == 4) return 2;
   return 1;
-}
-
-// Zoom indicator below the waveform: 1:1 when the whole sample is visible,
-// otherwise the visible span in frames
-static void drawViewReadout(void) {
-  gfxSetFgColor(appSettings.colorScheme.textInfo);
-  gfxClearRect(0, viewReadoutRow, 40, 1);
-  const InstrumentSample* sample = currentSample();
-  if (editorView.viewStart == 0 && editorView.viewEnd == sample->frameCount) {
-    gfxPrint(0, viewReadoutRow, "VIEW 1:1");
-  } else {
-    char text[32];
-    snprintf(text, sizeof(text), "ZOOM %u fr", (unsigned)(editorView.viewEnd - editorView.viewStart));
-    gfxPrint(0, viewReadoutRow, text);
-  }
 }
 
 // Filename row with the '*' dirty marker. Called from the static draw and
@@ -409,33 +414,35 @@ static void settingsDrawStatic(void) {
   drawFilenameRow();
   gfxSetFgColor(cs.textInfo);
   if (sample->data && sample->frameCount) {
-    char formatText[40];
-    snprintf(formatText, sizeof(formatText), "%u Hz %s %u fr", (unsigned)sample->sampleRate,
-             sample->channels >= 2 ? "STEREO" : "MONO", (unsigned)sample->frameCount);
+    char formatText[24];
+    snprintf(formatText, sizeof(formatText), "%u Hz %s", (unsigned)sample->sampleRate,
+             sample->channels >= 2 ? "STEREO" : "MONO");
     gfxPrint(0, 2, formatText);
   }
   updateSamplePreview(sample, &editorView, &editorSelection);
   drawSamplePreview();
-  drawViewReadout();
   gfxSetFgColor(cs.textDefault);
-  gfxPrint(0, fieldRow0, "Start");
-  gfxPrint(0, fieldRow0 + 1, "End");
-  gfxPrint(0, fieldRow0 + 2, "Sel.S");
-  gfxPrint(0, fieldRow0 + 3, "Sel.E");
-  gfxPrint(0, fieldRow0 + 4, "Slice");
-  gfxPrint(0, fieldRow0 + 5, "Process");
-  gfxPrint(0, fieldRow0 + 7, "File");
+  gfxPrint(0, fieldRow0, "Select");
+  gfxPrint(markerLabelX, fieldRow0, "START");
+  gfxPrint(endLabelX, fieldRow0, "END");
+  gfxPrint(0, fieldRow0 + 1, "Region");
+  gfxPrint(markerLabelX, fieldRow0 + 1, "START");
+  gfxPrint(endLabelX, fieldRow0 + 1, "END");
+  gfxPrint(0, fieldRow0 + 2, "Slice");
+  gfxPrint(0, fieldRow0 + 3, "Process");
+  gfxPrint(0, fieldRow0 + 4, "File");
 }
 
 static void settingsDrawCursor(int col, int row) {
-  if (row == 6) {
-    gfxCursor(col ? undoX : goX, fieldRow0 + row, col ? undoWidth : goWidth);
-  } else if (row == 7) {
-    int x = col == 0 ? saveX : col == 1 ? saveAsX : renameX;
-    int width = col == 0 ? saveWidth : col == 1 ? saveAsWidth : renameWidth;
-    gfxCursor(x, fieldRow0 + row, width);
+  if (row == 0 || row == 1) {
+    gfxCursor(col == 0 ? selValX : selEndValX, fieldRow0 + row, selValWidth);
+  } else if (row == 3) {
+    gfxCursor(col == 0 ? valueX : col == 1 ? goX : undoX, fieldRow0 + row,
+              col == 0 ? opWidth : col == 1 ? goWidth : undoWidth);
+  } else if (row == 4) {
+    gfxCursor(col == 0 ? valueX : fileGoX, fieldRow0 + row, col == 0 ? opWidth : fileGoWidth);
   } else {
-    gfxCursor(valueX, fieldRow0 + row, row == 4 ? 3 : valueWidth);
+    gfxCursor(valueX, fieldRow0 + row, sliceWidth);
   }
 }
 
@@ -452,16 +459,13 @@ static void settingsDrawColHeader(int col, CellState state) {
 static void settingsDrawField(int col, int row, CellState state) {
   InstrumentSample* sample = currentSample();
   gfxSetFgColor(state == CellState::focus ? appSettings.colorScheme.textValue : appSettings.colorScheme.textDefault);
-  if (row == 5) {
-    // Process op selector
-    gfxClearRect(valueX, fieldRow0 + row, valueWidth, 1);
-    if (processOp < 0) gfxSetFgColor(appSettings.colorScheme.textEmpty);
-    gfxPrint(valueX, fieldRow0 + row, processOp < 0 ? "-" : processOpLabels[processOp]);
-    return;
-  }
-  if (row == 6) {
-    // GO / UNDO buttons
+  if (row == 3) {
     if (col == 0) {
+      // Process op selector
+      gfxClearRect(valueX, fieldRow0 + row, opWidth, 1);
+      if (processOp < 0) gfxSetFgColor(appSettings.colorScheme.textEmpty);
+      gfxPrint(valueX, fieldRow0 + row, processOp < 0 ? "-" : processOpLabels[processOp]);
+    } else if (col == 1) {
       gfxClearRect(goX, fieldRow0 + row, goWidth, 1);
       gfxPrint(goX, fieldRow0 + row, "GO");
     } else {
@@ -472,44 +476,44 @@ static void settingsDrawField(int col, int row, CellState state) {
     }
     return;
   }
-  if (row == 7) {
-    // Save / Save As / Rename buttons. Save and Rename need a file path,
-    // Save As needs sample data (it can assign a path to a fresh sample).
+  if (row == 4) {
+    // File action + GO. Save needs a file path, Save As needs sample data
+    // (it can assign a path to a fresh sample).
     if (col == 0) {
-      gfxClearRect(saveX, fieldRow0 + row, saveWidth, 1);
-      if (!sample->path[0]) gfxSetFgColor(appSettings.colorScheme.textEmpty);
-      gfxPrint(saveX, fieldRow0 + row, "Save");
-    } else if (col == 1) {
-      gfxClearRect(saveAsX, fieldRow0 + row, saveAsWidth, 1);
-      if (!sample->data || !sample->frameCount) gfxSetFgColor(appSettings.colorScheme.textEmpty);
-      gfxPrint(saveAsX, fieldRow0 + row, "Save As");
+      gfxClearRect(valueX, fieldRow0 + row, opWidth, 1);
+      const char* label = fileAction == 0 ? "Save" : "Save As";
+      if (fileAction == 0 && !sample->path[0]) gfxSetFgColor(appSettings.colorScheme.textEmpty);
+      if (fileAction == 1 && (!sample->data || !sample->frameCount)) gfxSetFgColor(appSettings.colorScheme.textEmpty);
+      gfxPrint(valueX, fieldRow0 + row, label);
     } else {
-      gfxClearRect(renameX, fieldRow0 + row, renameWidth, 1);
-      if (!sample->path[0]) gfxSetFgColor(appSettings.colorScheme.textEmpty);
-      gfxPrint(renameX, fieldRow0 + row, "Rename");
+      gfxClearRect(fileGoX, fieldRow0 + row, fileGoWidth, 1);
+      gfxPrint(fileGoX, fieldRow0 + row, "GO");
     }
     return;
   }
-  gfxSetFgColor(state == CellState::focus ? appSettings.colorScheme.textValue : appSettings.colorScheme.textDefault);
-  gfxClearRect(valueX, fieldRow0 + row, valueWidth, 1);
-  if (row == 0) gfxPrint(valueX, fieldRow0, byteToHex(sample->start));
-  else if (row == 1) gfxPrint(valueX, fieldRow0 + 1, byteToHex(sample->end));
-  else if (row == 2 || row == 3) {
-    // Selection handle readout: absolute frame, '-' when the selection is
-    // empty (both handles show '-')
-    if (!editorSelection.active) {
-      gfxPrint(valueX, fieldRow0 + row, "-");
+  if (row == 0 || row == 1) {
+    // Select (hex markers) and Region (frame handles): two values per row
+    const int x = col == 0 ? selValX : selEndValX;
+    gfxClearRect(x, fieldRow0 + row, selValWidth, 1);
+    if (row == 0) {
+      gfxPrint(x, fieldRow0 + row, byteToHex(col == 0 ? sample->start : sample->end));
     } else {
-      uint32_t frame = row == 2 ? editorSelection.start : editorSelection.end;
-      char text[16];
-      snprintf(text, sizeof(text), "%06u", (unsigned)frame);
-      gfxPrint(valueX, fieldRow0 + row, text);
+      if (!editorSelection.active) {
+        gfxPrint(x, fieldRow0 + row, "-");
+      } else {
+        uint32_t frame = col == 0 ? editorSelection.start : editorSelection.end;
+        char text[16];
+        snprintf(text, sizeof(text), "%06u", (unsigned)frame);
+        gfxPrint(x, fieldRow0 + row, text);
+      }
     }
-  } else if (row == 4) {
-    // Slice is inert while Stretch drives the duration: dim it.
-    if (sample->stretchMode != 0) gfxSetFgColor(appSettings.colorScheme.textEmpty);
-    gfxPrint(valueX, fieldRow0 + 4, sliceLabels[sliceToIndex(sample->slice)]);
+    return;
   }
+  // Row 2: Slice
+  gfxClearRect(valueX, fieldRow0 + row, sliceWidth, 1);
+  // Slice is inert while Stretch drives the duration: dim it.
+  if (sample->stretchMode != 0) gfxSetFgColor(appSettings.colorScheme.textEmpty);
+  gfxPrint(valueX, fieldRow0 + row, sliceLabels[sliceToIndex(sample->slice)]);
 }
 
 // Clamp the selection to the sample, swap inverted handles and update the
@@ -547,16 +551,18 @@ static void sampleEditorNormalizeState(const InstrumentSample* sample,
   updateSamplePreview(sample, view, selection);
 }
 
-// Repaints everything a process op can invalidate: the preview, the view
-// readout, the marker/selection fields and the Process row.
+// Repaints everything a process op can invalidate: the preview, the
+// marker/selection fields and the Process row.
 static void settingsRepaintAfterOp(void) {
   drawFilenameRow();
   drawSamplePreview();
-  drawViewReadout();
-  for (int row = 0; row < 5; ++row) settingsDrawField(0, row, CellState::normal);
-  settingsDrawField(0, 5, CellState::normal);
-  settingsDrawField(0, 6, CellState::normal);
-  settingsDrawField(1, 6, CellState::normal);
+  for (int row = 0; row < 3; ++row) {
+    settingsDrawField(0, row, CellState::normal);
+    if (row < 2) settingsDrawField(1, row, CellState::normal);
+  }
+  settingsDrawField(0, 3, CellState::normal);
+  settingsDrawField(1, 3, CellState::normal);
+  settingsDrawField(2, 3, CellState::normal);
 }
 
 // Runs the selected process op on the current selection (or the whole
@@ -587,6 +593,7 @@ static void settingsRunProcessOp(void) {
       case 3: result = sampleOpSilence(sample, selStart, selEnd); break;
       case 4: result = sampleOpFade(sample, selStart, selEnd, 1); break;
       case 5: result = sampleOpFade(sample, selStart, selEnd, 0); break;
+      case 6: result = sampleOpReverse(sample, selStart, selEnd); break;
     }
   }
   audioManager.resume();
@@ -719,92 +726,68 @@ static void settingsRunSaveAs(void) {
   screenSetup(&screenEnterName, 0);
 }
 
-// Rename: replace the file name component of the sample path on disk. The
-// directory and the data are untouched; the dirty flag survives a rename
-// because the file content does not change.
-static void settingsRenameEntered(const char* name) {
-  InstrumentSample* sample = currentSample();
-  const char* separator = strrchr(sample->path, PATH_SEPARATOR);
-  size_t dirLength = separator ? (size_t)(separator - sample->path) + 1 : 0;
-  // directory prefix + name + ".wav" must fit the stored path length
-  if (dirLength + strlen(name) + 4 > PROJECT_SAMPLE_PATH_LENGTH) {
-    screenMessage(MESSAGE_TIME_ERROR, "Path too long");
-    settingsReturnFromDialog(1);
-    return;
-  }
-  char newPath[PROJECT_SAMPLE_PATH_LENGTH + 2];
-  snprintf(newPath, sizeof(newPath), "%.*s%s.wav", (int)dirLength, sample->path, name);
-  if (fileRename(sample->path, newPath) != 0) {
-    screenMessage(MESSAGE_TIME_ERROR, "Rename failed");
-    settingsReturnFromDialog(1);
-    return;
-  }
-  strncpy(sample->path, newPath, PROJECT_SAMPLE_PATH_LENGTH);
-  sample->path[PROJECT_SAMPLE_PATH_LENGTH] = 0;
-  projectModified = 1;
-  screenMessage(MESSAGE_TIME, "Renamed");
-  settingsReturnFromDialog(1);
-}
-
-static void settingsRunRename(void) {
-  InstrumentSample* sample = currentSample();
-  if (!sample->path[0]) return;
-  char initialName[25]; // the name entry field holds 24 characters
-  sampleBasenameSansExt(sample->path, initialName, sizeof(initialName));
-  enterNameSetup("RENAME SAMPLE", "New name:", initialName, settingsRenameEntered, settingsCancelDialog);
-  screenSetup(&screenEnterName, 0);
-}
-
 static int settingsOnEdit(int col, int row, CellEditAction action) {
   InstrumentSample* sample = currentSample();
   int handled = 0;
   int marker = 0; // 1 = Start, 2 = End
-  if (row == 5) {
-    // Cycle the operation; Edit+Opt clears it to none
-    if (action == CellEditAction::clear) {
-      if (processOp < 0) return 0;
-      processOp = -1;
-    } else if (action == CellEditAction::increase || action == CellEditAction::increaseBig) {
-      processOp = processOp < 0 ? 0 : (processOp + 1) % processOpCount;
-    } else if (action == CellEditAction::decrease || action == CellEditAction::decreaseBig) {
-      processOp = processOp < 0 ? processOpCount - 1 : (processOp + processOpCount - 1) % processOpCount;
-    } else if (action == CellEditAction::tap || action == CellEditAction::doubleTap) {
-      processOp = processOp < 0 ? 0 : (processOp + 1) % processOpCount;
-    } else {
-      return 0;
+  if (row == 3) {
+    if (col == 0) {
+      // Cycle the operation; Edit+Opt clears it to none
+      if (action == CellEditAction::clear) {
+        if (processOp < 0) return 0;
+        processOp = -1;
+      } else if (action == CellEditAction::increase || action == CellEditAction::increaseBig) {
+        processOp = processOp < 0 ? 0 : (processOp + 1) % processOpCount;
+      } else if (action == CellEditAction::decrease || action == CellEditAction::decreaseBig) {
+        processOp = processOp < 0 ? processOpCount - 1 : (processOp + processOpCount - 1) % processOpCount;
+      } else if (action == CellEditAction::tap || action == CellEditAction::doubleTap) {
+        processOp = processOp < 0 ? 0 : (processOp + 1) % processOpCount;
+      } else {
+        return 0;
+      }
+      settingsDrawField(0, 3, CellState::focus);
+      return 1;
     }
-    settingsDrawField(0, 5, CellState::focus);
-    return 1;
-  }
-  if (row == 6) {
     if (action != CellEditAction::tap && action != CellEditAction::doubleTap) return 0;
-    if (col == 0) settingsRunProcessOp();
+    if (col == 1) settingsRunProcessOp();
     else settingsRunUndo();
     return 1;
   }
-  if (row == 7) {
+  if (row == 4) {
+    if (col == 0) {
+      // Cycle the action (any edit key toggles); Edit+Opt resets it to Save
+      if (action == CellEditAction::clear) {
+        if (fileAction == 0) return 0;
+        fileAction = 0;
+      } else if (action == CellEditAction::tap || action == CellEditAction::doubleTap ||
+                 action == CellEditAction::increase || action == CellEditAction::decrease ||
+                 action == CellEditAction::increaseBig || action == CellEditAction::decreaseBig) {
+        fileAction = fileAction == 0 ? 1 : 0;
+      } else {
+        return 0;
+      }
+      settingsDrawField(0, 4, CellState::focus);
+      return 1;
+    }
     if (action != CellEditAction::tap && action != CellEditAction::doubleTap) return 0;
-    if (col == 0) settingsRunSave();
-    else if (col == 1) settingsRunSaveAs();
-    else settingsRunRename();
+    if (fileAction == 0) settingsRunSave();
+    else settingsRunSaveAs();
     return 1;
   }
   if (row == 0) {
-    handled = edit8noLast(action, &sample->start, 16, 0, 255);
-    marker = kViewAnchorStart;
+    uint8_t* value = col == 0 ? &sample->start : &sample->end;
+    handled = edit8noLast(action, value, 16, 0, 255);
+    marker = col == 0 ? kViewAnchorStart : kViewAnchorEnd;
   } else if (row == 1) {
-    handled = edit8noLast(action, &sample->end, 16, 0, 255);
-    marker = kViewAnchorEnd;
-  } else if (row == 2 || row == 3) {
     // Selection handles: fine steps move one frame and zoom onto the
     // handle; coarse steps jump frameCount/64 (min 16) and return to the
     // full-sample view. Tap copies the matching playback marker position;
     // clear empties the whole selection. Start/End are untouched.
     const uint32_t frameCount = sample->frameCount;
     if (frameCount == 0) return 0;
-    uint32_t* handle = row == 2 ? &editorSelection.start : &editorSelection.end;
+    uint32_t* handle = col == 0 ? &editorSelection.start : &editorSelection.end;
     if (action == CellEditAction::tap) {
-      uint32_t markerPos = row == 2 ? sampleMarkerToStartFrame(frameCount, sample->start)
+      uint32_t markerPos = col == 0 ? sampleMarkerToStartFrame(frameCount, sample->start)
                                     : sampleMarkerToEndFrame(frameCount, sample->end);
       if (editorSelection.active && *handle == markerPos) return 0;
       *handle = markerPos;
@@ -837,7 +820,7 @@ static int settingsOnEdit(int col, int row, CellEditAction action) {
     }
     if (handled) {
       if (action == CellEditAction::increase || action == CellEditAction::decrease) {
-        editorView.anchor = row == 2 ? kViewAnchorSelStart : kViewAnchorSelEnd;
+        editorView.anchor = col == 0 ? kViewAnchorSelStart : kViewAnchorSelEnd;
         zoomToMarker(sample, &editorView, *handle);
       } else if (action == CellEditAction::increaseBig || action == CellEditAction::decreaseBig ||
                  action == CellEditAction::clear) {
@@ -845,13 +828,12 @@ static int settingsOnEdit(int col, int row, CellEditAction action) {
       }
       sampleEditorNormalizeState(sample, &editorSelection, &editorView);
       drawSamplePreview();
-      drawViewReadout();
       // Repaint both handle readouts: normalization may have swapped them
-      settingsDrawField(0, 2, CellState::focus);
-      settingsDrawField(0, 3, CellState::focus);
+      settingsDrawField(0, 1, CellState::focus);
+      settingsDrawField(1, 1, CellState::focus);
     }
     return handled;
-  } else if (row == 4) {
+  } else if (row == 2) {
     // Slice is inert while Stretch drives the duration.
     if (sample->stretchMode != 0) return 0;
     uint8_t index = (uint8_t)sliceToIndex(sample->slice);
@@ -880,25 +862,23 @@ static int settingsOnEdit(int col, int row, CellEditAction action) {
     }
     updateSamplePreview(sample, &editorView, &editorSelection);
     drawSamplePreview();
-    drawViewReadout();
   }
   return handled;
 }
 
 // Slice is inert while Stretch drives the duration: skip it in navigation.
-// Save/Rename need a file path, Save As needs sample data.
+// Save needs a file path, Save As needs sample data.
 static int settingsIsCellValid(int col, int row) {
   InstrumentSample* sample = currentSample();
-  if (row == 4 && sample->stretchMode != 0) return 0;
-  if (row == 7) {
-    if (col == 1) return sample->data != NULL && sample->frameCount > 0;
-    return sample->path[0] != 0;
+  if (row == 2 && sample->stretchMode != 0) return 0;
+  if (row == 4 && col == 0) {
+    return fileAction == 0 ? sample->path[0] != 0 : (sample->data != NULL && sample->frameCount > 0);
   }
   return 1;
 }
 
 static ScreenData screenSampleSettingsData = {
-  .rows = 8,
+  .rows = 5,
   .cursorRow = 0,
   .cursorCol = 0,
   .topRow = 0,
@@ -940,13 +920,13 @@ static void setup(int input) {
 static void fullRedraw(void) {
   // The cursor persists across screens: if it is parked on Slice while Stretch
   // is active, move it up so it never rests on a disabled cell.
-  if (screenSampleSettingsData.cursorRow == 4 && currentSample()->stretchMode != 0) {
+  if (screenSampleSettingsData.cursorRow == 2 && currentSample()->stretchMode != 0) {
     screenSampleSettingsData.cursorRow = 1;
   }
-  // Same for the Save row: the previous instrument may have left the cursor
-  // on a button the current sample cannot use.
-  if (screenSampleSettingsData.cursorRow == 7 &&
-      !settingsIsCellValid(screenSampleSettingsData.cursorCol, 7)) {
+  // Same for the File row: the previous instrument may have left the cursor
+  // on an action the current sample cannot use.
+  if (screenSampleSettingsData.cursorRow == 4 &&
+      !settingsIsCellValid(screenSampleSettingsData.cursorCol, 4)) {
     screenSampleSettingsData.cursorRow = 1;
   }
   screenFullRedraw(&screenSampleSettingsData);

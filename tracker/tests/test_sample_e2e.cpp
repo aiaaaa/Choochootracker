@@ -398,6 +398,15 @@ TEST_CASE("Every op accepts the whole-sample fallback consistently") {
   // Delete with the whole sample selected is rejected
   REQUIRE(sampleOpDelete(&t.s, 25, 25) == sampleOpErrorWholeSample);
   CHECK(t.s.frameCount == 50);
+
+  // Reverse with equal bounds reverses everything (channel pairing kept)
+  E2ESample t2;
+  t2.init(50, 2);
+  REQUIRE(sampleOpReverse(&t2.s, 25, 25) == sampleOpOk);
+  for (uint32_t i = 0; i < 50; ++i) {
+    CHECK(t2.s.data[i * 2] == E2ESample::value(49 - i, 0));
+    CHECK(t2.s.data[i * 2 + 1] == E2ESample::value(49 - i, 1));
+  }
 }
 
 } // TEST_SUITE("sample_e2e")
