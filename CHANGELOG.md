@@ -16,17 +16,23 @@
   when the sample in RAM differs from the file on disk.
 - Added end-to-end engine tests for the editor workflows and a 32 MB
   large-sample stress case (392 test cases total).
-- Compressed the Sample Edit screen into five rows (Select, Region, Slice,
+- Compressed the Sample Edit screen into five rows (Region, Select, Slice,
   Process, File) with a taller waveform: the zoom readout and the frame
-  count in the format line are gone, Select/Region show START and END
+  count in the format line are gone, Region/Select show START and END
   values side by side, process operations use their full names, and the
   File row cycles Save/Save As with a single GO (Rename removed).
-- Fixed the waveform zoom to a constant one-eighth-of-sample window on
-  fine adjustments instead of halving per step; coarse steps still return
-  to the full view.
+- Rebound the Region and Select rows: Region now owns the playback
+  Start/End markers and Select is the processing selection only, and the
+  rows swapped places so playback boundaries sit on top.
+- Fixed the waveform zoom to a constant two-second window on fine
+  adjustments instead of one eighth of the sample; samples that fit inside
+  the window keep the full 1:1 view and coarse steps still return to it.
 - Added the Reverse process operation, which plays the selected region
   backwards in place (stereo image preserved, length and markers
   unchanged).
+- The Sampler instrument (renamed from PCM Sample) now loads 24-bit PCM
+  WAV files in addition to 8-bit and 16-bit, and sits at the top of the
+  SAMPLE category in the instrument type picker.
 - Fixed a build failure on non-ARM hosts: the vendored stmlib dsp header
   selected ARM `vsqrt` inline assembly whenever `TEST` was undefined;
   the guards are now architecture-aware (398 test cases total).
