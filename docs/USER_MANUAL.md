@@ -1038,6 +1038,10 @@ bypass retains the module, configured values, and automation. Parameters are
 byte values: left column 1–4, right column 5–8. Context text shows full names and
 decoded values. Old projects load with both slots OFF.
 
+The navigation display keeps the full F–M–I–P column visible throughout the
+instrument screens, including Insert FX and the instrument pool, and highlights
+the current screen.
+
 | Module | Parameters in order |
 | --- | --- |
 | Work Compressor | Threshold, Attack, Release, Makeup, Ratio, Detector source, Detector filter, Mix |
