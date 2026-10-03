@@ -5,6 +5,7 @@
 #include <ctime>
 #include <mutex>
 #include <regex>
+#include <cstdio>
 
 namespace modLucky {
 bool allowedUrl(const std::string& url) {
@@ -73,6 +74,8 @@ HttpResponse httpsGet(const std::string& first,size_t limit,const std::atomic<bo
     std::unique_ptr<CURL,decltype(&curl_easy_cleanup)> curl(curl_easy_init(),curl_easy_cleanup);
     if(!curl) throw NetworkError("HTTPS allocation failed");
     Transfer t{{},limit,cancel}; auto c=curl.get();
+    char detail[CURL_ERROR_SIZE]{};
+    curl_easy_setopt(c,CURLOPT_ERRORBUFFER,detail);
     curl_easy_setopt(c,CURLOPT_URL,url.c_str());
 #ifdef VITA_BUILD
     curl_easy_setopt(c,CURLOPT_CAINFO,"app0:/certs/ca-certificates.crt");
@@ -89,7 +92,27 @@ HttpResponse httpsGet(const std::string& first,size_t limit,const std::atomic<bo
     if(cancel) throw Error("Cancelled");
     if(t.oversized) throw Error("Response exceeds size limit");
     if(t.allocationFailed) throw Error("Not enough memory");
-    if(code!=CURLE_OK) throw NetworkError(code==CURLE_OPERATION_TIMEDOUT?"Connection timed out":"No connection");
+    if(code!=CURLE_OK) {
+#ifdef VITA_BUILD
+      // Worker-side diagnostics only: never log a response body or credentials.
+      fprintf(stderr,"ModLucky HTTPS: curl=%d HTTP=%ld: %.255s\n",int(code),t.response.status,
+              detail[0]?detail:curl_easy_strerror(code));
+#endif
+      const char* message="No connection";
+      switch(code) {
+        case CURLE_OPERATION_TIMEDOUT: message="Connection timed out"; break;
+        case CURLE_COULDNT_RESOLVE_HOST: message="DNS lookup failed"; break;
+        case CURLE_COULDNT_CONNECT: message="Server connection failed"; break;
+        case CURLE_SEND_ERROR: message="Connection send failed"; break;
+        case CURLE_RECV_ERROR: message="Connection receive failed"; break;
+        case CURLE_SSL_CACERT_BADFILE: message="CA certificate unavailable"; break;
+        case CURLE_PEER_FAILED_VERIFICATION: message="TLS verification failed"; break;
+        case CURLE_SSL_CONNECT_ERROR: message="TLS connection failed"; break;
+        case CURLE_FAILED_INIT: message="HTTPS setup failed"; break;
+        default: break;
+      }
+      throw NetworkError(message);
+    }
     if(t.response.status>=300 && t.response.status<400) {
       if(redirect==3 || t.response.location.empty()) throw NetworkError("Too many redirects");
       auto origin=url.substr(0,url.find('/',8));

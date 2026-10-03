@@ -5,6 +5,9 @@
 #include <locale.h>
 #include <ctype.h>
 #include "corelib_keymap.h"
+#ifdef VITA_BUILD
+#include "../vita/controls.h"
+#endif
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -91,13 +94,8 @@ void inputInitDefaultKeyMapping(void) {
   appSettings.keyMapping.keyPlay[1] = (InputCode){InputDeviceType::gamepad, SDL_CONTROLLER_BUTTON_START};
   appSettings.keyMapping.keyShift[1] = (InputCode){InputDeviceType::gamepad, SDL_CONTROLLER_BUTTON_BACK};
   appSettings.keyMapping.keyMotionLive[1] = (InputCode){InputDeviceType::gamepad, SDL_CONTROLLER_BUTTON_LEFTSHOULDER};
-#ifdef VITA_BUILD
-  appSettings.keyMapping.keyMotionRecord[1] = (InputCode){InputDeviceType::gamepad, SDL_CONTROLLER_BUTTON_X};
-  appSettings.keyMapping.keyMotionErase[1] = (InputCode){InputDeviceType::gamepad, SDL_CONTROLLER_BUTTON_Y};
-#else
   appSettings.keyMapping.keyMotionRecord[1] = (InputCode){InputDeviceType::gamepad, gamepadTriggerLeft};
   appSettings.keyMapping.keyMotionErase[1] = (InputCode){InputDeviceType::gamepad, gamepadTriggerRight};
-#endif
 #else
   // PortMaster: keyboard only
   appSettings.keyMapping.keyUp[1] = (InputCode){InputDeviceType::none, 0};
@@ -125,6 +123,9 @@ void inputInitDefaultKeyMapping(void) {
   appSettings.keyMapping.keyMotionLive[2] = (InputCode){InputDeviceType::none, 0};
   appSettings.keyMapping.keyMotionRecord[2] = (InputCode){InputDeviceType::none, 0};
   appSettings.keyMapping.keyMotionErase[2] = (InputCode){InputDeviceType::none, 0};
+#ifdef VITA_BUILD
+  vitaDefaultControls(appSettings.keyMapping);
+#endif
 }
 
 const char* inputGetKeyName(InputCode input) {
@@ -132,10 +133,17 @@ const char* inputGetKeyName(InputCode input) {
 
   if (input.deviceType == InputDeviceType::gamepad) {
     switch (input.code) {
+#ifdef VITA_BUILD
+      case SDL_CONTROLLER_BUTTON_A: return "Cross";
+      case SDL_CONTROLLER_BUTTON_B: return "Circle";
+      case SDL_CONTROLLER_BUTTON_X: return "Square";
+      case SDL_CONTROLLER_BUTTON_Y: return "Triangl";
+#else
       case SDL_CONTROLLER_BUTTON_A: return "Pad A";
       case SDL_CONTROLLER_BUTTON_B: return "Pad B";
       case SDL_CONTROLLER_BUTTON_X: return "Pad X";
       case SDL_CONTROLLER_BUTTON_Y: return "Pad Y";
+#endif
       case SDL_CONTROLLER_BUTTON_LEFTSHOULDER: return "Pad L1";
       case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER: return "Pad R1";
       case SDL_CONTROLLER_BUTTON_BACK: return "PadSel";
