@@ -9,6 +9,8 @@ static bool fullWidth;
 static int rootCount, categoryIndex, itemIndex, activePanel, currentValue;
 static void (*onSelected)(int);
 static void (*onCancelled)(void);
+static void (*onPreview)(int, bool);
+static bool previewHeld;
 
 static const SelectionItem* currentCategory() {
   return &rootItems[categoryIndex];
@@ -34,7 +36,8 @@ static void selectCurrentValue() {
 
 void selectionPopupSetup(const char* popupTitle, const SelectionItem* items,
                          int count, int selectedValue,
-                         void (*selected)(int), void (*cancelled)(void), bool wide) {
+                         void (*selected)(int), void (*cancelled)(void), bool wide, void (*preview)(int, bool)) {
+  onPreview = preview; previewHeld = false;
   fullWidth = wide;
   strncpy(title, popupTitle, sizeof(title) - 1);
   title[sizeof(title) - 1] = 0;
@@ -89,6 +92,16 @@ static void fullRedraw() {
 static void draw() {}
 
 static int onInput(int isKeyDown, int keys, int tapCount) {
+  if (onPreview && keys == (keyEdit | keyPlay) && isKeyDown) {
+    const auto* category = currentCategory();
+    int value = activePanel == 1 && category->childCount ? category->children[itemIndex].value : category->value;
+    if (value >= 0) { onPreview(value, true); previewHeld = true; }
+    return 1;
+  }
+  if (previewHeld) {
+    if (keys != (keyEdit | keyPlay)) { onPreview(0, false); previewHeld = false; }
+    return 1;
+  }
   if (!isKeyDown) return 1;
   if (keys == keyUp || keys == keyDown) {
     int direction = keys == keyUp ? -1 : 1;

@@ -1129,3 +1129,23 @@ alone does not supply internet access.
 The ordinary build omits this experimental row entirely. See
 [the experiment notes](mod-lucky.md) for build instructions, persistence,
 format/loop limitations and validation status.
+
+### Native OPLL and VRC7 instruments (development)
+
+The Instrument Type selector has an FM group with **OPLL / MSX** (YM2413)
+ and **VRC7** (DS1001). Each offers 15 named melodic programs. Program zero
+is reserved for internal portable tone storage and is not an extra preset.
+The Preset row opens the program list; EDIT + left/right selects the previous
+or next program. Fine ct adjusts tuning from -100 to +100 cents.
+
+In the program list, EDIT + PLAY auditions the highlighted sound; release the
+buttons to stop. EDIT commits and OPT cancels. Browsing/audition does not change
+the instrument, table or song. The normal Instrument-page audition gesture
+continues to work after selection. Native chip envelopes supply attack/release;
+there is no inherited software post-envelope or operator editor.
+
+New instruments store all eight native tone bytes, program and fine tuning in
+the song/instrument file. Files containing these types use format 6.0 and need
+this build or later. Earlier formats remain readable; songs without these types
+continue to save as 5.0. Rhythm programs are deferred. Hardware validation and
+human listening for these additions are pending.
