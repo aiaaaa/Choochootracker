@@ -720,3 +720,42 @@ ChooChooTracker-native-chips-r2-r36h.zip passed SHA256 and CRC verification.
 No PR or system/USB changes. User listening/playtest, especially reported FM
 clicks, remains pending; no subjective fix is claimed from machine tests alone.
 This receipt-only commit does not change the installed application or package.
+
+### Personal and native candidate aligned; handheld updated — 2026-10-04
+
+Source d0403eca2fc9ea0ba01d323b975a72ceabe7c0f0 adopts the accepted upstream insert review
+and the preceding Personal integration. Candidate and Personal match. Native
+preset popup protection, all ten chip engines and Get Lucky remain included.
+
+The initial clean build exposed a sample-stretch ownership leak: the
+full suite and a ten-case batch exhausted RAM. Added destructor cleanup and
+disallowed shallow copying, then rebuilt all affected objects. The allocation
+regression failed before the fix (1,730,616 retained bytes) and passed after it
+(32 cycles, zero retained allocation bytes). The complete ARM suite now passes
+in one process; no cases were excluded to work around the leak.
+
+Device test summary:
+
+[doctest] run with "--help" for options
+===============================================================================
+[doctest] test cases:      485 |      485 passed | 0 failed | 2 skipped
+[doctest] assertions: 74528153 | 74528153 passed | 0 failed |
+[doctest] Status: SUCCESS!
+
+The initial physical bank run logged an underrun and two missed deadlines.
+The cause was not established. An uninterrupted comparison then gave zero
+misses for both the previous and new builds, followed by zero misses in the
+new mixed-song run. All measurements, including the first failure, are retained
+in the receipt; no audio settings or CPU limits were changed.
+
+Offscreen Insert FX, FM browser and ADSR pixel checks passed. Both final 70-second
+physical ALSA fixtures and production startup with Persistent waveform off/on
+passed at the unchanged device audio settings. Serial offscreen render+UI at
+1,024 frames still exceeds that smaller block interval; physical audio checks
+use the preserved 4,906-frame setting. This is machine validation;
+user listening/playtest remains pending.
+
+Installed binary SHA256: 58058dbf3d45acaa1a7668689b7a2c10b56c33cc17dfdff024b03d58807aad71.
+1655 non-replaced files preserved and verified; launcher unchanged.
+Rollback: /roms/choochootracker-backups/pre-personal-d0403eca2fc9/previous-install.
+See personal-device-sync-20261004.json for the complete receipt.
