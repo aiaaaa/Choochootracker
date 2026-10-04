@@ -348,7 +348,8 @@ TEST_CASE("phrase FX groups put the active engine after Track FX") {
   CHECK(std::strcmp(fxGroups[1].name, "Track FX") == 0);
   CHECK(fxGroups[1].columns == 4);
   CHECK(fxGroups[1].fxList[3].fx == fxCRD);
-  CHECK(getInstrumentDefinition(InstrumentType::Sample)->fxList[2].fx == fxSTA);
+  // SST is the current sample-start control; STA remains a legacy playback alias.
+  CHECK(getInstrumentDefinition(InstrumentType::Sample)->fxList[1].fx == fxSST);
   CHECK(fxGroups[2].instType == InstrumentType::AY1);
   CHECK(fxGroups[11].instType == InstrumentType::AChChid);
   CHECK(fxGroups[12].instType == InstrumentType::DrumSynth);

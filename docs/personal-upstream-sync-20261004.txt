@@ -1,0 +1,76 @@
+PERSONAL UPSTREAM SYNC — OCTOBER 4, 2026
+
+Personal before: 27f8ddb
+Upstream merged: df173ece4658e67c8c1d06e7d85e79ac4394fb1f
+Main remains an exact upstream mirror. This sync updates source/GitHub only;
+the handheld remains on its previously installed, recorded R2 build.
+
+ADOPTED
+
+The maintainer's PR20 track visuals/GPU integration, Graphics menu and touch
+mapping; sample editor operations and WAV save flows; sample speed/stretch
+algorithms; bounce/export updates; other upstream changes through the recorded
+commit. The common settings, Graphics submenu, sample instrument page, track
+visuals page, piano and meter display files match upstream exactly.
+
+RETAINED PERSONAL WORK
+
+Native chip instruments, preset banks, native audition/import and controls,
+and Get Lucky. Native engine implementation files and Get Lucky's own sources
+remain unchanged. Shared rendering/build files combine those engines with the
+new sampler/export paths. The accepted waveform refresh path has the necessary
+native-voice routing and actual one-AY-chip-per-track mapping, rather than
+mistaking native chip voices for AY objects. Relevant tests cover that boundary.
+
+TEMPORARY INSERT-EFFECTS EXCEPTION
+
+User explicitly requested keeping our current insert effects during this sync.
+The exact pre-sync versions of these eight files are retained:
+  chipnomad_lib/insert_fx.cpp
+  chipnomad_lib/insert_fx.h
+  tracker/src/screens/screen_insert_fx.cpp
+  tracker/src/screens/edit_fx.cpp
+  tracker/src/screens/selection_popup.cpp
+  tracker/src/screens/selection_popup.h
+  tracker/src/screens/screen_layout.cpp
+  tracker/src/scope_display.cpp
+The existing insert navigation footprint and popup drawing behavior also remain
+in the shared screen/app files. Upstream's grouped insert chooser, CPU readout,
+insert hint review, and insert-specific Windows constant definitions are deferred.
+PR31's branch is not changed. Other upstream Windows fixes are included.
+
+This is an explicit source-level exception despite upstream's merge being in
+Git history. To adopt insert review later, compare these files with then-current
+upstream, apply its accepted insert changes and preserve the native FM audition
+support in shared popup/editing code. A subsequent merge alone will not remove
+the exception. Update temporary_exceptions in personal-features.json then.
+
+VALIDATION
+
+Personal unit suite with Get Lucky enabled: 485 passed, 0 failed, 2 opt-in tests
+skipped; 74,528,146 assertions passed. Skips are fresh-process Lucky reload and
+live network acquisition. Thirteen focused graphics/native-storage checks pass.
+The first standard suite exposed stale structure-size/sample-FX expectations
+and a mismatched AY graphics fixture; these are corrected for the actual new
+sample fields, canonical SST control and per-track AY mapping.
+
+Personal desktop sources compiled with the existing SDL framework and Lucky
+backend. The existing desktop makefile emits chipnomad but the shared chmod step
+expects choochootracker; the linked binary was copied to that target name locally.
+No build-system rename was made as part of this source sync.
+
+Real SDL offscreen UI fixture passed: all seven FM types selected/reopened;
+ten engines' ADSR incremental pixels match full redraw with header off/on;
+bank browsing, audition, SysEx import, copy/clone and song playback pass.
+Two captured screens were visually checked. Dummy video/audio opens no GUI and
+does not constitute a physical audio or handheld performance test.
+
+Web bundle rebuilt with Emscripten 6.0.10. The prior /tmp SDK had disappeared;
+the same version was restored under the shared workspace .tmp/emsdk directory.
+Web continues to omit Get Lucky, as configured before this sync.
+
+Full test/UI logs and captures are in the local candidate worktree .tmp/sync/.
+Exact source-pin and artifact hashes are in personal-upstream-sync-20261004.json.
+No device installation, boot/audio/SSH change or physical device test was made.
+A future handheld install still requires a tested ARM64 package, preserved user
+settings/assets, a verified rollback and hardware validation.

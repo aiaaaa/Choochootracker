@@ -40,7 +40,7 @@ preserved. Input polling and app timers keep their usual cadence.
 | `instruments` | `.cni` instrument presets, including ChipNomad files |
 | `pitch-tables` | `.csv` alternative tunings |
 | `projects` | `.cct` song and project files |
-| `samples` | `.wav` files for the PCM Sample engine |
+| `samples` | `.wav` files for the Sampler engine |
 | `SR_wavetables` | Serum-format wavetables for the BYOWTBL engine |
 | `themes` | `.cth` ChipNomad themes |
 | `title` | Title screen assets |
@@ -159,19 +159,23 @@ The Project page puts the application version on its own line and separates Load
 
 Audio readouts use a UI-owned snapshot of the final mix and individual track contributions. Track samples and stereo peaks are captured after track level and tilt, before shared effect returns and master gain. Monitoring does not change the audio signal. The audio callback publishes fixed-size snapshots without locks or allocation; display history spans about 21 ms.
 
+### Persistent waveform
+
+Graphics → Persistent waveform is OFF by default. Tap EDIT to toggle it, or use EDIT + direction; the choice is saved as an app preference. OFF restores full-height pages and the existing instrument waveform previews. When enabled, a two-row waveform above editing pages shows the final mix summed to mono. Instrument and Modulation pages show the output of a track using the selected instrument; the selected Song track wins if several tracks use it. Project, Settings, wavetable and popups keep their full-height content. Lists scroll within the remaining rows. Instrument footers retain ADSR/sample previews, and Modulation fields are compacted to keep all controls accessible. Its touch targets follow the displayed fields in both waveform modes.
+
 ### Playback piano
 
 A code-drawn pixel piano below the eight right-side track rows lights sounding pitch classes, folded into one octave. It includes chord notes and respects muted/stopped tracks. The outline uses the theme value color and all active keys use the waveform color; idle keys have dark fills and subtle shadows. Its grid uses integer scaling and fixed-width borders. The piano is a playback indicator, not a note-entry control. Popups and the wavetable editor keep their own content in this area.
 
 ### Personal build Settings
 
+The October 4 source update adopts upstream’s Graphics controls and sampler/export
+features while retaining native chips and Get Lucky. Insert effects remains our
+existing version by request; the upstream insert review changes are deferred.
+
 The personal handheld launcher cover carries a red diagonal GITHUB FORK stamp.
 
 In the personal R36H build, Persistent waveform and Track visuals are separate entries under Settings → Graphics. The waveform remains optional; changing it preserves each track’s visual preferences.
-
-### Persistent waveform
-
-Settings → Graphics → Persistent waveform is OFF by default. Tap EDIT to toggle it, or use EDIT + direction; the choice is saved as an app preference. OFF restores full-height pages and the existing instrument waveform previews. When enabled, a two-row waveform above editing pages shows the final mix summed to mono. Instrument and Modulation pages show the output of a track using the selected instrument; the selected Song track wins if several tracks use it. Project, Settings, wavetable and popups keep their full-height content. Lists scroll within the remaining rows. Instrument footers retain ADSR/sample previews, and Modulation fields are compacted to keep all controls accessible. Its touch targets follow the displayed fields in both waveform modes.
 
 ### Mixer meters
 
@@ -205,6 +209,25 @@ Select one Song row across several columns to queue or stop those tracks togethe
 - **OPT + SHIFT**: mute the current track or selected columns (release **OPT** first to keep the mute active)
 - **OPT + PLAY**: solo the current track or selected columns (release **OPT** first to keep the solo active)
 - **OPT + [LEFT/RIGHT]**: solo every track to the left or right of the current track
+- Select a range, then double-tap **EDIT**: open the BOUNCE TO SAMPLE screen (see Bounce below)
+
+#### Bounce
+
+Select a range of Song rows and columns, then double-tap **EDIT** to open the BOUNCE TO SAMPLE screen. The bounce includes every selected track: tracks whose first chain starts later in the selection wait silently and join at their first chain, so the file contains all selected tracks' chains.
+
+The screen offers:
+
+- **File name**: edit with the character keyboard. When the screen opens, the next free sequence number (`001`, `002`, ...) is proposed here: the first number whose `.wav` file does not exist yet in the export folder. Edit it freely — the name is used as-is. If a file with that name already exists, a `_001`, `_002`, ... suffix is added so existing files are never overwritten. The counter resets when you load or create a project.
+- **Sample rate** and **Bit depth**: the same options as the export screen
+- **Include in a sample name**: three checkboxes that prepend context tags to the file name when **Start** is pressed (all off by default):
+  - **[BPM]** — the project's current tempo, e.g. `[120]`
+  - **[Key]** — the project's root note and scale, e.g. `[Cmaj]`, `[F#min Pent]`
+  - **[Bars:Beats:16ths]** — the rendered length of the bounce: one phrase equals one bar (16 sixteenths), a beat is 4 sixteenths. Full phrases show only bars, e.g. `[2]`; partial phrases show `[0:2]` (two beats) or `[0:1:3]` (one beat plus three sixteenths). For multi-track bounces the longest track decides. A selection ending mid-beat counts one sixteenth less: the last selected row is the cut point, so its note-off lands at the end of the previous sixteenth.
+  - Tags are applied in the order `[BPM][Key][Length]` before the file name.
+- **Start**: render the selection to a WAV file in the export folder (see *Export location* under Project screen)
+- **Cancel**: return without bouncing
+
+While the bounce renders, **OPT** cancels it. When the bounce completes or is cancelled, the screen you bounced from returns.
 
 On desktop, key jazz also brings direct hex-index typing plus Phrase-style
 Shift+arrows selection, Delete/Backspace/Insert and Ctrl+C/X/V here — see
@@ -221,6 +244,7 @@ An asterisk (`*`) appears next to a chain that is reused in the project. You can
 - **OPT + [LEFT/RIGHT]**: move between tracks
 - **OPT + [UP/DOWN]**: move between chains in the current track
 - Select a range, then use **SHIFT + EDIT**: clone phrases
+- Select a range, then double-tap **EDIT**: open the BOUNCE TO SAMPLE screen for the selected chain rows of the current track (see Bounce under Song)
 
 On desktop, key jazz also brings direct hex-index typing here — see
 [Key jazz](#key-jazz-desktop-only).
@@ -247,6 +271,7 @@ The FX selector shows common commands plus those supported by the instrument on 
 - **OPT + [UP/DOWN]**: move between phrases in the current chain
 - Select a range in the instrument column, then use **SHIFT + EDIT**: clone instruments
 - Select a range, then use **EDIT + [UP/DOWN]**: rotate the phrase rows
+- Select a range, then double-tap **EDIT**: open the BOUNCE TO SAMPLE screen for the selected phrase rows of the current track (see Bounce under Song)
 
 ### Key jazz (desktop only)
 
@@ -315,7 +340,7 @@ Each instrument has a default table with the same number in the `00-7F` range. Y
 
 ### AY Classic, AY Plus and AY Sample
 
-These are the original ChipNomad AY/YM engines. AY Classic exposes hardware-style tone, noise and envelope controls. AY Plus adds software oscillators and richer modulation. AY Sample reproduces a sample through AY-style volume levels and is distinct from the PCM Sample engine.
+These are the original ChipNomad AY/YM engines. AY Classic exposes hardware-style tone, noise and envelope controls. AY Plus adds software oscillators and richer modulation. AY Sample reproduces a sample through AY-style volume levels and is distinct from the Sampler engine.
 
 #### AY Classic
 
@@ -327,7 +352,7 @@ AY Classic instruments have these parameters:
 - Volume: software-generated ADSR envelope
 - Automatic envelope period: on or off, with a rate from `1:1` to `F:F`
 
-**AY Quality** in Settings affects only AY/YM rendering. It does not change Braids, Plaits or PCM Sample quality. **Sample dithering** applies to AY Sample quantisation.
+**AY Quality** in Settings affects only AY/YM rendering. It does not change Braids, Plaits or Sampler quality. **Sample dithering** applies to AY Sample quantisation.
 
 See the [ChipNomad AY-3-8910 documentation](https://chipnomad.org/chips/ay-3-8910/) for chip details.
 
@@ -477,7 +502,7 @@ Several VCO types are available:
 - **Braids**
 - **Plaits**
 - **Plaits-Alt**
-- **PCM Sample**
+- **Sampler**
 - **2xSCWF**
 - **BYOWTBL**
 
@@ -537,19 +562,31 @@ Tap **Engine** to choose from categorised engine lists.
 - `TRIG` reproduces the module with TRIG connected and LEVEL unpatched
 - `VCA` holds LEVEL open and applies the tracker ADSR after the voice
 
-#### PCM Sample
+#### Sampler
 
 This clean Sample engine plays mono or stereo PCM samples loaded into RAM.
 
-- Tap **Sample** to load an uncompressed `8-bit` or `16-bit` PCM WAV. Press **PLAY** in the browser to audition the highlighted file.
-- When a sample is loaded, **EDIT** appears next to its name. Tap it to open Sample Settings. **OPT** or **SELECT + [LEFT]** returns to the instrument.
-- Sample Settings shows the filename, a tall waveform, **Start**, **End**, and **Slice**. **Start** and **End** also remain available on the Sample instrument screen. They set normalised playback boundaries (`00-FF`); if Start is after End, the sample plays in reverse. **Slice** is Off, `2`, `4`, `8`, `16`, or `32` (EDIT + left/right) and is saved with the instrument. Off plays the Start/End window. A slice count divides that window evenly; phrase notes select slices chromatically from **C-0**, and notes past the last slice stay on that last slice. Sliced notes do not transpose pitch or use Scale quantization, but **CRD** keeps the selected slice and transposes its voices as a chord. Thin vertical lines mark each slice start on the waveform except the first.
+- Tap **Sample** to load an uncompressed `8-bit`, `16-bit` or `24-bit` PCM WAV. Press **PLAY** in the browser to audition the highlighted file.
+- When a sample is loaded, **EDIT** appears next to its name. Tap it to open the Sample Edit screen. **OPT** or **SELECT + [LEFT]** returns to the instrument.
+- The Sample Edit screen shows the filename (with a `*` marker when the sample in RAM differs from the file on disk), a format readout (sample rate, channels), a tall waveform, and the **Region**, **Select**, **Slice**, **Process** and **File** fields.
+- Edits live in RAM only until a save flow writes them: the project stores the sample's file path and reloads the WAV from disk on the next project load, so leaving the tracker without **Save**/**Save As** discards process operations (the `*` marker is the warning). Loading a different sample into the instrument also discards unsaved edits and resets the Region to the full sample (Start `00`, End `FF`).
+- **Region** sets the playback Start/End markers, also available on the Sampler instrument screen. They set normalised playback boundaries (`00-FF`); if Start is after End, the sample plays in reverse. **EDIT + [LEFT/RIGHT]** fine-adjusts the marker in steps of one (`01`) and zooms the waveform around it while **EDIT** is held; **EDIT + [UP/DOWN]** coarse-adjusts (step 16) and returns the view to the full sample. **EDIT + OPT** resets the marker to its default (Start `00`, End `FF`).
+- The waveform view zooms to a fixed window of one second of audio around the edited marker and pans to keep it visible; samples that fit inside the window stay at the full 1:1 view. The zoom is transient: it lasts while **EDIT** is held, and releasing **EDIT** returns to the full 1:1 view, as do coarse steps. Entering the screen always resets the view to the full sample.
+- **Select** sets a processing selection in absolute frames, independent of the playback Start/End markers. **EDIT + [LEFT/RIGHT]** moves a handle fifteen frames and zooms onto it while **EDIT** is held; **EDIT + [UP/DOWN]** jumps by `frameCount/64` (minimum 16) and returns to the full-sample view. **EDIT (tap)** on a handle copies the current Start or End marker position to it. **EDIT + OPT** on either handle empties the whole selection. When the selection is empty both handles show `-`; when the handles are inverted they swap automatically. The selection is session-only editor state: it is not saved with the project, and entering the screen seeds it with the playback Region span (the whole sample with the default markers).
+- **Slice** is Off, `2`, `4`, `8`, `16`, or `32` (EDIT + left/right) and is saved with the instrument. Off plays the Start/End window. A slice count divides that window evenly; phrase notes select slices chromatically from **C-0**, and notes past the last slice stay on that last slice. Sliced notes do not transpose pitch or use Scale quantization, but **CRD** keeps the selected slice and transposes its voices as a chord. Thin vertical lines mark each slice start on the waveform except the first.
+- **Process** selects a destructive editing operation: **Crop**, **Normalize**, **Delete**, **Silence**, **Fade In**, **Fade Out** or **Reverse** (EDIT + left/right cycles, tap cycles forward, EDIT + OPT sets none). **GO** (same row) runs the selected operation on the current selection, or on the whole sample when the selection is empty. **Crop** keeps only the selection; **Normalize** scales the selection so its peak reaches full scale (both channels share one gain so the stereo image is preserved); **Delete** removes the selection and joins the tails (deleting the whole sample is rejected); **Silence** zeroes it; **Fade In**/**Fade Out** ramp the selection linearly from/to silence; **Reverse** plays the selection backwards (frames are swapped in place, both channels of a frame move together, length and markers are unchanged). Crop and Delete require a selection — with an empty selection they show `Select region first`. Every operation pauses audio briefly, keeps a one-level undo, and marks the sample as changed in RAM: the file on disk is not touched until the Save flows (see below), and leaving the screen discards the undo slot.
+- **UNDO** (next to GO) swaps the sample back with the state before the last operation. It is dimmed until an operation runs, toggles between the pre-op and post-op states on repeated presses, and is cleared when the screen is re-entered.
+- **File** holds the save flows. The instrument stores the full path of the WAV it was loaded from; these flows write that file or point the instrument at a new one. They never touch the instrument name.
+  - The File field cycles between **Save** and **Save As** (EDIT + left/right or tap); **GO** (same row) runs the shown action.
+  - **Save** overwrites the WAV the sample was loaded from, after an `Overwrite <name>?` confirmation. It is dimmed (and skipped in navigation) until a sample with a file path is loaded. A failed write keeps the dirty marker and shows the error.
+  - **Save As** writes the current sample to a new file: enter a file name (pre-filled with the current name without extension), then pick a folder in the browser. The sample is written as `<folder>/<name>.wav`, the instrument points at the new file, and the folder is remembered as the default sample folder. It is dimmed (and skipped in navigation) until sample data is loaded, so a freshly loaded sample can be given a file path. Paths longer than 255 characters are rejected.
+  - The `*` marker before the filename means the sample in RAM differs from the file on disk (any process operation sets it, Save and Save As clear it). The marker is session-only: it is not saved with the project and resets when the screen is re-entered. If several instruments reference the same WAV file, saving one overwrites the file for all of them.
 - On the Sample instrument screen, use **EDIT + [LEFT/RIGHT]** to load the previous or next WAV in the same folder.
 - **Pitch** transposes by semitones (`-48` to `+48`).
 - **Loop** selects Off, Loop or Ping-Pong.
 - **Speed** controls granular time-stretching from `0%` to `500%` (`100%` is normal).
 
-Unsupported WAV formats display an error. Convert unusual files to `PCM8` or `PCM16` WAV before importing them.
+Unsupported WAV formats display an error. Convert unusual files to `PCM8`, `PCM16` or `PCM24` WAV before importing them.
 
 #### 2xSCWF
 
@@ -626,7 +663,7 @@ The mode is saved with application settings, but the live toggle always starts o
 
 Motion recording writes track FX into the phrase currently playing. It updates matching FX first, then uses empty slots from right to left. It never overwrites a different FX. If all 3 slots are full, that motion is not recorded on the step. A `!` in the bottom-right corner means that more destinations changed than the 3 FX columns could hold.
 
-Motion recording supports Braids, Plaits, PCM Sample, 2xSCWF, BYOWTBL and Bogie destinations, including active Bogie macros and filter controls where applicable.
+Motion recording supports Braids, Plaits, Sampler, 2xSCWF, BYOWTBL and Bogie destinations, including active Bogie macros and filter controls where applicable.
 
 ## 7. Tables
 
@@ -982,12 +1019,27 @@ The 1st repeat follows the stereo input. Later feedback crosses between the left
 
 The Project screen provides **Load**, **Save**, **New**, **Export**, **Manage** and **Scale** commands, along with filename, title and author metadata.
 
+### Export location
+
+Exports, stems and bounces are written to a per-project folder inside the app's preexisting samples directory:
+
+- **Default**: `<app folder>/samples/Exports/<project name>/`. While the project is unnamed, the folder is `current-project`.
+- On the web build the default is `/user/samples/Exports/<project name>/`.
+- On Android the samples folder is inside the app's private workspace.
+
+The **Folder** row on the EXPORT screen shows the active destination:
+
+- Tap **EDIT** to pick a custom folder with the folder browser. The chosen folder is used exactly as selected (no project subfolder is added) and is remembered in settings.
+- **EDIT + OPT** (clear) resets to the default location.
+
+When a named project is saved under a new name, the default export folder is renamed to match, keeping previously exported files with the project. Renaming does not apply to a custom folder, and the folder is not renamed by autosave. If a folder with the target name already exists, both folders are kept. If the tracker lost track of the folder (for example after a restart), saving a named project renames the existing `current-project` folder instead. Instruments keep working after a rename: loaded sample paths that point into the renamed folder are updated automatically.
+
 **Load** also accepts `.mid`/`.midi` files, imported as a new project: notes are grouped by MIDI channel (one channel per track, up to the track count), quantized to 4 rows per beat, and placed on a single default AY instrument - MIDI program numbers have no chiptune equivalent, so pick real instruments afterward. Only the file's first tempo is used (one global tick rate, no per-section tempo changes). The Export screen's **MIDI** row does the reverse: writes the current arrangement's notes, volume and tempo/groove as a Standard MIDI File (one MIDI track per tracker track); [MIDI Out](#midi-out) instruments and other per-row FX beyond volume and the global groove have no MIDI equivalent and are not translated.
 On desktop, key jazz lets you type the filename, title and author directly on the keyboard instead of using the on-screen virtual keyboard — see [Key jazz](#key-jazz-desktop-only).
 
 ### Scale / Quantize
 
-The Scale screen controls the global 12-TET playback quantizer. Phrase entry remains chromatic: when enabled, notes are rounded downward immediately before reaching the sound engine, so changing root or scale reharmonizes a song without editing its phrases. Choose a root, one of the compact built-in scales, or edit the twelve notes of **Custom**. Each of the eight track checkboxes decides which tracks are quantized. Quantization is bypassed for non-12-note pitch tables and for PCM Sample instruments whose **Slice** is not Off; MIDI input is not part of this version.
+The Scale screen controls the global 12-TET playback quantizer. Phrase entry remains chromatic: when enabled, notes are rounded downward immediately before reaching the sound engine, so changing root or scale reharmonizes a song without editing its phrases. Choose a root, one of the compact built-in scales, or edit the twelve notes of **Custom**. Each of the eight track checkboxes decides which tracks are quantized. Quantization is bypassed for non-12-note pitch tables and for Sampler instruments whose **Slice** is not Off; MIDI input is not part of this version.
 
 - **Linear pitch** selects the pitch-table mode. **Off** is the default and the hardware-validated setting for correct AY, Braids and Plaits octave tracking.
 - **Tick rate** sets tracker timing and displays the corresponding BPM (`tick rate x 60 / 24`).
@@ -1002,10 +1054,7 @@ Use **Save** before changing instrument types or loading another project.
 - **MIDI** opens the [MIDI](#14-midi) submenu: device selection and the MIDI In channel-to-instrument mapping.
 - **Synths** contains **AY Quality**, **Sample dithering**, and global **Braids BITS / DRFT / SIGN** settings.
 - **Mixer** contains **Mix volume** and the per-project `250-4000 Hz` **Tilt pivot** (default `1 kHz`) used by all Mixer Tilt controls.
-- **Graphics** contains **Waveform FPS** (`1–60`, default `30`), the active renderer, **Load font** and **Edit color theme**. ChipNomad fonts and themes should work.
-- **Graphics → Track visuals** opens a table with one **Display** choice per track for the eight right-side mini readouts. **Detailed** is the default and keeps the instrument waveform, envelope overlay and AY noise texture together where applicable. There are no separate waveform, envelope or noise switches.
-- **Audio waveform** shows the track's summed audio after track level/tilt, before shared effects and master volume. This works across engines and chord voices, with a padded centre line and no envelope/noise decorations.
-- In **Track visuals**, tap **EDIT** to switch displays, or use **EDIT + direction**. **All audio** and **All detailed** switch every track at once. **Done** or **SHIFT + LEFT** saves these application preferences and returns to Graphics. They do not alter the song or audio output. Settings from the earlier per-layer version retain each track's mode; the removed layer switches are ignored.
+- **Graphics** contains **Edit color theme**, **Load font**, **Persistent waveform**, **Track visuals**, and the active renderer (`GPU` or `Software`). Track visuals selects **Detailed** (the synth waveform and its overlays) or **Audio waveform** (the actual summed output of that track) independently for every track; audio waveform clears any prior ADSR overlay immediately when playback starts. ChipNomad fonts and themes should work.
 - **Key mapping** customises the controls.
 - **Quit ChooChooTracker** exits cleanly.
 
@@ -1050,6 +1099,10 @@ changing the instrument selector. The module header opens the existing chooser;
 bypass retains the module, configured values, and automation. Parameters are
 byte values: left column 1–4, right column 5–8. Context text shows full names and
 decoded values. Old projects load with both slots OFF.
+
+The navigation display keeps the full F–M–I–P column visible throughout the
+instrument screens, including Insert FX and the instrument pool, and highlights
+the current screen.
 
 | Module | Parameters in order |
 | --- | --- |

@@ -30,7 +30,23 @@ The exact included commits and upstream base are in
 [personal-features.json](personal-features.json). MIDI support is now included through upstream `main`, along with sample slicing,
 key jazz, Settings submenus and the aChChid workflow improvements.
 
-## Current device personal build
+## Current personal source
+
+Upstream base: `df173ece4658e67c8c1d06e7d85e79ac4394fb1f` (October 4 sync). Personal includes
+upstream’s track-visuals/GPU integration, corrected Graphics touch mapping, sample
+editor and processing updates, sample stretching, and bounce/export improvements.
+Native chip instruments and Get Lucky remain included.
+
+**Temporary exception — insert effects:** at the user’s request, keep our current
+insert-effects implementation from `27f8ddb`. The maintainer’s insert chooser/CPU
+changes and related insert review changes are deferred. Main remains an exact
+upstream mirror; this exception applies only to Personal. See
+[the sync report](docs/personal-upstream-sync-20261004.txt) for the exact boundary
+and checks. To adopt those changes later, explicitly replace the pinned files
+from current upstream and reconcile shared native-chip code. A subsequent merge
+alone does not undo this exception.
+
+## Recorded installed device build
 
 Upstream base: `a02a88098a03b10518806268f039b9d9b8b2f5a9` (October 2).
 The device channel is **device personal build**: upstream code plus my unmerged
@@ -46,7 +62,7 @@ incorporated upstream, the maintainer’s version replaces my earlier version.
 | #20 Track visuals | Merged | Retained personal Detailed / Audio waveform setting; upstream proposal accepted |
 | #21 Persistent waveform | Merged | Upstream feature with retained personal layout, default OFF |
 | #22 Mixer meters | Closed as superseded by #23 | Upstream's integrated implementation |
-| Track Insert FX | [#31 merged](https://github.com/paiheulevrai/Choochootracker/pull/31) | Already included from the feature branch; a later upstream update will reconcile the merged version |
+| Track Insert FX | [#31 merged](https://github.com/paiheulevrai/Choochootracker/pull/31) | Included from our feature branch; upstream review changes temporarily deferred by user request |
 | Native chip instruments | Personal feature; no upstream PR | Ten chip types, shared FM browsing, local DX7 import and 876 native presets; ARM64 tests and configured-device audio validated |
 | I’m Feeling Lucky | Personal experiment; no upstream PR | One Settings row, compiled only with `CHOOCHOO_EXPERIMENTAL_MOD_LUCKY=1` |
 
@@ -60,9 +76,9 @@ remain in Git history. GitHub's ahead/behind counts describe history; they are
 not a count of missing features. No original PR needs closing for #18 or #22:
 the maintainer already closed them with an explanation.
 
-Graphics keeps current-main Waveform FPS and renderer information alongside
-Load font, theme, Track visuals and Persistent waveform. MIDI, current rendering
-fixes and Chord mode come from main. The installed `personal-build.json` records
+The updated source uses upstream’s Graphics menu and rendering integration,
+with compatibility for our native chip types. MIDI and Chord mode come from main.
+The installed `personal-build.json` records
 the exact source commit, upstream base, binary hash, checks and rollback location.
 
 ## Branches and contribution groups
@@ -115,8 +131,8 @@ Status checked on October 4, 2026; follow the PR links for subsequent changes.
 
 Use the maintainer’s merged version, including his fixes and changes, in place
 of my earlier implementation. Check for and remove duplicate code or controls.
-For insert effects, that means using his merged insert effects, not keeping my
-old PR version alongside them. The old branch can remain as history.
+The old branch can remain as history. Insert effects is temporarily exempt at
+my explicit request, as recorded above; it will be adopted in a later update.
 
 This policy applies at the next tested update; it does not mean the installed
 build has already been updated. Keep all other unmerged personal additions.

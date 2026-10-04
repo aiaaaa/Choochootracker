@@ -48,9 +48,9 @@ static SelectionItem instrumentTypeDrums[] = {
   {NULL, (int)InstrumentType::Sintered, NULL, 0},
 };
 static SelectionItem instrumentTypeSample[] = {
+  {NULL, (int)InstrumentType::Sample, NULL, 0},
   {NULL, (int)InstrumentType::SCWF, NULL, 0},
   {NULL, (int)InstrumentType::BYOWTBL, NULL, 0},
-  {NULL, (int)InstrumentType::Sample, NULL, 0},
 };
 static SelectionItem instrumentTypeFM[] = {
   {"OPLL / YM2413", (int)InstrumentType::OPLL, NULL, 0},
