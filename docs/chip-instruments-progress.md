@@ -557,3 +557,18 @@ Run guarded production startup OFF/ON, then fresh rollback/install after confirm
 no running app or unsaved song. Adapt helpers to R2 paths/current commit; do not
 reuse old install guards unchanged. Physical listening remains required.
 The separate 1000-cleared-DX7-preset requirement remains unmet.
+
+### R2 fork publication verified
+
+Published application source `5d2550e10fc8dccb240f0ee111dcd9f356310a82`
+atomically to origin/feature/native-chip-instruments and origin/personal/r36h;
+remote readback confirmed both tips. Personal worktree fast-forwarded cleanly.
+No PR, main changes, shared USB changes or handheld installation were included.
+The following checkpoint-only commit does not change application source.
+
+Complete Mac development package (CRC, 876-CNI inventory and license checks pass):
+`releases/ChooChooTracker-native-chips-r2-macos-x86_64.zip`, 14,406,090 bytes,
+SHA256 `a76453c94c9148298ae0a02b8e4d7c12a64efa6723d10bd3ed63a65a0e225aa8`.
+Its manifest identifies application source5d2550e. Local receipt:
+`.tmp/chip-fixes-r2/package-final.json`. No R2 ARM package yet; handheld still
+shows inactive USB network link. Hardware and library requirements above remain.
