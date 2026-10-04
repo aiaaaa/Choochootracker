@@ -411,6 +411,22 @@ recordedinchip-instruments-report.md and64-case/600sCSV; configureddirect-card
 physicalaudio passed both70sfixtureswith0miss/0ALSAwarnings.
 # FM type-menu correction — 2026-10-04
 
+DELIVERED: installed application source `0146fcf523de8d919d90938bc775d4bd7b29bde9`.
+All seven FM entries are visible in the captured R36H menu; the real popup
+selection/reopen regression and the existing UI suite pass. The rebuilt personal
+binary passed a six-second offscreen startup using the regular direct ALSA route.
+Installation preserved 1,652 other files and the regular launcher unchanged.
+Verified full rollback:
+`/roms/choochootracker-backups/pre-fm-menu-fix-0146fcf523de/previous-install`.
+Installed binary SHA-256:
+`1dccb2e18eae85d817d714fb63cbea57b7565fd1d8a816135d95141cdbc74d8e`.
+Updated local release ZIPs each contain 876 presets and source `0146fcf`:
+R36H SHA-256 `da714a4563698dd2286c62e68afae564f0c724abc088455ad06b826436c5b7de`;
+Mac SHA-256 `17b21d613d195fb6a92e8b3f37a1dd1dc0852dcd4e0cb6265f1acd786bda9931`.
+Regenerated tracked WebAssembly also passes Node compilation. This final
+checkpoint is documentation-only; installed/package source remains `0146fcf`.
+Both authorized fork branches include this fix; no PR is requested.
+
 User found DX7 missing from Type → FM. The category's hard-coded child count
 was five although its array held seven entries, hiding Arcade and DX7.
 Derive the count from the array. The developer UI harness now navigates the
@@ -423,10 +439,7 @@ also passed (song+UI p95 27,746.834 µs, p99 27,937.292 µs, worst 28,057.458 µ
 these include drawing and are not callback timing). Mac personal and Web builds
 completed. This menu-only change does not alter DSP, voice limits, or presets.
 
-User saved and closed the handheld app for installation. Next delivery steps:
-commit regenerated Web artifacts, rebuild/relink and package the ARM personal
-binary, check offscreen startup with the regular ALSA route, preserve all current
-user files and a verified rollback, install, and update both authorized fork
-branches without a PR. Task-local helpers/logs: `.tmp/fm-menu-fix/`; remote
+User saved and closed the handheld app for installation. Task-local helpers/logs:
+`.tmp/fm-menu-fix/`; remote
 `/roms/choochootracker-native-chips-20261004/fm-menu-fix/`. Earlier reports below
-remain historical evidence; installation completion will be appended separately.
+remain historical evidence.
