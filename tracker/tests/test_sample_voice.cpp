@@ -83,7 +83,7 @@ TEST_CASE("SampleVoice start and end delimit playback") {
 }
 
 TEST_CASE("Sample modulation exposes all sample parameter destinations") {
-  CHECK(instrumentModDestinationMax(InstrumentType::Sample) == 33);
+  CHECK(instrumentModDestinationMax(InstrumentType::Sample) == 53);
   CHECK(std::strcmp(instrumentModDestinationName(InstrumentType::Sample, 3), "Start") == 0);
   CHECK(std::strcmp(instrumentModDestinationName(InstrumentType::Sample, 4), "End") == 0);
   CHECK(std::strcmp(instrumentModDestinationName(InstrumentType::Sample, 5), "Speed") == 0);

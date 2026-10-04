@@ -91,6 +91,9 @@ struct PlaybackTrackState {
 
   int frameCounter;
 
+  InsertAutomation inserts;
+  uint32_t insertReset;
+
   // Persistent sequencer FX state
   uint8_t speedRatio;
   uint32_t speedPhase;
