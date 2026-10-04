@@ -44,9 +44,9 @@ static SelectionItem instrumentTypeDrums[] = {
   {NULL, (int)InstrumentType::Sintered, NULL, 0},
 };
 static SelectionItem instrumentTypeSample[] = {
+  {NULL, (int)InstrumentType::Sample, NULL, 0},
   {NULL, (int)InstrumentType::SCWF, NULL, 0},
   {NULL, (int)InstrumentType::BYOWTBL, NULL, 0},
-  {NULL, (int)InstrumentType::Sample, NULL, 0},
 };
 static SelectionItem instrumentTypeMidi[] = {
   {NULL, (int)InstrumentType::Midi, NULL, 0},

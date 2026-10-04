@@ -349,7 +349,7 @@ static const InstrumentDefinition instrumentDefinitions[] = {
   {"AY Plus",InstrumentCategory::chip,InstrumentScreenKind::ay2,destAY2,COUNT(destAY2),fxAY2,COUNT(fxAY2),{10,modNameAY2,initAY2Instrument,freeAY2Instrument,0,0}},
   {"AY Sample",InstrumentCategory::chip,InstrumentScreenKind::aySample,destAYSample,COUNT(destAYSample),fxAYSample,COUNT(fxAYSample),{6,modNameAYSample,initAYSampleInstrument,freeAYSampleInstrument,0,0}},
   {"Braids",InstrumentCategory::synth,InstrumentScreenKind::braids,destBraids,COUNT(destBraids),fxBraids,COUNT(fxBraids),{6,modNameBraids,initBraidsInstrument,freeBraidsInstrument,1,0}},
-  {"PCM Sample",InstrumentCategory::sample,InstrumentScreenKind::sample,destSample,COUNT(destSample),fxSample,COUNT(fxSample),{8,modNameSample,initSampleInstrument,freeSampleInstrument,1,0}},
+  {"Sampler",InstrumentCategory::sample,InstrumentScreenKind::sample,destSample,COUNT(destSample),fxSample,COUNT(fxSample),{8,modNameSample,initSampleInstrument,freeSampleInstrument,1,0}},
   {"Plaits",InstrumentCategory::synth,InstrumentScreenKind::plaits,destPlaits,COUNT(destPlaits),fxPlaits,COUNT(fxPlaits),{8,modNamePlaits,initPlaitsInstrument,freePlaitsInstrument,1,1}},
   {"Plaits-Alt",InstrumentCategory::synth,InstrumentScreenKind::plaits,destPlaits,COUNT(destPlaits),fxPlaits,COUNT(fxPlaits),{8,modNamePlaits,initPlaitsAltInstrument,freePlaitsInstrument,1,1}},
   {"2xSCWF",InstrumentCategory::sample,InstrumentScreenKind::scwf,destSCWF,COUNT(destSCWF),fxSCWF,COUNT(fxSCWF),{6,modNameSCWF,initSCWFInstrument,freeSCWFInstrument,1,0}},
