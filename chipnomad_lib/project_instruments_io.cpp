@@ -1,4 +1,5 @@
 #include "project.h"
+#include "fm_amp.h"
 #include "opll_presets.h"
 #include "dx7_patch.h"
 #include "opl_patch.h"
@@ -455,7 +456,7 @@ static int loadModulation(FILE* file, Instrument* instrument) {
 }
 
 static int loadInstrumentOPLL(FILE* file, Instrument* instrument) {
-  InstrumentOPLL value{}; unsigned seen = 0;
+  InstrumentOPLL value{}; unsigned seen = 0; bool ampSeen = false, toneSeen = false;
   while (char* line = peekLine(file)) {
     if (line[0] == '#') break;
     int a[8]{}; char extra;
@@ -472,7 +473,7 @@ static int loadInstrumentOPLL(FILE* file, Instrument* instrument) {
       if ((seen & 8) || sscanf(line + 14, "%d,%d,%d,%d,%d,%d,%d,%d %c", &a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7], &extra) != 8) return 1;
       for (int i = 0; i < 8; ++i) { if (a[i] < 0 || a[i] > 255) return 1; value.patch[i] = a[i]; }
       seen |= 8;
-    } else return 1;
+    } else if (loadFMAmpSetting(line, value.amp, ampSeen) != 1 && loadFMToneSetting(line, value.tone, toneSeen) != 1) return 1;
     consumeLine(file);
   }
   if (seen != 15) return 1;
@@ -481,7 +482,8 @@ static int loadInstrumentOPLL(FILE* file, Instrument* instrument) {
 }
 
 static int loadSimpleChip(FILE* file, Instrument* instrument) {
-  InstrumentSimpleChip p{};bool seen=false;
+  InstrumentSimpleChip p{};bool seen=false,bassSeen=false;
+  p.segaBassExtension=instrument->type==InstrumentType::SegaPSG;
   while(char* line=peekLine(file)) {
     if(line[0]=='#')break;
     if(!strncmp(line,"- Simple chip: ",15)) {
@@ -490,6 +492,10 @@ static int loadSimpleChip(FILE* file, Instrument* instrument) {
       for(int i=0;i<12;++i)if(v[i]<0||v[i]>255)return 1;
       if(v[12]<-100||v[12]>100)return 1;
       p.schema=v[0];p.preset=v[1];p.mode=v[2];p.noiseRate=v[3];p.noiseDivisor=v[4];p.noiseShift=v[5];p.envelopeInitial=v[6];p.envelopePeriod=v[7];p.envelopeIncrease=v[8];p.sweepPeriod=v[9];p.sweepShift=v[10];p.sweepNegate=v[11];p.fineTune=v[12];seen=true;
+    }else if(!strncmp(line,"- Sega bass: ",13)) {
+      int v;char tail;
+      if(bassSeen||instrument->type!=InstrumentType::SegaPSG||sscanf(line+13,"%d %c",&v,&tail)!=1||v<0||v>1)return 1;
+      p.segaBassExtension=v;bassSeen=true;
     }else if(!loadVoicePostSetting(line,&p))return 1;
     consumeLine(file);
   }
@@ -499,6 +505,7 @@ static void saveSimpleChip(FILE* file,const Instrument* instrument) {
   const auto& p=instrument->chip.simpleChip;
   fprintf(file,"- Simple chip: %u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%d\n",p.schema,p.preset,p.mode,p.noiseRate,p.noiseDivisor,p.noiseShift,p.envelopeInitial,p.envelopePeriod,p.envelopeIncrease,p.sweepPeriod,p.sweepShift,p.sweepNegate,p.fineTune);
   saveVoicePostSettings(file,&p);
+  if(instrument->type==InstrumentType::SegaPSG)fprintf(file,"- Sega bass: %u\n",p.segaBassExtension);
 }
 
 // Main load function
@@ -932,6 +939,7 @@ int instrumentSaveData(FILE* file, int idx, Instrument* instrument) {
       const auto& v = instrument->chip.opll;
       fprintf(file, "- OPLL schema: %u\n- Program: %u\n- Fine tune: %d\n", v.schema, v.program, v.fineTune);
       fprintf(file, "- Tone bytes: %u,%u,%u,%u,%u,%u,%u,%u\n", v.patch[0], v.patch[1], v.patch[2], v.patch[3], v.patch[4], v.patch[5], v.patch[6], v.patch[7]);
+      saveFMAmpSetting(file, v.amp);saveFMToneSetting(file, v.tone);
       break;
     }
     case InstrumentType::Midi:

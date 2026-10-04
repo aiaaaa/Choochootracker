@@ -1,4 +1,5 @@
 #pragma once
+#include "native_fm_amp.h"
 #include "../project_instruments.h"
 #include "../chord.h"
 #include "../external/msfa/note.h"
@@ -18,6 +19,7 @@ class DX7Voice {
   bool applyEvents();
   void compute(int32_t lfo,int32_t delay);
   choochoo_msfa::Note note_;
+  NativeFMAmp amp_;
   InstrumentDX7 patch_{};
   int32_t block_[64]{};
   int baseNote_=60;

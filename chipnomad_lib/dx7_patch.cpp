@@ -1,5 +1,6 @@
 #include "dx7_patch.h"
 #include "project_io_common.h"
+#include "fm_amp.h"
 #include <cstring>
 #include <cstdlib>
 #include <cerrno>
@@ -34,7 +35,7 @@ bool unpack(const uint8_t* b,uint8_t* v) {
 }
 }
 bool validDX7(const InstrumentDX7& p) {
-  return p.schema==1&&p.fineTune>=-100&&p.fineTune<=100&&p.velocity>=1&&p.velocity<=127&&
+  return validFMControls(p.amp,p.tone)&&p.schema==1&&p.fineTune>=-100&&p.fineTune<=100&&p.velocity>=1&&p.velocity<=127&&
     std::memchr(p.presetName,0,sizeof(p.presetName))&&validVoice(p.voice);
 }
 void initDX7Patch(InstrumentDX7* p) {
@@ -77,7 +78,7 @@ bool importDX7SysEx(const uint8_t* bytes,size_t size,std::vector<InstrumentDX7>&
   output.swap(staged);error.clear();return true;
 }
 int loadDX7Data(FILE* file,Instrument* instrument) {
-  InstrumentDX7 p{};unsigned seen=0;
+  InstrumentDX7 p{};unsigned seen=0;bool ampSeen=false,toneSeen=false;
   while(char* line=peekLine(file)) {
     if(line[0]=='#')break;
     if(!strncmp(line,"- DX7 base: ",12)) {
@@ -91,7 +92,7 @@ int loadDX7Data(FILE* file,Instrument* instrument) {
       if(seen&4)return 1;const char* text=line+13;
       for(int i=0;i<155;++i){char* end;errno=0;long n=strtol(text,&end,10);if(errno||end==text||n<0||n>127)return 1;p.voice[i]=n;text=end;if(i<154&&*text++!=',')return 1;}
       if(*text)return 1;seen|=4;
-    }else return 1;
+    }else if(loadFMAmpSetting(line,p.amp,ampSeen)!=1 && loadFMToneSetting(line,p.tone,toneSeen)!=1)return 1;
     consumeLine(file);
   }
   if(seen!=7||!validDX7(p))return 1;instrument->chip.dx7=p;return 0;
@@ -99,5 +100,5 @@ int loadDX7Data(FILE* file,Instrument* instrument) {
 int saveDX7Data(FILE* file,const Instrument* instrument) {
   const auto& p=instrument->chip.dx7;
   fprintf(file,"- DX7 base: %u,%d,%u,%u,%u\n- DX7 name: %s\n- DX7 voice: ",p.schema,p.fineTune,p.velocity,p.bankId,p.sourceProgram,p.presetName);
-  for(int i=0;i<155;++i)fprintf(file,"%s%u",i?",":"",p.voice[i]);fputc('\n',file);return ferror(file)?1:0;
+  for(int i=0;i<155;++i)fprintf(file,"%s%u",i?",":"",p.voice[i]);fputc('\n',file);saveFMAmpSetting(file,p.amp);saveFMToneSetting(file,p.tone);return ferror(file)?1:0;
 }

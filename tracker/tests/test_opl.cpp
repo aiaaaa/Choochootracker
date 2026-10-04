@@ -50,5 +50,7 @@ TEST_CASE("OPL stereo layers stay distinct and changing topology clears stale pa
   OPLVoice a;a.init(48000);a.configure(InstrumentType::OPL3,&p,6000,1);a.noteOn();std::vector<float>out(4096);a.render(out.data(),2048);
   double delta=0;for(size_t i=0;i<out.size();i+=2)delta+=std::abs(out[i]-out[i+1]);CHECK(delta>1);
   p.topology=OPLTopology::twoOperator;p.pan[0]=3;a.configure(InstrumentType::OPL3,&p,6000,1);a.noteOn();a.render(out.data(),2048);
-  for(size_t i=0;i<out.size();i+=2)CHECK(out[i]==out[i+1]);
+  // The 3 ms transition bridges the previous stereo output; pairing must
+  // be fully mono once that bounded transition has finished.
+  for(size_t i=2*144;i<out.size();i+=2)CHECK(out[i]==out[i+1]);
 }

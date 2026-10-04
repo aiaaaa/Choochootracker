@@ -1,13 +1,14 @@
 #include "four_op_voice.h"
 #include <cstring>
-void FourOpVoice::init(float rate){dcCoefficient_=std::exp(-2*3.14159265358979323846*20/rate);opn_.reset();opm_.reset();configured_=false;opnResampler_.init(opn_.sample_rate(7670454),rate);opmResampler_.init(opm_.sample_rate(3579545),rate);kill();}
+void FourOpVoice::init(float rate){amp_.init(rate);dcCoefficient_=std::exp(-2*3.14159265358979323846*20/rate);opn_.reset();opm_.reset();configured_=false;opnResampler_.init(opn_.sample_rate(7670454),rate);opmResampler_.init(opm_.sample_rate(3579545),rate);kill();}
 void FourOpVoice::write(unsigned reg,unsigned value){if(type_==InstrumentType::GenesisFM){opn_.write_address(reg);opn_.write_data(value);}else{opm_.write_address(reg);opm_.write_data(value);}}
 void FourOpVoice::configure(InstrumentType type,const InstrumentFourOp* p,float cents,float gain){
-  if(!p)return;auto comparable=*p;comparable.fineTune=patch_.fineTune;
-  if(!configured_||type!=type_||memcmp(&comparable,&patch_,sizeof(*p))){bool gate=gated_,active=active_;kill();type_=type;patch_=*p;applyPatch();configured_=true;gated_=gate;active_=active;key(gate);}
-  patch_.fineTune=p->fineTune;cents_=std::isfinite(cents)?cents+p->fineTune:6000;gain_=std::clamp(gain,0.f,1.f);pitch();
+  if(!p)return;auto comparable=*p;comparable.fineTune=patch_.fineTune;comparable.amp=patch_.amp;comparable.tone=patch_.tone;
+  if(!configured_||type!=type_||memcmp(&comparable,&patch_,sizeof(*p))){bool gate=gated_,active=active_;auto oldAmp=amp_;kill();if(active)amp_=oldAmp;type_=type;patch_=*p;applyPatch();configured_=true;gated_=gate;active_=active;key(gate);}
+  patch_.amp=p->amp;patch_.tone=p->tone;patch_.fineTune=p->fineTune;cents_=std::isfinite(cents)?cents+p->fineTune:6000;gain_=std::clamp(gain,0.f,1.f);amp_.configure(patch_.amp,gain_);tone();pitch();
 }
 void FourOpVoice::applyPatch(){
+  macroBrightness_=999;macroFeedback_=-1;
   opn_.reset();opm_.reset();pitchCache_=-1;
   bool genesis=type_==InstrumentType::GenesisFM;
   if(genesis){write(0x22,(patch_.lfoEnabled<<3)|patch_.lfoRate);write(0x27,0);write(0x2b,0);write(0xb0,(patch_.feedback<<3)|patch_.algorithm);write(0xb4,((patch_.pan&1)?128:0)|((patch_.pan&2)?64:0)|(patch_.amplitudeSensitivity<<4)|patch_.pitchSensitivity);}
@@ -17,6 +18,16 @@ void FourOpVoice::applyPatch(){
     if(genesis){write(0x30+a,(o.detune<<4)|o.multiplier);write(0x40+a,o.level);write(0x50+a,(o.keyScale<<6)|o.attack);write(0x60+a,(o.amplitudeMod<<7)|o.decay);write(0x70+a,o.sustainRate);write(0x80+a,(o.sustainLevel<<4)|o.release);write(0x90+a,o.ssg);}
     else{write(0x40+a,(o.detune<<4)|o.multiplier);write(0x60+a,o.level);write(0x80+a,(o.keyScale<<6)|o.attack);write(0xa0+a,(o.amplitudeMod<<7)|o.decay);write(0xc0+a,(o.detune2<<6)|o.sustainRate);write(0xe0+a,(o.sustainLevel<<4)|o.release);}
   }
+}
+void FourOpVoice::tone(){
+  const int brightness=std::clamp(int(patch_.tone.brightness),-63,63);
+  const int feedback=patch_.tone.feedback?std::min(7,int(patch_.tone.feedback)-1):patch_.feedback;
+  if(brightness==macroBrightness_&&feedback==macroFeedback_)return;
+  const unsigned carriers[]={8,8,8,8,10,14,14,15};const int order[]={0,2,1,3};
+  bool genesis=type_==InstrumentType::GenesisFM;
+  for(int op=0;op<4;++op){int level=std::clamp(int(patch_.operators[op].level)-((carriers[patch_.algorithm]&(1u<<op))?0:brightness),0,127);write((genesis?0x40:0x60)+order[op]*(genesis?4:8),level);}
+  write(genesis?0xb0:0x20,(genesis?0:(patch_.pan<<6))|(feedback<<3)|patch_.algorithm);
+  macroBrightness_=brightness;macroFeedback_=feedback;
 }
 void FourOpVoice::pitch(){
   if(type_==InstrumentType::GenesisFM){
@@ -34,9 +45,9 @@ void FourOpVoice::key(bool on){unsigned mask=on?patch_.operatorMask:0;
   // Key bits follow logical operator order, unlike parameter register slots.
   write(type_==InstrumentType::GenesisFM?0x28:0x08,mask<<(type_==InstrumentType::GenesisFM?4:3));
 }
-void FourOpVoice::noteOn(){key(false);pitch();pendingKeyOn_=true;gated_=false;active_=true;silent_=0;}
-void FourOpVoice::noteOff(){pendingKeyOn_=false;key(false);gated_=false;}
-void FourOpVoice::kill(){pendingKeyOn_=false;key(false);active_=gated_=false;level_=0;silent_=0;dcInput_[0]=dcInput_[1]=dcOutput_[0]=dcOutput_[1]=0;opnResampler_.reset();opmResampler_.reset();}
+void FourOpVoice::noteOn(){amp_.noteOn();key(false);pitch();pendingKeyOn_=true;gated_=false;active_=true;silent_=0;}
+void FourOpVoice::noteOff(){amp_.noteOff();pendingKeyOn_=false;key(false);gated_=false;}
+void FourOpVoice::kill(){amp_.kill();pendingKeyOn_=false;key(false);active_=gated_=false;level_=0;silent_=0;dcInput_[0]=dcInput_[1]=dcOutput_[0]=dcOutput_[1]=0;opnResampler_.reset();opmResampler_.reset();}
 void FourOpVoice::native(float& l,float& r){
   if(type_==InstrumentType::GenesisFM){ymfm::ym2612::output_data out;opn_.generate(&out);// YM2612 ladder models a nonzero idle code; subtract its exact idle
     // baseline before testing silence. The output DC blocker follows the FIR.
@@ -47,5 +58,5 @@ void FourOpVoice::native(float& l,float& r){
 }
 void FourOpVoice::render(float* stereo,size_t frames){
   auto& resampler=type_==InstrumentType::GenesisFM?opnResampler_:opmResampler_;
-  for(size_t i=0;i<frames;++i){float l=0,r=0;if(active_)resampler.next([&](float& a,float& b){native(a,b);},l,r);float values[]={l,r};for(int c=0;c<2;++c){float filtered=values[c]-dcInput_[c]+dcCoefficient_*dcOutput_[c];dcInput_[c]=values[c];dcOutput_[c]=filtered;stereo[2*i+c]=filtered*gain_*.25f;}level_=std::max(std::max(std::abs(l),std::abs(r)),level_*.999f);if(silent_>56000)kill();}
+  for(size_t i=0;i<frames;++i){float l=0,r=0;if(active_)resampler.next([&](float& a,float& b){native(a,b);},l,r);float values[]={l,r};for(int c=0;c<2;++c){float filtered=values[c]-dcInput_[c]+dcCoefficient_*dcOutput_[c];dcInput_[c]=values[c];dcOutput_[c]=filtered;stereo[2*i+c]=filtered*.25f;}amp_.process(stereo[2*i],stereo[2*i+1]);level_=std::max(std::max(std::abs(l),std::abs(r)),level_*.999f);if(silent_>56000)kill();}
 }

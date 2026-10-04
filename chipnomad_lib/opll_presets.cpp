@@ -46,7 +46,9 @@ const char* opllPresetName(InstrumentType type, int program) {
 }
 bool opllApplyPreset(Instrument* instrument, int program) {
   if (!instrument || !isOPLL(instrument->type) || program < 1 || program > 15) return false;
+  auto amp=instrument->chip.opll.amp;auto tone=instrument->chip.opll.tone;
   instrument->chip.opll = {}; instrument->chip.opll.schema = 1;
+  instrument->chip.opll.amp=amp;instrument->chip.opll.tone=tone;
   instrument->chip.opll.program = program;
   std::memcpy(instrument->chip.opll.patch, (instrument->type == InstrumentType::VRC7 ? vrc7Patches : opllPatches)[program - 1], 8);
   std::strncpy(instrument->name, opllPresetName(instrument->type, program), PROJECT_INSTRUMENT_NAME_LENGTH);

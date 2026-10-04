@@ -26,18 +26,23 @@ static void openPresets() {
     programs, 15, current()->chip.opll.program, selectPreset, cancelPreset, true, previewPreset);
   screenSetup(&screenSelectionPopup, 0);
 }
-static int columns(int row) { return row < 3 ? instrumentCommonColumnCount(row) : 1; }
+static int columns(int row) { return row < 3 ? instrumentCommonColumnCount(row) : row == 5 ? 2 : row == 7 ? 5 : 1; }
 static void drawStatic() {
   instrumentCommonDrawStatic();
+  instrumentFMAmpDrawStatic();
   gfxSetFgColor(appSettings.colorScheme.textDefault);
   gfxPrint(0, 6, "Bank"); gfxPrint(9, 6, current()->type == InstrumentType::VRC7 ? "VRC7 / DS1001" : "OPLL / YM2413");
   gfxPrint(0, 7, "Preset"); gfxPrint(0, 9, "Fine ct");
 }
 static void drawCursor(int col, int row) {
+  if (row == 5) { instrumentFMToneDrawCursor(col); return; }
+  if (row >= 6) { instrumentFMAmpDrawCursor(col, row - 6); return; }
   if (row < 3) instrumentCommonDrawCursor(col, row);
   else gfxCursor(9, row == 3 ? 7 : 9, row == 3 ? 27 : 4);
 }
 static void drawField(int col, int row, CellState state) {
+  if (row == 5) { instrumentFMToneDrawField(col, state); return; }
+  if (row >= 6) { instrumentFMAmpDrawField(col, row - 6, state); return; }
   if (row < 3) { instrumentCommonDrawField(col, row, state); return; }
   gfxSetFgColor(state == CellState::focus ? appSettings.colorScheme.textValue : appSettings.colorScheme.textDefault);
   gfxClearRect(9, row == 3 ? 7 : 9, 30, 1);
@@ -45,6 +50,8 @@ static void drawField(int col, int row, CellState state) {
   else gfxPrintf(9, 9, "%+04d", current()->chip.opll.fineTune);
 }
 static int onEdit(int col, int row, CellEditAction action) {
+  if (row == 5) return instrumentFMToneEdit(col, action);
+  if (row >= 6) return instrumentFMAmpEdit(col, row - 6, action);
   if (row < 3) return instrumentCommonOnEdit(col, row, action);
   if (row == 3) {
     uint8_t program = current()->chip.opll.program;
@@ -74,7 +81,7 @@ static int onInput(int down, int keys, int) {
   return 0;
 }
 ScreenData screenInstrumentOPLL = {
-  .rows = 5, .cursorRow = 0, .cursorCol = 0, .topRow = 0, .selectMode = -1,
+  .rows = 8, .cursorRow = 0, .cursorCol = 0, .topRow = 0, .selectMode = -1,
   .selectStartRow = 0, .selectStartCol = 0, .selectAnchorRow = 0, .selectAnchorCol = 0,
   .playbackLevel = ScreenPlaybackLevel::none, .getColumnCount = columns, .drawStatic = drawStatic,
   .drawCursor = drawCursor, .drawSelection = nullptr, .drawRowHeader = nullptr, .drawColHeader = nullptr,

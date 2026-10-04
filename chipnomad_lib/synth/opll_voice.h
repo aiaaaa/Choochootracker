@@ -1,4 +1,5 @@
 #pragma once
+#include "native_fm_amp.h"
 #include "../project_instruments.h"
 #include "../external/ymfm/ymfm_opl.h"
 #include <cstddef>
@@ -18,9 +19,12 @@ class OPLLVoice {
  private:
   void write(int address, int value);
   void pitch();
+  void tone();
+  int macroBrightness_=999,macroFeedback_=-1;
   float nextNative();
   ymfm::ymfm_interface interface_;
   ymfm::ym2413 chip_;
+  NativeFMAmp amp_;
   InstrumentOPLL patch_{};
   double ratio_ = 1, phase_ = 0;
   float filter_[64][24]{}, history_[32]{};

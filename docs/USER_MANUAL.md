@@ -1142,7 +1142,8 @@ In the program list, EDIT + PLAY auditions the highlighted sound; release the
 buttons to stop. EDIT commits and OPT cancels. Browsing/audition does not change
 the instrument, table or song. The normal Instrument-page audition gesture
 continues to work after selection. Native chip envelopes supply attack/release;
-there is no inherited software post-envelope or operator editor.
+the optional Amp env adds a software ADSR (see Native chip controls below).
+There is no full operator editor.
 
 New instruments store all eight native tone bytes, program and fine tuning in
 the song/instrument file. Files containing these types use format 6.0 and need
@@ -1178,6 +1179,12 @@ remains pending.
 
 CHIP now includes Sega PSG, GB Pulse and GB Noise. Sega uses the NTSC master
 clock and its 16-bit noise feedback, including tone-channel-derived noise.
+Its default **Bass range: Extended** lowers the virtual clock when needed to
+play below the chip's approximately 109 Hz divider limit. This keeps A-2, G-2
+and F-2 distinct. Choose **Chip** for the original range, where lower notes
+converge on the divider limit. Fixed-rate noise keeps the original clock;
+tone-derived noise follows the extended pitch. Old Sega instruments load with
+Extended enabled; the setting is saved with the instrument.
 The GB instruments use DMG pulse/noise registers; no Game Boy wave channel is
 exposed. Their authored preset lists contain 14, 10 and 10 recipes respectively.
 The page offers native mode/duty/width, envelope/sweep/noise controls as
@@ -1216,7 +1223,8 @@ external bank to reopen. Older ChooChoo releases cannot read these version-6
 files; existing-only projects still save as version 5. Native velocity defaults
 to 100; tracker volume is post-synthesis gain and does not restrike the envelope.
 Operator envelopes, fixed-frequency mode, keyboard scaling, pitch envelope and
-LFO are native patch behavior, without an extra common FM amplitude ADSR.
+LFO remain native patch behavior. The optional common FM amplitude ADSR shapes
+their combined output without replacing the operator envelopes.
 
 Each track part has one LFO and four separately owned chord voice slots, matching
 the existing tracker chord/replacement policy. Tracks do not share note state.
@@ -1260,6 +1268,47 @@ Sega/Game Boy presets through the normal file browser.
 factory banks. Each section uses a different owned instrument, so it works with
 the preset folder removed. Longer ignored bank WAVs and measured levels are
 listed in `docs/chip-preset-auditions.tsv`; subjective listening remains pending.
+
+### Native chip controls
+
+All seven FM engines offer **Bright**, **Feedback**, and **Amp env**. Bright
+ranges from -63 to +63, with zero preserving the patch; it changes modulation
+operator levels while retaining carrier levels. Its audible effect depends on
+the algorithm. Feedback defaults to **Preset**, or overrides the native feedback
+with 0–7. These controls do not rewrite the saved native operator bytes.
+
+Amp env defaults to **Bypass**. Select **ADSR** to add attack, decay, sustain,
+release and shape around the native sound. A/D/R use the shared 0–5 second
+quadratic range; sustain runs from silence to full level. Native envelopes still
+run, so this envelope cannot extend a sound beyond its native release. Preset
+browsing preserves the slot's FM amp and tone controls. All FM voices also use
+a 3 ms onset/retrigger transition and 1 ms tracker-gain smoothing, including
+when Amp env is bypassed. Hard cut/panic remains immediate.
+
+The following phrase FX also appear as supported Modulation and motion-recording
+destinations. Values in the FX column are hexadecimal. Settings apply to playback
+without changing the saved instrument. Native GB sweep and envelope controls
+latch at the next note trigger; duty/width and noise frequency can change live.
+
+| Engines | FX | Control |
+|---|---|---|
+| All native FM | `FBR 00–7E` | Brightness: `00` = -63, `3F` = neutral, `7E` = +63; supports `SLE`. |
+| All native FM | `FFB 00–08` | `00` preserves preset feedback; `01–08` select native 0–7. |
+| All native FM with Amp env enabled; Sega/GB | `EAT`, `EDC`, `ESU`, `ERL`, `ESH 00–FF` | Attack, decay, sustain, release, shape. These do not enable a bypassed FM amp. |
+| Sega PSG | `CMD 00–02`, `CNR 00–03` | Tone / white noise / periodic noise; three fixed noise rates or tone-derived rate. |
+| GB Pulse | `CMD 00–03` | Native pulse duty. |
+| GB Noise | `CMD 00–01`, `CND 00–07`, `CNS 00–0D` | Noise width, clock divisor and shift. |
+| GB Pulse | `CSP 00–07`, `CSS 00–07`, `CSD 00–01` | Sweep period, shift, downward direction. |
+| GB Pulse / Noise | `CEI 00–0F`, `CEP 00–07`, `CED 00–01` | Native envelope initial level, period, rising direction. |
+
+The existing shared LP/BP/HP filters on Braids, Plaits, PCM and other supported
+engines are software processing after synthesis. aChChid instead uses its native
+303 filter path. This round adds no filter to AY or native FM; brightness changes
+FM synthesis itself. Track inserts remain available for additional processing.
+
+FM amp/tone and Sega bass settings persist in native CNI and CCT version-6 files.
+This extends version 6: earlier strict readers may reject files containing the
+new fields or FX, so keep this build or newer for songs that use these controls.
 
 ### Handheld workload guidance for native chips
 

@@ -16,6 +16,13 @@ void instrumentCommonDrawVoicePostStatic(int drawEnvelope);
 int instrumentCommonDrawVoicePostCursor(int col, int row);
 int instrumentCommonDrawVoicePostField(int col, int row, CellState state, const InstrumentVoicePostSettings* post);
 int instrumentCommonOnEditVoicePost(int col, int row, CellEditAction action, InstrumentVoicePostSettings* post);
+void instrumentFMAmpDrawStatic();
+void instrumentFMAmpDrawCursor(int col, int row);
+void instrumentFMAmpDrawField(int col, int row, CellState state);
+int instrumentFMAmpEdit(int col, int row, CellEditAction action);
+void instrumentFMToneDrawCursor(int col);
+void instrumentFMToneDrawField(int col, CellState state);
+int instrumentFMToneEdit(int col, CellEditAction action);
 
 extern ScreenData screenInstrumentAY;
 extern ScreenData screenInstrumentAY2;

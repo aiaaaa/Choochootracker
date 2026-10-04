@@ -78,6 +78,16 @@ FXGroup fxGroups[] = {
   {"Sintered FX", NULL, 0, 8, InstrumentType::Sintered},
   {"MIDI FX", NULL, 0, 4, InstrumentType::Midi},
   {"Insert FX", fxNamesInsert, 16, 8, InstrumentType::none},
+  {"OPLL FX", NULL, 0, 4, InstrumentType::OPLL},
+  {"VRC7 FX", NULL, 0, 4, InstrumentType::VRC7},
+  {"OPL2 FX", NULL, 0, 4, InstrumentType::OPL2},
+  {"OPL3 FX", NULL, 0, 4, InstrumentType::OPL3},
+  {"Genesis FX", NULL, 0, 4, InstrumentType::GenesisFM},
+  {"Arcade FX", NULL, 0, 4, InstrumentType::ArcadeFM},
+  {"DX7 FX", NULL, 0, 4, InstrumentType::DX7},
+  {"Sega PSG FX", NULL, 0, 4, InstrumentType::SegaPSG},
+  {"GB Pulse FX", NULL, 0, 4, InstrumentType::GBPulse},
+  {"GB Noise FX", NULL, 0, 4, InstrumentType::GBNoise},
 };
 int fxGroupCount = sizeof(fxGroups) / sizeof(FXGroup);
 
@@ -129,6 +139,16 @@ void fillFXNames() {
     FXName* names = instrumentGroupNames[(int)type];
     fxGroups[group].fxList = names; fxGroups[group].count = definition->fxCount;
     for (int i = 0; i < definition->fxCount; ++i) { names[i].fx = (FX)definition->fxList[i].fx; strcpy(names[i].name, definition->fxList[i].name); }
+  }
+
+  for(int group=19;group<fxGroupCount;++group) {
+    auto type=fxGroups[group].instType;auto* names=instrumentGroupNames[int(type)];int count=0;
+    for(int g=genericModFMBrightness;g<genericModTotalCount;++g)if(const auto* d=instrumentNativeModDestination(type,g)) {
+      names[count].fx=FX(d->fx);
+      const char* labels[]={"FBR","FFB","CMD","CNR","CND","CNS","CSP","CSS","CSD","CEI","CEP","CED"};
+      strcpy(names[count++].name,labels[g-genericModFMBrightness]);
+    }
+    fxGroups[group].fxList=names;fxGroups[group].count=count;
   }
 
   // Fill FX names from all groups

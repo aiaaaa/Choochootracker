@@ -395,16 +395,16 @@ static const InstrumentDefinition instrumentDefinitions[] = {
   {"Retired",InstrumentCategory::none,InstrumentScreenKind::none,destNone,COUNT(destNone),NULL,0,{0,modNameNone,initNoneInstrument,freeNoneInstrument,0,0}},
   {"Retired",InstrumentCategory::none,InstrumentScreenKind::none,destNone,COUNT(destNone),NULL,0,{0,modNameNone,initNoneInstrument,freeNoneInstrument,0,0}},
   {"MIDI Out",InstrumentCategory::midi,InstrumentScreenKind::midi,destMidi,COUNT(destMidi),fxMidi,COUNT(fxMidi),{0,modNameMidi,initMidiInstrument,freeMidiInstrument,0,0}},
-  {"OPLL / MSX",InstrumentCategory::fm,InstrumentScreenKind::opll,destOPLL,COUNT(destOPLL),NULL,0,{2,modNameOPLL,initOPLLInstrument,freeNoneInstrument,0,0}},
-  {"VRC7",InstrumentCategory::fm,InstrumentScreenKind::opll,destOPLL,COUNT(destOPLL),NULL,0,{2,modNameOPLL,initVRC7Instrument,freeNoneInstrument,0,0}},
-  {"AdLib / OPL2",InstrumentCategory::fm,InstrumentScreenKind::opl,destOPLL,COUNT(destOPLL),NULL,0,{2,modNameOPLL,initOPL2Instrument,freeNoneInstrument,0,0}},
-  {"OPL3",InstrumentCategory::fm,InstrumentScreenKind::opl,destOPLL,COUNT(destOPLL),NULL,0,{2,modNameOPLL,initOPL3Instrument,freeNoneInstrument,0,0}},
+  {"OPLL / MSX",InstrumentCategory::fm,InstrumentScreenKind::opll,destOPLL,COUNT(destOPLL),NULL,0,{2,modNameOPLL,initOPLLInstrument,freeNoneInstrument,1,0}},
+  {"VRC7",InstrumentCategory::fm,InstrumentScreenKind::opll,destOPLL,COUNT(destOPLL),NULL,0,{2,modNameOPLL,initVRC7Instrument,freeNoneInstrument,1,0}},
+  {"AdLib / OPL2",InstrumentCategory::fm,InstrumentScreenKind::opl,destOPLL,COUNT(destOPLL),NULL,0,{2,modNameOPLL,initOPL2Instrument,freeNoneInstrument,1,0}},
+  {"OPL3",InstrumentCategory::fm,InstrumentScreenKind::opl,destOPLL,COUNT(destOPLL),NULL,0,{2,modNameOPLL,initOPL3Instrument,freeNoneInstrument,1,0}},
   {"Sega PSG",InstrumentCategory::chip,InstrumentScreenKind::simpleChip,destOPLL,COUNT(destOPLL),NULL,0,{2,modNameOPLL,initSegaInstrument,freeNoneInstrument,1,0}},
   {"GB Pulse",InstrumentCategory::chip,InstrumentScreenKind::simpleChip,destOPLL,COUNT(destOPLL),NULL,0,{2,modNameOPLL,initGBPulseInstrument,freeNoneInstrument,1,0}},
   {"GB Noise",InstrumentCategory::chip,InstrumentScreenKind::simpleChip,destOPLL,COUNT(destOPLL),NULL,0,{2,modNameOPLL,initGBNoiseInstrument,freeNoneInstrument,1,0}},
-  {"DX7 FM",InstrumentCategory::fm,InstrumentScreenKind::dx7,destOPLL,COUNT(destOPLL),NULL,0,{2,modNameOPLL,initDX7Instrument,freeNoneInstrument,0,0}},
-  {"Genesis FM",InstrumentCategory::fm,InstrumentScreenKind::opl,destOPLL,COUNT(destOPLL),NULL,0,{2,modNameOPLL,initGenesisInstrument,freeNoneInstrument,0,0}},
-  {"Arcade FM",InstrumentCategory::fm,InstrumentScreenKind::opl,destOPLL,COUNT(destOPLL),NULL,0,{2,modNameOPLL,initArcadeInstrument,freeNoneInstrument,0,0}},
+  {"DX7 FM",InstrumentCategory::fm,InstrumentScreenKind::dx7,destOPLL,COUNT(destOPLL),NULL,0,{2,modNameOPLL,initDX7Instrument,freeNoneInstrument,1,0}},
+  {"Genesis FM",InstrumentCategory::fm,InstrumentScreenKind::opl,destOPLL,COUNT(destOPLL),NULL,0,{2,modNameOPLL,initGenesisInstrument,freeNoneInstrument,1,0}},
+  {"Arcade FM",InstrumentCategory::fm,InstrumentScreenKind::opl,destOPLL,COUNT(destOPLL),NULL,0,{2,modNameOPLL,initArcadeInstrument,freeNoneInstrument,1,0}},
 };
 #undef COUNT
 
@@ -419,11 +419,13 @@ const InstrumentDefinition* getInstrumentDefinition(InstrumentType type) {
 }
 
 const InstrumentModDestination* instrumentModDestination(InstrumentType type, int destination) {
+  if (const auto* native=instrumentNativeModDestination(type,instrumentGenericModDestination(type,destination))) return native;
   const InstrumentDefinition* definition = getInstrumentDefinition(type);
   return destination >= 0 && destination < definition->destinationCount ? &definition->destinations[destination] : NULL;
 }
 
 int instrumentFXAvailable(InstrumentType type, uint8_t fx) {
+  for(int g=genericModFMBrightness;g<genericModTotalCount;++g)if(const auto* d=instrumentNativeModDestination(type,g))if(d->fx==fx)return 1;
   const InstrumentDefinition* definition = getInstrumentDefinition(type);
   for (int i = 0; i < definition->fxCount; ++i) if (definition->fxList[i].fx == fx) return 1;
   return 0;
@@ -440,6 +442,7 @@ int instrumentFXAvailableForInstrument(const Instrument* instrument, uint8_t fx)
 int instrumentModDestinationAvailable(const Instrument* instrument, int destination) {
   InstrumentType type = instrument ? instrument->type : InstrumentType::none;
   int generic = instrumentGenericModDestination(type, destination);
+  if (generic >= genericModFMBrightness) return instrumentNativeModDestination(type,generic)!=nullptr;
   if (generic >= genericModFirstInsert) return 1;
   if (generic >= 0) {
     auto f = getInstrumentFunctions(type);
@@ -451,7 +454,18 @@ int instrumentModDestinationAvailable(const Instrument* instrument, int destinat
     destination < 3 || destination > 8 || drumSynthMacroUsed(instrument->chip.drumSynth.engine, destination - 3);
 }
 
+InstrumentFMAmp* instrumentFMAmpSettings(Instrument* i) {
+  switch (i->type) {
+    case InstrumentType::OPLL: case InstrumentType::VRC7: return &i->chip.opll.amp;
+    case InstrumentType::OPL2: case InstrumentType::OPL3: return &i->chip.opl.amp;
+    case InstrumentType::GenesisFM: case InstrumentType::ArcadeFM: return &i->chip.fourOp.amp;
+    case InstrumentType::DX7: return &i->chip.dx7.amp;
+    default: return nullptr;
+  }
+}
+
 InstrumentVoicePostSettings* instrumentVoicePostSettings(Instrument* instrument) {
+  if (auto* amp = instrumentFMAmpSettings(instrument)) return amp;
   switch (instrument->type) {
     case InstrumentType::SegaPSG:
     case InstrumentType::GBPulse:
@@ -473,6 +487,8 @@ int instrumentMotionDestination(const Instrument* instrument, int destination, u
   const InstrumentModDestination* definition = instrumentModDestination(instrument->type, destination);
   if (!definition || definition->fx == instrumentNoFX) return 0;
   *fx = definition->fx; *range = definition->range; *value = definition->value;
+  int generic=instrumentGenericModDestination(instrument->type,destination);
+  if(generic>=genericModFMBrightness){*base=instrumentNativeControlValue(instrument,generic);return 1;}
   switch (instrument->type) {
     case InstrumentType::Braids:
       *base = destination == 3 ? (instrument->chip.braids.timbre + 64) / 129 : destination == 4 ? (instrument->chip.braids.color + 64) / 129 : destination == 5 ? instrument->chip.braids.filterCutoffHz : instrument->chip.braids.filterResonance; break;
@@ -508,7 +524,7 @@ static const char* genericModName(int index) {
     "M1 P5", "M2 P5", "M3 P5", "M4 P5",
     "F11", "F12", "F13", "F14", "F15", "F16", "F17", "F18", "F21", "F22", "F23", "F24", "F25", "F26", "F27", "F28"
   };
-  return index >= 0 && index < genericModTotalCount ? names[index] : "Misc";
+  return index >= 0 && index < int(sizeof(names)/sizeof(*names)) ? names[index] : "Misc";
 }
 
 int instrumentGenericModDestination(InstrumentType type, int destination) {
@@ -518,7 +534,9 @@ int instrumentGenericModDestination(InstrumentType type, int destination) {
 
 int instrumentModDestinationMax(InstrumentType type) {
   InstrumentFunctions functions = getInstrumentFunctions(type);
-  return functions.modDestinationsCount + genericModTotalCount;
+  for(int g=genericModTotalCount-1;g>=genericModFMBrightness;--g)
+    if(instrumentNativeModDestination(type,g))return functions.modDestinationsCount+1+g;
+  return functions.modDestinationsCount + genericModFMBrightness;
 }
 
 const char* instrumentModDestinationName(InstrumentType type, int destination) {

@@ -52,8 +52,28 @@ int main(int argc,char** argv){
   }
   printf("Type popup passed: all seven FM types selected and reopened\n");
   for(auto type:{InstrumentType::OPLL,InstrumentType::VRC7,InstrumentType::OPL2,InstrumentType::OPL3,InstrumentType::SegaPSG,InstrumentType::GBPulse,InstrumentType::GBNoise,InstrumentType::GenesisFM,InstrumentType::ArcadeFM,InstrumentType::DX7}){
-    getInstrumentFunctions(type).init(&chipnomadState->project.instruments[0]);screenSetup(&screenInstrument,0);if(type==InstrumentType::SegaPSG)require(!screenInstrumentSimpleChip.isCellValid(0,6),"read-only Sega clock skipped");char name[40];snprintf(name,sizeof(name),"instrument-%d",int(type));capture(name);
+    getInstrumentFunctions(type).init(&chipnomadState->project.instruments[0]);screenSetup(&screenInstrument,0);if(type==InstrumentType::SegaPSG)require(screenInstrumentSimpleChip.isCellValid(0,6),"Sega bass extension selectable");char name[40];snprintf(name,sizeof(name),"instrument-%d",int(type));capture(name);
   }
+  // Real SDL pixel regression: incremental ADSR edits must match a fresh draw.
+  auto pixels=[](){std::vector<uint32_t> p(640*480);require(SDL_RenderReadPixels(renderer,nullptr,SDL_PIXELFORMAT_ARGB8888,p.data(),640*4)==0,"read graph pixels");return p;};
+  for(int header:{0,1})for(auto type:{InstrumentType::SegaPSG,InstrumentType::GBPulse,InstrumentType::GBNoise,InstrumentType::OPLL,InstrumentType::VRC7,InstrumentType::OPL2,InstrumentType::OPL3,InstrumentType::GenesisFM,InstrumentType::ArcadeFM,InstrumentType::DX7}) {
+    appSettings.persistentWaveform=header;getInstrumentFunctions(type).init(&chipnomadState->project.instruments[0]);screenSetup(&screenInstrument,0);appDraw();
+    auto* amp=instrumentFMAmpSettings(&chipnomadState->project.instruments[0]);
+    if(amp){instrumentFMAmpEdit(0,0,CellEditAction::increase);require(amp->enabled,"FM amp toggle");instrumentFMToneEdit(0,CellEditAction::increase);instrumentFMToneEdit(1,CellEditAction::increase);appDraw();}
+    for(int edit=0;edit<12;++edit){
+      int col=edit%4;
+      if(amp){instrumentFMAmpEdit(col,1,CellEditAction::increaseBig);instrumentFMAmpDrawField(col,1,CellState::normal);}
+      else{screenInstrumentSimpleChip.onEdit(col,7,CellEditAction::increaseBig);screenInstrumentSimpleChip.drawField(col,7,CellState::normal);}
+      appDraw();
+    }
+    auto incremental=pixels();currentScreen->fullRedraw();appDraw();auto clean=pixels();
+    // Below row 6 excludes the independently refreshed persistent waveform.
+    int start=(6+gfxGetContentRowOffset())*gfxGetCharHeight()*640;
+    require(std::equal(incremental.begin()+start,incremental.end(),clean.begin()+start),"ADSR incremental pixels match full redraw");
+    char name[64];snprintf(name,sizeof(name),"adsr-%d-header-%d",int(type),header);capture(name);
+  }
+  printf("ADSR pixel regression passed: ten engines, header off/on, twelve edits each\n");
+  appSettings.persistentWaveform=1;getInstrumentFunctions(InstrumentType::DX7).init(&chipnomadState->project.instruments[0]);screenSetup(&screenInstrument,0);appDraw();
   auto before=std::make_unique<Project>(chipnomadState->project);screenInstrumentOPL.onEdit(0,4,CellEditAction::tap);appDraw();require(currentScreen==&screenSelectionPopup,"shared FM browser");capture("dx7-categories");key(1,keyRight);capture("dx7-presets");
   key(1,keyEdit);require(currentScreen==&screenSelectionPopup,"EDIT waits to permit preview chord");key(1,keyEdit|keyPlay);
   std::vector<float> audio(2048);double energy=0;for(int n=0;n<12;++n){chipnomadRender(chipnomadState,audio.data(),1024);for(float x:audio)energy+=x*x;}require(energy>1e-5,"audition audio");require(!memcmp(before.get(),&chipnomadState->project,sizeof(Project)),"audition mutation");key(0,keyPlay);key(1,keyOpt);require(!memcmp(before.get(),&chipnomadState->project,sizeof(Project)),"cancel mutation");

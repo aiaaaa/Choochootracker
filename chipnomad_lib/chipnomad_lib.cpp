@@ -2052,6 +2052,31 @@ void chipnomadSetBraidsSettings(ChipNomadState* state, uint8_t bits,
 }
 
 
+static int nativeControlValue(PlaybackTrackState* track,const Instrument* instrument,int generic) {
+  const auto* d=instrumentNativeModDestination(instrument->type,generic);
+  if(!d)return 0;
+  int value=track->note.fx[d->fx].isOn?track->note.fx[d->fx].fxValue:instrumentNativeControlValue(instrument,generic);
+  if(generic==genericModFMBrightness)value=slewEngineFX(track,FX(d->fx),value);
+  for(const auto& mod:track->note.modulation) {
+    if(!mod.modulation||instrumentGenericModDestination(instrument->type,mod.modulation->destination)!=generic)continue;
+    int amount=playbackModScaleToRange(mod.outValue,d->range);
+    value=modulationIsAdditive(mod.modulation->type)?value+amount:amount;
+  }
+  return clampInt(value,0,d->range);
+}
+
+static void configureFMAmp(InstrumentFMAmp& amp, const PlaybackTrackState* track, InstrumentType type) {
+  int attack=amp.attack,decay=amp.decay,sustain=amp.sustain,release=amp.release;
+  int shape=amp.envelopeShape,triggerDecay=0,triggerColor=0;
+  if(track->note.fx[fxEAT].isOn)attack=track->note.fx[fxEAT].fxValue;
+  if(track->note.fx[fxEDC].isOn)decay=track->note.fx[fxEDC].fxValue;
+  if(track->note.fx[fxESU].isOn)sustain=track->note.fx[fxESU].fxValue;
+  if(track->note.fx[fxERL].isOn)release=track->note.fx[fxERL].fxValue;
+  if(track->note.fx[fxESH].isOn)shape=track->note.fx[fxESH].fxValue;
+  applyVoicePostModulations(track,type,&attack,&decay,&sustain,&release,&shape,&triggerDecay,&triggerColor);
+  amp.attack=attack;amp.decay=decay;amp.sustain=sustain;amp.release=release;amp.envelopeShape=shape;
+}
+
 static void updateOPLLVoices(ChipNomadState* state) {
   auto* project = &state->audioProject;
   auto* playback = &state->playbackState;
@@ -2070,11 +2095,15 @@ static void updateOPLLVoices(ChipNomadState* state) {
         gain = modulationIsAdditive(mod.modulation->type) ? gain + value : value;
       } else if (mod.modulation->destination == 2) pitch += playbackModScaleToRange(mod.outValue, 1200);
     }
+    auto configured=instrument->chip.opll;
+    configureFMAmp(configured.amp,track,instrument->type);
+    configured.tone.brightness=nativeControlValue(track,instrument,genericModFMBrightness)-63;
+    configured.tone.feedback=nativeControlValue(track,instrument,genericModFMFeedback);
     for (int v = 0; v < track->chordVoiceCount; ++v) {
       uint8_t note = track->chordPitchFinal[v];
       int cents = note == EMPTY_VALUE_8 ? 6000 :
         (project->linearPitch ? project->pitchTable.values[note] : (note + 12) * 100) + track->note.fineOffset + pitch;
-      voices[v]->configure(&instrument->chip.opll, cents, gain / track->chordVoiceCount);
+      voices[v]->configure(&configured, cents, gain / track->chordVoiceCount);
     }
   }
 }
@@ -2101,11 +2130,15 @@ static void updateOPLVoices(ChipNomadState* state) {
         gain = modulationIsAdditive(mod.modulation->type) ? gain + value : value;
       } else if (mod.modulation->destination == 2) pitch += playbackModScaleToRange(mod.outValue, 1200);
     }
+    auto configured=instrument->chip.opl;
+    configureFMAmp(configured.amp,track,instrument->type);
+    configured.tone.brightness=nativeControlValue(track,instrument,genericModFMBrightness)-63;
+    configured.tone.feedback=nativeControlValue(track,instrument,genericModFMFeedback);
     for (int v = 0; v < track->chordVoiceCount; ++v) {
       uint8_t note = track->chordPitchFinal[v];
       int cents = note == EMPTY_VALUE_8 ? 6000 :
         (project->linearPitch ? project->pitchTable.values[note] : (note + 12) * 100) + track->note.fineOffset + pitch;
-      voices[v]->configure(instrument->type, &instrument->chip.opl, cents, gain / track->chordVoiceCount);
+      voices[v]->configure(instrument->type, &configured, cents, gain / track->chordVoiceCount);
     }
   }
 }
@@ -2132,11 +2165,15 @@ static void updateFourOpVoices(ChipNomadState* state) {
         gain = modulationIsAdditive(mod.modulation->type) ? gain + value : value;
       } else if (mod.modulation->destination == 2) pitch += playbackModScaleToRange(mod.outValue, 1200);
     }
+    auto configured=instrument->chip.fourOp;
+    configureFMAmp(configured.amp,track,instrument->type);
+    configured.tone.brightness=nativeControlValue(track,instrument,genericModFMBrightness)-63;
+    configured.tone.feedback=nativeControlValue(track,instrument,genericModFMFeedback);
     for (int v = 0; v < track->chordVoiceCount; ++v) {
       uint8_t note = track->chordPitchFinal[v];
       int cents = note == EMPTY_VALUE_8 ? 6000 :
         (project->linearPitch ? project->pitchTable.values[note] : (note + 12) * 100) + track->note.fineOffset + pitch;
-      voices[v]->configure(instrument->type, &instrument->chip.fourOp, cents, gain / track->chordVoiceCount);
+      voices[v]->configure(instrument->type, &configured, cents, gain / track->chordVoiceCount);
     }
   }
 }
@@ -2164,6 +2201,12 @@ static void updateSimpleChipVoices(ChipNomadState* state) {
       } else if (mod.modulation->destination == 2) pitch += playbackModScaleToRange(mod.outValue, 1200);
     }
     InstrumentSimpleChip configured=instrument->chip.simpleChip;
+    configured.mode=nativeControlValue(track,instrument,genericModChipMode);
+    if(instrument->type==InstrumentType::SegaPSG)configured.noiseRate=nativeControlValue(track,instrument,genericModChipNoiseRate);
+    if(instrument->type==InstrumentType::GBNoise){configured.noiseDivisor=nativeControlValue(track,instrument,genericModChipNoiseDivisor);configured.noiseShift=nativeControlValue(track,instrument,genericModChipNoiseShift);}
+    if(instrument->type==InstrumentType::GBPulse){configured.sweepPeriod=nativeControlValue(track,instrument,genericModChipSweepPeriod);configured.sweepShift=nativeControlValue(track,instrument,genericModChipSweepShift);configured.sweepNegate=nativeControlValue(track,instrument,genericModChipSweepDirection);}
+    if(instrument->type!=InstrumentType::SegaPSG){configured.envelopeInitial=nativeControlValue(track,instrument,genericModChipEnvelopeInitial);configured.envelopePeriod=nativeControlValue(track,instrument,genericModChipEnvelopePeriod);configured.envelopeIncrease=nativeControlValue(track,instrument,genericModChipEnvelopeDirection);}
+
     int attack=configured.attack,decay=configured.decay,sustain=configured.sustain,release=configured.release,shape=configured.envelopeShape,triggerDecay=0,triggerColor=0;
     if(track->note.fx[fxEAT].isOn)attack=track->note.fx[fxEAT].fxValue;
     if(track->note.fx[fxEDC].isOn)decay=track->note.fx[fxEDC].fxValue;
@@ -2204,11 +2247,15 @@ static void updateDX7Voices(ChipNomadState* state) {
         gain = modulationIsAdditive(mod.modulation->type) ? gain + value : value;
       } else if (mod.modulation->destination == 2) pitch += playbackModScaleToRange(mod.outValue, 1200);
     }
+    auto configured=instrument->chip.dx7;
+    configureFMAmp(configured.amp,track,instrument->type);
+    configured.tone.brightness=nativeControlValue(track,instrument,genericModFMBrightness)-63;
+    configured.tone.feedback=nativeControlValue(track,instrument,genericModFMFeedback);
     for (int v = 0; v < track->chordVoiceCount; ++v) {
       uint8_t note = track->chordPitchFinal[v];
       int cents = note == EMPTY_VALUE_8 ? 6000 :
         (project->linearPitch ? project->pitchTable.values[note] : (note + 12) * 100) + track->note.fineOffset + pitch;
-      voices[v]->configure(&instrument->chip.dx7, cents, gain / track->chordVoiceCount);
+      voices[v]->configure(&configured, cents, gain / track->chordVoiceCount);
     }
   }
 }
