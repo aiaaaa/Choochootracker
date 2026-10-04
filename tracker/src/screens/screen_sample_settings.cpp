@@ -784,7 +784,7 @@ static int settingsOnEdit(int col, int row, CellEditAction action) {
   }
   if (row == 0) {
     // Region row: the playback Start/End markers, stored on the sample as
-    // normalised 00-FF values. Fine steps move five units, coarse steps 16;
+    // normalised 00-FF values. Fine steps move two units, coarse steps 16;
     // edit8noLast hardcodes a fine step of one, so the clamping is spelled
     // out here (same shape as the Select row below).
     action = convertMultiAction(action);
@@ -798,7 +798,7 @@ static int settingsOnEdit(int col, int row, CellEditAction action) {
                action == CellEditAction::increaseBig || action == CellEditAction::decreaseBig) {
       const int fine = action == CellEditAction::increase || action == CellEditAction::decrease;
       const int up = action == CellEditAction::increase || action == CellEditAction::increaseBig;
-      const uint8_t step = fine ? 5 : 16;
+      const uint8_t step = fine ? 2 : 16;
       uint8_t next;
       if (up) next = *value > 255 - step ? 255 : (uint8_t)(*value + step);
       else next = *value < step ? 0 : (uint8_t)(*value - step);
@@ -809,8 +809,8 @@ static int settingsOnEdit(int col, int row, CellEditAction action) {
     }
     marker = col == 0 ? kViewAnchorStart : kViewAnchorEnd;
   } else if (row == 1) {
-    // Select row: processing-selection handles. Fine steps move five frames
-    // and zoom onto the handle; coarse steps jump frameCount/64 (min 16)
+    // Select row: processing-selection handles. Fine steps move fifteen
+    // frames and zoom onto the handle; coarse steps jump frameCount/64 (min 16)
     // and return to the full-sample view. Tap copies the matching Region
     // marker position; clear empties the whole selection. Start/End are
     // untouched.
@@ -829,8 +829,8 @@ static int settingsOnEdit(int col, int row, CellEditAction action) {
       editorSelection.end = 0;
       handled = 1;
     } else {
-      // Fine steps move five frames; coarse steps jump frameCount/64 (min 16)
-      uint32_t step = 5;
+      // Fine steps move fifteen frames; coarse steps jump frameCount/64 (min 16)
+      uint32_t step = 15;
       if (action == CellEditAction::increaseBig || action == CellEditAction::decreaseBig) {
         step = frameCount / 64;
         if (step < 16) step = 16;

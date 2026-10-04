@@ -50,6 +50,12 @@ static void onSampleLoaded(const char* path) {
   if (sampleLoadWav16(path, &instrument->chip.sample, error, sizeof(error))) {
     screenMessage(MESSAGE_TIME * 3, "%s", error);
   } else {
+    // A fresh sample starts with the full playback region: the previous
+    // file's markers make no sense on the new audio. The processing
+    // selection is session-only editor state and is re-seeded from the
+    // Region when the Sample Edit screen is entered.
+    instrument->chip.sample.start = 0;
+    instrument->chip.sample.end = 255;
     const char* separator = strrchr(path, PATH_SEPARATOR);
     const char* filename = separator ? separator + 1 : path;
     if (!instrument->name[0]) {
