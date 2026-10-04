@@ -172,6 +172,8 @@ A code-drawn pixel piano below the eight right-side track rows lights sounding p
 The October 4 source update adopts upstream’s Graphics controls and sampler/export
 features while retaining native chips and Get Lucky. Insert effects also adopts
 the maintainer’s merged review, including the grouped chooser and CPU readout.
+A Personal cleanup fix releases sample-stretch memory when voices are destroyed,
+preventing memory from accumulating across repeated exports and engine recreation.
 
 The personal handheld launcher cover carries a red diagonal GITHUB FORK stamp.
 
