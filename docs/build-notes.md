@@ -354,6 +354,10 @@ SDL_AUDIODRIVER=alsa tracker/build/portmaster/native-chip-audio tracker/packagin
 
 The developer-only audio fixture plays the portable bank demo for 70 seconds,
 checks finite/non-silent output, and reports actual SDL callback render timing.
+It uses S16 conversion and optional `[buffer-frames]` (default 512), with test-only
+master gain 0.4 to leave headroom. On this ArkOS device use the regular launcher's
+`AUDIODEV=plughw:0,0`; plain default PCM instead hits its shared 44.1 kHz dmix.
+Use the installed 4906-frame setting for the matching hardware validation.
 It does not claim subjective listening or measure ALSA underruns directly.
 Keep the frontend’s prior state intact when temporarily releasing its audio.
 Tests must use the matching target include flags and dependency prefix too.
@@ -368,4 +372,21 @@ patch data. Device test/benchmark builds use `NATIVE_CHIP_OPT_FLAGS=-O3` to matc
 that profile; normal debug tests leave this override empty. The bounded device
 sweep is `benchmark_native_chips 30 --bounded`: all 1/4/8/16/32 DX7 raw voice
 points, 1/8 for other families, and mixed/FM-heavy/FM-heavy-chord songs with FX.
-The ten-minute `--soak` uses the chord scene plus concurrent 10k-index scans.
+The default song scenes use two inserts (Compressor and Doubler) on one track,
+with sends on all eight tracks. `30 --songs-only --four-inserts` measures two
+compressors, one Doubler and one TAPESCAM; `--all-inserts` preserves the
+sixteen-insert overload stress. `--no-inserts` measures the same synth/send
+workload without inserts. Available slots are not a promised CPU budget.
+`30 --songs-only` isolates the representative scenes. The ten-minute `--soak`
+uses the two-insert chord scene plus concurrent 10k-index scans.
+
+`--four-tracks` leaves four of the eight song tracks empty without changing
+project capacity. `30 --songs-only --four-tracks --four-inserts` measures four
+active tracks, seven notes in the chord scene, four inserts and shared sends.
+Use `--soak --four-tracks --four-inserts` for the corresponding ten-minute run.
+
+`--sample-mix` measures the user's balanced arrangement: four WAV sample
+tracks, Sega PSG, GB Pulse, DX7 and OPL3. It loads four existing packaged drum
+WAVs through the native PCM loader and loops them to keep the playback workload
+active. The chord variant uses four DX7 notes (eleven notes total). Combine with
+`--four-inserts` for two Compressors, Doubler and TAPESCAM, plus all-track sends.

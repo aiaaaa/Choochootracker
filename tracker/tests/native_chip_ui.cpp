@@ -46,5 +46,9 @@ int main(int argc,char** argv){
   require(chipnomadQueueProjectRefresh(chipnomadState),"snapshot");chipnomadQueuePlaybackStartSong(chipnomadState,0,0,1);energy=0;std::vector<double> timings;
   for(int n=0;n<500;++n){auto start=std::chrono::steady_clock::now();chipnomadRender(chipnomadState,audio.data(),1024);appDraw();SDL_RenderFlush(renderer);timings.push_back(std::chrono::duration<double,std::micro>(std::chrono::steady_clock::now()-start).count());for(float x:audio)energy+=x*x;}
   require(energy>0.001,"sequencer playback");capture("dx7-song-playing");std::sort(timings.begin(),timings.end());printf("UI smoke passed; song+UI 48k/1024 us p95=%.3f p99=%.3f worst=%.3f energy=%.6f\n",timings[475],timings[495],timings.back(),energy);
+  screenSetup(&screenInstrument,0);appDraw();screenInstrumentOPL.onEdit(0,4,CellEditAction::tap);appDraw();
+  require(currentScreen==&screenSelectionPopup,"browser during playback");capture("fm-presets-during-playback");
+  key(1,keyRight);key(1,keyEdit);key(1,keyEdit|keyPlay);chipnomadRender(chipnomadState,audio.data(),1024);
+  require(chipnomadState->opllPreviewTrack<0,"playback cannot admit extra preview voice");key(0,keyPlay);key(1,keyOpt);
   chipnomadDestroy(chipnomadState);SDL_Quit();return 0;
 }

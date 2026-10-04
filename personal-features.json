@@ -79,19 +79,19 @@
         "Arcade FM"
       ],
       "pending": [
-        "ARM64 build, tests and measurements underway on connected handheld",
-        "final handheld voice policy",
-        "human listening",
+        "human listening and interactive device playtest",
         "DX7 1000-cleared-preset goal unmet (67 distinct bundled)"
       ],
       "factory_cni": 876,
       "dx7_parameter_patches": 67,
       "dx7_large_library_target": 1000,
       "dx7_large_library_target_met": false,
-      "notes": "Existing personal features retained. Shared FM browser, native v6 patch ownership, strict local DX7 SysEx. Final handheld voice policy not selected without device measurements.",
-      "status": "Implemented locally; desktop/web validation; handheld build/performance pending",
+      "notes": "Existing personal features retained. Shared FM browser, native v6 patch ownership, strict local DX7 SysEx. Global 16-active-note DX7 budget selected from R36H measurements. Balanced 4WAV+2chip+2FM with four inserts passes direct-card audio at preserved settings; dense FM/insert and small-buffer limits are documented.",
+      "status": "Validated for device personal build: desktop/web, 373 ARM64 tests, 64 benchmark cases, 600-second soak, real ALSA audio and waveform OFF/ON startup",
       "fm_catalog_entries": 812,
-      "included_commit": "f768258d22f3329eb69e1ba5a0dd3cfae30c2649"
+      "included_commit": "cd25ce3c9bae28b2b05630d352821b6a6836ee1b",
+      "dx7_active_note_limit": 16,
+      "validation_report": "docs/chip-instruments-report.md"
     }
   ],
   "personal_assets": [

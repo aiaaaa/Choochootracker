@@ -257,3 +257,117 @@ The final device tests should be373passing (prior371+2); confirmactualresult.
 Current sourcechangesuncommitted: policy,tests,focusedflags,benchmark,docs,web.
 Afterfinalchecks commit+pushfeature,fast-forwardcleanpersonal/r36h andpublish;
 then sourcehashsync,hardwareaudio70s+startup,verifyrollback/install. NoPR.
+
+
+cd25ce3 policy/optimization checkpoint pushed to feature branch. Final ARM
+production profile built successfully; now compiling full373-case enabledsuite.
+Telemetry sampler had stopped during baseline transition; restarted append at
+monotonic4585, before final benchmark/soak. No systemclock/governorchanges.
+Added previewfooter "STOP SONG TO HEAR  EDIT SELECT  OPT EXIT" when published
+PlaybackStatus.isPlaying; usesexistingthread-safeUIstatus API, no directaudio
+state read. ExtendedUIharness checks previewcannotstartduringplayback/captures
+fm-presets-during-playback. These twofiles uploaded andUNCOMMITTEDlocally.
+Production was repackaged onceforfooter, then snapshot-readfix landed: FINAL
+PortMaster-deploy must runafterUItestrebuildto relinklatestselection_popup object
+beforehardwareaudio/install. Hostdesktop/web/UI must rebuildlatestfooter too.
+
+
+October 4 reconnection checkpoint: handheld reboot interrupted final test build.
+Resumed validate-final.sh from existing objects; no installed app changes.
+Final ARM64 suite PASSED: 373 tests, 72,691,826 assertions, two opt-in skips.
+Final host suite361/72,681,789 PASS; desktop/web rebuild PASS; WASM compile PASS.
+Host UI including playback-preview guard exits0, p951455.944us,p992040.833us,
+worst2667.054us; screenshot stop-song footer visually verified.
+Device clock moved backward at reboot, so existing future file mtimes trigger
+make clock-skew warnings. Force the final production link after validation;
+verify source hashes before install. Do not change device clock.
+Remote runner now building developer UI/audio, then53-case benchmark and600ssoak.
+Telemetry restarted after reboot (monotonic values reset; segment accordingly).
+
+
+Performance checkpoint: final53-case native-only-O3 sweep completed. Individual
+chip/DX7 cases pass deadlines, but actual songs miss all512-frame deadlines:
+mixed mean16085.941us; FM-heavy17027.497us; chord17268.775us (deadline10666.667).
+Did NOT start the misleading ten-minute overloaded soak or install. Paused then
+terminated only task-owned validate-final.sh after its benchmark finished;
+baseline-native-only-o3-benchmark.csv preserves all53rows. Running isolated
+diagnostic.sh compares3-second songs with/without inserts and O3 on four
+existing audio units: chipnomad_lib.cpp, insert_fx.cpp, synth/master_effects.cpp,
+audio_monitor.cpp. Alternateobjects/binaries leave production objects untouched.
+Localhelper .tmp/chip-audit/profile_device.py; remote diagnostic-*.csv/log/exit.
+Need resolve measured overload, update targeted flags only if supported by
+comparison, rerun affected tests and full benchmark/soak before installation.
+
+
+Diagnostic results confirm existing insert-load limit: baseline3-second mixed
+with16inserts16.44ms vs7.58ms without; FM-heavy-chord17.62ms vs8.77ms.
+Isolated O3 onfourexistingaudiofiles reduced all16inserts chord to15.53ms,
+stilloverdeadline. No diagnostic object has replaced a production object.
+Benchmark now distinguishes4representativeinserts from --all-inserts16stress,
+plus --songs-only. Existing50enginepoints remain valid (productionunchanged);
+new3songpoints plusold3stress will form56-rowdeviceCSV. resume_performance.py
+awaiteddiagnostics, rebuiltbenchmarkonly, nowrunssongs/600ssoak.
+Sourcefuturemtimes afterreboot caused unnecessary recompilation. Normalized
+2730isolatedsourcefilemtimes todevice-nowminus1day afterhashaudit; contents
+unchanged. DoNOT change systemclock. Forcedfinalproductionlink stillrequired.
+
+
+User clarified modest track/insert tradeoffs are acceptable and proposed8tracks:
+4WAV +2simplechips +2FM, sprinkle effects. Explained2insertSLOTS PER TRACK,
+16availabletotal, CPUbudgetseparate; do not reduce availabletracks/slots.
+Eighttrack2insert30sruns have14/36/92deadline misses (mixed/FM/chord), so
+do not labelthoseglitch-free. Baselines4insert and16insert kept, nofx3sdiagnostic
+passes. Four-fileO3diagnosticdidnotfix16slotload; productionprofileunchanged.
+Benchmark nowoffers --four-tracks, --sample-mix (fourloopedexistingWAVs, SegaPSG,
+GBPulse, DX7,OPL3; chordvariant11notes), --no-inserts/--four-inserts/--all-inserts.
+Runtimeapplicationcodeunchanged. Finalrunner finish_performance.py buildshelper,
+measures4tracks4inserts anduser8trackmix4inserts, then600suser-mix/chord/4FXsoak.
+64rowaggregatepreserves50enginecases+9eighttrackstress/loadrows+3fourtrackrows
++2balancedrows. validation-stage.json tracksphase. Native WAV helpermissingheader
+fixed; hostbenchmarkbuildPASS; device resumed afterisolatedhelperfailure.
+soak-memory.py samplesactualsoakVmRSS/VmHWM/threads10s; telemetryresumed.
+Local .tmp/chip-audit/finish_performance.py stagesremote version; hardware script
+nowrequires70sbankdemo AND70sbalanced-benchmark.cct (generated bybenchmark),
+thenpreservedproductionstartupOFF/ON. Do not runinstallerbeforeallchecks.
+
+
+Final balanced run underway: validation-stage.json recordsstartmonotonic2082.385.
+64-caseCSV now tracked docs/chip-r36h-benchmark.csv (50enginecases0miss;
+allstress/loadrows13009missinclknownoverloads). User8track4WAV+2chip+2FM+4FX
+30s mean7445.996us,p957988.167,p998059.917,worst8646.750,0miss; DX7chordvariant
+mean7689.152,p958253.583,p998332.625,worst12142.667,1miss.
+FourtrackAY/Plaits/FM+4FX alsohadbursts; trackcountaloneisnotCPUbudget.
+Ten-minute balancedchord4FXsoak now~8minutes, RSS50444..50708KiB observed;
+final stats pending. Remote balanced-benchmark.cct exportsactualsamplemix for
+second70srealALSAcheck; runaudiohelperwithcwdtrackerforrelativeWAVpaths.
+No4-filediagnosticO3changeadopted. Productiontestresults remain373pass; source
+changeaftertestsonlyUIfooter(alreadyUIchecked), benchmarkhelper/docs/webfooter.
+Next: finishsoak; finalize_device_build.py forcesproductionlink; hardware_validation
+(two70saudiochecks +6sOFF/ONstartup, exactidleESrelease/restore); collectmetrics,
+updatefinaldocs/manual/features; commit/pushfeature, ffpersonal/r36h andpush.
+Then sync_device.py syncsourcehashes+commit; refresh_device_package.py rebuildZIP
+withfinaldocs/notices/inventory; install_device.py prepare/installverifiedrollback.
+RegeneratedesktopZIP(usingnewstage) andretrieveARMZIP. NoPR.
+
+
+FINAL VALIDATION COMPLETE October4: productionARMbinarySHA256
+1966139c400e5fc25ca93107b5d442816f5d60c84d026814bef750a6945bc247.
+ARM373tests/72,691,826assertionspass2optinskips; host361/72,681,789pass.
+64measuredcases tracked chip-r36h-benchmark.csv; overloads preserved.
+600sbalancedchord4FXsoak: p958647.042us,p999041.375,worst20440.875,28misses;
+3948synthetic10kindexscans. WarmRSS50444..50708KiB, HWM52508KiB,62.083..74.583C.
+InitialdefaultPCMhardwareprobesunderran: actualregularlauncher exports
+AUDIODEV=plughw:0,0, whiledefaultPCMwas44100Hzdmix4096buffer. CorrectedTEST
+environmentonlytomatchlauncher, noapp/settings/systemaudiochanges.
+FinalS16/48000/4906 direct-card70sbank AND70sbalanced4WAV+2chip+2FMchord4FX
+PASS:685callbackseach,0deadline misses,0loggedALSAunderruns,0nonfinite.
+Bankp9522131.959us,p9924590.416,worst27391.875; balancedp9580990.292us,
+p9981576.542,worst81818.625 (deadline102208.333us). Test-onlymastergain0.4
+leavesheadroom; no patch/usergainchanges. Direct-cardproductionstartup
+waveformOFF/ONpass; installedsettings/autosavehashespreserved; ESrestored.
+NewdeveloperfixtureS16optionalbufferandMakefileindependentaudiotargetvalidated
+onARM; neitherisproductionbinary. Reports/manual/featuresupdated.
+Next remainingdelivery: commit/publishfeature+ffpersonal; sourcehashsync; refresh
+ARMZIP; install_device.pyprepare/install(requireconfigured-audio.exit0 too);
+verifyrollback/settings/assets; desktoppackage+ARMdownload; commitinstalled
+checkpointdocs. Humanlistening/interactiveplaytest and1000DX7goalremainopen.

@@ -1147,8 +1147,8 @@ there is no inherited software post-envelope or operator editor.
 New instruments store all eight native tone bytes, program and fine tuning in
 the song/instrument file. Files containing these types use format 6.0 and need
 this build or later. Earlier formats remain readable; songs without these types
-continue to save as 5.0. Rhythm programs are deferred. Hardware validation and
-human listening for these additions are pending.
+continue to save as 5.0. Rhythm programs are deferred. Automated ARM64 validation passes;
+human listening remains pending.
 
 ### AdLib / OPL2 and OPL3 (development)
 
@@ -1171,8 +1171,8 @@ slow attacks: hold Seashore rather than expecting a short click to reveal it.
 Factory assets live in `instruments/chips` alongside the existing instrument
 library, with notices under `licenses/chip-banks`. Preset selection leaves the
 slot's table and track-owned inserts unchanged. These files also use 6.0 and
-embed the complete tone. Factory audio is machine-tested; human audition and
-handheld validation remain pending.
+embed the complete tone. Factory audio is machine-tested on host and ARM64; human audition
+remains pending.
 
 ### Sega PSG and Game Boy native instruments (development)
 
@@ -1182,7 +1182,8 @@ The GB instruments use DMG pulse/noise registers; no Game Boy wave channel is
 exposed. Their authored preset lists contain 14, 10 and 10 recipes respectively.
 The page offers native mode/duty/width, envelope/sweep/noise controls as
 applicable, plus a software amplitude ADSR. These save in version-6 native files.
-Hardware listening and target performance validation remain pending.
+Automated ARM64 performance/audio checks pass within the reported workload
+limits; human listening remains pending.
 
 ### DX7 FM (development)
 
@@ -1232,7 +1233,7 @@ then fresh attacks. Equal attacks retain root notes across tracks before chord
 extensions, with stable slot/track tie breaking. This policy applies on every
 platform so the same song has the same bounded note allocation. It does not
 change other instruments' polyphony. Preset audition is disabled during playback.
-The limit was selected from R36H measurements; final device validation is ongoing.
+The limit was selected from R36H measurements and validated in mixed playback.
 
 Genesis FM (YM2612) and Arcade FM (YM2151) now use the same FM Bank/Preset
 browser, EDIT+PLAY audition, confirm/cancel and fine-tune controls. Each has
@@ -1258,3 +1259,29 @@ Sega/Game Boy presets through the normal file browser.
 factory banks. Each section uses a different owned instrument, so it works with
 the preset folder removed. Longer ignored bank WAVs and measured levels are
 listed in `docs/chip-preset-auditions.tsv`; subjective listening remains pending.
+
+### Handheld workload guidance for native chips
+
+There are eight song tracks and **two insert-effect slots per track**. The
+sixteen available slots do not guarantee enough CPU to run sixteen effects.
+DX7's sixteen-active-note limit is a separate song-wide synthesis budget;
+chords and release tails count toward it.
+
+In R36H measurements, four looping WAV tracks, Sega PSG, GB Pulse, DX7 and
+OPL3 with shared sends and four inserts (two Compressors, Doubler, TAPESCAM)
+performed better than dense eight-track FM arrangements. The single-note
+version had no render deadline misses in its thirty-second 48 kHz/512-frame
+measurement; adding a four-note DX7 chord had one timing spike. Dense FM songs
+with many expensive inserts exceeded the CPU budget. Preserve some headroom,
+watch the existing overload indicator, and add effects where they help the song.
+The app retains every track and slot; there is no new hard limit on insert count.
+See `chip-instruments-report.md` for full measurements and sustained-test status.
+
+The matching 70-second physical audio test of that balanced chord arrangement
+passed with no render deadline misses or logged ALSA underruns at the existing
+48 kHz / 4906-frame setting. Its worst callback was 81.819 ms against a
+102.208 ms deadline. Tests used a separate master gain of 0.4 for headroom.
+Keep the regular launcher's direct-card `AUDIODEV=plughw:0,0` route: the system's
+default shared mixer produced underruns in the diagnostic probes. No user audio
+setting was changed. The ten-minute smaller-buffer stress test still recorded
+28 timing spikes; the complete results are in the report.

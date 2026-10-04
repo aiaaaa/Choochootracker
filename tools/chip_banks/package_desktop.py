@@ -16,15 +16,17 @@ def package(build,stage,archive):
  if (build/'licenses').is_dir():shutil.copytree(build/'licenses',stage/'licenses',dirs_exist_ok=True)
  shutil.copy2(ROOT/'tracker/packaging/portmaster/cover.png',stage/'personal-fork-cover.png')
  shutil.copy2(ROOT/'LICENSE',stage/'LICENSE.txt')
- for filename in ('USER_MANUAL.md','chip-instruments-report.md','chip-preset-auditions.tsv'):
+ for filename in ('USER_MANUAL.md','chip-instruments-report.md','chip-preset-auditions.tsv','chip-r36h-benchmark.csv','chip-r36h-soak.csv','chip-r36h-validation.json'):
   shutil.copy2(ROOT/'docs'/filename,stage/filename)
- (stage/'START-HERE.txt').write_text('ChooChooTracker native chip development build — macOS x86_64\n\nRun ./choochootracker from this directory. All banks and notices are included.\nThe personal Mod Lucky experiment is enabled. No user settings or songs were\ncollected. This archive does not install or update the handheld.\nRead chip-instruments-report.md for tests, limitations and pending R36H checks.\n')
+ for filename in ('PERSONAL_FORK.md','personal-features.json'):
+  shutil.copy2(ROOT/filename,stage/filename)
+ (stage/'START-HERE.txt').write_text('ChooChooTracker native chip development build — macOS x86_64\n\nRun ./choochootracker from this directory. All banks and notices are included.\nThe personal Mod Lucky experiment is enabled. No user settings or songs were\ncollected. This archive does not install or update the handheld.\nRead chip-instruments-report.md for tests, measured R36H limits and remaining listening checks.\n')
  presets=list((stage/'instruments/chips').glob('*.cni'))
  if len(presets)!=876:raise ValueError(f'expected 876 native presets, found {len(presets)}')
  for required in ('msfa/LICENSE','msfa/NOTICE','ymfm/LICENSE','emu76489/LICENSE','gb_apu/LICENCE.txt','gb_apu/Blip_Buffer.txt'):
   if not (stage/'licenses'/required).is_file():raise ValueError('missing notice '+required)
  hashes={str(p.relative_to(stage)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(stage.rglob('*')) if p.is_file() and not p.is_symlink()}
- (stage/'package-manifest.json').write_text(json.dumps(dict(schema=1,platform='macOS x86_64',personal_mod_lucky=True,preset_count=876,files=hashes),indent=2)+'\n')
+ (stage/'package-manifest.json').write_text(json.dumps(dict(schema=1,platform='macOS x86_64',source_commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),personal_mod_lucky=True,preset_count=876,files=hashes),indent=2)+'\n')
  archive.parent.mkdir(parents=True,exist_ok=True)
  if archive.exists():raise ValueError('archive already exists')
  subprocess.run(['zip','-qry',str(archive),stage.name],cwd=stage.parent,check=True)
