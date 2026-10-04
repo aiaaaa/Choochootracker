@@ -19,7 +19,11 @@ void SimpleChipVoice::configure(InstrumentType type,const InstrumentSimpleChip* 
 void SimpleChipVoice::registers(bool trigger){
  double hz=440*std::exp2((std::clamp(cents_,0.f,14000.f)-6900)/1200.);
  if(type_==InstrumentType::SegaPSG){
-   int period=std::clamp(int(std::lround(3579545/(32*hz))),2,1023);
+   unsigned clock=3579545;
+   if(patch_.segaBassExtension && (!patch_.mode || patch_.noiseRate==3))
+     while(clock/(32*hz)>1023 && clock>1)clock/=2;
+   if(sega_.clk!=clock){sega_.clk=clock;SNG_set_rate(&sega_,3579545/16);}
+   int period=std::clamp(int(std::lround(clock/(32*hz))),2,1023);
    if(trigger||period!=lastFrequency_){SNG_writeIO(&sega_,0x80|(period&15));SNG_writeIO(&sega_,period>>4);SNG_writeIO(&sega_,0xc0|(period&15));SNG_writeIO(&sega_,period>>4);lastFrequency_=period;}
    int noise=(patch_.mode==1?4:0)|patch_.noiseRate;
    if(trigger||lastMode_!=patch_.mode||lastNoise_!=noise){SNG_writeIO(&sega_,0x90|(patch_.mode?15:0));SNG_writeIO(&sega_,0xbf);SNG_writeIO(&sega_,0xdf);SNG_writeIO(&sega_,0xe0|noise);SNG_writeIO(&sega_,0xf0|(patch_.mode?0:15));lastMode_=patch_.mode;lastNoise_=noise;}

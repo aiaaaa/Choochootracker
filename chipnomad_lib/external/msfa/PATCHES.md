@@ -24,6 +24,11 @@ Changes to the selected scalar DSP closure:
   equal temperament and a continuous Q24 pitch offset. No GPL implementation
   of those services is copied. Copy native patch values at note start; do not
   retain pointers into a bank. Oscillator sync resets phases only when enabled.
+- `Note::compute` accepts optional brightness and feedback overrides from the
+  tracker. Brightness offsets only modulator envelope levels (0.75 dB steps,
+  bounded in Q24); feedback changes its shift without clearing running history.
+  Zero/default arguments preserve the reference DSP. Saved DX7 bytes, algorithm,
+  carrier levels, oscillator phases and native envelope progression are retained.
 - LFO sits in the original ChooChoo `DX7Part` adapter, one per track/patch part,
   shared by bounded chord slots; preview owns another part. Its mutable phase,
   random state and delay never cross unrelated parts. Retrigger calls keydown

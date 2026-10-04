@@ -14,22 +14,23 @@ void select(int value){stop();if(simpleChipApplyPreset(current(),value))projectM
 void cancel(){stop();screenSetup(&screenInstrument,cInstrument);}
 void open(){int n=simpleChipPresetCount(current()->type);for(int i=0;i<n;++i)presets[i]={simpleChipPresetName(current()->type,i),i,nullptr,0};selectionPopupSetup("CHIP SOUNDS",presets,n,current()->chip.simpleChip.preset,select,cancel,true,preview);screenSetup(&screenSelectionPopup,0);}
 int columns(int row){if(row<3)return instrumentCommonColumnCount(row);if(row==7)return 4;if(row==5)return current()->type==InstrumentType::SegaPSG?1:3;if(row==6)return current()->type==InstrumentType::GBPulse?3:current()->type==InstrumentType::GBNoise?2:1;return 1;}
-int valid(int,int row){return row!=6||current()->type!=InstrumentType::SegaPSG;}
+int valid(int,int){return 1;}
 int y(int row){return row==3?6:row+4;}
 uint8_t* field(int col,int row,int& max){auto& p=current()->chip.simpleChip;max=255;
  if(row==4){max=current()->type==InstrumentType::SegaPSG?2:current()->type==InstrumentType::GBPulse?3:1;return &p.mode;}
  if(row==5){if(current()->type==InstrumentType::SegaPSG){max=3;return &p.noiseRate;}max=col==0?15:col==1?7:1;return col==0?&p.envelopeInitial:col==1?&p.envelopePeriod:&p.envelopeIncrease;}
- if(row==6){if(current()->type==InstrumentType::GBPulse){max=col==2?1:7;return col==0?&p.sweepPeriod:col==1?&p.sweepShift:&p.sweepNegate;}if(current()->type==InstrumentType::GBNoise){max=col==0?7:13;return col==0?&p.noiseDivisor:&p.noiseShift;}return nullptr;}
+ if(row==6){if(current()->type==InstrumentType::SegaPSG){max=1;return &p.segaBassExtension;}if(current()->type==InstrumentType::GBPulse){max=col==2?1:7;return col==0?&p.sweepPeriod:col==1?&p.sweepShift:&p.sweepNegate;}if(current()->type==InstrumentType::GBNoise){max=col==0?7:13;return col==0?&p.noiseDivisor:&p.noiseShift;}return nullptr;}
  if(row==7)return col==0?&p.attack:col==1?&p.decay:col==2?&p.sustain:&p.release;
  return nullptr;
 }
-void drawStatic(){instrumentCommonDrawStatic();gfxSetFgColor(appSettings.colorScheme.textDefault);gfxPrint(0,6,"Preset");gfxPrint(0,8,current()->type==InstrumentType::SegaPSG?"Mode":current()->type==InstrumentType::GBPulse?"Duty":"Width");gfxPrint(0,9,current()->type==InstrumentType::SegaPSG?"Noise rate":"GB Env");gfxPrint(0,10,current()->type==InstrumentType::GBPulse?"Sweep":current()->type==InstrumentType::GBNoise?"Div/Shift":"Clock");gfxPrint(0,11,"Amp ADSR");gfxSetFgColor(appSettings.colorScheme.textInfo);gfxPrint(0,13,"Env: initial / step / rise");gfxPrint(0,14,current()->type==InstrumentType::GBNoise?"Fixed noise rate; keyboard unpitched":"Software ADSR shapes native source");}
+void drawStatic(){instrumentCommonDrawStatic();gfxSetFgColor(appSettings.colorScheme.textDefault);gfxPrint(0,6,"Preset");gfxPrint(0,8,current()->type==InstrumentType::SegaPSG?"Mode":current()->type==InstrumentType::GBPulse?"Duty":"Width");gfxPrint(0,9,current()->type==InstrumentType::SegaPSG?"Noise rate":"GB Env");gfxPrint(0,10,current()->type==InstrumentType::GBPulse?"Sweep":current()->type==InstrumentType::GBNoise?"Div/Shift":"Bass range");gfxPrint(0,11,"Amp ADSR");gfxSetFgColor(appSettings.colorScheme.textInfo);gfxPrint(0,13,current()->type==InstrumentType::SegaPSG?"Bass extends tone / linked noise":"Env: initial / step / rise");gfxPrint(0,14,current()->type==InstrumentType::GBNoise?"Fixed noise rate; keyboard unpitched":"Software ADSR shapes native source");}
 void drawCursor(int col,int row){if(row<3)instrumentCommonDrawCursor(col,row);else gfxCursor(10+col*6,y(row),row==3?28:row==4?12:2);}
-void drawField(int col,int row,CellState state){if(row<3){instrumentCommonDrawField(col,row,state);return;}gfxSetFgColor(state==CellState::focus?appSettings.colorScheme.textValue:appSettings.colorScheme.textDefault);gfxClearRect(10+col*6,y(row),row==3?28:row==4?16:5,1);auto& p=current()->chip.simpleChip;
+void drawField(int col,int row,CellState state){if(row<3){instrumentCommonDrawField(col,row,state);return;}gfxSetFgColor(state==CellState::focus?appSettings.colorScheme.textValue:appSettings.colorScheme.textDefault);gfxClearRect(10+col*6,y(row),row==3?28:row==4?16:row==6&&current()->type==InstrumentType::SegaPSG?16:5,1);auto& p=current()->chip.simpleChip;
  if(row==3)gfxPrintf(10,6,"%.28s",simpleChipPresetName(current()->type,p.preset));
  else if(row==4){const char* sega[]={"Tone","White noise","Periodic"};const char* duty[]={"12.5%","25%","50%","75%"};gfxPrint(10,8,current()->type==InstrumentType::SegaPSG?sega[p.mode]:current()->type==InstrumentType::GBPulse?duty[p.mode]:p.mode?"7 bit":"15 bit");}
- else if(row==6&&current()->type==InstrumentType::SegaPSG)gfxPrint(10,10,"NTSC 3.58 MHz");
+ else if(row==6&&current()->type==InstrumentType::SegaPSG)gfxPrint(10,10,p.segaBassExtension?"Extended":"Chip");
  else{int max;auto* v=field(col,row,max);if(v)gfxPrintf(10+col*6,y(row),"%02X",*v);}
+ if(row==7)instrumentCommonDrawEnvelopePreview(p.attack,p.decay,p.sustain,p.release,p.envelopeShape);
 }
 int edit(int col,int row,CellEditAction action){if(row<3)return instrumentCommonOnEdit(col,row,action);if(row==3){open();return 1;}int max;auto* value=field(col,row,max);if(!value)return 0;
  int ok=edit8noLast(action,value,max<16?1:16,0,max);if(ok)projectModified=1;return ok;}

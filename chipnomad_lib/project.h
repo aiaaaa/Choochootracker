@@ -207,6 +207,9 @@ enum FX {
   // Track insert addresses: appended; existing and reserved IDs remain stable.
   fxF11, fxF12, fxF13, fxF14, fxF15, fxF16, fxF17, fxF18, fxF21, fxF22, fxF23, fxF24, fxF25, fxF26, fxF27, fxF28,
 
+  // Native tone controls append IDs to preserve existing projects.
+  fxFBR, fxFFB,
+  fxCMD, fxCNR, fxCND, fxCNS, fxCSP, fxCSS, fxCSD, fxCEI, fxCEP, fxCED,
   // Total count - must be last
   fxTotalCount
 };

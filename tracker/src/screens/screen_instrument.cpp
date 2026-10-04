@@ -548,8 +548,12 @@ void instrumentCommonDrawEnvelopePreview(uint8_t attack, uint8_t decay, uint8_t 
   drawEnvelopePreviewSegment(bitmap, decayEnd, sustainLevel, releaseStart, sustainLevel, shape);
   drawEnvelopePreviewSegment(bitmap, releaseStart, sustainLevel, width, 0.0f, shape);
   gfxSetFgColor(appSettings.colorScheme.textTitles);
-  gfxDrawBitmap(bitmap, !appSettings.persistentWaveform ? 6 :
-    chipnomadState->project.instruments[cInstrument].type == InstrumentType::Sample ? 16 : 6, 15);
+  const int column = appSettings.persistentWaveform &&
+    chipnomadState->project.instruments[cInstrument].type == InstrumentType::Sample ? 16 : 6;
+  // Bitmap pixels outside the curve are transparent: erase the previous curve
+  // on the render target as well as clearing the bitmap's own pixel storage.
+  gfxClearRect(column, 15, columns, rows);
+  gfxDrawBitmap(bitmap, column, 15);
 }
 
 void instrumentCommonDrawLivePreview(void) {

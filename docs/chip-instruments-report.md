@@ -11,6 +11,54 @@ real SDL/ALSA playback and combined production startup checks are complete.
 The validated source extends the existing device personal build; installation
 identity and rollback are recorded in its `personal-build.json`.
 
+## R2 fixes — host validated, handheld validation pending
+
+The prior ARM64 results below describe the installed `0146fcf` lineage, not the
+new R2 DSP. R2 adds a 3 ms per-voice FM onset/retrigger transition, 1 ms gain
+smoothing, optional FM amp ADSR, brightness/feedback controls, Sega extended
+bass range, engine-specific Sega/GB phrase FX and modulation, and ADSR graph
+clearing. Native envelopes, existing IDs, the 16-note DX7 budget, eight tracks,
+two inserts per track, and all personal features remain in place.
+Instrument (680 bytes) and Project (313,256 bytes) sizes remain unchanged.
+The appended FX state increases host ChipNomadState from 782,032 to 782,928
+bytes; the previous size figures below describe the installed baseline.
+
+Host validation: 370 test cases / 74,085,553 assertions passed; all 13 bank
+conversion/import tests passed; MSFA ASan/UBSan harness exited 0, and all vendored
+hashes match the Apache-2.0 provenance manifest. Mac personal production and Web
+builds passed; regenerated WebAssembly validates in Node. The real SDL UI
+regression covers ten ADSR pages, both waveform-header states and twelve edits
+each, comparing each incremental render with a fresh render. No new dependencies
+or bank sources were added. Full Dexed and JUCE remain excluded.
+The personal-feature-enabled suite also passed: 382 cases / 74,095,590
+assertions, with two opt-in tests skipped. The final offscreen SDL run passed
+the type popup, ADSR pixels, browser/import/audition and playback checks.
+
+The actual Sega phrase test reproduces G-2 and F-2 collapsing near 109 Hz with
+native range and restores their distinct pitches with Extended enabled, for
+both linear and AY-period projects. FM tone/amp settings round-trip through
+CNI/CCT; phrase FX produce the same audio as equivalent saved settings without
+mutating the project.
+
+The default-patch offline diagnostic at 48 kHz measured smaller maximum adjacent
+sample changes during the first 3 ms of onset and retrigger for all seven FM
+types. Six chip adapters now bridge the exact retrigger boundary continuously;
+DX7 applies its transition at the next native quantum before FIR resampling.
+This is limited numerical evidence, not proof that every reported audible click
+is resolved. Hard cut/panic remains immediate; zero-release envelopes and native
+patch transients can still be abrupt. Handheld listening, R2 CPU measurements and
+installation remain pending while its USB network link is unavailable.
+
+For the R2 hardware benchmark, use `benchmark_native_chips 30 --songs-only
+--sample-mix --four-inserts --song-fm-amp` alongside the same command without
+`--song-fm-amp`. The optional flag enables ADSR in each FM song instrument and
+can export that project through the existing `CHOOCHOO_BENCH_PROJECT` path for
+the physical ALSA check. Host timing is not a substitute for handheld timing.
+
+The library remains **876 CNI files / 812 FM catalogue entries / 704 distinct
+FM parameter sets**, including **67 distinct DX7 patches**. The 1,000 cleared
+DX7-preset goal remains unmet; 10,000 is only a synthetic browser stress fixture.
+
 ## Delivered instrument paths
 
 | Type / stable ID | Implemented and native persistence | Machine tests | Packaged CNI | R36H |
@@ -37,7 +85,8 @@ FM has bank/category/All browsing, quick previous/next, full-name helper,
 EDIT+PLAY audition, EDIT confirm and OPT cancel. Preview owns its patch and
 never commits tables or track inserts. The same browser handles local DX7
 SysEx. Simple chip pages expose their native controls and starter presets.
-Optional favorites/search were not added. No operator editor or new FM macros.
+Optional favorites/search and a full operator editor were not added. R2 adds
+the FM and chip controls documented in the user manual.
 
 ## Dependencies and ownership
 

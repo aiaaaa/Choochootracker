@@ -443,3 +443,117 @@ User saved and closed the handheld app for installation. Task-local helpers/logs
 `.tmp/fm-menu-fix/`; remote
 `/roms/choochootracker-native-chips-20261004/fm-menu-fix/`. Earlier reports below
 remain historical evidence.
+
+## Native chip fixes R2 — in progress, 2026-10-04
+
+User reports harsh attacks on every new FM engine, in both preset audition and
+single-track playback; Sega PSG phrase pitch reportedly fixed; transparent ADSR
+graph trails/overlap on Sega/GB pages. User explicitly approved optional FM amp
+ADSR with sequencer access in this round, reviewing engine-specific tone macros
+as we proceed. Preserve the installed personal feature set and existing banks.
+Do not claim clicks fixed merely by adding ADSR. No PR. Existing installation /
+fork update authorization still applies, but protect any running unsaved song.
+
+Started from clean `4b6ffa2` (installed app source `0146fcf`). R2 remains
+uncommitted and not installed. Local scratch/evidence: `.tmp/chip-fixes-r2/`.
+Implemented locally, verification in progress:
+- Clear transparent ADSR graph region before redraw.
+- Per-voice 3 ms FM onset/retrigger transition plus 1 ms volume smoothing;
+  optional amp ADSR in all seven FM types, native envelopes retained.
+- FM brightness/feedback and Sega/GB mode, noise, sweep, native GB envelope
+  settings exposed through appended modulation IDs and phrase FX. Existing IDs
+  preserved. GB native sweep/envelope parameters latch on the next note.
+- Optional Sega virtual-clock bass extension; legacy CNI defaults to enabled.
+  User phrase A-2..F-2 uses MIDI 45..41 (110..87.3 Hz). Real sequencer
+  regression reproduced G-2/F-2 collapsing to 109 Hz with extension disabled
+  and correct independent pitches when enabled, with linear and AY tables.
+  The intermediate octave-label correction was itself an arithmetic mistake.
+- CNI/CCT optional FM amp/tone persistence; native MSFA adapter tone overrides
+  require updated provenance hashes and sanitizer run before commit.
+
+Full host suite after amp-only changes: 365/366 passed; sole new round-trip
+fixture initialization error corrected. New macro build completed. Need rerun
+final host tests, real SDL graph/controls regression, onset diagnostic comparison,
+Web/Mac builds, current hardware benchmark and physical listening. SSH still times
+out; reconnect request pending. Physical FM clicks have not yet been proven fixed.
+
+Next: finish Sega actual-phrase diagnosis; validate macro ranges, persistence,
+sequencer automation and DSP continuity; update vendor provenance; UI pixel tests;
+manual/docs; host/Web/personal builds and hardware checks. Then reviewed task-only
+commit, authorized fork branches and device update with verified rollback. No PR.
+
+### R2 checkpoint before user-requested SSH/sleep detour
+
+User requested pausing tracker delivery to investigate SSH loss after sleep,
+stale SSH logo during screen blanking, and backlight staying on. R2 remains local,
+uncommitted, not installed/pushed. No tracker app was running at last successful
+SSH probe; subsequent connections timed out again.
+
+- Host full suite: 370 cases, 368 passed; only two old destination-limit tests
+  failed (12 assertions). Fixed `instrumentModDestinationMax` to extend only
+  native families with actual new destinations; final rerun still required.
+- All new real phrase macro/audio comparisons and FM persistence tests passed.
+  Exact Sega A-2/G-2/F-2 phrase: G/F collapsed at 109 Hz with native range; extension
+  passed correct pitch in both AY-period and linear projects.
+- Mac offscreen SDL integration passed: all ten engine ADSR screens, both header
+  states, twelve edits each; incremental pixels exactly match a fresh redraw.
+  Existing FM menu/browser/import/audition/playback checks also passed. Captures
+  in `.tmp/chip-fixes-r2/mac-ui/`; DX7/Sega screenshots visually checked.
+- MSFA new macro sanitizer harness built/runs with empty sanitizer log; confirm
+  exit status before final report. Native provenance hashes/PATCHES updated.
+- New source/test files staged solely to support git-ls-files source sync;
+  modifications are not all staged. Device sync failed (timeout outside sandbox)
+  before any confirmed R2 build. No R2 hardware tests or benchmark yet.
+- Onset diagnostic source now writes `smoothed-*.f32` to protect baseline files;
+  rebuilt diagnostic has not yet been run/compared. Remaining manual/web/Mac
+  production builds, hardware performance/listening, packaging/commit/install/
+  authorized fork update still required. Current 876 presets / 67 DX7 unchanged.
+
+### R2 resumed for fork publication — 2026-10-04
+
+User resumed tracker/fork work; shared sleep/USB detour remains separate under
+r36h/frontend/usb-ssh-status/sleep-fix/PROGRESS.md. No tracker architecture or
+completed chip integration was replaced. No PR requested.
+
+Final local validation passed:
+- Default suite: 370 cases / 74,085,553 assertions, no failures.
+- Personal Mod Lucky enabled: 382 cases / 74,095,590 assertions, no failures;
+  two opt-in tests skipped (fresh-process reload and live acquisition).
+- All 13 bank conversion/import tests passed; unchanged 876 native files,
+  812 FM entries / 704 parameter identities, including 67 distinct DX7 sounds.
+- MSFA ASan/UBSan harness exited0 with no diagnostics; all vendor hashes match.
+- Personal Mac production and Web builds passed; tracked Web bundle regenerated;
+  Node WebAssembly validation and JS syntax checks passed.
+- Rebuilt final SDL integration passed: all seven FM popup choices; ten ADSR
+  engines x header off/on x twelve edits exactly equal fresh redraw; existing
+  browser/import/audition/playback checks pass. Dummy drivers, no GUI left open.
+- Offline default-patch onset diagnostic compared saved baseline/current floats:
+  all seven types reduce first3ms peak sample deltas on onset and retrigger.
+  This does NOT prove all physical clicks resolved. DX7 retains quantum/FIR delay;
+  hard cut and zero release remain potentially abrupt.
+- Added --song-fm-amp benchmark option and passed a two-second host smoke with
+  4WAV+2chip+2FM/four inserts, single-note and chord variants. Host numbers are
+  NOT handheld measurements. Voice/track/insert limits remain unchanged.
+- Updated manual, report and personal feature status; no in-app help edits.
+
+Evidence: .tmp/chip-fixes-r2/{tests-final,personal-tests-final,bank-tests-final,
+mac-build-final,web-build-final,ui-test-final,sanitize-final}.log,
+onset-comparison.json and mac-ui-final/. Build source matches tests except a
+comment-only FX enum annotation and subsequent documentation.
+
+Fork publication target: feature/native-chip-instruments plus fast-forwarded
+personal/r36h, both previously at4b6ffa2. Keep main/upstream untouched.
+Hardware remains blocked by connectivity: repeated explicitly escalated SSH
+timeouts, en6 present but inactive/no IPv4 even after user reported waking it.
+Asked user to replug cable and open SSH Connection. Do not infer sleep cause from
+the timeout. No R2 device source sync, binary install or ARM package is claimed.
+Installed app remains source0146fcf with recorded rollback; preserve all assets.
+
+Next on restored SSH: sync staged/tracked source using .tmp/chip-audit/sync_device.py,
+rebuild with cached device-build.json flags (personal feature enabled); full ARM
+tests/UI; compare balanced benchmarks with/without --song-fm-amp; export the
+amp-enabled project and check actual ALSA route/buffer with current binary.
+Run guarded production startup OFF/ON, then fresh rollback/install after confirming
+no running app or unsaved song. Adapt helpers to R2 paths/current commit; do not
+reuse old install guards unchanged. Physical listening remains required.
+The separate 1000-cleared-DX7-preset requirement remains unmet.

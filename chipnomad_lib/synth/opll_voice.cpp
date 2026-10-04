@@ -19,7 +19,7 @@ void OPLLVoice::init(float sampleRate) {
     }
     for (float& c : filter_[phase]) c /= sum;
   }
-  chip_.reset(); configured_ = false; kill();
+  amp_.init(rate); chip_.reset(); configured_ = false; kill();
 }
 void OPLLVoice::write(int address, int value) { chip_.write_address(address); chip_.write_data(value); }
 void OPLLVoice::configure(const InstrumentOPLL* patch, float cents, float gain) {
@@ -28,12 +28,20 @@ void OPLLVoice::configure(const InstrumentOPLL* patch, float cents, float gain) 
     // Program zero reproduces the complete saved tone, independently of the
     // installed preset library. OPLL and VRC7 use their own pinned tone bytes.
     for (int i = 0; i < 8; ++i) write(i, patch->patch[i]);
-    write(0x30, 0); configured_ = true;
+    write(0x30, 0); configured_ = true;macroBrightness_=999;macroFeedback_=-1;
   }
   patch_ = *patch;
   cents_ = std::isfinite(cents) ? cents + patch_.fineTune : 6000;
   gain_ = std::clamp(gain, 0.0f, 1.0f);
+  tone();
+  amp_.configure(patch_.amp, gain_);
   pitch();
+}
+void OPLLVoice::tone() {
+  const int brightness=std::clamp(int(patch_.tone.brightness),-63,63);
+  const int feedback=patch_.tone.feedback?std::min(7,int(patch_.tone.feedback)-1):(patch_.patch[3]&7);
+  if(brightness!=macroBrightness_){write(2,(patch_.patch[2]&0xc0)|std::clamp((patch_.patch[2]&63)-brightness,0,63));macroBrightness_=brightness;}
+  if(feedback!=macroFeedback_){write(3,(patch_.patch[3]&0xf8)|feedback);macroFeedback_=feedback;}
 }
 void OPLLVoice::pitch() {
   const double hz = 440 * std::exp2((std::clamp(cents_, 0.0f, 14000.0f) - 6900) / 1200.0);
@@ -46,10 +54,11 @@ void OPLLVoice::pitch() {
   if (high != lastHigh_) { write(0x20, high); lastHigh_ = high; }
 }
 void OPLLVoice::noteOn() {
-  gated_ = false; pitch(); pendingKeyOn_ = true; active_ = true; silence_ = 0;
+  amp_.noteOn(); gated_ = false; pitch(); pendingKeyOn_ = true; active_ = true; silence_ = 0;
 }
-void OPLLVoice::noteOff() { pendingKeyOn_ = false; gated_ = false; pitch(); }
+void OPLLVoice::noteOff() { amp_.noteOff(); pendingKeyOn_ = false; gated_ = false; pitch(); }
 void OPLLVoice::kill() {
+  amp_.kill();
   pendingKeyOn_ = false; gated_ = false; active_ = false; lastLow_ = lastHigh_ = -1;
   write(0x20, 0); phase_ = 0; silence_ = 0; level_ = 0;
   std::memset(history_, 0, sizeof(history_)); historyPosition_ = 0;
@@ -78,7 +87,7 @@ void OPLLVoice::render(float* output, size_t frames) {
     const int phase = std::min(63, int(phase_ * 64));
     float sample = 0;
     for (int tap = 0; tap < 24; ++tap) sample += history_[(historyPosition_ - tap) & 31] * filter_[phase][tap];
-    output[i] = sample * gain_;
+    output[i] = amp_.process(sample);
     level_ = std::max(std::abs(output[i]), level_ * .999f);
     if (silence_ > chip_.sample_rate(3579545)) kill();
   }

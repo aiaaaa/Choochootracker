@@ -10,6 +10,7 @@ void DX7Part::init(float rate) {
   // This supports independent offline/live renderers at different output rates.
   static std::once_flag tables;
   std::call_once(tables,[]{using namespace choochoo_msfa;Sin::init();Exp2::init();Freqlut::init(44100);Env::init_sr(44100);PitchEnv::init(44100);Lfo::init(44100);});
+  for(auto& v:voices)v.amp_.init(44100);
   resampler_.init(44100,rate);configured_=false;lfo_={};kill();
 }
 void DX7Voice::configure(const InstrumentDX7* patch,float cents,float gain) {
@@ -17,19 +18,21 @@ void DX7Voice::configure(const InstrumentDX7* patch,float cents,float gain) {
   bool changed=!configured_||memcmp(patch_.voice,patch->voice,sizeof(patch_.voice));
   patch_=*patch;configured_=true;cents_=std::isfinite(cents)?std::clamp(cents+patch_.fineTune,0.f,14000.f):6000;
   gain_=std::isfinite(gain)?std::clamp(gain,0.f,1.f):0;
+  amp_.configure(patch_.amp,gain_);
   if(changed&&gated_)pendingOn_=true;
 }
 void DX7Voice::noteOn(){if(configured_){pendingOn_=true;pendingOff_=false;active_=true;}}
 void DX7Voice::noteOff(){if(active_)pendingOff_=true;}
-void DX7Voice::kill(){active_=gated_=pendingOn_=pendingOff_=false;level_=0;std::memset(block_,0,sizeof(block_));}
+void DX7Voice::kill(){amp_.kill();active_=gated_=pendingOn_=pendingOff_=false;level_=0;std::memset(block_,0,sizeof(block_));}
 bool DX7Voice::applyEvents() {
   bool triggered=pendingOn_;
   if(pendingOn_) {
     baseNote_=std::clamp(int(std::lround(cents_/100)),0,127);
+    amp_.noteOn();
     note_.start(patch_.voice,baseNote_+int(patch_.voice[144])-24,patch_.velocity);
     pendingOn_=false;active_=gated_=true;
   }
-  if(pendingOff_){note_.keyup();gated_=false;pendingOff_=false;}
+  if(pendingOff_){amp_.noteOff();note_.keyup();gated_=false;pendingOff_=false;}
   return triggered;
 }
 void DX7Voice::compute(int32_t lfo,int32_t delay) {
@@ -37,7 +40,7 @@ void DX7Voice::compute(int32_t lfo,int32_t delay) {
   if(!active_)return;
   if(!gated_&&!note_.playing()){active_=false;return;}
   int32_t pitch=int32_t(std::lround((cents_-baseNote_*100.f)*16777216.0/1200));
-  note_.compute(block_,lfo,delay,pitch);
+  note_.compute(block_,lfo,delay,pitch,patch_.tone.brightness,patch_.tone.feedback?patch_.tone.feedback-1:-1);
 }
 void DX7Part::kill(){for(auto& v:voices)v.kill();cursor_=64;resampler_.reset();}
 bool DX7Part::active()const{for(const auto& v:voices)if(v.active())return true;return false;}
@@ -58,7 +61,7 @@ void DX7Part::native(float& left,float& right) {
   }
   left=0;
   for(auto& v:voices) {
-    float sample=v.active_?v.block_[cursor_]/16777216.f*v.gain_*.18f:0;
+    float sample=v.active_?v.amp_.process(v.block_[cursor_]/16777216.f*.18f):0;
     left+=sample;v.level_=std::max(std::abs(sample),v.level_*.999f);
   }
   right=left;++cursor_;

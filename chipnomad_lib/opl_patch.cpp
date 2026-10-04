@@ -1,12 +1,13 @@
 #include "opl_patch.h"
 #include "project_io_common.h"
+#include "fm_amp.h"
 #include <cstring>
 #include <cstdlib>
 #include <cerrno>
 
 bool isOPL(InstrumentType t){return t==InstrumentType::OPL2||t==InstrumentType::OPL3;}
 bool validOPL(InstrumentType type,const InstrumentOPL& p){
-  if(!isOPL(type)||p.schema!=1||int(p.topology)>2||p.deepVibrato>1||p.deepTremolo>1||p.percussion>1||p.fixedNote>1||p.drumKey>127||p.volumeModel>11||p.fineTune < -100||p.fineTune>100)return false;
+  if(!validFMControls(p.amp,p.tone)||!isOPL(type)||p.schema!=1||int(p.topology)>2||p.deepVibrato>1||p.deepTremolo>1||p.percussion>1||p.fixedNote>1||p.drumKey>127||p.volumeModel>11||p.fineTune < -100||p.fineTune>100)return false;
   if(type==InstrumentType::OPL2&&p.topology!=OPLTopology::twoOperator)return false;
   for(int i=0;i<2;++i)if(p.feedback[i]>7||p.connection[i]>1||p.pan[i]<1||p.pan[i]>3||p.noteOffset[i]<-127||p.noteOffset[i]>127)return false;
   for(const auto& o:p.operators)if(o.multiplier>15||o.level>63||o.attack>15||o.decay>15||o.sustain>15||o.release>15||o.waveform>(type==InstrumentType::OPL2?3:7)||o.keyScale>3||o.vibrato>1||o.tremolo>1||o.sustained>1||o.rateScale>1)return false;
@@ -24,7 +25,7 @@ static bool csv(const char* text,int* out,int n){
   return *text==0;
 }
 int loadOPLData(FILE* file,Instrument* instrument){
-  InstrumentOPL p{};unsigned seen=0;
+  InstrumentOPL p{};unsigned seen=0;bool ampSeen=false,toneSeen=false;
   while(char* line=peekLine(file)){
     if(line[0]=='#')break;
     int v[24]{};
@@ -39,7 +40,7 @@ int loadOPLData(FILE* file,Instrument* instrument){
       int i=line[8]-'0';unsigned bit=4u<<i;if((seen&bit)||!csv(line+11,v,12))return 1;
       for(int j=0;j<12;++j)if(v[j]<0||v[j]>255)return 1;
       p.operators[i]={(uint8_t)v[0],(uint8_t)v[1],(uint8_t)v[2],(uint8_t)v[3],(uint8_t)v[4],(uint8_t)v[5],(uint8_t)v[6],(uint8_t)v[7],(uint8_t)v[8],(uint8_t)v[9],(uint8_t)v[10],(uint8_t)v[11]};seen|=bit;
-    }else return 1;
+    }else if(loadFMAmpSetting(line,p.amp,ampSeen)!=1 && loadFMToneSetting(line,p.tone,toneSeen)!=1)return 1;
     consumeLine(file);
   }
   if(seen!=63||!validOPL(instrument->type,p))return 1;instrument->chip.opl=p;return 0;
@@ -49,5 +50,5 @@ int saveOPLData(FILE* file,const Instrument* instrument){
   fprintf(file,"- OPL base: %u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%d,%d,%d,%d,%d,%u,%u,%u,%u,%u,%u\n",p.schema,unsigned(p.topology),p.feedback[0],p.feedback[1],p.connection[0],p.connection[1],p.pan[0],p.pan[1],p.deepVibrato,p.deepTremolo,p.percussion,p.fixedNote,p.drumKey,p.noteOffset[0],p.noteOffset[1],p.secondDetune,p.velocityOffset,p.fineTune,p.keyOnDuration,p.keyOffDuration,p.bankId,p.sourceBank,p.sourceProgram,p.volumeModel);
   fprintf(file,"- OPL name: %s\n",p.presetName);
   for(int i=0;i<4;++i){const auto& o=p.operators[i];fprintf(file,"- OPL op%d: %u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u\n",i,o.multiplier,o.level,o.attack,o.decay,o.sustain,o.release,o.waveform,o.keyScale,o.vibrato,o.tremolo,o.sustained,o.rateScale);}
-  return ferror(file)?1:0;
+  saveFMAmpSetting(file,p.amp);saveFMToneSetting(file,p.tone);return ferror(file)?1:0;
 }

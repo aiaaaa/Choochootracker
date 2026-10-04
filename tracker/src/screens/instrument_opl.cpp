@@ -42,12 +42,17 @@ bool candidate(int index,Instrument& result){
   if(index<0||index>=int(catalog.size())||!compatible(catalog[index]))return false;
   if(catalog[index].imported>=0) {
     getInstrumentFunctions(InstrumentType::DX7).init(&result);result.chip.dx7=importedDX7[catalog[index].imported];
+    if(auto* amp=instrumentFMAmpSettings(current()))result.chip.dx7.amp=*amp;
+    if(auto* tone=instrumentFMToneSettings(current()))result.chip.dx7.tone=*tone;
     strncpy(result.name,result.chip.dx7.presetName,PROJECT_INSTRUMENT_NAME_LENGTH);return true;
   }
   auto p=std::make_unique<Project>();projectInit(p.get());
   if(instrumentLoad(p.get(),(folder+catalog[index].path).c_str(),0)){projectFree(p.get());return false;}
   bool ok=isFourOp(p->instruments[0].type)?validFourOp(p->instruments[0].type,p->instruments[0].chip.fourOp):p->instruments[0].type==InstrumentType::DX7?validDX7(p->instruments[0].chip.dx7):isOPL(p->instruments[0].type)&&validOPL(p->instruments[0].type,p->instruments[0].chip.opl);
-  if(ok){result=p->instruments[0];result.type=current()->type;}
+  if(ok){result=p->instruments[0];result.type=current()->type;
+    if(auto* amp=instrumentFMAmpSettings(current()))*instrumentFMAmpSettings(&result)=*amp;
+    if(auto* tone=instrumentFMToneSettings(current()))*instrumentFMToneSettings(&result)=*tone;
+  }
   projectFree(p.get());return ok;
 }
 void stopPreview(){if(fourOp()&&!importing){chipnomadQueueFourOpPreview(chipnomadState,*pSongTrack,current()->type,nullptr);return;}if(dx7()||importing){chipnomadQueueDX7Preview(chipnomadState,*pSongTrack,nullptr);return;}chipnomadQueueOPLPreview(chipnomadState,*pSongTrack,current()->type,nullptr);}
@@ -82,16 +87,19 @@ void openSounds(){
   for(size_t c=0;c<categoryNames.size();++c)categoryItems.push_back({categoryNames[c].c_str(),-1,sounds[c].data(),int(sounds[c].size())});
   selectionPopupSetup("FM PRESETS",categoryItems.data(),categoryItems.size(),selected(),select,cancel,false,preview);screenSetup(&screenSelectionPopup,0);
 }
-int columns(int row){return row<3?instrumentCommonColumnCount(row):1;}
-void drawStatic(){instrumentCommonDrawStatic();gfxSetFgColor(appSettings.colorScheme.textDefault);gfxPrint(0,6,"Bank");gfxPrint(0,7,"Preset");gfxPrint(0,9,"Fine ct");gfxPrint(0,11,"Mode");const char* mode=fourOp()?"4 operator":dx7()?"6 operator":current()->chip.opl.topology==OPLTopology::fourOperator?"4 operator":current()->chip.opl.topology==OPLTopology::dualVoice?"Dual voice":"2 operator";gfxPrint(9,11,mode);}
-void drawCursor(int col,int row){if(row<3)instrumentCommonDrawCursor(col,row);else gfxCursor(9,row==3?6:row==4?7:9,row==5?4:28);}
+int columns(int row){return row<3?instrumentCommonColumnCount(row):row==6?2:row==8?5:1;}
+void drawStatic(){instrumentCommonDrawStatic();gfxSetFgColor(appSettings.colorScheme.textDefault);gfxPrint(0,6,"Bank");gfxPrint(0,7,"Preset");gfxPrint(0,9,"Fine ct");gfxPrint(0,11,"Mode");const char* mode=fourOp()?"4 operator":dx7()?"6 operator":current()->chip.opl.topology==OPLTopology::fourOperator?"4 operator":current()->chip.opl.topology==OPLTopology::dualVoice?"Dual voice":"2 operator";gfxPrint(9,11,mode);instrumentFMAmpDrawStatic();}
+void drawCursor(int col,int row){if(row==6){instrumentFMToneDrawCursor(col);return;}if(row>=7){instrumentFMAmpDrawCursor(col,row-7);return;}if(row<3)instrumentCommonDrawCursor(col,row);else gfxCursor(9,row==3?6:row==4?7:9,row==5?4:28);}
 void drawField(int col,int row,CellState state){
+  if(row==6){instrumentFMToneDrawField(col,state);return;}if(row>=7){instrumentFMAmpDrawField(col,row-7,state);return;}
   if(row<3){instrumentCommonDrawField(col,row,state);return;}
   gfxSetFgColor(state==CellState::focus?appSettings.colorScheme.textValue:appSettings.colorScheme.textDefault);int y=row==3?6:row==4?7:9;gfxClearRect(9,y,30,1);
   if(row==3){const char* name="All banks";for(const auto& e:catalog)if(e.bank==bankFilter){name=e.bankName.c_str();break;}gfxPrintf(9,y,"%.30s",name);}
   else if(row==4)gfxPrintf(9,y,"%.30s",presetName());else gfxPrintf(9,y,"%+04d",fineTune());
 }
 int onEdit(int col,int row,CellEditAction action){
+  if(row==6)return instrumentFMToneEdit(col,action);
+  if(row>=7)return instrumentFMAmpEdit(col,row-7,action);
   if(row<3)return instrumentCommonOnEdit(col,row,action);
   if(row==3){openBanks();return 1;}if(row==4){openSounds();return 1;}
   action=convertMultiAction(action);int v=fineTune();
@@ -112,7 +120,7 @@ int onInput(int down,int keys,int){
 }
 }
 ScreenData screenInstrumentOPL={
- .rows=6,.cursorRow=0,.cursorCol=0,.topRow=0,.selectMode=-1,.selectStartRow=0,.selectStartCol=0,.selectAnchorRow=0,.selectAnchorCol=0,
+ .rows=9,.cursorRow=0,.cursorCol=0,.topRow=0,.selectMode=-1,.selectStartRow=0,.selectStartCol=0,.selectAnchorRow=0,.selectAnchorCol=0,
  .playbackLevel=ScreenPlaybackLevel::none,.getColumnCount=columns,.drawStatic=drawStatic,.drawCursor=drawCursor,.drawSelection=nullptr,.drawRowHeader=nullptr,.drawColHeader=nullptr,
  .drawField=drawField,.onEdit=onEdit,.onInput=onInput,.onRawInput=nullptr,.isCellValid=nullptr,.getLoopRange=nullptr,
 };

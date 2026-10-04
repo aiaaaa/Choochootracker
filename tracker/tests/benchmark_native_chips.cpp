@@ -32,7 +32,7 @@ template<class Voice,class Configure>static void family(const char* name,int cou
 }
 int main(int argc,char** argv) {
   bool soak=argc>1&&!strcmp(argv[1],"--soak");int seconds=soak?600:argc>1?std::atoi(argv[1]):30;if(seconds<1||seconds>600)return 1;
-  bool bounded=false,songsOnly=false,sampleMix=false; int insertTracks=1,songTracks=8;
+  bool bounded=false,songsOnly=false,sampleMix=false,songFMAmp=false; int insertTracks=1,songTracks=8;
   for(int arg=2;arg<argc;++arg) {
     if(!strcmp(argv[arg],"--bounded"))bounded=true;
     else if(!strcmp(argv[arg],"--songs-only"))songsOnly=true;
@@ -41,9 +41,11 @@ int main(int argc,char** argv) {
     else if(!strcmp(argv[arg],"--no-inserts"))insertTracks=0;
     else if(!strcmp(argv[arg],"--four-tracks"))songTracks=4;
     else if(!strcmp(argv[arg],"--sample-mix"))sampleMix=true;
+    else if(!strcmp(argv[arg],"--song-fm-amp"))songFMAmp=true;
     else return 2;
   }
   volatile double checksum=0;
+  if(songFMAmp)fprintf(stderr,"Song fixtures enable FM amp ADSR: 16,32,192,48; shape128.\n");
   printf("kind,rate,frames,notes,seconds,mean_us,p50_us,p95_us,p99_us,worst_us,deadline_misses,part_bytes\n");
   if(!soak&&!songsOnly)for(int rate:{44100,48000,96000})for(int frames:{128,512})for(int count:{1,4,8,16,32}) {
     auto parts=std::make_unique<DX7Part[]>(8);InstrumentDX7 patches[8]{};
@@ -78,6 +80,10 @@ int main(int argc,char** argv) {
     const InstrumentType balanced[]={InstrumentType::Sample,InstrumentType::Sample,InstrumentType::Sample,InstrumentType::Sample,InstrumentType::SegaPSG,InstrumentType::GBPulse,InstrumentType::DX7,InstrumentType::OPL3};
     const char* waves[]={"01-kik.wav","02-hat.wav","03-sn1.wav","06-csh.wav"};
     for(int t=0;t<8;++t){auto type=sampleMix?balanced[t]:heavy?(t%3==0?InstrumentType::OPL3:t%3==1?InstrumentType::DX7:InstrumentType::GenesisFM):mixed[t];getInstrumentFunctions(type).init(&state->project.instruments[t]);
+      if(songFMAmp)if(auto* amp=instrumentFMAmpSettings(&state->project.instruments[t])) {
+        amp->enabled=1; amp->attack=16; amp->decay=32; amp->sustain=192;
+        amp->release=48; amp->envelopeShape=128;
+      }
       if(type==InstrumentType::Sample){char path[256],error[128];snprintf(path,sizeof(path),"packaging/common/samples/ChocolateAmen/%s",waves[t]);auto& sample=state->project.instruments[t].chip.sample;if(sampleLoadWav16(path,&sample,error,sizeof(error))){fprintf(stderr,"%s: %s\n",path,error);chipnomadDestroy(state);return 4;}sample.loopMode=1;}
       if(type==InstrumentType::OPL3){auto& p=state->project.instruments[t].chip.opl;p.topology=(t&1)?OPLTopology::dualVoice:OPLTopology::fourOperator;p.operators[2]=p.operators[0];p.operators[3]=p.operators[1];p.connection[1]=1;}
       state->project.song[0][t]=t<songTracks?t:EMPTY_VALUE_8;state->project.chains[t].rows[0].phrase=t;state->project.chains[t].rows[0].transpose=0;phraseClear(&state->project.phrases[t]);for(int r=0;r<16;r+=4){auto& row=state->project.phrases[t].rows[r];row.note=36+t*3+r/4;row.instrument=t;row.volume=75;if(chords&&t==(sampleMix?6:1)){row.fx[0][0]=fxCRD;row.fx[0][1]=7;}}state->project.phrases[t].rows[15].note=NOTE_OFF;state->project.trackReverbSend[t]=30;state->project.trackDelaySend[t]=20;insertSelect(&state->project.trackInserts[t][0],t<insertTracks?insertCompressor:insertOff);insertSelect(&state->project.trackInserts[t][1],t<insertTracks?((t&1)?insertTape:insertDoubler):insertOff);

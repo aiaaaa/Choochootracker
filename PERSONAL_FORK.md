@@ -42,6 +42,12 @@ is not required for a personal feature to remain on the handheld.
 | Native chip instruments | Personal feature; no upstream PR | Ten chip types, shared FM browsing, local DX7 import and 876 native presets; ARM64 tests and configured-device audio validated |
 | I’m Feeling Lucky | Personal experiment; no upstream PR | One Settings row, compiled only with `CHOOCHOO_EXPERIMENTAL_MOD_LUCKY=1` |
 
+R2 adds FM onset smoothing, optional amp ADSR and tone macros, Sega low-note
+extension, chip automation and the ADSR graph fix. Host tests, personal desktop,
+Web and offscreen UI checks pass. The ARM64/audio results above describe the
+previous installed build; R2 handheld benchmarking, listening and installation
+remain pending. See [the current report](docs/chip-instruments-report.md).
+
 Piano/meters are not duplicated just because their original proposal commits
 remain in Git history. GitHub's ahead/behind counts describe history; they are
 not a count of missing features. No original PR needs closing for #18 or #22:

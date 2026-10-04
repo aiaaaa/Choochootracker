@@ -301,11 +301,23 @@ struct InstrumentMidi {
   uint8_t ccNumber[4];
 };
 
+// Optional tracker VCA around a native FM patch. Native operator envelopes stay
+// intact. The inherited filter fields remain zero/reserved in this amp-only UI.
+struct InstrumentFMAmp : InstrumentVoicePostSettings {
+  uint8_t enabled;
+};
+struct InstrumentFMTone {
+  int8_t brightness; // Modulator output-level offset, -63..63; zero preserves preset.
+  uint8_t feedback; // 0 preserves preset; 1..8 select feedback 0..7.
+};
+
 struct InstrumentOPLL {
   uint8_t schema;
   uint8_t program; // 1..15, zero is custom and is not exposed in R1
   int8_t fineTune; // cents
   uint8_t patch[8]; // complete pinned tone, portable with the song
+  InstrumentFMAmp amp;
+  InstrumentFMTone tone;
 };
 
 enum class OPLTopology : uint8_t { twoOperator, fourOperator, dualVoice };
@@ -325,6 +337,8 @@ struct InstrumentOPL {
   int8_t fineTune;
   uint16_t bankId, sourceBank, sourceProgram;
   char presetName[64];
+  InstrumentFMAmp amp;
+  InstrumentFMTone tone;
 };
 
 struct InstrumentSimpleChip : InstrumentVoicePostSettings {
@@ -334,6 +348,7 @@ struct InstrumentSimpleChip : InstrumentVoicePostSettings {
   uint8_t envelopeInitial, envelopePeriod, envelopeIncrease;
   uint8_t sweepPeriod, sweepShift, sweepNegate;
   int8_t fineTune;
+  uint8_t segaBassExtension; // Lower the virtual clock for notes below the 10-bit divider range.
 };
 
 // Four-operator Yamaha native order: S1, S2, S3, S4 (M1,C1,M2,C2).
@@ -348,6 +363,8 @@ struct InstrumentFourOp {
   int8_t fineTune;
   uint16_t bankId, sourceProgram;
   char presetName[64];
+  InstrumentFMAmp amp;
+  InstrumentFMTone tone;
 };
 
 struct InstrumentDX7 {
@@ -357,6 +374,8 @@ struct InstrumentDX7 {
   uint8_t velocity; // Native velocity; software tracker volume remains separate.
   uint16_t bankId, sourceProgram;
   char presetName[64];
+  InstrumentFMAmp amp;
+  InstrumentFMTone tone;
 };
 
 union InstrumentChipData {
@@ -443,6 +462,10 @@ int instrumentFXAvailableForInstrument(const Instrument* instrument, uint8_t fx)
 int instrumentModDestinationAvailable(const Instrument* instrument, int destination);
 int drumSynthMacroUsed(DrumSynthEngine engine, int macro);
 InstrumentVoicePostSettings* instrumentVoicePostSettings(Instrument* instrument);
+InstrumentFMAmp* instrumentFMAmpSettings(Instrument* instrument);
+InstrumentFMTone* instrumentFMToneSettings(Instrument* instrument);
+const InstrumentModDestination* instrumentNativeModDestination(InstrumentType type, int generic);
+int instrumentNativeControlValue(const Instrument* instrument, int generic);
 const char* instrumentModDestinationName(InstrumentType type, int destination);
 const char* instrumentModDestinationNameForInstrument(const Instrument* instrument, int destination);
 int instrumentModDestinationMax(InstrumentType type);
@@ -464,7 +487,19 @@ enum GenericModDestination {
   genericModTriggerColor,
   genericModFirstP5,
   genericModFirstInsert = genericModFirstP5 + 4,
-  genericModTotalCount = genericModFirstInsert + 16,
+  genericModFMBrightness = genericModFirstInsert + 16,
+  genericModFMFeedback,
+  genericModChipMode,
+  genericModChipNoiseRate,
+  genericModChipNoiseDivisor,
+  genericModChipNoiseShift,
+  genericModChipSweepPeriod,
+  genericModChipSweepShift,
+  genericModChipSweepDirection,
+  genericModChipEnvelopeInitial,
+  genericModChipEnvelopePeriod,
+  genericModChipEnvelopeDirection,
+  genericModTotalCount,
 };
 
 #endif // __CHIPNOMAD_LIB__PROJECT_INSTRUMENTS_H__

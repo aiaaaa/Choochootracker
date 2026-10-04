@@ -116,13 +116,13 @@
       "path": "note.cc",
       "origin": "Adapted from Source/msfa/dx7note.cc and dx7note.h at the pinned revision; ordinary equal-tempered tuning supplied by ChooChoo adapter",
       "license": "Apache-2.0",
-      "vendored_sha256": "ad8364e5bb9f324a96d6848293d7d81f0e10e23e82b6f2f19efd10c8ead500a5"
+      "vendored_sha256": "6caa02634e01fb2f108ebfc4e3d418f1a548888f82db6913f3e45d5b18077753"
     },
     {
       "path": "note.h",
       "origin": "Adapted from Source/msfa/dx7note.cc and dx7note.h at the pinned revision; ordinary equal-tempered tuning supplied by ChooChoo adapter",
       "license": "Apache-2.0",
-      "vendored_sha256": "b3e4b26d39c49177faca1eac825990fdc03425bf197d81e9c4839f64c520ccd9"
+      "vendored_sha256": "97d3d278cc484f9bf9ed6b3e615ece18cf22bf3577a133a06b7b0ace7118fbe1"
     }
   ],
   "patch_log": "PATCHES.md",

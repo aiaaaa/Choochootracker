@@ -150,7 +150,7 @@ void Note::start(const uint8_t* patch,int midi,int velocity) {
   pitchDepth_=(patch[139]*165)>>6;pitchSensitivity_=pitchmodsenstab[patch[143]];
   ampDepth_=(patch[140]*165)>>6;
 }
-void Note::compute(int32_t* buffer,int32_t lfo,int32_t delay,int32_t pitchOffset) {
+void Note::compute(int32_t* buffer,int32_t lfo,int32_t delay,int32_t pitchOffset,int brightness,int feedback) {
   uint32_t depth=pitchDepth_*uint32_t(delay);
   int32_t sensitivity=pitchSensitivity_*(lfo-(1<<23));
   int32_t pitch=pitchenv_.getsample()+int32_t((int64_t(depth)*sensitivity)>>39);
@@ -165,9 +165,12 @@ void Note::compute(int32_t* buffer,int32_t lfo,int32_t delay,int32_t pitchOffset
       uint32_t response=std::exp(float(sensitivity)/262144*.07+12.2);
       level-=int32_t((uint64_t(level)*(uint64_t(response)<<4))>>28);
     }
+    if(brightness && level>0 && !FmCore::isCarrier(algorithm_,op))
+      level=max(0,min(17*(1<<24),level+max(-63,min(63,brightness))*(1<<21)));
     params_[op].level_in=level;
   }
-  core_.render(buffer,params_,algorithm_,feedback_,feedbackShift_);
+  int shift=feedback<0?feedbackShift_:feedback?8-min(7,feedback):16;
+  core_.render(buffer,params_,algorithm_,feedback_,shift);
 }
 void Note::keyup(){for(auto& e:env_)e.keydown(false);pitchenv_.keydown(false);}
 bool Note::playing(){for(int i=0;i<6;++i)if(FmCore::isCarrier(algorithm_,i)&&env_[i].isActive())return true;return false;}

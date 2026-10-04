@@ -161,7 +161,9 @@ TEST_CASE("DX7 ratio fixed mode velocity and reference quantum semantics") {
   choochoo_msfa::Note reference;reference.start(p.voice,60,p.velocity);choochoo_msfa::Lfo lfo{};lfo.reset(p.voice+137);lfo.keydown();NativeResampler fir;fir.init(44100,48000);int32_t block[64]{};int cursor=64;
   a.resize(4800);b.resize(4800);adapter.render(a.data(),a.size());
   for(float& sample:b){float r;fir.next([&](float& x,float& y){if(cursor==64){memset(block,0,sizeof(block));reference.compute(block,lfo.getsample(),lfo.getdelay(),0);cursor=0;}x=y=block[cursor++]/16777216.f*.18f;},sample,r);}
-  CHECK(a==b);
+  // The native reference excludes the new 3 ms wrapper transition; after
+  // its FIR history clears, the pinned core must still match sample-for-sample.
+  for(size_t i=192;i<a.size();++i)CHECK(a[i]==b[i]);
 }
 
 TEST_CASE("DX7 sequencer enforces the measured budget without changing chord data") {
