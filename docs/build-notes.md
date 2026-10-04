@@ -294,10 +294,11 @@ tracker/build/chip-optimized/benchmark_native_chips 30
 `Makefile.native-chip-ui` builds the production SDL offscreen integration harness.
 Run from `tracker/packaging/common` with `SDL_VIDEODRIVER=dummy` and
 `SDL_AUDIODRIVER=dummy`; its argument is an existing writable capture directory.
-The harness checks preview/cancel/load, local SysEx selection, table/insert
+The harness selects and reopens all seven FM types through the Instrument Type
+popup, then checks preview/cancel/load, local SysEx selection, table/insert
 isolation, and sequenced playback with UI drawing. It does not save user settings.
 Use the existing local SDL/toolchain configuration; do not install another SDK.
-No package has been installed on the handheld by this work.
+See `chip-instruments-progress.md` for the current handheld installation checkpoint.
 
 Genesis/Arcade extend the same ymfm pin with its OPN/OPM/SSG translation units;
 no additional player is linked. Original MIT patch recipes are in

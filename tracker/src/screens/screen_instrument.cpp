@@ -70,7 +70,7 @@ static const SelectionItem instrumentTypeCategories[] = {
   {"SAMPLE", -1, instrumentTypeSample, 3},
   {"SYNTH", -1, instrumentTypeSynth, 5},
   {"MIDI", -1, instrumentTypeMidi, 1},
-  {"FM", -1, instrumentTypeFM, 5},
+  {"FM", -1, instrumentTypeFM, sizeof(instrumentTypeFM) / sizeof(instrumentTypeFM[0])},
 };
 
 static const InstrumentType instrumentTypesQuickCycle[] = {

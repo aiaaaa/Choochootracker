@@ -28,6 +28,29 @@ int main(int argc,char** argv){
   if(argc!=2)return 1;output=argv[1];initDefaultAppSettings();appSettings.screenWidth=640;appSettings.screenHeight=480;fontSetCurrent(fontGetDefault());require(!gfxSetup(&appSettings.screenWidth,&appSettings.screenHeight),"SDL dummy setup");
   chipnomadState=chipnomadCreate();require(chipnomadState,"state");require(!projectLoad(&chipnomadState->project,"projects/gm-midi-demo.cct"),"fixture");
   chipnomadInitChips(chipnomadState,48000,nullptr);chipnomadReserveRenderBuffers(chipnomadState,1024);screensInitAll();waveformDisplayInit();monitorDisplayInit();
+  // Exercise the real Type popup; direct instrument initialization cannot catch
+  // a stale category count hiding otherwise functional instrument pages.
+  int fmIndex = 0;
+  for (auto type : {InstrumentType::OPLL, InstrumentType::VRC7, InstrumentType::OPL2,
+                   InstrumentType::OPL3, InstrumentType::GenesisFM,
+                   InstrumentType::ArcadeFM, InstrumentType::DX7}) {
+    getInstrumentFunctions(InstrumentType::AY1).init(&chipnomadState->project.instruments[0]);
+    screenSetup(&screenInstrument, 0);
+    appDraw();
+    key(1, keyEdit); key(0, 0);
+    require(currentScreen == &screenSelectionPopup, "Type popup opens on EDIT release");
+    key(1, keyUp); // CHIP wraps to the FM category.
+    key(1, keyRight);
+    for (int i = 0; i < fmIndex; ++i) key(1, keyDown);
+    if (type == InstrumentType::DX7) capture("type-fm-dx7");
+    tapEdit();
+    require(currentScreen == &screenInstrument, "Type popup selection returns to instrument");
+    require(chipnomadState->project.instruments[0].type == type, "all seven FM types selectable through popup");
+    key(1, keyEdit); key(0, 0); key(1, keyRight); tapEdit();
+    require(chipnomadState->project.instruments[0].type == type, "Type popup reopens on selected FM type");
+    ++fmIndex;
+  }
+  printf("Type popup passed: all seven FM types selected and reopened\n");
   for(auto type:{InstrumentType::OPLL,InstrumentType::VRC7,InstrumentType::OPL2,InstrumentType::OPL3,InstrumentType::SegaPSG,InstrumentType::GBPulse,InstrumentType::GBNoise,InstrumentType::GenesisFM,InstrumentType::ArcadeFM,InstrumentType::DX7}){
     getInstrumentFunctions(type).init(&chipnomadState->project.instruments[0]);screenSetup(&screenInstrument,0);if(type==InstrumentType::SegaPSG)require(!screenInstrumentSimpleChip.isCellValid(0,6),"read-only Sega clock skipped");char name[40];snprintf(name,sizeof(name),"instrument-%d",int(type));capture(name);
   }
