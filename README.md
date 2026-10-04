@@ -3,7 +3,7 @@
 - **[Main](https://github.com/aiaaaa/Choochootracker/tree/main)** — a mirror of the original developer’s code.
 - **[Personal](https://github.com/aiaaaa/Choochootracker/tree/personal/r36h)** — the combined branch and full device personal build: upstream code, my additions that haven’t been merged upstream, and my experiments. When an addition is merged upstream, Personal uses the maintainer’s merged version instead of my earlier version.
 
-**Temporary exception:** Personal keeps our current insert effects for now; adopting the maintainer’s insert-effects changes is deferred.
+Personal uses the maintainer’s merged insert-effects version, including the review fixes.
 
 ## Individual work branches
 

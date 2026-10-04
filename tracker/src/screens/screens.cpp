@@ -24,8 +24,9 @@ static AppScreen const* pendingScreen;
 static int pendingScreenInput;
 
 void drawScreenMap() {
-  if (currentScreen == &screenSelectionPopup) return;
   ScreenOverlayCoordinates overlay;
+  // Native preset lists use the popup area through the footer.
+  if (currentScreen == &screenSelectionPopup) return;
   const static int smY = 15;
 
   const ColorScheme cs = appSettings.colorScheme;
@@ -45,10 +46,10 @@ void drawScreenMap() {
   } else if (currentScreen == &screenPhrase || currentScreen == &screenGroove) {
     gfxPrint(37, smY, "G");
   } else if (currentScreen == &screenInstrument || currentScreen == &screenSampleSettings ||
-             currentScreen == &screenInstrumentPool) {
-    gfxPrint(38, smY + 2, "P");
+             currentScreen == &screenInstrumentPool || currentScreen == &screenModulation ||
+             currentScreen == &screenInsertFX) {
+    gfxPrint(38, smY - 1, "F");
     gfxPrint(38, smY, "M");
-  } else if (currentScreen == &screenModulation) {
     gfxPrint(38, smY + 2, "P");
   } else if (currentScreen == &screenTable || currentScreen == &screenAYWavetable) {
     gfxPrint(39, smY + 2, "W");
@@ -59,10 +60,6 @@ void drawScreenMap() {
     gfxPrint(35, smY + 2, "S");
   }
 
-  if (currentScreen == &screenInstrument || currentScreen == &screenModulation || currentScreen == &screenInsertFX) {
-    gfxPrint(38, smY - 1, "F");
-    gfxPrint(38, smY, "M");
-  }
   // Highlight current screen
   gfxSetFgColor(cs.textDefault);
   if (currentScreen == &screenMixer) {
@@ -74,7 +71,7 @@ void drawScreenMap() {
     gfxPrint(36, smY + 1, "C");
   } else if (currentScreen == &screenPhrase) {
     gfxPrint(37, smY + 1, "P");
-  } else if (currentScreen == &screenInstrument || currentScreen == &screenSampleSettings) {
+  } else if (currentScreen == &screenInstrument) {
     gfxPrint(38, smY + 1, "I");
   } else if (currentScreen == &screenInstrumentPool) {
     gfxPrint(38, smY + 2, "P");

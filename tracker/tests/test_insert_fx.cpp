@@ -609,7 +609,7 @@ TEST_CASE("one instrument on two tracks modulates independent slot bases with mu
   chipnomadSetLiveStickAxes(0, 0, 0, 0);
 }
 
-TEST_CASE("insert tips return after real key release and wide chooser credits every module") {
+TEST_CASE("insert tips, CPU readout and reviewed category chooser work together") {
   auto* previous = chipnomadState;
   auto* previousScreen = currentScreen;
   chipnomadState = chipnomadCreate();
@@ -637,14 +637,29 @@ TEST_CASE("insert tips return after real key release and wide chooser credits ev
   screenMessage(60, "Saved");
   screenInsertFX.draw();
   CHECK(std::string(screenGetActiveMessage()) == "Saved");
+  mockAudioCpuLoad = 37;
+  screenInsertFX.draw();
+  CHECK(std::string(mockGfxCells[0] + 31, 8) == "CPU 037%");
   d->cursorRow = 0;
   screenInsertFX.onInput(1, keyEdit, 1);
   screenInsertFX.onInput(0, 0, 1);
   REQUIRE(currentScreen == &screenSelectionPopup);
   CHECK(selectionPopupIsFullWidth());
   screenSelectionPopup.fullRedraw();
-  CHECK(std::string(mockGfxCells[3], 40).find("Compressor - Dynamics - Schwung Work") != std::string::npos);
-  CHECK(std::string(mockGfxCells[7], 40).find("OTT - Multiband - Rui-727") != std::string::npos);
+  CHECK(std::string(mockGfxCells[0], 40).find("INSERT MODULE CPU 037%") != std::string::npos);
+  CHECK(std::string(mockGfxCells[3], 18).find("Dynamics") != std::string::npos);
+  CHECK(std::string(mockGfxCells[4], 18).find("Drive") != std::string::npos);
+  CHECK(std::string(mockGfxCells[5], 18).find("Stereo") != std::string::npos);
+  CHECK(std::string(mockGfxCells[6], 18).find("Tape") != std::string::npos);
+  // The selected Distortion starts at Drive. Navigate to Dynamics -> OTT.
+  screenSelectionPopup.onInput(1, keyUp, 1);
+  screenSelectionPopup.onInput(1, keyRight, 1);
+  screenSelectionPopup.onInput(1, keyDown, 1);
+  screenSelectionPopup.onInput(1, keyEdit, 1);
+  CHECK(currentScreen == &screenInsertFX);
+  CHECK(chipnomadState->project.trackInserts[0][0].module == insertOTT);
+  CHECK(chipnomadState->project.trackInserts[0][1].module == insertOff);
+  mockAudioCpuLoad = 0;
   // Legacy category choosers keep their two-panel layout.
   SelectionItem items[] = {{"Existing", 0, nullptr, 0, nullptr}};
   selectionPopupSetup("Existing", items, 1, 0, nullptr, nullptr);

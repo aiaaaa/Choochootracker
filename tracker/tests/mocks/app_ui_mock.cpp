@@ -10,7 +10,9 @@ int mockLastInputKeys;
 static int ignoreInput(int, int keys, int) { mockLastInputKeys = keys; return 1; }
 static void noOp(void) {}
 static int startAudio(int, int) { return 0; }
-AudioManager audioManager = {startAudio, noOp, noOp, nullptr, nullptr, noOp};
+int mockAudioCpuLoad;
+static int cpuLoad() { return mockAudioCpuLoad; }
+AudioManager audioManager = {startAudio, noOp, noOp, nullptr, nullptr, noOp, nullptr, nullptr, cpuLoad};
 const AppScreen screenSong = {nullptr, nullptr, noOp, noOp, ignoreInput};
 const AppScreen screenTitle = {nullptr, nullptr, noOp, noOp, ignoreInput};
 const AppScreen screenPhrase = {nullptr, nullptr, noOp, noOp, ignoreInput};

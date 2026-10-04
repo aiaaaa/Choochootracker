@@ -170,8 +170,8 @@ A code-drawn pixel piano below the eight right-side track rows lights sounding p
 ### Personal build Settings
 
 The October 4 source update adopts upstream’s Graphics controls and sampler/export
-features while retaining native chips and Get Lucky. Insert effects remains our
-existing version by request; the upstream insert review changes are deferred.
+features while retaining native chips and Get Lucky. Insert effects also adopts
+the maintainer’s merged review, including the grouped chooser and CPU readout.
 
 The personal handheld launcher cover carries a red diagonal GITHUB FORK stamp.
 
@@ -1095,8 +1095,12 @@ ChooChooTracker is a fork of ChipNomad and retains its MIT licensing approach. B
 Each of the eight tracks has two serial slots, **TF1 → TF2**. From Instrument,
 use the usual Shift+Up gesture to open MOD, then Shift+Up again for **F: Insert
 FX**. Shift+Down returns to MOD. OPT+Left/Right selects the track (1–8), without
-changing the instrument selector. The module header opens the existing chooser;
-bypass retains the module, configured values, and automation. Parameters are
+changing the instrument selector. The module header opens a chooser grouped into
+Dynamics, Drive, Stereo and Tape, with OFF above the groups. Use Left/Right to
+switch panels, Up/Down to move, EDIT to select and OPT to exit. The page and
+chooser show CPU load at the top. Insert FX keeps its full-height layout even
+when Persistent waveform is enabled. Bypass retains the module, configured
+values, and automation. Parameters are
 byte values: left column 1–4, right column 5–8. Context text shows full names and
 decoded values. Old projects load with both slots OFF.
 
@@ -1167,8 +1171,9 @@ further cost. Start with a few inserts, watch for audio overload, and bypass
 unused slots; the sixteen available positions are not a guaranteed CPU budget.
 
 The Insert page keeps the selected field's tip visible after button release;
-temporary notices can still take its place. The module chooser shows each
-module's effect type and source project alongside its name.
+temporary notices can still take its place. Opening the pattern FX editor clears
+the insert tip so it cannot overlap the Fxx command row. Module credits remain
+in the table above and the shipped license notices.
 
 ### Personal opt-in module discovery
 
