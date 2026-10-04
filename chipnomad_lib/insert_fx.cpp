@@ -4,6 +4,12 @@
 #include <cstdio>
 #include <cstring>
 #include <new>
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+#ifndef M_LN10
+#define M_LN10 2.30258509299404568402
+#endif
 #include "external/insert_fx/Distortion.h"
 #include "external/insert_fx/StereoDoubler.h"
 #include "external/insert_fx/ott_dsp.c"

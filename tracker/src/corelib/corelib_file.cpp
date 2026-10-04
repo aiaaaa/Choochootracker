@@ -91,7 +91,11 @@ int fileCreateDirectoryRecursive(const char* path) {
   if (tmp[0] == 0) return -1;
 
   // Create each path level in turn; existing levels report EEXIST and are fine
-  for (char* p = tmp + 1; *p; p++) {
+  char* firstSeparator = tmp + 1;
+#ifdef _WIN32
+  if (tmp[1] == ':' && (tmp[2] == '/' || tmp[2] == '\\')) firstSeparator = tmp + 3;
+#endif
+  for (char* p = firstSeparator; *p; p++) {
     if (*p == '/' || *p == '\\') {
       *p = 0;
       if (!fileDirectoryExists(tmp)) {
