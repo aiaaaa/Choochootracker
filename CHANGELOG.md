@@ -29,7 +29,7 @@
   the window keep the full 1:1 view and coarse steps still return to it.
 - Made the fine-adjust zoom transient: the waveform zooms in while EDIT is
   held and returns to the full 1:1 view when EDIT is released.
-- Stepped the fine adjustment on the Region row by 2 marker units and on
+- Stepped the fine adjustment on the Region row by 1 marker unit and on
   the Select row by 15 frames.
 - Reset the playback Region to the full sample when a new WAV is loaded
   into a Sampler instrument.
