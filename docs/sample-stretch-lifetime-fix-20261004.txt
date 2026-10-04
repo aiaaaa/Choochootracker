@@ -1,0 +1,37 @@
+Sample-stretch lifetime cleanup — October 4, 2026
+
+Found while validating Personal and the native-chip candidate for the R36H.
+The upstream integration at df8ebbd included StretchProcessor::init allocating
+SignalsmithStretch with new, but StretchProcessor had no destructor. Destroying
+a SampleVoice or a complete engine therefore retained that processor and its
+internal allocations. Repeated exports and engine recreation could exhaust RAM.
+
+The initial clean ARM build succeeded, but its full test run was killed by the
+kernel OOM handler (about 680 MB resident). Running tests 31–40 together also
+exhausted memory; test 40 alone passed. This was an ownership leak, not a reason
+to omit tests or install an unvalidated build.
+
+Fix: d0403eca2fc9ea0ba01d323b975a72ceabe7c0f0 adds the out-of-line destructor
+that deletes the owned processor, and disables shallow copying of that owner.
+No synthesis algorithms, quality settings, preset data or voice limits change.
+This is a Personal fix and has not been submitted upstream.
+
+Regression: tracker/tests/stretch_lifetime.cpp is a standalone allocation test;
+its global allocation hooks must never be linked into the app. From repo root:
+
+c++ -std=c++17 -O1 -Ichipnomad_lib/external/signalsmith \
+  tracker/tests/stretch_lifetime.cpp chipnomad_lib/synth/stretch_processor.cpp \
+  -o /tmp/stretch-lifetime
+/tmp/stretch-lifetime
+
+The test retained 1,730,616 tracked allocation bytes after the first lifecycle
+before the fix. Afterward, all 32 create/reinitialize/destroy cycles return to
+the original allocation count. Both normal and cheaper stretcher configurations
+are exercised. The same check passes on the ARM64 handheld.
+
+The complete Mac and ARM64 suites pass in one process: 485 tests, 74,528,153
+assertions, two pre-existing opt-in network/reload skips. The failed full run and
+batch diagnostics are preserved locally; they are superseded by the corrected
+full-suite result. Desktop and Emscripten 6.0.10 builds also pass; the web bundle
+is regenerated. The device update receipt records the final UI/audio checks,
+installed binary hash and rollback, when installation completes.
