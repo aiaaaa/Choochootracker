@@ -1,19 +1,26 @@
 # My R36H build
 
-This is my personal ChooChooTracker build: the author's `main` branch plus the
-features I want on my handheld. These additions stay here even if their upstream
-pull requests are declined. Other contributors' unmerged work is not included.
+This is my personal ChooChooTracker build: upstream `main` plus selected additions
+and experiments not already covered upstream. When the maintainer merges a
+contribution, his accepted implementation—including his fixes and design
+changes—replaces my earlier submitted version in the personal build. Old proposal
+branches can remain as history; they are not a second implementation to preserve.
+Other contributors' unmerged work is not included.
 
-## Included features
+## Included features at the recorded device build
 
-| Addition | Upstream proposal | Personal choice |
+This records the existing build, not a requirement to preserve the original PR
+implementation. During the next update, use upstream's accepted versions; retain
+a difference only if I explicitly request it after reviewing that version.
+
+| Addition | Upstream proposal | Recorded personal behavior |
 | --- | --- | --- |
-| Share Tech Mono, Departure Mono, Spleen, Cozette + NostromoAmberDa2 | [#17](https://github.com/paiheulevrai/Choochootracker/pull/17) | Keep the fonts and theme available |
-| Reactive pixel piano | [#18](https://github.com/paiheulevrai/Choochootracker/pull/18) | Keep the dark keys, orange theme outline and waveform-color highlights |
-| Project page spacing | [#19](https://github.com/paiheulevrai/Choochootracker/pull/19) | Keep version and file actions separated |
-| Track visuals | [#20](https://github.com/paiheulevrai/Choochootracker/pull/20) | Keep one Detailed / Audio waveform choice per track |
-| Persistent waveform | [#21](https://github.com/paiheulevrai/Choochootracker/pull/21) | Keep it available with an ON/OFF setting |
-| Mixer level meters | [#22](https://github.com/paiheulevrai/Choochootracker/pull/22) | Keep the meters and numeric TRK labels |
+| Share Tech Mono, Departure Mono, Spleen, Cozette + NostromoAmberDa2 | [#17](https://github.com/paiheulevrai/Choochootracker/pull/17) | Fonts and theme available |
+| Reactive pixel piano | [#18](https://github.com/paiheulevrai/Choochootracker/pull/18) | Dark keys, orange theme outline and waveform-color highlights |
+| Project page spacing | [#19](https://github.com/paiheulevrai/Choochootracker/pull/19) | Version and file actions separated |
+| Track visuals | [#20](https://github.com/paiheulevrai/Choochootracker/pull/20) | One Detailed / Audio waveform choice per track |
+| Persistent waveform | [#21](https://github.com/paiheulevrai/Choochootracker/pull/21) | Available with an ON/OFF setting |
+| Mixer level meters | [#22](https://github.com/paiheulevrai/Choochootracker/pull/22) | Meters and numeric TRK labels |
 
 The personal launcher cover also carries a diagonal red **GITHUB FORK** stamp.
 This is a personal-only asset change, separate from the six upstream proposals.
@@ -25,9 +32,9 @@ key jazz, Settings submenus and the aChChid workflow improvements.
 ## Current device personal build
 
 Upstream base: `a02a88098a03b10518806268f039b9d9b8b2f5a9` (October 2).
-The device channel is **device personal build**: current main plus retained personal
-features and experiments explicitly requested for testing. Upstream acceptance
-is not required for a personal feature to remain on the handheld.
+The device channel is **device personal build**: upstream main plus selected
+unmerged additions and experiments. Submitted work is not retained automatically
+if declined. Once accepted, upstream's implementation is the version to use.
 
 | PR | GitHub status | How it reaches the handheld |
 | --- | --- | --- |
@@ -103,10 +110,22 @@ Status checked on October 4, 2026; follow the PR links for subsequent changes.
 | Mixer level meters | [`contribution/mixer-level-meters`](https://github.com/aiaaaa/Choochootracker/tree/contribution/mixer-level-meters) | [#22](https://github.com/paiheulevrai/Choochootracker/pull/22) | Closed; incorporated through #23 |
 | Track insert effects | [`feature/track-insert-fx`](https://github.com/aiaaaa/Choochootracker/tree/feature/track-insert-fx) | [#31](https://github.com/paiheulevrai/Choochootracker/pull/31) | Merged |
 
-The personal branch merges the feature branches, including their shared audio
-foundation once. It retains that history; upstream acceptance is not required.
-If upstream accepts a changed or squashed version of a feature, compare the two
-implementations during the next update and retain one coherent implementation.
+### After an upstream merge
+
+Update from upstream `main` and reconcile the earlier personal version against
+what the maintainer actually accepted. Use his implementation, including bug
+fixes, feature changes and integration with the base code. Remove superseded
+personal code and duplicate controls or behavior; do not merge the old proposal
+back in just to retain it. Keep a personal difference only when I explicitly
+request that difference after reviewing the accepted version.
+
+For example, after Track Insert FX is merged, the next personal update should
+use the maintainer's merged insert effects, not preserve the earlier PR version
+alongside it. Keeping the proposal branch or its Git history does not require
+keeping that old implementation in the current build.
+
+This is the update policy, not a claim that the recorded installed build has
+already been reconciled. Verify the resulting behavior and test before installing.
 
 ## Updating
 
@@ -122,9 +141,11 @@ git merge --no-ff upstream/main
 make -C tracker -f Makefile.test -j4
 ```
 
-Resolve source conflicts individually, retaining both upstream fixes and the
-personal choices above. Generated `web/dist` conflicts require a fresh combined
-web build, not choosing one branch's bundle as the finished result. Follow
+Resolve source conflicts individually, adopting the accepted upstream version
+of merged contributions and keeping only selected additions not covered by it.
+Check changed or squashed merges for leftover personal code even when Git reports
+no conflict. Generated `web/dist` conflicts require a fresh combined web build,
+not choosing one branch's bundle as the finished result. Follow
 [build notes](docs/build-notes.md) for the web and ARM64 PortMaster builds, then
 validate `releases/choochootracker.zip` with `unzip -t`.
 
