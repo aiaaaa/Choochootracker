@@ -409,3 +409,24 @@ browserstresstest, notbundledsounds. Total876presetfiles/812FMentries/704distinc
 FMparametersets, includingOPLsourcealiases. HeavyFX/small-bufferlimitationsare
 recordedinchip-instruments-report.md and64-case/600sCSV; configureddirect-card
 physicalaudio passed both70sfixtureswith0miss/0ALSAwarnings.
+# FM type-menu correction — 2026-10-04
+
+User found DX7 missing from Type → FM. The category's hard-coded child count
+was five although its array held seven entries, hiding Arcade and DX7.
+Derive the count from the array. The developer UI harness now navigates the
+actual Type popup, selects each of the seven FM instruments, and reopens each
+selection. This catches the gap left by earlier direct page initialization.
+
+On the paired R36H, the new regression failed against the old menu count and
+passed with the fix. The remaining UI audition/import/copy/clone/playback checks
+also passed (song+UI p95 27,746.834 µs, p99 27,937.292 µs, worst 28,057.458 µs;
+these include drawing and are not callback timing). Mac personal and Web builds
+completed. This menu-only change does not alter DSP, voice limits, or presets.
+
+User saved and closed the handheld app for installation. Next delivery steps:
+commit regenerated Web artifacts, rebuild/relink and package the ARM personal
+binary, check offscreen startup with the regular ALSA route, preserve all current
+user files and a verified rollback, install, and update both authorized fork
+branches without a PR. Task-local helpers/logs: `.tmp/fm-menu-fix/`; remote
+`/roms/choochootracker-native-chips-20261004/fm-menu-fix/`. Earlier reports below
+remain historical evidence; installation completion will be appended separately.

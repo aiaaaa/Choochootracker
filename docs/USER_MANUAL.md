@@ -1187,7 +1187,8 @@ limits; human listening remains pending.
 
 ### DX7 FM (development)
 
-FM includes DX7 FM, with a six-operator MSFA core. The existing FM page offers
+Select **Type → FM → DX7 FM**; DX7 is the seventh entry, after Arcade / YM2151.
+DX7 FM uses a six-operator MSFA core. The existing FM page offers
 Bank, Preset and Fine ct alongside common instrument settings. Preset browsing
 uses bank/category lists. Hold EDIT+PLAY to hear the highlighted sound; releasing
 stops audition. EDIT alone commits on release; OPT cancels. Loading a sound
