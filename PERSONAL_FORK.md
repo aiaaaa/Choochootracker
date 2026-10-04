@@ -1,11 +1,12 @@
 # My R36H build
 
-This is my personal ChooChooTracker build: upstream `main` plus selected additions
-and experiments not already covered upstream. When the maintainer merges a
-contribution, his accepted implementation—including his fixes and design
-changes—replaces my earlier submitted version in the personal build. Old proposal
-branches can remain as history; they are not a second implementation to preserve.
-Other contributors' unmerged work is not included.
+- **Main** mirrors the original developer’s code.
+- **Personal** is my full combined build: upstream code, my additions that haven’t
+  been merged upstream, and my experiments. Unmerged features stay in Personal,
+  including declined ones. Once a feature is incorporated upstream, Personal uses
+  the maintainer’s version—with his fixes and changes—instead of my earlier code.
+
+Other contributors’ unmerged work is not included.
 
 ## Included features at the recorded device build
 
@@ -32,9 +33,9 @@ key jazz, Settings submenus and the aChChid workflow improvements.
 ## Current device personal build
 
 Upstream base: `a02a88098a03b10518806268f039b9d9b8b2f5a9` (October 2).
-The device channel is **device personal build**: upstream main plus selected
-unmerged additions and experiments. Submitted work is not retained automatically
-if declined. Once accepted, upstream's implementation is the version to use.
+The device channel is **device personal build**: upstream code plus my unmerged
+additions and experiments. Pending or declined submissions stay included; once
+incorporated upstream, the maintainer’s version replaces my earlier version.
 
 | PR | GitHub status | How it reaches the handheld |
 | --- | --- | --- |
@@ -112,20 +113,13 @@ Status checked on October 4, 2026; follow the PR links for subsequent changes.
 
 ### After an upstream merge
 
-Update from upstream `main` and reconcile the earlier personal version against
-what the maintainer actually accepted. Use his implementation, including bug
-fixes, feature changes and integration with the base code. Remove superseded
-personal code and duplicate controls or behavior; do not merge the old proposal
-back in just to retain it. Keep a personal difference only when I explicitly
-request that difference after reviewing the accepted version.
+Use the maintainer’s merged version, including his fixes and changes, in place
+of my earlier implementation. Check for and remove duplicate code or controls.
+For insert effects, that means using his merged insert effects, not keeping my
+old PR version alongside them. The old branch can remain as history.
 
-For example, after Track Insert FX is merged, the next personal update should
-use the maintainer's merged insert effects, not preserve the earlier PR version
-alongside it. Keeping the proposal branch or its Git history does not require
-keeping that old implementation in the current build.
-
-This is the update policy, not a claim that the recorded installed build has
-already been reconciled. Verify the resulting behavior and test before installing.
+This policy applies at the next tested update; it does not mean the installed
+build has already been updated. Keep all other unmerged personal additions.
 
 ## Updating
 
