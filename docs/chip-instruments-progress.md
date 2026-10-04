@@ -697,3 +697,26 @@ Subjective FM click acceptance remains pending. No limits changed.
 Next: commit/push report-only update, sync source inventory, release and install
 with .tmp/chip-fixes-r2/device_action.py after closed-app guard. SSH/sleep issue
 remains explicitly deferred; no system/USB configuration changes in R2 delivery.
+
+### R2 installed and verified — 2026-10-04
+
+Recovered completed build/hardware receipts after reboot: 382 ARM cases and
+74,095,590 assertions passed (two opt-in skips), all UI regressions passed,
+four balanced benchmarks had zero deadline misses, and both 70-second ALSA
+checks had zero render misses, logged underruns or nonfinite samples.
+Combined offscreen song+UI timing exceeds a 1,024-frame deadline; this remains
+reported. Physical validation used the preserved 4,906-frame setting.
+
+Installed release source 317a6dd448380986bcd756f961dc82705df84c8e, with tested
+binary build source d9dbdeefc15466827532e1e84b41def4f7f795d2; SHA256
+981f212bbd2e5f4e05d18624121c4759956aceb87fed72c554c06a9747f923af.
+Both fork branches were pushed to the release source before installation.
+Regular install /roms/ports/choochootracker; launcher unchanged. All 1,649
+non-replaced files were preserved and independently checked after installation.
+Full installed/rollback inventories and runtime dependencies verified.
+Rollback: /roms/choochootracker-backups/pre-chip-fixes-r2-317a6dd44838/previous-install.
+Receipt: docs/chip-r36h-r2-installation.json. Local handheld ZIP in releases/
+ChooChooTracker-native-chips-r2-r36h.zip passed SHA256 and CRC verification.
+No PR or system/USB changes. User listening/playtest, especially reported FM
+clicks, remains pending; no subjective fix is claimed from machine tests alone.
+This receipt-only commit does not change the installed application or package.
