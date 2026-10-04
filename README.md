@@ -1,4 +1,4 @@
-> **Device personal build:** upstream `main`, retained personal features, and requested experiments. Build/install from [`personal/r36h`](https://github.com/aiaaaa/Choochootracker/tree/personal/r36h); [`main`](https://github.com/aiaaaa/Choochootracker/tree/main) remains the upstream mirror.
+> **Device personal build:** upstream `main` plus selected additions and experiments not already covered upstream. Build/install from [`personal/r36h`](https://github.com/aiaaaa/Choochootracker/tree/personal/r36h); [`main`](https://github.com/aiaaaa/Choochootracker/tree/main) remains the upstream mirror.
 
 ## Fork navigation
 

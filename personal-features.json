@@ -3,7 +3,7 @@
   "upstream_branch": "main",
   "upstream_commit": "a02a88098a03b10518806268f039b9d9b8b2f5a9",
   "personal_branch": "personal/r36h",
-  "update_policy": "Current upstream main plus retained personal choices and explicitly requested experiments. Test, preserve user data, record commit, and retain rollback before installation.",
+  "update_policy": "Upstream main plus selected additions and experiments not already covered upstream. When a contribution is accepted, replace the earlier personal implementation with the maintainer's merged version, including fixes and design changes; remove superseded code and duplication. Preserve a difference only on explicit user request after reviewing the accepted version. Test, preserve user data, record commit, and retain rollback before installation.",
   "features": [
     {
       "id": "fonts-theme",
@@ -11,8 +11,8 @@
       "branch": "contribution/fonts-16x24",
       "included_commit": "23934421ee30970314b700e7471e8ef951f6a4c1",
       "upstream_pr": "https://github.com/paiheulevrai/Choochootracker/pull/17",
-      "retain_if_declined": true,
-      "upstream_status": "merged directly"
+      "upstream_status": "merged directly",
+      "integration_policy": "Use the accepted upstream implementation when merged; keep the old proposal only as history. No automatic retention if declined."
     },
     {
       "id": "piano",
@@ -20,8 +20,8 @@
       "branch": "contribution/piano-visualization",
       "included_commit": "ea5dd1bc039fbcaf12c4f2f748c386ace93d03a7",
       "upstream_pr": "https://github.com/paiheulevrai/Choochootracker/pull/18",
-      "retain_if_declined": true,
-      "upstream_status": "integrated via upstream PR #23; original PR closed as superseded"
+      "upstream_status": "integrated via upstream PR #23; original PR closed as superseded",
+      "integration_policy": "Use the accepted upstream implementation when merged; keep the old proposal only as history. No automatic retention if declined."
     },
     {
       "id": "project-spacing",
@@ -29,8 +29,8 @@
       "branch": "contribution/project-page-spacing",
       "included_commit": "942ec81c502425dae4f8b450e263d7b3723ad169",
       "upstream_pr": "https://github.com/paiheulevrai/Choochootracker/pull/19",
-      "retain_if_declined": true,
-      "upstream_status": "merged directly"
+      "upstream_status": "merged directly",
+      "integration_policy": "Use the accepted upstream implementation when merged; keep the old proposal only as history. No automatic retention if declined."
     },
     {
       "id": "track-visuals",
@@ -38,8 +38,8 @@
       "branch": "contribution/track-visuals",
       "included_commit": "557d718c4db38e467acde80d5fadccf15ed4ab1d",
       "upstream_pr": "https://github.com/paiheulevrai/Choochootracker/pull/20",
-      "retain_if_declined": true,
-      "upstream_status": "open; retained personal addition"
+      "upstream_status": "merged upstream; recorded installed build still contains the earlier personal implementation",
+      "integration_policy": "Use the accepted upstream implementation when merged; keep the old proposal only as history. No automatic retention if declined."
     },
     {
       "id": "persistent-waveform",
@@ -47,8 +47,8 @@
       "branch": "contribution/persistent-waveform",
       "included_commit": "40d4a6e6e680e8f5f27c8a80d612ba8b641edb2a",
       "upstream_pr": "https://github.com/paiheulevrai/Choochootracker/pull/21",
-      "retain_if_declined": true,
-      "upstream_status": "merged in upstream main; personal waveform/layout coexistence retained"
+      "upstream_status": "merged in upstream main; personal waveform/layout coexistence retained",
+      "integration_policy": "Use the accepted upstream implementation when merged; keep the old proposal only as history. No automatic retention if declined."
     },
     {
       "id": "mixer-meters",
@@ -56,8 +56,8 @@
       "branch": "contribution/mixer-level-meters",
       "included_commit": "d2b93935a879a6bea576c15a614e9d037f8d0a32",
       "upstream_pr": "https://github.com/paiheulevrai/Choochootracker/pull/22",
-      "retain_if_declined": true,
-      "upstream_status": "integrated via upstream PR #23; original PR closed as superseded"
+      "upstream_status": "integrated via upstream PR #23; original PR closed as superseded",
+      "integration_policy": "Use the accepted upstream implementation when merged; keep the old proposal only as history. No automatic retention if declined."
     },
     {
       "id": "native-chip-instruments",
@@ -65,7 +65,6 @@
       "branch": "feature/native-chip-instruments",
       "base_commit": "c0a8c7e9ee7e177e94294ede7e6cad09c59f06c8",
       "upstream_status": "Personal feature branch; no PR",
-      "retain_if_declined": true,
       "implemented": [
         "OPLL",
         "VRC7",
@@ -100,7 +99,8 @@
         "Sega/GB phrase and modulation controls",
         "ADSR graph redraw fix"
       ],
-      "r2_validation_report": "docs/chip-r36h-r2-validation.json"
+      "r2_validation_report": "docs/chip-r36h-r2-validation.json",
+      "integration_policy": "Use the accepted upstream implementation when merged; keep the old proposal only as history. No automatic retention if declined."
     }
   ],
   "personal_assets": [
@@ -116,7 +116,8 @@
       "id": "track-insert-fx",
       "branch": "feature/track-insert-fx",
       "included_commit": "6014ec51437e5b23ec49a825c8990c2e955b0786",
-      "status": "device personal build testing; upstream PR pending review"
+      "status": "upstream PR #31 merged; replace the recorded earlier implementation with the accepted upstream version at the next tested personal update",
+      "upstream_pr": "https://github.com/paiheulevrai/Choochootracker/pull/31"
     },
     {
       "id": "mod-lucky",
