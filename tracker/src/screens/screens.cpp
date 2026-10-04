@@ -23,7 +23,7 @@ static AppScreen const* pendingScreen;
 static int pendingScreenInput;
 
 void drawScreenMap() {
-  if (currentScreen == &screenSelectionPopup && selectionPopupIsFullWidth()) return;
+  if (currentScreen == &screenSelectionPopup) return;
   ScreenOverlayCoordinates overlay;
   const static int smY = 15;
 

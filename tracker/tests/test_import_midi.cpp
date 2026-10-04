@@ -22,6 +22,7 @@ TEST_CASE("imports notes on a single channel onto one track, quantized to the ro
   smfTrackFree(&track);
 
   Project p;
+  projectInit(&p); // Import replaces and frees an existing initialized project.
   REQUIRE(projectLoadMidi(&p, path) == 0);
 
   CHECK(p.song[0][0] != EMPTY_VALUE_16);
@@ -53,6 +54,7 @@ TEST_CASE("a retrigger on the same channel cuts the previous note without an exp
   smfTrackFree(&track);
 
   Project p;
+  projectInit(&p); // Import replaces and frees an existing initialized project.
   REQUIRE(projectLoadMidi(&p, path) == 0);
 
   int chainIdx = p.song[0][0];
@@ -75,6 +77,7 @@ TEST_CASE("a MIDI file with no notes is rejected") {
   smfTrackFree(&track);
 
   Project p;
+  projectInit(&p); // Import replaces and frees an existing initialized project.
   CHECK(projectLoadMidi(&p, path) != 0);
 
   std::remove(path);

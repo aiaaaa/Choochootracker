@@ -11,6 +11,7 @@
 #include "file_browser.h"
 #include "import_vts.h"
 #include "selection_popup.h"
+#include "simple_chip_presets.h"
 #include <string.h>
 #include <stdio.h>
 #include <strings.h>
@@ -31,6 +32,9 @@ static SelectionItem instrumentTypeChip[] = {
   {NULL, (int)InstrumentType::AY1, NULL, 0},
   {NULL, (int)InstrumentType::AY2, NULL, 0},
   {NULL, (int)InstrumentType::AYSample, NULL, 0},
+  {NULL, (int)InstrumentType::SegaPSG, NULL, 0},
+  {NULL, (int)InstrumentType::GBPulse, NULL, 0},
+  {NULL, (int)InstrumentType::GBNoise, NULL, 0},
 };
 static SelectionItem instrumentTypeSynth[] = {
   {NULL, (int)InstrumentType::AChChid, NULL, 0},
@@ -51,17 +55,22 @@ static SelectionItem instrumentTypeSample[] = {
 static SelectionItem instrumentTypeFM[] = {
   {"OPLL / YM2413", (int)InstrumentType::OPLL, NULL, 0},
   {"VRC7 / DS1001", (int)InstrumentType::VRC7, NULL, 0},
+  {"AdLib / YM3812", (int)InstrumentType::OPL2, NULL, 0},
+  {"OPL3 / YMF262", (int)InstrumentType::OPL3, NULL, 0},
+  {"Genesis / YM2612", (int)InstrumentType::GenesisFM, NULL, 0},
+  {"Arcade / YM2151", (int)InstrumentType::ArcadeFM, NULL, 0},
+  {"DX7 FM", (int)InstrumentType::DX7, NULL, 0},
 };
 static SelectionItem instrumentTypeMidi[] = {
   {NULL, (int)InstrumentType::Midi, NULL, 0},
 };
 static const SelectionItem instrumentTypeCategories[] = {
-  {"CHIP", -1, instrumentTypeChip, 3},
+  {"CHIP", -1, instrumentTypeChip, 6},
   {"DRUMS", -1, instrumentTypeDrums, 2},
   {"SAMPLE", -1, instrumentTypeSample, 3},
   {"SYNTH", -1, instrumentTypeSynth, 5},
   {"MIDI", -1, instrumentTypeMidi, 1},
-  {"FM", -1, instrumentTypeFM, 2},
+  {"FM", -1, instrumentTypeFM, 5},
 };
 
 static const InstrumentType instrumentTypesQuickCycle[] = {
@@ -71,7 +80,8 @@ static const InstrumentType instrumentTypesQuickCycle[] = {
   InstrumentType::AChChid, InstrumentType::Braids,
   InstrumentType::Plaits, InstrumentType::PlaitsAlt,
   InstrumentType::MME,
-  InstrumentType::Midi, InstrumentType::OPLL, InstrumentType::VRC7,
+  InstrumentType::SegaPSG, InstrumentType::GBPulse, InstrumentType::GBNoise,
+  InstrumentType::GenesisFM, InstrumentType::ArcadeFM, InstrumentType::DX7, InstrumentType::Midi, InstrumentType::OPLL, InstrumentType::VRC7, InstrumentType::OPL2, InstrumentType::OPL3,
 };
 
 static int editInstrumentType(CellEditAction action, InstrumentType* type) {
@@ -114,6 +124,7 @@ static void onInstrumentLoaded(const char* path) {
   int result = 1;
   const char* ext = strrchr(path, '.');
   int formatHandled = 0;
+  if(ext&&!strcasecmp(ext,".syx")){instrumentFMImportSysEx(path);return;}
 
   if (ext != NULL) {
     for (size_t i = 0; i < sizeof(importFormats) / sizeof(importFormats[0]); i++) {
@@ -195,7 +206,7 @@ static void setInstrumentType(InstrumentType newType) {
   getInstrumentFunctions(oldType).free(instrument);
   instrument->type = newType;
   getInstrumentFunctions(newType).init(instrument);
-  if (preserveEnvelope) {
+  if (preserveEnvelope && !isSimpleChip(newType)) {
     InstrumentVoicePostSettings* post = voicePostSettings(instrument, newType);
     if (post) {
       post->attack = savedEnvelope.attack; post->decay = savedEnvelope.decay;
@@ -272,7 +283,7 @@ static ScreenData* instrumentScreen(void) {
     &screenInstrumentSCWF, &screenInstrumentBYOWTBL, &screenInstrumentPlaits, &screenInstrumentAChChid,
     &screenInstrumentDrumSynth, &screenInstrumentMME,
     &screenInstrumentSintered,
-    &screenInstrumentMidi, &screenInstrumentOPLL,
+    &screenInstrumentMidi, &screenInstrumentOPLL, &screenInstrumentOPL, &screenInstrumentSimpleChip, &screenInstrumentOPL,
   };
   InstrumentScreenKind kind = getInstrumentDefinition(chipnomadState->project.instruments[cInstrument].type)->screen;
   ScreenData* data = screens[(int)kind];
@@ -287,7 +298,7 @@ static void init(void) {
   screenInstrumentNone.cursorRow = 0;
   screenInstrumentNone.cursorCol = 0;
   SelectionItem* groups[] = {instrumentTypeChip, instrumentTypeSample, instrumentTypeSynth, instrumentTypeDrums, instrumentTypeMidi};
-  const int counts[] = {3, 3, 5, 2, 1};
+  const int counts[] = {6, 3, 5, 2, 1};
   for (int group = 0; group < 5; ++group)
     for (int item = 0; item < counts[group]; ++item)
       groups[group][item].label = getInstrumentDefinition((InstrumentType)groups[group][item].value)->uiName;
@@ -608,7 +619,7 @@ int instrumentCommonOnEdit(int col, int row, enum CellEditAction action) {
     }
   } else if (row == 0 && col == 1) {
     // Load instrument (supports .cni and .vts formats)
-    fileBrowserSetup("LOAD INSTRUMENT", ".cni,.vts", appSettings.instrumentPath, onInstrumentLoaded, onInstrumentCancelled);
+    fileBrowserSetup("LOAD INSTRUMENT", ".cni,.vts,.syx", appSettings.instrumentPath, onInstrumentLoaded, onInstrumentCancelled);
     screenSetup(&screenFileBrowser, 0);
   } else if (row == 0 && col == 2) {
     // Save instrument

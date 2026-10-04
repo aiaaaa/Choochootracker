@@ -2,6 +2,10 @@
 #include "project_instruments.h"
 #include "project.h"
 #include "opll_presets.h"
+#include "dx7_patch.h"
+#include "opl_patch.h"
+#include "four_op_patch.h"
+#include "simple_chip_presets.h"
 #include "synth/multimode_filter.h"
 
 // Convention: the first modulation destination should be volume
@@ -285,6 +289,12 @@ static const char* modNameOPLL(int index) {
   static const char* names[] = {"Off", "Volume", "Pitch"};
   return index >= 0 && index < 3 ? names[index] : "Off";
 }
+static int initGenesisInstrument(Instrument* i){initCommon(i);i->type=InstrumentType::GenesisFM;initFourOpPatch(&i->chip.fourOp);strcpy(i->name,"Twin Reed");return 0;}
+static int initArcadeInstrument(Instrument* i){initGenesisInstrument(i);i->type=InstrumentType::ArcadeFM;return 0;}
+static int initDX7Instrument(Instrument* i) {
+  initCommon(i);i->type=InstrumentType::DX7;initDX7Patch(&i->chip.dx7);
+  strcpy(i->name,"Tracker Tine");return 0;
+}
 static int initOPLLInstrument(Instrument* instrument) {
   initCommon(instrument); instrument->type = InstrumentType::OPLL;
   opllApplyPreset(instrument, 3); return 0;
@@ -293,6 +303,15 @@ static int initVRC7Instrument(Instrument* instrument) {
   initCommon(instrument); instrument->type = InstrumentType::VRC7;
   opllApplyPreset(instrument, 3); return 0;
 }
+static int initOPL2Instrument(Instrument* instrument) {
+  initCommon(instrument); instrument->type=InstrumentType::OPL2;initOPLPatch(&instrument->chip.opl);strcpy(instrument->name,"Soft FM Keys");return 0;
+}
+static int initOPL3Instrument(Instrument* instrument) {
+  initOPL2Instrument(instrument);instrument->type=InstrumentType::OPL3;return 0;
+}
+static int initSegaInstrument(Instrument* i){initCommon(i);i->type=InstrumentType::SegaPSG;simpleChipApplyPreset(i,0);return 0;}
+static int initGBPulseInstrument(Instrument* i){initCommon(i);i->type=InstrumentType::GBPulse;simpleChipApplyPreset(i,0);return 0;}
+static int initGBNoiseInstrument(Instrument* i){initCommon(i);i->type=InstrumentType::GBNoise;simpleChipApplyPreset(i,0);return 0;}
 static const char* modNameSintered(int modIndex) {
   static const char* names[] = {"Off", "Volume", "Pitch", "Decay", "Mod", "A", "B", "Motion", "C", "Cutoff", "Reso"};
   return modIndex >= 0 && modIndex < 11 ? names[modIndex] : "Off";
@@ -378,6 +397,14 @@ static const InstrumentDefinition instrumentDefinitions[] = {
   {"MIDI Out",InstrumentCategory::midi,InstrumentScreenKind::midi,destMidi,COUNT(destMidi),fxMidi,COUNT(fxMidi),{0,modNameMidi,initMidiInstrument,freeMidiInstrument,0,0}},
   {"OPLL / MSX",InstrumentCategory::fm,InstrumentScreenKind::opll,destOPLL,COUNT(destOPLL),NULL,0,{2,modNameOPLL,initOPLLInstrument,freeNoneInstrument,0,0}},
   {"VRC7",InstrumentCategory::fm,InstrumentScreenKind::opll,destOPLL,COUNT(destOPLL),NULL,0,{2,modNameOPLL,initVRC7Instrument,freeNoneInstrument,0,0}},
+  {"AdLib / OPL2",InstrumentCategory::fm,InstrumentScreenKind::opl,destOPLL,COUNT(destOPLL),NULL,0,{2,modNameOPLL,initOPL2Instrument,freeNoneInstrument,0,0}},
+  {"OPL3",InstrumentCategory::fm,InstrumentScreenKind::opl,destOPLL,COUNT(destOPLL),NULL,0,{2,modNameOPLL,initOPL3Instrument,freeNoneInstrument,0,0}},
+  {"Sega PSG",InstrumentCategory::chip,InstrumentScreenKind::simpleChip,destOPLL,COUNT(destOPLL),NULL,0,{2,modNameOPLL,initSegaInstrument,freeNoneInstrument,1,0}},
+  {"GB Pulse",InstrumentCategory::chip,InstrumentScreenKind::simpleChip,destOPLL,COUNT(destOPLL),NULL,0,{2,modNameOPLL,initGBPulseInstrument,freeNoneInstrument,1,0}},
+  {"GB Noise",InstrumentCategory::chip,InstrumentScreenKind::simpleChip,destOPLL,COUNT(destOPLL),NULL,0,{2,modNameOPLL,initGBNoiseInstrument,freeNoneInstrument,1,0}},
+  {"DX7 FM",InstrumentCategory::fm,InstrumentScreenKind::dx7,destOPLL,COUNT(destOPLL),NULL,0,{2,modNameOPLL,initDX7Instrument,freeNoneInstrument,0,0}},
+  {"Genesis FM",InstrumentCategory::fm,InstrumentScreenKind::opl,destOPLL,COUNT(destOPLL),NULL,0,{2,modNameOPLL,initGenesisInstrument,freeNoneInstrument,0,0}},
+  {"Arcade FM",InstrumentCategory::fm,InstrumentScreenKind::opl,destOPLL,COUNT(destOPLL),NULL,0,{2,modNameOPLL,initArcadeInstrument,freeNoneInstrument,0,0}},
 };
 #undef COUNT
 
@@ -426,6 +453,9 @@ int instrumentModDestinationAvailable(const Instrument* instrument, int destinat
 
 InstrumentVoicePostSettings* instrumentVoicePostSettings(Instrument* instrument) {
   switch (instrument->type) {
+    case InstrumentType::SegaPSG:
+    case InstrumentType::GBPulse:
+    case InstrumentType::GBNoise: return &instrument->chip.simpleChip;
     case InstrumentType::Braids: return &instrument->chip.braids;
     case InstrumentType::Sample: return &instrument->chip.sample;
     case InstrumentType::SCWF: return &instrument->chip.scwf;

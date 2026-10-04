@@ -87,6 +87,17 @@ const char* instrumentTypeName(InstrumentType type) {
       return "Sintered";
     case InstrumentType::Midi:
       return "MIDI Out";
+    case InstrumentType::OPLL:
+    case InstrumentType::VRC7:
+    case InstrumentType::OPL2:
+    case InstrumentType::OPL3:
+    case InstrumentType::SegaPSG:
+    case InstrumentType::GBPulse:
+    case InstrumentType::GBNoise:
+    case InstrumentType::GenesisFM:
+    case InstrumentType::ArcadeFM:
+    case InstrumentType::DX7:
+      return getInstrumentDefinition(type)->uiName;
     case InstrumentType::none:
       return "None";
     default:

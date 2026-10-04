@@ -412,7 +412,7 @@ void appDraw(void) {
   screenDraw();
 
   if (currentScreen == &screenTitle ||
-      (currentScreen == &screenSelectionPopup && selectionPopupIsFullWidth())) return;
+      currentScreen == &screenSelectionPopup) return;
 
   if (!chipnomadState) return;
 

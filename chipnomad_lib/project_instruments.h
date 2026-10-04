@@ -28,6 +28,14 @@ enum class InstrumentType : uint8_t {
   Midi = 16,
   OPLL = 17,
   VRC7 = 18,
+  OPL2 = 19,
+  OPL3 = 20,
+  SegaPSG = 21,
+  GBPulse = 22,
+  GBNoise = 23,
+  DX7 = 24,
+  GenesisFM = 25,
+  ArcadeFM = 26,
   totalCount,
 };
 
@@ -300,7 +308,64 @@ struct InstrumentOPLL {
   uint8_t patch[8]; // complete pinned tone, portable with the song
 };
 
+enum class OPLTopology : uint8_t { twoOperator, fourOperator, dualVoice };
+struct OPLOperator {
+  uint8_t multiplier, level, attack, decay, sustain, release, waveform, keyScale;
+  uint8_t vibrato, tremolo, sustained, rateScale;
+};
+struct InstrumentOPL {
+  uint8_t schema;
+  OPLTopology topology;
+  OPLOperator operators[4]; // Native order: mod1, carrier1, mod2, carrier2.
+  uint8_t feedback[2], connection[2], pan[2]; // pan: 1 left, 2 right, 3 both
+  uint8_t deepVibrato, deepTremolo, percussion, fixedNote, drumKey, volumeModel;
+  int16_t noteOffset[2];
+  int8_t secondDetune, velocityOffset;
+  uint16_t keyOnDuration, keyOffDuration; // Source estimates, never tail cutoffs.
+  int8_t fineTune;
+  uint16_t bankId, sourceBank, sourceProgram;
+  char presetName[64];
+};
+
+struct InstrumentSimpleChip : InstrumentVoicePostSettings {
+  uint8_t schema, preset;
+  uint8_t mode; // Sega: tone/white/periodic. Pulse: 4 duties. Noise: 15/7 bits.
+  uint8_t noiseRate, noiseDivisor, noiseShift;
+  uint8_t envelopeInitial, envelopePeriod, envelopeIncrease;
+  uint8_t sweepPeriod, sweepShift, sweepNegate;
+  int8_t fineTune;
+};
+
+// Four-operator Yamaha native order: S1, S2, S3, S4 (M1,C1,M2,C2).
+struct FourOpOperator {
+  uint8_t multiplier, detune, level, keyScale, attack, decay, sustainRate;
+  uint8_t release, sustainLevel, ssg, detune2, amplitudeMod;
+};
+struct InstrumentFourOp {
+  uint8_t schema, algorithm, feedback, pan, amplitudeSensitivity, pitchSensitivity;
+  uint8_t lfoEnabled, lfoRate, lfoWave, amplitudeDepth, pitchDepth, operatorMask;
+  FourOpOperator operators[4];
+  int8_t fineTune;
+  uint16_t bankId, sourceProgram;
+  char presetName[64];
+};
+
+struct InstrumentDX7 {
+  uint8_t schema;
+  uint8_t voice[155]; // Canonical Yamaha VCED: OP6..OP1, global parameters, name.
+  int8_t fineTune;
+  uint8_t velocity; // Native velocity; software tracker volume remains separate.
+  uint16_t bankId, sourceProgram;
+  char presetName[64];
+};
+
 union InstrumentChipData {
+  InstrumentFourOp fourOp;
+  InstrumentDX7 dx7;
+  InstrumentSimpleChip simpleChip;
+
+  InstrumentOPL opl;
+
   InstrumentOPLL opll;
   InstrumentAY1 ay;
   InstrumentAY2 ay2;
@@ -339,7 +404,7 @@ struct InstrumentFunctions {
 // This is metadata, not an audio abstraction: renderers keep their typed
 // paths while screens, validation and motion routing share this one catalogue.
 enum class InstrumentCategory : uint8_t { none, chip, sample, synth, drums, midi, fm };
-enum class InstrumentScreenKind : uint8_t { none, ay1, ay2, aySample, braids, sample, scwf, byowtbl, plaits, achchid, drumSynth, mme, sintered, midi, opll };
+enum class InstrumentScreenKind : uint8_t { none, ay1, ay2, aySample, braids, sample, scwf, byowtbl, plaits, achchid, drumSynth, mme, sintered, midi, opll, opl, simpleChip, dx7 };
 enum class InstrumentMotionValue : uint8_t { raw, speed, cutoff };
 
 static constexpr uint8_t instrumentNoFX = 0xff;

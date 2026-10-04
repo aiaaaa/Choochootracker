@@ -1,0 +1,65 @@
+CCT-CHIP-CATALOG	1
+17	317	OPLL / MSX	Unsorted	Violin	builtin-17-01.cni
+17	317	OPLL / MSX	Unsorted	Guitar	builtin-17-02.cni
+17	317	OPLL / MSX	Unsorted	Piano	builtin-17-03.cni
+17	317	OPLL / MSX	Unsorted	Flute	builtin-17-04.cni
+17	317	OPLL / MSX	Unsorted	Clarinet	builtin-17-05.cni
+17	317	OPLL / MSX	Unsorted	Oboe	builtin-17-06.cni
+17	317	OPLL / MSX	Unsorted	Trumpet	builtin-17-07.cni
+17	317	OPLL / MSX	Unsorted	Organ	builtin-17-08.cni
+17	317	OPLL / MSX	Unsorted	Horn	builtin-17-09.cni
+17	317	OPLL / MSX	Unsorted	Synthesizer	builtin-17-10.cni
+17	317	OPLL / MSX	Unsorted	Harpsichord	builtin-17-11.cni
+17	317	OPLL / MSX	Unsorted	Vibraphone	builtin-17-12.cni
+17	317	OPLL / MSX	Unsorted	Synthesizer Bass	builtin-17-13.cni
+17	317	OPLL / MSX	Unsorted	Acoustic Bass	builtin-17-14.cni
+17	317	OPLL / MSX	Unsorted	Electric Guitar	builtin-17-15.cni
+18	318	VRC7	Unsorted	Buzzy Bell	builtin-18-01.cni
+18	318	VRC7	Unsorted	Guitar	builtin-18-02.cni
+18	318	VRC7	Unsorted	Wurly	builtin-18-03.cni
+18	318	VRC7	Unsorted	Flute	builtin-18-04.cni
+18	318	VRC7	Unsorted	Clarinet	builtin-18-05.cni
+18	318	VRC7	Unsorted	Synth	builtin-18-06.cni
+18	318	VRC7	Unsorted	Trumpet	builtin-18-07.cni
+18	318	VRC7	Unsorted	Organ	builtin-18-08.cni
+18	318	VRC7	Unsorted	Bells	builtin-18-09.cni
+18	318	VRC7	Unsorted	Vibes	builtin-18-10.cni
+18	318	VRC7	Unsorted	Vibraphone	builtin-18-11.cni
+18	318	VRC7	Unsorted	Tutti	builtin-18-12.cni
+18	318	VRC7	Unsorted	Fretless	builtin-18-13.cni
+18	318	VRC7	Unsorted	Synth Bass	builtin-18-14.cni
+18	318	VRC7	Unsorted	Sweep	builtin-18-15.cni
+21	321	Sega PSG	Unsorted	Bright Pluck	builtin-21-00.cni
+21	321	Sega PSG	Unsorted	Round Bass	builtin-21-01.cni
+21	321	Sega PSG	Unsorted	Square Hold	builtin-21-02.cni
+21	321	Sega PSG	Unsorted	Soft Pad	builtin-21-03.cni
+21	321	Sega PSG	Unsorted	Short Key	builtin-21-04.cni
+21	321	Sega PSG	Unsorted	Organ Tone	builtin-21-05.cni
+21	321	Sega PSG	Unsorted	Long Pluck	builtin-21-06.cni
+21	321	Sega PSG	Unsorted	Noise Hat	builtin-21-07.cni
+21	321	Sega PSG	Unsorted	Open Hat	builtin-21-08.cni
+21	321	Sega PSG	Unsorted	Noise Snare	builtin-21-09.cni
+21	321	Sega PSG	Unsorted	Low Burst	builtin-21-10.cni
+21	321	Sega PSG	Unsorted	Metal Tick	builtin-21-11.cni
+21	321	Sega PSG	Unsorted	Motor	builtin-21-12.cni
+21	321	Sega PSG	Unsorted	Wind Rise	builtin-21-13.cni
+22	322	GB Pulse	Unsorted	Hollow Lead	builtin-22-00.cni
+22	322	GB Pulse	Unsorted	Square Bass	builtin-22-01.cni
+22	322	GB Pulse	Unsorted	Thin Pluck	builtin-22-02.cni
+22	322	GB Pulse	Unsorted	Wide Key	builtin-22-03.cni
+22	322	GB Pulse	Unsorted	Pulse Organ	builtin-22-04.cni
+22	322	GB Pulse	Unsorted	Soft Pulse	builtin-22-05.cni
+22	322	GB Pulse	Unsorted	Down Sweep	builtin-22-06.cni
+22	322	GB Pulse	Unsorted	Up Blip	builtin-22-07.cni
+22	322	GB Pulse	Unsorted	Rising Pulse	builtin-22-08.cni
+22	322	GB Pulse	Unsorted	Short Click	builtin-22-09.cni
+23	323	GB Noise	Unsorted	Closed Hat	builtin-23-00.cni
+23	323	GB Noise	Unsorted	Open Hat	builtin-23-01.cni
+23	323	GB Noise	Unsorted	Snare Burst	builtin-23-02.cni
+23	323	GB Noise	Unsorted	Brush	builtin-23-03.cni
+23	323	GB Noise	Unsorted	Metal Hat	builtin-23-04.cni
+23	323	GB Noise	Unsorted	Rattle	builtin-23-05.cni
+23	323	GB Noise	Unsorted	Low Noise	builtin-23-06.cni
+23	323	GB Noise	Unsorted	Noise Click	builtin-23-07.cni
+23	323	GB Noise	Unsorted	Rising Wind	builtin-23-08.cni
+23	323	GB Noise	Unsorted	Chip Alarm	builtin-23-09.cni

@@ -22,10 +22,10 @@ The exact included commits and upstream base are in
 [personal-features.json](personal-features.json). MIDI support is now included through upstream `main`, along with sample slicing,
 key jazz, Settings submenus and the aChChid workflow improvements.
 
-## Current Alpha
+## Current device personal build
 
 Upstream base: `a02a88098a03b10518806268f039b9d9b8b2f5a9` (October 2).
-The device channel is **personal Alpha**: current main plus retained personal
+The device channel is **device personal build**: current main plus retained personal
 features and experiments explicitly requested for testing. Upstream acceptance
 is not required for a personal feature to remain on the handheld.
 
@@ -39,6 +39,7 @@ is not required for a personal feature to remain on the handheld.
 | #21 Persistent waveform | Merged | Upstream feature with retained personal layout, default OFF |
 | #22 Mixer meters | Closed as superseded by #23 | Upstream's integrated implementation |
 | Track Insert FX | Alpha experiment; PR pending | Two track slots, five native effects, Fxx and MOD |
+| Native chip instruments | Personal feature; no upstream PR | Ten chip types, shared FM browsing, local DX7 import and 876 native presets; device validation pending |
 | I’m Feeling Lucky | Personal experiment; no upstream PR | One Settings row, compiled only with `CHOOCHOO_EXPERIMENTAL_MOD_LUCKY=1` |
 
 Piano/meters are not duplicated just because their original proposal commits

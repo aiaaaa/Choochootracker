@@ -5,6 +5,9 @@
 #include <stdarg.h>
 #include "project.h"
 #include "opll_presets.h"
+#include "opl_patch.h"
+#include "four_op_patch.h"
+#include "simple_chip_presets.h"
 #include <memory>
 #include "project_io_common.h"
 #include "synth/sample_voice.h"
@@ -1267,7 +1270,7 @@ static int projectSaveAYWavetables(FILE* file, Project* project) {
 
 static int projectSaveInternal(FILE* file, Project* project) {
   bool nativeChips = false;
-  for (const auto& instrument : project->instruments) nativeChips |= isOPLL(instrument.type);
+  for (const auto& instrument : project->instruments) nativeChips |= (instrument.type==InstrumentType::DX7 || isOPLL(instrument.type) || (isOPL(instrument.type) || isFourOp(instrument.type)) || isSimpleChip(instrument.type));
   fprintf(file, "# ChooChooTracker Module %d.0\n\n", nativeChips ? 6 : 5);
 
   fprintf(file, "- Title: %s\n", project->title);
@@ -1363,7 +1366,7 @@ int instrumentSave(Project* project, const char* path, int instrumentIdx) {
     return 1;
   }
 
-  fprintf(file, "# ChipNomad Instrument %d.0\n\n", isOPLL(project->instruments[instrumentIdx].type) ? 6 : 5);
+  fprintf(file, "# ChipNomad Instrument %d.0\n\n", (project->instruments[instrumentIdx].type==InstrumentType::DX7 || isOPLL(project->instruments[instrumentIdx].type) || (isOPL(project->instruments[instrumentIdx].type) || isFourOp(project->instruments[instrumentIdx].type)) || isSimpleChip(project->instruments[instrumentIdx].type)) ? 6 : 5);
   instrumentSaveData(file, 0, &project->instruments[instrumentIdx]);
   saveTable(file, 0, &project->tables[instrumentIdx]);
 
@@ -1444,7 +1447,7 @@ int instrumentLoad(Project* project, const char* path, int instrumentIdx) {
     auto temporary = std::make_unique<Project>();
     projectInit(temporary.get());
     result = instrumentLoadInternal(file, temporary.get(), instrumentIdx);
-    if (!result && !isOPLL(temporary->instruments[instrumentIdx].type)) result = 1;
+    if (!result && !(temporary->instruments[instrumentIdx].type==InstrumentType::DX7 || isOPLL(temporary->instruments[instrumentIdx].type) || (isOPL(temporary->instruments[instrumentIdx].type) || isFourOp(temporary->instruments[instrumentIdx].type)) || isSimpleChip(temporary->instruments[instrumentIdx].type))) result = 1;
     if (!result) {
       instrumentClear(&project->instruments[instrumentIdx]);
       project->instruments[instrumentIdx] = temporary->instruments[instrumentIdx];
