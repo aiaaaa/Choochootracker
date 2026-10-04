@@ -371,3 +371,41 @@ Next remainingdelivery: commit/publishfeature+ffpersonal; sourcehashsync; refres
 ARMZIP; install_device.pyprepare/install(requireconfigured-audio.exit0 too);
 verifyrollback/settings/assets; desktoppackage+ARMdownload; commitinstalled
 checkpointdocs. Humanlistening/interactiveplaytest and1000DX7goalremainopen.
+
+
+DELIVERY COMPLETE — October 4, 2026 (host date).
+Installed source/application commit: 4b7bad7e2a3ed04e62cd22173b97774874c9435d.
+Both origin/feature/native-chip-instruments and origin/personal/r36h published;
+personal worktree fast-forwarded, all existing personal features retained. No PR.
+Regular install /roms/ports/choochootracker replaced only after staged full-file
+verification. Full745-file prior installation verified in rollback directory:
+/roms/choochootracker-backups/pre-native-chips-4b7bad7e2a3e/previous-install
+Original executable SHA256:
+dcbef85cccf7b30d102973fa94111ef2cfd3b969209a60f3219c022e644c1f55
+Installed executable readback SHA256:
+1966139c400e5fc25ca93107b5d442816f5d60c84d026814bef750a6945bc247
+Installed1656files;876nativeCNI verified. Kept all user assets/settings/autosave
+and regularlauncher; preserved22existingpackageconflicts includingcustomgptk,
+fonts, drum-instrumentfiles andgameinfo. audio48000/4906, persistentWaveform1,
+DepartureMono02 remainexactlyasbefore. Installed personal-build.json records
+channeldevice-personal-build, sourcehash, rollback, testreport andhumanplaytestpending.
+No automatic interactive launch; idlefrontendrestored; no testappsleft running.
+
+Release archives generated from application source4b7bad7, eachCRC/876CNI/notice
+checked andSHA256verified; neithercontainsuserdataorconnectionkeys:
+- releases/ChooChooTracker-native-chips-r36h.zip
+  12778957 bytes; SHA256 261cae73ef1833d5d37c6f9339ca46766a08a7aba455e6578fae5d9448b3a4d7
+- releases/ChooChooTracker-native-chips-macos-x86_64.zip
+  14429447 bytes; SHA256 bb652d177f03f376947522f4eb829b8c905d66fadd421c9f9b47208e4b8d18ef
+
+This final checkpoint is documentation-only after the installed4b7bad7 build;
+package/application identity deliberately remains4b7bad7. Localreceipt and
+installlogs: .tmp/chip-audit/package-receipt.json, install-prepare.log,
+install-install.log. Device installation-result.json andinstallation-plan.json
+retain detailed verification; do not publish their user-file inventories.
+No remaining automated delivery step. User listening/interactiveplaytest remains
+pending,1000clearedDX7goalunmet67distinctfallbackdelivered. 10,000wasONLYsynthetic
+browserstresstest, notbundledsounds. Total876presetfiles/812FMentries/704distinct
+FMparametersets, includingOPLsourcealiases. HeavyFX/small-bufferlimitationsare
+recordedinchip-instruments-report.md and64-case/600sCSV; configureddirect-card
+physicalaudio passed both70sfixtureswith0miss/0ALSAwarnings.
