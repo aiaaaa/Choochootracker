@@ -35,10 +35,10 @@ is not required for a personal feature to remain on the handheld.
 | #17 Fonts/theme | Merged | Upstream main |
 | #18 Piano | Closed as superseded by #23 | Upstream's integrated implementation |
 | #19 Project spacing | Merged | Upstream main |
-| #20 Track visuals | Open | Retained personal Detailed / Audio waveform setting |
+| #20 Track visuals | Merged | Retained personal Detailed / Audio waveform setting; upstream proposal accepted |
 | #21 Persistent waveform | Merged | Upstream feature with retained personal layout, default OFF |
 | #22 Mixer meters | Closed as superseded by #23 | Upstream's integrated implementation |
-| Track Insert FX | Alpha experiment; PR pending | Two track slots, five native effects, Fxx and MOD |
+| Track Insert FX | [#31 merged](https://github.com/paiheulevrai/Choochootracker/pull/31) | Already included from the feature branch; a later upstream update will reconcile the merged version |
 | Native chip instruments | Personal feature; no upstream PR | Ten chip types, shared FM browsing, local DX7 import and 876 native presets; ARM64 tests and configured-device audio validated |
 | I’m Feeling Lucky | Personal experiment; no upstream PR | One Settings row, compiled only with `CHOOCHOO_EXPERIMENTAL_MOD_LUCKY=1` |
 
@@ -57,12 +57,51 @@ Load font, theme, Track visuals and Persistent waveform. MIDI, current rendering
 fixes and Chord mode come from main. The installed `personal-build.json` records
 the exact source commit, upstream base, binary hash, checks and rollback location.
 
-## Branches
+## Branches and contribution groups
 
-- `main` mirrors upstream `main`.
-- `personal/r36h` is the combined source for the handheld.
-- `contribution/*` keeps each upstream proposal separate. Updating the personal
-  build does not alter those PRs or their descriptions.
+The two primary branches are [`main`](https://github.com/aiaaaa/Choochootracker/tree/main),
+the upstream mirror, and [`personal/r36h`](https://github.com/aiaaaa/Choochootracker/tree/personal/r36h),
+the combined source for the device personal build and this fork's default branch.
+
+The groups below describe the work's purpose. Existing branch names and PRs stay
+intact; a group's name does not require renaming its branches. Submission moves
+work from Upstream candidates to Submitted contributions. Later status changes
+update that entry rather than moving it to another group.
+
+### Experimental
+
+Personal explorations with no commitment to an upstream submission.
+
+| Work | Branch | Notes |
+| --- | --- | --- |
+| Get Lucky (I’m Feeling Lucky) | [`experimental/mod-lucky-integrated`](https://github.com/aiaaaa/Choochootracker/tree/experimental/mod-lucky-integrated) | Opt-in sample discovery; [build instructions and limits](docs/mod-lucky.md) |
+
+### Upstream candidates
+
+Active work that may become a future PR. Listing here does not mean it is ready
+for submission; each candidate still needs its own review and testing.
+
+| Work | Branch | Notes |
+| --- | --- | --- |
+| Native chip instruments | [`feature/native-chip-instruments`](https://github.com/aiaaaa/Choochootracker/tree/feature/native-chip-instruments) | No upstream PR; [validation report and remaining work](docs/chip-instruments-report.md) |
+
+### Submitted contributions
+
+Every submitted proposal stays here, whether pending, merged, closed, or
+incorporated differently. These branches retain proposal history; normal updates
+come through upstream `main`, with personal choices reconciled on `personal/r36h`.
+Status checked on October 4, 2026; follow the PR links for subsequent changes.
+
+| Contribution | Branch | PR | Status |
+| --- | --- | --- | --- |
+| Stick live toggle | [`feature/stick-live-toggle`](https://github.com/aiaaaa/Choochootracker/tree/feature/stick-live-toggle) | [#1](https://github.com/paiheulevrai/Choochootracker/pull/1) | Merged |
+| Fonts and theme | [`contribution/fonts-16x24`](https://github.com/aiaaaa/Choochootracker/tree/contribution/fonts-16x24) | [#17](https://github.com/paiheulevrai/Choochootracker/pull/17) | Merged |
+| Reactive piano | [`contribution/piano-visualization`](https://github.com/aiaaaa/Choochootracker/tree/contribution/piano-visualization) | [#18](https://github.com/paiheulevrai/Choochootracker/pull/18) | Closed; incorporated through #23 |
+| Project page spacing | [`contribution/project-page-spacing`](https://github.com/aiaaaa/Choochootracker/tree/contribution/project-page-spacing) | [#19](https://github.com/paiheulevrai/Choochootracker/pull/19) | Merged |
+| Track visuals | [`contribution/track-visuals`](https://github.com/aiaaaa/Choochootracker/tree/contribution/track-visuals) | [#20](https://github.com/paiheulevrai/Choochootracker/pull/20) | Merged |
+| Persistent waveform | [`contribution/persistent-waveform`](https://github.com/aiaaaa/Choochootracker/tree/contribution/persistent-waveform) | [#21](https://github.com/paiheulevrai/Choochootracker/pull/21) | Merged |
+| Mixer level meters | [`contribution/mixer-level-meters`](https://github.com/aiaaaa/Choochootracker/tree/contribution/mixer-level-meters) | [#22](https://github.com/paiheulevrai/Choochootracker/pull/22) | Closed; incorporated through #23 |
+| Track insert effects | [`feature/track-insert-fx`](https://github.com/aiaaaa/Choochootracker/tree/feature/track-insert-fx) | [#31](https://github.com/paiheulevrai/Choochootracker/pull/31) | Merged |
 
 The personal branch merges the feature branches, including their shared audio
 foundation once. It retains that history; upstream acceptance is not required.

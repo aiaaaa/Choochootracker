@@ -1,4 +1,14 @@
-> **Personal Alpha — device build:** current upstream `main`, my retained visual options, and requested experiments. Build/install from `personal/r36h`; `main` is the unchanged upstream mirror. See [what is included and the PR status](PERSONAL_FORK.md).
+> **Device personal build:** upstream `main`, retained personal features, and requested experiments. Build/install from [`personal/r36h`](https://github.com/aiaaaa/Choochootracker/tree/personal/r36h); [`main`](https://github.com/aiaaaa/Choochootracker/tree/main) remains the upstream mirror.
+
+## Fork navigation
+
+| Group | What belongs here |
+| --- | --- |
+| [Experimental](PERSONAL_FORK.md#experimental) | Get Lucky and other personal explorations; no upstream submission implied |
+| [Upstream candidates](PERSONAL_FORK.md#upstream-candidates) | Work that may become a future PR, including native chip instruments |
+| [Submitted contributions](PERSONAL_FORK.md#submitted-contributions) | All submitted PRs, whether pending, merged, or closed; each entry shows its status |
+
+See [the personal build and contribution index](PERSONAL_FORK.md) for branch links, PRs, and update instructions.
 
 > ** ALPHA VERSION. Software is not finished. CHOO CHOO.**
 
