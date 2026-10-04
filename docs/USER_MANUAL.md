@@ -1225,8 +1225,14 @@ concurrent offline/live renderers cannot change one another's rate. Events take
 effect at the next internal quantum (up to 1.45 ms), followed by the FIR's
 approximately 0.25 ms group delay. Buffered samples are retained across callbacks.
 This is the MSFA Modern lineage, not a claim of bit-identical DX7 hardware or a
-Dexed Mark I emulation. The final handheld voice policy awaits measured hardware
-headroom; no handheld installation or performance claim has been made.
+Dexed Mark I emulation. DX7 is limited to **16 active notes across the song**,
+including release tails, while retaining four owned chord slots per track.
+When over budget, it takes release tails first, then the quietest held notes,
+then fresh attacks. Equal attacks retain root notes across tracks before chord
+extensions, with stable slot/track tie breaking. This policy applies on every
+platform so the same song has the same bounded note allocation. It does not
+change other instruments' polyphony. Preset audition is disabled during playback.
+The limit was selected from R36H measurements; final device validation is ongoing.
 
 Genesis FM (YM2612) and Arcade FM (YM2151) now use the same FM Bank/Preset
 browser, EDIT+PLAY audition, confirm/cancel and fine-tune controls. Each has

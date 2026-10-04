@@ -194,3 +194,66 @@ Desktop package first attempt caught notice filename LICENCE.txt (not LICENSE);
 packager corrected to require that plus Blip_Buffer.txt. Archive not published.
 
 Desktop ZIP completed: 876 CNI, required notices and CRCs pass. SHA256 bf642716879d7e18a8a14de7b94566562fe448ebf9ac6484ca5e8e6c1888bfac. Final web WASM compiles with Node; host standard suite still359pass after GCC table fix. Added developer-only native_chip_audio.cpp for 70-second real SDL/ALSA callback validation with portable demo; not part of production executable.
+
+
+Publication/device checkpoint: f768258 committed and pushed to
+origin/feature/native-chip-instruments. No PR. personal/r36h remains c0a8c7e until
+combined device validation completes. ARM64 PortMaster personal executable and
+ZIP built successfully; ldd resolves all libraries. Full enabled test suite is
+compiling on the device, then runner proceeds into UI and benchmarks/600s soak.
+Task scripts prepared (not yet executed): .tmp/chip-audit/hardware_validation.py
+(70s real ALSA demo plus isolated production startup waveformOFF/ON; releases only
+idle ES audio and restores supervisor), install_device.py prepare/install (copies
+all installed assets, validates full snapshot/rollback, preserves regularlauncher).
+Run hardware_validation only once build.exit=0. Upload it and run background,
+collect hardware-audio.exit/log before installation. Device source hash comparison
+matches production code; differences are docs, newly added validation driver/
+Makefile, vendor PATCHES note and desktop packager. Stage record hashes predate
+those updates: refresh inventory and source-commit.txt before final install.
+Local docs/build-notes.md and personal-features.json have uncommitted follow-up
+instructions/channel naming/included_commit; finish them with actual device data.
+
+
+ARM suite now PASSED: 371 tests, 72,691,756 assertions, two expected opt-in skips.
+Production ARM binary SHA256 ddd1f640c632c93d3c50095eeb2f096cf47c087c3b36727543ae11fa8a1d9976.
+Runner target typo `chip-benchmark` corrected to `benchmark-native-chips` in
+local stage script; remote continue-validation.sh resumes after passing suite.
+Old exit2 moved to build-target-typo.exit. Current build.exit belongs to ongoing
+UI +62case benchmark+600s soak. Telemetry resumed in append mode. No app installed.
+
+
+Device measurements require final tuning before install. DX7 16 notes at48k512:
+mean2061.297us, p952174.958us,p992190.708us,worst4134.083us,zero misses.
+32-note stress has misses at44.1k512 and96k128. Implemented shared16activeDX7budget
+in existing owned slots, releases/quiet held notes before fresh attacks;
+ties preserve roots across tracks before chord extensions. No other instrument
+polyphony changed; preview already disabled during playback. New functional
+stealing tests pass in full host suite360tests/72,681,766assertions.
+Baseline ARM -Os8OPL3four/dual exceeds512deadline (~10.9/11.4ms). Applying focused
+-O3 only to new native chip vendor cores and adapters (no fast-math); all other
+code keeps prior flags. New Makefile.native-chip-flags included byPortmaster and
+tests; test CLI NATIVE_CHIP_OPT_FLAGS=-O3 matches production profile.
+Benchmark --bounded retains all30DX7rawloadcases plus1/8otherfamilies andactual
+mixed/FMheavy songs (52cases), omittingoptional32-voice non-DX7overloadstress.
+Need upload/rebuild/retest and measure final policy/profile before installation.
+UI ARM successful with SDL_VIDEODRIVER=offscreen SDL_AUDIODRIVER=alsa; bothdummy
+drivers absent. UI+render48k1024 p9528289.041,p9928406.292,worst28590.042us;
+separate from audio callbacktiming. Device DX7 browser screenshot visuallyclear.
+
+
+Final tuning now staged and rebuilding via remote validate-final.sh, logs
+production-build-final.log then tests.log, benchmark-build-final.log,
+ui-build-final.log, ui-smoke.log, device-benchmark.csv, device-soak.csv.
+Previous Os sweep intentionally stopped during optional32voice overload stage;
+kept as baseline-os-device-benchmark.csv (partial). Old tests/UI logs also kept.
+Final production/codeprofile verifies -Os followedby -O3 only on selectednative
+sources. New test checks actual sequencer8four-noteDX7chords remains4logicalnotes
+pertrack but16active andunchangedproject. Host full361tests72,681,789assertionsPASS.
+Desktoppersonal andweb rebuilt afterbudgetpolicy PASS. Latest hostartifacts
+containlimit; prior desktopZIP stillprelimit and MUST regenerate beforehandoff.
+Device final benchmark now53cases:30DX7rawpoints,20otherfamilies1/8,3songs incl
+FM-heavy chord song+FX (11notes max). Soak useslatter+10kmetadata,600seconds.
+The final device tests should be373passing (prior371+2); confirmactualresult.
+Current sourcechangesuncommitted: policy,tests,focusedflags,benchmark,docs,web.
+Afterfinalchecks commit+pushfeature,fast-forwardcleanpersonal/r36h andpublish;
+then sourcehashsync,hardwareaudio70s+startup,verifyrollback/install. NoPR.

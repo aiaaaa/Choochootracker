@@ -11,6 +11,8 @@ class DX7Voice {
   void noteOn(); void noteOff(); void kill();
   bool active() const {return active_;}
   float envelopeLevel() const {return active_?level_:0;}
+  bool releasing() const {return active_ && (pendingOff_ || (!gated_ && !pendingOn_));}
+  bool newlyTriggered() const {return pendingOn_;}
  private:
   friend class DX7Part;
   bool applyEvents();
@@ -41,3 +43,9 @@ class DX7Part {
   bool configured_=false;
   int cursor_=64;
 };
+
+// Measured on R36H: leave headroom for the track effects, UI and other engines.
+// The same policy on every platform keeps project playback predictable.
+constexpr unsigned DX7_MAX_ACTIVE_VOICES = 16;
+unsigned limitDX7Voices(DX7Part* const* parts, size_t count,
+                       unsigned limit = DX7_MAX_ACTIVE_VOICES);

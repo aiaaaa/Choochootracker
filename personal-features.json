@@ -90,7 +90,8 @@
       "dx7_large_library_target_met": false,
       "notes": "Existing personal features retained. Shared FM browser, native v6 patch ownership, strict local DX7 SysEx. Final handheld voice policy not selected without device measurements.",
       "status": "Implemented locally; desktop/web validation; handheld build/performance pending",
-      "fm_catalog_entries": 812
+      "fm_catalog_entries": 812,
+      "included_commit": "f768258d22f3329eb69e1ba5a0dd3cfae30c2649"
     }
   ],
   "personal_assets": [
@@ -100,13 +101,13 @@
       "upstream_pr": null
     }
   ],
-  "channel": "personal-alpha",
+  "channel": "device-personal-build",
   "experiments": [
     {
       "id": "track-insert-fx",
       "branch": "feature/track-insert-fx",
       "included_commit": "6014ec51437e5b23ec49a825c8990c2e955b0786",
-      "status": "personal Alpha testing; upstream PR pending review"
+      "status": "device personal build testing; upstream PR pending review"
     },
     {
       "id": "mod-lucky",

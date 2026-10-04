@@ -9,6 +9,51 @@
 #include <cstring>
 #include <cmath>
 #include <cstdio>
+
+TEST_CASE("DX7 bounded voices preserve roots and prefer released or quiet notes") {
+  auto storage = std::make_unique<DX7Part[]>(8);
+  DX7Part* parts[8];
+  InstrumentDX7 patch{};
+  initDX7Patch(&patch);
+  for (int t = 0; t < 8; ++t) {
+    parts[t] = &storage[t];
+    parts[t]->init(48000);
+    for (auto& voice : parts[t]->voices) {
+      voice.configure(&patch, 6000, 1);
+      voice.noteOn();
+    }
+  }
+  SUBCASE("simultaneous full chords keep roots across all eight parts") {
+    CHECK(limitDX7Voices(parts, 8) == 16);
+    for (const auto* part : parts)
+      for (int slot = 0; slot < 4; ++slot)
+        CHECK(part->voices[slot].active() == (slot < 2));
+    CHECK(limitDX7Voices(parts, 8) == 0);
+  }
+  SUBCASE("release tails count against the budget and are taken first") {
+    std::vector<float> audio(512);
+    for (int t = 0; t < 2; ++t) parts[t]->render(audio.data(), audio.size());
+    parts[0]->voices[0].noteOff();
+    parts[1]->voices[1].noteOff();
+    CHECK(limitDX7Voices(parts, 2, 6) == 2);
+    for (int t = 0; t < 2; ++t)
+      for (int slot = 0; slot < 4; ++slot)
+        CHECK(parts[t]->voices[slot].active() == (slot != t));
+  }
+  SUBCASE("a quiet held note is preferred over a fresh attack") {
+    parts[0]->voices[0].configure(&patch, 6000, 0);
+    std::vector<float> audio(512);
+    for (int t = 0; t < 2; ++t) parts[t]->render(audio.data(), audio.size());
+    auto& fresh = parts[1]->voices[3];
+    fresh.kill();
+    fresh.configure(&patch, 6000, 0);
+    fresh.noteOn();
+    CHECK(limitDX7Voices(parts, 2, 7) == 1);
+    CHECK_FALSE(parts[0]->voices[0].active());
+    CHECK(fresh.active());
+    CHECK(parts[1]->voices[0].active());
+  }
+}
 namespace {
 std::vector<uint8_t> single(const InstrumentDX7& p) {
   std::vector<uint8_t> m={0xf0,0x43,0,0,1,27};m.insert(m.end(),p.voice,p.voice+155);
@@ -117,4 +162,40 @@ TEST_CASE("DX7 ratio fixed mode velocity and reference quantum semantics") {
   a.resize(4800);b.resize(4800);adapter.render(a.data(),a.size());
   for(float& sample:b){float r;fir.next([&](float& x,float& y){if(cursor==64){memset(block,0,sizeof(block));reference.compute(block,lfo.getsample(),lfo.getdelay(),0);cursor=0;}x=y=block[cursor++]/16777216.f*.18f;},sample,r);}
   CHECK(a==b);
+}
+
+TEST_CASE("DX7 sequencer enforces the measured budget without changing chord data") {
+  auto state = std::unique_ptr<ChipNomadState, decltype(&chipnomadDestroy)>(
+      chipnomadCreate(), chipnomadDestroy);
+  REQUIRE(state);
+  REQUIRE(projectLoad(&state->project, "packaging/common/projects/gm-midi-demo.cct") == 0);
+  state->project.tracksCount = 8;
+  for (int t = 0; t < 8; ++t) {
+    getInstrumentFunctions(InstrumentType::DX7).init(&state->project.instruments[t]);
+    state->project.song[0][t] = t;
+    state->project.chains[t].rows[0].phrase = t;
+    state->project.chains[t].rows[0].transpose = 0;
+    phraseClear(&state->project.phrases[t]);
+    auto& row = state->project.phrases[t].rows[0];
+    row.note = 36 + t;
+    row.instrument = t;
+    row.volume = 15;
+    row.fx[0][0] = fxCRD;
+    row.fx[0][1] = 7;
+  }
+  auto original = std::make_unique<Project>(state->project);
+  chipnomadInitChips(state.get(), 48000, nullptr);
+  chipnomadReserveRenderBuffers(state.get(), 512);
+  REQUIRE(chipnomadQueueProjectRefresh(state.get()));
+  REQUIRE(chipnomadQueuePlaybackStartSong(state.get(), 0, 0, 1));
+  float audio[1024]{};
+  REQUIRE(chipnomadRender(state.get(), audio, 512));
+  unsigned active = 0;
+  for (int t = 0; t < 8; ++t) {
+    CHECK(state->playbackState.tracks[t].chordVoiceCount == 4);
+    for (auto* voice : state->dx7Voices[t]) active += voice->active();
+    CHECK(state->dx7Voices[t][0]->active());
+  }
+  CHECK(active == DX7_MAX_ACTIVE_VOICES);
+  CHECK(memcmp(original.get(), &state->project, sizeof(Project)) == 0);
 }

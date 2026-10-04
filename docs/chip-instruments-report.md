@@ -56,8 +56,13 @@ ChipNomadState is 782,032 bytes on this host. Project snapshots have not grown.
 Voices are allocated by bounded track/chord
 slot, not by catalogue entry. DX7 has one shared LFO per track part and four
 independent note states per part; unrelated tracks and preview are isolated.
-The existing eight-track/four-slot bound is provisional, not a measured handheld
-voice-limit decision. Release tails count as active. MSFA global tables are
+DX7 uses a measured **16-active-note global budget** within those existing owned
+slots, including release tails. Over-budget note events take releasing voices
+first, then quiet held notes, then fresh attacks. Equal attacks preserve roots
+across tracks before chord extensions, with deterministic slot/track ordering.
+Other instrument polyphony is unchanged; DX7 preview is blocked during playback.
+The same policy applies across platforms. Raw backend 32-note stress remains
+available for measurement, bypassing the sequencer's admission policy. MSFA global tables are
 initialized once off callback at 44.1 kHz, then streamed through the common FIR
 for arbitrary host rates. This avoids changing global tables beneath another
 renderer. Event quantization is bounded by 64 native samples (1.45 ms) plus

@@ -1360,6 +1360,7 @@ static void applyVoiceEvents(ChipNomadState* state, uint64_t dueMicros) {
     }
     track->note.noteTriggered = track->note.noteReleased = track->note.noteKilled = 0;
   }
+  limitDX7Voices(state->dx7Parts, project->tracksCount);
 }
 
 // InstrumentType::Midi keeps no voice object of its own (see
