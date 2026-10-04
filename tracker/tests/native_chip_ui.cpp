@@ -18,6 +18,7 @@
 #include "monitor_display.h"
 #include "dx7_patch.h"
 #include "copy_paste.h"
+#include "insert_fx.h"
 extern SDL_Renderer* renderer;
 static const char* output;
 static void require(bool condition,const char* why){if(!condition){fprintf(stderr,"FAIL: %s\n",why);exit(2);}}
@@ -28,6 +29,31 @@ int main(int argc,char** argv){
   if(argc!=2)return 1;output=argv[1];initDefaultAppSettings();appSettings.screenWidth=640;appSettings.screenHeight=480;fontSetCurrent(fontGetDefault());require(!gfxSetup(&appSettings.screenWidth,&appSettings.screenHeight),"SDL dummy setup");
   chipnomadState=chipnomadCreate();require(chipnomadState,"state");require(!projectLoad(&chipnomadState->project,"projects/gm-midi-demo.cct"),"fixture");
   chipnomadInitChips(chipnomadState,48000,nullptr);chipnomadReserveRenderBuffers(chipnomadState,1024);screensInitAll();waveformDisplayInit();monitorDisplayInit();
+  // The accepted insert review shares popup controls with native-chip browsing.
+  // Check the full-height page and category selection in both waveform modes.
+  for (int header : {0, 1}) {
+    appSettings.persistentWaveform = header;
+    *pSongTrack = 0;
+    insertSelect(&chipnomadState->project.trackInserts[0][0], insertDistortion);
+    screenSetup(&screenInsertFX, -1); appDraw();
+    require(gfxGetContentRowOffset() == 0, "Insert FX keeps accepted full-height layout");
+    capture(header ? "insert-header-on" : "insert-header-off");
+    key(1, keyEdit); key(0, 0);
+    require(currentScreen == &screenSelectionPopup && selectionPopupIsFullWidth(),
+            "insert chooser opens full width");
+    capture(header ? "insert-chooser-header-on" : "insert-chooser-header-off");
+    key(1, keyUp); key(1, keyRight); key(1, keyDown);
+    capture("insert-dynamics-ott");
+    tapEdit();
+    require(currentScreen == &screenInsertFX, "insert choice returns to page");
+    require(chipnomadState->project.trackInserts[0][0].module == insertOTT,
+            "Dynamics category selects OTT");
+    insertSelect(&chipnomadState->project.trackInserts[0][0], insertOff);
+  }
+  // This harness calls screen input directly; normal app button release clears tips.
+  screenMessage(0, "");
+  appSettings.persistentWaveform = 0;
+  printf("Insert review UI passed: full-height page, grouped chooser, waveform off/on\n");
   // Exercise the real Type popup; direct instrument initialization cannot catch
   // a stale category count hiding otherwise functional instrument pages.
   int fmIndex = 0;
@@ -75,6 +101,9 @@ int main(int argc,char** argv){
   printf("ADSR pixel regression passed: ten engines, header off/on, twelve edits each\n");
   appSettings.persistentWaveform=1;getInstrumentFunctions(InstrumentType::DX7).init(&chipnomadState->project.instruments[0]);screenSetup(&screenInstrument,0);appDraw();
   auto before=std::make_unique<Project>(chipnomadState->project);screenInstrumentOPL.onEdit(0,4,CellEditAction::tap);appDraw();require(currentScreen==&screenSelectionPopup,"shared FM browser");capture("dx7-categories");key(1,keyRight);capture("dx7-presets");
+  auto popupPixels = pixels();
+  screenSelectionPopup.fullRedraw();
+  require(popupPixels == pixels(), "app overlays must not cover native preset lists or footer");
   key(1,keyEdit);require(currentScreen==&screenSelectionPopup,"EDIT waits to permit preview chord");key(1,keyEdit|keyPlay);
   std::vector<float> audio(2048);double energy=0;for(int n=0;n<12;++n){chipnomadRender(chipnomadState,audio.data(),1024);for(float x:audio)energy+=x*x;}require(energy>1e-5,"audition audio");require(!memcmp(before.get(),&chipnomadState->project,sizeof(Project)),"audition mutation");key(0,keyPlay);key(1,keyOpt);require(!memcmp(before.get(),&chipnomadState->project,sizeof(Project)),"cancel mutation");
   screenInstrumentOPL.onEdit(0,4,CellEditAction::tap);appDraw();key(1,keyRight);tapEdit();require(currentScreen==&screenInstrument,"confirm returns");require(!memcmp(before->tables,chipnomadState->project.tables,sizeof(before->tables)),"table changed");require(!memcmp(before->trackInserts,chipnomadState->project.trackInserts,sizeof(before->trackInserts)),"insert changed");capture("dx7-loaded");

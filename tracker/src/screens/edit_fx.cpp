@@ -282,10 +282,7 @@ int drawFXList(int visibleGroupIdx, int y) {
 
     gfxPrint(1 + col * 4, fxY, item->name);
 
-    if (isCurrent) {
-      gfxCursor(1 + col * 4, fxY, 3);
-      if(item->fx>=fxF11 && item->fx<=fxF28){uint8_t f[]={(uint8_t)item->fx,0};screenMessage(0,"%s",contextualFXHint(f,currentIsTable,currentInstrumentIdx));}
-    }
+    if (isCurrent) gfxCursor(1 + col * 4, fxY, 3);
   }
 
   // Calculate how many rows the FX list takes
@@ -295,6 +292,9 @@ int drawFXList(int visibleGroupIdx, int y) {
 
 void fxEditFullDraw(uint8_t currentFX, uint8_t instrumentIdx, int isTable) {
   gfxClearRect(0, 0, 35, 20);
+  // The phrase screen reserves the bottom row for messages.  Do not leave a
+  // stale insert hint there: it can overwrite the second row of Fxx entries.
+  screenMessage(0, "");
 
   // Store instrument index for this session
   currentInstrumentIdx = instrumentIdx;

@@ -37,14 +37,14 @@ upstream’s track-visuals/GPU integration, corrected Graphics touch mapping, sa
 editor and processing updates, sample stretching, and bounce/export improvements.
 Native chip instruments and Get Lucky remain included.
 
-**Temporary exception — insert effects:** at the user’s request, keep our current
-insert-effects implementation from `27f8ddb`. The maintainer’s insert chooser/CPU
-changes and related insert review changes are deferred. Main remains an exact
-upstream mirror; this exception applies only to Personal. See
-[the sync report](docs/personal-upstream-sync-20261004.txt) for the exact boundary
-and checks. To adopt those changes later, explicitly replace the pinned files
-from current upstream and reconcile shared native-chip code. A subsequent merge
-alone does not undo this exception.
+Insert effects now uses the maintainer’s accepted implementation from
+[PR #31](https://github.com/paiheulevrai/Choochootracker/pull/31) and
+[review PR #34](https://github.com/paiheulevrai/Choochootracker/pull/34), including
+the follow-up review polish: grouped module chooser, CPU readout, full-height
+Insert FX page and hint cleanup. The earlier temporary exception is removed.
+Native-chip preset audition and Get Lucky remain included. See
+[the insert review report](docs/personal-insert-review-20261004.txt) and
+[the preceding sync report](docs/personal-upstream-sync-20261004.txt).
 
 ## Recorded installed device build
 
@@ -62,7 +62,7 @@ incorporated upstream, the maintainer’s version replaces my earlier version.
 | #20 Track visuals | Merged | Retained personal Detailed / Audio waveform setting; upstream proposal accepted |
 | #21 Persistent waveform | Merged | Upstream feature with retained personal layout, default OFF |
 | #22 Mixer meters | Closed as superseded by #23 | Upstream's integrated implementation |
-| Track Insert FX | [#31 merged](https://github.com/paiheulevrai/Choochootracker/pull/31) | Included from our feature branch; upstream review changes temporarily deferred by user request |
+| Track Insert FX | [#31 merged](https://github.com/paiheulevrai/Choochootracker/pull/31) | Installed build uses our earlier implementation; current Personal source adopts the maintainer’s merged review |
 | Native chip instruments | Personal feature; no upstream PR | Ten chip types, shared FM browsing, local DX7 import and 876 native presets; ARM64 tests and configured-device audio validated |
 | I’m Feeling Lucky | Personal experiment; no upstream PR | One Settings row, compiled only with `CHOOCHOO_EXPERIMENTAL_MOD_LUCKY=1` |
 
@@ -131,8 +131,7 @@ Status checked on October 4, 2026; follow the PR links for subsequent changes.
 
 Use the maintainer’s merged version, including his fixes and changes, in place
 of my earlier implementation. Check for and remove duplicate code or controls.
-The old branch can remain as history. Insert effects is temporarily exempt at
-my explicit request, as recorded above; it will be adopted in a later update.
+The old branch can remain as history. Insert effects now follows this policy too.
 
 This policy applies at the next tested update; it does not mean the installed
 build has already been updated. Keep all other unmerged personal additions.

@@ -1,0 +1,59 @@
+Personal insert-effects review adoption — October 4, 2026
+
+Request
+Adopt the maintainer's accepted insert effects now that PR #31 is merged,
+replacing the temporary exception from the preceding Personal sync.
+
+Upstream evidence and scope
+PR #31: https://github.com/paiheulevrai/Choochootracker/pull/31
+Merged at 2026-10-04T21:06:09Z, merge 24eb0a679d1c72fe5839c2f6b4fc022fe21298b9.
+Review PR #34: https://github.com/paiheulevrai/Choochootracker/pull/34
+Merged at 2026-10-04T21:06:07Z, merge 93877dcf0b0b53e26457a971bbda45a128cbd0d5.
+The review includes conflict resolution, Windows fixes and insert review changes.
+Both merges and follow-up polish 1f4deb64df74e267957e0608976c898bccf01e8d
+are in the previously tested upstream base df173ece4658e67c8c1d06e7d85e79ac4394fb1f.
+This update explicitly replaces the implementation pinned by ca4dd38; the merge
+history alone could not remove that pin. It does not import the separate newer
+sample-embedding change observed at upstream/main ccbf261.
+
+Integration
+- Adopt the accepted grouped module chooser, CPU readout, full-height Insert FX
+  page, F–M–I–P navigation, hint cleanup and Windows math constant definitions.
+- Insert DSP/header, screen_insert_fx, edit_fx, screen_layout and scope_display
+  match the reviewed upstream base exactly.
+- Shared popup and app navigation keep native preset audition, waveform-coordinate
+  compatibility and Get Lucky lifecycle hooks alongside the accepted changes.
+  All selection popups retain Personal's overlay protection: native preset lists
+  use the whole popup, so track notes and navigation must not cover them.
+  Offscreen UI inspection caught this shared-code conflict; a pixel check guards it.
+- No native-chip or Get Lucky feature implementation is removed.
+- Remove the temporary exception from README, PERSONAL_FORK, feature metadata,
+  user manual and local collaboration instructions. Move insert effects out of
+  the metadata's experiment list into accepted features.
+- Preserve feature/track-insert-fx at 1ed9c9a1ca2ac78601a9f9f02c16943ef5e61324
+  as the original submitted proposal history; no PR edits.
+
+Validation
+- Personal suite with Get Lucky: 485 passed, 0 failed, 2 skipped;
+  74,528,153 assertions passed. The skips are opt-in live network/fresh-process
+  Lucky tests, unchanged from the preceding sync.
+- New assertions check the CPU readout, category chooser and selecting OTT
+  without changing the other slot. Existing DSP, project and native-chip checks pass.
+- macOS desktop build with Get Lucky: passed.
+- Emscripten 6.0.10 web-deploy: passed; checked-in JS/WASM regenerated.
+  Get Lucky remains disabled in the standard web target.
+- Offscreen production SDL UI: insert page and category selection with Persistent
+  waveform off/on; all seven FM types selected/reopened; ADSR incremental pixels
+  versus full redraw for ten engines in both header modes; native preset list
+  pixels versus unobscured popup; audition/cancel/import/copy/clone; 500 playback
+  blocks with rendering; preview guard during song playback: all passed.
+- Screenshots inspected for insert layout, Dynamics/OTT selection and the native
+  preset browser. The native preset list and audition footer are unobscured.
+- Source/document whitespace check passed. Generated Emscripten JS retains its
+  generator's trailing whitespace, as in the preceding bundle.
+
+Deployment boundary
+This updates the Personal GitHub source and web bundle. No ARM64 package was
+built or installed on the R36H in this step. Existing device binaries, settings,
+songs, audio routing and rollback records remain unchanged. Hardware validation
+is still required when this source is packaged for a handheld update.

@@ -89,7 +89,8 @@ static void fullRedraw() {
   const bool playing = chipnomadState && chipnomadGetPlaybackStatus(chipnomadState)->isPlaying;
   gfxPrint(0, 19, onPreview && playing ? "STOP SONG TO HEAR  EDIT SELECT  OPT EXIT" :
     onPreview ? "EDIT SELECT  EDIT+PLAY HEAR  OPT EXIT" :
-    "U/D MOVE  EDIT SELECT  OPT EXIT");
+    fullWidth ? "U/D MOVE EDIT SELECT OPT EXIT" :
+    "L/R PANEL U/D MOVE EDIT SELECT OPT EXIT");
 }
 
 static void draw() {}

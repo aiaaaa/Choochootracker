@@ -101,6 +101,17 @@
       ],
       "r2_validation_report": "docs/chip-r36h-r2-validation.json",
       "integration_policy": "Keep the personal feature until incorporated upstream, including if its PR is pending or declined. Then use the maintainer's implementation instead of the earlier personal code."
+    },
+    {
+      "id": "track-insert-fx",
+      "branch": "feature/track-insert-fx",
+      "included_commit": "1f4deb64df74e267957e0608976c898bccf01e8d",
+      "status": "Merged upstream; Personal adopts the maintainer review and follow-up polish.",
+      "upstream_pr": "https://github.com/paiheulevrai/Choochootracker/pull/31",
+      "title": "Track insert effects",
+      "upstream_status": "merged via PR #31 and review PR #34",
+      "upstream_review_pr": "https://github.com/paiheulevrai/Choochootracker/pull/34",
+      "documentation": "docs/personal-insert-review-20261004.txt"
     }
   ],
   "personal_assets": [
@@ -113,13 +124,6 @@
   "channel": "device-personal-build",
   "experiments": [
     {
-      "id": "track-insert-fx",
-      "branch": "feature/track-insert-fx",
-      "included_commit": "6014ec51437e5b23ec49a825c8990c2e955b0786",
-      "status": "Temporary user-requested exception: retain our pre-sync insert-effects implementation; upstream review changes deferred.",
-      "upstream_pr": "https://github.com/paiheulevrai/Choochootracker/pull/31"
-    },
-    {
       "id": "mod-lucky",
       "branch": "experimental/mod-lucky-integrated",
       "included_commit": "38de2454a5bf0de6a89874d2b2b105266bffb8d6",
@@ -127,15 +131,6 @@
       "build_flag": "CHOOCHOO_EXPERIMENTAL_MOD_LUCKY=1",
       "normal_build_default": "OFF",
       "documentation": "docs/mod-lucky.md"
-    }
-  ],
-  "temporary_exceptions": [
-    {
-      "id": "track-insert-fx",
-      "reason": "User requested retaining our current insert effects while updating the rest of Personal.",
-      "personal_baseline": "27f8ddb",
-      "upstream_review_deferred": true,
-      "resume_policy": "When requested, explicitly replace the pinned implementation with the then-current upstream version and reconcile shared native-chip/popup code; another merge alone will not remove the pin."
     }
   ]
 }
