@@ -43,10 +43,9 @@ is not required for a personal feature to remain on the handheld.
 | I’m Feeling Lucky | Personal experiment; no upstream PR | One Settings row, compiled only with `CHOOCHOO_EXPERIMENTAL_MOD_LUCKY=1` |
 
 R2 adds FM onset smoothing, optional amp ADSR and tone macros, Sega low-note
-extension, chip automation and the ADSR graph fix. Host tests, personal desktop,
-Web and offscreen UI checks pass. The ARM64/audio results above describe the
-previous installed build; R2 handheld benchmarking, listening and installation
-remain pending. See [the current report](docs/chip-instruments-report.md).
+extension, chip automation and the ADSR graph fix. Host and ARM tests, personal desktop/Web, SDL UI, mixed benchmarks and
+physical ALSA checks pass. R2 listening acceptance remains pending; the installed
+source and rollback are recorded in personal-build.json and the progress log. See [the current report](docs/chip-instruments-report.md).
 
 Piano/meters are not duplicated just because their original proposal commits
 remain in Git history. GitHub's ahead/behind counts describe history; they are

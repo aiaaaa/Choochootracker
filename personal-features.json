@@ -80,15 +80,14 @@
       ],
       "pending": [
         "human listening and interactive device playtest",
-        "DX7 1000-cleared-preset goal unmet (67 distinct bundled)",
-        "R2 ARM64 rebuild, performance and physical audio checks, verified installation"
+        "DX7 1000-cleared-preset goal unmet (67 distinct bundled)"
       ],
       "factory_cni": 876,
       "dx7_parameter_patches": 67,
       "dx7_large_library_target": 1000,
       "dx7_large_library_target_met": false,
       "notes": "Existing personal features retained. Shared FM browser, native v6 patch ownership, strict local DX7 SysEx. Global 16-active-note DX7 budget selected from R36H measurements. Balanced 4WAV+2chip+2FM with four inserts passes direct-card audio at preserved settings; dense FM/insert and small-buffer limits are documented.",
-      "status": "R2 host validated: 382 personal-enabled tests, desktop/Web and SDL UI pass; hardware validation and installation pending",
+      "status": "R2 machine validated: host/personal ARM tests, desktop/Web, SDL UI, mixed benchmarks, physical ALSA and waveform OFF/ON startup; listening pending",
       "fm_catalog_entries": 812,
       "included_commit": "cd25ce3c9bae28b2b05630d352821b6a6836ee1b",
       "dx7_active_note_limit": 16,
@@ -100,7 +99,8 @@
         "Sega low-note extension",
         "Sega/GB phrase and modulation controls",
         "ADSR graph redraw fix"
-      ]
+      ],
+      "r2_validation_report": "docs/chip-r36h-r2-validation.json"
     }
   ],
   "personal_assets": [

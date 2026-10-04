@@ -572,3 +572,128 @@ SHA256 `a76453c94c9148298ae0a02b8e4d7c12a64efa6723d10bd3ed63a65a0e225aa8`.
 Its manifest identifies application source5d2550e. Local receipt:
 `.tmp/chip-fixes-r2/package-final.json`. No R2 ARM package yet; handheld still
 shows inactive USB network link. Hardware and library requirements above remain.
+
+### R2 handheld build started after reboot — 2026-10-04
+
+User reboot restored SSH, then explicitly deferred all SSH/logo debugging.
+Shared detour checkpoint records the timeout with logo still visible. Do not
+change SSH, USB or sleep configuration while finishing tracker deployment.
+
+Synced and verified committed source d9dbdeefc15466827532e1e84b41def4f7f795d2
+to the existing isolated build. Started persistent background runner:
+/roms/choochootracker-native-chips-20261004/chip-fixes-r2/build.py.
+It rebuilds personal production/package, runs full ARM tests, builds UI/audio
+validation, runs UI regression and 30s balanced benchmarks with/without FM ADSR.
+Future-dated cached outputs were invalidated after the reboot clock regression
+(1342 .o/.d files); no clocks or system configuration changed.
+
+SSH dropped again during production compilation. Last successful check showed
+two active compilers, ample RAM and12GB free on /roms. Asked user to wake/re-enable
+SSH without reboot; the build may still be running. Do not restart it blindly.
+Read stage.txt, build.exit and runner.log in the R2 directory when SSH returns.
+Installed app remains unchanged.
+
+Prepared and syntax-checked local .tmp/chip-fixes-r2 helpers:
+- device_action.py collect: retrieves bounded R2 status/test/benchmark receipts.
+- device_action.py hardware: uploads/starts hardware.py after successful build;
+  temporarily releases idle frontend audio, runs two70s direct ALSA checks
+  (bank and amp-enabled balanced chord/four-insert), six-second production
+  startup with waveform OFF/ON, restores frontend and verifies user data.
+- release_device.py + install_device.py: guarded R2 package and verified full
+  rollback install. Not run. Release expects updated tracked R2 validation JSON
+  and benchmark CSV plus committed/synced reports. device_action.py release
+  permits only report changes since the tested application build.
+
+Next: retrieve completed build status; inspect ARM tests/UI/benchmarks; perform
+hardware audio/startup checks with no user app running; update reports and fork
+branches, sync docs, package/install and verify. No R2 install is claimed yet.
+
+Reboot interrupted production, then SSH returned again. Verified every synced
+source hash and retained106 completed R2 objects;570 remained. Resume helper
+normalizes timestamps only inside the isolated build tree (source/config before
+completed objects), preserving interrupted work despite backward device clocks.
+Two newest outputs conservatively invalidated. No clock/services changes.
+Runner resumed; runner-resumed.log holds diagnostics. Do not rerun resume helper
+blindly; it checks no live build and is designed for this specific interruption.
+Queued queue-hardware.py waits up to30min for build.exit, then runs guarded
+hardware.py only if build passed. It refuses an open app, releases/restores idle
+frontend audio and preserves installed settings/autosave. Hardware checks may
+continue even if SSH disappears; do not duplicate them or reboot mid-build.
+
+Connection timed out again after the resumed build reached Plaits-Alt production
+compilation (254 production objects ready at last counted check; tests not yet
+started). Build and queued hardware tests run independently of SSH; their final
+status is unknown until logs can be retrieved. User advised to leave power on
+and avoid another immediate reboot. No installation or SSH configuration changes
+performed. Keep this checkpoint local until results/report publication.
+
+Next reboot restored SSH. Production app/package had completed, test compilation
+was interrupted. Verified all source hashes; retained337 completed test objects
+and conservatively rebuilt the two newest outputs. Forced test/benchmark binary
+relink so backward wall time cannot select the prior executable. Resumed only
+tests and subsequent stages; requeued guarded hardware validation. Task helper:
+.tmp/chip-fixes-r2/resume_tests.py (specific to this interruption; not idempotent).
+No installed app or SSH/sleep settings changed.
+
+### R2 display test recovery and next validation gate
+
+The first complete ARM personal test run passed 378 of 382 cases; four display
+cases failed (nine assertions). Investigation found the test piano object used
+the old PlaybackTrackState stride, 8848 bytes, while current code uses 8904.
+Explicitly removing and recompiling the test piano_display.o and
+waveform_display.o, then relinking, made all four cases pass (31 assertions).
+No source change or weakened assertion was needed. Receipts are in
+.tmp/chip-fixes-r2/display-retest.log and the remote display-rebuild.log.
+Production piano_display.o DWARF already reports the correct 8904-byte layout.
+The cause of the stale objects is not fully established; interrupted builds and
+backward device time make timestamp-only cache decisions unreliable.
+
+Next: audit remaining production/test objects for old shared structure layouts,
+rebuild any confirmed stale objects and relink affected executables, preserve
+the initial failure logs, and rerun the complete ARM suite, UI and benchmarks.
+Remove the runner's cache timestamp promotion before retrying; do not blindly
+reuse resume helpers. Only queue physical audio/startup checks after build.exit
+is zero. Hardware checks and R2 installation have not occurred.
+
+On the latest continuation SSH again timed out at 192.168.36.2. User asked to
+wake/enable SSH; the SSH/sleep regression remains deferred. Installed tracker,
+system clock, SSH service and USB configuration remain unchanged this round.
+
+Connection returned after the user's reset. Audited 677 production/test object
+files; 131 contained the inspected shared layouts. All inspected production
+layouts were current. Found 22 additional stale test/benchmark objects with
+PlaybackTrackState=8848, PlaybackStatus=70800 and ChipNomadState=782032 (current:
+8904, 71248 and 782928). Explicitly removed those 22 objects, preserved the first
+failure logs, removed cache timestamp promotion, and forced production/test/
+benchmark relinking. Full validation resumed and hardware checks requeued.
+Remote layout-audit.json records each object's sizes. Recovery helper:
+.tmp/chip-fixes-r2/resume_validation_device.py, invoked through device_action.py
+resume-validation; it is guarded for this specific failed run, not idempotent.
+
+### Continuation after chat disconnect — 2026-10-04
+
+Recovered the existing R2 branch and test/install checkpoint; no new PR or
+replacement branch is needed. Both normal and unrestricted collection attempts
+timed out at 192.168.36.2. The former USB interface en6 is absent, and no local
+interface currently has a 192.168.36.x address. Asked user to reconnect USB/open
+SSH Connection without rebooting if possible. No network settings changed.
+
+Latest locally collected stage remains tests, with run_tests linked and started
+but no final result. Local device-build.exit is an older failed-run receipt;
+never interpret individual cached receipts as the latest complete run. Retrieve
+fresh remote build.exit/build-result.json and hardware.exit/hardware-result.json
+before advancing. Do not rerun non-idempotent recovery or hardware helpers
+without inspecting remote state. No R2 installation occurred in this continuation.
+
+### R2 handheld machine validation complete
+
+Tested binary build source d9dbdeefc15466827532e1e84b41def4f7f795d2; SHA256
+981f212bbd2e5f4e05d18624121c4759956aceb87fed72c554c06a9747f923af. ARM personal suite: 382 cases /
+74095590 assertions passed, 2 opt-in skips. UI pixel/browser/playback
+checks passed. Four balanced benchmark rows and two 70-second physical ALSA
+checks recorded in chip-r36h-r2-validation.json / chip-r36h-r2-benchmark.csv.
+Production waveform OFF/ON startup passed; installed settings/autosave preserved.
+Subjective FM click acceptance remains pending. No limits changed.
+Next: commit/push report-only update, sync source inventory, release and install
+with .tmp/chip-fixes-r2/device_action.py after closed-app guard. SSH/sleep issue
+remains explicitly deferred; no system/USB configuration changes in R2 delivery.
