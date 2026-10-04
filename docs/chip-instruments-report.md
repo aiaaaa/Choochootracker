@@ -11,7 +11,7 @@ real SDL/ALSA playback and combined production startup checks are complete.
 The validated source extends the existing device personal build; installation
 identity and rollback are recorded in its `personal-build.json`.
 
-## R2 fixes — host validated, handheld validation pending
+## R2 fixes — host and handheld machine validation passed
 
 The prior ARM64 results below describe the installed `0146fcf` lineage, not the
 new R2 DSP. R2 adds a 3 ms per-voice FM onset/retrigger transition, 1 ms gain
@@ -46,8 +46,8 @@ types. Six chip adapters now bridge the exact retrigger boundary continuously;
 DX7 applies its transition at the next native quantum before FIR resampling.
 This is limited numerical evidence, not proof that every reported audible click
 is resolved. Hard cut/panic remains immediate; zero-release envelopes and native
-patch transients can still be abrupt. Handheld listening, R2 CPU measurements and
-installation remain pending while its USB network link is unavailable.
+patch transients can still be abrupt. Handheld machine validation is recorded below. Listening acceptance remains
+pending; installation identity is recorded in the progress document.
 
 For the R2 hardware benchmark, use `benchmark_native_chips 30 --songs-only
 --sample-mix --four-inserts --song-fm-amp` alongside the same command without
@@ -58,6 +58,40 @@ the physical ALSA check. Host timing is not a substitute for handheld timing.
 The library remains **876 CNI files / 812 FM catalogue entries / 704 distinct
 FM parameter sets**, including **67 distinct DX7 patches**. The 1,000 cleared
 DX7-preset goal remains unmet; 10,000 is only a synthetic browser stress fixture.
+
+### R2 measured handheld results
+
+The personal ARM build passed 382 tests / 74,095,590 assertions,
+with 2 opt-in tests skipped. The real SDL type popup, repeated ADSR pixel,
+browser/import/audition and playback checks passed. The combined offscreen
+audio-render plus UI-draw loop measured p95 28.766 ms and worst 29.223 ms
+for 1,024 frames at 48 kHz, exceeding that block duration of 21.333 ms.
+This functional UI check is not a passing small-buffer real-time claim; the
+separate physical audio checks below use the preserved 4,906-frame setting.
+
+Thirty-second offline render fixtures at 48 kHz / 512 frames:
+
+| Arrangement | FM amp | Mean µs | p95 µs | Worst µs | Deadline misses |
+|---|---|---:|---:|---:|---:|
+| Single notes; 4 WAV + 2 chip + 2 FM, four inserts | Bypass | 7441.224 | 7989.042 | 8299.375 | 0 |
+| DX7 chord; 4 WAV + 2 chip + 2 FM, four inserts | Bypass | 7709.263 | 8283.333 | 8670.958 | 0 |
+| Single notes; 4 WAV + 2 chip + 2 FM, four inserts | ADSR | 7513.280 | 8151.208 | 9367.167 | 0 |
+| DX7 chord; 4 WAV + 2 chip + 2 FM, four inserts | ADSR | 7888.301 | 8583.750 | 8994.125 | 0 |
+
+Two 70-second physical SDL/ALSA checks used the existing direct-card route
+`plughw:0,0`, S16/48kHz and 4906 frames, with test-only master gain 0.4.
+
+| Fixture | p95 µs | p99 µs | Worst µs | Render misses |
+|---|---:|---:|---:|---:|
+| bank | 23086.291 | 23436.000 | 23742.833 | 0 |
+| balanced-amp | 82729.208 | 83447.875 | 85060.500 | 0 |
+
+Neither check logged ALSA underruns or nonfinite samples. Production startup
+passed with the waveform header OFF and ON; installed settings and autosave
+remained unchanged. The launcher was restored after the tests. These checks
+measure rendering and delivery; they do not confirm subjective click removal.
+No voice/track/insert limits changed. Full receipts: chip-r36h-r2-validation.json
+and chip-r36h-r2-benchmark.csv.
 
 ## Delivered instrument paths
 
