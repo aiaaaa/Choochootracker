@@ -16,6 +16,7 @@ static constexpr int editLabelX = 17;
 static constexpr int editLabelWidth = 4;
 static Bitmap* samplePreviewBitmap;
 static int samplePreviewWidth, samplePreviewHeight;
+static const char* stretchLabels[] = {"Off", "1 beat", "2 beats", "1 bar", "2 bars", "4 bars", "8 bars"};
 
 static void updateSamplePreview(const InstrumentSample* sample) {
   int width = appSettings.persistentWaveform ? 15 : 32;
@@ -56,6 +57,12 @@ static void onSampleLoaded(const char* path) {
   if (sampleLoadWav16(path, &instrument->chip.sample, error, sizeof(error))) {
     screenMessage(MESSAGE_TIME * 3, "%s", error);
   } else {
+    // A fresh sample starts with the full playback region: the previous
+    // file's markers make no sense on the new audio. The processing
+    // selection is session-only editor state and is re-seeded from the
+    // Region when the Sample Edit screen is entered.
+    instrument->chip.sample.start = 0;
+    instrument->chip.sample.end = 255;
     const char* separator = strrchr(path, PATH_SEPARATOR);
     const char* filename = separator ? separator + 1 : path;
     if (!instrument->name[0]) {
@@ -98,7 +105,8 @@ static void drawStatic(void) {
   gfxPrint(0,6,"Sample");
   gfxPrint(0,7,"SOURCE");
   gfxSetFgColor(appSettings.colorScheme.textDefault);
-  gfxPrint(0,8,"Pitch"); gfxPrint(0,9,"Start"); gfxPrint(0,10,"End"); gfxPrint(0,11,"Loop"); gfxPrint(0,12,"Speed");
+  gfxPrint(0,8,"Pitch"); gfxPrint(0,9,"Stretch");
+  gfxPrint(0,10,"Loop"); gfxPrint(0,11,"Speed");
   instrumentCommonDrawVoicePostStatic(1);
   InstrumentSample* sample = &chipnomadState->project.instruments[cInstrument].chip.sample;
   updateSamplePreview(sample);
@@ -127,6 +135,7 @@ static void drawField(int col, int row, CellState state) {
   if (row < 3) return instrumentCommonDrawField(col, row, state);
   InstrumentSample* sample = &chipnomadState->project.instruments[cInstrument].chip.sample;
   if (instrumentCommonDrawVoicePostField(col, row, state, sample)) return;
+  int stretchOn = sample->stretchMode != 0;
   gfxSetFgColor(state == CellState::focus ? appSettings.colorScheme.textValue : appSettings.colorScheme.textDefault);
   if (row == 3) {
     if (col == 0) gfxClearRect(sourceValueX, 6, sourceValueWidth, 1);
@@ -144,10 +153,17 @@ static void drawField(int col, int row, CellState state) {
       }
       break;
     case 4: if(!col) gfxPrintf(sourceValueX,8,"%+d st",sample->pitch); break;
-    case 5: if(!col) gfxPrint(sourceValueX,9,byteToHex(sample->start)); break;
-    case 6: if(!col) gfxPrint(sourceValueX,10,byteToHex(sample->end)); break;
-    case 7: if(!col) { static const char* m[]={"Off","Loop","Ping"}; gfxPrint(sourceValueX,11,m[sample->loopMode<=2?sample->loopMode:0]); } break;
-    case 8: if(!col) gfxPrint(sourceValueX,12,byteToHex(controlFromRange(sample->speedPercent, 500))); break;
+    case 5:
+      if (!col) gfxPrint(sourceValueX, 9, stretchLabels[sample->stretchMode <= 6 ? sample->stretchMode : 0]);
+      break;
+    case 6: if(!col) { static const char* m[]={"Off","Loop","Ping"}; gfxPrint(sourceValueX,10,m[sample->loopMode<=2?sample->loopMode:0]); } break;
+    case 7:
+      if (!col) {
+        // Speed is inert while Stretch drives the duration: dim it.
+        if (stretchOn) gfxSetFgColor(appSettings.colorScheme.textEmpty);
+        gfxPrint(sourceValueX, 11, byteToHex(controlFromRange(sample->speedPercent, 500)));
+      }
+      break;
   }
 }
 
@@ -168,10 +184,24 @@ static int onEdit(int col, int row, CellEditAction action) {
       }
       return 0;
     case 4: handled=!col?editSigned8(action,&sample->pitch,12,-48,48):0; break;
-    case 5: handled=!col?edit8noLast(action,&sample->start,16,0,255):0; break;
-    case 6: handled=!col?edit8noLast(action,&sample->end,16,0,255):0; break;
-    case 7: handled=!col?edit8noLast(action,&sample->loopMode,1,0,2):0; break;
-    case 8:
+    case 5: {
+      if (col) return 0;
+      uint8_t index = sample->stretchMode <= 6 ? sample->stretchMode : 0;
+      handled = edit8noLast(action, &index, 1, 0, 6);
+      if (handled) {
+        sample->stretchMode = index;
+        // Stretch and Slice are mutually exclusive: enabling one disables the other.
+        if (sample->stretchMode) sample->slice = 0;
+        projectModified = 1;
+        // Repaint the dimmed Speed field and the new Stretch value.
+        screenFullRedraw(&screenInstrumentSample);
+      }
+      return handled;
+    }
+    case 6: handled=!col?edit8noLast(action,&sample->loopMode,1,0,2):0; break;
+    case 7:
+      // Speed is inert while Stretch drives the duration.
+      if (sample->stretchMode != 0) return 0;
       if (!col && action == CellEditAction::clear) {
         handled = sample->speedPercent != 100;
         sample->speedPercent = 100;
@@ -181,10 +211,6 @@ static int onEdit(int col, int row, CellEditAction action) {
       break;
   }
   if (handled) projectModified = 1;
-  if (handled && !col && (row == 5 || row == 6)) {
-    updateSamplePreview(sample);
-    screenFullRedraw(&screenInstrumentSample);
-  }
   return handled;
 }
 
@@ -193,6 +219,12 @@ static int loadAdjacentSample(int direction) {
   char path[PROJECT_SAMPLE_PATH_LENGTH + 1];
   if (!fileBrowserGetAdjacentPath(sample->path, ".wav", direction, path, sizeof(path))) return 0;
   onSampleLoaded(path);
+  return 1;
+}
+
+static int isCellValid(int col, int row) {
+  // Speed is inert while Stretch drives the duration: skip it in navigation.
+  if (!col && row == 7 && chipnomadState->project.instruments[cInstrument].chip.sample.stretchMode != 0) return 0;
   return 1;
 }
 
@@ -210,7 +242,7 @@ static int onInput(int isKeyDown, int keys, int tapCount) {
   }
   if (input == PopupEditInput::hold) return 1;
   if (input == PopupEditInput::open) {
-    fileBrowserSetupWithPreview("LOAD PCM SAMPLE", ".wav", appSettings.samplePath,
+    fileBrowserSetupWithPreview("LOAD SAMPLE", ".wav", appSettings.samplePath,
       onSampleLoaded, onSampleCancelled, onSamplePreview);
     screenSetup(&screenFileBrowser, 0);
     return 1;
@@ -227,5 +259,5 @@ ScreenData screenInstrumentSample = {
   .drawCursor = drawCursor, .drawSelection = NULL,
   .drawRowHeader = NULL, .drawColHeader = NULL, .drawField = drawField,
   .onEdit = onEdit, .onInput = onInput, .onRawInput = NULL,
-  .isCellValid = NULL, .getLoopRange = NULL,
+  .isCellValid = isCellValid, .getLoopRange = NULL,
 };
