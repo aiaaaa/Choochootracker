@@ -1,14 +1,15 @@
-> **Device personal build:** upstream `main` plus selected additions and experiments not already covered upstream. Build/install from [`personal/r36h`](https://github.com/aiaaaa/Choochootracker/tree/personal/r36h); [`main`](https://github.com/aiaaaa/Choochootracker/tree/main) remains the upstream mirror.
+## Fork setup
 
-## Fork navigation
+- **[Main](https://github.com/aiaaaa/Choochootracker/tree/main)** — a mirror of the original developer’s code.
+- **[Personal](https://github.com/aiaaaa/Choochootracker/tree/personal/r36h)** — the combined branch and full device personal build: upstream code, my additions that haven’t been merged upstream, and my experiments. When an addition is merged upstream, Personal uses the maintainer’s merged version instead of my earlier version.
 
-| Group | What belongs here |
-| --- | --- |
-| [Experimental](PERSONAL_FORK.md#experimental) | Get Lucky and other personal explorations; no upstream submission implied |
-| [Upstream candidates](PERSONAL_FORK.md#upstream-candidates) | Work that may become a future PR, including native chip instruments |
-| [Submitted contributions](PERSONAL_FORK.md#submitted-contributions) | All submitted PRs, whether pending, merged, or closed; each entry shows its status |
+## Individual work branches
 
-See [the personal build and contribution index](PERSONAL_FORK.md) for branch links, PRs, and update instructions.
+- **[Experimental](PERSONAL_FORK.md#experimental)** — Get Lucky and other explorations I want to keep using, without implying they’re ready for upstream.
+- **[Submitted contributions](PERSONAL_FORK.md#submitted-contributions)** — work submitted as PRs, marked as pending, merged, incorporated differently, or closed. Unmerged features stay in Personal, including declined ones; features incorporated upstream use the maintainer’s version.
+- **[Upstream candidates](PERSONAL_FORK.md#upstream-candidates)** — active work that might become a future pull request.
+
+See [the branch links, PR statuses and build details](PERSONAL_FORK.md).
 
 > ** ALPHA VERSION. Software is not finished. CHOO CHOO.**
 
