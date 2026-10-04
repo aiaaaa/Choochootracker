@@ -1,7 +1,7 @@
 {
   "upstream": "paiheulevrai/Choochootracker",
   "upstream_branch": "main",
-  "upstream_commit": "a02a88098a03b10518806268f039b9d9b8b2f5a9",
+  "upstream_commit": "df173ece4658e67c8c1d06e7d85e79ac4394fb1f",
   "personal_branch": "personal/r36h",
   "update_policy": "Personal combines upstream main, my additions not yet incorporated upstream, and my experiments. Keep unmerged additions, including pending or declined submissions. Once incorporated upstream, replace my earlier implementation with the maintainer's merged version, including his fixes and changes; remove duplicate code and controls. Test, preserve user data, record commit, and retain rollback before installation.",
   "features": [
@@ -38,7 +38,7 @@
       "branch": "contribution/track-visuals",
       "included_commit": "557d718c4db38e467acde80d5fadccf15ed4ab1d",
       "upstream_pr": "https://github.com/paiheulevrai/Choochootracker/pull/20",
-      "upstream_status": "merged upstream; recorded installed build still contains the earlier personal implementation",
+      "upstream_status": "maintainer GPU integration and touch corrections adopted; native-chip display compatibility retained",
       "integration_policy": "Keep the personal feature until incorporated upstream, including if its PR is pending or declined. Then use the maintainer's implementation instead of the earlier personal code."
     },
     {
@@ -116,7 +116,7 @@
       "id": "track-insert-fx",
       "branch": "feature/track-insert-fx",
       "included_commit": "6014ec51437e5b23ec49a825c8990c2e955b0786",
-      "status": "upstream PR #31 merged; replace the recorded earlier implementation with the accepted upstream version at the next tested personal update",
+      "status": "Temporary user-requested exception: retain our pre-sync insert-effects implementation; upstream review changes deferred.",
       "upstream_pr": "https://github.com/paiheulevrai/Choochootracker/pull/31"
     },
     {
@@ -127,6 +127,15 @@
       "build_flag": "CHOOCHOO_EXPERIMENTAL_MOD_LUCKY=1",
       "normal_build_default": "OFF",
       "documentation": "docs/mod-lucky.md"
+    }
+  ],
+  "temporary_exceptions": [
+    {
+      "id": "track-insert-fx",
+      "reason": "User requested retaining our current insert effects while updating the rest of Personal.",
+      "personal_baseline": "27f8ddb",
+      "upstream_review_deferred": true,
+      "resume_policy": "When requested, explicitly replace the pinned implementation with the then-current upstream version and reconcile shared native-chip/popup code; another merge alone will not remove the pin."
     }
   ]
 }

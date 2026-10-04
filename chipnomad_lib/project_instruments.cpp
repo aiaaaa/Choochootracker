@@ -189,6 +189,7 @@ static int initSampleInstrument(Instrument* instrument) {
   instrument->type = InstrumentType::Sample;
   instrument->chip.sample.end = 255;
   instrument->chip.sample.speedPercent = 100;
+  instrument->chip.sample.speedAlgorithm = 0;
   initVoicePostSettings(&instrument->chip.sample);
   return 0;
 }
@@ -365,7 +366,7 @@ static const InstrumentFX fxAY1[]={F(fxAYM,"AYM"),F(fxNOI,"NOI"),F(fxNOA,"NOA"),
 static const InstrumentFX fxAY2[]={F(fxAYM,"AYM"),F(fxNOI,"NOI"),F(fxNOA,"NOA"),F(fxTNN,"TNN"),F(fxTNP,"TNP"),F(fxTNF,"TNF"),F(fxTRT,"TRT"),F(fxEAU,"EAU"),F(fxENN,"ENN"),F(fxENP,"ENP"),F(fxENF,"ENF"),F(fxERT,"ERT"),F(fxSFT,"SFT"),F(fxSFN,"SFN"),F(fxSFP,"SFP"),F(fxSFF,"SFF"),F(fxSRT,"SRT"),F(fxSFM,"SFM"),F(fxPWM,"PWM"),F(fxSPL,"SPL"),F(fxSWT,"SWT")};
 static const InstrumentFX fxAYSample[]={F(fxAYM,"AYM"),F(fxNOI,"NOI"),F(fxNOA,"NOA"),F(fxTNN,"TNN"),F(fxTNP,"TNP"),F(fxTNF,"TNF"),F(fxTRT,"TRT"),F(fxSFN,"SFN"),F(fxSFP,"SFP"),F(fxSFF,"SFF"),F(fxSMS,"SMS")};
 static const InstrumentFX fxBraids[]={F(fxBMD,"BMD"),F(fxBTM,"BTM"),F(fxBCL,"BCL"),F(fxBCF,"BCF"),F(fxBRS,"BRS")};
-static const InstrumentFX fxSample[]={F(fxSPT,"SPT"),F(fxSST,"SST"),F(fxSTA,"STA"),F(fxSEN,"SEN"),F(fxSVL,"SVL"),F(fxSCF,"SCF"),F(fxSRS,"SRS"),F(fxSSP,"SSP"),F(fxSLP,"SLP")};
+static const InstrumentFX fxSample[]={F(fxSPT,"SPT"),F(fxSST,"SST"),F(fxSEN,"SEN"),F(fxSVL,"SVL"),F(fxSCF,"SCF"),F(fxSRS,"SRS"),F(fxSSP,"SSP"),F(fxSLP,"SLP")};
 static const InstrumentFX fxSCWF[]={F(fxSDT,"SDT"),F(fxSMX,"SMX"),F(fxSCF2,"SCF"),F(fxSRS2,"SRS")};
 static const InstrumentFX fxBYOWTBL[]={F(fxSDT,"SDT"),F(fxSMX,"SMX"),F(fxBIA,"BIA"),F(fxBIB,"BIB"),F(fxSCF2,"SCF"),F(fxSRS2,"SRS")};
 static const InstrumentFX fxPlaits[]={F(fxPMD,"PMD"),F(fxPHA,"PHA"),F(fxPTM,"PTM"),F(fxPMO,"PMO"),F(fxPAX,"PAX"),F(fxPCF,"PCF"),F(fxPRS,"PRS")};
@@ -382,7 +383,7 @@ static const InstrumentDefinition instrumentDefinitions[] = {
   {"AY Plus",InstrumentCategory::chip,InstrumentScreenKind::ay2,destAY2,COUNT(destAY2),fxAY2,COUNT(fxAY2),{10,modNameAY2,initAY2Instrument,freeAY2Instrument,0,0}},
   {"AY Sample",InstrumentCategory::chip,InstrumentScreenKind::aySample,destAYSample,COUNT(destAYSample),fxAYSample,COUNT(fxAYSample),{6,modNameAYSample,initAYSampleInstrument,freeAYSampleInstrument,0,0}},
   {"Braids",InstrumentCategory::synth,InstrumentScreenKind::braids,destBraids,COUNT(destBraids),fxBraids,COUNT(fxBraids),{6,modNameBraids,initBraidsInstrument,freeBraidsInstrument,1,0}},
-  {"PCM Sample",InstrumentCategory::sample,InstrumentScreenKind::sample,destSample,COUNT(destSample),fxSample,COUNT(fxSample),{8,modNameSample,initSampleInstrument,freeSampleInstrument,1,0}},
+  {"Sampler",InstrumentCategory::sample,InstrumentScreenKind::sample,destSample,COUNT(destSample),fxSample,COUNT(fxSample),{8,modNameSample,initSampleInstrument,freeSampleInstrument,1,0}},
   {"Plaits",InstrumentCategory::synth,InstrumentScreenKind::plaits,destPlaits,COUNT(destPlaits),fxPlaits,COUNT(fxPlaits),{8,modNamePlaits,initPlaitsInstrument,freePlaitsInstrument,1,1}},
   {"Plaits-Alt",InstrumentCategory::synth,InstrumentScreenKind::plaits,destPlaits,COUNT(destPlaits),fxPlaits,COUNT(fxPlaits),{8,modNamePlaits,initPlaitsAltInstrument,freePlaitsInstrument,1,1}},
   {"2xSCWF",InstrumentCategory::sample,InstrumentScreenKind::scwf,destSCWF,COUNT(destSCWF),fxSCWF,COUNT(fxSCWF),{6,modNameSCWF,initSCWFInstrument,freeSCWFInstrument,1,0}},
