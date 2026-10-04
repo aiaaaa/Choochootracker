@@ -33,5 +33,5 @@ The complete Mac and ARM64 suites pass in one process: 485 tests, 74,528,153
 assertions, two pre-existing opt-in network/reload skips. The failed full run and
 batch diagnostics are preserved locally; they are superseded by the corrected
 full-suite result. Desktop and Emscripten 6.0.10 builds also pass; the web bundle
-is regenerated. The device update receipt records the final UI/audio checks,
-installed binary hash and rollback, when installation completes.
+is regenerated. docs/personal-device-sync-20261004.json records the completed
+UI/audio checks, initial audio-test failure, installed binary hash and rollback.

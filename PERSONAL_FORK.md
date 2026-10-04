@@ -8,11 +8,11 @@
 
 Other contributors’ unmerged work is not included.
 
-## Included features at the recorded device build
+## Earlier personal additions (history)
 
-This records the existing build, not a requirement to preserve the original PR
-implementation. During the next update, use upstream's accepted versions; retain
-a difference only if I explicitly request it after reviewing that version.
+This table records earlier additions, not the current installed implementation.
+Updates use upstream's accepted versions; retain a deliberate personal difference
+only when it is still needed or explicitly requested.
 
 | Addition | Upstream proposal | Recorded personal behavior |
 | --- | --- | --- |
@@ -46,7 +46,23 @@ Native-chip preset audition and Get Lucky remain included. See
 [the insert review report](docs/personal-insert-review-20261004.txt) and
 [the preceding sync report](docs/personal-upstream-sync-20261004.txt).
 
-## Recorded installed device build
+## Current installed device build
+
+Source: `d0403eca2fc9ea0ba01d323b975a72ceabe7c0f0`. Personal and the native-synth
+candidate now share this application source. The R36H includes the accepted insert-effects
+review, the upstream integration described above, native chips and Get Lucky.
+Native preset popups keep their full display area. Sample-stretch memory is also
+released correctly after exports and engine recreation.
+
+The ARM64 build, device test suite, offscreen interface checks, physical
+ALSA playback and startup with the waveform off/on passed. Settings, songs,
+assets and the existing launcher were preserved; the previous installation is
+available for rollback. User listening/playtest remains pending. See
+[the device update receipt](docs/personal-device-sync-20261004.json) for hashes,
+checks and rollback location. Documentation and web-bundle commits after this
+source do not change the installed binary.
+
+## Previous installed device build (R2)
 
 Upstream base: `a02a88098a03b10518806268f039b9d9b8b2f5a9` (October 2).
 The device channel is **device personal build**: upstream code plus my unmerged
@@ -62,7 +78,7 @@ incorporated upstream, the maintainer’s version replaces my earlier version.
 | #20 Track visuals | Merged | Retained personal Detailed / Audio waveform setting; upstream proposal accepted |
 | #21 Persistent waveform | Merged | Upstream feature with retained personal layout, default OFF |
 | #22 Mixer meters | Closed as superseded by #23 | Upstream's integrated implementation |
-| Track Insert FX | [#31 merged](https://github.com/paiheulevrai/Choochootracker/pull/31) | Installed build uses our earlier implementation; current Personal source adopts the maintainer’s merged review |
+| Track Insert FX | [#31 merged](https://github.com/paiheulevrai/Choochootracker/pull/31) | That R2 build used our earlier implementation; the current build uses the maintainer’s merged review |
 | Native chip instruments | Personal feature; no upstream PR | Ten chip types, shared FM browsing, local DX7 import and 876 native presets; ARM64 tests and configured-device audio validated |
 | I’m Feeling Lucky | Personal experiment; no upstream PR | One Settings row, compiled only with `CHOOCHOO_EXPERIMENTAL_MOD_LUCKY=1` |
 

@@ -132,5 +132,19 @@
       "normal_build_default": "OFF",
       "documentation": "docs/mod-lucky.md"
     }
-  ]
+  ],
+  "personal_fixes": [
+    {
+      "id": "sample-stretch-lifetime",
+      "status": "Personal fix; not submitted upstream",
+      "source_commit": "d0403eca2fc9ea0ba01d323b975a72ceabe7c0f0",
+      "description": "Release owned sample-stretch processors when voices are destroyed; prevent shallow copies. Fixes memory growth during repeated exports and engine recreation."
+    }
+  ],
+  "current_device_build": {
+    "source_commit": "d0403eca2fc9ea0ba01d323b975a72ceabe7c0f0",
+    "binary_sha256": "58058dbf3d45acaa1a7668689b7a2c10b56c33cc17dfdff024b03d58807aad71",
+    "validation_report": "docs/personal-device-sync-20261004.json",
+    "human_listening": "pending"
+  }
 }
