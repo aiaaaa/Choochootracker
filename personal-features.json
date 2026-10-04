@@ -58,6 +58,39 @@
       "upstream_pr": "https://github.com/paiheulevrai/Choochootracker/pull/22",
       "retain_if_declined": true,
       "upstream_status": "integrated via upstream PR #23; original PR closed as superseded"
+    },
+    {
+      "id": "native-chip-instruments",
+      "title": "Native chip instruments and preset banks, including DX7 scope extension",
+      "branch": "feature/native-chip-instruments",
+      "base_commit": "c0a8c7e9ee7e177e94294ede7e6cad09c59f06c8",
+      "upstream_status": "Personal feature branch; no PR",
+      "retain_if_declined": true,
+      "implemented": [
+        "OPLL",
+        "VRC7",
+        "OPL2",
+        "OPL3",
+        "Sega PSG",
+        "GB Pulse",
+        "GB Noise",
+        "DX7 FM",
+        "Genesis FM",
+        "Arcade FM"
+      ],
+      "pending": [
+        "ARM64 build, tests and measurements underway on connected handheld",
+        "final handheld voice policy",
+        "human listening",
+        "DX7 1000-cleared-preset goal unmet (67 distinct bundled)"
+      ],
+      "factory_cni": 876,
+      "dx7_parameter_patches": 67,
+      "dx7_large_library_target": 1000,
+      "dx7_large_library_target_met": false,
+      "notes": "Existing personal features retained. Shared FM browser, native v6 patch ownership, strict local DX7 SysEx. Final handheld voice policy not selected without device measurements.",
+      "status": "Implemented locally; desktop/web validation; handheld build/performance pending",
+      "fm_catalog_entries": 812
     }
   ],
   "personal_assets": [

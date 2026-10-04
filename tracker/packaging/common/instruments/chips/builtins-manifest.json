@@ -1,0 +1,646 @@
+{
+  "schema": 1,
+  "count": 64,
+  "entries": [
+    {
+      "type": 17,
+      "bank_id": 317,
+      "bank": "OPLL / MSX",
+      "category": "Unsorted",
+      "name": "Violin",
+      "path": "builtin-17-01.cni",
+      "source": "pinned ymfm tone table",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "type": 17,
+      "bank_id": 317,
+      "bank": "OPLL / MSX",
+      "category": "Unsorted",
+      "name": "Guitar",
+      "path": "builtin-17-02.cni",
+      "source": "pinned ymfm tone table",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "type": 17,
+      "bank_id": 317,
+      "bank": "OPLL / MSX",
+      "category": "Unsorted",
+      "name": "Piano",
+      "path": "builtin-17-03.cni",
+      "source": "pinned ymfm tone table",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "type": 17,
+      "bank_id": 317,
+      "bank": "OPLL / MSX",
+      "category": "Unsorted",
+      "name": "Flute",
+      "path": "builtin-17-04.cni",
+      "source": "pinned ymfm tone table",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "type": 17,
+      "bank_id": 317,
+      "bank": "OPLL / MSX",
+      "category": "Unsorted",
+      "name": "Clarinet",
+      "path": "builtin-17-05.cni",
+      "source": "pinned ymfm tone table",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "type": 17,
+      "bank_id": 317,
+      "bank": "OPLL / MSX",
+      "category": "Unsorted",
+      "name": "Oboe",
+      "path": "builtin-17-06.cni",
+      "source": "pinned ymfm tone table",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "type": 17,
+      "bank_id": 317,
+      "bank": "OPLL / MSX",
+      "category": "Unsorted",
+      "name": "Trumpet",
+      "path": "builtin-17-07.cni",
+      "source": "pinned ymfm tone table",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "type": 17,
+      "bank_id": 317,
+      "bank": "OPLL / MSX",
+      "category": "Unsorted",
+      "name": "Organ",
+      "path": "builtin-17-08.cni",
+      "source": "pinned ymfm tone table",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "type": 17,
+      "bank_id": 317,
+      "bank": "OPLL / MSX",
+      "category": "Unsorted",
+      "name": "Horn",
+      "path": "builtin-17-09.cni",
+      "source": "pinned ymfm tone table",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "type": 17,
+      "bank_id": 317,
+      "bank": "OPLL / MSX",
+      "category": "Unsorted",
+      "name": "Synthesizer",
+      "path": "builtin-17-10.cni",
+      "source": "pinned ymfm tone table",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "type": 17,
+      "bank_id": 317,
+      "bank": "OPLL / MSX",
+      "category": "Unsorted",
+      "name": "Harpsichord",
+      "path": "builtin-17-11.cni",
+      "source": "pinned ymfm tone table",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "type": 17,
+      "bank_id": 317,
+      "bank": "OPLL / MSX",
+      "category": "Unsorted",
+      "name": "Vibraphone",
+      "path": "builtin-17-12.cni",
+      "source": "pinned ymfm tone table",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "type": 17,
+      "bank_id": 317,
+      "bank": "OPLL / MSX",
+      "category": "Unsorted",
+      "name": "Synthesizer Bass",
+      "path": "builtin-17-13.cni",
+      "source": "pinned ymfm tone table",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "type": 17,
+      "bank_id": 317,
+      "bank": "OPLL / MSX",
+      "category": "Unsorted",
+      "name": "Acoustic Bass",
+      "path": "builtin-17-14.cni",
+      "source": "pinned ymfm tone table",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "type": 17,
+      "bank_id": 317,
+      "bank": "OPLL / MSX",
+      "category": "Unsorted",
+      "name": "Electric Guitar",
+      "path": "builtin-17-15.cni",
+      "source": "pinned ymfm tone table",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "type": 18,
+      "bank_id": 318,
+      "bank": "VRC7",
+      "category": "Unsorted",
+      "name": "Buzzy Bell",
+      "path": "builtin-18-01.cni",
+      "source": "pinned ymfm tone table",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "type": 18,
+      "bank_id": 318,
+      "bank": "VRC7",
+      "category": "Unsorted",
+      "name": "Guitar",
+      "path": "builtin-18-02.cni",
+      "source": "pinned ymfm tone table",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "type": 18,
+      "bank_id": 318,
+      "bank": "VRC7",
+      "category": "Unsorted",
+      "name": "Wurly",
+      "path": "builtin-18-03.cni",
+      "source": "pinned ymfm tone table",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "type": 18,
+      "bank_id": 318,
+      "bank": "VRC7",
+      "category": "Unsorted",
+      "name": "Flute",
+      "path": "builtin-18-04.cni",
+      "source": "pinned ymfm tone table",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "type": 18,
+      "bank_id": 318,
+      "bank": "VRC7",
+      "category": "Unsorted",
+      "name": "Clarinet",
+      "path": "builtin-18-05.cni",
+      "source": "pinned ymfm tone table",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "type": 18,
+      "bank_id": 318,
+      "bank": "VRC7",
+      "category": "Unsorted",
+      "name": "Synth",
+      "path": "builtin-18-06.cni",
+      "source": "pinned ymfm tone table",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "type": 18,
+      "bank_id": 318,
+      "bank": "VRC7",
+      "category": "Unsorted",
+      "name": "Trumpet",
+      "path": "builtin-18-07.cni",
+      "source": "pinned ymfm tone table",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "type": 18,
+      "bank_id": 318,
+      "bank": "VRC7",
+      "category": "Unsorted",
+      "name": "Organ",
+      "path": "builtin-18-08.cni",
+      "source": "pinned ymfm tone table",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "type": 18,
+      "bank_id": 318,
+      "bank": "VRC7",
+      "category": "Unsorted",
+      "name": "Bells",
+      "path": "builtin-18-09.cni",
+      "source": "pinned ymfm tone table",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "type": 18,
+      "bank_id": 318,
+      "bank": "VRC7",
+      "category": "Unsorted",
+      "name": "Vibes",
+      "path": "builtin-18-10.cni",
+      "source": "pinned ymfm tone table",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "type": 18,
+      "bank_id": 318,
+      "bank": "VRC7",
+      "category": "Unsorted",
+      "name": "Vibraphone",
+      "path": "builtin-18-11.cni",
+      "source": "pinned ymfm tone table",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "type": 18,
+      "bank_id": 318,
+      "bank": "VRC7",
+      "category": "Unsorted",
+      "name": "Tutti",
+      "path": "builtin-18-12.cni",
+      "source": "pinned ymfm tone table",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "type": 18,
+      "bank_id": 318,
+      "bank": "VRC7",
+      "category": "Unsorted",
+      "name": "Fretless",
+      "path": "builtin-18-13.cni",
+      "source": "pinned ymfm tone table",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "type": 18,
+      "bank_id": 318,
+      "bank": "VRC7",
+      "category": "Unsorted",
+      "name": "Synth Bass",
+      "path": "builtin-18-14.cni",
+      "source": "pinned ymfm tone table",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "type": 18,
+      "bank_id": 318,
+      "bank": "VRC7",
+      "category": "Unsorted",
+      "name": "Sweep",
+      "path": "builtin-18-15.cni",
+      "source": "pinned ymfm tone table",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "type": 21,
+      "bank_id": 321,
+      "bank": "Sega PSG",
+      "category": "Unsorted",
+      "name": "Bright Pluck",
+      "path": "builtin-21-00.cni",
+      "source": "ChooChoo original recipe",
+      "license": "MIT"
+    },
+    {
+      "type": 21,
+      "bank_id": 321,
+      "bank": "Sega PSG",
+      "category": "Unsorted",
+      "name": "Round Bass",
+      "path": "builtin-21-01.cni",
+      "source": "ChooChoo original recipe",
+      "license": "MIT"
+    },
+    {
+      "type": 21,
+      "bank_id": 321,
+      "bank": "Sega PSG",
+      "category": "Unsorted",
+      "name": "Square Hold",
+      "path": "builtin-21-02.cni",
+      "source": "ChooChoo original recipe",
+      "license": "MIT"
+    },
+    {
+      "type": 21,
+      "bank_id": 321,
+      "bank": "Sega PSG",
+      "category": "Unsorted",
+      "name": "Soft Pad",
+      "path": "builtin-21-03.cni",
+      "source": "ChooChoo original recipe",
+      "license": "MIT"
+    },
+    {
+      "type": 21,
+      "bank_id": 321,
+      "bank": "Sega PSG",
+      "category": "Unsorted",
+      "name": "Short Key",
+      "path": "builtin-21-04.cni",
+      "source": "ChooChoo original recipe",
+      "license": "MIT"
+    },
+    {
+      "type": 21,
+      "bank_id": 321,
+      "bank": "Sega PSG",
+      "category": "Unsorted",
+      "name": "Organ Tone",
+      "path": "builtin-21-05.cni",
+      "source": "ChooChoo original recipe",
+      "license": "MIT"
+    },
+    {
+      "type": 21,
+      "bank_id": 321,
+      "bank": "Sega PSG",
+      "category": "Unsorted",
+      "name": "Long Pluck",
+      "path": "builtin-21-06.cni",
+      "source": "ChooChoo original recipe",
+      "license": "MIT"
+    },
+    {
+      "type": 21,
+      "bank_id": 321,
+      "bank": "Sega PSG",
+      "category": "Unsorted",
+      "name": "Noise Hat",
+      "path": "builtin-21-07.cni",
+      "source": "ChooChoo original recipe",
+      "license": "MIT"
+    },
+    {
+      "type": 21,
+      "bank_id": 321,
+      "bank": "Sega PSG",
+      "category": "Unsorted",
+      "name": "Open Hat",
+      "path": "builtin-21-08.cni",
+      "source": "ChooChoo original recipe",
+      "license": "MIT"
+    },
+    {
+      "type": 21,
+      "bank_id": 321,
+      "bank": "Sega PSG",
+      "category": "Unsorted",
+      "name": "Noise Snare",
+      "path": "builtin-21-09.cni",
+      "source": "ChooChoo original recipe",
+      "license": "MIT"
+    },
+    {
+      "type": 21,
+      "bank_id": 321,
+      "bank": "Sega PSG",
+      "category": "Unsorted",
+      "name": "Low Burst",
+      "path": "builtin-21-10.cni",
+      "source": "ChooChoo original recipe",
+      "license": "MIT"
+    },
+    {
+      "type": 21,
+      "bank_id": 321,
+      "bank": "Sega PSG",
+      "category": "Unsorted",
+      "name": "Metal Tick",
+      "path": "builtin-21-11.cni",
+      "source": "ChooChoo original recipe",
+      "license": "MIT"
+    },
+    {
+      "type": 21,
+      "bank_id": 321,
+      "bank": "Sega PSG",
+      "category": "Unsorted",
+      "name": "Motor",
+      "path": "builtin-21-12.cni",
+      "source": "ChooChoo original recipe",
+      "license": "MIT"
+    },
+    {
+      "type": 21,
+      "bank_id": 321,
+      "bank": "Sega PSG",
+      "category": "Unsorted",
+      "name": "Wind Rise",
+      "path": "builtin-21-13.cni",
+      "source": "ChooChoo original recipe",
+      "license": "MIT"
+    },
+    {
+      "type": 22,
+      "bank_id": 322,
+      "bank": "GB Pulse",
+      "category": "Unsorted",
+      "name": "Hollow Lead",
+      "path": "builtin-22-00.cni",
+      "source": "ChooChoo original recipe",
+      "license": "MIT"
+    },
+    {
+      "type": 22,
+      "bank_id": 322,
+      "bank": "GB Pulse",
+      "category": "Unsorted",
+      "name": "Square Bass",
+      "path": "builtin-22-01.cni",
+      "source": "ChooChoo original recipe",
+      "license": "MIT"
+    },
+    {
+      "type": 22,
+      "bank_id": 322,
+      "bank": "GB Pulse",
+      "category": "Unsorted",
+      "name": "Thin Pluck",
+      "path": "builtin-22-02.cni",
+      "source": "ChooChoo original recipe",
+      "license": "MIT"
+    },
+    {
+      "type": 22,
+      "bank_id": 322,
+      "bank": "GB Pulse",
+      "category": "Unsorted",
+      "name": "Wide Key",
+      "path": "builtin-22-03.cni",
+      "source": "ChooChoo original recipe",
+      "license": "MIT"
+    },
+    {
+      "type": 22,
+      "bank_id": 322,
+      "bank": "GB Pulse",
+      "category": "Unsorted",
+      "name": "Pulse Organ",
+      "path": "builtin-22-04.cni",
+      "source": "ChooChoo original recipe",
+      "license": "MIT"
+    },
+    {
+      "type": 22,
+      "bank_id": 322,
+      "bank": "GB Pulse",
+      "category": "Unsorted",
+      "name": "Soft Pulse",
+      "path": "builtin-22-05.cni",
+      "source": "ChooChoo original recipe",
+      "license": "MIT"
+    },
+    {
+      "type": 22,
+      "bank_id": 322,
+      "bank": "GB Pulse",
+      "category": "Unsorted",
+      "name": "Down Sweep",
+      "path": "builtin-22-06.cni",
+      "source": "ChooChoo original recipe",
+      "license": "MIT"
+    },
+    {
+      "type": 22,
+      "bank_id": 322,
+      "bank": "GB Pulse",
+      "category": "Unsorted",
+      "name": "Up Blip",
+      "path": "builtin-22-07.cni",
+      "source": "ChooChoo original recipe",
+      "license": "MIT"
+    },
+    {
+      "type": 22,
+      "bank_id": 322,
+      "bank": "GB Pulse",
+      "category": "Unsorted",
+      "name": "Rising Pulse",
+      "path": "builtin-22-08.cni",
+      "source": "ChooChoo original recipe",
+      "license": "MIT"
+    },
+    {
+      "type": 22,
+      "bank_id": 322,
+      "bank": "GB Pulse",
+      "category": "Unsorted",
+      "name": "Short Click",
+      "path": "builtin-22-09.cni",
+      "source": "ChooChoo original recipe",
+      "license": "MIT"
+    },
+    {
+      "type": 23,
+      "bank_id": 323,
+      "bank": "GB Noise",
+      "category": "Unsorted",
+      "name": "Closed Hat",
+      "path": "builtin-23-00.cni",
+      "source": "ChooChoo original recipe",
+      "license": "MIT"
+    },
+    {
+      "type": 23,
+      "bank_id": 323,
+      "bank": "GB Noise",
+      "category": "Unsorted",
+      "name": "Open Hat",
+      "path": "builtin-23-01.cni",
+      "source": "ChooChoo original recipe",
+      "license": "MIT"
+    },
+    {
+      "type": 23,
+      "bank_id": 323,
+      "bank": "GB Noise",
+      "category": "Unsorted",
+      "name": "Snare Burst",
+      "path": "builtin-23-02.cni",
+      "source": "ChooChoo original recipe",
+      "license": "MIT"
+    },
+    {
+      "type": 23,
+      "bank_id": 323,
+      "bank": "GB Noise",
+      "category": "Unsorted",
+      "name": "Brush",
+      "path": "builtin-23-03.cni",
+      "source": "ChooChoo original recipe",
+      "license": "MIT"
+    },
+    {
+      "type": 23,
+      "bank_id": 323,
+      "bank": "GB Noise",
+      "category": "Unsorted",
+      "name": "Metal Hat",
+      "path": "builtin-23-04.cni",
+      "source": "ChooChoo original recipe",
+      "license": "MIT"
+    },
+    {
+      "type": 23,
+      "bank_id": 323,
+      "bank": "GB Noise",
+      "category": "Unsorted",
+      "name": "Rattle",
+      "path": "builtin-23-05.cni",
+      "source": "ChooChoo original recipe",
+      "license": "MIT"
+    },
+    {
+      "type": 23,
+      "bank_id": 323,
+      "bank": "GB Noise",
+      "category": "Unsorted",
+      "name": "Low Noise",
+      "path": "builtin-23-06.cni",
+      "source": "ChooChoo original recipe",
+      "license": "MIT"
+    },
+    {
+      "type": 23,
+      "bank_id": 323,
+      "bank": "GB Noise",
+      "category": "Unsorted",
+      "name": "Noise Click",
+      "path": "builtin-23-07.cni",
+      "source": "ChooChoo original recipe",
+      "license": "MIT"
+    },
+    {
+      "type": 23,
+      "bank_id": 323,
+      "bank": "GB Noise",
+      "category": "Unsorted",
+      "name": "Rising Wind",
+      "path": "builtin-23-08.cni",
+      "source": "ChooChoo original recipe",
+      "license": "MIT"
+    },
+    {
+      "type": 23,
+      "bank_id": 323,
+      "bank": "GB Noise",
+      "category": "Unsorted",
+      "name": "Chip Alarm",
+      "path": "builtin-23-09.cni",
+      "source": "ChooChoo original recipe",
+      "license": "MIT"
+    }
+  ]
+}

@@ -10,7 +10,7 @@ static int rootCount, categoryIndex, itemIndex, activePanel, currentValue;
 static void (*onSelected)(int);
 static void (*onCancelled)(void);
 static void (*onPreview)(int, bool);
-static bool previewHeld;
+static bool previewHeld, editPending;
 
 static const SelectionItem* currentCategory() {
   return &rootItems[categoryIndex];
@@ -37,7 +37,7 @@ static void selectCurrentValue() {
 void selectionPopupSetup(const char* popupTitle, const SelectionItem* items,
                          int count, int selectedValue,
                          void (*selected)(int), void (*cancelled)(void), bool wide, void (*preview)(int, bool)) {
-  onPreview = preview; previewHeld = false;
+  onPreview = preview; previewHeld = editPending = false;
   fullWidth = wide;
   strncpy(title, popupTitle, sizeof(title) - 1);
   title[sizeof(title) - 1] = 0;
@@ -85,8 +85,8 @@ static void fullRedraw() {
     gfxPrintf(0, 18, "%-40.40s", category->children[itemIndex].helper);
   }
   gfxSetFgColor(appSettings.colorScheme.textInfo);
-  gfxPrint(0, 19, fullWidth ? "U/D MOVE EDIT SELECT OPT EXIT" :
-    "L/R PANEL U/D MOVE EDIT SELECT OPT EXIT");
+  gfxPrint(0, 19, onPreview ? "EDIT SELECT  EDIT+PLAY HEAR  OPT EXIT" :
+    "U/D MOVE  EDIT SELECT  OPT EXIT");
 }
 
 static void draw() {}
@@ -95,6 +95,7 @@ static int onInput(int isKeyDown, int keys, int tapCount) {
   if (onPreview && keys == (keyEdit | keyPlay) && isKeyDown) {
     const auto* category = currentCategory();
     int value = activePanel == 1 && category->childCount ? category->children[itemIndex].value : category->value;
+    editPending=false;
     if (value >= 0) { onPreview(value, true); previewHeld = true; }
     return 1;
   }
@@ -102,7 +103,12 @@ static int onInput(int isKeyDown, int keys, int tapCount) {
     if (keys != (keyEdit | keyPlay)) { onPreview(0, false); previewHeld = false; }
     return 1;
   }
-  if (!isKeyDown) return 1;
+  // Defer EDIT selection until release on audition-capable popups so pressing
+  // EDIT before PLAY can form the existing preview chord without committing.
+  if(onPreview&&isKeyDown&&keys==keyEdit){editPending=true;return 1;}
+  bool selectOnRelease=onPreview&&!isKeyDown&&editPending;
+  if(selectOnRelease){editPending=false;keys=keyEdit;}
+  if (!isKeyDown&&!selectOnRelease) return 1;
   if (keys == keyUp || keys == keyDown) {
     int direction = keys == keyUp ? -1 : 1;
     if (activePanel == 0) {

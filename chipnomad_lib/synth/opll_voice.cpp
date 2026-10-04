@@ -46,17 +46,19 @@ void OPLLVoice::pitch() {
   if (high != lastHigh_) { write(0x20, high); lastHigh_ = high; }
 }
 void OPLLVoice::noteOn() {
-  gated_ = false; pitch(); gated_ = true; pitch(); active_ = true; silence_ = 0;
+  gated_ = false; pitch(); pendingKeyOn_ = true; active_ = true; silence_ = 0;
 }
-void OPLLVoice::noteOff() { gated_ = false; pitch(); }
+void OPLLVoice::noteOff() { pendingKeyOn_ = false; gated_ = false; pitch(); }
 void OPLLVoice::kill() {
-  gated_ = false; active_ = false; lastLow_ = lastHigh_ = -1;
+  pendingKeyOn_ = false; gated_ = false; active_ = false; lastLow_ = lastHigh_ = -1;
   write(0x20, 0); phase_ = 0; silence_ = 0; level_ = 0;
   std::memset(history_, 0, sizeof(history_)); historyPosition_ = 0;
 }
 float OPLLVoice::nextNative() {
   ymfm::ym2413::output_data output;
   chip_.generate(&output);
+  // Clock key-off before asserting a retrigger: ymfm samples key state at native ticks.
+  if (pendingKeyOn_) { pendingKeyOn_ = false; gated_ = true; pitch(); }
   const float sample = (output.data[0] + output.data[1]) / 32768.0f;
   // Only retire after the native digital output has been exactly silent for
   // a full second following key-off, never based on the user's volume.

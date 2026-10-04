@@ -1,5 +1,9 @@
 #include "project.h"
 #include "opll_presets.h"
+#include "dx7_patch.h"
+#include "opl_patch.h"
+#include "four_op_patch.h"
+#include "simple_chip_presets.h"
 #include "project_io_common.h"
 #include "synth/sample_voice.h"
 #include "synth/sr_wavetable_loader.h"
@@ -476,6 +480,27 @@ static int loadInstrumentOPLL(FILE* file, Instrument* instrument) {
   return 0;
 }
 
+static int loadSimpleChip(FILE* file, Instrument* instrument) {
+  InstrumentSimpleChip p{};bool seen=false;
+  while(char* line=peekLine(file)) {
+    if(line[0]=='#')break;
+    if(!strncmp(line,"- Simple chip: ",15)) {
+      int v[13];char tail;
+      if(seen||sscanf(line+15,"%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d %c",&v[0],&v[1],&v[2],&v[3],&v[4],&v[5],&v[6],&v[7],&v[8],&v[9],&v[10],&v[11],&v[12],&tail)!=13)return 1;
+      for(int i=0;i<12;++i)if(v[i]<0||v[i]>255)return 1;
+      if(v[12]<-100||v[12]>100)return 1;
+      p.schema=v[0];p.preset=v[1];p.mode=v[2];p.noiseRate=v[3];p.noiseDivisor=v[4];p.noiseShift=v[5];p.envelopeInitial=v[6];p.envelopePeriod=v[7];p.envelopeIncrease=v[8];p.sweepPeriod=v[9];p.sweepShift=v[10];p.sweepNegate=v[11];p.fineTune=v[12];seen=true;
+    }else if(!loadVoicePostSetting(line,&p))return 1;
+    consumeLine(file);
+  }
+  if(!seen||!validSimpleChip(instrument->type,p))return 1;instrument->chip.simpleChip=p;return 0;
+}
+static void saveSimpleChip(FILE* file,const Instrument* instrument) {
+  const auto& p=instrument->chip.simpleChip;
+  fprintf(file,"- Simple chip: %u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%d\n",p.schema,p.preset,p.mode,p.noiseRate,p.noiseDivisor,p.noiseShift,p.envelopeInitial,p.envelopePeriod,p.envelopeIncrease,p.sweepPeriod,p.sweepShift,p.sweepNegate,p.fineTune);
+  saveVoicePostSettings(file,&p);
+}
+
 // Main load function
 int instrumentLoadData(FILE* file, Instrument* instrument, Project* p) {
   instrumentClear(instrument);
@@ -568,6 +593,19 @@ int instrumentLoadData(FILE* file, Instrument* instrument, Project* p) {
       case InstrumentType::Sintered:
         if (loadInstrumentSintered(file, instrument)) return 1;
         break;
+      case InstrumentType::SegaPSG:
+      case InstrumentType::GBPulse:
+      case InstrumentType::GBNoise:
+        if(projectFileVersion<6 || loadSimpleChip(file,instrument))return 1;break;
+      case InstrumentType::GenesisFM:
+      case InstrumentType::ArcadeFM:
+        if(projectFileVersion<6 || loadFourOpData(file,instrument))return 1;break;
+      case InstrumentType::DX7:
+        if(projectFileVersion<6 || loadDX7Data(file,instrument))return 1;break;
+      case InstrumentType::OPL2:
+      case InstrumentType::OPL3:
+        if (projectFileVersion < 6 || loadOPLData(file, instrument)) return 1;
+        break;
       case InstrumentType::OPLL:
       case InstrumentType::VRC7:
         if (projectFileVersion < 6 || loadInstrumentOPLL(file, instrument)) return 1;
@@ -603,6 +641,11 @@ int instrumentLoadData(FILE* file, Instrument* instrument, Project* p) {
     if (s->filterCutoffHz > FILTER_CUTOFF_MAX_HZ) s->filterCutoffHz = FILTER_CUTOFF_MAX_HZ;
   }
 
+  if(isFourOp(instrument->type)&&!validFourOp(instrument->type,instrument->chip.fourOp))return 1;
+  if(instrument->type==InstrumentType::DX7&&!validDX7(instrument->chip.dx7))return 1;
+  if (isSimpleChip(instrument->type) && !validSimpleChip(instrument->type,instrument->chip.simpleChip))return 1;
+  if (isOPL(instrument->type) && !validOPL(instrument->type, instrument->chip.opl)) return 1;
+  if (isOPLL(instrument->type) && instrument->chip.opll.schema != 1) return 1;
   return 0;
 }
 
@@ -872,6 +915,18 @@ int instrumentSaveData(FILE* file, int idx, Instrument* instrument) {
     case InstrumentType::Sintered:
       saveInstrumentSintered(file, instrument);
       break;
+    case InstrumentType::SegaPSG:
+    case InstrumentType::GBPulse:
+    case InstrumentType::GBNoise:
+      saveSimpleChip(file,instrument);break;
+    case InstrumentType::GenesisFM:
+    case InstrumentType::ArcadeFM:
+      saveFourOpData(file,instrument);break;
+    case InstrumentType::DX7:
+      saveDX7Data(file,instrument);break;
+    case InstrumentType::OPL2:
+    case InstrumentType::OPL3:
+      saveOPLData(file,instrument); break;
     case InstrumentType::OPLL:
     case InstrumentType::VRC7: {
       const auto& v = instrument->chip.opll;

@@ -28,5 +28,6 @@ class OPLLVoice {
   float cents_ = 6000, gain_ = 1, level_ = 0;
   unsigned silence_ = 0;
   bool active_ = false, gated_ = false, configured_ = false;
+  bool pendingKeyOn_=false;
   int lastLow_ = -1, lastHigh_ = -1;
 };

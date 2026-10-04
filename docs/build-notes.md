@@ -255,3 +255,80 @@ one Settings row for preparing/playing a random module and importing its PCM
 bank. Normal builds have no dependency on libxmp or libcurl. See
 [the experiment's build and validation notes](mod-lucky.md) for the pinned
 backend, exact macOS commands, ARM prerequisites and test targets.
+
+## Native chip instruments (local development branch)
+
+The branch vendors ymfm (`81aec25ccbb98f4873a255f7551ac4dadac59b4a`, BSD-3-Clause),
+emu76489 (`c0fa097060e022db237163d79704025435042997`, MIT), gb_apu
+(`3d73d0df027a82d854cacd72a179c2d6a1a9703e`, MIT), and the separately licensed
+Apache-2.0 MSFA scalar component from Dexed's `Source/msfa`
+(`2e182b3db85c09083ab13c8b9b00565ce7d9ff85`). This does not add Dexed/JUCE, MTS,
+Android glue, alternate DX7 cores or their presets. Each vendor directory has
+license/provenance records and modifications documented separately. Runtime
+notices are under `tracker/packaging/common/licenses/`.
+
+The normal build is offline and includes generated `.cni` presets plus their
+catalogue and provenance manifests from `packaging/common/instruments/chips`.
+Rebuild the approved data using the canonical C++ serializer:
+
+```sh
+make -C tracker -f Makefile.test -j4 chip-factory
+python3 tools/chip_banks/convert.py --output tracker/packaging/common/instruments/chips --writer tracker/build/tests/chip_factory
+python3 -m unittest discover -s tools/chip_banks -p 'test_*.py'
+make -C tracker -f Makefile.test -j4
+```
+
+The content tool verifies pinned source hashes and records aliases separately
+from distinct parameter patches. OpenDX7 data are parsed as allowlisted literals;
+downloaded JavaScript is never executed. Unapproved collections stay outside
+shipping assets. DX7's 1,000-sound target is still unmet; the 67-sound starter
+and source-specific exclusions are recorded in the DX7 manifest/evidence files.
+
+Optimized offline DX7 measurements (not handheld or hardware underrun results):
+
+```sh
+make -C tracker -f Makefile.test -j4 benchmark-native-chips BUILD_DIR=build/chip-optimized CFLAGS='-std=c++17 -Wall -O3 -DNDEBUG -DTEST -DTEST_PORTMASTER_INPUT'
+tracker/build/chip-optimized/benchmark_native_chips 30
+```
+
+`Makefile.native-chip-ui` builds the production SDL offscreen integration harness.
+Run from `tracker/packaging/common` with `SDL_VIDEODRIVER=dummy` and
+`SDL_AUDIODRIVER=dummy`; its argument is an existing writable capture directory.
+The harness checks preview/cancel/load, local SysEx selection, table/insert
+isolation, and sequenced playback with UI drawing. It does not save user settings.
+Use the existing local SDL/toolchain configuration; do not install another SDK.
+No package has been installed on the handheld by this work.
+
+Genesis/Arcade extend the same ymfm pin with its OPN/OPM/SSG translation units;
+no additional player is linked. Original MIT patch recipes are in
+`tools/chip_banks/four_op.py`. The canonical factory writer also emits 64
+OPLL/VRC7/Sega/GB `.cni` files and `builtins.tsv`. There are 876 packaged native
+instruments in total; 812 shared FM catalogue entries represent 704 distinct
+normalized FM parameter sets (aliases remain identified). Of these, DX7 has
+67 distinct voices, not 1,000. UI/preset files do not control DSP allocation.
+
+Local user conversion, separate from approved factory content:
+
+```sh
+python3 tools/chip_banks/import_bank.py my-bank.syx --output my-new-library --writer tracker/build/tests/chip_factory
+make -C tracker -f Makefile.test -j4 chip-auditions
+cd tracker
+build/tests/chip_auditions packaging/common/instruments/chips ../.tmp/chip-audit/auditions packaging/common/projects/native-chip-audition.cct
+```
+
+The audition tool generates thirteen bank WAVs, numerical peak/RMS/DC records,
+and a thirteen-section song owning its selected patches. Machine checks are not
+human listening; `docs/chip-preset-auditions.tsv` records source CNI identities.
+Large audio stays ignored under `.tmp/chip-audit/auditions/`.
+
+The optimized benchmark also measures all native families at 1/8/32 voices,
+OPL3 four-operator and dual modes, and actual mixed/FM-heavy eight-track songs
+with insert FX and sends. Run it from `tracker` so fixture paths resolve.
+`--soak` runs a paced 600-second host render while another thread repeatedly
+loads a synthetic 10,000-entry metadata index at
+`../.tmp/chip-audit/scale-catalog.tsv`. Synthetic entries are not bundled sounds.
+This measures host render deadlines, not audio-device underruns or R36H thermals.
+
+The final Yamaha adapters clock one key-off sample before reasserting key-on,
+so repeated tracker notes actually retrigger ymfm envelopes. This adds at most
+one native sample to the existing streaming FIR delay; it never drops output.

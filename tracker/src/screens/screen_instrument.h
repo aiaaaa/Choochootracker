@@ -31,5 +31,9 @@ extern ScreenData screenInstrumentMME;
 extern ScreenData screenInstrumentSintered;
 extern ScreenData screenInstrumentMidi;
 extern ScreenData screenInstrumentOPLL;
+extern ScreenData screenInstrumentOPL;
+extern ScreenData screenInstrumentSimpleChip;
 
 #endif
+
+void instrumentFMImportSysEx(const char* path);
