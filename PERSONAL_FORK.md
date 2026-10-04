@@ -39,7 +39,7 @@ is not required for a personal feature to remain on the handheld.
 | #21 Persistent waveform | Merged | Upstream feature with retained personal layout, default OFF |
 | #22 Mixer meters | Closed as superseded by #23 | Upstream's integrated implementation |
 | Track Insert FX | Alpha experiment; PR pending | Two track slots, five native effects, Fxx and MOD |
-| Native chip instruments | Personal feature; no upstream PR | Ten chip types, shared FM browsing, local DX7 import and 876 native presets; device validation pending |
+| Native chip instruments | Personal feature; no upstream PR | Ten chip types, shared FM browsing, local DX7 import and 876 native presets; ARM64 tests and configured-device audio validated |
 | I’m Feeling Lucky | Personal experiment; no upstream PR | One Settings row, compiled only with `CHOOCHOO_EXPERIMENTAL_MOD_LUCKY=1` |
 
 Piano/meters are not duplicated just because their original proposal commits

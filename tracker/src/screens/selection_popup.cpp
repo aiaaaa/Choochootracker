@@ -1,6 +1,7 @@
 #include "selection_popup.h"
 
 #include "corelib_gfx.h"
+#include "chipnomad_lib.h"
 #include <string.h>
 
 static char title[32];
@@ -85,7 +86,9 @@ static void fullRedraw() {
     gfxPrintf(0, 18, "%-40.40s", category->children[itemIndex].helper);
   }
   gfxSetFgColor(appSettings.colorScheme.textInfo);
-  gfxPrint(0, 19, onPreview ? "EDIT SELECT  EDIT+PLAY HEAR  OPT EXIT" :
+  const bool playing = chipnomadState && chipnomadGetPlaybackStatus(chipnomadState)->isPlaying;
+  gfxPrint(0, 19, onPreview && playing ? "STOP SONG TO HEAR  EDIT SELECT  OPT EXIT" :
+    onPreview ? "EDIT SELECT  EDIT+PLAY HEAR  OPT EXIT" :
     "U/D MOVE  EDIT SELECT  OPT EXIT");
 }
 

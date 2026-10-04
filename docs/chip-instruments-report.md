@@ -5,23 +5,26 @@ This extends `feature/native-chip-instruments`, based on personal/r36h
 `1118786` is preserved. The DX7 addendum supersedes only the earlier DX7 exclusion;
 full Dexed, JUCE and unrelated engines remain excluded. The user has now authorized a branch on their fork and an update of the device
 personal build, preserving its existing features. No pull request is authorized.
-SSH was restored on October 4. An isolated ARM64 build/test/benchmark is underway
-using the device’s existing GCC 9 toolchain; the installed app is unchanged.
+The ARM64 personal build and full enabled suite pass using the device’s existing
+GCC 9 toolchain. The 64-case benchmark, ten-minute balanced-arrangement soak,
+real SDL/ALSA playback and combined production startup checks are complete.
+The validated source extends the existing device personal build; installation
+identity and rollback are recorded in its `personal-build.json`.
 
 ## Delivered instrument paths
 
 | Type / stable ID | Implemented and native persistence | Machine tests | Packaged CNI | R36H |
 |---|---|---|---:|---|
-| OPLL / YM2413, 17 | Yes | Pass | 15 | Pending |
-| VRC7, 18 | Yes | Pass | 15 | Pending |
-| OPL2, 19 | Yes | Pass | 241 | Pending |
-| OPL3, 20 | True four-op and dual voice | Pass | 456 | Pending |
-| Sega PSG, 21 | Tone, white/periodic noise | Pass | 14 | Pending |
-| GB Pulse, 22 | Native duty/envelope/sweep | Pass | 10 | Pending |
-| GB Noise, 23 | Native divisor/shift/width/envelope | Pass | 10 | Pending |
-| DX7 FM, 24 | Six operators, all original voice parameters | Pass | 67 | Pending |
-| Genesis FM / YM2612, 25 | Four-op native envelope/routing/LFO | Pass | 24 | Pending |
-| Arcade FM / YM2151, 26 | Four-op native envelope/routing/LFO | Pass | 24 | Pending |
+| OPLL / YM2413, 17 | Yes | Pass | 15 | Tests/UI pass |
+| VRC7, 18 | Yes | Pass | 15 | Tests/UI pass |
+| OPL2, 19 | Yes | Pass | 241 | Tests/UI pass |
+| OPL3, 20 | True four-op and dual voice | Pass | 456 | Tests/UI pass |
+| Sega PSG, 21 | Tone, white/periodic noise | Pass | 14 | Tests/UI pass |
+| GB Pulse, 22 | Native duty/envelope/sweep | Pass | 10 | Tests/UI pass |
+| GB Noise, 23 | Native divisor/shift/width/envelope | Pass | 10 | Tests/UI pass |
+| DX7 FM, 24 | Six operators, all original voice parameters | Pass | 67 | Tests/UI pass |
+| Genesis FM / YM2612, 25 | Four-op native envelope/routing/LFO | Pass | 24 | Tests/UI pass |
+| Arcade FM / YM2151, 26 | Four-op native envelope/routing/LFO | Pass | 24 | Tests/UI pass |
 
 The instrument hierarchy, metadata, common FM browser, bounded voice lifecycle,
 existing track inserts/sends, project handoff and serializers are extended in
@@ -123,9 +126,9 @@ path-safe and non-executing.
 ## Verification and artifacts
 
 Baseline: 328 tests / 8,101,169 assertions passed before integration.
-Final standard suite: **359 tests / 72,681,719 assertions passed**.
-Personal experiment suite: **371 passed, 2 deliberately skipped**, 72,691,756
-assertions passed. Python content tests: **13 passed**. A latent MIDI test passed
+Final standard host suite: **361 tests / 72,681,789 assertions passed**.
+Final ARM64 personal experiment suite: **373 passed, 2 deliberately skipped**,
+72,691,826 assertions passed. Python content tests: **13 passed**. A latent MIDI test passed
 an uninitialized destination into a replacing/freeing loader; its setup is now
 initialized. Production loader behavior was not changed for that test issue.
 
@@ -140,9 +143,9 @@ visual testing used SDL dummy output; no visible emulator/editor was launched.
 Actual commands and build details are in `docs/build-notes.md` and the progress
 checkpoint. Desktop macOS x86_64 personal build and the existing Emscripten web
 build succeed. The checked-in web/dist bundle is regenerated. Windows/Android
-builds were not run. No local ARM64 toolchain was available; the authorized
-ARM64 build is now running on the handheld with its existing compiler. Existing Docker images were inspected only; none was an ARM64
-Linux project builder. No second SDK was installed.
+builds were not run. The ARM64 personal build and package pass on the handheld
+with its existing compiler. Existing Docker images were inspected only; none
+was an ARM64 Linux project builder. No second SDK was installed.
 
 `tracker/packaging/common/projects/native-chip-audition.cct` owns thirteen bank
 representatives and plays without the factory folder. `.tmp/chip-audit/auditions/`
@@ -177,14 +180,96 @@ p99 2.939 ms, worst 4.409 ms against a 10.667 ms render deadline, with **zero
 render deadline misses**. Peak resident memory was 112,623,616 bytes; this is a
 high-water mark, not a memory-growth trace. See `docs/chip-soak-benchmark.csv`.
 Measurements cover render duration, not scheduler wakeups, physical audio-device
-underruns, handheld governor/thermals or a human listening test. The existing
-four slots per track remain provisional; no handheld limit has been selected.
+underruns, handheld governor/thermals or a human listening test. The DX7 16-note budget was subsequently selected using R36H measurements,
+including release tails within the existing four owned slots per track.
 
 Final production SDL dummy UI smoke passed, including all ten pages, preset
 preview/cancel/confirm, local DX7 import, clone, and sequencer playback. Its
-48 kHz / 1024-frame song-plus-UI p95 was 1.503 ms, p99 1.807 ms, worst 2.366 ms.
+48 kHz / 1024-frame song-plus-UI p95 was 1.456 ms, p99 2.041 ms, worst 2.667 ms.
+It also checks that playback blocks preview and displays the stop-song hint.
 The host tools now include their own generated header dependencies to prevent
 stale object layouts after voice-header changes.
+
+## Measured R36H performance
+
+The production profile uses GCC 9 with the existing size optimization, plus
+`-O3` for the isolated new chip cores and their adapters only. A diagnostic
+comparison also optimized four existing audio-processing files, but those
+alternate objects were not adopted. No fast-math or reduced-quality mode is used.
+The device's interactive governor, clock and installed audio settings are retained.
+
+`docs/chip-r36h-benchmark.csv` contains **64 measured configurations**, each with
+30 seconds of rendered audio after warmup. All **50 isolated engine cases** had
+zero render deadline misses: DX7 at 1/4/8/16/32 notes, 44.1/48/96 kHz and 128/512
+frames, plus ten other chip/topology cases at 1/8 notes, 48 kHz and 512 frames.
+At 48 kHz/512, DX7 16 notes measured mean **1.911 ms**, p95 **2.015 ms**,
+p99 **2.038 ms**, worst **2.143 ms**. The earlier size-optimized 32-note sweep
+had occasional deadline misses; the retained 16-note policy also leaves room
+for mixing and effects. The final optimized 32-note raw case passed this run;
+that is not a promise of a complete 32-note song plus arbitrary effects.
+
+The remaining fourteen configurations measure actual sequencer songs. Two
+insert slots exist **per track**, sixteen total; they are not a CPU guarantee.
+The earlier personal-build manual already documents the cost of expensive
+inserts. All eight-track FM-heavy scenes with sixteen inserts overloaded.
+Four inserts also overloaded the heavier eight-track FM scenes; even two
+inserts had occasional deadline misses with those dense arrangements.
+Four-track AY/Plaits/FM arrangements also had timing spikes. Track count alone
+does not describe the workload. These results remain in the CSV: **13,009
+misses across all 64 cases**, including the deliberately overloaded cases.
+
+The user's balanced arrangement is four WAV samples, Sega PSG, GB Pulse,
+DX7 and OPL3, with shared reverb/delay sends and **four inserts** (two
+Compressors, Doubler, TAPESCAM). Existing packaged WAVs are loaded through the
+native loader and loop continuously. At 48 kHz/512 frames (10.667 ms deadline):
+
+| Balanced arrangement | Mean | p95 | p99 | Worst | Misses |
+|---|---:|---:|---:|---:|---:|
+| Eight single notes | 7.446 ms | 7.988 ms | 8.060 ms | 8.647 ms | 0 |
+| DX7 four-note chord, eleven notes total | 7.689 ms | 8.254 ms | 8.333 ms | 12.143 ms | 1 |
+
+The paced **600-second** balanced chord/four-insert soak completed with **3,948
+scans** of the synthetic 10,000-entry index. Render time: mean **7.911 ms**,
+p95 **8.647 ms**, p99 **9.041 ms**, worst **20.441 ms**; **28 deadline misses**
+among 56,250 measured blocks. It is not reported as glitch-free. See
+`docs/chip-r36h-soak.csv` and `docs/chip-r36h-validation.json`.
+
+Sixty memory samples span 593 seconds. RSS rose during startup, then stayed
+between **50,444 and 50,708 KiB** after the first minute; high-water RSS was
+**52,508 KiB**. This is an observed plateau, not a proof against all memory leaks.
+Sampled temperature ranged **62.083–74.583°C**; observed CPU frequencies were
+1.008, 1.248 and 1.512 GHz with the existing interactive governor.
+
+Initial SDL/ALSA probes used the system default PCM and logged underruns even
+when callbacks met their render deadlines. Inspection found that default PCM
+routes through a fixed 44.1 kHz dmix, while the regular launcher already sets
+`AUDIODEV=plughw:0,0`. Final hardware checks must match that direct-card route.
+The S16 fixture uses the preserved 4906-frame setting and a separate test-only
+master gain of 0.4 for the deliberately dense summed arrangement; no preset or
+installed mix setting is changed. The initial dense F32 fixture reached peak
+1.981 before that separate master attenuation; it was not claimed unclipped.
+
+Both final **70-second direct-card S16 tests** passed with **zero render deadline
+misses, zero logged ALSA underruns and no nonfinite samples**. Hardware readback
+confirmed 48 kHz, a 4906-frame period and a 9812-frame hardware buffer. The callback
+deadline was 102.208 ms:
+
+| Physical audio fixture | p95 | p99 | Worst | Peak |
+|---|---:|---:|---:|---:|
+| Bank demo | 22.132 ms | 24.590 ms | 27.392 ms | 0.093 |
+| 4 WAV + 2 chip + 2 FM, DX7 chord and four inserts | 80.990 ms | 81.577 ms | 81.819 ms | 0.792 |
+
+Each test completed 685 callbacks. The production executable also passed isolated
+startup with persistent waveform OFF and ON on the same direct-card route.
+Installed settings and autosave hashes stayed unchanged during validation, and
+the idle frontend was restored. The executable SHA-256 is
+`1966139c400e5fc25ca93107b5d442816f5d60c84d026814bef750a6945bc247`.
+No human listening or comprehensive ALSA xrun instrumentation is claimed beyond
+the captured driver messages. Small-buffer probes and overload results remain
+reported rather than being replaced by these successful configured-buffer checks.
+The installed 48 kHz / configured 4906-frame setting is preserved; these smaller
+512-frame tests do not change it. A larger buffer can absorb brief scheduling
+spikes, but cannot make a sustained over-budget workload run in real time.
 
 ## Packaging
 
@@ -197,10 +282,6 @@ SHA-256 inventory. This macOS archive is not a handheld installation package.
 
 ## Remaining acceptance work
 
-- Build the ARM64 device personal build with the existing approved target
-  toolchain; the authorized isolated validation is now underway.
-  Benchmark 1/4/8/16 DX7 voices, mixed/chord/effect loads and a 10–15 minute
-  run before choosing the handheld voice limit. Do not infer it from this Mac.
 - Complete human listening of the supplied bank WAVs and demo; refine ambiguous
   categories and balance only with explicit reversible wrapper settings.
 - Acquire further author-cleared DX7 content if the 1,000-sound goal remains
@@ -208,6 +289,9 @@ SHA-256 inventory. This macOS archive is not a handheld installation package.
 - Binary WOPL, OPM noise/partial-pan variants, DX7II/performance extensions,
   runtime archives, search/favorites and operator editing are unsupported as
   described above. No claim is made that these formats are silently equivalent.
-- Before any later install, follow the existing device personal-build procedure,
-  preserve all user assets/settings, and verify a fresh rollback copy. This work
-  makes no changes to the current installation or its existing rollback records.
+- Heavy FM/insert combinations and smaller audio buffers can exceed the measured
+  budget. Preserve the current launcher route and audio settings when comparing
+  results. The validated balanced example is not a universal performance guarantee.
+- Device updates preserve user assets/settings and the regular launcher, verify a
+  full rollback copy and record the installed source/binary identity. No PR or
+  unrelated system configuration change is part of this delivery.
