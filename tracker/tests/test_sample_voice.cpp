@@ -7,6 +7,10 @@
 #include <cstring>
 #include <vector>
 
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
 static void writeU16(FILE* file, uint16_t value) {
   fputc(value & 0xff, file);
   fputc(value >> 8, file);
