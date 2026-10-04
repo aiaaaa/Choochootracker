@@ -184,6 +184,7 @@ static int initSampleInstrument(Instrument* instrument) {
   instrument->type = InstrumentType::Sample;
   instrument->chip.sample.end = 255;
   instrument->chip.sample.speedPercent = 100;
+  instrument->chip.sample.speedAlgorithm = 0;
   initVoicePostSettings(&instrument->chip.sample);
   return 0;
 }
@@ -332,7 +333,7 @@ static const InstrumentFX fxAY1[]={F(fxAYM,"AYM"),F(fxNOI,"NOI"),F(fxNOA,"NOA"),
 static const InstrumentFX fxAY2[]={F(fxAYM,"AYM"),F(fxNOI,"NOI"),F(fxNOA,"NOA"),F(fxTNN,"TNN"),F(fxTNP,"TNP"),F(fxTNF,"TNF"),F(fxTRT,"TRT"),F(fxEAU,"EAU"),F(fxENN,"ENN"),F(fxENP,"ENP"),F(fxENF,"ENF"),F(fxERT,"ERT"),F(fxSFT,"SFT"),F(fxSFN,"SFN"),F(fxSFP,"SFP"),F(fxSFF,"SFF"),F(fxSRT,"SRT"),F(fxSFM,"SFM"),F(fxPWM,"PWM"),F(fxSPL,"SPL"),F(fxSWT,"SWT")};
 static const InstrumentFX fxAYSample[]={F(fxAYM,"AYM"),F(fxNOI,"NOI"),F(fxNOA,"NOA"),F(fxTNN,"TNN"),F(fxTNP,"TNP"),F(fxTNF,"TNF"),F(fxTRT,"TRT"),F(fxSFN,"SFN"),F(fxSFP,"SFP"),F(fxSFF,"SFF"),F(fxSMS,"SMS")};
 static const InstrumentFX fxBraids[]={F(fxBMD,"BMD"),F(fxBTM,"BTM"),F(fxBCL,"BCL"),F(fxBCF,"BCF"),F(fxBRS,"BRS")};
-static const InstrumentFX fxSample[]={F(fxSPT,"SPT"),F(fxSST,"SST"),F(fxSTA,"STA"),F(fxSEN,"SEN"),F(fxSVL,"SVL"),F(fxSCF,"SCF"),F(fxSRS,"SRS"),F(fxSSP,"SSP"),F(fxSLP,"SLP")};
+static const InstrumentFX fxSample[]={F(fxSPT,"SPT"),F(fxSST,"SST"),F(fxSEN,"SEN"),F(fxSVL,"SVL"),F(fxSCF,"SCF"),F(fxSRS,"SRS"),F(fxSSP,"SSP"),F(fxSLP,"SLP")};
 static const InstrumentFX fxSCWF[]={F(fxSDT,"SDT"),F(fxSMX,"SMX"),F(fxSCF2,"SCF"),F(fxSRS2,"SRS")};
 static const InstrumentFX fxBYOWTBL[]={F(fxSDT,"SDT"),F(fxSMX,"SMX"),F(fxBIA,"BIA"),F(fxBIB,"BIB"),F(fxSCF2,"SCF"),F(fxSRS2,"SRS")};
 static const InstrumentFX fxPlaits[]={F(fxPMD,"PMD"),F(fxPHA,"PHA"),F(fxPTM,"PTM"),F(fxPMO,"PMO"),F(fxPAX,"PAX"),F(fxPCF,"PCF"),F(fxPRS,"PRS")};
@@ -349,7 +350,7 @@ static const InstrumentDefinition instrumentDefinitions[] = {
   {"AY Plus",InstrumentCategory::chip,InstrumentScreenKind::ay2,destAY2,COUNT(destAY2),fxAY2,COUNT(fxAY2),{10,modNameAY2,initAY2Instrument,freeAY2Instrument,0,0}},
   {"AY Sample",InstrumentCategory::chip,InstrumentScreenKind::aySample,destAYSample,COUNT(destAYSample),fxAYSample,COUNT(fxAYSample),{6,modNameAYSample,initAYSampleInstrument,freeAYSampleInstrument,0,0}},
   {"Braids",InstrumentCategory::synth,InstrumentScreenKind::braids,destBraids,COUNT(destBraids),fxBraids,COUNT(fxBraids),{6,modNameBraids,initBraidsInstrument,freeBraidsInstrument,1,0}},
-  {"PCM Sample",InstrumentCategory::sample,InstrumentScreenKind::sample,destSample,COUNT(destSample),fxSample,COUNT(fxSample),{8,modNameSample,initSampleInstrument,freeSampleInstrument,1,0}},
+  {"Sampler",InstrumentCategory::sample,InstrumentScreenKind::sample,destSample,COUNT(destSample),fxSample,COUNT(fxSample),{8,modNameSample,initSampleInstrument,freeSampleInstrument,1,0}},
   {"Plaits",InstrumentCategory::synth,InstrumentScreenKind::plaits,destPlaits,COUNT(destPlaits),fxPlaits,COUNT(fxPlaits),{8,modNamePlaits,initPlaitsInstrument,freePlaitsInstrument,1,1}},
   {"Plaits-Alt",InstrumentCategory::synth,InstrumentScreenKind::plaits,destPlaits,COUNT(destPlaits),fxPlaits,COUNT(fxPlaits),{8,modNamePlaits,initPlaitsAltInstrument,freePlaitsInstrument,1,1}},
   {"2xSCWF",InstrumentCategory::sample,InstrumentScreenKind::scwf,destSCWF,COUNT(destSCWF),fxSCWF,COUNT(fxSCWF),{6,modNameSCWF,initSCWFInstrument,freeSCWFInstrument,1,0}},
@@ -395,7 +396,15 @@ int instrumentFXAvailableForInstrument(const Instrument* instrument, uint8_t fx)
 }
 
 int instrumentModDestinationAvailable(const Instrument* instrument, int destination) {
-  if (!instrumentModDestination(instrument ? instrument->type : InstrumentType::none, destination)) return 0;
+  InstrumentType type = instrument ? instrument->type : InstrumentType::none;
+  int generic = instrumentGenericModDestination(type, destination);
+  if (generic >= genericModFirstInsert) return 1;
+  if (generic >= 0) {
+    auto f = getInstrumentFunctions(type);
+    return generic < genericModDestinationCount || generic >= genericModFirstP5 ||
+      (f.supportsVoicePost && (generic < genericModTriggerDecay || f.supportsTrigger));
+  }
+  if (!instrumentModDestination(type, destination)) return 0;
   return !instrument || instrument->type != InstrumentType::DrumSynth ||
     destination < 3 || destination > 8 || drumSynthMacroUsed(instrument->chip.drumSynth.engine, destination - 3);
 }
@@ -451,7 +460,8 @@ static const char* genericModName(int index) {
     "M3 P1", "M3 P2", "M3 P3", "M3 P4",
     "M4 P1", "M4 P2", "M4 P3", "M4 P4",
     "ADSR A", "ADSR D", "ADSR S", "ADSR R", "ADSR Shape", "Trig D", "Trig C",
-    "M1 P5", "M2 P5", "M3 P5", "M4 P5"
+    "M1 P5", "M2 P5", "M3 P5", "M4 P5",
+    "F11", "F12", "F13", "F14", "F15", "F16", "F17", "F18", "F21", "F22", "F23", "F24", "F25", "F26", "F27", "F28"
   };
   return index >= 0 && index < genericModTotalCount ? names[index] : "Misc";
 }
@@ -463,8 +473,7 @@ int instrumentGenericModDestination(InstrumentType type, int destination) {
 
 int instrumentModDestinationMax(InstrumentType type) {
   InstrumentFunctions functions = getInstrumentFunctions(type);
-  int genericCount = functions.supportsVoicePost ? genericModFirstP5 : genericModDestinationCount;
-  return functions.modDestinationsCount + genericCount;
+  return functions.modDestinationsCount + genericModTotalCount;
 }
 
 const char* instrumentModDestinationName(InstrumentType type, int destination) {
