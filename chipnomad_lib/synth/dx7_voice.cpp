@@ -68,3 +68,42 @@ void DX7Part::render(float* output,size_t frames) {
   // cannot reset LFO phase or cause extra envelope steps.
   for(size_t i=0;i<frames;++i){float l,r;resampler_.next([&](float& a,float& b){native(a,b);},l,r);output[i]=l;}
 }
+
+unsigned limitDX7Voices(DX7Part* const* parts, size_t count, unsigned limit) {
+  unsigned active = 0, stolen = 0;
+  for (size_t track = 0; track < count; ++track)
+    if (parts[track]) for (const auto& voice : parts[track]->voices)
+      active += voice.active();
+  while (active > limit) {
+    DX7Voice* victim = nullptr;
+    int priority = 3, selectedSlot = -1;
+    size_t selectedTrack = 0;
+    float level = 0;
+    for (size_t track = 0; track < count; ++track) {
+      if (!parts[track]) continue;
+      for (int slot = 0; slot < CHORD_MAX_VOICES; ++slot) {
+        auto& voice = parts[track]->voices[slot];
+        if (!voice.active()) continue;
+        const int candidate = voice.releasing() ? 0 : voice.newlyTriggered() ? 2 : 1;
+        const float amplitude = voice.envelopeLevel();
+        // Release tails first, then quiet held notes, then fresh attacks.
+        // Equal attacks retain roots across tracks before chord extensions.
+        if (!victim || candidate < priority ||
+            (candidate == priority && (amplitude < level ||
+             (amplitude == level && (slot > selectedSlot ||
+              (slot == selectedSlot && track > selectedTrack)))))) {
+          victim = &voice;
+          priority = candidate;
+          level = amplitude;
+          selectedSlot = slot;
+          selectedTrack = track;
+        }
+      }
+    }
+    if (!victim) break;
+    victim->kill();
+    --active;
+    ++stolen;
+  }
+  return stolen;
+}

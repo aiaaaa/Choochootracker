@@ -5,6 +5,7 @@
 CXX = c++
 CFLAGS = -std=c++17 -Wall -g -O0 -DTEST -DTEST_PORTMASTER_INPUT
 LDFLAGS = -lm -pthread
+include Makefile.native-chip-flags
 
 # Build directory
 BUILD_DIR = build/tests
@@ -119,9 +120,9 @@ BENCHMARK_OBJECTS := $(foreach source,$(BENCHMARK_SOURCES),$(call object_for,$(s
 DEPS := $(sort $(OBJECTS:.o=.d) $(MEASURE_OBJECTS:.o=.d) $(BENCHMARK_OBJECTS:.o=.d))
 
 define compile_source
-$(call object_for,$(1)): $(1) Makefile.test Makefile.mod-lucky $(BUILD_DIR)/mod-lucky-build-config
+$(call object_for,$(1)): $(1) Makefile.test Makefile.mod-lucky Makefile.native-chip-flags $(BUILD_DIR)/mod-lucky-build-config
 	@mkdir -p $$(dir $$@)
-	@$(CXX) $(CFLAGS) $(INCLUDES) -MMD -MP -c $$< -o $$@
+	@$(CXX) $(CFLAGS) $(call native_chip_opt_flags,$(1)) $(INCLUDES) -MMD -MP -c $$< -o $$@
 endef
 
 $(foreach source,$(ALL_COMPILE_SOURCES),$(eval $(call compile_source,$(source))))

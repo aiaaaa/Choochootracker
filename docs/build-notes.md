@@ -332,3 +332,40 @@ This measures host render deadlines, not audio-device underruns or R36H thermals
 The final Yamaha adapters clock one key-off sample before reasserting key-on,
 so repeated tracker notes actually retrigger ymfm envelopes. This adds at most
 one native sample to the existing streaming FIR delay; it never drops output.
+
+
+### R36H validation of native chips
+
+Use the existing paired-device GCC 9 compiler and cached development headers,
+with the already built ARM64 Mod Lucky prefix. The source can be staged outside
+`/roms/ports` and built using `Makefile.personal`; no SDK installation is needed.
+GCC requires the documented positional-initializer compatibility patch in gb_apu.
+Set `COMMON_CFLAGS` and `MOD_LUCKY_PREFIX` to that configured target environment.
+
+```sh
+make -C tracker -j2 -f Makefile.personal PortMaster-deploy
+make -C tracker -j2 -f Makefile.test CHOOCHOO_EXPERIMENTAL_MOD_LUCKY=1
+make -C tracker -j2 -f Makefile.native-chip-device native-chip-validation CHOOCHOO_EXPERIMENTAL_MOD_LUCKY=1
+# Run the UI fixture from tracker/packaging/common with an existing output dir:
+SDL_VIDEODRIVER=offscreen SDL_AUDIODRIVER=alsa ../../build/portmaster/native-chip-ui /absolute/capture-directory
+# Run the audio fixture only with the physical audio device available:
+SDL_AUDIODRIVER=alsa tracker/build/portmaster/native-chip-audio tracker/packaging/common/projects/native-chip-audition.cct
+```
+
+The developer-only audio fixture plays the portable bank demo for 70 seconds,
+checks finite/non-silent output, and reports actual SDL callback render timing.
+It does not claim subjective listening or measure ALSA underruns directly.
+Keep the frontend’s prior state intact when temporarily releasing its audio.
+Tests must use the matching target include flags and dependency prefix too.
+Retain the existing installed audio settings; benchmark results at smaller
+buffers are measurements, not an instruction to change the user's buffer.
+
+
+PortMaster builds now append `-O3` only for the new native chip cores and their
+adapters through `Makefile.native-chip-flags`. The rest of the application keeps
+its existing flags. There is no fast-math, oversampling reduction or altered
+patch data. Device test/benchmark builds use `NATIVE_CHIP_OPT_FLAGS=-O3` to match
+that profile; normal debug tests leave this override empty. The bounded device
+sweep is `benchmark_native_chips 30 --bounded`: all 1/4/8/16/32 DX7 raw voice
+points, 1/8 for other families, and mixed/FM-heavy/FM-heavy-chord songs with FX.
+The ten-minute `--soak` uses the chord scene plus concurrent 10k-index scans.

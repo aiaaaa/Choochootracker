@@ -31,6 +31,7 @@ template<class Voice,class Configure>static void family(const char* name,int cou
 }
 int main(int argc,char** argv) {
   bool soak=argc>1&&!strcmp(argv[1],"--soak");int seconds=soak?600:argc>1?std::atoi(argv[1]):30;if(seconds<1||seconds>600)return 1;
+  bool bounded=argc>2&&!strcmp(argv[2],"--bounded");
   volatile double checksum=0;
   printf("kind,rate,frames,notes,seconds,mean_us,p50_us,p95_us,p99_us,worst_us,deadline_misses,part_bytes\n");
   if(!soak)for(int rate:{44100,48000,96000})for(int frames:{128,512})for(int count:{1,4,8,16,32}) {
@@ -49,6 +50,7 @@ int main(int argc,char** argv) {
   }
 
   if(!soak)for(int count:{1,8,32}) {
+    if(bounded&&count>8)continue; // Optional 32-voice non-DX7 overload stress.
     for(auto type:{InstrumentType::OPLL,InstrumentType::VRC7}){Instrument i{};getInstrumentFunctions(type).init(&i);family<OPLLVoice>(getInstrumentDefinition(type)->uiName,count,seconds,[&](auto& v,int n){v.configure(&i.chip.opll,4800+(n%12)*100,.5);},checksum);}
     for(auto type:{InstrumentType::SegaPSG,InstrumentType::GBPulse,InstrumentType::GBNoise}){Instrument i{};getInstrumentFunctions(type).init(&i);family<SimpleChipVoice>(getInstrumentDefinition(type)->uiName,count,seconds,[&](auto& v,int n){v.configure(type,&i.chip.simpleChip,4800+(n%12)*100,.5);},checksum);}
     for(auto type:{InstrumentType::GenesisFM,InstrumentType::ArcadeFM}){Instrument i{};getInstrumentFunctions(type).init(&i);family<FourOpVoice>(getInstrumentDefinition(type)->uiName,count,seconds,[&](auto& v,int n){v.configure(type,&i.chip.fourOp,4800+(n%12)*100,.5);},checksum);}
@@ -56,17 +58,18 @@ int main(int argc,char** argv) {
   }
   // Actual eight-track sequencer with pre-existing and new instruments, sends
   // and inserts; playback and modulation overhead are inside measured blocks.
-  for(bool heavy:{false,true}) {
-    if(soak&&!heavy)continue;
+  for(int scene=0;scene<3;++scene) {
+    const bool heavy=scene>0,chords=scene==2;
+    if(soak&&!chords)continue;
     auto* state=chipnomadCreate();if(projectLoad(&state->project,"packaging/common/projects/gm-midi-demo.cct"))return 3;
     const InstrumentType mixed[]={InstrumentType::AY1,InstrumentType::Plaits,InstrumentType::OPL3,InstrumentType::DX7,InstrumentType::GenesisFM,InstrumentType::ArcadeFM,InstrumentType::SegaPSG,InstrumentType::GBPulse};
     for(int t=0;t<8;++t){auto type=heavy?(t%3==0?InstrumentType::OPL3:t%3==1?InstrumentType::DX7:InstrumentType::GenesisFM):mixed[t];getInstrumentFunctions(type).init(&state->project.instruments[t]);if(type==InstrumentType::OPL3){auto& p=state->project.instruments[t].chip.opl;p.topology=(t&1)?OPLTopology::dualVoice:OPLTopology::fourOperator;p.operators[2]=p.operators[0];p.operators[3]=p.operators[1];p.connection[1]=1;}
-      state->project.song[0][t]=t;state->project.chains[t].rows[0].phrase=t;state->project.chains[t].rows[0].transpose=0;phraseClear(&state->project.phrases[t]);for(int r=0;r<16;r+=4){auto& row=state->project.phrases[t].rows[r];row.note=36+t*3+r/4;row.instrument=t;row.volume=75;}state->project.phrases[t].rows[15].note=NOTE_OFF;state->project.trackReverbSend[t]=30;state->project.trackDelaySend[t]=20;insertSelect(&state->project.trackInserts[t][0],insertCompressor);insertSelect(&state->project.trackInserts[t][1],(t&1)?insertTape:insertDoubler);
+      state->project.song[0][t]=t;state->project.chains[t].rows[0].phrase=t;state->project.chains[t].rows[0].transpose=0;phraseClear(&state->project.phrases[t]);for(int r=0;r<16;r+=4){auto& row=state->project.phrases[t].rows[r];row.note=36+t*3+r/4;row.instrument=t;row.volume=75;if(chords&&t==1){row.fx[0][0]=fxCRD;row.fx[0][1]=7;}}state->project.phrases[t].rows[15].note=NOTE_OFF;state->project.trackReverbSend[t]=30;state->project.trackDelaySend[t]=20;insertSelect(&state->project.trackInserts[t][0],insertCompressor);insertSelect(&state->project.trackInserts[t][1],(t&1)?insertTape:insertDoubler);
     }
     chipnomadInitChips(state,48000,nullptr);chipnomadReserveRenderBuffers(state,512);chipnomadQueueProjectRefresh(state);chipnomadQueuePlaybackStartSong(state,0,0,1);std::vector<float>audio(1024);std::vector<double>times;times.reserve(seconds*48000/512);
     std::atomic<bool>stop{false};std::atomic<unsigned>scans{0};std::thread browser;
     if(soak)browser=std::thread([&]{while(!stop){std::vector<FMPresetEntry>entries;if(!loadFMCatalog("../.tmp/chip-audit/scale-catalog.tsv",entries)||entries.size()!=10000)std::abort();++scans;std::this_thread::sleep_for(std::chrono::milliseconds(50));}});
-    auto paced=std::chrono::steady_clock::now();for(int b=0;b<seconds*48000/512+100;++b){auto start=std::chrono::steady_clock::now();chipnomadRender(state,audio.data(),512);checksum+=audio[0];if(b>=100)times.push_back(std::chrono::duration<double,std::micro>(std::chrono::steady_clock::now()-start).count());if(soak)std::this_thread::sleep_until(paced+std::chrono::microseconds((b+1)*int64_t(512)*1000000/48000));}stop=true;if(browser.joinable())browser.join();if(soak){struct rusage usage{};getrusage(RUSAGE_SELF,&usage);fprintf(stderr,"Paced host soak: %d seconds plus warmup; 10k metadata scans=%u maxrss_native_units=%ld\n",seconds,unsigned(scans),usage.ru_maxrss);}stats(heavy?"FM-heavy song+FX":"Mixed song+FX",48000,512,8,seconds,times,sizeof(ChipNomadState));chipnomadDestroy(state);
+    auto paced=std::chrono::steady_clock::now();for(int b=0;b<seconds*48000/512+100;++b){auto start=std::chrono::steady_clock::now();chipnomadRender(state,audio.data(),512);checksum+=audio[0];if(b>=100)times.push_back(std::chrono::duration<double,std::micro>(std::chrono::steady_clock::now()-start).count());if(soak)std::this_thread::sleep_until(paced+std::chrono::microseconds((b+1)*int64_t(512)*1000000/48000));}stop=true;if(browser.joinable())browser.join();if(soak){struct rusage usage{};getrusage(RUSAGE_SELF,&usage);fprintf(stderr,"Paced host soak: %d seconds plus warmup; 10k metadata scans=%u maxrss_native_units=%ld\n",seconds,unsigned(scans),usage.ru_maxrss);}stats(chords?"FM-heavy chord song+FX":heavy?"FM-heavy song+FX":"Mixed song+FX",48000,512,chords?11:8,seconds,times,sizeof(ChipNomadState));chipnomadDestroy(state);
   }
   fprintf(stderr,"Offline render, not device callbacks; checksum %.9f; no hardware underrun/thermal observation\n",double(checksum));
 }
