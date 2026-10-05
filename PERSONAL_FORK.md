@@ -32,7 +32,7 @@ key jazz, Settings submenus and the aChChid workflow improvements.
 
 ## Current personal source
 
-Upstream base: `a88a403387e39ded0feaf8316b9a3c56fa5dbf43` (October 5 harmonization). Personal includes
+Upstream base: `8c8709182b90a492ae8b5e2fc0bb0e7516644388` (October 5 harmonization). Personal includes
 upstream’s track-visuals/GPU integration, corrected Graphics touch mapping, sample
 editor and processing updates, sample stretching, and bounce/export improvements.
 Native chip instruments and Get Lucky remain included. New saves use upstream’s
