@@ -325,6 +325,7 @@ struct InstrumentFMTone {
   int8_t brightness; // Modulator output-level offset, -63..63; zero preserves preset.
   uint8_t feedback; // 0 preserves preset; 1..8 select feedback 0..7.
   int8_t operatorOffset[6]; // Audio-thread FX offsets; zero in stored instruments.
+  uint8_t operatorLevel[6]; // Runtime absolute level + 1; zero uses saved patch.
   // Envelope time, tone decay, detune, ratio, LFO rate/depth. Runtime only;
   // signed zero is the exact preset (FX byte 80).
   int8_t macro[6];

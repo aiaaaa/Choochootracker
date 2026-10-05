@@ -379,6 +379,8 @@ const char* helpFXHint(uint8_t* fx, int isTable, uint8_t instrumentIdx) {
     case fxCMD: case fxCNR: case fxCND: case fxCNS: case fxCSP: case fxCSS:
     case fxCSD: case fxCEI: case fxCEP: case fxCED:
     case fxFO1: case fxFO2: case fxFO3: case fxFO4: case fxFO5: case fxFO6:
+    case fxOL1: case fxOL2: case fxOL3: case fxOL4: case fxOL5: case fxOL6:
+    case fxFBK:
     case fxFET: case fxFTD: case fxFDT: case fxFHR: case fxFLR: case fxFLD:
     case fxSAT: case fxSDE: case fxSSU: case fxSRL: case fxSPR:
     case fxSCP: case fxSCT: case fxSRN: case fxSWV: case fxSFTY: case fxSMR: case fxSRG: case fxSSY: {
@@ -606,6 +608,12 @@ static void initFxHelpText() {
 
 const char* helpFXDescription(enum FX fxIdx, uint8_t instrumentIdx) {
   initFxHelpText(); // Initialize on first use
+  if(fxIdx==fxFBK)return "FM Feedback\n00-07: eight native levels\nAbsolute feedback amount\nStarts at the instrument setting";
+  if(fxIdx>=fxOL1&&fxIdx<=fxOL6) {
+    static char text[200];
+    snprintf(text,sizeof(text),"FM Operator %d Level\nAbsolute native output level\nHigher values raise the output\nModulator: tone / carrier: volume\nSLE moves through native steps",fxIdx-fxOL1+1);
+    return text;
+  }
 
   if (fxIdx == fxCMD && chipnomadState && instrumentIdx < PROJECT_MAX_INSTRUMENTS) {
     switch (chipnomadState->project.instruments[instrumentIdx].type) {

@@ -429,6 +429,11 @@ const InstrumentModDestination* instrumentModDestination(InstrumentType type, in
 }
 
 int instrumentFXAvailable(InstrumentType type, uint8_t fx) {
+  if(fx==fxFBK)return instrumentNativeModDestination(type,genericModFMFeedback)!=nullptr;
+  if(fx>=fxOL1&&fx<=fxOL6) {
+    int count=type==InstrumentType::DX7?6:(type==InstrumentType::OPL3||type==InstrumentType::GenesisFM||type==InstrumentType::ArcadeFM)?4:(type==InstrumentType::OPLL||type==InstrumentType::VRC7||type==InstrumentType::OPL2)?2:0;
+    return fx-fxOL1<count;
+  }
   for(int g=genericModFMBrightness;g<genericModTotalCount;++g)if(const auto* d=instrumentNativeModDestination(type,g))if(d->fx==fx)return 1;
   const InstrumentDefinition* definition = getInstrumentDefinition(type);
   for (int i = 0; i < definition->fxCount; ++i) if (definition->fxList[i].fx == fx) return 1;
@@ -437,6 +442,7 @@ int instrumentFXAvailable(InstrumentType type, uint8_t fx) {
 
 int instrumentFXAvailableForInstrument(const Instrument* instrument, uint8_t fx) {
   if (!instrument || !instrumentFXAvailable(instrument->type, fx)) return 0;
+  if(fx>=fxOL1&&fx<=fxOL6)return fx-fxOL1<instrumentFMOperatorCount(instrument);
   if((instrument->type==InstrumentType::OPL2||instrument->type==InstrumentType::OPL3)&&
       instrument->chip.opl.topology==OPLTopology::twoOperator&&(fx==fxFO3||fx==fxFO4))return 0;
   if (instrument->type != InstrumentType::DrumSynth) return 1;

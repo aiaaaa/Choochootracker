@@ -58,3 +58,8 @@ stage, level and gate (including the remaining static-stage countdown).
 without restarting the note or clearing phase/feedback. The tracker adapter
 supplies a temporary effective patch; preset bytes remain unchanged. Neutral
 macros retain the original path. LFO rate changes retain its phase and delay.
+
+Absolute operator levels: the adapter supplies native VCED output levels in a
+temporary patch. `Note::updateTimbre` reapplies the existing keyboard/velocity
+scaling and `Env::setOutputLevel` shifts the running log envelope without
+retriggering its stage or gate. Legacy operator offsets remain a separate path.

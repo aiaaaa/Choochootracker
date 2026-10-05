@@ -133,6 +133,14 @@ int Env::scaleoutlevel(int outlevel) {
     return outlevel >= 20 ? 28 + outlevel : levellut[outlevel];
 }
 
+void Env::setOutputLevel(int output) {
+    if(output==outlevel_)return;
+    // Shift the running envelope in its log domain; retain stage and gate.
+    level_=max(int64_t(0),min(int64_t(INT32_MAX),int64_t(level_)+int64_t(output-outlevel_)*65536));
+    outlevel_=output;
+    if(ix_<4)advance(ix_);
+}
+
 void Env::advance(int newix) {
     ix_ = newix;
     if (ix_ < 4) {

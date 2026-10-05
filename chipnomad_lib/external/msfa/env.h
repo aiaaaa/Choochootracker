@@ -52,6 +52,7 @@ class Env {
 
   // Tracker macro update: retain level, stage and gate.
   void setRates(const int rates[4]);
+  void setOutputLevel(int output);
   void keydown(bool down);
   static int scaleoutlevel(int outlevel);
   void getPosition(char *step);
@@ -90,4 +91,3 @@ class Env {
 
 } // namespace choochoo_msfa
 #endif  // __ENV_H
-

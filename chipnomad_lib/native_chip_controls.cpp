@@ -1,6 +1,60 @@
 #include "project.h"
 #include "sid_patch.h"
 
+int instrumentFMOperatorCount(const Instrument* i) {
+  if(!i)return 0;
+  switch(i->type) {
+    case InstrumentType::OPLL:case InstrumentType::VRC7:case InstrumentType::OPL2:return 2;
+    case InstrumentType::OPL3:return i->chip.opl.topology==OPLTopology::twoOperator?2:4;
+    case InstrumentType::GenesisFM:case InstrumentType::ArcadeFM:return 4;
+    case InstrumentType::DX7:return 6;
+    default:return 0;
+  }
+}
+
+bool instrumentNativeFXInfo(const Instrument* i,int fx,NativeFXInfo* out) {
+  if(!i||!out)return false;
+  if(fx==fxFBK) {
+    if(!instrumentFMOperatorCount(i))return false;
+    NativeFXInfo feedback{};
+    if(!instrumentNativeFXInfo(i,fxFFB,&feedback))return false;
+    *out={7,feedback.preset-1,false};return true;
+  }
+  if(fx>=fxOL1&&fx<=fxOL6) {
+    int op=fx-fxOL1;
+    if(op>=instrumentFMOperatorCount(i))return false;
+    int maximum=63,value=0;
+    switch(i->type) {
+      case InstrumentType::OPLL:case InstrumentType::VRC7:
+        maximum=op?15:63;value=op?15:63-(i->chip.opll.patch[2]&63);break;
+      case InstrumentType::OPL2:case InstrumentType::OPL3:value=63-i->chip.opl.operators[op].level;break;
+      case InstrumentType::GenesisFM:case InstrumentType::ArcadeFM:
+        maximum=127;value=127-i->chip.fourOp.operators[op].level;break;
+      case InstrumentType::DX7:maximum=99;value=i->chip.dx7.voice[(5-op)*21+16];break;
+      default:return false;
+    }
+    *out={maximum,value,false};return true;
+  }
+  if(!instrumentFXAvailableForInstrument(i,fx))return false;
+  for(int g=genericModFMBrightness;g<genericModTotalCount;++g) {
+    const auto* d=instrumentNativeModDestination(i->type,g);
+    if(!d||d->fx!=fx)continue;
+    bool relative=g==genericModFMBrightness || (g>=genericModFMOperator1&&g<=genericModFMOperator6) || (g>=genericModFMTime&&g<=genericModFMLFODepth);
+    int value=instrumentNativeControlValue(i,g);
+    if(g==genericModFMFeedback) {
+      // FFB reserves zero for "preset"; explicit levels are encoded as 1..8.
+      if(!value) {
+        if(i->type==InstrumentType::OPLL||i->type==InstrumentType::VRC7)value=(i->chip.opll.patch[3]&7)+1;
+        else if(i->type==InstrumentType::OPL2||i->type==InstrumentType::OPL3)value=i->chip.opl.feedback[0]+1;
+        else if(i->type==InstrumentType::DX7)value=i->chip.dx7.voice[135]+1;
+        else value=i->chip.fourOp.feedback+1;
+      }
+    }
+    *out={d->range,value,relative};return true;
+  }
+  return false;
+}
+
 const InstrumentModDestination* instrumentNativeModDestination(InstrumentType t, int g) {
   static const InstrumentModDestination controls[] = {
     {"Brightness",fxFBR,255,InstrumentMotionValue::raw},

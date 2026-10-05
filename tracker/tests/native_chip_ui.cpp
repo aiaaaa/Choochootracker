@@ -116,6 +116,52 @@ int main(int argc,char** argv){
     require(strstr(helpFXDescription(fxCMD,0),type==InstrumentType::SegaPSG?"Tone / Noise":type==InstrumentType::GBPulse?"Pulse Duty":"Noise Width"),"chip mode description follows engine");
   }
   printf("Bank reset and native FX description regressions passed\n");
+  for(auto type:{InstrumentType::OPLL,InstrumentType::VRC7,InstrumentType::OPL2,InstrumentType::OPL3,InstrumentType::GenesisFM,InstrumentType::ArcadeFM,InstrumentType::DX7,InstrumentType::SegaPSG,InstrumentType::GBPulse,InstrumentType::GBNoise,InstrumentType::SID}) {
+    auto& inst=chipnomadState->project.instruments[0];getInstrumentFunctions(type).init(&inst);
+    for(int command=fxFBR;command<fxTotalCount;++command) {
+      NativeFXInfo info{};if(!instrumentNativeFXInfo(&inst,command,&info))continue;
+      uint8_t fx[]={EMPTY_VALUE_8,255},last[]={uint8_t(command),255};
+      selectInstrumentFX(fx,command,0);require(fx[1]==info.preset,"new native FX starts at instrument value");
+      fx[1]=0;selectInstrumentFX(fx,command,0);require(fx[1]==0,"existing native FX value preserved");
+      for(auto action:{CellEditAction::increase,CellEditAction::increaseBig,CellEditAction::multiIncreaseBig}) {
+        fx[1]=info.maximum;editFXValue(action,fx,last,0,0);require(fx[1]==info.maximum,"native upper bound");
+      }
+      for(auto action:{CellEditAction::decrease,CellEditAction::decreaseBig}) {
+        fx[1]=0;editFXValue(action,fx,last,1,0);require(fx[1]==0,"native lower bound in table");
+      }
+      fx[1]=255;editFXValue(CellEditAction::tap,fx,last,0,0);require(fx[1]<=info.maximum,"out of range cached FX repaired on edit");
+    }
+  }
+  getInstrumentFunctions(InstrumentType::DX7).init(&chipnomadState->project.instruments[0]);
+  chipnomadState->project.instruments[0].chip.dx7.voice[5*21+16]=42;
+  auto& fxProject=chipnomadState->project;
+  auto phraseBackup=fxProject.phrases[0];auto chainBackup=fxProject.chains[0];auto songBackup=fxProject.song[0][0];
+  *pSongRow=*pChainRow=*pSongTrack=0;fxProject.song[0][0]=0;fxProject.chains[0].rows[0].phrase=0;
+  phraseClear(&fxProject.phrases[0]);fxProject.phrases[0].rows[0].instrument=0;
+  getInstrumentFunctions(InstrumentType::OPL2).init(&fxProject.instruments[1]);
+  fxProject.instruments[1].chip.opl.operators[0].level=20;
+  fxProject.phrases[0].rows[1].instrument=1;
+  require(lookupInstrument(&fxProject,0,0,0,0)==0&&lookupInstrument(&fxProject,0,0,2,0)==1,"FX lookup follows explicit and inherited I column");
+  uint8_t inherited[]={EMPTY_VALUE_8,255};selectInstrumentFX(inherited,fxOL1,lookupInstrument(&fxProject,0,0,2,0));
+  require(inherited[1]==43,"inherited instrument supplies its own operator level");
+  for(int header:{0,1}) {
+    appSettings.persistentWaveform=header;screenSetup(&screenPhrase,-1);appDraw();
+    fxProject.phrases[0].rows[0].fx[0][0]=EMPTY_VALUE_8;
+    screenPhrase.init();
+    for(int col=0;col<3;++col)key(1,keyRight);
+    key(1,keyEdit|keyUp);
+    fxEditFullDraw(fxOL1,0,0);capture(header?"fx-native-dx7-header-on":"fx-native-dx7-header-off");
+    screenPhrase.onInput(0,0,1);
+    auto* fx=fxProject.phrases[0].rows[0].fx[0];require(fx[0]==fxOL1&&fx[1]==42,"popup commit reads instrument preset");
+  }
+  getInstrumentFunctions(InstrumentType::GBPulse).init(&chipnomadState->project.instruments[0]);
+  screenSetup(&screenPhrase,-1);appDraw();screenPhrase.init();
+  for(int col=0;col<3;++col)key(1,keyRight);
+  key(1,keyEdit|keyUp);
+  fxEditFullDraw(fxCMD,0,0);capture("fx-native-duty");
+  screenPhrase.onInput(0,0,1);
+  fxProject.phrases[0]=phraseBackup;fxProject.chains[0]=chainBackup;fxProject.song[0][0]=songBackup;
+  printf("Native FX popup preset values, selection defaults and engine bounds passed\n");
   for(int header:{0,1}){
     appSettings.persistentWaveform=header;getInstrumentFunctions(InstrumentType::SID).init(&chipnomadState->project.instruments[0]);screenSetup(&screenInstrument,0);appDraw();
     for(int row=5;row<=7;++row)for(int col=0;col<screenInstrumentOPL.getColumnCount(row);++col){screenInstrumentOPL.onEdit(col,row,CellEditAction::increase);screenInstrumentOPL.drawField(col,row,CellState::normal);appDraw();}
