@@ -2095,6 +2095,15 @@ static int nativeControlValue(PlaybackTrackState* track,const Instrument* instru
   return clampInt(value,0,d->range);
 }
 
+static void configureOperatorLevels(InstrumentFMTone& tone,PlaybackTrackState* track,const Instrument* instrument) {
+  for(int op=0;op<6;++op) {
+    tone.operatorLevel[op]=0;
+    auto fx=FX(fxOL1+op);NativeFXInfo info{};
+    if(track->note.fx[fx].isOn&&instrumentNativeFXInfo(instrument,fx,&info))
+      tone.operatorLevel[op]=clampInt(slewEngineFX(track,fx,track->note.fx[fx].fxValue),0,info.maximum)+1;
+  }
+}
+
 static void configureFMAmp(InstrumentFMAmp& amp, const PlaybackTrackState* track, InstrumentType type) {
   int attack=amp.attack,decay=amp.decay,sustain=amp.sustain,release=amp.release;
   int shape=amp.envelopeShape,triggerDecay=0,triggerColor=0;
@@ -2127,10 +2136,12 @@ static void updateOPLLVoices(ChipNomadState* state) {
     }
     auto configured=instrument->chip.opll;
     configureFMAmp(configured.amp,track,instrument->type);
+    configureOperatorLevels(configured.tone,track,instrument);
     configured.tone.brightness=fmBrightnessFromByte(nativeControlValue(track,instrument,genericModFMBrightness));
     for(int op=0;op<6;++op)if(instrumentNativeModDestination(instrument->type,genericModFMOperator1+op))
       configured.tone.operatorOffset[op]=nativeControlValue(track,instrument,genericModFMOperator1+op)-128;
     configured.tone.feedback=nativeControlValue(track,instrument,genericModFMFeedback);
+    if(track->note.fx[fxFBK].isOn)configured.tone.feedback=clampInt(track->note.fx[fxFBK].fxValue,0,7)+1;
     for(int macro=0;macro<6;++macro)if(instrumentNativeModDestination(instrument->type,genericModFMTime+macro))
       configured.tone.macro[macro]=nativeControlValue(track,instrument,genericModFMTime+macro)-128;
     for (int v = 0; v < track->chordVoiceCount; ++v) {
@@ -2166,10 +2177,12 @@ static void updateOPLVoices(ChipNomadState* state) {
     }
     auto configured=instrument->chip.opl;
     configureFMAmp(configured.amp,track,instrument->type);
+    configureOperatorLevels(configured.tone,track,instrument);
     configured.tone.brightness=fmBrightnessFromByte(nativeControlValue(track,instrument,genericModFMBrightness));
     for(int op=0;op<6;++op)if(instrumentNativeModDestination(instrument->type,genericModFMOperator1+op))
       configured.tone.operatorOffset[op]=nativeControlValue(track,instrument,genericModFMOperator1+op)-128;
     configured.tone.feedback=nativeControlValue(track,instrument,genericModFMFeedback);
+    if(track->note.fx[fxFBK].isOn)configured.tone.feedback=clampInt(track->note.fx[fxFBK].fxValue,0,7)+1;
     for(int macro=0;macro<6;++macro)if(instrumentNativeModDestination(instrument->type,genericModFMTime+macro))
       configured.tone.macro[macro]=nativeControlValue(track,instrument,genericModFMTime+macro)-128;
     for (int v = 0; v < track->chordVoiceCount; ++v) {
@@ -2205,10 +2218,12 @@ static void updateFourOpVoices(ChipNomadState* state) {
     }
     auto configured=instrument->chip.fourOp;
     configureFMAmp(configured.amp,track,instrument->type);
+    configureOperatorLevels(configured.tone,track,instrument);
     configured.tone.brightness=fmBrightnessFromByte(nativeControlValue(track,instrument,genericModFMBrightness));
     for(int op=0;op<6;++op)if(instrumentNativeModDestination(instrument->type,genericModFMOperator1+op))
       configured.tone.operatorOffset[op]=nativeControlValue(track,instrument,genericModFMOperator1+op)-128;
     configured.tone.feedback=nativeControlValue(track,instrument,genericModFMFeedback);
+    if(track->note.fx[fxFBK].isOn)configured.tone.feedback=clampInt(track->note.fx[fxFBK].fxValue,0,7)+1;
     for(int macro=0;macro<6;++macro)if(instrumentNativeModDestination(instrument->type,genericModFMTime+macro))
       configured.tone.macro[macro]=nativeControlValue(track,instrument,genericModFMTime+macro)-128;
     for (int v = 0; v < track->chordVoiceCount; ++v) {
@@ -2291,10 +2306,12 @@ static void updateDX7Voices(ChipNomadState* state) {
     }
     auto configured=instrument->chip.dx7;
     configureFMAmp(configured.amp,track,instrument->type);
+    configureOperatorLevels(configured.tone,track,instrument);
     configured.tone.brightness=fmBrightnessFromByte(nativeControlValue(track,instrument,genericModFMBrightness));
     for(int op=0;op<6;++op)if(instrumentNativeModDestination(instrument->type,genericModFMOperator1+op))
       configured.tone.operatorOffset[op]=nativeControlValue(track,instrument,genericModFMOperator1+op)-128;
     configured.tone.feedback=nativeControlValue(track,instrument,genericModFMFeedback);
+    if(track->note.fx[fxFBK].isOn)configured.tone.feedback=clampInt(track->note.fx[fxFBK].fxValue,0,7)+1;
     for(int macro=0;macro<6;++macro)if(instrumentNativeModDestination(instrument->type,genericModFMTime+macro))
       configured.tone.macro[macro]=nativeControlValue(track,instrument,genericModFMTime+macro)-128;
     for (int v = 0; v < track->chordVoiceCount; ++v) {

@@ -246,6 +246,10 @@ static uint8_t scanFX(char* str, Project* p) {
 
   if (!strcmp(buf, "---")) return EMPTY_VALUE_8;
 
+  // Legacy commands remain readable even though new choices use native levels.
+  if (buf[0] == 'F' && buf[1] == 'O' && buf[2] >= '1' && buf[2] <= '6') return fxFO1 + buf[2] - '1';
+  if (!strcmp(buf, "FFB")) return fxFFB;
+
   // Scan all FX groups
   extern FXGroup fxGroups[];
   extern int fxGroupCount;
@@ -710,7 +714,9 @@ static int projectLoadInternal(FILE* file, Project* project) {
 
   // Detect version
   if (strlen(version) > 0) {
-    if (strncmp(version, " 7.0", 4) == 0) {
+    if (strncmp(version, " 8.0", 4) == 0) {
+      projectFileVersion = 8;
+    } else if (strncmp(version, " 7.0", 4) == 0) {
       projectFileVersion = 7;
     } else if (strncmp(version, " 6.0", 4) == 0) {
       projectFileVersion = 6;
@@ -1466,7 +1472,10 @@ static int projectSaveInternal(FILE* file, Project* project) {
   for (const auto& instrument : project->instruments) nativeChips |= (instrument.type==InstrumentType::SID || instrument.type==InstrumentType::DX7 || isOPLL(instrument.type) || (isOPL(instrument.type) || isFourOp(instrument.type)) || isSimpleChip(instrument.type));
   for (const auto& phrase : project->phrases) for (const auto& row : phrase.rows) for (const auto& fx : row.fx) nativeChips |= fx[0] >= fxFBR && fx[0] < fxTotalCount;
   for (const auto& table : project->tables) for (const auto& row : table.rows) for (const auto& fx : row.fx) nativeChips |= fx[0] >= fxFBR && fx[0] < fxTotalCount;
-  fprintf(file, "# ChooChooTracker Module %d.0\n\n", nativeChips ? 7 : 5);
+  bool absoluteLevels=false;
+  for(const auto& phrase:project->phrases)for(const auto& row:phrase.rows)for(const auto& fx:row.fx)absoluteLevels |= fx[0]>=fxOL1&&fx[0]<=fxFBK;
+  for(const auto& table:project->tables)for(const auto& row:table.rows)for(const auto& fx:row.fx)absoluteLevels |= fx[0]>=fxOL1&&fx[0]<=fxFBK;
+  fprintf(file, "# ChooChooTracker Module %d.0\n\n", absoluteLevels ? 8 : nativeChips ? 7 : 5);
 
   fprintf(file, "- Title: %s\n", project->title);
   fprintf(file, "- Author: %s\n", project->author);
@@ -1595,7 +1604,9 @@ int instrumentSave(Project* project, const char* path, int instrumentIdx) {
 
   bool nativeFormat = (project->instruments[instrumentIdx].type==InstrumentType::SID || project->instruments[instrumentIdx].type==InstrumentType::DX7 || isOPLL(project->instruments[instrumentIdx].type) || (isOPL(project->instruments[instrumentIdx].type) || isFourOp(project->instruments[instrumentIdx].type)) || isSimpleChip(project->instruments[instrumentIdx].type));
   for (const auto& row : project->tables[instrumentIdx].rows) for (const auto& fx : row.fx) nativeFormat |= fx[0] >= fxFBR && fx[0] < fxTotalCount;
-  fprintf(file, "# ChipNomad Instrument %d.0\n\n", nativeFormat ? 7 : 5);
+  bool absoluteLevels=false;
+  for(const auto& row:project->tables[instrumentIdx].rows)for(const auto& fx:row.fx)absoluteLevels |= fx[0]>=fxOL1&&fx[0]<=fxFBK;
+  fprintf(file, "# ChipNomad Instrument %d.0\n\n", absoluteLevels ? 8 : nativeFormat ? 7 : 5);
   instrumentSaveData(file, 0, &project->instruments[instrumentIdx]);
   saveTable(file, 0, &project->tables[instrumentIdx]);
 
@@ -1613,7 +1624,9 @@ static int instrumentLoadInternal(FILE* file, Project* project, int instrumentId
 
   // Detect version
   if (strlen(line) > 22) {
-    if (strncmp(line + 22, " 7.0", 4) == 0) {
+    if (strncmp(line + 22, " 8.0", 4) == 0) {
+      projectFileVersion = 8;
+    } else if (strncmp(line + 22, " 7.0", 4) == 0) {
       projectFileVersion = 7;
     } else if (strncmp(line + 22, " 6.0", 4) == 0) {
       projectFileVersion = 6;

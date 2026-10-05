@@ -148,11 +148,21 @@ void fillFXNames() {
       names[count].fx=FX(d->fx);
       const char* labels[]={"FBR","FFB","CMD","CNR","CND","CNS","CSP","CSS","CSD","CEI","CEP","CED","FO1","FO2","FO3","FO4","FO5","FO6","SCP","SCT","SRN","SWV","SFI","SMR","SRG","SSY","FET","FTD","FDT","FHR","FLR","FLD","SAT","SDE","SSU","SRL","SPR"};
       strcpy(names[count++].name,labels[g-genericModFMBrightness]);
+      if(g==genericModFMFeedback){names[count-1].fx=fxFBK;strcpy(names[count-1].name,"FBK");}
+      if(g>=genericModFMOperator1&&g<=genericModFMOperator6) {
+        names[count-1].fx=FX(fxOL1+g-genericModFMOperator1);
+        snprintf(names[count-1].name,sizeof(names[count-1].name),"OL%d",g-genericModFMOperator1+1);
+      }
     }
     fxGroups[group].fxList=names;fxGroups[group].count=count;
   }
 
   // Fill FX names from all groups
+  fxNames[fxFFB].fx=fxFFB;strcpy(fxNames[fxFFB].name,"FFB");
+  for(int op=0;op<6;++op) {
+    fxNames[fxFO1+op].fx=FX(fxFO1+op);
+    snprintf(fxNames[fxFO1+op].name,sizeof(fxNames[fxFO1+op].name),"FO%d",op+1);
+  }
   for (int g = 0; g < fxGroupCount; g++) {
     for (int i = 0; i < fxGroups[g].count; i++) {
       enum FX fx = fxGroups[g].fxList[i].fx;

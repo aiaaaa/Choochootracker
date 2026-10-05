@@ -13,6 +13,7 @@ void macroPatch(const InstrumentDX7& saved,uint8_t* out) {
   const auto& t=saved.tone;
   for(int op=0;op<6;++op) {
     auto* p=out+op*21;
+    if(t.operatorLevel[5-op])p[16]=t.operatorLevel[5-op]-1;
     const bool modulator=!choochoo_msfa::FmCore::isCarrier(out[134],op);
     for(int stage=0;stage<4;++stage) {
       int delta=fmMacroDelta(t.macro[fmTime],99);
@@ -58,6 +59,7 @@ bool DX7Voice::applyEvents() {
     uint8_t effective[155];macroPatch(patch_,effective);
     note_.start(effective,baseNote_+int(patch_.voice[144])-24,patch_.velocity);
     memcpy(macroCache_,patch_.tone.macro,6);
+    memcpy(levelCache_,patch_.tone.operatorLevel,6);
     pendingOn_=false;active_=gated_=true;
   }
   if(pendingOff_){amp_.noteOff();note_.keyup();gated_=false;pendingOff_=false;}
@@ -67,10 +69,11 @@ void DX7Voice::compute(int32_t lfo,int32_t delay) {
   std::memset(block_,0,sizeof(block_));
   if(!active_)return;
   if(!gated_&&!note_.playing()){active_=false;return;}
-  if(memcmp(macroCache_,patch_.tone.macro,6)) {
+  if(memcmp(macroCache_,patch_.tone.macro,6)||memcmp(levelCache_,patch_.tone.operatorLevel,6)) {
     uint8_t effective[155];macroPatch(patch_,effective);
     note_.updateTimbre(effective,baseNote_+int(patch_.voice[144])-24);
     memcpy(macroCache_,patch_.tone.macro,6);
+    memcpy(levelCache_,patch_.tone.operatorLevel,6);
   }
   int32_t pitch=int32_t(std::lround((cents_-baseNote_*100.f)*16777216.0/1200));
   note_.compute(block_,lfo,delay,pitch,patch_.tone.brightness,patch_.tone.feedback?patch_.tone.feedback-1:-1,patch_.tone.operatorOffset);

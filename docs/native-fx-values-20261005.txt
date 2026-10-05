@@ -1,0 +1,40 @@
+Native FX values and editor limits — October 5, 2026
+
+Feasibility: the phrase editor already resolves the instrument from the row's
+I column, searching preceding rows/chains when I is blank. Reuse that lookup
+for both popup values and bounds. The table editor uses its instrument context.
+Shared metadata supplies the range and current instrument's base value.
+
+Implemented:
+- Native FX value edits saturate at legal endpoints, including small duty,
+  noise, sweep, envelope, SID and switch ranges. Large steps cannot wrap.
+- The popup lists the preset command value and range. New choices initialize
+  from that instrument; reopening preserves an existing legal value.
+- Multi-row FX selection resolves each row separately; unsupported native
+  commands are not introduced into other instrument types by bulk selection.
+- OL1–OL6 select absolute native operator output levels, with higher values
+  meaning higher output. Supported operator counts follow the actual patch.
+  OPLL/VRC7 modulator and OPL: 00–3F; OPLL/VRC7 carrier: 00–0F;
+  Genesis/Arcade: 00–7F; DX7: 00–63 (decimal 0–99).
+- FBK directly selects feedback 00–07. Master FM macros remain preset-relative
+  and are labeled as adjustments. SID's wider pulse/cutoff registers retain
+  their documented byte-scaled command values.
+- Absolute DX7 levels use the native output-level mapping, keyboard and velocity
+  scaling. Live updates retain envelope stage/gate and oscillator phase.
+
+Compatibility: historical FO1–FO6 and FFB IDs, byte values and playback paths
+remain intact. The reader accepts their spellings independently of the popup.
+New absolute commands have new IDs and use format 8 only when present in CCT
+or CNI data. Earlier formats still load; existing files are not rewritten.
+Old builds cannot open format 8 songs/instruments.
+
+Host validation:
+- 493 tests and 120,424,812 assertions passed in the complete engine suite.
+- Absolute operator endpoints and midrange render identically to native preset
+  edits across all seven FM engines; source instruments remain unchanged.
+- Legacy and absolute commands round-trip in text songs, ZIP songs and CNI.
+- Production UI checks passed: row/inherited instrument lookup, selection
+  defaults, native bounds, table editing and waveform header off/on captures.
+- Web bundle rebuilt from the final source. Generated JS whitespace normalized.
+
+Device validation and installation pending.

@@ -214,12 +214,23 @@ enum FX {
   fxSCP, fxSCT, fxSRN, fxSWV, fxSFTY, fxSMR, fxSRG, fxSSY,
   fxFET, fxFTD, fxFDT, fxFHR, fxFLR, fxFLD,
   fxSAT, fxSDE, fxSSU, fxSRL, fxSPR,
+  // Absolute native output levels. FO1..FO6 retain their historical offsets.
+  fxOL1, fxOL2, fxOL3, fxOL4, fxOL5, fxOL6,
+  fxFBK,
   // Total count - must be last
   fxTotalCount
 };
 
 static_assert(fxTotalCount < 255, "FX identifiers must not collide with FF");
 static_assert(fxF28 - fxF11 == 15, "Contiguous insert commands");
+
+struct NativeFXInfo {
+  int maximum;
+  int preset;
+  bool relative;
+};
+bool instrumentNativeFXInfo(const Instrument* instrument, int fx, NativeFXInfo* info);
+int instrumentFMOperatorCount(const Instrument* instrument);
 
 enum ScalePreset : uint8_t {
   scaleChromatic,

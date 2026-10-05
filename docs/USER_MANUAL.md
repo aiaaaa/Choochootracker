@@ -1412,7 +1412,7 @@ latch at the next note trigger; duty/width and noise frequency can change live.
 | Engines | FX | Control |
 |---|---|---|
 | All native FM | `FBR 00–FF` | Brightness: `00` = darkest, `80` = preset, `FF` = brightest; supports `SLE`. |
-| Native FM | `FO1`–`FO6 00–FF` | Individual operator level offsets: `80` = preset. Two, four or six operators appear as supported by the patch. Carrier levels affect loudness; modulator levels change tone. Supports `SLE`; native level limits still apply. |
+| Native FM | `OL1`–`OL6` | Absolute operator output levels. Range depends on the engine: OPLL/VRC7 modulator and OPL `00–3F`; OPLL/VRC7 carrier `00–0F`; Genesis/Arcade `00–7F`; DX7 `00–63` (0–99). Higher means greater output. Only supported operators appear. Supports `SLE`. |
 | All native FM | `FET 00–FF` | Native operator envelope time: short / preset (`80`) / long. Changes attack, decay and release rates; Yamaha hold rates remain held. Independent of the optional amp envelope. |
 | All native FM | `FTD 00–FF` | Tone decay: short / preset (`80`) / long. Changes modulator decay stages, leaving carrier decay alone. |
 | All native FM | `FHR 00–FF` | Lower / preset (`80`) / higher modulator coarse ratios. Native steps; fixed-frequency DX7 operators are unchanged. Additive algorithms with no modulators have no effect. |
@@ -1421,13 +1421,31 @@ latch at the next note trigger; duty/width and noise frequency can change live.
 | Genesis, Arcade, DX7 | `FLD 00–FF` | Native LFO depth: none / preset (`80`) / maximum. Changes pitch and amplitude depth/sensitivity together; amplitude modulation still follows the preset's operator enable/sensitivity settings. Positive offsets enable Genesis/Arcade LFOs even when the preset disabled them. |
 | SID | `SAT`, `SDE`, `SSU`, `SRL 00–0F` | Native attack, decay, sustain and release. Time values increase toward `0F`; sustain increases toward full level. |
 | SID | `SPR 00–0F` | Silent partner frequency from 1× to 16×; affects ring modulation and hard sync. |
-| All native FM | `FFB 00–08` | `00` preserves preset feedback; `01–08` select native 0–7. |
+| All native FM | `FBK 00–07` | Absolute native feedback, initialized from the instrument. |
 | All native FM with Amp env enabled; Sega/GB | `EAT`, `EDC`, `ESU`, `ERL`, `ESH 00–FF` | Attack, decay, sustain, release, shape. These do not enable a bypassed FM amp. |
 | Sega PSG | `CMD 00–02`, `CNR 00–03` | Tone / white noise / periodic noise; three fixed noise rates or tone-derived rate. |
 | GB Pulse | `CMD 00–03` | Native pulse duty. |
 | GB Noise | `CMD 00–01`, `CND 00–07`, `CNS 00–0D` | Noise width, clock divisor and shift. |
 | GB Pulse | `CSP 00–07`, `CSS 00–07`, `CSD 00–01` | Sweep period, shift, downward direction. |
 | GB Pulse / Noise | `CEI 00–0F`, `CEP 00–07`, `CED 00–01` | Native envelope initial level, period, rising direction. |
+
+Native FX selection uses the instrument in the phrase row's `I` column, or the
+active instrument found by looking backward when `I` is blank. The FX popup
+shows its current preset value and valid command range. Selecting a different
+native effect starts at that value; reopening the same effect preserves its
+edited value. A multi-row selection resolves each row's instrument separately.
+Tables use their instrument context. Native value edits stop at their legal
+endpoints, including duty, noise, sweep, ADSR, feedback and operator levels.
+The values are hexadecimal: for example, DX7's maximum `63` means decimal 99.
+
+Master FM macros that adjust several underlying parameters remain relative;
+the popup labels their preset adjustment explicitly. `SCP` and `SCT` retain
+their documented byte-scaled mappings to wider SID registers. The displayed
+preset values are base settings, independent of the playing envelope or LFO.
+Legacy `FO1`–`FO6` offsets and encoded `FFB` still play and save unchanged, but
+new selections use `OL1`–`OL6` and `FBK`. Songs or instruments containing these
+new commands save as format 8; earlier formats remain readable. Older builds
+cannot load format 8, so retain the original file when sharing with them.
 
 All native FX have descriptive titles, ranges and behavior in the phrase
 FX chooser, plus value hints. `CMD` describes tone/noise, duty or noise width
@@ -1518,6 +1536,6 @@ other synths still share the audio CPU budget.
 
 Pulse width and cutoff support `SLE`. Discrete waveforms, switches, resonance
 and FM feedback retain their useful native steps; wider byte values would not
-create more hardware states. FM feedback is `00` for the preset and `01–08`
-for native levels 0–7. FM operator offsets and brightness use the full byte
-range; their output still respects each chip's native level precision.
+create more hardware states. `FBK` directly selects feedback `00–07`.
+Operator levels use the engine-specific ranges listed above. Brightness and
+master adjustments retain the full byte range.

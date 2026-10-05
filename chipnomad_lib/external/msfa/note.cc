@@ -133,6 +133,7 @@ static const uint32_t ampmodsenstab[] = {
 
 
 void Note::start(const uint8_t* patch,int midi,int velocity) {
+  velocity_=velocity;
   for(int op=0;op<6;++op) {
     const uint8_t* p=patch+op*21; int rates[4],levels[4];
     for(int j=0;j<4;++j){rates[j]=p[j];levels[j]=p[j+4];}
@@ -182,6 +183,9 @@ void Note::updateTimbre(const uint8_t* patch,int midi) {
     const uint8_t* p=patch+op*21;
     int rates[4];for(int j=0;j<4;++j)rates[j]=p[j];
     env_[op].setRates(rates);
+    int level=Env::scaleoutlevel(p[16])+ScaleLevel(midi,p[8],p[9],p[10],p[11],p[12]);
+    level=max(0,min(127,level))*32+ScaleVelocity(velocity_,p[15]);
+    env_[op].setOutputLevel(max(0,level));
     basepitch_[op]=osc_freq(midi,p[17],p[18],p[19],p[20]);
   }
   pitchDepth_=(patch[139]*165)>>6;pitchSensitivity_=pitchmodsenstab[patch[143]];

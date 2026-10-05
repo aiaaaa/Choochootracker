@@ -40,6 +40,7 @@ class Note {
   FmOpParams params_[6]{};
   int32_t basepitch_[6]{},feedback_[2]{},ampSensitivity_[6]{};
   uint8_t modes_[6]{};
+  int velocity_=0;
   int algorithm_=0,feedbackShift_=16,pitchDepth_=0,pitchSensitivity_=0,ampDepth_=0;
 };
 }

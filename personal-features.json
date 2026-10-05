@@ -180,6 +180,23 @@
       ],
       "preset_neutral": "80 for preset-relative FM macros; native discrete ranges retained",
       "included_commit": "588e0ea246d26ed9a17bd33d99699ca633e359b6"
+    },
+    {
+      "id": "native-fx-values",
+      "branch": "personal/r36h",
+      "status": "Implemented; device validation pending",
+      "documentation": "docs/native-fx-values-20261005.txt",
+      "absolute_operator_commands": [
+        "OL1",
+        "OL2",
+        "OL3",
+        "OL4",
+        "OL5",
+        "OL6"
+      ],
+      "absolute_feedback_command": "FBK",
+      "editor": "Row instrument lookup, preset defaults, native endpoint limits",
+      "compatibility": "Legacy FO/FFB retain playback; new absolute commands use format 8"
     }
   ],
   "personal_fixes": [

@@ -22,6 +22,7 @@ class DX7Voice {
   NativeFMAmp amp_;
   InstrumentDX7 patch_{};
   int8_t macroCache_[6]{};
+  uint8_t levelCache_[6]{};
   int32_t block_[64]{};
   int baseNote_=60;
   float cents_=6000,gain_=1,level_=0;

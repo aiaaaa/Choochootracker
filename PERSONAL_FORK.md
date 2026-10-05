@@ -55,6 +55,10 @@ and ring/sync partner-ratio Phrase FX. Preset-relative values and native stepped
 ranges have clearer help. See [the revision notes](docs/fm-macros-revision-20261005.txt).
 This revision is installed and ready for user evaluation.
 
+The next revision adds instrument-aware native FX bounds, popup preset values,
+and absolute operator/feedback commands. Its device validation is pending; see
+[the change notes](docs/native-fx-values-20261005.txt).
+
 ## Current installed device build
 
 Source: `588e0ea246d26ed9a17bd33d99699ca633e359b6` (October 5 FM master macro revision).

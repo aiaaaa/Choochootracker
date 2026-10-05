@@ -22,6 +22,7 @@ class OPLLVoice {
   void tone();
   void macros();
   int8_t macroCache_[6]{};
+  uint8_t macroLevels_[6]{};
   int8_t macroOperators_[6]{};
   int macroBrightness_=999,macroFeedback_=-1;
   float nextNative();
