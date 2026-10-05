@@ -3,6 +3,7 @@
 #include "simple_chip_presets.h"
 #include "synth/simple_chip_voice.h"
 #include <cmath>
+#include <cstdio>
 #include <cstring>
 #include <memory>
 #include <vector>
