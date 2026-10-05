@@ -228,7 +228,7 @@ static void restartFX_VOL(PlaybackState* state, PlaybackTrackState* track, int t
 }
 
 static void handleFX_VOL(PlaybackState* state, PlaybackTrackState* track, int trackIdx, int chipIdx, PlaybackFXState* fx) {
-  track->note.volumeOffset += fx->acc;
+  track->note.volumeOffset += fx->acc * (PHRASE_VOLUME_MAX / 15);
 }
 
 // VSL - Volume slide
@@ -247,7 +247,7 @@ static void initFX_VSL(PlaybackState* state, PlaybackTrackState* track, int trac
 
 static void handleFX_VSL(PlaybackState* state, PlaybackTrackState* track, int trackIdx, int chipIdx, PlaybackFXState* fx) {
   fx->acc += fx->d.bend.speed;
-  track->note.volumeOffset += fx->acc >> 8;
+  track->note.volumeOffset += (fx->acc >> 8) * (PHRASE_VOLUME_MAX / 15);
 }
 
 // GRV - Track groove
@@ -351,7 +351,7 @@ static void handleFX_RET(PlaybackState* state, PlaybackTrackState* track, int tr
     restartFX(state, trackIdx);
     fx->acc += volumeOffset;
   }
-  track->note.volumeOffset += fx->acc;
+  track->note.volumeOffset += fx->acc * (PHRASE_VOLUME_MAX / 15);
 }
 
 // PVB - Pitch vibrato
