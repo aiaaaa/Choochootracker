@@ -66,7 +66,7 @@ static void buildNoteRows(BounceFixture& f, int rows) {
   for (int r = 0; r < rows; r++) {
     f.state->project.phrases[0].rows[r].note = 48; // C-4
     f.state->project.phrases[0].rows[r].instrument = 0;
-    f.state->project.phrases[0].rows[r].volume = 15;
+    f.state->project.phrases[0].rows[r].volume = PHRASE_VOLUME_MAX;
   }
   f.state->project.chains[0].rows[0].phrase = 0;
   f.state->project.song[0][0] = 0;
@@ -367,7 +367,7 @@ TEST_CASE_FIXTURE(BounceFixture, "ExporterSelectionWAV mutes unselected tracks")
   for (int r = 0; r < 16; r++) {
     state->project.phrases[1].rows[r].note = 48;
     state->project.phrases[1].rows[r].instrument = 0;
-    state->project.phrases[1].rows[r].volume = 15;
+    state->project.phrases[1].rows[r].volume = PHRASE_VOLUME_MAX;
   }
   state->project.chains[0].rows[0].phrase = 0;
   state->project.chains[1].rows[0].phrase = 1;
@@ -493,7 +493,7 @@ TEST_CASE_FIXTURE(BounceFixture, "ExporterSelectionWAV starts tracks that enter 
   for (int r = 0; r < 16; r++) {
     state->project.phrases[1].rows[r].note = 48;
     state->project.phrases[1].rows[r].instrument = 0;
-    state->project.phrases[1].rows[r].volume = 15;
+    state->project.phrases[1].rows[r].volume = PHRASE_VOLUME_MAX;
   }
   state->project.chains[0].rows[0].phrase = 0;
   state->project.chains[1].rows[0].phrase = 1;
