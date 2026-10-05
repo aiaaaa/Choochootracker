@@ -19,13 +19,16 @@
 
 // Shared state
 char projectFileError[41];
-int projectFileVersion = 5;  // Default to current version
+int projectFileVersion = 6;  // Default to current version
 static char chipNames[][16] = { "AY8910" };
 
 // Peek/consume implementation - single global buffer (ChipNomad is single-threaded)
 static char lineBuffer[1024];
 static char* currentLine = NULL;
 static int isConsumed = 1;
+
+static uint16_t scanPhraseVolume(char* str);
+static uint16_t legacyPhraseVolume(uint16_t value);
 
 void resetPeekConsume(void) {
   currentLine = NULL;
@@ -490,7 +493,7 @@ static int projectLoadPhrases(FILE* file, Project* p) {
       // Instrument
       p->phrases[idx].rows[c].instrument = scanByteOrEmpty(line + 4);
       // Volume
-      p->phrases[idx].rows[c].volume = scanByteOrEmpty(line + 7);
+      p->phrases[idx].rows[c].volume = scanPhraseVolume(line + 7);
       // FX
       for (int d = 0; d < 3; d++) {
         p->phrases[idx].rows[c].fx[d][0] = scanFX(line + 10 + d * 7, p);
@@ -714,7 +717,9 @@ static int projectLoadInternal(FILE* file, Project* project) {
 
   // Detect version
   if (strlen(version) > 0) {
-    if (strncmp(version, " 8.0", 4) == 0) {
+    if (strncmp(version, " 9.0", 4) == 0) {
+      projectFileVersion = 9;
+    } else if (strncmp(version, " 8.0", 4) == 0) {
       projectFileVersion = 8;
     } else if (strncmp(version, " 7.0", 4) == 0) {
       projectFileVersion = 7;
@@ -1020,6 +1025,15 @@ static int projectLoadInternal(FILE* file, Project* project) {
     for (int table = 0; table < PROJECT_MAX_TABLES; ++table) for (int row = 0; row < 16; ++row) for (int fx = 0; fx < 4; ++fx)
       if (p.tables[table].rows[row].fx[fx][0] == fxSDT) p.tables[table].rows[row].fx[fx][1] = convert(p.tables[table].rows[row].fx[fx][1]);
   }
+  if (projectFileVersion == 6) {
+    bool legacyNative = false;
+    for (const auto& i : p.instruments)
+      legacyNative |= i.type == InstrumentType::SID || i.type == InstrumentType::DX7 ||
+        isOPLL(i.type) || isOPL(i.type) || isFourOp(i.type) || isSimpleChip(i.type);
+    for (auto& phrase : p.phrases) for (auto& row : phrase.rows)
+      if (row.volume != EMPTY_VALUE_16)
+        row.volume = legacyNative ? legacyPhraseVolume(row.volume) : std::min(row.volume, uint16_t(PHRASE_VOLUME_MAX));
+  }
   if(projectFileVersion<7) {
     auto migrate=[](uint8_t* fx){if(fx[0]==fxFBR)fx[1]=fmBrightnessToByte(std::min(126,int(fx[1]))-63);};
     for(auto& phrase:p.phrases)for(auto& row:phrase.rows)for(auto& fx:row.fx)migrate(fx);
@@ -1037,6 +1051,23 @@ static int pathIsAbsolute(const char* path) {
 #else
   return 0;
 #endif
+}
+
+static uint16_t legacyPhraseVolume(uint16_t value) {
+  if (value == EMPTY_VALUE_16 || value == EMPTY_VALUE_8) return EMPTY_VALUE_16;
+  return (std::min(value, uint16_t(15)) * PHRASE_VOLUME_MAX + 7) / 15;
+}
+
+static uint16_t scanPhraseVolume(char* str) {
+  if (str[0] == '-' && str[1] == '-') return EMPTY_VALUE_16;
+  uint8_t value;
+  if (sscanf(str, "%2hhX", &value) != 1) return EMPTY_VALUE_16;
+  if (projectFileVersion < 6 || projectFileVersion == 7 || projectFileVersion == 8)
+    return legacyPhraseVolume(value);
+  // Format 6 was also used by older Personal native-chip songs. Resolve that
+  // case after instruments have loaded; upstream format 6 keeps native 00-7F.
+  if (projectFileVersion == 6) return value;
+  return value > PHRASE_VOLUME_MAX ? PHRASE_VOLUME_MAX : value;
 }
 
 struct CctZipEntry {
@@ -1387,7 +1418,7 @@ static int projectSavePhrases(FILE* file, Project* project) {
         fprintf(file, "%s %s %s %s %s %s %s %s %s\n",
           noteName(project, project->phrases[c].rows[d].note),
           byteToHexOrEmpty(project->phrases[c].rows[d].instrument),
-          byteToHexOrEmpty(project->phrases[c].rows[d].volume),
+          volumeToHexOrEmpty(project->phrases[c].rows[d].volume),
           fxNames[project->phrases[c].rows[d].fx[0][0]].name,
           byteToHex(project->phrases[c].rows[d].fx[0][1]),
           fxNames[project->phrases[c].rows[d].fx[1][0]].name,
@@ -1472,10 +1503,9 @@ static int projectSaveInternal(FILE* file, Project* project) {
   for (const auto& instrument : project->instruments) nativeChips |= (instrument.type==InstrumentType::SID || instrument.type==InstrumentType::DX7 || isOPLL(instrument.type) || (isOPL(instrument.type) || isFourOp(instrument.type)) || isSimpleChip(instrument.type));
   for (const auto& phrase : project->phrases) for (const auto& row : phrase.rows) for (const auto& fx : row.fx) nativeChips |= fx[0] >= fxFBR && fx[0] < fxTotalCount;
   for (const auto& table : project->tables) for (const auto& row : table.rows) for (const auto& fx : row.fx) nativeChips |= fx[0] >= fxFBR && fx[0] < fxTotalCount;
-  bool absoluteLevels=false;
-  for(const auto& phrase:project->phrases)for(const auto& row:phrase.rows)for(const auto& fx:row.fx)absoluteLevels |= fx[0]>=fxOL1&&fx[0]<=fxFBK;
-  for(const auto& table:project->tables)for(const auto& row:table.rows)for(const auto& fx:row.fx)absoluteLevels |= fx[0]>=fxOL1&&fx[0]<=fxFBK;
-  fprintf(file, "# ChooChooTracker Module %d.0\n\n", absoluteLevels ? 8 : nativeChips ? 7 : 5);
+  // Native formats 6-8 predate upstream's expanded phrase volume. Format 9
+  // distinguishes new 00-7F songs while retaining their native patches and FX.
+  fprintf(file, "# ChooChooTracker Module %d.0\n\n", nativeChips ? 9 : 6);
 
   fprintf(file, "- Title: %s\n", project->title);
   fprintf(file, "- Author: %s\n", project->author);

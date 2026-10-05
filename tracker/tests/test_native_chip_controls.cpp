@@ -47,7 +47,7 @@ std::vector<float> render(InstrumentType type,int generic,int value,bool fx) {
  auto& i=p.instruments[0];getInstrumentFunctions(type).init(&i);
  if(type==InstrumentType::SegaPSG&&generic==genericModChipNoiseRate)simpleChipApplyPreset(&i,7);
  if(auto* a=instrumentFMAmpSettings(&i)){a->enabled=1;a->sustain=255;a->release=35;}
- auto& r=p.phrases[0].rows[0];r.note=45;r.instrument=0;r.volume=15;
+ auto& r=p.phrases[0].rows[0];r.note=45;r.instrument=0;r.volume=PHRASE_VOLUME_MAX;
  if(generic==genericModEnvelopeAttack){if(fx){r.fx[0][0]=fxEAT;r.fx[0][1]=value;}else instrumentFMAmpSettings(&i)->attack=value;}
  else if(fx){r.fx[0][0]=instrumentNativeModDestination(type,generic)->fx;r.fx[0][1]=value;}
  else setControl(i,generic,value);

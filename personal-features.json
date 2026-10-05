@@ -1,7 +1,7 @@
 {
   "upstream": "paiheulevrai/Choochootracker",
   "upstream_branch": "main",
-  "upstream_commit": "ccbf261e28efc192875448c5e6deb2bd78ab8c59",
+  "upstream_commit": "a88a403387e39ded0feaf8316b9a3c56fa5dbf43",
   "personal_branch": "personal/r36h",
   "update_policy": "Personal combines upstream main, my additions not yet incorporated upstream, and my experiments. Keep unmerged additions, including pending or declined submissions. Once incorporated upstream, replace my earlier implementation with the maintainer's merged version, including his fixes and changes; remove duplicate code and controls. Test, preserve user data, record commit, and retain rollback before installation.",
   "features": [
@@ -196,7 +196,7 @@
       ],
       "absolute_feedback_command": "FBK",
       "editor": "Row instrument lookup, preset defaults, native endpoint limits",
-      "compatibility": "Legacy FO/FFB retain playback; new absolute commands use format 8"
+      "compatibility": "Legacy FO/FFB retain playback; native songs use format 9 with upstream 00-7F phrase volume; absolute CNI uses format 8"
     }
   ],
   "personal_fixes": [
@@ -208,9 +208,10 @@
     },
     {
       "id": "embedded-wavetable-layout",
-      "status": "Personal fix; not submitted upstream",
+      "status": "Frame metadata serialization incorporated upstream; Personal retains archive clm recovery",
       "description": "Preserve Serum clm frame-size metadata in archived wavetable WAVs and restore it through the shared loader, so songs retain wavetable playback without the original WAV.",
-      "source_commit": "9caf6cf0cf307a4cda8ce856b740060f2d05bef9"
+      "source_commit": "9caf6cf0cf307a4cda8ce856b740060f2d05bef9",
+      "upstream_commit": "7e0644e"
     }
   ],
   "current_device_build": {
@@ -219,5 +220,11 @@
     "validation_report": "docs/fm-macros-device-20261005.json",
     "human_listening": "pending user evaluation"
   },
-  "song_storage": "Upstream CCT archives embed loaded Sample, SCWF and BYOWTBL audio. Text songs remain readable; no-sample songs stay text. Native patches remain owned by the song."
+  "song_storage": "Upstream CCT archives embed loaded Sample, SCWF and BYOWTBL audio. Text songs remain readable; no-sample songs stay text. Native patches remain owned by the song.",
+  "harmonization_20261005": {
+    "upstream_commit": "a88a403387e39ded0feaf8316b9a3c56fa5dbf43",
+    "report": "docs/personal-harmonization-20261005.txt",
+    "status": "Merged locally; combined validation in progress",
+    "native_song_volume": "Formats 6 with native instruments, 7 and 8 migrate legacy 00-0F volumes; new native songs use format 9; upstream format 6 stays 00-7F"
+  }
 }

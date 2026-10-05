@@ -1,0 +1,191 @@
+HISTORICAL PAUSE CHECKPOINT — resumed by user on 2026-10-05.
+See personal-harmonization-20261005.txt for current validation and installation.
+The pause instructions and Git state below describe the earlier checkpoint.
+
+PAUSED CHECKPOINT — 2026-10-05 17:26 EDT
+
+User explicitly requested pausing for a phone Codex handoff. Do not restart
+builds, hardware tests, installation or publication until the user resumes.
+
+WORKSPACE AND INTENT
+Repo: /Users/hifi/workspace/r36h/choochootracker/personal
+Branch: personal/r36h
+Origin: https://github.com/aiaaaa/Choochootracker.git
+Upstream: https://github.com/paiheulevrai/Choochootracker.git
+
+User authorized native FX bounds/preset values, then asked to harmonize latest
+upstream and update GitHub BEFORE the likely final hardware run. Finish this
+combined revision, publish synchronized branches, then validate/install that
+exact source on the handheld. Do not deploy the older candidate first.
+No PR was requested. Public PR wording would require explicit review under
+parent AGENTS.md, but the user explicitly authorized updating GitHub branches.
+
+IMPORTANT: THE CURRENT MERGE IS LOCAL AND UNCOMMITTED. A fresh GitHub checkout
+will not contain it. Resume with this same Mac workspace. Do not reset, abort,
+checkout over, or discard the working tree/index to obtain a clean checkout.
+
+GIT CHECKPOINT
+HEAD: 65223b2666205e00f4775103cd3931215e76a609
+  Use instrument presets and native ranges in phrase FX editing
+MERGE_HEAD/upstream/main: a88a403387e39ded0feaf8316b9a3c56fa5dbf43
+origin/personal/r36h: 2cf37f23a039c1a7532abbaee8da1f0164831c6f
+Local main still: ccbf261e28efc192875448c5e6deb2bd78ab8c59
+No push has occurred in this session. Personal was 12 commits ahead of origin
+before the in-progress upstream merge. Origin had no remote-only changes.
+Three merge conflicts are resolved and staged; git ls-files -u is empty.
+There are staged upstream changes PLUS unstaged integration fixes/docs/tests.
+Review and stage both before committing. New handoff/report files are untracked.
+Use per-command identity if needed (global Git identity is unset):
+ git -c user.name=ian -c user.email=hifi@ians-MacBook-Pro.local commit ...
+
+COMPLETED FX CHANGE (COMMITTED AT 65223b2)
+- Phrase FX resolves instrument from row I or backward inheritance. Table uses
+  its instrument context. Multi-row FX selection resolves each row separately.
+- Popup displays current instrument base/preset value and valid range. Selecting
+  a different native FX seeds that value; existing legal values are retained.
+- Native edits saturate at engine bounds, including duty/noise/sweep/SID/switches.
+- OL1..OL6 are new absolute operator levels: OPLL/VRC7 modulator and OPL 00-3F;
+  OPLL/VRC7 carrier 00-0F; Genesis/Arcade 00-7F; DX7 00-63 (decimal 99).
+- FBK is native feedback 00-07. Old FO1..FO6/FFB playback and file parsing remain
+  intact; new popup choices use OL/FBK. Master FM macros remain relative.
+- DX7 live absolute levels preserve running envelope stage/gate and phase.
+- The reported GB duty issue was resolved: user confirmed 00/01/02/03 work.
+
+CURRENT HARMONIZATION (UNCOMMITTED)
+Adopts upstream main a88a403, including expanded phrase volume, seven new insert
+modules, export/path fixes, wavetable metadata, MIDI layout expectation fixes,
+merged Android USB MIDI and CI workflows. No speculative/unmerged branches.
+Insert DSP/header and screen_insert_fx match upstream exactly.
+Personal native engines/presets/browser/Get Lucky/visuals/FX features retained.
+
+Critical integration fixes:
+1. Upstream phrase volume changes 0-15 to 0-127 and uses a 16-bit empty sentinel.
+   Personal native CCT formats 6-8 previously used 0-15. project_io.cpp now:
+   - Migrates legacy native 7/8 phrase levels on load.
+   - Disambiguates format 6 after instrument loading: native types imply older
+     Personal 0-15; upstream-only types keep upstream 0-127.
+   - Saves native songs as format 9; ordinary songs as upstream format 6.
+   - Leaves instrument-table volumes at 0-15. CNI native formats remain 7/8.
+   - Keeps legacy FBR and FO/FFB parsing/migration.
+2. VT2 importer phrase volumes now scale to 0-127 and use EMPTY_VALUE_16;
+   instrument-table volumes remain untouched.
+3. Retained CPU-load test mock and personal insert chooser assertions alongside
+   upstream insert additions. Updated native test fixtures to full-scale127.
+4. LAST UI CHANGE: edit_fx.cpp removes inter-group blank rows when the complete
+   expanded list would overflow the screen. DX7's last macros were clipped with
+   waveform OFF. New captures for fx-native-last-header-off/on were added to
+   native_chip_ui.cpp. THIS LAST LAYOUT CHANGE STILL NEEDS REBUILD/VALIDATION.
+5. Docs/manifest updated for upstream pin and formats9/8. Existing wavetable
+   serialization is now upstream; personal archive clm recovery remains.
+
+VALIDATION STATE — DO NOT CLAIM FINAL PASS YET
+Before harmonization (65223b2):
+ - Complete host suite: 493 tests, 120424812 assertions passed.
+ - Seven-engine absolute level audio equivalence, save/load, UI passed.
+ - Web rebuilt and committed.
+After harmonization, before final test expectation corrections/layout fix:
+ - Complete suite: 496 tests, 494 passed; 2 failed ONLY because old tests expected
+   native CCT header7 instead of9 (test_project_archive.cpp, test_sid.cpp).
+ - Those expectations are fixed. Focused rerun passed 3 tests /132 assertions,
+   including new successful VT2 volume/import regression.
+ - Native legacy volume migration and ordinary upstream format6 checks passed.
+ - Production offscreen UI passed (including Get Lucky build): popup values,
+   bounds/inheritance, insert chooser, seven FM types, ADSR pixels, DX7 bank
+   discovery/import/audition, release refresh. These preceded the final gap fix.
+ - Web build succeeded BEFORE final gap fix; web/dist is dirty and now stale.
+
+At user pause, final jobs were INTERRUPTED deliberately:
+ - Full suite (session31023): SIGINT during insert test, 177 tests reached;
+   36556551 assertions passed before interrupt. NOT a product regression/pass.
+ - UI rebuild (session75212): interrupted with exit130.
+ - Web rebuild (session75805): interrupted with exit130.
+The current suite contains 497 cases. Re-run final builds/tests on resume.
+Logs: .tmp/native-fx-values/
+  harmonized-full-tests.log (496-case pre-correction run)
+  harmonized-focused.log (3/132 pass)
+  harmonized-full-tests-final.log (INTERRUPTED)
+  harmonized-ui.log (passed BEFORE last layout fix)
+  harmonized-ui-build-final.log (INTERRUPTED)
+  harmonized-web-build-final.log (INTERRUPTED)
+Captures: .tmp/native-fx-values/captures/ (BMP + older PNGs; regenerate PNGs)
+Last source checks: no unresolved merge entries. git diff --cached --check
+reports an upstream-added trailing space at README.md:108; normalize before
+commit. Generated JS whitespace also needs checking after successful rebuild.
+
+DEVICE STATE — SAFE, NOT UPDATED
+Access only via /Users/hifi/workspace/r36h/connection/ssh-r36h
+Do not print/read/package connection/ssh/ secrets. USB192.168.36.2, Mac en6
+192.168.36.1. Link has intermittently dropped but was reachable at pause.
+Machine ID: 82b7b768bc7742e6a5f379cd3c48dd47
+Installed app: /roms/ports/choochootracker
+Installed source: 588e0ea246d26ed9a17bd33d99699ca633e359b6
+Installed binary SHA256:
+603753a136b477cf39dfc544d79a8dfbd0031d154dab434a19967a79732ce6fa
+Previous validated receipt: docs/fm-macros-device-20261005.json
+Audio settings: 48000 Hz /4906 frames. Preserve them and all user files.
+
+SUPERSEDED candidate validation directory:
+/roms/choochootracker-personal-df8ebbd/validation-native-fx-65223b2
+Its deployment supervisor PID2783 was stopped when user requested harmonization.
+At pause, its build.py process2414 and five descendants were stopped; remaining
+tracked processes = []. build.exit=1 is intentional interruption. Production
+package compiled, ARM tests were still building. No hardware-stage.txt and no
+installation-result.json: physical audio tests and installation DID NOT START.
+Remote paused-by-user.txt records the hold. Do not restart its deployment.
+
+DEVICE SCRIPTS FOR RESUME
+Local .tmp/native-fx-device/{stage.py,build.py,hardware.py,install.py,
+finish_deployment.py,config.json}; adapted from .tmp/instrument-device.
+- stage.py verifies cached source hashes, uploads deltas, invalidates dependency
+  objects, forces links and normalizes input timestamps (device clock is wrong).
+- Existing stage.py assumes previous build.exit==0. It WILL reject the paused
+  65223b2 build (exit1). Handle this explicit interruption safely: preserve the
+  old logs, verify inventory, use a new validation directory for final commit,
+  and force rebuild interrupted test outputs. Do not simply mark old run passed.
+- Remote cache root /roms/choochootracker-personal-df8ebbd.
+- hardware.py has five physical ALSA workloads incl new absolute levels during
+  held notes, then waveform off/on production startup checks. Restores frontend.
+- .tmp/native-fx-values/native-fx-values.cct is a format8 OLD-VOLUME fixture;
+  the harmonized loader migrates it. It is for validation only, not installed.
+- install.py changes only binary/docs/build records, preserves every existing
+  project/preset/bank/font/theme/settings/autosave byte-for-byte, snapshots and
+  verifies full rollback. Do not replace the user's audition-project edits.
+- Await current successful build/UI/hardware results before installing.
+- Update docs/manifest/device receipt after actual verified install, then push
+  that receipt follow-up. Keep one regular launcher and personal features.
+- Update scripts' documentation paths/text as necessary for final harmonization.
+
+RESUME ORDER
+1. Read this file and applicable AGENTS.md; inspect merge/working tree.
+2. Finish final host suite, UI rebuild/run/screenshots and web-deploy. Validate
+   that last FX controls now fit with waveform OFF and ON. Address failures.
+3. Update harmonization report/results, normalize generated whitespace, stage
+   task changes (including currently unstaged fixes), commit the merge.
+4. Fast-forward local main to verified upstream/main (main is the pure mirror).
+   Push origin main and personal/r36h, ordinary fast-forward (no force), verifying
+   remote refs. User explicitly requested this; no PR publication is needed.
+5. Build/test/install THIS FINAL MERGED COMMIT on handheld once; prior candidate
+   is superseded. Respect paused-job/cache caveats above.
+6. Record exact source/hash/rollback/validation; update GitHub receipt.
+
+HOST COMMANDS (from repo/tracker)
+make -f Makefile.test -j4 NATIVE_CHIP_OPT_FLAGS=-O3
+
+make -f Makefile.native-chip-ui -j4 desktop \
+ CHOOCHOO_EXPERIMENTAL_MOD_LUCKY=1 \
+ MOD_LUCKY_PREFIX=../../mod-lucky-current/.tmp/mod-lucky/prefix \
+ XTRA_CFLAGS='-F../../native-chip-instruments/tracker/build/desktop/Frameworks -DDESKTOP_BUILD -DMACOS_BUILD -DGAMEPAD_SUPPORT -D__MACOSX_CORE__' \
+ XTRA_LIBS='-F../../native-chip-instruments/tracker/build/desktop/Frameworks -framework SDL2 -lm -framework CoreMIDI -framework CoreAudio -framework CoreFoundation -Wl,-rpath,/Users/hifi/workspace/r36h/choochootracker/native-chip-instruments/tracker/build/desktop/Frameworks'
+
+Run UI from tracker/packaging/common:
+SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy \
+ ../../build/native-chip-ui/desktop/choochootracker \
+ /Users/hifi/workspace/r36h/choochootracker/personal/.tmp/native-fx-values/captures
+
+Web, from tracker:
+make -f Makefile.web -j4 web-deploy \
+ EMXX=/Users/hifi/workspace/r36h/choochootracker/.tmp/emsdk/upstream/emscripten/em++
+
+No GUI apps were opened. Offscreen SDL tests do not need a GUI. For actual GUI
+launches obey user AGENTS: explain purpose, same dynamic Desktop as Codex,
+preserve unrelated windows, and close only task-owned instances afterward.

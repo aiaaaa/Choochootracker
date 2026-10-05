@@ -255,7 +255,7 @@ On desktop, key jazz also brings direct hex-index typing here — see
 
 A phrase is the track pattern in a traditional step sequencer.
 
-A phrase is 16 steps long, with 1 row per step. Each row contains a note, an instrument and FX columns. Notes use tracker notation such as `C-4` (note and octave).
+A phrase is 16 steps long, with 1 row per step. Each row contains a note, an instrument, a volume from `00` to `7F`, and FX columns. Notes use tracker notation such as `C-4` (note and octave).
 
 To stop a note, insert `NOTE OFF`, use the kill-note FX, or play another note with no instrument set.
 
@@ -1117,6 +1117,13 @@ the current screen.
 | Airwindows StereoDoubler | Detune, Mix |
 | TAPESCAM | Input, Drive, Color, Wobble, Tone, Output |
 | OTT (Rui-727) | Depth, Time, Upward, Downward, Input, Output |
+| Chorus | Rate, Depth, Tone, Mix |
+| Flanger | Rate, Depth, Feedback, Mix |
+| Phaser | Rate, Depth, Feedback, Mix |
+| Rotary | Speed, Depth, Drive, Mix |
+| Saturation | Drive, Tone, Level, Mix |
+| Bitcrusher | Bit depth, Rate reduction, Tone, Mix |
+| Destruction | Mode, Amount, Tone, Mix |
 
 Continuous controls use 00–FF, including valid zero and maximum FF. Bipolar
 controls have an exact neutral at 80. Distortion modes are 00 Density, 01 Drive,
@@ -1124,6 +1131,11 @@ controls have an exact neutral at 80. Distortion modes are 00 Density, 01 Drive,
 20:1; detector sources 00–02 are stereo input, left, right. Detector filter 80 is
 neutral, below is low-pass, above is high-pass. No external/cross-track sidechain
 is provided. Either slot can contain any module; repeated modules are independent.
+Chorus, Flanger, Phaser and Rotary use gentle modulation defaults; Rotary speed
+switches between Slow and Fast. Bitcrusher bit depth ranges from 4 to 16 bits and
+rate reduction from 1x to 32x. Destruction modes are Fold, Clip and Crush.
+Saturation and distortion include output level or mix controls for balancing them
+against the unprocessed signal.
 
 Track level and tilt EQ precede the inserts, so both affect the signal entering
 compression and distortion. All voices/chord notes on the track feed one insert
@@ -1444,8 +1456,11 @@ their documented byte-scaled mappings to wider SID registers. The displayed
 preset values are base settings, independent of the playing envelope or LFO.
 Legacy `FO1`–`FO6` offsets and encoded `FFB` still play and save unchanged, but
 new selections use `OL1`–`OL6` and `FBK`. Songs or instruments containing these
-new commands save as format 8; earlier formats remain readable. Older builds
-cannot load format 8, so retain the original file when sharing with them.
+new commands save as CNI format 8. Native songs save as CCT format 9 with
+upstream’s `00–7F` phrase volume. Earlier personal native songs (formats 6–8)
+migrate their old `00–0F` phrase levels on load; upstream format 6 songs keep
+their `00–7F` values. Instrument-table volume remains `00–0F`. Older builds
+cannot load these new formats, so retain the original file when sharing.
 
 All native FX have descriptive titles, ranges and behavior in the phrase
 FX chooser, plus value hints. `CMD` describes tone/noise, duty or noise width
@@ -1466,7 +1481,8 @@ engines are software processing after synthesis. aChChid instead uses its native
 303 filter path. This round adds no filter to AY or native FM; brightness changes
 FM synthesis itself. Track inserts remain available for additional processing.
 
-Native instruments now save in CNI/CCT version 7. Older songs and instrument
+Native instruments save in CNI version 7 (8 when absolute commands are present),
+and native songs in CCT version 9. Older songs and instrument
 tables migrate their FBR values once on loading, preserving their native tone
 offsets; `3F` from version 6 becomes `80`. Keep this build or newer to reopen
 new saves. The stored FM preset bytes and instrument-page brightness values

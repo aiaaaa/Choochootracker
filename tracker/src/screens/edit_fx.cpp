@@ -372,11 +372,15 @@ void fxEditFullDraw(uint8_t currentFX, uint8_t instrumentIdx, int isTable) {
   if(nativeInfo(instrumentIdx,currentFX,info)) {
     gfxSetFgColor(appSettings.colorScheme.textInfo);
     if(currentFX==fxFFB)gfxPrintf(1,6,"Preset FX %02X (feedback %X); 00-08",info.preset,info.preset-1);
-    else gfxPrintf(1,6,"%s %02X   Range 00-%02X",info.relative?"Preset adjustment":"Preset",info.preset,info.maximum);
+    else gfxPrintf(1,6,"%s %02X   Range 00-%02X",info.relative?"Preset FX":"Preset",info.preset,info.maximum);
   }
 
   // Draw all visible groups (headers + expanded group's FX list)
   int y = 7;  // Start below help text
+  FXGroup* expanded = getVisibleGroup(expandedGroup, getCurrentInstrumentType());
+  int expandedRows = expanded ? (visibleFXCount(expanded) + expanded->columns - 1) / expanded->columns : 0;
+  bool separateGroups = !screenScopeRows(currentScreen) &&
+    y + visibleGroupCount + expandedRows + visibleGroupCount - 1 <= 20 - gfxGetContentRowOffset();
   for (int g = 0; g < visibleGroupCount; g++) {
     // Draw group header
     int isCurrent = (g == currentGroup);
@@ -387,8 +391,8 @@ void fxEditFullDraw(uint8_t currentFX, uint8_t instrumentIdx, int isTable) {
       y = drawFXList(g, y);
     }
 
-    // The persistent scope uses the former blank rows between groups.
-    if (!screenScopeRows(currentScreen)) y++;
+    // Spend blank rows only when the entire expanded group fits on screen.
+    if (separateGroups) y++;
   }
 }
 
