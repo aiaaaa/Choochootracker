@@ -40,7 +40,7 @@ void DX7Voice::compute(int32_t lfo,int32_t delay) {
   if(!active_)return;
   if(!gated_&&!note_.playing()){active_=false;return;}
   int32_t pitch=int32_t(std::lround((cents_-baseNote_*100.f)*16777216.0/1200));
-  note_.compute(block_,lfo,delay,pitch,patch_.tone.brightness,patch_.tone.feedback?patch_.tone.feedback-1:-1);
+  note_.compute(block_,lfo,delay,pitch,patch_.tone.brightness,patch_.tone.feedback?patch_.tone.feedback-1:-1,patch_.tone.operatorOffset);
 }
 void DX7Part::kill(){for(auto& v:voices)v.kill();cursor_=64;resampler_.reset();}
 bool DX7Part::active()const{for(const auto& v:voices)if(v.active())return true;return false;}

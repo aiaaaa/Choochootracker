@@ -1,0 +1,45 @@
+SID and FM Phrase FX evaluation revision — 2026-10-05
+
+Implementation
+SID is selectable under CHIP and uses the shared bank/preset browser. It owns
+its native patch and macro recipe in the instrument, project and archive.
+Two banks ship 56 native programs: 32 project-authored musical recipes and
+24 MIT-licensed SIDkit effects. Their notices ship with the package. The 12
+CC-BY GoatTracker candidates remain research-only and are not installed.
+The floooh/chips m6581 core is zlib-licensed; its notice and altered-source
+record are included. No GPL SID emulation code is linked.
+
+The user requested removal of invented filter/character options. The shipped
+engine therefore uses only the core's existing 6581-style filter. It provides
+no alternate revision or character selector and claims no silicon calibration.
+One isolated audible SID oscillator/envelope/filter runs per note; a silent
+partner runs for ring/sync. This is not a complete three-voice C64 SID board
+emulation, RSID player, or arbitrary GoatTracker instrument-table interpreter.
+Eight SID Phrase FX expose pulse width, cutoff, resonance, waveform, filter
+mode, recipe speed, ring and sync with descriptive popup text.
+
+FM brightness and new individual-operator level controls use 00–FF, neutral
+80. Supported operators are two for OPLL/VRC7/OPL2, two or four for OPL3, four
+for Genesis/Arcade and six for DX7. Hardware feedback remains eight states
+plus the preset setting. Discrete waveform/mode controls retain native ranges.
+CNI/CCT version 7 preserves this interpretation. Version 6 and older FBR values
+are migrated once in song phrases and instrument tables. Saved FM voice bytes
+are unchanged; live operator offsets stay audio-thread parameters.
+
+Resource policy
+Production SID adapter measured directly on R36H at 48 kHz, 512-frame blocks:
+ordinary notes 1/2/4: 10.91% / 21.89% / 43.89% of one core;
+ring + sync notes 1/2/4: 16.71% / 33.50% / 67.05%.
+Four ring/sync notes consume too much headroom for the full song engine, so
+the song-wide budget is four units, ordinary note cost one and ring/sync cost
+two. Released notes are retired first, then old held notes before fresh notes.
+These isolated measurements do not establish complete-song callback safety.
+Raw measurements: tools/sid_prep/device-adapter-benchmark.txt.
+
+Validation and installation
+Specific SID rendering, chunk independence, preview ownership, save/load,
+legacy-FBR migration and voice-budget checks passed on the host. All 56 presets
+rendered finite, non-clipping, nonzero AC output at 44.1 and 48 kHz and
+released successfully. Full suites, production UI, WebAssembly packaging and
+physical mixed-song audio checks are required before installation; device
+results will be recorded separately. Human listening remains user evaluation.

@@ -33,15 +33,15 @@ void OPLVoice::applyPatch(){
 void OPLVoice::tone(){
   const int brightness=std::clamp(int(patch_.tone.brightness),-63,63);
   const int feedback=std::min(8,int(patch_.tone.feedback));
-  if(brightness==macroBrightness_&&feedback==macroFeedback_)return;
+  if(brightness==macroBrightness_&&feedback==macroFeedback_&&!memcmp(macroOperators_,patch_.tone.operatorOffset,6))return;
   const int addresses[]={0,3,8,11};
   unsigned carriers;
   int count=patch_.topology==OPLTopology::twoOperator?2:4;
   if(patch_.topology==OPLTopology::fourOperator){const unsigned masks[]={8,9,10,13};carriers=masks[patch_.connection[0]|(patch_.connection[1]<<1)];}
   else carriers=(patch_.connection[0]?3:2)|(count==4?(patch_.connection[1]?12:8):0);
-  for(int op=0;op<count;++op){const auto& o=patch_.operators[op];int level=std::clamp(int(o.level)-((carriers&(1u<<op))?0:brightness),0,63);write(0x40+addresses[op],(o.keyScale<<6)|level);}
+  for(int op=0;op<count;++op){const auto& o=patch_.operators[op];int level=std::clamp(int(o.level)-int(patch_.tone.operatorOffset[op])-((carriers&(1u<<op))?0:brightness),0,63);write(0x40+addresses[op],(o.keyScale<<6)|level);}
   for(int i=0;i<(count==4?2:1);++i)write(0xc0+(i?3:0),((feedback?feedback-1:patch_.feedback[i])<<1)|patch_.connection[i]|(type_==InstrumentType::OPL3?patch_.pan[i]<<4:0));
-  macroBrightness_=brightness;macroFeedback_=feedback;
+  macroBrightness_=brightness;macroFeedback_=feedback;memcpy(macroOperators_,patch_.tone.operatorOffset,6);
 }
 void OPLVoice::pitch(){
   for(int i=0;i<(patch_.topology==OPLTopology::twoOperator?1:2);++i){

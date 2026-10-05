@@ -2,13 +2,23 @@
 #include "chipnomad_lib.h"
 #include "simple_chip_presets.h"
 #include "pitch_table_utils.h"
+#include "sid_patch.h"
 #include <memory>
 #include <vector>
 #include <cstring>
 #include <cmath>
 namespace {
 void setControl(Instrument& i,int g,int value) {
- if(auto* t=instrumentFMToneSettings(&i)){if(g==genericModFMBrightness)t->brightness=value-63;else t->feedback=value;return;}
+ if(auto* t=instrumentFMToneSettings(&i)){if(g==genericModFMBrightness)t->brightness=fmBrightnessFromByte(value);else if(g==genericModFMFeedback)t->feedback=value;else t->operatorOffset[g-genericModFMOperator1]=value-128;return;}
+ if(i.type==InstrumentType::SID){auto* p=i.chip.sid.value;switch(g){
+ case genericModSIDPulse:p[sidPulse]=(value*4095+127)/255;break;
+ case genericModSIDCutoff:p[sidCutoff]=(value*2047+127)/255;break;
+ case genericModSIDResonance:p[sidResonance]=value;break;
+ case genericModSIDWave:p[sidWave]=value+1;break;
+ case genericModSIDFilterMode:p[sidFilterMode]=value;break;
+ case genericModSIDMacroRate:p[sidMacroRate]=1+(value*199+127)/255;break;
+ case genericModSIDRing:p[sidRing]=value;break;
+ case genericModSIDSync:p[sidSync]=value;break;}return;}
  auto& p=i.chip.simpleChip;
  switch(g){
  case genericModChipMode:p.mode=value;break;
@@ -44,7 +54,7 @@ std::vector<float> render(InstrumentType type,int generic,int value,bool fx) {
 }
 }
 TEST_CASE("Native phrase macros reach the real voice without modifying saved parameters") {
- for(auto t:{InstrumentType::OPLL,InstrumentType::VRC7,InstrumentType::OPL2,InstrumentType::OPL3,InstrumentType::GenesisFM,InstrumentType::ArcadeFM,InstrumentType::DX7,InstrumentType::SegaPSG,InstrumentType::GBPulse,InstrumentType::GBNoise}) {
+ for(auto t:{InstrumentType::SID,InstrumentType::OPLL,InstrumentType::VRC7,InstrumentType::OPL2,InstrumentType::OPL3,InstrumentType::GenesisFM,InstrumentType::ArcadeFM,InstrumentType::DX7,InstrumentType::SegaPSG,InstrumentType::GBPulse,InstrumentType::GBNoise}) {
   CAPTURE(int(t));
   for(int g=genericModFMBrightness;g<genericModTotalCount;++g)if(auto* d=instrumentNativeModDestination(t,g)) {
    CAPTURE(g);int value=d->range==1?1:d->range/2;

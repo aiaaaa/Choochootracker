@@ -7,6 +7,7 @@
 #include "four_op_patch.h"
 #include "dx7_patch.h"
 #include "opll_presets.h"
+#include "sid_patch.h"
 #include "fm_catalog.h"
 #include "utils.h"
 #include "project_utils.h"
@@ -32,10 +33,11 @@ int contextInstrument=-1,bankBeforeImport=0;
 InstrumentType contextType=InstrumentType::none;
 bool importing=false;
 Instrument* current(){return &chipnomadState->project.instruments[cInstrument];}
+bool sid(){return current()->type==InstrumentType::SID;}
 bool dx7(){return current()->type==InstrumentType::DX7;}
 bool fourOp(){return isFourOp(current()->type);}
-int bankId(){return isOPLL(current()->type)?current()->chip.opll.bankId:fourOp()?current()->chip.fourOp.bankId:dx7()?current()->chip.dx7.bankId:current()->chip.opl.bankId;}
-const char* presetName(){return isOPLL(current()->type)?current()->chip.opll.presetName:fourOp()?current()->chip.fourOp.presetName:dx7()?current()->chip.dx7.presetName:current()->chip.opl.presetName;}
+int bankId(){return sid()?current()->chip.sid.bankId:isOPLL(current()->type)?current()->chip.opll.bankId:fourOp()?current()->chip.fourOp.bankId:dx7()?current()->chip.dx7.bankId:current()->chip.opl.bankId;}
+const char* presetName(){return sid()?current()->chip.sid.presetName:isOPLL(current()->type)?current()->chip.opll.presetName:fourOp()?current()->chip.fourOp.presetName:dx7()?current()->chip.dx7.presetName:current()->chip.opl.presetName;}
 int8_t& fineTune(){return isOPLL(current()->type)?current()->chip.opll.fineTune:fourOp()?current()->chip.fourOp.fineTune:dx7()?current()->chip.dx7.fineTune:current()->chip.opl.fineTune;}
 bool compatible(const Entry& e){if(importing)return e.bank==bankFilter;return e.type==int(current()->type)||(current()->type==InstrumentType::OPL3&&e.type==int(InstrumentType::OPL2));}
 void refreshLibrary(){
@@ -73,7 +75,7 @@ bool candidate(int index,Instrument& result){
   }
   auto p=std::make_unique<Project>();projectInit(p.get());
   if(instrumentLoad(p.get(),(folder+catalog[index].path).c_str(),0)){projectFree(p.get());return false;}
-  bool ok=isOPLL(p->instruments[0].type)?p->instruments[0].chip.opll.schema==1:isFourOp(p->instruments[0].type)?validFourOp(p->instruments[0].type,p->instruments[0].chip.fourOp):p->instruments[0].type==InstrumentType::DX7?validDX7(p->instruments[0].chip.dx7):isOPL(p->instruments[0].type)&&validOPL(p->instruments[0].type,p->instruments[0].chip.opl);
+  bool ok=p->instruments[0].type==InstrumentType::SID?validSID(p->instruments[0].chip.sid):isOPLL(p->instruments[0].type)?p->instruments[0].chip.opll.schema==1:isFourOp(p->instruments[0].type)?validFourOp(p->instruments[0].type,p->instruments[0].chip.fourOp):p->instruments[0].type==InstrumentType::DX7?validDX7(p->instruments[0].chip.dx7):isOPL(p->instruments[0].type)&&validOPL(p->instruments[0].type,p->instruments[0].chip.opl);
   ok=ok&&int(p->instruments[0].type)==catalog[index].type;
   if(ok){result=p->instruments[0];result.type=current()->type;
     if(auto* amp=instrumentFMAmpSettings(current()))*instrumentFMAmpSettings(&result)=*amp;
@@ -81,10 +83,10 @@ bool candidate(int index,Instrument& result){
   }
   projectFree(p.get());return ok;
 }
-void stopPreview(){if(isOPLL(current()->type)&&!importing){chipnomadQueueOPLLPreview(chipnomadState,*pSongTrack,nullptr);return;}if(fourOp()&&!importing){chipnomadQueueFourOpPreview(chipnomadState,*pSongTrack,current()->type,nullptr);return;}if(dx7()||importing){chipnomadQueueDX7Preview(chipnomadState,*pSongTrack,nullptr);return;}chipnomadQueueOPLPreview(chipnomadState,*pSongTrack,current()->type,nullptr);}
+void stopPreview(){if(sid()){chipnomadQueueSIDPreview(chipnomadState,*pSongTrack,nullptr);return;}if(isOPLL(current()->type)&&!importing){chipnomadQueueOPLLPreview(chipnomadState,*pSongTrack,nullptr);return;}if(fourOp()&&!importing){chipnomadQueueFourOpPreview(chipnomadState,*pSongTrack,current()->type,nullptr);return;}if(dx7()||importing){chipnomadQueueDX7Preview(chipnomadState,*pSongTrack,nullptr);return;}chipnomadQueueOPLPreview(chipnomadState,*pSongTrack,current()->type,nullptr);}
 void preview(int index,bool held){
   Instrument patch{};
-  if(held&&candidate(index,patch)){if(isOPLL(patch.type))chipnomadQueueOPLLPreview(chipnomadState,*pSongTrack,&patch.chip.opll);else if(isFourOp(patch.type))chipnomadQueueFourOpPreview(chipnomadState,*pSongTrack,patch.type,&patch.chip.fourOp);else if(patch.type==InstrumentType::DX7)chipnomadQueueDX7Preview(chipnomadState,*pSongTrack,&patch.chip.dx7);else chipnomadQueueOPLPreview(chipnomadState,*pSongTrack,patch.type,&patch.chip.opl);}
+  if(held&&candidate(index,patch)){if(patch.type==InstrumentType::SID)chipnomadQueueSIDPreview(chipnomadState,*pSongTrack,&patch.chip.sid);else if(isOPLL(patch.type))chipnomadQueueOPLLPreview(chipnomadState,*pSongTrack,&patch.chip.opll);else if(isFourOp(patch.type))chipnomadQueueFourOpPreview(chipnomadState,*pSongTrack,patch.type,&patch.chip.fourOp);else if(patch.type==InstrumentType::DX7)chipnomadQueueDX7Preview(chipnomadState,*pSongTrack,&patch.chip.dx7);else chipnomadQueueOPLPreview(chipnomadState,*pSongTrack,patch.type,&patch.chip.opl);}
   else stopPreview();
 }
 void cancel(){stopPreview();if(importing)bankFilter=bankBeforeImport;importing=false;screenSetup(&screenInstrument,cInstrument);}
@@ -118,10 +120,29 @@ void openSounds(){
   char title[32];snprintf(title,sizeof(title),"%s PRESETS",instrumentTypeName(importing?InstrumentType::DX7:current()->type));
   selectionPopupSetup(title,categoryItems.data(),categoryItems.size(),selected(),select,cancel,false,preview);screenSetup(&screenSelectionPopup,0);
 }
-int columns(int row){return row<3?instrumentCommonColumnCount(row):row==6?2:row==8?5:1;}
-void drawStatic(){instrumentCommonDrawStatic();gfxSetFgColor(appSettings.colorScheme.textDefault);gfxPrint(0,6,"Bank");gfxPrint(0,7,"Preset");gfxPrint(0,9,"Fine ct");gfxPrint(0,11,"Mode");const char* mode=isOPLL(current()->type)?"2 operator":fourOp()?"4 operator":dx7()?"6 operator":current()->chip.opl.topology==OPLTopology::fourOperator?"4 operator":current()->chip.opl.topology==OPLTopology::dualVoice?"Dual voice":"2 operator";gfxPrint(9,11,mode);instrumentFMAmpDrawStatic();}
-void drawCursor(int col,int row){if(row==6){instrumentFMToneDrawCursor(col);return;}if(row>=7){instrumentFMAmpDrawCursor(col,row-7);return;}if(row<3)instrumentCommonDrawCursor(col,row);else gfxCursor(9,row==3?6:row==4?7:9,row==5?4:28);}
+int sidField(int col,int row){
+ if(row==5)return col?sidPulse:sidWave;
+ if(row==6)return col==0?sidFilterMode:col==1?sidCutoff:sidResonance;
+ return sidAttack+col;
+}
+int sidY(int row){return row==5?9:row==6?11:13;}
+int sidX(int col,int row){return 9+col*(row==7?6:10);}
+int columns(int row){if(sid()&&row>=5)return row==5?2:row==6?3:4;return row<3?instrumentCommonColumnCount(row):row==6?2:row==8?5:1;}
+void drawStatic(){instrumentCommonDrawStatic();gfxSetFgColor(appSettings.colorScheme.textDefault);gfxPrint(0,6,"Bank");gfxPrint(0,7,"Preset");if(sid()){
+ gfxPrint(0,9,"Wave/PW");gfxPrint(0,11,"Filter");gfxPrint(0,13,"ADSR");
+ gfxSetFgColor(appSettings.colorScheme.textInfo);gfxPrint(0,10,"Tri Saw TS Pulse TP SP TSP Noise");
+ gfxPrint(0,12,"Mode / Cutoff / Reso; max 4 notes");return;
+ }gfxPrint(0,9,"Fine ct");gfxPrint(0,11,"Mode");const char* mode=isOPLL(current()->type)?"2 operator":fourOp()?"4 operator":dx7()?"6 operator":current()->chip.opl.topology==OPLTopology::fourOperator?"4 operator":current()->chip.opl.topology==OPLTopology::dualVoice?"Dual voice":"2 operator";gfxPrint(9,11,mode);instrumentFMAmpDrawStatic();}
+void drawCursor(int col,int row){if(sid()&&row>=5){gfxCursor(sidX(col,row),sidY(row),row==5&&!col?5:4);return;}if(row==6){instrumentFMToneDrawCursor(col);return;}if(row>=7){instrumentFMAmpDrawCursor(col,row-7);return;}if(row<3)instrumentCommonDrawCursor(col,row);else gfxCursor(9,row==3?6:row==4?7:9,row==5?4:28);}
 void drawField(int col,int row,CellState state){
+ if(sid()&&row>=5){
+  int x=sidX(col,row),y=sidY(row);auto v=current()->chip.sid.value[sidField(col,row)];
+  gfxSetFgColor(state==CellState::focus?appSettings.colorScheme.textValue:appSettings.colorScheme.textDefault);gfxClearRect(x,y,row==7?4:8,1);
+  if(row==5&&!col){const char* waves[]={"Off","Tri","Saw","TS","Pulse","TP","SP","TSP","Noise"};gfxPrint(x,y,waves[v]);}
+  else gfxPrintf(x,y,"%0*X",row==5||(row==6&&col==1)?3:2,v);
+  return;
+ }
+
   if(row==6){instrumentFMToneDrawField(col,state);return;}if(row>=7){instrumentFMAmpDrawField(col,row-7,state);return;}
   if(row<3){instrumentCommonDrawField(col,row,state);return;}
   gfxSetFgColor(state==CellState::focus?appSettings.colorScheme.textValue:appSettings.colorScheme.textDefault);int y=row==3?6:row==4?7:9;gfxClearRect(9,y,30,1);
@@ -129,6 +150,15 @@ void drawField(int col,int row,CellState state){
   else if(row==4)gfxPrintf(9,y,"%.30s",presetName());else gfxPrintf(9,y,"%+04d",fineTune());
 }
 int onEdit(int col,int row,CellEditAction action){
+ if(sid()&&row>=5){
+  int field=sidField(col,row),max=field==sidWave?8:field==sidPulse?4095:field==sidCutoff?2047:field==sidFilterMode?7:15;
+  int min=field==sidWave?1:0,step=max>255?128:max>15?16:1;
+  action=convertMultiAction(action);int v=current()->chip.sid.value[field];
+  if(action==CellEditAction::clear)v=min;else if(action==CellEditAction::increase)++v;else if(action==CellEditAction::decrease)--v;
+  else if(action==CellEditAction::increaseBig)v+=step;else if(action==CellEditAction::decreaseBig)v-=step;else return 0;
+  current()->chip.sid.value[field]=std::clamp(v,min,max);projectModified=1;return 1;
+ }
+
   if(row==6)return instrumentFMToneEdit(col,action);
   if(row>=7)return instrumentFMAmpEdit(col,row-7,action);
   if(row<3)return instrumentCommonOnEdit(col,row,action);
@@ -157,6 +187,7 @@ ScreenData screenInstrumentOPL={
 };
 
 void instrumentFMSetContext(int instrument, InstrumentType type) {
+  screenInstrumentOPL.rows=type==InstrumentType::SID?8:9;
   if(instrument!=contextInstrument||type!=contextType) {
     bankFilter=0;
     buttonDown=0;

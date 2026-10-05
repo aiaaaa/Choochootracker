@@ -10,5 +10,5 @@ TEST_CASE("FM catalog supports ten thousand metadata entries transactionally") {
 }
 TEST_CASE("FM bundled catalogue loads all currently packaged records") {
   std::vector<FMPresetEntry> entries;
-  REQUIRE(loadFMCatalog("packaging/common/instruments/chips/catalog.tsv",entries));CHECK(entries.size()==1064);
+  REQUIRE(loadFMCatalog("packaging/common/instruments/chips/catalog.tsv",entries));CHECK(entries.size()==1120);
 }

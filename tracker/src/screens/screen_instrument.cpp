@@ -29,6 +29,7 @@ static int livePreviewWasActive = 0;
 static std::chrono::steady_clock::time_point livePreviewRefresh;
 
 static SelectionItem instrumentTypeChip[] = {
+  {"SID / C64", (int)InstrumentType::SID, NULL, 0},
   {NULL, (int)InstrumentType::AY1, NULL, 0},
   {NULL, (int)InstrumentType::AY2, NULL, 0},
   {NULL, (int)InstrumentType::AYSample, NULL, 0},
@@ -65,7 +66,7 @@ static SelectionItem instrumentTypeMidi[] = {
   {NULL, (int)InstrumentType::Midi, NULL, 0},
 };
 static const SelectionItem instrumentTypeCategories[] = {
-  {"CHIP", -1, instrumentTypeChip, 6},
+  {"CHIP", -1, instrumentTypeChip, 7},
   {"DRUMS", -1, instrumentTypeDrums, 2},
   {"SAMPLE", -1, instrumentTypeSample, 3},
   {"SYNTH", -1, instrumentTypeSynth, 5},
@@ -82,6 +83,7 @@ static const InstrumentType instrumentTypesQuickCycle[] = {
   InstrumentType::MME,
   InstrumentType::SegaPSG, InstrumentType::GBPulse, InstrumentType::GBNoise,
   InstrumentType::GenesisFM, InstrumentType::ArcadeFM, InstrumentType::DX7, InstrumentType::Midi, InstrumentType::OPLL, InstrumentType::VRC7, InstrumentType::OPL2, InstrumentType::OPL3,
+  InstrumentType::SID,
 };
 
 static int editInstrumentType(CellEditAction action, InstrumentType* type) {
@@ -300,7 +302,7 @@ static void init(void) {
   screenInstrumentNone.cursorRow = 0;
   screenInstrumentNone.cursorCol = 0;
   SelectionItem* groups[] = {instrumentTypeChip, instrumentTypeSample, instrumentTypeSynth, instrumentTypeDrums, instrumentTypeMidi};
-  const int counts[] = {6, 3, 5, 2, 1};
+  const int counts[] = {7, 3, 5, 2, 1};
   for (int group = 0; group < 5; ++group)
     for (int item = 0; item < counts[group]; ++item)
       groups[group][item].label = getInstrumentDefinition((InstrumentType)groups[group][item].value)->uiName;

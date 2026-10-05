@@ -20,6 +20,7 @@ class OPLLVoice {
   void write(int address, int value);
   void pitch();
   void tone();
+  int8_t macroOperators_[6]{};
   int macroBrightness_=999,macroFeedback_=-1;
   float nextNative();
   ymfm::ymfm_interface interface_;

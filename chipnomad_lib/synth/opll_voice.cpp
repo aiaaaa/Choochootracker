@@ -40,7 +40,11 @@ void OPLLVoice::configure(const InstrumentOPLL* patch, float cents, float gain) 
 void OPLLVoice::tone() {
   const int brightness=std::clamp(int(patch_.tone.brightness),-63,63);
   const int feedback=patch_.tone.feedback?std::min(7,int(patch_.tone.feedback)-1):(patch_.patch[3]&7);
-  if(brightness!=macroBrightness_){write(2,(patch_.patch[2]&0xc0)|std::clamp((patch_.patch[2]&63)-brightness,0,63));macroBrightness_=brightness;}
+  if(brightness!=macroBrightness_||memcmp(macroOperators_,patch_.tone.operatorOffset,6)){
+    write(2,(patch_.patch[2]&0xc0)|std::clamp((patch_.patch[2]&63)-brightness-int(patch_.tone.operatorOffset[0]),0,63));
+    write(0x30,std::clamp((-int(patch_.tone.operatorOffset[1])+2)/4,0,15));
+    memcpy(macroOperators_,patch_.tone.operatorOffset,6);macroBrightness_=brightness;
+  }
   if(feedback!=macroFeedback_){write(3,(patch_.patch[3]&0xf8)|feedback);macroFeedback_=feedback;}
 }
 void OPLLVoice::pitch() {

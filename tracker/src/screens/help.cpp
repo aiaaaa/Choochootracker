@@ -371,13 +371,15 @@ const char* helpFXHint(uint8_t* fx, int isTable, uint8_t instrumentIdx) {
     case fxMOD: snprintf(buffer, bufferSize, "Modulo %hhu:%hhu", fx[1] >> 4, fx[1] & 15); break;
     case fxSPD: snprintf(buffer, bufferSize, "Track clock mode %02hX", fx[1]); break;
     case fxSLE: snprintf(buffer, bufferSize, "Engine FX slew %hhu ticks", fx[1]); break;
-    case fxFBR: snprintf(buffer, bufferSize, "FM brightness %+d", (fx[1] > 126 ? 126 : fx[1]) - 63); break;
+    case fxFBR: snprintf(buffer, bufferSize, "FM brightness %+d", fmBrightnessFromByte(fx[1])); break;
     case fxFFB:
       if (!fx[1]) snprintf(buffer, bufferSize, "FM feedback: preset");
       else snprintf(buffer, bufferSize, "FM feedback %d", (fx[1] > 8 ? 8 : fx[1]) - 1);
       break;
     case fxCMD: case fxCNR: case fxCND: case fxCNS: case fxCSP: case fxCSS:
-    case fxCSD: case fxCEI: case fxCEP: case fxCED: {
+    case fxCSD: case fxCEI: case fxCEP: case fxCED:
+    case fxFO1: case fxFO2: case fxFO3: case fxFO4: case fxFO5: case fxFO6:
+    case fxSCP: case fxSCT: case fxSRN: case fxSWV: case fxSFTY: case fxSMR: case fxSRG: case fxSSY: {
       const char* description = helpFXDescription((FX)fx[0], instrumentIdx);
       const char* end = strchr(description, '\n');
       snprintf(buffer, bufferSize, "%.*s %02X", int(end ? end - description : strlen(description)), description, fx[1]);
@@ -526,7 +528,19 @@ static void initFxHelpText() {
   fxHelpText[fxMOD] = "Modulo condition\nAB triggers pass A of B\nExample 34 = 3:4";
   fxHelpText[fxSPD] = "Track playback speed\n00=x1, 01=x2, FF=/2\nPersists until next SPD";
   fxHelpText[fxSLE] = "Engine FX Slew\n00 immediate; higher values\nglide continuous engine FX";
-  fxHelpText[fxFBR] = "FM Brightness\n00 dark; 3F preset; 7E bright\nChanges modulator levels; supports SLE";
+  fxHelpText[fxFBR] = "FM Brightness\n00 dark; 80 preset; FF bright\nChanges modulator levels; supports SLE";
+  for(int op=0;op<6;++op) {
+    static const char* text[]={"FM Operator 1 Level\n00 down; 80 preset; FF up\nChanges timbre or volume; supports SLE", "FM Operator 2 Level\n00 down; 80 preset; FF up\nChanges timbre or volume; supports SLE", "FM Operator 3 Level\n00 down; 80 preset; FF up\nChanges timbre or volume; supports SLE", "FM Operator 4 Level\n00 down; 80 preset; FF up\nChanges timbre or volume; supports SLE", "FM Operator 5 Level\n00 down; 80 preset; FF up\nDX7 only; supports SLE", "FM Operator 6 Level\n00 down; 80 preset; FF up\nDX7 only; supports SLE"};
+    fxHelpText[fxFO1+op]=text[op];
+  }
+  fxHelpText[fxSCP]="SID Pulse Width\n00-FF maps to native 000-FFF\nPulse waves; supports SLE";
+  fxHelpText[fxSCT]="SID Filter Cutoff\n00-FF maps to native 000-7FF\nEnable a filter mode; supports SLE";
+  fxHelpText[fxSRN]="SID Resonance\n00-0F are the 16 native levels\nEmphasizes the cutoff frequency";
+  fxHelpText[fxSWV]="SID Waveform\n00 tri; 01 saw; 03 pulse; 07 noise\n02/04/05/06 are combined waves";
+  fxHelpText[fxSFTY]="SID Filter Mode\nBits: 01 low; 02 band; 04 high\nCombine bits; 00 bypasses filtering";
+  fxHelpText[fxSMR]="SID Macro Speed\n00-FF maps to 1-200 updates/sec\nChanges preset motion speed";
+  fxHelpText[fxSRG]="SID Ring Modulation\n00 off; 01 on\nTriangle uses silent partner at 2x pitch";
+  fxHelpText[fxSSY]="SID Hard Sync\n00 off; 01 on\nUses silent partner at 2x pitch";
   fxHelpText[fxFFB] = "FM Feedback\n00 uses preset feedback\n01-08 select feedback 0-7";
   fxHelpText[fxCMD] = "Chip Mode\nSega: tone / white / periodic noise\nGB: pulse duty or noise width";
   fxHelpText[fxCNR] = "Sega Noise Rate\n00-02 select fixed noise clocks\n03 follows the played note";

@@ -637,7 +637,7 @@ TEST_CASE("fillFXNames ay") {
 
 TEST_CASE("fillFXNames unknown") {
   fillFXNames();
-  CHECK(std::strcmp(fxNames[200].name, "---") == 0);
+  CHECK(std::strcmp(fxNames[255].name, "---") == 0);
 }
 
 } // TEST_SUITE("project")

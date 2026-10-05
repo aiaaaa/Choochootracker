@@ -36,6 +36,7 @@ enum class InstrumentType : uint8_t {
   DX7 = 24,
   GenesisFM = 25,
   ArcadeFM = 26,
+  SID = 27,
   totalCount,
 };
 
@@ -323,6 +324,7 @@ struct InstrumentFMAmp : InstrumentVoicePostSettings {
 struct InstrumentFMTone {
   int8_t brightness; // Modulator output-level offset, -63..63; zero preserves preset.
   uint8_t feedback; // 0 preserves preset; 1..8 select feedback 0..7.
+  int8_t operatorOffset[6]; // Audio-thread FX offsets; zero in stored instruments.
 };
 
 struct InstrumentOPLL {
@@ -394,7 +396,15 @@ struct InstrumentDX7 {
   InstrumentFMTone tone;
 };
 
+struct InstrumentSID {
+  uint8_t schema;
+  uint16_t value[25];
+  uint16_t bankId;
+  char presetName[64];
+};
+
 union InstrumentChipData {
+  InstrumentSID sid;
   InstrumentFourOp fourOp;
   InstrumentDX7 dx7;
   InstrumentSimpleChip simpleChip;
@@ -481,6 +491,9 @@ InstrumentVoicePostSettings* instrumentVoicePostSettings(Instrument* instrument)
 InstrumentFMAmp* instrumentFMAmpSettings(Instrument* instrument);
 InstrumentFMTone* instrumentFMToneSettings(Instrument* instrument);
 const InstrumentModDestination* instrumentNativeModDestination(InstrumentType type, int generic);
+// Piecewise mapping gives an exact 80 neutral and preserves all old 00-7E steps.
+inline int fmBrightnessFromByte(int v) { return v<=128 ? ((v*63+64)/128)-63 : ((v-128)*63+63)/127; }
+inline int fmBrightnessToByte(int v) { return v<=0 ? ((v+63)*128+31)/63 : 128+(v*127+31)/63; }
 int instrumentNativeControlValue(const Instrument* instrument, int generic);
 const char* instrumentModDestinationName(InstrumentType type, int destination);
 const char* instrumentModDestinationNameForInstrument(const Instrument* instrument, int destination);
@@ -515,6 +528,10 @@ enum GenericModDestination {
   genericModChipEnvelopeInitial,
   genericModChipEnvelopePeriod,
   genericModChipEnvelopeDirection,
+  genericModFMOperator1, genericModFMOperator2, genericModFMOperator3,
+  genericModFMOperator4, genericModFMOperator5, genericModFMOperator6,
+  genericModSIDPulse, genericModSIDCutoff, genericModSIDResonance, genericModSIDWave,
+  genericModSIDFilterMode, genericModSIDMacroRate, genericModSIDRing, genericModSIDSync,
   genericModTotalCount,
 };
 

@@ -147,6 +147,15 @@
       "build_flag": "CHOOCHOO_EXPERIMENTAL_MOD_LUCKY=1",
       "normal_build_default": "OFF",
       "documentation": "docs/mod-lucky.md"
+    },
+    {
+      "id": "sid-fm-controls",
+      "branch": "feature/sid-fm-integration",
+      "status": "Implementation prepared; device evaluation pending",
+      "documentation": "docs/sid-fm-revision-20261005.txt",
+      "presets": 56,
+      "fm_controls": "Full-byte brightness and operator levels; stepped native feedback; legacy FBR migration",
+      "sid_model": "floooh/chips 6581 approximation; no alternate model/character options"
     }
   ],
   "personal_fixes": [

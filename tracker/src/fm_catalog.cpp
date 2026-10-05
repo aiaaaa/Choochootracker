@@ -21,7 +21,7 @@ bool loadFMCatalog(const char* path,std::vector<FMPresetEntry>& entries) {
     for(char* c=line;;++c)if(*c=='\t'||*c=='\n'){bool end=*c=='\n';*c=0;fields.emplace_back(start);start=c+1;if(end)break;}
     if(fields.size()!=6||fields[2].empty()||fields[2].size()>63||fields[3].empty()||fields[3].size()>63||fields[4].empty()||fields[4].size()>63||fields[5].size()>200||fields[5].size()<5||fields[5].substr(fields[5].size()-4)!=".cni"||fields[5].find_first_of("/\\:")!=std::string::npos||fields[5].find("..")!=std::string::npos)return fail();
     int type=0,bank=0;char extra;
-    if(sscanf(fields[0].c_str(),"%d%c",&type,&extra)!=1||(!isOPLL((InstrumentType)type)&&!isOPL((InstrumentType)type)&&!isFourOp((InstrumentType)type)&&type!=int(InstrumentType::DX7))||sscanf(fields[1].c_str(),"%d%c",&bank,&extra)!=1||bank<1||bank>65535)return fail();
+    if(sscanf(fields[0].c_str(),"%d%c",&type,&extra)!=1||(!isOPLL((InstrumentType)type)&&!isOPL((InstrumentType)type)&&!isFourOp((InstrumentType)type)&&type!=int(InstrumentType::DX7)&&type!=int(InstrumentType::SID))||sscanf(fields[1].c_str(),"%d%c",&bank,&extra)!=1||bank<1||bank>65535)return fail();
     parsed.push_back({type,bank,fields[2],fields[3],fields[4],fields[5]});
   }
   bool ok=!ferror(f);fclose(f);if(ok)entries.swap(parsed);return ok;

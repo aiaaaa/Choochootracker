@@ -1,4 +1,5 @@
 #include "project.h"
+#include "sid_patch.h"
 #include "fm_amp.h"
 #include "opll_presets.h"
 #include "dx7_patch.h"
@@ -612,6 +613,8 @@ int instrumentLoadData(FILE* file, Instrument* instrument, Project* p) {
       case InstrumentType::Sintered:
         if (loadInstrumentSintered(file, instrument)) return 1;
         break;
+      case InstrumentType::SID:
+        if(projectFileVersion<7||loadSIDData(file,instrument))return 1;break;
       case InstrumentType::SegaPSG:
       case InstrumentType::GBPulse:
       case InstrumentType::GBNoise:
@@ -936,6 +939,8 @@ int instrumentSaveData(FILE* file, int idx, Instrument* instrument) {
     case InstrumentType::Sintered:
       saveInstrumentSintered(file, instrument);
       break;
+    case InstrumentType::SID:
+      saveSIDData(file,instrument);break;
     case InstrumentType::SegaPSG:
     case InstrumentType::GBPulse:
     case InstrumentType::GBNoise:

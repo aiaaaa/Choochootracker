@@ -88,6 +88,7 @@ FXGroup fxGroups[] = {
   {"Sega PSG FX", NULL, 0, 4, InstrumentType::SegaPSG},
   {"GB Pulse FX", NULL, 0, 4, InstrumentType::GBPulse},
   {"GB Noise FX", NULL, 0, 4, InstrumentType::GBNoise},
+  {"SID FX", NULL, 0, 4, InstrumentType::SID},
 };
 int fxGroupCount = sizeof(fxGroups) / sizeof(FXGroup);
 
@@ -145,7 +146,7 @@ void fillFXNames() {
     auto type=fxGroups[group].instType;auto* names=instrumentGroupNames[int(type)];int count=0;
     for(int g=genericModFMBrightness;g<genericModTotalCount;++g)if(const auto* d=instrumentNativeModDestination(type,g)) {
       names[count].fx=FX(d->fx);
-      const char* labels[]={"FBR","FFB","CMD","CNR","CND","CNS","CSP","CSS","CSD","CEI","CEP","CED"};
+      const char* labels[]={"FBR","FFB","CMD","CNR","CND","CNS","CSP","CSS","CSD","CEI","CEP","CED","FO1","FO2","FO3","FO4","FO5","FO6","SCP","SCT","SRN","SWV","SFI","SMR","SRG","SSY"};
       strcpy(names[count++].name,labels[g-genericModFMBrightness]);
     }
     fxGroups[group].fxList=names;fxGroups[group].count=count;

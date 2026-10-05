@@ -150,7 +150,7 @@ void Note::start(const uint8_t* patch,int midi,int velocity) {
   pitchDepth_=(patch[139]*165)>>6;pitchSensitivity_=pitchmodsenstab[patch[143]];
   ampDepth_=(patch[140]*165)>>6;
 }
-void Note::compute(int32_t* buffer,int32_t lfo,int32_t delay,int32_t pitchOffset,int brightness,int feedback) {
+void Note::compute(int32_t* buffer,int32_t lfo,int32_t delay,int32_t pitchOffset,int brightness,int feedback,const int8_t* operatorOffset) {
   uint32_t depth=pitchDepth_*uint32_t(delay);
   int32_t sensitivity=pitchSensitivity_*(lfo-(1<<23));
   int32_t pitch=pitchenv_.getsample()+int32_t((int64_t(depth)*sensitivity)>>39);
@@ -167,6 +167,11 @@ void Note::compute(int32_t* buffer,int32_t lfo,int32_t delay,int32_t pitchOffset
     }
     if(brightness && level>0 && !FmCore::isCarrier(algorithm_,op))
       level=max(0,min(17*(1<<24),level+max(-63,min(63,brightness))*(1<<21)));
+    // User-facing OP1..OP6 reverses canonical Yamaha OP6..OP1 order.
+    if(operatorOffset && operatorOffset[5-op] && level>0) {
+      int offset=operatorOffset[5-op];
+      level=int32_t(max(int64_t(0),min(int64_t(17)*(1<<24),int64_t(level)+int64_t(offset)*(1<<21))));
+    }
     params_[op].level_in=level;
   }
   int shift=feedback<0?feedbackShift_:feedback?8-min(7,feedback):16;

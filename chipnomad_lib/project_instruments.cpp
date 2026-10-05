@@ -1,6 +1,7 @@
 #include <string.h>
 #include "project_instruments.h"
 #include "project.h"
+#include "sid_patch.h"
 #include "opll_presets.h"
 #include "dx7_patch.h"
 #include "opl_patch.h"
@@ -310,6 +311,7 @@ static int initOPL2Instrument(Instrument* instrument) {
 static int initOPL3Instrument(Instrument* instrument) {
   initOPL2Instrument(instrument);instrument->type=InstrumentType::OPL3;return 0;
 }
+static int initSIDInstrument(Instrument* i){initCommon(i);i->type=InstrumentType::SID;initSIDPatch(&i->chip.sid);strcpy(i->name,"Moving Pulse");return 0;}
 static int initSegaInstrument(Instrument* i){initCommon(i);i->type=InstrumentType::SegaPSG;simpleChipApplyPreset(i,0);return 0;}
 static int initGBPulseInstrument(Instrument* i){initCommon(i);i->type=InstrumentType::GBPulse;simpleChipApplyPreset(i,0);return 0;}
 static int initGBNoiseInstrument(Instrument* i){initCommon(i);i->type=InstrumentType::GBNoise;simpleChipApplyPreset(i,0);return 0;}
@@ -406,6 +408,7 @@ static const InstrumentDefinition instrumentDefinitions[] = {
   {"DX7 FM",InstrumentCategory::fm,InstrumentScreenKind::dx7,destOPLL,COUNT(destOPLL),NULL,0,{2,modNameOPLL,initDX7Instrument,freeNoneInstrument,1,0}},
   {"Genesis FM",InstrumentCategory::fm,InstrumentScreenKind::opl,destOPLL,COUNT(destOPLL),NULL,0,{2,modNameOPLL,initGenesisInstrument,freeNoneInstrument,1,0}},
   {"Arcade FM",InstrumentCategory::fm,InstrumentScreenKind::opl,destOPLL,COUNT(destOPLL),NULL,0,{2,modNameOPLL,initArcadeInstrument,freeNoneInstrument,1,0}},
+  {"SID",InstrumentCategory::chip,InstrumentScreenKind::opl,destOPLL,COUNT(destOPLL),NULL,0,{2,modNameOPLL,initSIDInstrument,freeNoneInstrument,0,0}},
 };
 #undef COUNT
 
@@ -434,6 +437,8 @@ int instrumentFXAvailable(InstrumentType type, uint8_t fx) {
 
 int instrumentFXAvailableForInstrument(const Instrument* instrument, uint8_t fx) {
   if (!instrument || !instrumentFXAvailable(instrument->type, fx)) return 0;
+  if((instrument->type==InstrumentType::OPL2||instrument->type==InstrumentType::OPL3)&&
+      instrument->chip.opl.topology==OPLTopology::twoOperator&&(fx==fxFO3||fx==fxFO4))return 0;
   if (instrument->type != InstrumentType::DrumSynth) return 1;
   int macro = fx == fxDDC ? 0 : fx == fxDTO ? 1 : fx == fxDSW ? 2 :
     fx == fxDNO ? 3 : fx == fxDFM ? 4 : fx == fxDDR ? 5 : -1;
@@ -443,6 +448,7 @@ int instrumentFXAvailableForInstrument(const Instrument* instrument, uint8_t fx)
 int instrumentModDestinationAvailable(const Instrument* instrument, int destination) {
   InstrumentType type = instrument ? instrument->type : InstrumentType::none;
   int generic = instrumentGenericModDestination(type, destination);
+  if (instrument && isOPL(type) && instrument->chip.opl.topology==OPLTopology::twoOperator && generic>=genericModFMOperator3 && generic<=genericModFMOperator6) return 0;
   if (generic >= genericModFMBrightness) return instrumentNativeModDestination(type,generic)!=nullptr;
   if (generic >= genericModFirstInsert) return 1;
   if (generic >= 0) {
