@@ -51,25 +51,22 @@ Native-chip preset audition and Get Lucky remain included. See
 
 ## Current installed device build
 
-Source: `ff887afaaebc106cf3d7b2e2905f55c3e3f42964` (October 5 instrument revision).
-The device personal build includes persistent DX7 bank discovery, 264 additional
-native presets (1,140 total), scrolling OPLL/VRC7 banks, engine bank-filter resets,
-named Phrase FX descriptions and preset release updates during playback.
-Get Lucky, native engines, accepted upstream features and sample archives remain.
+Source: `70d7eee5ca3878e9143821735f4ed41ae15e7ebc` (October 5 SID/FM revision).
+SID adds 56 owned parameter programs in two banks, its existing 6581-style
+filter, pulse/filter/ADSR controls and eight Phrase FX. No alternate filter
+model or character options are provided. FM adds individual operator levels
+and full-byte brightness, with legacy FBR migration in version-7 saves.
 
-Host and ARM64 personal suites, offscreen UI and physical ALSA checks passed.
-Two initial dense-song runs had timing failures; after draining staged filesystem
-writes, old/new comparisons passed unchanged. The cause remains unproven; see
-the receipt for all measurements.
-The existing launcher, settings, songs, samples and user presets were preserved;
-a complete rollback was verified. User listening/playtest is pending. Load
-`projects/native-chip-expanded-20261005.cct` to evaluate the expanded banks.
-Drop original DX7/TX7 SysEx banks into `instruments/banks/dx7/` and reopen Banks.
+Get Lucky, persistent DX7 banks, accepted upstream features and the previous
+personal additions remain. The regular launcher and all user files were
+preserved, with a verified rollback. Physical audio and production UI checks
+passed. User listening remains pending. Evaluation projects are
+`sid-bank-audition.cct`, `sid-mixed.cct` and `sid-ring-sync.cct`.
 
-See [the device receipt](docs/instrument-device-20261005.json) for hashes,
-validation and rollback. The preceding archive build was `9caf6cf`; its
-[receipt](docs/personal-archive-device-sync-20261004.json) remains historical.
-Documentation commits after this source do not change the installed binary.
+See [the SID/FM device receipt](docs/sid-fm-device-20261005.json) for hashes,
+validation and rollback. The preceding instrument revision was `ff887af`; its
+[receipt](docs/instrument-device-20261005.json) remains historical.
+Documentation and web-only commits do not change the installed native binary.
 
 ## Previous installed device build (R2)
 

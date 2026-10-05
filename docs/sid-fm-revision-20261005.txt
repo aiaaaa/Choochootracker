@@ -40,6 +40,25 @@ Validation and installation
 Specific SID rendering, chunk independence, preview ownership, save/load,
 legacy-FBR migration and voice-budget checks passed on the host. All 56 presets
 rendered finite, non-clipping, nonzero AC output at 44.1 and 48 kHz and
-released successfully. Full suites, production UI, WebAssembly packaging and
-physical mixed-song audio checks are required before installation; device
-results will be recorded separately. Human listening remains user evaluation.
+released successfully. The default host suite passed 484 tests; the personal
+host and device suites passed 496 enabled tests (two optional tests skipped).
+The final UI-label-only revision reused the unchanged engine suite and reran
+production UI validation. WebAssembly packaging and physical mixed-song audio
+checks passed. Human listening remains user evaluation.
+
+DEVICE INSTALLATION COMPLETE
+Source: 70d7eee5ca3878e9143821735f4ed41ae15e7ebc
+Binary SHA-256: 92da3701185ce09ec2068b47bc353de658431957fef06056d069f44c1adfb033
+Rollback: /roms/choochootracker-backups/pre-sid-fm-70d7eee5ca38/previous-install
+Full validation receipt: docs/sid-fm-device-20261005.json
+The host suites, final production UI, web build and physical device audio
+checks passed. Existing user files and the regular launcher were preserved.
+Human listening remains user evaluation.
+
+Physical audio headroom at the retained 48 kHz / 4906-frame setting:
+SID + FM mix worst 99.356 ms; ring/sync mix 90.751 ms; existing balanced song
+87.182 ms, against 102.208 ms per callback. Each ran 70 seconds with zero
+measured deadline misses, nonfinite output or logged ALSA underruns. The
+four-SID mixed fixture is close to the CPU ceiling; expensive additional
+inserts can exceed available headroom. This is an evaluation build, with
+subjective listening and interactive performance still for the user to judge.

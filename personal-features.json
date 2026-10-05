@@ -151,11 +151,12 @@
     {
       "id": "sid-fm-controls",
       "branch": "feature/sid-fm-integration",
-      "status": "Implementation prepared; device evaluation pending",
+      "status": "Installed for user evaluation",
       "documentation": "docs/sid-fm-revision-20261005.txt",
       "presets": 56,
       "fm_controls": "Full-byte brightness and operator levels; stepped native feedback; legacy FBR migration",
-      "sid_model": "floooh/chips 6581 approximation; no alternate model/character options"
+      "sid_model": "floooh/chips 6581 approximation; no alternate model/character options",
+      "included_commit": "70d7eee5ca3878e9143821735f4ed41ae15e7ebc"
     }
   ],
   "personal_fixes": [
@@ -173,9 +174,9 @@
     }
   ],
   "current_device_build": {
-    "source_commit": "ff887afaaebc106cf3d7b2e2905f55c3e3f42964",
-    "binary_sha256": "8099e70d9180284e6efa3e850d2302ca423be9a70d5f727fb27911655f031f6e",
-    "validation_report": "docs/instrument-device-20261005.json",
+    "source_commit": "70d7eee5ca3878e9143821735f4ed41ae15e7ebc",
+    "binary_sha256": "92da3701185ce09ec2068b47bc353de658431957fef06056d069f44c1adfb033",
+    "validation_report": "docs/sid-fm-device-20261005.json",
     "human_listening": "pending user evaluation"
   },
   "song_storage": "Upstream CCT archives embed loaded Sample, SCWF and BYOWTBL audio. Text songs remain readable; no-sample songs stay text. Native patches remain owned by the song."

@@ -1,0 +1,106 @@
+{
+  "host_date": "2026-10-05",
+  "application_source_commit": "70d7eee5ca3878e9143821735f4ed41ae15e7ebc",
+  "personal_branch": "personal/r36h",
+  "scope": "SID with 56 presets and expanded full-byte FM Phrase FX",
+  "sid_filter": "Existing floooh/chips 6581 approximation only; no alternate model or character options",
+  "native_presets": 1196,
+  "installation": {
+    "source_commit": "70d7eee5ca3878e9143821735f4ed41ae15e7ebc",
+    "tests_source_commit": "a320e925a9f7bf5ca17b7a50983aa697f77723b6",
+    "tests_reused_for_ui_label_only": true,
+    "binary_sha256": "92da3701185ce09ec2068b47bc353de658431957fef06056d069f44c1adfb033",
+    "binary_bytes": 2144120,
+    "build_method": "Verified source inventory; content-based dependency invalidation; forced relink; verified input timestamps normalized without changing device clock",
+    "invalidated_objects": 2,
+    "installed": "/roms/ports/choochootracker",
+    "rollback": "/roms/choochootracker-backups/pre-sid-fm-70d7eee5ca38/previous-install",
+    "preserved_files": 785,
+    "verified_user_files": 785,
+    "managed_native_presets": 1196,
+    "launcher_unchanged": true,
+    "installed_inventory_verified": true,
+    "rollback_inventory_verified": true,
+    "dependencies_resolved": true
+  },
+  "validation": {
+    "build": {
+      "source_commit": "70d7eee5ca3878e9143821735f4ed41ae15e7ebc",
+      "tests_source_commit": "a320e925a9f7bf5ca17b7a50983aa697f77723b6",
+      "tests_reused_for_ui_label_only": true,
+      "binary_sha256": "92da3701185ce09ec2068b47bc353de658431957fef06056d069f44c1adfb033",
+      "binary_bytes": 2144120,
+      "build_method": "Verified source inventory; content-based dependency invalidation; forced relink; verified input timestamps normalized without changing device clock",
+      "invalidated_objects": 2
+    },
+    "hardware": {
+      "source_commit": "70d7eee5ca3878e9143821735f4ed41ae15e7ebc",
+      "measurements": {
+        "sid-mixed": {
+          "driver": "alsa",
+          "format": "S16",
+          "master_gain": "0.4",
+          "rate": "48000",
+          "frames": "4906",
+          "callbacks": "685",
+          "p95_us": "89829.250",
+          "p99_us": "91568.166",
+          "worst_us": "99355.959",
+          "render_deadline_misses": "0",
+          "energy": "3419.297876",
+          "peak": "0.124804",
+          "nonfinite": "0"
+        },
+        "sid-ring-sync": {
+          "driver": "alsa",
+          "format": "S16",
+          "master_gain": "0.4",
+          "rate": "48000",
+          "frames": "4906",
+          "callbacks": "685",
+          "p95_us": "83209.875",
+          "p99_us": "83792.917",
+          "worst_us": "90751.208",
+          "render_deadline_misses": "0",
+          "energy": "2716.297297",
+          "peak": "0.113103",
+          "nonfinite": "0"
+        },
+        "balanced-amp": {
+          "driver": "alsa",
+          "format": "S16",
+          "master_gain": "0.4",
+          "rate": "48000",
+          "frames": "4906",
+          "callbacks": "685",
+          "p95_us": "83115.959",
+          "p99_us": "84324.625",
+          "worst_us": "87182.375",
+          "render_deadline_misses": "0",
+          "energy": "150754.744858",
+          "peak": "0.792241",
+          "nonfinite": "0"
+        }
+      },
+      "settings_and_autosave_unchanged": true,
+      "frames": 4906,
+      "route": "plughw:0,0",
+      "startup_waveform_off_on": true,
+      "subjective_listening": "pending"
+    },
+    "host_default_tests": "[doctest] run with \"--help\" for options\n===============================================================================\n[doctest] test cases:       484 |       484 passed | 0 failed | 0 skipped\n[doctest] assertions: 110410782 | 110410782 passed | 0 failed |\n[doctest] Status: SUCCESS!",
+    "host_personal_tests": "[doctest] doctest version is \"2.5.0\"\n[doctest] run with \"--help\" for options\n===============================================================================\n[doctest] test cases:       496 |       496 passed | 0 failed | 2 skipped\n[doctest] assertions: 110420819 | 110420819 passed | 0 failed |\n[doctest] Status: SUCCESS!",
+    "device_personal_tests": "[doctest] run with \"--help\" for options\n===============================================================================\n[doctest] test cases:       496 |       496 passed | 0 failed | 2 skipped\n[doctest] assertions: 110420819 | 110420819 passed | 0 failed |\n[doctest] Status: SUCCESS!\nmake: warning:  Clock skew detected.  Your build may be incomplete.",
+    "ui": "Insert review UI passed: full-height page, grouped chooser, waveform off/on\nType popup passed: all seven FM types selected and reopened\nBank reset and native FX description regressions passed\nSID controls passed: native waveform, pulse width, filter and ADSR; no alternate model options\nADSR pixel regression passed: ten engines, header off/on, twelve edits each\nPersistent DX7 folder discovery, selection and removal passed\nUI smoke passed; song+UI 48k/1024 us p95=31396.167 p99=35082.833 worst=37782.208 energy=778.205388\nPlaying preset release refresh regression passed\n",
+    "web_bundle_rebuilt": true,
+    "all_56_sid_presets_rendered_at_44100_and_48000": true
+  },
+  "evaluation_projects": [
+    "projects/sid-bank-audition.cct",
+    "projects/sid-mixed.cct",
+    "projects/sid-ring-sync.cct"
+  ],
+  "human_listening": "pending user evaluation",
+  "preservation": "User files, settings, autosave, launcher and personal features retained; rollback verified",
+  "device_clock_note": "Device calendar unchanged. Verified cached source timestamps normalized after content-based object invalidation."
+}
