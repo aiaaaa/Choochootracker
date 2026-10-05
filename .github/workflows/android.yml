@@ -27,9 +27,9 @@ jobs:
         run: |
           curl --fail --location --output /tmp/SDL2.tar.gz \
             https://github.com/libsdl-org/SDL/releases/download/release-2.32.10/SDL2-2.32.10.tar.gz
-          mkdir -p .tmp/SDL2-2.32.10
+          mkdir -p .tmp/SDL2-2.32.10/SDL2
           tar -xzf /tmp/SDL2.tar.gz -C /tmp
-          cp -r /tmp/SDL2-2.32.10/include/SDL2 .tmp/SDL2-2.32.10/
+          cp -r /tmp/SDL2-2.32.10/include/. .tmp/SDL2-2.32.10/SDL2/
       - name: Build native libraries
         run: |
           export ANDROID_NDK_ROOT="$ANDROID_HOME/ndk/30.0.16248370"
