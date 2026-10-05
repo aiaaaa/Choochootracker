@@ -1,0 +1,121 @@
+{
+  "host_date": "2026-10-05",
+  "application_source_commit": "588e0ea246d26ed9a17bd33d99699ca633e359b6",
+  "personal_branch": "personal/r36h",
+  "scope": "Native FM envelope time, tone decay, detune spread, harmonic ratio and LFO rate/depth; SID ADSR/partner ratio; clear FX help",
+  "installation": {
+    "source_commit": "588e0ea246d26ed9a17bd33d99699ca633e359b6",
+    "tests_source_commit": "588e0ea246d26ed9a17bd33d99699ca633e359b6",
+    "tests_reused_for_ui_label_only": false,
+    "binary_sha256": "603753a136b477cf39dfc544d79a8dfbd0031d154dab434a19967a79732ce6fa",
+    "binary_bytes": 2168784,
+    "invalidated_objects": 243,
+    "build_method": "Verified source inventory; content-based dependency invalidation; forced relink; verified input timestamps normalized without changing device clock",
+    "recovery": "Handheld use interrupted the original supervisor after engine tests passed; source/package hashes reverified and unchanged UI harness rerun to successful exit.",
+    "installed": "/roms/ports/choochootracker",
+    "rollback": "/roms/choochootracker-backups/pre-fm-macros-588e0ea246d2/previous-install",
+    "preserved_files": 786,
+    "verified_user_files": 786,
+    "managed_native_presets": 1196,
+    "launcher_unchanged": true,
+    "installed_inventory_verified": true,
+    "rollback_inventory_verified": true,
+    "dependencies_resolved": true
+  },
+  "validation": {
+    "build": {
+      "source_commit": "588e0ea246d26ed9a17bd33d99699ca633e359b6",
+      "tests_source_commit": "588e0ea246d26ed9a17bd33d99699ca633e359b6",
+      "tests_reused_for_ui_label_only": false,
+      "binary_sha256": "603753a136b477cf39dfc544d79a8dfbd0031d154dab434a19967a79732ce6fa",
+      "binary_bytes": 2168784,
+      "invalidated_objects": 243,
+      "build_method": "Verified source inventory; content-based dependency invalidation; forced relink; verified input timestamps normalized without changing device clock",
+      "recovery": "Handheld use interrupted the original supervisor after engine tests passed; source/package hashes reverified and unchanged UI harness rerun to successful exit."
+    },
+    "hardware": {
+      "source_commit": "588e0ea246d26ed9a17bd33d99699ca633e359b6",
+      "measurements": {
+        "fm-macros": {
+          "driver": "alsa",
+          "format": "S16",
+          "master_gain": "0.4",
+          "rate": "48000",
+          "frames": "4906",
+          "callbacks": "685",
+          "p95_us": "86914.042",
+          "p99_us": "92131.667",
+          "worst_us": "93390.500",
+          "render_deadline_misses": "0",
+          "energy": "3066.620631",
+          "peak": "0.116908",
+          "nonfinite": "0"
+        },
+        "sid-mixed": {
+          "driver": "alsa",
+          "format": "S16",
+          "master_gain": "0.4",
+          "rate": "48000",
+          "frames": "4906",
+          "callbacks": "685",
+          "p95_us": "89545.750",
+          "p99_us": "90867.000",
+          "worst_us": "97460.709",
+          "render_deadline_misses": "0",
+          "energy": "3419.297876",
+          "peak": "0.124804",
+          "nonfinite": "0"
+        },
+        "sid-ring-sync": {
+          "driver": "alsa",
+          "format": "S16",
+          "master_gain": "0.4",
+          "rate": "48000",
+          "frames": "4906",
+          "callbacks": "685",
+          "p95_us": "83828.209",
+          "p99_us": "84838.250",
+          "worst_us": "89174.750",
+          "render_deadline_misses": "0",
+          "energy": "2716.297297",
+          "peak": "0.113103",
+          "nonfinite": "0"
+        },
+        "balanced-amp": {
+          "driver": "alsa",
+          "format": "S16",
+          "master_gain": "0.4",
+          "rate": "48000",
+          "frames": "4906",
+          "callbacks": "685",
+          "p95_us": "83970.541",
+          "p99_us": "86689.458",
+          "worst_us": "92455.125",
+          "render_deadline_misses": "0",
+          "energy": "150754.744858",
+          "peak": "0.792241",
+          "nonfinite": "0"
+        }
+      },
+      "settings_and_autosave_unchanged": true,
+      "frames": 4906,
+      "route": "plughw:0,0",
+      "startup_waveform_off_on": true,
+      "subjective_listening": "pending"
+    },
+    "host_tests": "[doctest] run with \"--help\" for options\n===============================================================================\n[doctest] test cases:       489 |       489 passed | 0 failed | 0 skipped\n[doctest] assertions: 120423823 | 120423823 passed | 0 failed |\n[doctest] Status: SUCCESS!",
+    "device_personal_tests": "[doctest] run with \"--help\" for options\n===============================================================================\n[doctest] test cases:       501 |       501 passed | 0 failed | 2 skipped\n[doctest] assertions: 120433860 | 120433860 passed | 0 failed |\n[doctest] Status: SUCCESS!\nmake: warning:  Clock skew detected.  Your build may be incomplete.",
+    "ui": "Insert review UI passed: full-height page, grouped chooser, waveform off/on\nType popup passed: all seven FM types selected and reopened\nBank reset and native FX description regressions passed\nSID controls passed: native waveform, pulse width, filter and ADSR; no alternate model options\nADSR pixel regression passed: ten engines, header off/on, twelve edits each\nPersistent DX7 folder discovery, selection and removal passed\nUI smoke passed; song+UI 48k/1024 us p95=29242.500 p99=29522.209 worst=29963.208 energy=778.205388\nPlaying preset release refresh regression passed\n",
+    "web_bundle_commit": "b93340b",
+    "host_ui": "Insert review UI passed: full-height page, grouped chooser, waveform off/on\nType popup passed: all seven FM types selected and reopened\nBank reset and native FX description regressions passed\nSID controls passed: native waveform, pulse width, filter and ADSR; no alternate model options\nADSR pixel regression passed: ten engines, header off/on, twelve edits each\nPersistent DX7 folder discovery, selection and removal passed\nUI smoke passed; song+UI 48k/1024 us p95=1308.374 p99=1558.884 worst=2076.791 energy=778.205386\nPlaying preset release refresh regression passed\n"
+  },
+  "evaluation_projects": [
+    "projects/fm-macros.cct",
+    "projects/sid-bank-audition.cct",
+    "projects/sid-mixed.cct",
+    "projects/sid-ring-sync.cct"
+  ],
+  "human_listening": "pending user evaluation",
+  "preservation": "Settings, autosave, user files and regular launcher preserved; rollback verified",
+  "device_clock_note": "Device clock left unchanged; hash-verified inputs normalized for cached builds."
+}

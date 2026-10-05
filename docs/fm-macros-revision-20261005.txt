@@ -35,3 +35,12 @@ new command has a title/description and value hint. Device validation adds an
 FM macro audition to the SID and balanced sample/FM physical audio workloads.
 
 Build/install results are recorded separately after validation completes.
+
+DEVICE INSTALLATION COMPLETE
+Source: 588e0ea246d26ed9a17bd33d99699ca633e359b6
+Binary SHA-256: 603753a136b477cf39dfc544d79a8dfbd0031d154dab434a19967a79732ce6fa
+Rollback: /roms/choochootracker-backups/pre-fm-macros-588e0ea246d2/previous-install
+Receipt: docs/fm-macros-device-20261005.json
+Settings, projects and the regular launcher were preserved. User listening
+remains pending; dense SID arrangements still need CPU headroom.
+Physical audio validation used the saved 48 kHz / 4906-frame buffer setting.
