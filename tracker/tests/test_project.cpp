@@ -161,6 +161,38 @@ TEST_CASE("sample slice survives save and load; missing field is Off") {
   CHECK(missing.instruments[0].chip.sample.slice == 0);
 }
 
+TEST_CASE("projects embed loaded samples in a ZIP container") {
+  Project saved, loaded;
+  projectInitAY(&saved);
+  projectInitAY(&loaded);
+  getInstrumentFunctions(InstrumentType::Sample).init(&saved.instruments[0]);
+  InstrumentSample& sample = saved.instruments[0].chip.sample;
+  std::strcpy(sample.path, "samples/original.wav");
+  sample.sampleRate = 8000;
+  sample.frameCount = 4;
+  sample.channels = 1;
+  sample.data = static_cast<int16_t*>(std::malloc(4 * sizeof(int16_t)));
+  REQUIRE(sample.data != nullptr);
+  sample.data[0] = -1000; sample.data[1] = 2000; sample.data[2] = -3000; sample.data[3] = 4000;
+
+  const char* path = "build/tests/sample_archive.cct";
+  REQUIRE(projectSave(&saved, path) == 0);
+  FILE* archive = std::fopen(path, "rb");
+  REQUIRE(archive != nullptr);
+  CHECK(std::fgetc(archive) == 'P');
+  CHECK(std::fgetc(archive) == 'K');
+  std::fclose(archive);
+
+  REQUIRE(projectLoad(&loaded, path) == 0);
+  const InstrumentSample& result = loaded.instruments[0].chip.sample;
+  REQUIRE(result.data != nullptr);
+  CHECK(result.frameCount == 4);
+  CHECK(result.sampleRate == 8000);
+  CHECK(result.data[0] == -1000);
+  CHECK(result.data[3] == 4000);
+  CHECK(std::strcmp(result.path, "samples/original.wav") == 0);
+}
+
 TEST_CASE("new projects initialize the validated period pitch table") {
   Project project;
   projectInitAY(&project);
