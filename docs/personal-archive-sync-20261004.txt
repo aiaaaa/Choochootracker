@@ -1,0 +1,28 @@
+Personal song-archive update — October 4, 2026
+
+Upstream main: ccbf261 (merge of 9c97610, Embed samples in CCT project archives).
+Personal follows upstream storage: loaded Sample, SCWF and BYOWTBL audio is
+embedded in a ZIP-format .cct; songs with no loaded audio remain text. Old text
+projects remain readable. Native chips keep their owned v6 patches inside the
+same project.cct entry. No bulk conversion or modification of existing songs.
+
+Integration test: ten native chip types, a custom DX7 patch, stereo PCM,
+two SCWF oscillators, two BYOWTBL oscillators and an empty sample slot. Verify
+legacy text read, archived save/load, full patch serialization equality,
+bit-exact audio, positions, wavetable layout, and byte-identical resave.
+
+The first test exposed an upstream archive defect: BYOWTBL PCM was embedded
+without frame-size metadata, then read through the generic sample loader.
+Missing original WAVs left frameSize/tableFrames at zero (four failed checks).
+Fixed using a standard Serum clm chunk in each embedded wavetable WAV and
+an open-file entry point to the existing wavetable loader. No alternate song
+container or new project version is introduced. This fix is not submitted.
+
+Host full suite after fix: 487 passed, 74,528,277 assertions, 2 existing
+opt-in Lucky skips. The first test compile lacked project_utils.h; corrected.
+Final Web, interface and device receipts are recorded separately after validation.
+
+USB SSH was unreachable following sleep: the Mac reported the handheld link
+inactive. A user reboot restored access. No SSH, USB, audio-route or system
+settings were changed during this update. Sleep recovery remains a separate
+issue; the visible SSH logo alone did not establish an active host link.
