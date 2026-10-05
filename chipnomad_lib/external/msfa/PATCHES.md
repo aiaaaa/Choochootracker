@@ -29,6 +29,9 @@ Changes to the selected scalar DSP closure:
   bounded in Q24); feedback changes its shift without clearing running history.
   Zero/default arguments preserve the reference DSP. Saved DX7 bytes, algorithm,
   carrier levels, oscillator phases and native envelope progression are retained.
+- `Note::compute` also accepts six optional live operator level offsets. OP1–OP6
+  map to Yamaha canonical OP6–OP1 storage in reverse order. Zero offsets leave
+  the existing DSP unchanged; offsets do not change saved patch bytes.
 - LFO sits in the original ChooChoo `DX7Part` adapter, one per track/patch part,
   shared by bounded chord slots; preview owns another part. Its mutable phase,
   random state and delay never cross unrelated parts. Retrigger calls keydown

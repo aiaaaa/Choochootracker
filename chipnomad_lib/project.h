@@ -210,6 +210,8 @@ enum FX {
   // Native tone controls append IDs to preserve existing projects.
   fxFBR, fxFFB,
   fxCMD, fxCNR, fxCND, fxCNS, fxCSP, fxCSS, fxCSD, fxCEI, fxCEP, fxCED,
+  fxFO1, fxFO2, fxFO3, fxFO4, fxFO5, fxFO6,
+  fxSCP, fxSCT, fxSRN, fxSWV, fxSFTY, fxSMR, fxSRG, fxSSY,
   // Total count - must be last
   fxTotalCount
 };

@@ -1,6 +1,7 @@
 #include "doctest.h"
 #include "project.h"
 #include "fm_amp.h"
+#include "opl_patch.h"
 #include "chipnomad_lib.h"
 #include "pitch_table_utils.h"
 #include "synth/native_fm_amp.h"
@@ -89,9 +90,10 @@ TEST_CASE("Native macros append IDs and expose only supported controls") {
   for(int g=genericModFMBrightness;g<genericModTotalCount;++g) {
    int dest=getInstrumentFunctions(i.type).modDestinationsCount+1+g;
    const auto* d=instrumentNativeModDestination(i.type,g);
-   CHECK(bool(instrumentModDestinationAvailable(&i,dest))==bool(d));
+   const bool unusedOPL=isOPL(i.type)&&i.chip.opl.topology==OPLTopology::twoOperator&&g>=genericModFMOperator3&&g<=genericModFMOperator6;
+      CHECK(bool(instrumentModDestinationAvailable(&i,dest))==(bool(d)&&!unusedOPL));
    REQUIRE(instrumentModDestinationName(i.type,dest));
-   if(d){CHECK(instrumentFXAvailable(i.type,d->fx));CHECK(strcmp(fxNames[d->fx].name,"---"));
+   if(d&&!unusedOPL){CHECK(instrumentFXAvailable(i.type,d->fx));CHECK(strcmp(fxNames[d->fx].name,"---"));
     uint8_t fx;int base,range;InstrumentMotionValue encoding;
     REQUIRE(instrumentMotionDestination(&i,dest,&fx,&base,&range,&encoding));
     CHECK(fx==d->fx);CHECK(base>=0);CHECK(base<=range);

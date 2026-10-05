@@ -710,7 +710,9 @@ static int projectLoadInternal(FILE* file, Project* project) {
 
   // Detect version
   if (strlen(version) > 0) {
-    if (strncmp(version, " 6.0", 4) == 0) {
+    if (strncmp(version, " 7.0", 4) == 0) {
+      projectFileVersion = 7;
+    } else if (strncmp(version, " 6.0", 4) == 0) {
       projectFileVersion = 6;
     } else if (strncmp(version, " 5.0", 4) == 0) {
       projectFileVersion = 5;
@@ -1011,6 +1013,11 @@ static int projectLoadInternal(FILE* file, Project* project) {
       if (p.phrases[phrase].rows[row].fx[fx][0] == fxSDT) p.phrases[phrase].rows[row].fx[fx][1] = convert(p.phrases[phrase].rows[row].fx[fx][1]);
     for (int table = 0; table < PROJECT_MAX_TABLES; ++table) for (int row = 0; row < 16; ++row) for (int fx = 0; fx < 4; ++fx)
       if (p.tables[table].rows[row].fx[fx][0] == fxSDT) p.tables[table].rows[row].fx[fx][1] = convert(p.tables[table].rows[row].fx[fx][1]);
+  }
+  if(projectFileVersion<7) {
+    auto migrate=[](uint8_t* fx){if(fx[0]==fxFBR)fx[1]=fmBrightnessToByte(std::min(126,int(fx[1]))-63);};
+    for(auto& phrase:p.phrases)for(auto& row:phrase.rows)for(auto& fx:row.fx)migrate(fx);
+    for(auto& table:p.tables)for(auto& row:table.rows)for(auto& fx:row.fx)migrate(fx);
   }
   projectFree(project);
   *project = p;
@@ -1456,8 +1463,10 @@ static int projectSaveAYWavetables(FILE* file, Project* project) {
 
 static int projectSaveInternal(FILE* file, Project* project) {
   bool nativeChips = false;
-  for (const auto& instrument : project->instruments) nativeChips |= (instrument.type==InstrumentType::DX7 || isOPLL(instrument.type) || (isOPL(instrument.type) || isFourOp(instrument.type)) || isSimpleChip(instrument.type));
-  fprintf(file, "# ChooChooTracker Module %d.0\n\n", nativeChips ? 6 : 5);
+  for (const auto& instrument : project->instruments) nativeChips |= (instrument.type==InstrumentType::SID || instrument.type==InstrumentType::DX7 || isOPLL(instrument.type) || (isOPL(instrument.type) || isFourOp(instrument.type)) || isSimpleChip(instrument.type));
+  for (const auto& phrase : project->phrases) for (const auto& row : phrase.rows) for (const auto& fx : row.fx) nativeChips |= fx[0] >= fxFBR && fx[0] < fxTotalCount;
+  for (const auto& table : project->tables) for (const auto& row : table.rows) for (const auto& fx : row.fx) nativeChips |= fx[0] >= fxFBR && fx[0] < fxTotalCount;
+  fprintf(file, "# ChooChooTracker Module %d.0\n\n", nativeChips ? 7 : 5);
 
   fprintf(file, "- Title: %s\n", project->title);
   fprintf(file, "- Author: %s\n", project->author);
@@ -1584,7 +1593,9 @@ int instrumentSave(Project* project, const char* path, int instrumentIdx) {
     return 1;
   }
 
-  fprintf(file, "# ChipNomad Instrument %d.0\n\n", (project->instruments[instrumentIdx].type==InstrumentType::DX7 || isOPLL(project->instruments[instrumentIdx].type) || (isOPL(project->instruments[instrumentIdx].type) || isFourOp(project->instruments[instrumentIdx].type)) || isSimpleChip(project->instruments[instrumentIdx].type)) ? 6 : 5);
+  bool nativeFormat = (project->instruments[instrumentIdx].type==InstrumentType::SID || project->instruments[instrumentIdx].type==InstrumentType::DX7 || isOPLL(project->instruments[instrumentIdx].type) || (isOPL(project->instruments[instrumentIdx].type) || isFourOp(project->instruments[instrumentIdx].type)) || isSimpleChip(project->instruments[instrumentIdx].type));
+  for (const auto& row : project->tables[instrumentIdx].rows) for (const auto& fx : row.fx) nativeFormat |= fx[0] >= fxFBR && fx[0] < fxTotalCount;
+  fprintf(file, "# ChipNomad Instrument %d.0\n\n", nativeFormat ? 7 : 5);
   instrumentSaveData(file, 0, &project->instruments[instrumentIdx]);
   saveTable(file, 0, &project->tables[instrumentIdx]);
 
@@ -1602,7 +1613,9 @@ static int instrumentLoadInternal(FILE* file, Project* project, int instrumentId
 
   // Detect version
   if (strlen(line) > 22) {
-    if (strncmp(line + 22, " 6.0", 4) == 0) {
+    if (strncmp(line + 22, " 7.0", 4) == 0) {
+      projectFileVersion = 7;
+    } else if (strncmp(line + 22, " 6.0", 4) == 0) {
       projectFileVersion = 6;
     } else if (strncmp(line + 22, " 5.0", 4) == 0) {
       projectFileVersion = 5;
@@ -1661,18 +1674,21 @@ int instrumentLoad(Project* project, const char* path, int instrumentIdx) {
 
   int result;
   const char* header = peekLine(file);
-  if (header && strncmp(header, "# ChipNomad Instrument 6.0", 25) == 0) {
+  if (header && (strncmp(header, "# ChipNomad Instrument 6.0", 25) == 0 || strncmp(header, "# ChipNomad Instrument 7.0", 25) == 0)) {
     auto temporary = std::make_unique<Project>();
     projectInit(temporary.get());
     result = instrumentLoadInternal(file, temporary.get(), instrumentIdx);
-    if (!result && !(temporary->instruments[instrumentIdx].type==InstrumentType::DX7 || isOPLL(temporary->instruments[instrumentIdx].type) || (isOPL(temporary->instruments[instrumentIdx].type) || isFourOp(temporary->instruments[instrumentIdx].type)) || isSimpleChip(temporary->instruments[instrumentIdx].type))) result = 1;
+    if (!result && projectFileVersion==6 && !(temporary->instruments[instrumentIdx].type==InstrumentType::SID || temporary->instruments[instrumentIdx].type==InstrumentType::DX7 || isOPLL(temporary->instruments[instrumentIdx].type) || (isOPL(temporary->instruments[instrumentIdx].type) || isFourOp(temporary->instruments[instrumentIdx].type)) || isSimpleChip(temporary->instruments[instrumentIdx].type))) result = 1;
     if (!result) {
       instrumentClear(&project->instruments[instrumentIdx]);
       project->instruments[instrumentIdx] = temporary->instruments[instrumentIdx];
       project->tables[instrumentIdx] = temporary->tables[instrumentIdx];
+      temporary->instruments[instrumentIdx] = {}; // Ownership moved, including sample buffers.
     }
     projectFree(temporary.get());
   } else result = instrumentLoadInternal(file, project, instrumentIdx);
+  if(!result&&projectFileVersion<7)for(auto& row:project->tables[instrumentIdx].rows)
+    for(auto& fx:row.fx)if(fx[0]==fxFBR)fx[1]=fmBrightnessToByte(std::min(126,int(fx[1]))-63);
   fclose(file);
   return result;
 }

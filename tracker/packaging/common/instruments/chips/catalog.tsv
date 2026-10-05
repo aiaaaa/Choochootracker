@@ -1063,3 +1063,59 @@ CCT-CHIP-CATALOG	1
 18	403	ChooChoo OPLL Programs	Percussion	Wood Block	opll-18-403-15.cni
 18	403	ChooChoo OPLL Programs	Percussion	Metal Hit	opll-18-403-16.cni
 18	403	ChooChoo OPLL Programs	FX	Relay Buzz	opll-18-403-17.cni
+27	600	ChooChoo SID Originals	Bass	Round Bass 1	sid-600-000.cni
+27	600	ChooChoo SID Originals	Bass	Round Bass 2	sid-600-001.cni
+27	600	ChooChoo SID Originals	Bass	Round Bass 3	sid-600-002.cni
+27	600	ChooChoo SID Originals	Bass	Round Bass 4	sid-600-003.cni
+27	600	ChooChoo SID Originals	Leads	Moving Pulse 1	sid-600-004.cni
+27	600	ChooChoo SID Originals	Leads	Moving Pulse 2	sid-600-005.cni
+27	600	ChooChoo SID Originals	Leads	Moving Pulse 3	sid-600-006.cni
+27	600	ChooChoo SID Originals	Leads	Moving Pulse 4	sid-600-007.cni
+27	600	ChooChoo SID Originals	Leads	Saw Pluck 1	sid-600-008.cni
+27	600	ChooChoo SID Originals	Leads	Saw Pluck 2	sid-600-009.cni
+27	600	ChooChoo SID Originals	Leads	Saw Pluck 3	sid-600-010.cni
+27	600	ChooChoo SID Originals	Leads	Saw Pluck 4	sid-600-011.cni
+27	600	ChooChoo SID Originals	Pads	Soft Pad 1	sid-600-012.cni
+27	600	ChooChoo SID Originals	Pads	Soft Pad 2	sid-600-013.cni
+27	600	ChooChoo SID Originals	Pads	Soft Pad 3	sid-600-014.cni
+27	600	ChooChoo SID Originals	Pads	Soft Pad 4	sid-600-015.cni
+27	600	ChooChoo SID Originals	Arpeggios	Arp Bell 1	sid-600-016.cni
+27	600	ChooChoo SID Originals	Arpeggios	Arp Bell 2	sid-600-017.cni
+27	600	ChooChoo SID Originals	Arpeggios	Arp Bell 3	sid-600-018.cni
+27	600	ChooChoo SID Originals	Arpeggios	Arp Bell 4	sid-600-019.cni
+27	600	ChooChoo SID Originals	Percussion	Noise Drum 1	sid-600-020.cni
+27	600	ChooChoo SID Originals	Percussion	Noise Drum 2	sid-600-021.cni
+27	600	ChooChoo SID Originals	Percussion	Noise Drum 3	sid-600-022.cni
+27	600	ChooChoo SID Originals	Percussion	Noise Drum 4	sid-600-023.cni
+27	600	ChooChoo SID Originals	Leads	Bright Lead 1	sid-600-024.cni
+27	600	ChooChoo SID Originals	Leads	Bright Lead 2	sid-600-025.cni
+27	600	ChooChoo SID Originals	Leads	Bright Lead 3	sid-600-026.cni
+27	600	ChooChoo SID Originals	Leads	Bright Lead 4	sid-600-027.cni
+27	600	ChooChoo SID Originals	Arpeggios	Pulse Chord 1	sid-600-028.cni
+27	600	ChooChoo SID Originals	Arpeggios	Pulse Chord 2	sid-600-029.cni
+27	600	ChooChoo SID Originals	Arpeggios	Pulse Chord 3	sid-600-030.cni
+27	600	ChooChoo SID Originals	Arpeggios	Pulse Chord 4	sid-600-031.cni
+27	601	SIDkit Effects	Effects	Fire	sid-601-000.cni
+27	601	SIDkit Effects	Effects	Explode	sid-601-001.cni
+27	601	SIDkit Effects	Effects	Hit	sid-601-002.cni
+27	601	SIDkit Effects	Effects	Weakpoint Hit	sid-601-003.cni
+27	601	SIDkit Effects	Effects	Enemy Hit	sid-601-004.cni
+27	601	SIDkit Effects	Effects	March	sid-601-005.cni
+27	601	SIDkit Effects	Effects	Kraft Alarm	sid-601-006.cni
+27	601	SIDkit Effects	Effects	Game Over	sid-601-007.cni
+27	601	SIDkit Effects	Effects	Death	sid-601-008.cni
+27	601	SIDkit Effects	Effects	Warp	sid-601-009.cni
+27	601	SIDkit Effects	Effects	Portal Ping	sid-601-010.cni
+27	601	SIDkit Effects	Effects	Powerup	sid-601-011.cni
+27	601	SIDkit Effects	Effects	Bounce	sid-601-012.cni
+27	601	SIDkit Effects	Effects	Blaster Bolt	sid-601-013.cni
+27	601	SIDkit Effects	Effects	Xwing Blaster	sid-601-014.cni
+27	601	SIDkit Effects	Effects	Heavy Repeater	sid-601-015.cni
+27	601	SIDkit Effects	Effects	Turbolaser	sid-601-016.cni
+27	601	SIDkit Effects	Effects	Tie Cannon	sid-601-017.cni
+27	601	SIDkit Effects	Effects	Shield On V3	sid-601-018.cni
+27	601	SIDkit Effects	Effects	Ion Cannon	sid-601-019.cni
+27	601	SIDkit Effects	Effects	Powerup Spread	sid-601-020.cni
+27	601	SIDkit Effects	Effects	Powerup Shield	sid-601-021.cni
+27	601	SIDkit Effects	Effects	Combo	sid-601-022.cni
+27	601	SIDkit Effects	Effects	Powerup Speed	sid-601-023.cni

@@ -22,12 +22,12 @@ void FourOpVoice::applyPatch(){
 void FourOpVoice::tone(){
   const int brightness=std::clamp(int(patch_.tone.brightness),-63,63);
   const int feedback=patch_.tone.feedback?std::min(7,int(patch_.tone.feedback)-1):patch_.feedback;
-  if(brightness==macroBrightness_&&feedback==macroFeedback_)return;
+  if(brightness==macroBrightness_&&feedback==macroFeedback_&&!memcmp(macroOperators_,patch_.tone.operatorOffset,6))return;
   const unsigned carriers[]={8,8,8,8,10,14,14,15};const int order[]={0,2,1,3};
   bool genesis=type_==InstrumentType::GenesisFM;
-  for(int op=0;op<4;++op){int level=std::clamp(int(patch_.operators[op].level)-((carriers[patch_.algorithm]&(1u<<op))?0:brightness),0,127);write((genesis?0x40:0x60)+order[op]*(genesis?4:8),level);}
+  for(int op=0;op<4;++op){int level=std::clamp(int(patch_.operators[op].level)-int(patch_.tone.operatorOffset[op])-((carriers[patch_.algorithm]&(1u<<op))?0:brightness),0,127);write((genesis?0x40:0x60)+order[op]*(genesis?4:8),level);}
   write(genesis?0xb0:0x20,(genesis?0:(patch_.pan<<6))|(feedback<<3)|patch_.algorithm);
-  macroBrightness_=brightness;macroFeedback_=feedback;
+  macroBrightness_=brightness;macroFeedback_=feedback;memcpy(macroOperators_,patch_.tone.operatorOffset,6);
 }
 void FourOpVoice::pitch(){
   if(type_==InstrumentType::GenesisFM){

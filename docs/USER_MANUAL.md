@@ -1411,7 +1411,8 @@ latch at the next note trigger; duty/width and noise frequency can change live.
 
 | Engines | FX | Control |
 |---|---|---|
-| All native FM | `FBR 00–7E` | Brightness: `00` = -63, `3F` = neutral, `7E` = +63; supports `SLE`. |
+| All native FM | `FBR 00–FF` | Brightness: `00` = darkest, `80` = preset, `FF` = brightest; supports `SLE`. |
+| Native FM | `FO1`–`FO6 00–FF` | Individual operator level offsets: `80` = preset. Two, four or six operators appear as supported by the patch. Carrier levels affect loudness; modulator levels change tone. Supports `SLE`; native level limits still apply. |
 | All native FM | `FFB 00–08` | `00` preserves preset feedback; `01–08` select native 0–7. |
 | All native FM with Amp env enabled; Sega/GB | `EAT`, `EDC`, `ESU`, `ERL`, `ESH 00–FF` | Attack, decay, sustain, release, shape. These do not enable a bypassed FM amp. |
 | Sega PSG | `CMD 00–02`, `CNR 00–03` | Tone / white noise / periodic noise; three fixed noise rates or tone-derived rate. |
@@ -1431,9 +1432,11 @@ engines are software processing after synthesis. aChChid instead uses its native
 303 filter path. This round adds no filter to AY or native FM; brightness changes
 FM synthesis itself. Track inserts remain available for additional processing.
 
-FM amp/tone and Sega bass settings persist in native CNI and CCT version-6 files.
-This extends version 6: earlier strict readers may reject files containing the
-new fields or FX, so keep this build or newer for songs that use these controls.
+Native instruments now save in CNI/CCT version 7. Older songs and instrument
+tables migrate their FBR values once on loading, preserving their native tone
+offsets; `3F` from version 6 becomes `80`. Keep this build or newer to reopen
+new saves. The stored FM preset bytes and instrument-page brightness values
+remain unchanged.
 
 ### Handheld workload guidance for native chips
 
@@ -1460,3 +1463,45 @@ Keep the regular launcher's direct-card `AUDIODEV=plughw:0,0` route: the system'
 default shared mixer produced underruns in the diagnostic probes. No user audio
 setting was changed. The ten-minute smaller-buffer stress test still recorded
 28 timing spikes; the complete results are in the report.
+
+
+### SID instruments and Phrase FX
+
+Choose **CHIP → SID**. Bank offers **ChooChoo SID Originals** (32 authored
+programs) and **SIDkit Effects** (24 MIT-licensed effects). Both use the same
+preset browser and save their complete selected program inside the instrument
+and song. No external bank is required when sharing the song. These are native
+SID parameter programs with envelopes and motion recipes, not sampled audio or
+complete C64 songs. The separate twelve GoatTracker research candidates are
+not shipped; their wave/pulse/filter tables need a dedicated importer/player.
+
+The instrument page exposes waveform/pulse width, filter mode/cutoff/resonance
+and native ADSR controls. SID uses the pinned floooh/chips digital oscillator,
+envelope and per-cycle 6581-style filter. There are no alternate chip models,
+revision selectors or added character profiles. This is a generic approximation,
+not a calibrated R2/R3/R4/8580 analogue model.
+
+Each note has its own filter. Ring/sync use a silent partner oscillator, so
+filter sharing and three-voice interactions differ from a physical SID.
+The handheld has a song-wide budget of four ordinary SID notes. Ring or sync
+costs two budget units per note, allowing two such notes, or one plus two
+ordinary notes. Chords and release tails count. Released notes are retired
+first; new notes take priority over older held notes. Expensive inserts and
+other synths still share the audio CPU budget.
+
+| FX | Range | Action |
+| --- | --- | --- |
+| `SCP` | `00–FF` | Pulse-width base, scaled to native 12-bit width; recipe pulse motion remains active. |
+| `SCT` | `00–FF` | Cutoff base, scaled to native 11-bit cutoff; recipe filter motion remains active. |
+| `SRN` | `00–0F` | Native resonance. |
+| `SWV` | `00–07` | Triangle, saw, tri+saw, pulse, tri+pulse, saw+pulse, tri+saw+pulse, noise. |
+| `SFI` | `00–07` | Filter mode bits: 1 low-pass, 2 band-pass, 4 high-pass; 0 bypass. |
+| `SMR` | `00–FF` | Recipe macro clock, scaled from 1 to 200 Hz. |
+| `SRG` | `00–01` | Triangle ring modulation with silent partner. |
+| `SSY` | `00–01` | Oscillator sync with silent partner. |
+
+Pulse width and cutoff support `SLE`. Discrete waveforms, switches, resonance
+and FM feedback retain their useful native steps; wider byte values would not
+create more hardware states. FM feedback is `00` for the preset and `01–08`
+for native levels 0–7. FM operator offsets and brightness use the full byte
+range; their output still respects each chip's native level precision.
