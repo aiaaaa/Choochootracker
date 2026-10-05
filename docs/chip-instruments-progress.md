@@ -759,3 +759,14 @@ Installed binary SHA256: 58058dbf3d45acaa1a7668689b7a2c10b56c33cc17dfdff024b03d5
 1655 non-replaced files preserved and verified; launcher unchanged.
 Rollback: /roms/choochootracker-backups/pre-personal-d0403eca2fc9/previous-install.
 See personal-device-sync-20261004.json for the complete receipt.
+
+## October 4 — upstream song archives
+
+Installed Personal application source `9caf6cf0cf307a4cda8ce856b740060f2d05bef9`, based on upstream `ccbf261e28efc192875448c5e6deb2bd78ab8c59`.
+Personal and native-chip candidate share the update. Old songs remain readable;
+saves with loaded audio use upstream sample archives. Regression caught and
+fixed missing wavetable frame layout; all ten native types preserve owned
+patches. 487 host and ARM tests passed; web, interface, direct-card playback
+and both waveform startup modes passed. Settings, songs and launcher preserved;
+rollback: `/roms/choochootracker-backups/pre-personal-9caf6cf0cf30/previous-install`. Human listening remains pending.
+See [receipt](personal-archive-device-sync-20261004.json) and [notes](personal-archive-sync-20261004.txt).

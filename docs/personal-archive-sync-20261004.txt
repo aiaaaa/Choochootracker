@@ -29,3 +29,10 @@ USB SSH was unreachable following sleep: the Mac reported the handheld link
 inactive. A user reboot restored access. No SSH, USB, audio-route or system
 settings were changed during this update. Sleep recovery remains a separate
 issue; the visible SSH logo alone did not establish an active host link.
+
+Device application source: 9caf6cf0cf307a4cda8ce856b740060f2d05bef9
+Device full suite: 487 passed, 74,528,277 assertions, 2 existing Lucky skips.
+Offscreen interface and physical ALSA checks passed at preserved 48 kHz /
+4906 frames. Startup passed with waveform OFF and ON. Complete installed
+and rollback inventories verified; user files and launcher preserved.
+See personal-archive-device-sync-20261004.json for measurements and hashes.

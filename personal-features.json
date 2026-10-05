@@ -143,13 +143,14 @@
     {
       "id": "embedded-wavetable-layout",
       "status": "Personal fix; not submitted upstream",
-      "description": "Preserve Serum clm frame-size metadata in archived wavetable WAVs and restore it through the shared loader, so songs retain wavetable playback without the original WAV."
+      "description": "Preserve Serum clm frame-size metadata in archived wavetable WAVs and restore it through the shared loader, so songs retain wavetable playback without the original WAV.",
+      "source_commit": "9caf6cf0cf307a4cda8ce856b740060f2d05bef9"
     }
   ],
   "current_device_build": {
-    "source_commit": "d0403eca2fc9ea0ba01d323b975a72ceabe7c0f0",
-    "binary_sha256": "58058dbf3d45acaa1a7668689b7a2c10b56c33cc17dfdff024b03d58807aad71",
-    "validation_report": "docs/personal-device-sync-20261004.json",
+    "source_commit": "9caf6cf0cf307a4cda8ce856b740060f2d05bef9",
+    "binary_sha256": "acc6cf5d8a4bf6b5c27a4865dbdda24ee149ba085601dd9fd5c27491a87154cd",
+    "validation_report": "docs/personal-archive-device-sync-20261004.json",
     "human_listening": "pending"
   },
   "song_storage": "Upstream CCT archives embed loaded Sample, SCWF and BYOWTBL audio. Text songs remain readable; no-sample songs stay text. Native patches remain owned by the song."
