@@ -114,7 +114,7 @@
           "Arcade FM",
           "DX7"
         ],
-        "validation": "477 host tests, 15 converter tests, real offscreen UI, all additions rendered, web rebuilt; device evaluation requested",
+        "validation": "Host and ARM64 personal suites, interface and ALSA checks passed; installed for user evaluation",
         "report": "docs/instrument-revision-20261005.txt"
       }
     },
@@ -164,10 +164,10 @@
     }
   ],
   "current_device_build": {
-    "source_commit": "9caf6cf0cf307a4cda8ce856b740060f2d05bef9",
-    "binary_sha256": "acc6cf5d8a4bf6b5c27a4865dbdda24ee149ba085601dd9fd5c27491a87154cd",
-    "validation_report": "docs/personal-archive-device-sync-20261004.json",
-    "human_listening": "pending"
+    "source_commit": "ff887afaaebc106cf3d7b2e2905f55c3e3f42964",
+    "binary_sha256": "8099e70d9180284e6efa3e850d2302ca423be9a70d5f727fb27911655f031f6e",
+    "validation_report": "docs/instrument-device-20261005.json",
+    "human_listening": "pending user evaluation"
   },
   "song_storage": "Upstream CCT archives embed loaded Sample, SCWF and BYOWTBL audio. Text songs remain readable; no-sample songs stay text. Native patches remain owned by the song."
 }

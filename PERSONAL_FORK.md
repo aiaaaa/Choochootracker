@@ -51,21 +51,25 @@ Native-chip preset audition and Get Lucky remain included. See
 
 ## Current installed device build
 
-Source: `9caf6cf0cf307a4cda8ce856b740060f2d05bef9`. Personal and the native-synth candidate share this
-application source. This adds upstream self-contained CCT sample archives and
-preserves wavetable frame layouts when original WAVs are unavailable. Native
-chips, Get Lucky, accepted insert effects, preset-popup protection and the
-sample-stretch lifetime fix remain included.
+Source: `ff887afaaebc106cf3d7b2e2905f55c3e3f42964` (October 5 instrument revision).
+The device personal build includes persistent DX7 bank discovery, 264 additional
+native presets (1,140 total), scrolling OPLL/VRC7 banks, engine bank-filter resets,
+named Phrase FX descriptions and preset release updates during playback.
+Get Lucky, native engines, accepted upstream features and sample archives remain.
 
-All 487 host and device tests passed, along with web build, interface checks,
-physical ALSA playback and startup with the waveform off/on. User songs,
-samples, settings and launcher were preserved and rollback verified. User
-listening/playtest remains pending. See [the archive update receipt](docs/personal-archive-device-sync-20261004.json)
-and [format/fix notes](docs/personal-archive-sync-20261004.txt). Subsequent
-documentation and web-bundle commits do not change the installed app source.
+Host and ARM64 personal suites, offscreen UI and physical ALSA checks passed.
+Two initial dense-song runs had timing failures; after draining staged filesystem
+writes, old/new comparisons passed unchanged. The cause remains unproven; see
+the receipt for all measurements.
+The existing launcher, settings, songs, samples and user presets were preserved;
+a complete rollback was verified. User listening/playtest is pending. Load
+`projects/native-chip-expanded-20261005.cct` to evaluate the expanded banks.
+Drop original DX7/TX7 SysEx banks into `instruments/banks/dx7/` and reopen Banks.
 
-The preceding insert-review build was `d0403ec`; its
-[receipt](docs/personal-device-sync-20261004.json) remains historical.
+See [the device receipt](docs/instrument-device-20261005.json) for hashes,
+validation and rollback. The preceding archive build was `9caf6cf`; its
+[receipt](docs/personal-archive-device-sync-20261004.json) remains historical.
+Documentation commits after this source do not change the installed binary.
 
 ## Previous installed device build (R2)
 

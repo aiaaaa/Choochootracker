@@ -1,3 +1,18 @@
+DEVICE EVALUATION INSTALL — October 5, 2026
+
+Installed source: ff887afaaebc106cf3d7b2e2905f55c3e3f42964
+Binary SHA-256: 8099e70d9180284e6efa3e850d2302ca423be9a70d5f727fb27911655f031f6e
+Location: /roms/ports/choochootracker
+Rollback: /roms/choochootracker-backups/pre-instruments-ff887afaaebc/previous-install
+
+Host and device personal suites, offscreen bank/preset/playback UI and physical
+ALSA checks passed. User files, settings, autosave and launcher were preserved.
+Two initial dense-song checks failed timing; a controlled old/new comparison
+after filesystem sync passed. Initial results are retained; cause is unproven.
+The 23-bank evaluation song is projects/native-chip-expanded-20261005.cct.
+Full receipt: docs/instrument-device-20261005.json. Human evaluation is pending.
+The earlier no-install statements below describe the preceding local-only pass.
+
 FOLLOW-UP: BANK LIBRARY AND SOUND EXPANSION
 
 The user's follow-up authorized continued implementation. The earlier audit
