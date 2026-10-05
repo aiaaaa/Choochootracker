@@ -51,19 +51,21 @@ Native-chip preset audition and Get Lucky remain included. See
 
 ## Current installed device build
 
-Source: `d0403eca2fc9ea0ba01d323b975a72ceabe7c0f0`. Personal and the native-synth
-candidate now share this application source. The R36H includes the accepted insert-effects
-review, the upstream integration described above, native chips and Get Lucky.
-Native preset popups keep their full display area. Sample-stretch memory is also
-released correctly after exports and engine recreation.
+Source: `9caf6cf0cf307a4cda8ce856b740060f2d05bef9`. Personal and the native-synth candidate share this
+application source. This adds upstream self-contained CCT sample archives and
+preserves wavetable frame layouts when original WAVs are unavailable. Native
+chips, Get Lucky, accepted insert effects, preset-popup protection and the
+sample-stretch lifetime fix remain included.
 
-The ARM64 build, device test suite, offscreen interface checks, physical
-ALSA playback and startup with the waveform off/on passed. Settings, songs,
-assets and the existing launcher were preserved; the previous installation is
-available for rollback. User listening/playtest remains pending. See
-[the device update receipt](docs/personal-device-sync-20261004.json) for hashes,
-checks and rollback location. Documentation and web-bundle commits after this
-source do not change the installed binary.
+All 487 host and device tests passed, along with web build, interface checks,
+physical ALSA playback and startup with the waveform off/on. User songs,
+samples, settings and launcher were preserved and rollback verified. User
+listening/playtest remains pending. See [the archive update receipt](docs/personal-archive-device-sync-20261004.json)
+and [format/fix notes](docs/personal-archive-sync-20261004.txt). Subsequent
+documentation and web-bundle commits do not change the installed app source.
+
+The preceding insert-review build was `d0403ec`; its
+[receipt](docs/personal-device-sync-20261004.json) remains historical.
 
 ## Previous installed device build (R2)
 
