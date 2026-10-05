@@ -151,6 +151,8 @@ int main(int argc,char** argv){
     for(int col=0;col<3;++col)key(1,keyRight);
     key(1,keyEdit|keyUp);
     fxEditFullDraw(fxOL1,0,0);capture(header?"fx-native-dx7-header-on":"fx-native-dx7-header-off");
+    fxEditFullDraw(fxFLD,0,0);capture(header?"fx-native-last-header-on":"fx-native-last-header-off");
+    fxEditFullDraw(fxOL1,0,0);
     screenPhrase.onInput(0,0,1);
     auto* fx=fxProject.phrases[0].rows[0].fx[0];require(fx[0]==fxOL1&&fx[1]==42,"popup commit reads instrument preset");
   }

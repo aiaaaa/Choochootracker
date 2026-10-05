@@ -181,7 +181,7 @@ TEST_CASE("DX7 sequencer enforces the measured budget without changing chord dat
     auto& row = state->project.phrases[t].rows[0];
     row.note = 36 + t;
     row.instrument = t;
-    row.volume = 15;
+    row.volume = PHRASE_VOLUME_MAX;
     row.fx[0][0] = fxCRD;
     row.fx[0][1] = 7;
   }

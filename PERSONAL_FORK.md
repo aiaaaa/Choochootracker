@@ -32,7 +32,7 @@ key jazz, Settings submenus and the aChChid workflow improvements.
 
 ## Current personal source
 
-Upstream base: `ccbf261e28efc192875448c5e6deb2bd78ab8c59` (October 4 archive sync). Personal includes
+Upstream base: `a88a403387e39ded0feaf8316b9a3c56fa5dbf43` (October 5 harmonization). Personal includes
 upstream’s track-visuals/GPU integration, corrected Graphics touch mapping, sample
 editor and processing updates, sample stretching, and bounce/export improvements.
 Native chip instruments and Get Lucky remain included. New saves use upstream’s
@@ -55,7 +55,10 @@ and ring/sync partner-ratio Phrase FX. Preset-relative values and native stepped
 ranges have clearer help. See [the revision notes](docs/fm-macros-revision-20261005.txt).
 This revision is installed and ready for user evaluation.
 
-The next revision adds instrument-aware native FX bounds, popup preset values,
+The next revision adopts upstream’s 00–7F phrase volume, expanded insert effects,
+export fixes and merged Android/CI updates. Legacy personal native songs migrate
+their phrase levels on load; the instrument tables keep their existing scale.
+It also adds instrument-aware native FX bounds, popup preset values,
 and absolute operator/feedback commands. Its device validation is pending; see
 [the change notes](docs/native-fx-values-20261005.txt).
 

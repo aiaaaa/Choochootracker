@@ -6,6 +6,8 @@
 #include <vector>
 #include <cstring>
 #include <filesystem>
+#include <fstream>
+#include <sstream>
 
 TEST_CASE("Native FX limits and preset values follow the selected instrument") {
   for(auto type:{InstrumentType::OPLL,InstrumentType::VRC7,InstrumentType::OPL2,InstrumentType::OPL3,InstrumentType::GenesisFM,InstrumentType::ArcadeFM,InstrumentType::DX7}) {
@@ -43,7 +45,7 @@ std::vector<float> renderAbsolute(InstrumentType type,int value,bool fx) {
   for(auto& g:p.grooves)for(auto& speed:g.speed)speed=50;
   p.song[0][0]=0;p.chains[0].rows[0].phrase=0;p.chains[0].rows[0].transpose=0;
   phraseClear(&p.phrases[0]);auto& i=p.instruments[0];getInstrumentFunctions(type).init(&i);
-  auto& row=p.phrases[0].rows[0];row.note=45;row.instrument=0;row.volume=15;
+  auto& row=p.phrases[0].rows[0];row.note=45;row.instrument=0;row.volume=PHRASE_VOLUME_MAX;
   if(fx){row.fx[0][0]=fxOL1;row.fx[0][1]=value;}
   else if(type==InstrumentType::DX7)i.chip.dx7.voice[5*21+16]=value;
   else if(type==InstrumentType::OPLL||type==InstrumentType::VRC7)i.chip.opll.patch[2]=(i.chip.opll.patch[2]&0xc0)|(63-value);
@@ -106,4 +108,35 @@ TEST_CASE("DX7 absolute level changes retain the running envelope stage") {
   for(int n=0;n<30;++n)env.getsample();
   char before,after;env.getPosition(&before);env.setOutputLevel(3600);env.getPosition(&after);CHECK(before==after);
   env.keydown(false);env.getPosition(&before);env.setOutputLevel(3200);env.getPosition(&after);CHECK(before==after);
+}
+
+TEST_CASE("Native legacy songs retain volume while upstream format 6 keeps 00-7F") {
+  auto p=std::make_unique<Project>();projectInit(p.get());
+  REQUIRE(projectLoad(p.get(),"packaging/common/projects/gm-midi-demo.cct")==0);
+  getInstrumentFunctions(InstrumentType::DX7).init(&p->instruments[0]);
+  phraseClear(&p->phrases[0]);
+  for(int row=0;row<4;++row){p->phrases[0].rows[row].note=45;p->phrases[0].rows[row].instrument=0;}
+  p->phrases[0].rows[0].volume=15;p->phrases[0].rows[1].volume=7;
+  p->phrases[0].rows[2].volume=0;p->phrases[0].rows[3].volume=75;
+  auto path=std::filesystem::temp_directory_path()/"cct-native-volume-migration.cct";
+  REQUIRE(projectSave(p.get(),path.string().c_str())==0);
+  std::ifstream input(path);std::stringstream buffer;buffer<<input.rdbuf();input.close();auto original=buffer.str();
+  REQUIRE(original.find("Module 9.0")!=std::string::npos);
+  auto q=std::make_unique<Project>();projectInit(q.get());
+  for(char version:{'6','7','8','9'}) {
+    auto text=original;text[text.find("Module ")+7]=version;
+    std::ofstream(path)<<text;
+    REQUIRE(projectLoad(q.get(),path.string().c_str())==0);
+    CHECK(q->phrases[0].rows[0].volume==(version=='9'?15:127));
+    CHECK(q->phrases[0].rows[1].volume==(version=='9'?7:59));
+    CHECK(q->phrases[0].rows[2].volume==0);
+    CHECK(q->phrases[0].rows[3].volume==(version=='9'?75:127));
+    CHECK(q->phrases[0].rows[4].volume==EMPTY_VALUE_16);
+  }
+  getInstrumentFunctions(InstrumentType::AY1).init(&p->instruments[0]);
+  REQUIRE(projectSave(p.get(),path.string().c_str())==0);
+  REQUIRE(projectLoad(q.get(),path.string().c_str())==0);
+  CHECK(projectFileVersion==6);CHECK(q->phrases[0].rows[0].volume==15);
+  CHECK(q->phrases[0].rows[3].volume==75);CHECK(q->phrases[0].rows[4].volume==EMPTY_VALUE_16);
+  projectFree(p.get());projectFree(q.get());std::filesystem::remove(path);
 }

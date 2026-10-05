@@ -24,11 +24,13 @@ Implemented:
 
 Compatibility: historical FO1–FO6 and FFB IDs, byte values and playback paths
 remain intact. The reader accepts their spellings independently of the popup.
-New absolute commands have new IDs and use format 8 only when present in CCT
-or CNI data. Earlier formats still load; existing files are not rewritten.
-Old builds cannot open format 8 songs/instruments.
+New absolute commands have new IDs and use CNI format 8 when present. After
+upstream harmonization, native CCT songs use format 9 to distinguish expanded
+phrase volumes; old native formats 6-8 migrate on load. Ordinary upstream
+format 6 remains unchanged. Existing files are not rewritten. Old builds cannot
+open these new native formats.
 
-Host validation:
+Host validation before upstream harmonization (65223b2):
 - 493 tests and 120,424,812 assertions passed in the complete engine suite.
 - Absolute operator endpoints and midrange render identically to native preset
   edits across all seven FM engines; source instruments remain unchanged.
@@ -37,4 +39,7 @@ Host validation:
   defaults, native bounds, table editing and waveform header off/on captures.
 - Web bundle rebuilt from the final source. Generated JS whitespace normalized.
 
-Device validation and installation pending.
+Combined upstream/personal host validation passed: 497 tests, 122,382,803
+assertions; final production UI and web builds passed. Device validation and
+installation follow GitHub publication.
+See personal-harmonization-20261005.txt for the final source reconciliation.

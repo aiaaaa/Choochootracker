@@ -22,6 +22,9 @@
 #include "screens/screen_instrument.h"
 #include "midi/midi_router.h"
 #include "midi/midi_backend_desktop.h"
+#ifdef ANDROID_BUILD
+#include "midi/midi_backend_android.h"
+#endif
 
 #ifdef WEB_BUILD
 #include <emscripten/emscripten.h>
@@ -70,6 +73,44 @@ static int findMidiPortByName(int isInput, const char* name) {
   }
   return -1;
 }
+
+#ifdef ANDROID_BUILD
+static void refreshAndroidMidiConnections(void) {
+  // Android closes a port when its device disappears. Reconcile the saved
+  // index with the live name list, then retry the saved name when it returns.
+  int inputCount = midiRouterInputPortCount();
+  if (appSettings.midiInputDevice >= 0) {
+    char name[MIDI_DEVICE_NAME_LENGTH + 1];
+    if (appSettings.midiInputDevice >= inputCount ||
+        midiRouterInputPortName(appSettings.midiInputDevice, name, sizeof(name)) != 0 ||
+        strcmp(name, appSettings.midiInputDeviceName) != 0) {
+      midiRouterResetHeldNotes(chipnomadState->midiRouter);
+      midiRouterCloseInput();
+      appSettings.midiInputDevice = -1;
+    }
+  }
+  if (appSettings.midiInputDevice < 0 && appSettings.midiInputDeviceName[0]) {
+    int index = findMidiPortByName(1, appSettings.midiInputDeviceName);
+    if (index >= 0 && midiRouterOpenInput(index) == 0) appSettings.midiInputDevice = index;
+  }
+
+  int outputCount = midiRouterOutputPortCount();
+  if (appSettings.midiOutputDevice >= 0) {
+    char name[MIDI_DEVICE_NAME_LENGTH + 1];
+    if (appSettings.midiOutputDevice >= outputCount ||
+        midiRouterOutputPortName(appSettings.midiOutputDevice, name, sizeof(name)) != 0 ||
+        strcmp(name, appSettings.midiOutputDeviceName) != 0) {
+      chipnomadMidiPanic(chipnomadState);
+      midiRouterCloseOutput();
+      appSettings.midiOutputDevice = -1;
+    }
+  }
+  if (appSettings.midiOutputDevice < 0 && appSettings.midiOutputDeviceName[0]) {
+    int index = findMidiPortByName(0, appSettings.midiOutputDeviceName);
+    if (index >= 0 && midiRouterOpenOutput(index) == 0) appSettings.midiOutputDevice = index;
+  }
+}
+#endif
 
 static int applyMotionRecordEvent(const MotionRecordEvent& event) {
   if (event.phrase >= PROJECT_MAX_PHRASES || event.row >= 16 || event.fx >= fxTotalCount) return 0;
@@ -294,7 +335,11 @@ void appSetup(void) {
   // Registered before anything else touches MIDI: chipnomad_lib's engine
   // path (applyVoiceEvents/chipnomadMidiPanic) now goes through the router,
   // which does nothing until a backend is registered.
+#ifdef ANDROID_BUILD
+  midiRouterSetBackend(midiBackendAndroidGet());
+#else
   midiRouterSetBackend(midiBackendDesktopGet());
+#endif
 
   // LOGD("--- ChipNomad started ---");
   // Initialize default key mappings if not loaded from settings
@@ -662,6 +707,10 @@ void appOnEvent(MainLoopEventData eventData) {
       if (currentScreen == &screenPhrase) currentScreen->fullRedraw();
     }
     if (audioProjectDirty && chipnomadQueueProjectRefresh(chipnomadState)) audioProjectDirty = 0;
+
+#ifdef ANDROID_BUILD
+    refreshAndroidMidiConnections();
+#endif
 
     // MIDI-in sound preview: an external MIDI keyboard auditions a sound on
     // the current track - not note entry into the song - the same way the

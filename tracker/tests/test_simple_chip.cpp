@@ -70,7 +70,7 @@ TEST_CASE("Sega composed A-2 G-2 F-2 phrase follows tracker note labels") {
   for(auto& groove:p.grooves)for(auto& speed:groove.speed)speed=50;
   p.song[0][0]=0;p.chains[0].rows[0].phrase=0;p.chains[0].rows[0].transpose=0;phraseClear(&p.phrases[0]);
   auto& inst=p.instruments[0];getInstrumentFunctions(InstrumentType::SegaPSG).init(&inst);simpleChipApplyPreset(&inst,2);inst.chip.simpleChip.segaBassExtension=extended;
-  for(int row=0;row<3;++row) {auto& r=p.phrases[0].rows[row];r.note=33-row*2;r.instrument=0;r.volume=15;}
+  for(int row=0;row<3;++row) {auto& r=p.phrases[0].rows[row];r.note=33-row*2;r.instrument=0;r.volume=PHRASE_VOLUME_MAX;}
   REQUIRE(!strcmp(p.pitchTable.noteNames[33],"A-2"));REQUIRE(!strcmp(p.pitchTable.noteNames[29],"F-2"));
   chipnomadInitChips(s.get(),48000,nullptr);chipnomadReserveRenderBuffers(s.get(),480);
   REQUIRE(chipnomadQueueProjectRefresh(s.get()));REQUIRE(chipnomadQueuePlaybackStartSong(s.get(),0,0,1));

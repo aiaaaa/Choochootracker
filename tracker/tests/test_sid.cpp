@@ -52,7 +52,7 @@ TEST_CASE("FM brightness byte scaling preserves every legacy native value") {
 TEST_CASE("Legacy FM brightness migrates phrases and tables exactly once") {
  fillFXNames();auto a=std::make_unique<Project>(),b=std::make_unique<Project>();projectInit(a.get());projectInit(b.get());REQUIRE(!projectLoad(a.get(),"packaging/common/projects/gm-midi-demo.cct"));
  getInstrumentFunctions(InstrumentType::OPLL).init(&a->instruments[0]);auto& fx=a->phrases[0].rows[0].fx[0];fx[0]=fxFBR;fx[1]=63;a->tables[0].rows[0].fx[0][0]=fxFBR;a->tables[0].rows[0].fx[0][1]=126;
- auto legacy=[](const char* name){std::ifstream f(name);std::string s((std::istreambuf_iterator<char>(f)),{});auto pos=s.find("7.0");REQUIRE(pos!=std::string::npos);s.replace(pos,3,"6.0");std::ofstream(name)<<s;};
+ auto legacy=[](const char* name){std::ifstream f(name);std::string s((std::istreambuf_iterator<char>(f)),{});auto pos=s.find(s.find("Module ")!=std::string::npos?"9.0":"7.0");REQUIRE(pos!=std::string::npos);s.replace(pos,3,"6.0");std::ofstream(name)<<s;};
  REQUIRE(!projectSave(a.get(),"build/tests/fbr.cct"));legacy("build/tests/fbr.cct");REQUIRE(!projectLoad(b.get(),"build/tests/fbr.cct"));CHECK(b->phrases[0].rows[0].fx[0][1]==128);CHECK(b->tables[0].rows[0].fx[0][1]==255);
  REQUIRE(!projectSave(b.get(),"build/tests/fbr.cct"));REQUIRE(!projectLoad(b.get(),"build/tests/fbr.cct"));CHECK(b->phrases[0].rows[0].fx[0][1]==128);CHECK(b->tables[0].rows[0].fx[0][1]==255);
  REQUIRE(!instrumentSave(a.get(),"build/tests/fbr.cni",0));legacy("build/tests/fbr.cni");REQUIRE(!instrumentLoad(b.get(),"build/tests/fbr.cni",1));CHECK(b->tables[1].rows[0].fx[0][1]==255);

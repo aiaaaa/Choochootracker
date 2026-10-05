@@ -433,7 +433,7 @@ void readPhraseRowDirect(PlaybackState* state, int trackIdx, PhraseRow* phraseRo
 
   uint8_t note = phraseRow->note;
   uint8_t instrument = phraseRow->instrument;
-  uint8_t volume = phraseRow->volume;
+  uint16_t volume = phraseRow->volume;
 
   uint8_t auxTable = EMPTY_VALUE_8;
   uint8_t auxTableRow = EMPTY_VALUE_8;
@@ -563,7 +563,7 @@ void readPhraseRowDirect(PlaybackState* state, int trackIdx, PhraseRow* phraseRo
     } else {
       track->note.pitchBase = note;
       // Accent is deliberately derived from this row, never from sticky volume.
-      track->note.accent = volume == 0x0f;
+      track->note.accent = volume == PHRASE_VOLUME_MAX;
       track->note.noteTriggered = 1;
       if (track->note.instrument != EMPTY_VALUE_8 &&
           p->instruments[track->note.instrument].type == InstrumentType::AChChid)
@@ -613,8 +613,8 @@ void readPhraseRowDirect(PlaybackState* state, int trackIdx, PhraseRow* phraseRo
   }
 
   // Volume
-  if (volume != EMPTY_VALUE_8) {
-    track->note.volume = volume;
+  if (volume != EMPTY_VALUE_16) {
+    track->note.volume = (uint8_t)volume;
   }
 }
 
@@ -1364,7 +1364,8 @@ static int liveChainValid(const PlaybackState* state, int trackIdx, int songRow)
 }
 
 float playbackVolumeGain(const PlaybackState* state, const PlaybackTrackState* track) {
-  float gain = clampInt(track->note.volume + track->note.volumeOffset, 0, 15) / 15.0f;
+  float gain = clampInt(track->note.volume + track->note.volumeOffset, 0, PHRASE_VOLUME_MAX) /
+               (float)PHRASE_VOLUME_MAX;
   const PlaybackTableState* tables[] = {&track->note.instrumentTable, &track->note.auxTable};
   for (const PlaybackTableState* table : tables) {
     if (table->tableIdx == EMPTY_VALUE_8) continue;
@@ -1411,7 +1412,7 @@ void playbackPreviewNote(PlaybackState* state, int trackIdx, uint8_t note, uint8
   PhraseRow phraseRow = {0};
   phraseRow.note = note;
   phraseRow.instrument = instrument;
-  phraseRow.volume = 15;
+  phraseRow.volume = PHRASE_VOLUME_MAX;
 
   // Set up empty FX
   for (int i = 0; i < 3; i++) {

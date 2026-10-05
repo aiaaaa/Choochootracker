@@ -322,7 +322,8 @@ struct Groove {
 struct PhraseRow {
   uint8_t note;
   uint8_t instrument;
-  uint8_t volume;
+  // Phrase volume is 00-7F; FFFF means an omitted/inherited volume in memory.
+  uint16_t volume;
   uint8_t fx[3][2];
 };
 

@@ -51,7 +51,51 @@ static const InsertDescriptor descriptors[] = {
       {"Upward", "Upward", "%", 0, 1, 64, M::linear},
       {"Down", "Downward", "%", 0, 1, 128, M::linear},
       {"Input", "Input", "dB", -24, 24, 128, M::bipolar},
-      {"Output", "Output", "dB", -24, 24, 112, M::bipolar}}}};
+      {"Output", "Output", "dB", -24, 24, 112, M::bipolar}}},
+    {"Chorus",
+     5,
+     {{"Rate", "Rate", "Hz", 0.05f, 20, 82, M::exponential},
+      {"Depth", "Depth", "ms", 0.2f, 35, 115, M::exponential},
+      {"Tone", "Tone", "Hz", 800, 18000, 210, M::exponential},
+      {"Mix", "Mix", "%", 0, 1, 96, M::linear},
+      {"Feedback", "Feedback", "%", -0.95f, 0.95f, 128, M::bipolar}}},
+    {"Flanger",
+     4,
+     {{"Rate", "Rate", "Hz", 0.02f, 20, 100, M::exponential},
+      {"Depth", "Depth", "ms", 0.1f, 20, 120, M::exponential},
+      {"Feedback", "Feedback", "%", -0.98f, 0.98f, 154, M::bipolar},
+      {"Mix", "Mix", "%", 0, 1, 100, M::linear}}},
+    {"Phaser",
+     5,
+     {{"Rate", "Rate", "Hz", 0.02f, 15, 60, M::exponential},
+      {"Depth", "Depth", "%", 0, 1.5f, 160, M::linear},
+      {"Feedback", "Feedback", "%", -0.98f, 0.98f, 144, M::bipolar},
+      {"Mix", "Mix", "%", 0, 1, 128, M::linear},
+      {"Stages", "Stages", "", 0, 4, 0, M::discrete}}},
+    {"Rotary",
+     4,
+     {{"Speed", "Speed", "", 0, 3, 0, M::discrete},
+      {"Depth", "Depth", "%", 0, 1, 128, M::linear},
+      {"Drive", "Drive", "dB", 0, 12, 0, M::linear},
+      {"Mix", "Mix", "%", 0, 1, 128, M::linear}}},
+    {"Saturation",
+     4,
+     {{"Drive", "Drive", "dB", 0, 18, 80, M::linear},
+      {"Tone", "Tone", "Hz", 500, 18000, 220, M::exponential},
+      {"Level", "Level", "dB", -12, 12, 128, M::bipolar},
+      {"Mix", "Mix", "%", 0, 1, 255, M::linear}}},
+    {"Bitcrusher",
+     4,
+     {{"Bits", "Bit depth", "", 0, 12, 8, M::discrete},
+      {"Rate", "Rate reduction", "x", 0, 31, 3, M::discrete},
+      {"Tone", "Tone", "Hz", 600, 18000, 220, M::exponential},
+      {"Mix", "Mix", "%", 0, 1, 192, M::linear}}},
+    {"Destruction",
+     4,
+     {{"Mode", "Mode", "", 0, 2, 0, M::discrete},
+      {"Amount", "Amount", "%", 0, 1, 64, M::linear},
+      {"Tone", "Tone", "Hz", 500, 18000, 220, M::exponential},
+      {"Mix", "Mix", "%", 0, 1, 160, M::linear}}}};
 static_assert(sizeof(descriptors) / sizeof(descriptors[0]) == insertModuleCount,
               "Stable module catalogue");
 const InsertDescriptor& insertDescriptor(int m) {
@@ -99,6 +143,18 @@ void insertDescribe(char* text, size_t size, int m, int p, int value) {
   if (m == insertDistortion && p == 1) {
     static const char* n[] = {"Density", "Drive", "Spiral", "Mojo", "Dyno"};
     snprintf(text, size, "%s", n[(int)v]);
+  } else if (m == insertRotary && p == 0) {
+    static const char* n[] = {"Slow", "Fast", "Hyper", "Chaos"};
+    snprintf(text, size, "%s", n[(int)v]);
+  } else if (m == insertBitcrusher && p == 0) {
+    snprintf(text, size, "%d bit", (int)v + 4);
+  } else if (m == insertBitcrusher && p == 1) {
+    snprintf(text, size, "%dx", (int)v + 1);
+  } else if (m == insertPhaser && p == 4) {
+    snprintf(text, size, "%d stages", (int)v + 4);
+  } else if (m == insertDestruction && p == 0) {
+    static const char* n[] = {"Fold", "Clip", "Crush"};
+    snprintf(text, size, "%s", n[(int)v]);
   } else if (m == insertCompressor && p == 4) {
     static const float n[] = {1.5f, 2, 3, 4, 6, 8, 16, 20};
     snprintf(text, size, "%.1f:1", n[(int)v]);
@@ -114,6 +170,7 @@ void insertDescribe(char* text, size_t size, int m, int p, int value) {
 #include "external/insert_fx/work_compressor.h"
 struct InsertChain::Impl {
   static constexpr int block = 128;
+  static constexpr int delaySize = 4096;
   struct Slot {
     InsertConfig config{};
     uint8_t previous[8]{};
@@ -126,6 +183,12 @@ struct InsertChain::Impl {
     insert_dsp::StereoDoubler doubler;
     insert_tape::tapescam_instance_t tape;
     ott_dsp_t* ott[2]{};
+    float delay[2][delaySize]{};
+    float filter[2]{};
+    float allpassX[2][8]{}, allpassY[2][8]{}, phaserFeedback[2]{};
+    float phase = 0, feedback[2]{}, held[2]{};
+    int delayWrite = 0, holdCounter = 0;
+    float toneCoefficient = 1;
   } slots[2];
   float rate;
   explicit Impl(float sr) : rate(sr) {
@@ -160,6 +223,31 @@ struct InsertChain::Impl {
         for (auto* o : s.ott) ott_dsp_reset(o);
         break;
     }
+    memset(s.delay, 0, sizeof(s.delay));
+    memset(s.filter, 0, sizeof(s.filter));
+    memset(s.allpassX, 0, sizeof(s.allpassX));
+    memset(s.allpassY, 0, sizeof(s.allpassY));
+    memset(s.phaserFeedback, 0, sizeof(s.phaserFeedback));
+    memset(s.feedback, 0, sizeof(s.feedback));
+    memset(s.held, 0, sizeof(s.held));
+    s.phase = 0;
+    s.delayWrite = s.holdCounter = 0;
+  }
+  float readDelay(const Slot& s, int channel, float samples) const {
+    samples = std::max(1.0f, std::min(samples, (float)delaySize - 2));
+    int whole = (int)samples;
+    float fraction = samples - whole;
+    int index = s.delayWrite - whole;
+    if (index < 0) index += delaySize;
+    int previous = index ? index - 1 : delaySize - 1;
+    return s.delay[channel][index] * (1 - fraction) + s.delay[channel][previous] * fraction;
+  }
+  float lowpass(Slot& s, int channel, float input) const {
+    s.filter[channel] += s.toneCoefficient * (input - s.filter[channel]);
+    return s.filter[channel];
+  }
+  static float coefficient(float cutoff, float sampleRate) {
+    return 1.0f - expf(-6.28318530718f * cutoff / sampleRate);
   }
   void parameters(Slot& s, const uint8_t* v) {
     if (!s.dirty && !memcmp(v, s.previous, 8)) return;
@@ -194,6 +282,16 @@ struct InsertChain::Impl {
         for (auto* o : s.ott) ott_dsp_set_params(o, &q);
         break;
       }
+      case insertChorus:
+      case insertSaturation:
+        s.toneCoefficient = coefficient(p[s.module == insertChorus ? 2 : 1], rate);
+        break;
+      case insertDestruction:
+        s.toneCoefficient = coefficient(p[2], rate);
+        break;
+      case insertBitcrusher:
+        s.toneCoefficient = coefficient(p[2], rate);
+        break;
     }
     memcpy(s.previous, v, 8);
     s.dirty = false;
@@ -222,6 +320,9 @@ struct InsertChain::Impl {
         r[i] = std::max(-32.0f, std::min(32.0f, r[i]));
       }
       parameters(s, s.switching ? s.previous : values);
+      float p[8];
+      for (int i = 0; i < 8; ++i)
+        p[i] = insertMap(s.module, i, s.switching ? s.previous[i] : values[i]);
       float* channels[] = {l, r};
       switch (s.module) {
         case insertCompressor:
@@ -239,6 +340,135 @@ struct InsertChain::Impl {
         case insertOTT:
           ott_dsp_process_stereo(s.ott[0], s.ott[1], l, r, l, r, n);
           break;
+        case insertChorus:
+        case insertFlanger:
+        case insertRotary: {
+          const float rotaryRates[] = {0.8f, 5.0f, 12.0f, 25.0f};
+          const float rateHz = s.module == insertRotary ? rotaryRates[(int)p[0]] : p[0];
+          const float depthMs = s.module == insertChorus ? p[1] :
+                                s.module == insertFlanger ? p[1] : 1.5f + p[1] * 8.0f;
+          const float feedback = s.module == insertFlanger ? p[2] :
+                                 s.module == insertChorus ? p[4] : 0.0f;
+          const float drive = s.module == insertRotary ? powf(10.0f, p[2] / 20.0f) : 1.0f;
+          for (int i = 0; i < n; ++i) {
+            float dryL = l[i], dryR = r[i];
+            float left = dryL, right = dryR;
+            if (s.module == insertRotary) {
+              left = tanhf(left * drive) / drive;
+              right = tanhf(right * drive) / drive;
+            }
+            float modL = sinf(s.phase), modR = sinf(s.phase + 3.14159265359f);
+            float nominalBase = s.module == insertChorus ? 15.0f :
+                                s.module == insertFlanger ? 2.5f : 9.0f;
+            float base = std::max(nominalBase, depthMs + 1.0f);
+            float dL = (base + modL * depthMs) * rate / 1000.0f;
+            float dR = (base + modR * depthMs) * rate / 1000.0f;
+            s.delay[0][s.delayWrite] = left + s.feedback[0] * feedback;
+            s.delay[1][s.delayWrite] = right + s.feedback[1] * feedback;
+            float wetL = readDelay(s, 0, dL);
+            float wetR = readDelay(s, 1, dR);
+            s.feedback[0] = wetL;
+            s.feedback[1] = wetR;
+            if (s.module == insertChorus) {
+              wetL = lowpass(s, 0, wetL);
+              wetR = lowpass(s, 1, wetR);
+            } else if (s.module == insertRotary) {
+              float pan = sinf(s.phase) * p[1] * 0.5f;
+              wetL *= 1.0f - pan;
+              wetR *= 1.0f + pan;
+            }
+            l[i] = dryL + p[3] * (wetL - dryL);
+            r[i] = dryR + p[3] * (wetR - dryR);
+            s.phase += 6.28318530718f * rateHz / rate;
+            if (s.phase >= 6.28318530718f) s.phase -= 6.28318530718f;
+            if (++s.delayWrite == delaySize) s.delayWrite = 0;
+          }
+          break;
+        }
+        case insertPhaser: {
+          static const float stageScale[8] = {0.45f, 0.65f, 0.85f, 1.05f,
+                                              1.3f, 1.6f, 1.95f, 2.35f};
+          int stages = 4 + (int)p[4];
+          for (int i = 0; i < n; ++i) {
+            float dryL = l[i], dryR = r[i];
+            for (int ch = 0; ch < 2; ++ch) {
+              float x = (ch ? r[i] : l[i]) + s.phaserFeedback[ch] * p[2];
+              float sidePhase = s.phase + (ch ? 3.14159265359f : 0.0f);
+              for (int stage = 0; stage < stages; ++stage) {
+                float sweep = 0.5f + 0.5f * sinf(sidePhase + stage * 0.7f);
+                float cutoff = 120.0f + sweep * p[1] * 4200.0f * stageScale[stage];
+                float normalized = std::min(0.95f, cutoff / rate);
+                float a = (1.0f - normalized) / (1.0f + normalized);
+                float y = a * x + s.allpassX[ch][stage] - a * s.allpassY[ch][stage];
+                s.allpassX[ch][stage] = x;
+                s.allpassY[ch][stage] = y;
+                x = y;
+              }
+              s.phaserFeedback[ch] = x;
+              if (ch) r[i] = x;
+              else l[i] = x;
+            }
+            s.phase += 6.28318530718f * p[0] / rate;
+            if (s.phase >= 6.28318530718f) s.phase -= 6.28318530718f;
+            l[i] = dryL + p[3] * (l[i] - dryL);
+            r[i] = dryR + p[3] * (r[i] - dryR);
+          }
+          break;
+        }
+        case insertSaturation: {
+          float drive = powf(10.0f, p[0] / 20.0f);
+          float level = powf(10.0f, p[2] / 20.0f);
+          for (int i = 0; i < n; ++i) {
+            float dryL = l[i], dryR = r[i];
+            float wetL = lowpass(s, 0, tanhf(dryL * drive) / drive) * level;
+            float wetR = lowpass(s, 1, tanhf(dryR * drive) / drive) * level;
+            l[i] = dryL + p[3] * (wetL - dryL);
+            r[i] = dryR + p[3] * (wetR - dryR);
+          }
+          break;
+        }
+        case insertBitcrusher: {
+          int hold = (int)p[1] + 1;
+          float levels = (float)((1 << ((int)p[0] + 4)) - 1);
+          for (int i = 0; i < n; ++i) {
+            float dryL = l[i], dryR = r[i];
+            if (s.holdCounter == 0) {
+              s.held[0] = roundf(std::max(-1.0f, std::min(1.0f, l[i])) * levels) / levels;
+              s.held[1] = roundf(std::max(-1.0f, std::min(1.0f, r[i])) * levels) / levels;
+              s.holdCounter = hold;
+            }
+            float wetL = lowpass(s, 0, s.held[0]);
+            float wetR = lowpass(s, 1, s.held[1]);
+            l[i] = dryL + p[3] * (wetL - dryL);
+            r[i] = dryR + p[3] * (wetR - dryR);
+            --s.holdCounter;
+          }
+          break;
+        }
+        case insertDestruction: {
+          int mode = (int)p[0];
+          float amount = p[1];
+          float drive = 1.0f + amount * 15.0f;
+          float levels = (float)((1 << (16 - (int)roundf(amount * 12.0f))) - 1);
+          for (int i = 0; i < n; ++i) {
+            float dry[2] = {l[i], r[i]};
+            for (int ch = 0; ch < 2; ++ch) {
+              float x = dry[ch];
+              if (mode == 0) {
+                x *= drive;
+                x = 1.0f - fabsf(fmodf(x + 1.0f, 4.0f) - 2.0f);
+              } else if (mode == 1) {
+                x = tanhf(x * drive) / drive;
+              } else {
+                x = roundf(std::max(-1.0f, std::min(1.0f, x)) * levels) / levels;
+              }
+              x = lowpass(s, ch, x);
+              if (ch) r[i] = dry[ch] + p[3] * (x - dry[ch]);
+              else l[i] = dry[ch] + p[3] * (x - dry[ch]);
+            }
+          }
+          break;
+        }
       }
       for (int i = 0; i < n; ++i) {
         s.wet = target > s.wet ? std::min(target, s.wet + increment)
