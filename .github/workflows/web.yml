@@ -7,7 +7,11 @@ on:
       - 'v*'
 
 permissions:
-  contents: read
+  contents: write
+
+concurrency:
+  group: web-dist
+  cancel-in-progress: true
 
 jobs:
   web:
@@ -22,6 +26,17 @@ jobs:
           em++ --version
           make -C tracker -j2 -f Makefile.web web-deploy \
             COMMON_CFLAGS='-std=c++17 -Wall -g -Os -DTEST'
+      - name: Commit generated Web bundle
+        run: |
+          if git diff --quiet -- web/dist; then
+            echo "web/dist is already up to date"
+            exit 0
+          fi
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add web/dist
+          git commit -m "build: update web bundle"
+          git push origin HEAD:main
       - uses: actions/upload-artifact@v4
         with:
           name: choochootracker-web
