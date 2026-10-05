@@ -53,32 +53,33 @@ FM master macros now add native envelope time, tone decay, modulator ratio,
 and—where supported—detune spread and LFO rate/depth. SID adds native ADSR
 and ring/sync partner-ratio Phrase FX. Preset-relative values and native stepped
 ranges have clearer help. See [the revision notes](docs/fm-macros-revision-20261005.txt).
-This revision is installed and ready for user evaluation.
+These macros remain included in the current device personal build.
 
-The next revision adopts upstream’s 00–7F phrase volume, expanded insert effects,
+This revision adopts upstream’s 00–7F phrase volume, expanded insert effects,
 export fixes and merged Android/CI updates. Legacy personal native songs migrate
 their phrase levels on load; the instrument tables keep their existing scale.
 It also adds instrument-aware native FX bounds, popup preset values,
-and absolute operator/feedback commands. Its device validation is pending; see
+and absolute operator/feedback commands. It passed device validation; see
 [the change notes](docs/native-fx-values-20261005.txt).
 
 ## Current installed device build
 
-Source: `588e0ea246d26ed9a17bd33d99699ca633e359b6` (October 5 FM master macro revision).
-The five requested FM macro families are available on supported engines; LFO
-rate and depth are separate commands. SID adds native ADSR and partner ratio.
-FX help explains preset-relative values, SLE and native parameter resolution.
-Existing discrete controls retain their native ranges.
+Source: `5bfab9779f317f4fc6580292f285d0104917e52b` (October 5 upstream harmonization and native FX revision).
+Includes upstream phrase volume 00–7F, seven new inserts, export fixes and build
+workflow fixes. Older native songs retain their loudness through load migration.
+Native FX editing uses the row instrument's preset value and legal range;
+OL1–OL6 and FBK give absolute operator levels and feedback. The last DX7
+commands and complete ranges fit with the persistent waveform off and on.
 
-Get Lucky, all 1196 native presets, persistent DX7 banks and accepted personal
-features remain. The regular launcher, user settings and projects are preserved
-with a verified rollback. Host and ARM64 suites, production UI and all four
-physical audio checks passed. User listening remains pending.
-Open `projects/fm-macros.cct` for the new automation audition.
+Get Lucky, all 1196 native presets, persistent DX7 banks and personal features
+remain. Host and ARM64 suites, production UI, five physical ALSA workloads and
+startup with waveform off/on passed. The receipt retains the initial SID timing
+miss and ALSA underrun, plus the clean follow-up trials. User listening remains pending.
 
-See [the device receipt](docs/fm-macros-device-20261005.json) for hashes, timing
-measurements and rollback. The [prior SID/FM receipt](docs/sid-fm-device-20261005.json)
-remains historical. Web and receipt-only commits do not change the native binary.
+The regular launcher and 2008 existing user files were preserved, with
+verified installation and rollback inventories. See [the device receipt](docs/native-fx-values-device-20261005.json)
+for hashes, timing and rollback. The [prior FM macro receipt](docs/fm-macros-device-20261005.json)
+remains historical. This receipt update does not change the native binary.
 
 ## Previous installed device build (R2)
 
