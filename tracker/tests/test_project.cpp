@@ -193,6 +193,30 @@ TEST_CASE("projects embed loaded samples in a ZIP container") {
   CHECK(std::strcmp(result.path, "samples/original.wav") == 0);
 }
 
+TEST_CASE("archives preserve BYOWTBL frame layout") {
+  Project saved, loaded;
+  projectInitAY(&saved);
+  projectInitAY(&loaded);
+  getInstrumentFunctions(InstrumentType::BYOWTBL).init(&saved.instruments[0]);
+  InstrumentBYOWTBL& table = saved.instruments[0].chip.byowtbl;
+  std::strcpy(table.oscillator[0].path, "samples/wavetable.wav");
+  table.oscillator[0].sampleRate = 8000;
+  table.oscillator[0].frameCount = 8;
+  table.oscillator[0].channels = 1;
+  table.oscillator[0].data = static_cast<int16_t*>(std::malloc(8 * sizeof(int16_t)));
+  REQUIRE(table.oscillator[0].data != nullptr);
+  table.frameSize[0] = 4;
+  table.tableFrames[0] = 2;
+
+  const char* path = "build/tests/byowtbl_archive.cct";
+  REQUIRE(projectSave(&saved, path) == 0);
+  REQUIRE(projectLoad(&loaded, path) == 0);
+
+  const InstrumentBYOWTBL& result = loaded.instruments[0].chip.byowtbl;
+  CHECK(result.frameSize[0] == 4);
+  CHECK(result.tableFrames[0] == 2);
+}
+
 TEST_CASE("new projects initialize the validated period pitch table") {
   Project project;
   projectInitAY(&project);

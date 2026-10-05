@@ -609,7 +609,7 @@ TEST_CASE("one instrument on two tracks modulates independent slot bases with mu
   chipnomadSetLiveStickAxes(0, 0, 0, 0);
 }
 
-TEST_CASE("insert tips return after real key release and wide chooser credits every module") {
+TEST_CASE("insert tips return after real key release and categorized chooser selects modules") {
   auto* previous = chipnomadState;
   auto* previousScreen = currentScreen;
   chipnomadState = chipnomadCreate();
@@ -643,8 +643,8 @@ TEST_CASE("insert tips return after real key release and wide chooser credits ev
   REQUIRE(currentScreen == &screenSelectionPopup);
   CHECK(selectionPopupIsFullWidth());
   screenSelectionPopup.fullRedraw();
-  CHECK(std::string(mockGfxCells[3], 40).find("Compressor - Dynamics - Schwung Work") != std::string::npos);
-  CHECK(std::string(mockGfxCells[7], 40).find("OTT - Multiband - Rui-727") != std::string::npos);
+  CHECK(std::string(mockGfxCells[4], 40).find("Drive") != std::string::npos);
+  CHECK(std::string(mockGfxCells[2], 40).find("Distortion") != std::string::npos);
   // Legacy category choosers keep their two-panel layout.
   SelectionItem items[] = {{"Existing", 0, nullptr, 0, nullptr}};
   selectionPopupSetup("Existing", items, 1, 0, nullptr, nullptr);
