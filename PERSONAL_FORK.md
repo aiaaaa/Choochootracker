@@ -53,26 +53,25 @@ FM master macros now add native envelope time, tone decay, modulator ratio,
 and—where supported—detune spread and LFO rate/depth. SID adds native ADSR
 and ring/sync partner-ratio Phrase FX. Preset-relative values and native stepped
 ranges have clearer help. See [the revision notes](docs/fm-macros-revision-20261005.txt).
-This source revision is awaiting its device installation record.
+This revision is installed and ready for user evaluation.
 
 ## Current installed device build
 
-Source: `70d7eee5ca3878e9143821735f4ed41ae15e7ebc` (October 5 SID/FM revision).
-SID adds 56 owned parameter programs in two banks, its existing 6581-style
-filter, pulse/filter/ADSR controls and eight Phrase FX. No alternate filter
-model or character options are provided. FM adds individual operator levels
-and full-byte brightness, with legacy FBR migration in version-7 saves.
+Source: `588e0ea246d26ed9a17bd33d99699ca633e359b6` (October 5 FM master macro revision).
+The five requested FM macro families are available on supported engines; LFO
+rate and depth are separate commands. SID adds native ADSR and partner ratio.
+FX help explains preset-relative values, SLE and native parameter resolution.
+Existing discrete controls retain their native ranges.
 
-Get Lucky, persistent DX7 banks, accepted upstream features and the previous
-personal additions remain. The regular launcher and all user files were
-preserved, with a verified rollback. Physical audio and production UI checks
-passed. User listening remains pending. Evaluation projects are
-`sid-bank-audition.cct`, `sid-mixed.cct` and `sid-ring-sync.cct`.
+Get Lucky, all 1196 native presets, persistent DX7 banks and accepted personal
+features remain. The regular launcher, user settings and projects are preserved
+with a verified rollback. Host and ARM64 suites, production UI and all four
+physical audio checks passed. User listening remains pending.
+Open `projects/fm-macros.cct` for the new automation audition.
 
-See [the SID/FM device receipt](docs/sid-fm-device-20261005.json) for hashes,
-validation and rollback. The preceding instrument revision was `ff887af`; its
-[receipt](docs/instrument-device-20261005.json) remains historical.
-Documentation and web-only commits do not change the installed native binary.
+See [the device receipt](docs/fm-macros-device-20261005.json) for hashes, timing
+measurements and rollback. The [prior SID/FM receipt](docs/sid-fm-device-20261005.json)
+remains historical. Web and receipt-only commits do not change the native binary.
 
 ## Previous installed device build (R2)
 
