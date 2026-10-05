@@ -19,6 +19,7 @@
 #include "monitor_display.h"
 #include "dx7_patch.h"
 #include "sid_patch.h"
+#include "project_utils.h"
 #include "copy_paste.h"
 #include "insert_fx.h"
 #include "help.h"
@@ -83,6 +84,7 @@ int main(int argc,char** argv){
   for(auto type:{InstrumentType::SID,InstrumentType::OPLL,InstrumentType::VRC7,InstrumentType::OPL2,InstrumentType::OPL3,InstrumentType::SegaPSG,InstrumentType::GBPulse,InstrumentType::GBNoise,InstrumentType::GenesisFM,InstrumentType::ArcadeFM,InstrumentType::DX7}){
     getInstrumentFunctions(type).init(&chipnomadState->project.instruments[0]);screenSetup(&screenInstrument,0);appDraw();if(type==InstrumentType::SegaPSG)require(screenInstrumentSimpleChip.isCellValid(0,6),"Sega bass extension selectable");char name[40];snprintf(name,sizeof(name),"instrument-%d",int(type));capture(name);
   }
+  require(!strcmp(instrumentTypeName(InstrumentType::SID),"SID"),"SID instrument and browser titles identify the engine");
   // Real SDL pixel regression: incremental ADSR edits must match a fresh draw.
   auto pixels=[](){std::vector<uint32_t> p(640*480);require(SDL_RenderReadPixels(renderer,nullptr,SDL_PIXELFORMAT_ARGB8888,p.data(),640*4)==0,"read graph pixels");return p;};
   // A bank stays selected within its engine, but switching engines must return
