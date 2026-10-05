@@ -65,7 +65,7 @@ TEST_SUITE("track inserts") {
     CHECK(fxF11 > fxATY);
     CHECK(fxF28 < 255);
     CHECK(genericModFirstInsert == 29);
-    const int counts[] = {0, 8, 4, 2, 6, 6};
+      const int counts[] = {0, 8, 4, 2, 6, 6, 5, 4, 5, 4, 4, 4, 4};
     for (int m = 0; m < insertModuleCount; ++m) {
       CHECK(insertDescriptor(m).count == counts[m]);
       InsertConfig c{};
@@ -82,7 +82,7 @@ TEST_SUITE("track inserts") {
     }
     CHECK(insertDescriptor(999).count == 0);
   }
-  TEST_CASE("all five DSP modules handle both slots, silence, stereo and variable blocks") {
+  TEST_CASE("all DSP modules handle both slots, silence, stereo and variable blocks") {
     for (float rate : {32000.f, 44100.f, 48000.f, 96000.f})
       for (int m = 1; m < insertModuleCount; ++m)
         for (int slot = 0; slot < 2; ++slot) {
@@ -114,6 +114,45 @@ TEST_SUITE("track inserts") {
           }
           CHECK(std::any_of(input.begin(), input.end(), [](float x) { return fabsf(x) > .001f; }));
         }
+  }
+  TEST_CASE("new insert effects honor wet mix and expose decoded choice labels") {
+        const int modules[] = {insertChorus,     insertFlanger, insertPhaser, insertRotary,
+                               insertSaturation, insertBitcrusher, insertDestruction};
+        for (int module : modules) {
+          CAPTURE(module);
+          InsertConfig c[2]{};
+          insertSelect(&c[0], module);
+          InsertAutomation automation{};
+          InsertChain chain(48000);
+          REQUIRE(chain.ready());
+          insertEdit(&c[0], 3, 0);
+          chain.sync(c, &automation);
+          uint8_t v[2][8];
+          values(c, v);
+          auto dry = signal(4096);
+          auto out = dry;
+          chain.process(out.data(), 4096, v);
+          CHECK(out == dry);
+
+          insertEdit(&c[0], 3, 255);
+          chain.sync(c, &automation);
+          values(c, v);
+          out = dry;
+          chain.process(out.data(), 4096, v);
+          CHECK(out != dry);
+          for (float sample : out) CHECK(std::isfinite(sample));
+        }
+        char text[32];
+        insertDescribe(text, sizeof(text), insertRotary, 0, 0);
+        CHECK(std::string(text) == "Slow");
+        insertDescribe(text, sizeof(text), insertRotary, 0, 1);
+        CHECK(std::string(text) == "Fast");
+        insertDescribe(text, sizeof(text), insertBitcrusher, 0, 12);
+        CHECK(std::string(text) == "16 bit");
+        insertDescribe(text, sizeof(text), insertBitcrusher, 1, 31);
+        CHECK(std::string(text) == "32x");
+        insertDescribe(text, sizeof(text), insertDestruction, 0, 2);
+        CHECK(std::string(text) == "Crush");
   }
   TEST_CASE("OFF and fully bypassed slots are exactly transparent") {
     InsertConfig c[2]{};
@@ -226,7 +265,7 @@ TEST_SUITE("track inserts") {
     for (int t = 0; t < 8; ++t)
       for (int slot = 0; slot < 2; ++slot) {
         auto& c = p->trackInserts[t][slot];
-        insertSelect(&c, 1 + (t + slot) % 5);
+        insertSelect(&c, 1 + (t * 2 + slot) % (insertModuleCount - 1));
         c.bypass = t % 2;
         insertEdit(&c, 0, 255);
       }

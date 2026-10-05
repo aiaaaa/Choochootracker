@@ -14,13 +14,15 @@
 
 // Shared state
 char projectFileError[41];
-int projectFileVersion = 5;  // Default to current version
+int projectFileVersion = 6;  // Default to current version
 static char chipNames[][16] = { "AY8910" };
 
 // Peek/consume implementation - single global buffer (ChipNomad is single-threaded)
 static char lineBuffer[1024];
 static char* currentLine = NULL;
 static int isConsumed = 1;
+
+static uint16_t scanPhraseVolume(char* str);
 
 void resetPeekConsume(void) {
   currentLine = NULL;
@@ -481,7 +483,7 @@ static int projectLoadPhrases(FILE* file, Project* p) {
       // Instrument
       p->phrases[idx].rows[c].instrument = scanByteOrEmpty(line + 4);
       // Volume
-      p->phrases[idx].rows[c].volume = scanByteOrEmpty(line + 7);
+      p->phrases[idx].rows[c].volume = scanPhraseVolume(line + 7);
       // FX
       for (int d = 0; d < 3; d++) {
         p->phrases[idx].rows[c].fx[d][0] = scanFX(line + 10 + d * 7, p);
@@ -705,7 +707,9 @@ static int projectLoadInternal(FILE* file, Project* project) {
 
   // Detect version
   if (strlen(version) > 0) {
-    if (strncmp(version, " 5.0", 4) == 0) {
+    if (strncmp(version, " 6.0", 4) == 0) {
+      projectFileVersion = 6;
+    } else if (strncmp(version, " 5.0", 4) == 0) {
       projectFileVersion = 5;
     } else if (strncmp(version, " 4.0", 4) == 0) {
       projectFileVersion = 4;
@@ -1017,6 +1021,15 @@ static int pathIsAbsolute(const char* path) {
 #else
   return 0;
 #endif
+}
+
+static uint16_t scanPhraseVolume(char* str) {
+  if (str[0] == '-' && str[1] == '-') return EMPTY_VALUE_16;
+  uint8_t value;
+  if (sscanf(str, "%2hhX", &value) != 1) return EMPTY_VALUE_16;
+  if (projectFileVersion < 6)
+    return ((uint16_t)value * PHRASE_VOLUME_MAX + 7) / 15;
+  return value > PHRASE_VOLUME_MAX ? PHRASE_VOLUME_MAX : value;
 }
 
 struct CctZipEntry {
@@ -1346,7 +1359,7 @@ static int projectSavePhrases(FILE* file, Project* project) {
         fprintf(file, "%s %s %s %s %s %s %s %s %s\n",
           noteName(project, project->phrases[c].rows[d].note),
           byteToHexOrEmpty(project->phrases[c].rows[d].instrument),
-          byteToHexOrEmpty(project->phrases[c].rows[d].volume),
+          volumeToHexOrEmpty(project->phrases[c].rows[d].volume),
           fxNames[project->phrases[c].rows[d].fx[0][0]].name,
           byteToHex(project->phrases[c].rows[d].fx[0][1]),
           fxNames[project->phrases[c].rows[d].fx[1][0]].name,
@@ -1427,7 +1440,7 @@ static int projectSaveAYWavetables(FILE* file, Project* project) {
 }
 
 static int projectSaveInternal(FILE* file, Project* project) {
-  fprintf(file, "# ChooChooTracker Module 5.0\n\n");
+  fprintf(file, "# ChooChooTracker Module 6.0\n\n");
 
   fprintf(file, "- Title: %s\n", project->title);
   fprintf(file, "- Author: %s\n", project->author);

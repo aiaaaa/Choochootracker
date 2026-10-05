@@ -108,7 +108,7 @@ TEST_CASE("a project with fewer than 8 tracks survives save and load") {
   saved.chains[0].rows[0].phrase = 0;
   saved.phrases[0].rows[0].note = 40;
   saved.phrases[0].rows[0].instrument = 0;
-  saved.phrases[0].rows[0].volume = 15;
+  saved.phrases[0].rows[0].volume = PHRASE_VOLUME_MAX;
 
   const char* path = "build/tests/reduced_tracks_io.cct";
   REQUIRE(projectSave(&saved, path) == 0);
@@ -381,7 +381,7 @@ TEST_CASE("v4 projects preserve LFO wavetable settings") {
   REQUIRE(projectSave(&saved, path) == 0);
   INFO(projectFileError);
   REQUIRE(projectLoad(&loaded, path) == 0);
-  CHECK(projectFileVersion == 5);
+  CHECK(projectFileVersion == 6);
   const Modulation& reloaded = loaded.instruments[0].modulation[2];
   CHECK(reloaded.p1 == static_cast<uint8_t>(LFOShape::wavetable));
   CHECK(reloaded.p2 == static_cast<uint8_t>(LFOTrigger::chain));

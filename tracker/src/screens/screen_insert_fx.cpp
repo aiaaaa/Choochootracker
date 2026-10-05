@@ -134,9 +134,16 @@ static const SelectionItem dynamics[] = {
 };
 static const SelectionItem drive[] = {
   {"Distortion", insertDistortion, nullptr, 0, nullptr},
+  {"Saturation", insertSaturation, nullptr, 0, nullptr},
+  {"Bitcrusher", insertBitcrusher, nullptr, 0, nullptr},
+  {"Destruction", insertDestruction, nullptr, 0, nullptr},
 };
 static const SelectionItem stereo[] = {
   {"Doubler", insertDoubler, nullptr, 0, nullptr},
+  {"Chorus", insertChorus, nullptr, 0, nullptr},
+  {"Flanger", insertFlanger, nullptr, 0, nullptr},
+  {"Phaser", insertPhaser, nullptr, 0, nullptr},
+  {"Rotary", insertRotary, nullptr, 0, nullptr},
 };
 static const SelectionItem tape[] = {
   {"TAPESCAM", insertTape, nullptr, 0, nullptr},

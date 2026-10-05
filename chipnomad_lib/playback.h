@@ -54,7 +54,7 @@ struct PlaybackNoteState {
   uint8_t volume1; // Instrument volume
   uint8_t volume2; // Instrument table volume
   uint8_t volume3; // Aux table volume
-  int8_t volumeOffset; // Volume offset
+  int16_t volumeOffset; // Phrase-volume offset in the 0-127 domain
 
   PlaybackTableState instrumentTable;
   PlaybackTableState auxTable;
