@@ -1413,6 +1413,14 @@ latch at the next note trigger; duty/width and noise frequency can change live.
 |---|---|---|
 | All native FM | `FBR 00–FF` | Brightness: `00` = darkest, `80` = preset, `FF` = brightest; supports `SLE`. |
 | Native FM | `FO1`–`FO6 00–FF` | Individual operator level offsets: `80` = preset. Two, four or six operators appear as supported by the patch. Carrier levels affect loudness; modulator levels change tone. Supports `SLE`; native level limits still apply. |
+| All native FM | `FET 00–FF` | Native operator envelope time: short / preset (`80`) / long. Changes attack, decay and release rates; Yamaha hold rates remain held. Independent of the optional amp envelope. |
+| All native FM | `FTD 00–FF` | Tone decay: short / preset (`80`) / long. Changes modulator decay stages, leaving carrier decay alone. |
+| All native FM | `FHR 00–FF` | Lower / preset (`80`) / higher modulator coarse ratios. Native steps; fixed-frequency DX7 operators are unchanged. Additive algorithms with no modulators have no effect. |
+| Genesis, Arcade, DX7 | `FDT 00–FF` | Opposing operator detune offsets around `80` (preset); `00` and `FF` spread in opposite directions. Native detune steps, not an extra chorus effect. |
+| Genesis, Arcade, DX7 | `FLR 00–FF` | Native LFO slower / preset (`80`) / faster. Genesis has eight rate settings; Arcade has 256 and DX7 has 100. Requires modulation depth to hear it. |
+| Genesis, Arcade, DX7 | `FLD 00–FF` | Native LFO depth: none / preset (`80`) / maximum. Changes pitch and amplitude depth/sensitivity together; amplitude modulation still follows the preset's operator enable/sensitivity settings. Positive offsets enable Genesis/Arcade LFOs even when the preset disabled them. |
+| SID | `SAT`, `SDE`, `SSU`, `SRL 00–0F` | Native attack, decay, sustain and release. Time values increase toward `0F`; sustain increases toward full level. |
+| SID | `SPR 00–0F` | Silent partner frequency from 1× to 16×; affects ring modulation and hard sync. |
 | All native FM | `FFB 00–08` | `00` preserves preset feedback; `01–08` select native 0–7. |
 | All native FM with Amp env enabled; Sega/GB | `EAT`, `EDC`, `ESU`, `ERL`, `ESH 00–FF` | Attack, decay, sustain, release, shape. These do not enable a bypassed FM amp. |
 | Sega PSG | `CMD 00–02`, `CNR 00–03` | Tone / white noise / periodic noise; three fixed noise rates or tone-derived rate. |
@@ -1421,11 +1429,19 @@ latch at the next note trigger; duty/width and noise frequency can change live.
 | GB Pulse | `CSP 00–07`, `CSS 00–07`, `CSD 00–01` | Sweep period, shift, downward direction. |
 | GB Pulse / Noise | `CEI 00–0F`, `CEP 00–07`, `CED 00–01` | Native envelope initial level, period, rising direction. |
 
-All twelve native FX have descriptive titles, ranges and behavior in the phrase
+All native FX have descriptive titles, ranges and behavior in the phrase
 FX chooser, plus value hints. `CMD` describes tone/noise, duty or noise width
 according to the selected instrument. These controls supplement the shared
 Track, Envelope and Modulation groups; the engine group alone is not the full
 set of available phrase effects.
+
+The six FM macro commands support `SLE` and modulation destinations. `80`
+restores the saved setting exactly. They change live voice parameters without
+retriggering the note or editing the saved preset. Native quantization remains:
+a 00–FF control does not create extra hardware states. Envelope time and tone
+decay combine; neither restarts an envelope stage that has already finished.
+These runtime values persist in phrase/table commands, not in the preset bytes.
+SID's five added controls use native discrete values and do not use `SLE`.
 
 The existing shared LP/BP/HP filters on Braids, Plaits, PCM and other supported
 engines are software processing after synthesis. aChChid instead uses its native

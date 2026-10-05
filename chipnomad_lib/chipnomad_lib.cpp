@@ -2086,7 +2086,7 @@ static int nativeControlValue(PlaybackTrackState* track,const Instrument* instru
   const auto* d=instrumentNativeModDestination(instrument->type,generic);
   if(!d)return 0;
   int value=track->note.fx[d->fx].isOn?track->note.fx[d->fx].fxValue:instrumentNativeControlValue(instrument,generic);
-  if(generic==genericModFMBrightness||(generic>=genericModFMOperator1&&generic<=genericModFMOperator6)||generic==genericModSIDPulse||generic==genericModSIDCutoff)value=slewEngineFX(track,FX(d->fx),value);
+  if(generic==genericModFMBrightness||(generic>=genericModFMOperator1&&generic<=genericModFMOperator6)||(generic>=genericModFMTime&&generic<=genericModFMLFODepth)||generic==genericModSIDPulse||generic==genericModSIDCutoff)value=slewEngineFX(track,FX(d->fx),value);
   for(const auto& mod:track->note.modulation) {
     if(!mod.modulation||instrumentGenericModDestination(instrument->type,mod.modulation->destination)!=generic)continue;
     int amount=playbackModScaleToRange(mod.outValue,d->range);
@@ -2131,6 +2131,8 @@ static void updateOPLLVoices(ChipNomadState* state) {
     for(int op=0;op<6;++op)if(instrumentNativeModDestination(instrument->type,genericModFMOperator1+op))
       configured.tone.operatorOffset[op]=nativeControlValue(track,instrument,genericModFMOperator1+op)-128;
     configured.tone.feedback=nativeControlValue(track,instrument,genericModFMFeedback);
+    for(int macro=0;macro<6;++macro)if(instrumentNativeModDestination(instrument->type,genericModFMTime+macro))
+      configured.tone.macro[macro]=nativeControlValue(track,instrument,genericModFMTime+macro)-128;
     for (int v = 0; v < track->chordVoiceCount; ++v) {
       uint8_t note = track->chordPitchFinal[v];
       int cents = note == EMPTY_VALUE_8 ? 6000 :
@@ -2168,6 +2170,8 @@ static void updateOPLVoices(ChipNomadState* state) {
     for(int op=0;op<6;++op)if(instrumentNativeModDestination(instrument->type,genericModFMOperator1+op))
       configured.tone.operatorOffset[op]=nativeControlValue(track,instrument,genericModFMOperator1+op)-128;
     configured.tone.feedback=nativeControlValue(track,instrument,genericModFMFeedback);
+    for(int macro=0;macro<6;++macro)if(instrumentNativeModDestination(instrument->type,genericModFMTime+macro))
+      configured.tone.macro[macro]=nativeControlValue(track,instrument,genericModFMTime+macro)-128;
     for (int v = 0; v < track->chordVoiceCount; ++v) {
       uint8_t note = track->chordPitchFinal[v];
       int cents = note == EMPTY_VALUE_8 ? 6000 :
@@ -2205,6 +2209,8 @@ static void updateFourOpVoices(ChipNomadState* state) {
     for(int op=0;op<6;++op)if(instrumentNativeModDestination(instrument->type,genericModFMOperator1+op))
       configured.tone.operatorOffset[op]=nativeControlValue(track,instrument,genericModFMOperator1+op)-128;
     configured.tone.feedback=nativeControlValue(track,instrument,genericModFMFeedback);
+    for(int macro=0;macro<6;++macro)if(instrumentNativeModDestination(instrument->type,genericModFMTime+macro))
+      configured.tone.macro[macro]=nativeControlValue(track,instrument,genericModFMTime+macro)-128;
     for (int v = 0; v < track->chordVoiceCount; ++v) {
       uint8_t note = track->chordPitchFinal[v];
       int cents = note == EMPTY_VALUE_8 ? 6000 :
@@ -2289,6 +2295,8 @@ static void updateDX7Voices(ChipNomadState* state) {
     for(int op=0;op<6;++op)if(instrumentNativeModDestination(instrument->type,genericModFMOperator1+op))
       configured.tone.operatorOffset[op]=nativeControlValue(track,instrument,genericModFMOperator1+op)-128;
     configured.tone.feedback=nativeControlValue(track,instrument,genericModFMFeedback);
+    for(int macro=0;macro<6;++macro)if(instrumentNativeModDestination(instrument->type,genericModFMTime+macro))
+      configured.tone.macro[macro]=nativeControlValue(track,instrument,genericModFMTime+macro)-128;
     for (int v = 0; v < track->chordVoiceCount; ++v) {
       uint8_t note = track->chordPitchFinal[v];
       int cents = note == EMPTY_VALUE_8 ? 6000 :
@@ -2337,6 +2345,11 @@ static void updateSIDVoices(ChipNomadState* state) {
     value[sidFilterMode]=nativeControlValue(track,instrument,genericModSIDFilterMode);
     value[sidRing]=nativeControlValue(track,instrument,genericModSIDRing);
     value[sidSync]=nativeControlValue(track,instrument,genericModSIDSync);
+    value[sidAttack]=nativeControlValue(track,instrument,genericModSIDAttack);
+    value[sidDecay]=nativeControlValue(track,instrument,genericModSIDDecay);
+    value[sidSustain]=nativeControlValue(track,instrument,genericModSIDSustain);
+    value[sidRelease]=nativeControlValue(track,instrument,genericModSIDRelease);
+    value[sidPartnerRatio]=nativeControlValue(track,instrument,genericModSIDPartner)+1;
     for (int v = 0; v < track->chordVoiceCount; ++v) {
       uint8_t note = track->chordPitchFinal[v];
       int cents = note == EMPTY_VALUE_8 ? 6000 :

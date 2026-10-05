@@ -49,6 +49,12 @@ Native-chip preset audition and Get Lucky remain included. See
 [the insert review report](docs/personal-insert-review-20261004.txt) and
 [the preceding sync report](docs/personal-upstream-sync-20261004.txt).
 
+FM master macros now add native envelope time, tone decay, modulator ratio,
+and—where supported—detune spread and LFO rate/depth. SID adds native ADSR
+and ring/sync partner-ratio Phrase FX. Preset-relative values and native stepped
+ranges have clearer help. See [the revision notes](docs/fm-macros-revision-20261005.txt).
+This source revision is awaiting its device installation record.
+
 ## Current installed device build
 
 Source: `70d7eee5ca3878e9143821735f4ed41ae15e7ebc` (October 5 SID/FM revision).

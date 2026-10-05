@@ -177,6 +177,16 @@ void Note::compute(int32_t* buffer,int32_t lfo,int32_t delay,int32_t pitchOffset
   int shift=feedback<0?feedbackShift_:feedback?8-min(7,feedback):16;
   core_.render(buffer,params_,algorithm_,feedback_,shift);
 }
+void Note::updateTimbre(const uint8_t* patch,int midi) {
+  for(int op=0;op<6;++op) {
+    const uint8_t* p=patch+op*21;
+    int rates[4];for(int j=0;j<4;++j)rates[j]=p[j];
+    env_[op].setRates(rates);
+    basepitch_[op]=osc_freq(midi,p[17],p[18],p[19],p[20]);
+  }
+  pitchDepth_=(patch[139]*165)>>6;pitchSensitivity_=pitchmodsenstab[patch[143]];
+  ampDepth_=(patch[140]*165)>>6;
+}
 void Note::keyup(){for(auto& e:env_)e.keydown(false);pitchenv_.keydown(false);}
 bool Note::playing(){for(int i=0;i<6;++i)if(FmCore::isCarrier(algorithm_,i)&&env_[i].isActive())return true;return false;}
 

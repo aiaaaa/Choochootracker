@@ -9,7 +9,7 @@
 #include <cmath>
 namespace {
 void setControl(Instrument& i,int g,int value) {
- if(auto* t=instrumentFMToneSettings(&i)){if(g==genericModFMBrightness)t->brightness=fmBrightnessFromByte(value);else if(g==genericModFMFeedback)t->feedback=value;else t->operatorOffset[g-genericModFMOperator1]=value-128;return;}
+ if(auto* t=instrumentFMToneSettings(&i)){if(g==genericModFMBrightness)t->brightness=fmBrightnessFromByte(value);else if(g==genericModFMFeedback)t->feedback=value;else if(g>=genericModFMTime&&g<=genericModFMLFODepth)t->macro[g-genericModFMTime]=value-128;else t->operatorOffset[g-genericModFMOperator1]=value-128;return;}
  if(i.type==InstrumentType::SID){auto* p=i.chip.sid.value;switch(g){
  case genericModSIDPulse:p[sidPulse]=(value*4095+127)/255;break;
  case genericModSIDCutoff:p[sidCutoff]=(value*2047+127)/255;break;
@@ -18,7 +18,12 @@ void setControl(Instrument& i,int g,int value) {
  case genericModSIDFilterMode:p[sidFilterMode]=value;break;
  case genericModSIDMacroRate:p[sidMacroRate]=1+(value*199+127)/255;break;
  case genericModSIDRing:p[sidRing]=value;break;
- case genericModSIDSync:p[sidSync]=value;break;}return;}
+ case genericModSIDSync:p[sidSync]=value;break;
+ case genericModSIDAttack:p[sidAttack]=value;break;
+ case genericModSIDDecay:p[sidDecay]=value;break;
+ case genericModSIDSustain:p[sidSustain]=value;break;
+ case genericModSIDRelease:p[sidRelease]=value;break;
+ case genericModSIDPartner:p[sidPartnerRatio]=value+1;break;}return;}
  auto& p=i.chip.simpleChip;
  switch(g){
  case genericModChipMode:p.mode=value;break;
@@ -59,6 +64,7 @@ TEST_CASE("Native phrase macros reach the real voice without modifying saved par
   for(int g=genericModFMBrightness;g<genericModTotalCount;++g)if(auto* d=instrumentNativeModDestination(t,g)) {
    CAPTURE(g);int value=d->range==1?1:d->range/2;
    if(g==genericModFMBrightness)value=30;
+   if(g>=genericModFMTime&&g<=genericModFMLFODepth)value=160;
    auto fx=render(t,g,value,true),saved=render(t,g,value,false);
    REQUIRE(fx.size()==saved.size());CHECK(fx==saved);
    double energy=0;for(float x:fx){REQUIRE(std::isfinite(x));energy+=x*x;}CHECK(energy>1e-8);

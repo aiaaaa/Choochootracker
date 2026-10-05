@@ -212,6 +212,8 @@ enum FX {
   fxCMD, fxCNR, fxCND, fxCNS, fxCSP, fxCSS, fxCSD, fxCEI, fxCEP, fxCED,
   fxFO1, fxFO2, fxFO3, fxFO4, fxFO5, fxFO6,
   fxSCP, fxSCT, fxSRN, fxSWV, fxSFTY, fxSMR, fxSRG, fxSSY,
+  fxFET, fxFTD, fxFDT, fxFHR, fxFLR, fxFLD,
+  fxSAT, fxSDE, fxSSU, fxSRL, fxSPR,
   // Total count - must be last
   fxTotalCount
 };

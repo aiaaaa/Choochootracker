@@ -30,6 +30,8 @@ class Note {
  public:
   void start(const uint8_t* patch,int midi,int velocity);
   void compute(int32_t* buffer,int32_t lfo,int32_t delay,int32_t pitchOffset,int brightness=0,int feedback=-1,const int8_t* operatorOffset=nullptr);
+  // Update operator rates/frequencies and native LFO depths without retrigger.
+  void updateTimbre(const uint8_t* patch,int midi);
   void keyup();
   bool playing();
  private:

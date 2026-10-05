@@ -51,3 +51,10 @@ parts/chords; block independence and awkward events; ratio/fixed frequency,
 velocity, direct-reference assembly, CNI/CCT ownership and queued preview tests.
 An ASan/UBSan scalar harness exercised all algorithms with extreme legal values.
 This does not establish hardware bit identity or substitute for listening.
+
+FM Phrase FX extension: `Env::setRates` adjusts the current rate while retaining
+stage, level and gate (including the remaining static-stage countdown).
+`Note::updateTimbre` updates operator rates/frequencies and native LFO depths
+without restarting the note or clearing phase/feedback. The tracker adapter
+supplies a temporary effective patch; preset bytes remain unchanged. Neutral
+macros retain the original path. LFO rate changes retain its phase and delay.

@@ -13,6 +13,8 @@ class OPLVoice {
   bool active()const{return active_;} float envelopeLevel()const{return active_?level_:0;}
  private:
   void tone();
+  void macros();
+  int8_t macroCache_[6]{};
   int8_t macroOperators_[6]{};
   int macroBrightness_=999,macroFeedback_=-1;
   void write(unsigned reg,unsigned value);void applyPatch();void pitch();void native(float& l,float& r);

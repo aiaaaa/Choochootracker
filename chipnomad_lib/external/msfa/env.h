@@ -50,6 +50,8 @@ class Env {
   // Then, of course, log to linear.
   int32_t getsample();
 
+  // Tracker macro update: retain level, stage and gate.
+  void setRates(const int rates[4]);
   void keydown(bool down);
   static int scaleoutlevel(int outlevel);
   void getPosition(char *step);

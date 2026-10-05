@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstring>
+#include "../fm_macros.h"
 
 void OPLLVoice::init(float sampleRate) {
   const double rate = sampleRate >= 8000 ? sampleRate : 48000;
@@ -38,6 +39,7 @@ void OPLLVoice::configure(const InstrumentOPLL* patch, float cents, float gain) 
   pitch();
 }
 void OPLLVoice::tone() {
+  macros();
   const int brightness=std::clamp(int(patch_.tone.brightness),-63,63);
   const int feedback=patch_.tone.feedback?std::min(7,int(patch_.tone.feedback)-1):(patch_.patch[3]&7);
   if(brightness!=macroBrightness_||memcmp(macroOperators_,patch_.tone.operatorOffset,6)){
@@ -95,4 +97,17 @@ void OPLLVoice::render(float* output, size_t frames) {
     level_ = std::max(std::abs(output[i]), level_ * .999f);
     if (silence_ > chip_.sample_rate(3579545)) kill();
   }
+}
+
+void OPLLVoice::macros() {
+  const auto& t=patch_.tone;
+  if(macroBrightness_!=999&&!memcmp(macroCache_,t.macro,6))return;
+  for(int op=0;op<2;++op) {
+    const bool modulator=op==0;
+    const int ratio=modulator?fmMacroValue(patch_.patch[op]&15,t.macro[fmRatio],15):(patch_.patch[op]&15);
+    write(op,(patch_.patch[op]&0xf0)|ratio);
+    write(4+op,(fmMacroRate(patch_.patch[4+op]>>4,15,t,false)<<4)|fmMacroRate(patch_.patch[4+op]&15,15,t,modulator));
+    write(6+op,(patch_.patch[6+op]&0xf0)|fmMacroRate(patch_.patch[6+op]&15,15,t,false));
+  }
+  memcpy(macroCache_,t.macro,6);
 }
