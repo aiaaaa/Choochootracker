@@ -40,6 +40,7 @@ Host validation before upstream harmonization (65223b2):
 - Web bundle rebuilt from the final source. Generated JS whitespace normalized.
 
 Combined upstream/personal host validation passed: 497 tests, 122,382,803
-assertions; final production UI and web builds passed. Device validation and
-installation follow GitHub publication.
+assertions; final production UI and web builds passed. Device build, ARM64 tests, UI and five ALSA workloads passed.
+Installed source: 5bfab9779f317f4fc6580292f285d0104917e52b.
+See native-fx-values-device-20261005.json for the verified receipt.
 See personal-harmonization-20261005.txt for the final source reconciliation.

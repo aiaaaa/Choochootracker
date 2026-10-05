@@ -1,3 +1,6 @@
+COMPLETED — final source 5bfab9779f317f4fc6580292f285d0104917e52b validated and installed.
+See native-fx-values-device-20261005.json for the verified result.
+
 HISTORICAL PAUSE CHECKPOINT — resumed by user on 2026-10-05.
 See personal-harmonization-20261005.txt for current validation and installation.
 The pause instructions and Git state below describe the earlier checkpoint.
