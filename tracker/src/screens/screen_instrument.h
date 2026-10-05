@@ -21,6 +21,7 @@ void instrumentFMAmpDrawCursor(int col, int row);
 void instrumentFMAmpDrawField(int col, int row, CellState state);
 int instrumentFMAmpEdit(int col, int row, CellEditAction action);
 void instrumentFMToneDrawCursor(int col);
+void instrumentFMSetContext(int instrument, InstrumentType type);
 void instrumentFMToneDrawField(int col, CellState state);
 int instrumentFMToneEdit(int col, CellEditAction action);
 

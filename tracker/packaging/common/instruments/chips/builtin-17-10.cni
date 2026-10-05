@@ -18,6 +18,8 @@
 - Program: 10
 - Fine tune: 0
 - Tone bytes: 97,97,11,24,133,255,129,7
+- OPLL bank: 317
+- OPLL name: Synthesizer
 
 ### Table 0 (Retrig: Inst)
 

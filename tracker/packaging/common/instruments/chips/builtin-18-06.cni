@@ -18,6 +18,8 @@
 - Program: 6
 - Fine tune: 0
 - Tone bytes: 2,1,5,0,172,242,3,2
+- OPLL bank: 318
+- OPLL name: Synth
 
 ### Table 0 (Retrig: Inst)
 

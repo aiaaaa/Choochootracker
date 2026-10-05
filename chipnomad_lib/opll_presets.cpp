@@ -50,6 +50,8 @@ bool opllApplyPreset(Instrument* instrument, int program) {
   instrument->chip.opll = {}; instrument->chip.opll.schema = 1;
   instrument->chip.opll.amp=amp;instrument->chip.opll.tone=tone;
   instrument->chip.opll.program = program;
+  instrument->chip.opll.bankId = 300 + int(instrument->type);
+  std::strncpy(instrument->chip.opll.presetName, opllPresetName(instrument->type, program), 63);
   std::memcpy(instrument->chip.opll.patch, (instrument->type == InstrumentType::VRC7 ? vrc7Patches : opllPatches)[program - 1], 8);
   std::strncpy(instrument->name, opllPresetName(instrument->type, program), PROJECT_INSTRUMENT_NAME_LENGTH);
   instrument->name[PROJECT_INSTRUMENT_NAME_LENGTH] = 0;

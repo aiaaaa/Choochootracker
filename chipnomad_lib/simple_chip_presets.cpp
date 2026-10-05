@@ -1,5 +1,6 @@
 #include "simple_chip_presets.h"
 #include <cstring>
+#include <iterator>
 // Original tracker recipes (MIT), no game extractions. Software ADSR values
 // use the existing squared 0..5-second mapping; native GB envelope runs at 64Hz.
 struct Recipe {const char* name;uint8_t mode,rate,divisor,shift,initial,period,increase,sweep,steps,negate,attack,decay,sustain,release;};
@@ -18,6 +19,16 @@ static const Recipe sega[]={
  {"Metal Tick",2,0,0,0,15,0,0,0,0,0,0,35,0,20},
  {"Motor",2,3,0,0,15,0,0,0,0,0,0,0,255,40},
  {"Wind Rise",1,2,0,0,15,0,0,0,0,0,140,40,200,130},
+ {"Linked Static",1,3,0,0,15,0,0,0,0,0,0,0,255,50},
+ {"Tuned Snare",1,3,0,0,15,0,0,0,0,0,0,60,0,22},
+ {"Periodic Bass",2,3,0,0,15,0,0,0,0,0,0,100,110,40},
+ {"Buzz Pluck",2,3,0,0,15,0,0,0,0,0,0,65,0,25},
+ {"Clock Tick",2,1,0,0,15,0,0,0,0,0,0,18,0,8},
+ {"Clock Drone",2,1,0,0,15,0,0,0,0,0,35,0,255,65},
+ {"Low Clock",2,2,0,0,15,0,0,0,0,0,0,105,100,60},
+ {"Buzz Swell",2,3,0,0,15,0,0,0,0,0,140,0,255,110},
+ {"Static Wash",1,0,0,0,15,0,0,0,0,0,80,0,255,120},
+ {"Wood Knock",0,0,0,0,15,0,0,0,0,0,0,18,0,8},
 };
 static const Recipe pulse[]={
  {"Hollow Lead",1,0,0,0,15,0,0,0,0,0,0,0,255,35},
@@ -30,6 +41,20 @@ static const Recipe pulse[]={
  {"Up Blip",0,0,0,0,12,2,0,2,3,0,0,55,0,20},
  {"Rising Pulse",3,0,0,0,3,3,1,0,0,0,0,0,255,60},
  {"Short Click",1,0,0,0,15,1,0,0,0,0,0,20,0,10},
+ {"Deep Drop",2,0,0,0,15,2,0,1,1,1,0,85,0,25},
+ {"Laser Fall",0,0,0,0,15,1,0,2,2,1,0,80,0,20},
+ {"Slow Fall",1,0,0,0,13,4,0,7,3,1,0,120,0,50},
+ {"Coin Rise",2,0,0,0,14,2,0,1,4,0,0,50,0,20},
+ {"Arcade Zap",3,0,0,0,15,1,0,1,2,0,0,35,0,15},
+ {"Chirp",1,0,0,0,15,1,0,3,4,0,0,30,0,10},
+ {"Narrow Reed",0,0,0,0,12,0,0,0,0,0,15,0,255,55},
+ {"Hollow Pluck",1,0,0,0,15,3,0,0,0,0,0,105,0,50},
+ {"Soft Square",2,0,0,0,8,0,0,0,0,0,110,0,255,110},
+ {"Wide Swell",3,0,0,0,1,5,1,0,0,0,0,0,255,100},
+ {"Narrow Swell",0,0,0,0,1,3,1,0,0,0,0,0,255,80},
+ {"Slow Pitch Pad",1,0,0,0,10,0,0,7,7,1,90,0,255,110},
+ {"Falling Bell",2,0,0,0,15,6,0,6,6,1,0,135,0,80},
+ {"Tiny Kick",2,0,0,0,15,1,0,1,2,1,0,45,0,15},
 };
 static const Recipe noise[]={
  {"Closed Hat",0,0,1,0,12,1,0,0,0,0,0,25,0,10},
@@ -42,9 +67,27 @@ static const Recipe noise[]={
  {"Noise Click",0,0,0,0,15,1,0,0,0,0,0,16,0,8},
  {"Rising Wind",0,0,3,4,1,4,1,0,0,0,0,0,255,100},
  {"Chip Alarm",1,0,2,5,12,0,0,0,0,0,0,0,255,30},
+ {"Tight Snare",0,0,2,3,15,1,0,0,0,0,0,45,0,15},
+ {"Deep Snare",0,0,5,4,15,2,0,0,0,0,0,70,0,25},
+ {"Clap Burst",0,0,4,2,15,1,0,0,0,0,0,45,0,20},
+ {"Shaker",0,0,3,1,10,2,0,0,0,0,8,45,0,30},
+ {"Crash Wash",0,0,1,2,15,7,0,0,0,0,0,180,0,100},
+ {"Surf",0,0,6,3,8,0,0,0,0,0,140,0,255,130},
+ {"Steam",0,0,0,1,9,0,0,0,0,0,55,0,255,65},
+ {"Thunder",0,0,7,7,15,5,0,0,0,0,30,170,0,90},
+ {"Low Crackle",0,0,5,9,13,4,0,0,0,0,0,180,0,80},
+ {"Digital Tick",1,0,0,0,15,1,0,0,0,0,0,22,0,10},
+ {"Metal Ping",1,0,2,3,15,3,0,0,0,0,0,100,0,55},
+ {"Small Tom",1,0,3,5,15,2,0,0,0,0,0,90,0,40},
+ {"Low Tom",1,0,6,6,15,3,0,0,0,0,0,110,0,55},
+ {"Buzz Drone",1,0,5,3,12,0,0,0,0,0,30,0,255,65},
+ {"Robot Growl",1,0,7,6,12,0,0,0,0,0,65,0,255,100},
+ {"Power Rise",1,0,1,4,1,3,1,0,0,0,0,0,255,55},
+ {"Static Rise",0,0,2,2,1,2,1,0,0,0,0,0,255,55},
+ {"Bit Rain",1,0,4,8,15,6,0,0,0,0,20,180,0,90},
 };
 bool isSimpleChip(InstrumentType t){return t==InstrumentType::SegaPSG||t==InstrumentType::GBPulse||t==InstrumentType::GBNoise;}
-int simpleChipPresetCount(InstrumentType t){return t==InstrumentType::SegaPSG?14:(t==InstrumentType::GBPulse||t==InstrumentType::GBNoise)?10:0;}
+int simpleChipPresetCount(InstrumentType t){return t==InstrumentType::SegaPSG?std::size(sega):t==InstrumentType::GBPulse?std::size(pulse):t==InstrumentType::GBNoise?std::size(noise):0;}
 static const Recipe* recipe(InstrumentType t,int n){if(n<0||n>=simpleChipPresetCount(t))return nullptr;return &(t==InstrumentType::SegaPSG?sega:t==InstrumentType::GBPulse?pulse:noise)[n];}
 const char* simpleChipPresetName(InstrumentType t,int n){auto* r=recipe(t,n);return r?r->name:"Custom";}
 bool simpleChipApplyPreset(Instrument* i,int n){auto* r=recipe(i->type,n);if(!r)return false;

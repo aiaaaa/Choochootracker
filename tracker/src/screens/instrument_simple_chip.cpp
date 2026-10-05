@@ -1,18 +1,20 @@
 #include "screen_instrument.h"
 #include "selection_popup.h"
 #include "simple_chip_presets.h"
+#include "project_utils.h"
 #include "chipnomad_lib.h"
 #include "corelib_gfx.h"
 #include "utils.h"
 #include <cstring>
+#include <vector>
 namespace {
-int buttonDown=0;SelectionItem presets[16];
+int buttonDown=0;std::vector<SelectionItem> presets;
 Instrument* current(){return &chipnomadState->project.instruments[cInstrument];}
 void stop(){chipnomadQueueSimpleChipPreview(chipnomadState,*pSongTrack,current()->type,nullptr);}
 void preview(int value,bool held){Instrument i=*current();if(held&&simpleChipApplyPreset(&i,value))chipnomadQueueSimpleChipPreview(chipnomadState,*pSongTrack,i.type,&i.chip.simpleChip);else stop();}
 void select(int value){stop();if(simpleChipApplyPreset(current(),value))projectModified=1;screenSetup(&screenInstrument,cInstrument);}
 void cancel(){stop();screenSetup(&screenInstrument,cInstrument);}
-void open(){int n=simpleChipPresetCount(current()->type);for(int i=0;i<n;++i)presets[i]={simpleChipPresetName(current()->type,i),i,nullptr,0};selectionPopupSetup("CHIP SOUNDS",presets,n,current()->chip.simpleChip.preset,select,cancel,true,preview);screenSetup(&screenSelectionPopup,0);}
+void open(){int n=simpleChipPresetCount(current()->type);presets.resize(n);for(int i=0;i<n;++i)presets[i]={simpleChipPresetName(current()->type,i),i,nullptr,0};char title[32];snprintf(title,sizeof(title),"%s PRESETS",instrumentTypeName(current()->type));selectionPopupSetup(title,presets.data(),n,current()->chip.simpleChip.preset,select,cancel,true,preview);screenSetup(&screenSelectionPopup,0);}
 int columns(int row){if(row<3)return instrumentCommonColumnCount(row);if(row==7)return 4;if(row==5)return current()->type==InstrumentType::SegaPSG?1:3;if(row==6)return current()->type==InstrumentType::GBPulse?3:current()->type==InstrumentType::GBNoise?2:1;return 1;}
 int valid(int,int){return 1;}
 int y(int row){return row==3?6:row+4;}

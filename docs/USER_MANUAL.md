@@ -1193,10 +1193,14 @@ format/loop limitations and validation status.
 ### Native OPLL and VRC7 instruments (development)
 
 The Instrument Type selector has an FM group with **OPLL / MSX** (YM2413)
- and **VRC7** (DS1001). Each offers 15 named melodic programs. Program zero
-is reserved for internal portable tone storage and is not an extra preset.
-The Preset row opens the program list; EDIT + left/right selects the previous
-or next program. Fine ct adjusts tuning from -100 to +100 cents.
+and **VRC7** (DS1001). Each now offers **73 programs** in scrolling Bank / Preset
+lists: the original 15 tones, 40 additional distinct tones from emu2413's
+YM2413/VRC7/YMF281B tables, and 18 ChooChoo-authored two-operator programs.
+Exact duplicate tone bytes are omitted within each engine. The additional
+palettes use the chip's programmable tone slot; they do not expand the physical
+ROM. Program zero identifies a custom tone. EDIT + left/right selects the
+previous or next preset within the bank filter. Fine ct adjusts tuning from
+-100 to +100 cents.
 
 In the program list, EDIT + PLAY auditions the highlighted sound; release the
 buttons to stop. EDIT commits and OPT cancels. Browsing/audition does not change
@@ -1205,11 +1209,11 @@ continues to work after selection. Native chip envelopes supply attack/release;
 the optional Amp env adds a software ADSR (see Native chip controls below).
 There is no full operator editor.
 
-New instruments store all eight native tone bytes, program and fine tuning in
+New instruments store all eight native tone bytes, bank/name, program and fine tuning in
 the song/instrument file. Files containing these types use format 6.0 and need
 this build or later. Earlier formats remain readable; songs without these types
-continue to save as 5.0. Rhythm programs are deferred. Automated ARM64 validation passes;
-human listening remains pending.
+continue to save as 5.0. Rhythm programs are deferred. The expanded library is
+validated on the host; human listening and a new handheld check remain pending.
 
 ### AdLib / OPL2 and OPL3 (development)
 
@@ -1219,6 +1223,17 @@ before selection, EDIT selects, OPT cancels, and EDIT + left/right on Preset
 loads the previous/next matching entry. Fine ct adjusts local tuning. Mode shows
 2 operator, 4 operator, or Dual voice. OPL2 hides incompatible OPL3 patches;
 OPL3 can play the shared two-operator collection.
+
+Bank and preset popup titles identify the current engine. Switching engine or
+instrument slot resets the bank filter to **All banks**, including switching
+between the compatible AdLib and OPL3 engines. Returning from a popup within the
+same slot keeps the chosen filter. Cancelling a DX7 bank import restores the
+previous filter.
+
+Preset confirmation also publishes edits made on button release to the next
+UI/audio tick. Playing songs no longer need another button press or a transport
+restart to receive that patch. Output still follows the configured audio buffer
+and the engine's envelope/retrigger behavior.
 
 The factory collection contains 697 source entries from The Fat Man 2-op,
 The Fat Man 4-op and DMXOPL3, with 589 normalized unique patch identities.
@@ -1246,7 +1261,10 @@ converge on the divider limit. Fixed-rate noise keeps the original clock;
 tone-derived noise follows the extended pitch. Old Sega instruments load with
 Extended enabled; the setting is saved with the instrument.
 The GB instruments use DMG pulse/noise registers; no Game Boy wave channel is
-exposed. Their authored preset lists contain 14, 10 and 10 recipes respectively.
+exposed. Their authored preset lists now contain **24, 24 and 28** presets
+respectively. The additions cover linked/periodic Sega noise, GB pitch sweeps,
+short percussion, metallic noise, drones and rises. These are original programs,
+not extracted game sounds.
 The page offers native mode/duty/width, envelope/sweep/noise controls as
 applicable, plus a software amplitude ADSR. These save in version-6 native files.
 Automated ARM64 performance/audio checks pass within the reported workload
@@ -1263,17 +1281,38 @@ copies its complete patch without changing tracker tables or track insert FX.
 
 The factory catalogue currently contains **67 distinct DX7 parameter patches**:
 31 OpenDX7 original musical sounds, four unique YSE CC0 sounds (its 32 bank slots
-repeat those four with different names), and 32 ChooChoo original recipes.
+repeat those four with different names), and 32 ChooChoo-authored patches.
+Here, "original" means parameter programs created for this project; it does not
+mean original Yamaha factory content. YSE is shipped as four sounds, not 32
+artificially different names.
 Categories describe the reviewed sound-design intent. Ambiguous names remain
 Unsorted. Numerical playability checks have passed; listening acceptance is
 pending. The separate goal of 1,000 redistribution-cleared sounds is not met.
 
-LOAD INSTRUMENT accepts `.syx` original DX7/TX7 single-voice and 32-voice bank
+For a persistent personal library, put `.syx` files in
+**`instruments/banks/dx7/`** beside the existing instrument library. Subfolders
+are supported. Open **DX7 → Bank**: each file appears as a named bank, ready for
+Preset browsing. Reopen Bank after adding or removing files; no conversion or
+Load Instrument step is needed. A standard original DX7/TX7 bank contains
+**32 voices**. A file with four bank messages appears as four numbered banks
+(128 voices total). Single-voice files are accepted too. The native application
+reads this folder; the browser build reads its virtual filesystem, not arbitrary
+folders on the computer.
+
+Bad or unsupported files are skipped with an on-screen count; valid banks remain
+available. Scanning is bounded to 2,048 files, 1 MiB per file, 64 MiB total,
+60,000 voices and eight levels of nested folders. Symlinks are ignored. The
+selected patch is owned by the instrument: removing its source bank cannot
+change the saved song. The complete browsing library stays in this folder and
+is not copied wholesale into each project.
+
+LOAD INSTRUMENT also accepts `.syx` original DX7/TX7 single-voice and 32-voice bank
 dumps, including bounded sequences of those supported messages. It checks
 framing, byte counts, seven-bit data, checksums, parameter ranges and file size
 before opening the imported bank in the same FM browser. Selecting a patch
-commits; cancel keeps the current song instrument. Imported banks are held for
-this session; save chosen instruments as `.cni` to retain them. Headerless dumps,
+commits; cancel keeps the current song instrument. This direct-import shortcut
+keeps its browsing list for the session; use the bank folder above for persistent
+browsing. Save the song or a `.cni` to retain selected/edited patches. Headerless dumps,
 bad checksums, DX7II performance/extensions and other Yamaha families are
 rejected. Import never sends MIDI messages to external equipment.
 
@@ -1305,9 +1344,16 @@ change other instruments' polyphony. Preset audition is disabled during playback
 The limit was selected from R36H measurements and validated in mixed playback.
 
 Genesis FM (YM2612) and Arcade FM (YM2151) now use the same FM Bank/Preset
-browser, EDIT+PLAY audition, confirm/cancel and fine-tune controls. Each has
-24 independently authored MIT starter sounds. These are original chip voicings,
-not game or arcade ROM extractions. Their complete four-operator patch, envelope,
+browser, EDIT+PLAY audition, confirm/cancel and fine-tune controls. Genesis now
+has **73 presets**: the original 24 and 49 supported melodic programs from
+NeoSoundFonts' CC0 16-Bit FM Music Station bank. Arcade has **81 presets**: the
+original 24 and 57 supported, sounding programs from YMulator-Synth's GPLv3
+collection. The original ChooChoo pair shares its underlying recipes; the new
+source collections provide separate palettes. These are named sound-design
+collections, not claimed recreations of particular game soundtracks. Unsupported
+note offsets, fixed percussion keys, arcade noise settings and silent source
+programs are recorded as exclusions in `expansion-manifest.json`. Their complete
+four-operator patch, envelope,
 LFO, stereo and tuning settings travel inside version-6 instruments and songs.
 The native chip envelope controls release; ordinary tracker gain and pitch do
 not restart it. Genesis DAC output uses a 20 Hz DC blocker. Noise mode and
@@ -1320,12 +1366,25 @@ Load the resulting `.cni` files through Load Instrument. User imports are kept
 separate from the distributable factory library. OPM files with noise enabled,
 nonzero noise-frequency data or partial panning are rejected with an explanation;
 VOPM pan values 0/64/127 become left/both/right. Binary WOPL is not supported.
-The shared FM catalogue contains 812 entries: 697 OPL, 67 DX7 and 48
-Genesis/Arcade. An additional 64 native files expose the built-in OPLL/VRC7 and
-Sega/Game Boy presets through the normal file browser.
+The shared FM catalogue contains **1,064 entries**: 697 OPL, 67 DX7, 146
+OPLL/VRC7, 73 Genesis and 81 Arcade. Another 76 files expose the Sega/Game Boy
+presets through the normal file browser, for **1,140 packaged native presets**.
+Source revisions, hashes, full notices and original source data accompany the
+new collections under `licenses/chip-banks/expansion`.
 
-`native-chip-audition.cct` provides a short sequential audition across all thirteen
-factory banks. Each section uses a different owned instrument, so it works with
+`instruments/banks/` currently provides automatic drop-in discovery only for
+DX7 `.syx` banks. The shipped banks for every engine are stored as individual
+native `.cni` files in `instruments/chips/`, grouped by `catalog.tsv` (FM) and
+`builtins.tsv` (Sega/GB inventory). Bank is a browsing group; it does not imply
+SysEx. OPL source banks use WOPLX, Genesis sources use WOPN/TFI, and Arcade
+sources use OPM. OPLL/VRC7 store eight-byte tone programs; Sega/GB store native
+register settings and envelopes. The factory converter turns these into the
+same native instrument format. Only the formats explicitly listed for the
+user importer above are supported there. Selected native patch data is stored
+inside each saved project, including custom edits.
+
+`native-chip-audition.cct` provides a short sequential audition across the original
+thirteen factory banks. Each section uses a different owned instrument, so it works with
 the preset folder removed. Longer ignored bank WAVs and measured levels are
 listed in `docs/chip-preset-auditions.tsv`; subjective listening remains pending.
 
@@ -1360,6 +1419,12 @@ latch at the next note trigger; duty/width and noise frequency can change live.
 | GB Noise | `CMD 00–01`, `CND 00–07`, `CNS 00–0D` | Noise width, clock divisor and shift. |
 | GB Pulse | `CSP 00–07`, `CSS 00–07`, `CSD 00–01` | Sweep period, shift, downward direction. |
 | GB Pulse / Noise | `CEI 00–0F`, `CEP 00–07`, `CED 00–01` | Native envelope initial level, period, rising direction. |
+
+All twelve native FX have descriptive titles, ranges and behavior in the phrase
+FX chooser, plus value hints. `CMD` describes tone/noise, duty or noise width
+according to the selected instrument. These controls supplement the shared
+Track, Envelope and Modulation groups; the engine group alone is not the full
+set of available phrase effects.
 
 The existing shared LP/BP/HP filters on Braids, Plaits, PCM and other supported
 engines are software processing after synthesis. aChChid instead uses its native

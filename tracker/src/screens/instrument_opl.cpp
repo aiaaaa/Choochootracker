@@ -6,62 +6,88 @@
 #include "opl_patch.h"
 #include "four_op_patch.h"
 #include "dx7_patch.h"
+#include "opll_presets.h"
 #include "fm_catalog.h"
 #include "utils.h"
+#include "project_utils.h"
 #include <algorithm>
 #include <cstdio>
 #include <cstring>
 #include <memory>
 #include <string>
 #include <vector>
+#include <set>
 
 namespace {
 using Entry=FMPresetEntry;
 std::vector<Entry> catalog;
-std::vector<InstrumentDX7> importedDX7;
+std::vector<InstrumentDX7> importedDX7,libraryDX7;
+bool catalogRead=false;
 std::vector<SelectionItem> bankItems,categoryItems;
 std::vector<std::vector<SelectionItem>> sounds;
 std::vector<std::string> categoryNames;
 std::string folder;
 int bankFilter=0,buttonDown=0;
+int contextInstrument=-1,bankBeforeImport=0;
+InstrumentType contextType=InstrumentType::none;
 bool importing=false;
 Instrument* current(){return &chipnomadState->project.instruments[cInstrument];}
 bool dx7(){return current()->type==InstrumentType::DX7;}
 bool fourOp(){return isFourOp(current()->type);}
-int bankId(){return fourOp()?current()->chip.fourOp.bankId:dx7()?current()->chip.dx7.bankId:current()->chip.opl.bankId;}
-const char* presetName(){return fourOp()?current()->chip.fourOp.presetName:dx7()?current()->chip.dx7.presetName:current()->chip.opl.presetName;}
-int8_t& fineTune(){return fourOp()?current()->chip.fourOp.fineTune:dx7()?current()->chip.dx7.fineTune:current()->chip.opl.fineTune;}
+int bankId(){return isOPLL(current()->type)?current()->chip.opll.bankId:fourOp()?current()->chip.fourOp.bankId:dx7()?current()->chip.dx7.bankId:current()->chip.opl.bankId;}
+const char* presetName(){return isOPLL(current()->type)?current()->chip.opll.presetName:fourOp()?current()->chip.fourOp.presetName:dx7()?current()->chip.dx7.presetName:current()->chip.opl.presetName;}
+int8_t& fineTune(){return isOPLL(current()->type)?current()->chip.opll.fineTune:fourOp()?current()->chip.fourOp.fineTune:dx7()?current()->chip.dx7.fineTune:current()->chip.opl.fineTune;}
 bool compatible(const Entry& e){if(importing)return e.bank==bankFilter;return e.type==int(current()->type)||(current()->type==InstrumentType::OPL3&&e.type==int(InstrumentType::OPL2));}
+void refreshLibrary(){
+  // Rebuild only while no popup owns pointers into catalog strings.
+  std::string priorBank;
+  for(const auto& e:catalog)if(e.library&&e.bank==bankFilter){priorBank=e.bankName;break;}
+  catalog.erase(std::remove_if(catalog.begin(),catalog.end(),[](const auto& e){return e.library;}),catalog.end());
+  auto library=scanDX7Library(folder+"../banks/dx7/");
+  if(catalog.size()+library.entries.size()>65536){library.entries.resize(65536-catalog.size());library.limited=true;}
+  libraryDX7=std::move(library.patches);
+  catalog.insert(catalog.end(),library.entries.begin(),library.entries.end());
+  if(!priorBank.empty()){
+    bankFilter=0;for(const auto& e:catalog)if(e.library&&e.bankName==priorBank){bankFilter=e.bank;break;}
+  }
+  if(library.skipped||library.limited)screenMessage(MESSAGE_TIME_ERROR,"DX7: %d skipped%s",library.skipped,library.limited?", limit reached":"");
+}
 bool readCatalog(){
-  if(!catalog.empty())return true;
+  if(catalogRead)return true;
   folder="instruments/chips/";
-  if(fileIsRunningFromAppImage()){char root[1024];if(fileGetDefaultDirectory(root,sizeof(root)))return false;folder=std::string(root)+"/instruments/chips/";}
-  return loadFMCatalog((folder+"catalog.tsv").c_str(),catalog);
+  bool external=fileIsRunningFromAppImage();
+#ifdef ANDROID_BUILD
+  external=true;
+#endif
+  if(external){char root[1024];if(fileGetDefaultDirectory(root,sizeof(root)))return false;folder=std::string(root)+"/instruments/chips/";}
+  loadFMCatalog((folder+"catalog.tsv").c_str(),catalog);
+  catalogRead=true;refreshLibrary();return true;
 }
 bool candidate(int index,Instrument& result){
   if(index<0||index>=int(catalog.size())||!compatible(catalog[index]))return false;
   if(catalog[index].imported>=0) {
-    getInstrumentFunctions(InstrumentType::DX7).init(&result);result.chip.dx7=importedDX7[catalog[index].imported];
+    getInstrumentFunctions(InstrumentType::DX7).init(&result);result.chip.dx7=(catalog[index].library?libraryDX7:importedDX7)[catalog[index].imported];
     if(auto* amp=instrumentFMAmpSettings(current()))result.chip.dx7.amp=*amp;
     if(auto* tone=instrumentFMToneSettings(current()))result.chip.dx7.tone=*tone;
     strncpy(result.name,result.chip.dx7.presetName,PROJECT_INSTRUMENT_NAME_LENGTH);return true;
   }
   auto p=std::make_unique<Project>();projectInit(p.get());
   if(instrumentLoad(p.get(),(folder+catalog[index].path).c_str(),0)){projectFree(p.get());return false;}
-  bool ok=isFourOp(p->instruments[0].type)?validFourOp(p->instruments[0].type,p->instruments[0].chip.fourOp):p->instruments[0].type==InstrumentType::DX7?validDX7(p->instruments[0].chip.dx7):isOPL(p->instruments[0].type)&&validOPL(p->instruments[0].type,p->instruments[0].chip.opl);
+  bool ok=isOPLL(p->instruments[0].type)?p->instruments[0].chip.opll.schema==1:isFourOp(p->instruments[0].type)?validFourOp(p->instruments[0].type,p->instruments[0].chip.fourOp):p->instruments[0].type==InstrumentType::DX7?validDX7(p->instruments[0].chip.dx7):isOPL(p->instruments[0].type)&&validOPL(p->instruments[0].type,p->instruments[0].chip.opl);
+  ok=ok&&int(p->instruments[0].type)==catalog[index].type;
   if(ok){result=p->instruments[0];result.type=current()->type;
     if(auto* amp=instrumentFMAmpSettings(current()))*instrumentFMAmpSettings(&result)=*amp;
     if(auto* tone=instrumentFMToneSettings(current()))*instrumentFMToneSettings(&result)=*tone;
   }
   projectFree(p.get());return ok;
 }
-void stopPreview(){if(fourOp()&&!importing){chipnomadQueueFourOpPreview(chipnomadState,*pSongTrack,current()->type,nullptr);return;}if(dx7()||importing){chipnomadQueueDX7Preview(chipnomadState,*pSongTrack,nullptr);return;}chipnomadQueueOPLPreview(chipnomadState,*pSongTrack,current()->type,nullptr);}
+void stopPreview(){if(isOPLL(current()->type)&&!importing){chipnomadQueueOPLLPreview(chipnomadState,*pSongTrack,nullptr);return;}if(fourOp()&&!importing){chipnomadQueueFourOpPreview(chipnomadState,*pSongTrack,current()->type,nullptr);return;}if(dx7()||importing){chipnomadQueueDX7Preview(chipnomadState,*pSongTrack,nullptr);return;}chipnomadQueueOPLPreview(chipnomadState,*pSongTrack,current()->type,nullptr);}
 void preview(int index,bool held){
   Instrument patch{};
-  if(held&&candidate(index,patch)){if(isFourOp(patch.type))chipnomadQueueFourOpPreview(chipnomadState,*pSongTrack,patch.type,&patch.chip.fourOp);else if(patch.type==InstrumentType::DX7)chipnomadQueueDX7Preview(chipnomadState,*pSongTrack,&patch.chip.dx7);else chipnomadQueueOPLPreview(chipnomadState,*pSongTrack,patch.type,&patch.chip.opl);}
+  if(held&&candidate(index,patch)){if(isOPLL(patch.type))chipnomadQueueOPLLPreview(chipnomadState,*pSongTrack,&patch.chip.opll);else if(isFourOp(patch.type))chipnomadQueueFourOpPreview(chipnomadState,*pSongTrack,patch.type,&patch.chip.fourOp);else if(patch.type==InstrumentType::DX7)chipnomadQueueDX7Preview(chipnomadState,*pSongTrack,&patch.chip.dx7);else chipnomadQueueOPLPreview(chipnomadState,*pSongTrack,patch.type,&patch.chip.opl);}
   else stopPreview();
 }
-void cancel(){stopPreview();importing=false;screenSetup(&screenInstrument,cInstrument);}
+void cancel(){stopPreview();if(importing)bankFilter=bankBeforeImport;importing=false;screenSetup(&screenInstrument,cInstrument);}
 void select(int index){
   stopPreview();Instrument patch{};
   if(candidate(index,patch)){instrumentClear(current());*current()=patch;projectModified=1;}
@@ -71,10 +97,14 @@ void select(int index){
 int selected(){for(size_t i=0;i<catalog.size();++i){const auto& e=catalog[i];if(e.bank==bankId()&&e.name==presetName()&&compatible(e))return i;}return -1;}
 void selectBank(int value){bankFilter=value;screenSetup(&screenInstrument,cInstrument);}
 void openBanks(){
+  bool alreadyRead=catalogRead;
   if(!readCatalog()){screenMessage(MESSAGE_TIME_ERROR,"Factory catalog missing");return;}
+  if(dx7()&&alreadyRead)refreshLibrary();
   bankItems.clear();bankItems.push_back({"All banks",0,nullptr,0});
-  for(const auto& e:catalog)if(compatible(e)&&std::none_of(bankItems.begin(),bankItems.end(),[&](const auto& b){return b.value==e.bank;}))bankItems.push_back({e.bankName.c_str(),e.bank,nullptr,0});
-  selectionPopupSetup("FM BANK",bankItems.data(),bankItems.size(),bankFilter,selectBank,cancel,true);screenSetup(&screenSelectionPopup,0);
+  std::set<int> listed;
+  for(const auto& e:catalog)if(compatible(e)&&listed.insert(e.bank).second)bankItems.push_back({e.bankName.c_str(),e.bank,nullptr,0});
+  char title[32];snprintf(title,sizeof(title),"%s BANKS",instrumentTypeName(current()->type));
+  selectionPopupSetup(title,bankItems.data(),bankItems.size(),bankFilter,selectBank,cancel,true);screenSetup(&screenSelectionPopup,0);
 }
 void openSounds(){
   if(!readCatalog()){screenMessage(MESSAGE_TIME_ERROR,"Factory catalog missing");return;}
@@ -85,10 +115,11 @@ void openSounds(){
   for(size_t i=0;i<catalog.size();++i){const auto& e=catalog[i];if(!compatible(e)||(bankFilter&&e.bank!=bankFilter))continue;
     for(size_t c=0;c<categoryNames.size();++c)if(c==0||categoryNames[c]==e.category)sounds[c].push_back({e.name.c_str(),int(i),nullptr,0,e.name.c_str()});}
   for(size_t c=0;c<categoryNames.size();++c)categoryItems.push_back({categoryNames[c].c_str(),-1,sounds[c].data(),int(sounds[c].size())});
-  selectionPopupSetup("FM PRESETS",categoryItems.data(),categoryItems.size(),selected(),select,cancel,false,preview);screenSetup(&screenSelectionPopup,0);
+  char title[32];snprintf(title,sizeof(title),"%s PRESETS",instrumentTypeName(importing?InstrumentType::DX7:current()->type));
+  selectionPopupSetup(title,categoryItems.data(),categoryItems.size(),selected(),select,cancel,false,preview);screenSetup(&screenSelectionPopup,0);
 }
 int columns(int row){return row<3?instrumentCommonColumnCount(row):row==6?2:row==8?5:1;}
-void drawStatic(){instrumentCommonDrawStatic();gfxSetFgColor(appSettings.colorScheme.textDefault);gfxPrint(0,6,"Bank");gfxPrint(0,7,"Preset");gfxPrint(0,9,"Fine ct");gfxPrint(0,11,"Mode");const char* mode=fourOp()?"4 operator":dx7()?"6 operator":current()->chip.opl.topology==OPLTopology::fourOperator?"4 operator":current()->chip.opl.topology==OPLTopology::dualVoice?"Dual voice":"2 operator";gfxPrint(9,11,mode);instrumentFMAmpDrawStatic();}
+void drawStatic(){instrumentCommonDrawStatic();gfxSetFgColor(appSettings.colorScheme.textDefault);gfxPrint(0,6,"Bank");gfxPrint(0,7,"Preset");gfxPrint(0,9,"Fine ct");gfxPrint(0,11,"Mode");const char* mode=isOPLL(current()->type)?"2 operator":fourOp()?"4 operator":dx7()?"6 operator":current()->chip.opl.topology==OPLTopology::fourOperator?"4 operator":current()->chip.opl.topology==OPLTopology::dualVoice?"Dual voice":"2 operator";gfxPrint(9,11,mode);instrumentFMAmpDrawStatic();}
 void drawCursor(int col,int row){if(row==6){instrumentFMToneDrawCursor(col);return;}if(row>=7){instrumentFMAmpDrawCursor(col,row-7);return;}if(row<3)instrumentCommonDrawCursor(col,row);else gfxCursor(9,row==3?6:row==4?7:9,row==5?4:28);}
 void drawField(int col,int row,CellState state){
   if(row==6){instrumentFMToneDrawField(col,state);return;}if(row>=7){instrumentFMAmpDrawField(col,row-7,state);return;}
@@ -125,6 +156,15 @@ ScreenData screenInstrumentOPL={
  .drawField=drawField,.onEdit=onEdit,.onInput=onInput,.onRawInput=nullptr,.isCellValid=nullptr,.getLoopRange=nullptr,
 };
 
+void instrumentFMSetContext(int instrument, InstrumentType type) {
+  if(instrument!=contextInstrument||type!=contextType) {
+    bankFilter=0;
+    buttonDown=0;
+    contextInstrument=instrument;
+    contextType=type;
+  }
+}
+
 void instrumentFMImportSysEx(const char* path) {
   FILE* f=fopen(path,"rb");
   if(!f){screenMessage(MESSAGE_TIME_ERROR,"Could not open SysEx");screenSetup(&screenInstrument,cInstrument);return;}
@@ -136,11 +176,11 @@ void instrumentFMImportSysEx(const char* path) {
   readCatalog();
   // Metadata browsing and patch materialization happen on the UI thread only.
   if(catalog.size()+patches.size()>65536){screenMessage(MESSAGE_TIME_ERROR,"FM catalog limit reached");screenSetup(&screenInstrument,cInstrument);return;}
-  int bank=32768;for(const auto& e:catalog)bank=std::max(bank,e.bank+1);
-  if(bank>65535){screenMessage(MESSAGE_TIME_ERROR,"FM bank limit reached");return;}
+  int bank=32768;for(const auto& e:catalog)if(!e.library)bank=std::max(bank,e.bank+1);
+  if(bank>=40000){screenMessage(MESSAGE_TIME_ERROR,"FM bank limit reached");return;}
   const char* name=strrchr(path,PATH_SEPARATOR);name=name?name+1:path;
   for(auto& p:patches){p.bankId=bank;int index=importedDX7.size();importedDX7.push_back(p);catalog.push_back({int(InstrumentType::DX7),bank,name,"Unsorted",p.presetName,"",index});}
   // Opening a bank is transactional even when the current instrument isn't DX7.
   // Compatible imported entries are offered; selection performs the type change.
-  bankFilter=bank;importing=true;openSounds();
+  bankBeforeImport=bankFilter;bankFilter=bank;importing=true;openSounds();
 }

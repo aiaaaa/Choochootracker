@@ -327,9 +327,11 @@ struct InstrumentFMTone {
 
 struct InstrumentOPLL {
   uint8_t schema;
-  uint8_t program; // 1..15, zero is custom and is not exposed in R1
+  uint8_t program; // 1..15 ROM identity, zero is a custom tone
   int8_t fineTune; // cents
-  uint8_t patch[8]; // complete pinned tone, portable with the song
+  uint8_t patch[8]; // complete tone, portable with the song
+  uint16_t bankId;
+  char presetName[64];
   InstrumentFMAmp amp;
   InstrumentFMTone tone;
 };

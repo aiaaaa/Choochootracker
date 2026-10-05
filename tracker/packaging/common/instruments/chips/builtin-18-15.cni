@@ -18,6 +18,8 @@
 - Program: 15
 - Fine tune: 0
 - Tone bytes: 33,98,13,0,161,255,80,8
+- OPLL bank: 318
+- OPLL name: Sweep
 
 ### Table 0 (Retrig: Inst)
 
