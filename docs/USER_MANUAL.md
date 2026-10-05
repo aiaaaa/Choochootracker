@@ -1210,7 +1210,7 @@ the optional Amp env adds a software ADSR (see Native chip controls below).
 There is no full operator editor.
 
 New instruments store all eight native tone bytes, bank/name, program and fine tuning in
-the song/instrument file. Files containing these types use format 6.0 and need
+the song/instrument file. Files containing these types use format 7.0 and need
 this build or later. Earlier formats remain readable; songs without these types
 continue to save as 5.0. Rhythm programs are deferred. The expanded library is
 validated on the host; human listening and a new handheld check remain pending.
@@ -1246,7 +1246,7 @@ slow attacks: hold Seashore rather than expecting a short click to reveal it.
 
 Factory assets live in `instruments/chips` alongside the existing instrument
 library, with notices under `licenses/chip-banks`. Preset selection leaves the
-slot's table and track-owned inserts unchanged. These files also use 6.0 and
+slot's table and track-owned inserts unchanged. Newly saved files use 7.0 and
 embed the complete tone. Factory audio is machine-tested on host and ARM64; human audition
 remains pending.
 
@@ -1318,7 +1318,7 @@ rejected. Import never sends MIDI messages to external equipment.
 
 CNI and project version 6 store all 155 original voice bytes, the full display
 name, native strike velocity, fine tuning and source identity. Songs need no
-external bank to reopen. Older ChooChoo releases cannot read these version-6
+external bank to reopen. Older ChooChoo releases cannot read these version-7
 files; existing-only projects still save as version 5. Native velocity defaults
 to 100; tracker volume is post-synthesis gain and does not restrike the envelope.
 Operator envelopes, fixed-frequency mode, keyboard scaling, pitch envelope and
