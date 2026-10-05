@@ -3,7 +3,7 @@ Personal harmonization — October 5, 2026
 Requested sequence: reconcile GitHub/upstream and the personal build before the
 final handheld validation and installation. No public PR is requested.
 
-Pinned upstream: a88a403 (full hash recorded in personal-features.json).
+Pinned upstream: 8c87091 (full hash recorded in personal-features.json).
 Previous personal source: 65223b2666205e00f4775103cd3931215e76a609.
 GitHub personal/r36h was twelve local commits behind; no remote-only commits.
 The previous 65223b2 deployment supervisor was stopped during compilation,
@@ -34,8 +34,9 @@ Resolved overlap:
 
 Resume: upstream additionally reached 8c87091 (Android SDL2 header layout and
 web workflow commit ordering, plus generated upstream bundle). These build
-fixes will be merged after completing the existing a88a403 merge. Personal
-web assets are rebuilt from the combined source.
+fixes are merged after completing the existing a88a403 merge. Personal
+web assets retain the verified rebuild from the combined source; upstream
+changed no application sources after a88a403.
 
 The final DX7 popup group fits with persistent waveform both OFF and ON.
 The relative preset label is shortened so its complete range remains visible.
