@@ -76,7 +76,7 @@ var ENVIRONMENT_IS_SHELL = !ENVIRONMENT_IS_WEB && !ENVIRONMENT_IS_NODE && !ENVIR
 
 // --pre-jses are emitted after the Module integration code, so that they can
 // refer to Module (if they choose; they can also define Module)
-// include: /var/folders/g9/899ky8t11x9g4x5pskvtwrrh0000gn/T/tmpsnbksijs.js
+// include: /var/folders/g9/899ky8t11x9g4x5pskvtwrrh0000gn/T/tmpaj1my23m.js
 
   if (!Module['expectedDataFileDownloads']) Module['expectedDataFileDownloads'] = 0;
   Module['expectedDataFileDownloads']++;
@@ -171,9 +171,12 @@ Module['FS_createPath']("/", "fonts", true, true);
 Module['FS_createPath']("/fonts", "Pixel16x24", true, true);
 Module['FS_createPath']("/fonts/Pixel16x24", "licenses", true, true);
 Module['FS_createPath']("/", "instruments", true, true);
+Module['FS_createPath']("/instruments", "banks", true, true);
+Module['FS_createPath']("/instruments/banks", "dx7", true, true);
 Module['FS_createPath']("/instruments", "chips", true, true);
 Module['FS_createPath']("/", "licenses", true, true);
 Module['FS_createPath']("/licenses", "chip-banks", true, true);
+Module['FS_createPath']("/licenses/chip-banks", "expansion", true, true);
 Module['FS_createPath']("/licenses", "emu76489", true, true);
 Module['FS_createPath']("/licenses", "gb_apu", true, true);
 Module['FS_createPath']("/licenses", "msfa", true, true);
@@ -224,25 +227,25 @@ Module['FS_createPath']("/waveforms", "AKWF", true, true);
     }
 
     }
-    loadPackage({"files": [{"filename": "/AY_wavetables/AY-Waves-4.aywave", "start": 0, "end": 132}, {"filename": "/AY_wavetables/FIFTH.aywave", "start": 132, "end": 165}, {"filename": "/AY_wavetables/NESTRI.aywave", "start": 165, "end": 198}, {"filename": "/AY_wavetables/VRC6DSAW.aywave", "start": 198, "end": 231}, {"filename": "/AY_wavetables/VRC6SAW.aywave", "start": 231, "end": 264}, {"filename": "/SR_wavetables/WaveEdit/11-2020_.WAV", "start": 264, "end": 33076}, {"filename": "/SR_wavetables/WaveEdit/111.WAV", "start": 33076, "end": 65888}, {"filename": "/SR_wavetables/WaveEdit/111___00.WAV", "start": 65888, "end": 98700}, {"filename": "/SR_wavetables/WaveEdit/303.WAV", "start": 98700, "end": 131512}, {"filename": "/SR_wavetables/WaveEdit/AAHWOHYE.WAV", "start": 131512, "end": 164324}, {"filename": "/SR_wavetables/WaveEdit/ACCESS_V.WAV", "start": 164324, "end": 197136}, {"filename": "/SR_wavetables/WaveEdit/ACID_RIN.WAV", "start": 197136, "end": 229948}, {"filename": "/SR_wavetables/WaveEdit/ACID_SP.WAV", "start": 229948, "end": 262760}, {"filename": "/SR_wavetables/WaveEdit/ADDITIVE.WAV", "start": 262760, "end": 295572}, {"filename": "/SR_wavetables/WaveEdit/AEIOUTSX.WAV", "start": 295572, "end": 328384}, {"filename": "/SR_wavetables/WaveEdit/AKVF_GRA.WAV", "start": 328384, "end": 361196}, {"filename": "/SR_wavetables/WaveEdit/AKVF_NES.WAV", "start": 361196, "end": 394008}, {"filename": "/SR_wavetables/WaveEdit/AKVF_VID.WAV", "start": 394008, "end": 426820}, {"filename": "/SR_wavetables/WaveEdit/AKWF_FMS.WAV", "start": 426820, "end": 459632}, {"filename": "/SR_wavetables/WaveEdit/ALIEN_SP.WAV", "start": 459632, "end": 492444}, {"filename": "/SR_wavetables/WaveEdit/ALIEN_VO.WAV", "start": 492444, "end": 525256}, {"filename": "/SR_wavetables/WaveEdit/ALPHA_2_.WAV", "start": 525256, "end": 558068}, {"filename": "/SR_wavetables/WaveEdit/ALTO_SAX.WAV", "start": 558068, "end": 590880}, {"filename": "/SR_wavetables/WaveEdit/AMEN.WAV", "start": 590880, "end": 623692}, {"filename": "/SR_wavetables/WaveEdit/AMEN_LOO.WAV", "start": 623692, "end": 656504}, {"filename": "/SR_wavetables/WaveEdit/AM_SINE.WAV", "start": 656504, "end": 689316}, {"filename": "/SR_wavetables/WaveEdit/ANALOG_W.WAV", "start": 689316, "end": 722128}, {"filename": "/SR_wavetables/WaveEdit/ASSYMETR.WAV", "start": 722128, "end": 754940}, {"filename": "/SR_wavetables/WaveEdit/AUDIOTER.WAV", "start": 754940, "end": 787752}, {"filename": "/SR_wavetables/WaveEdit/A_55HZ_-.WAV", "start": 787752, "end": 820564}, {"filename": "/SR_wavetables/WaveEdit/BANK_410.WAV", "start": 820564, "end": 853376}, {"filename": "/SR_wavetables/WaveEdit/BANK_A.WAV", "start": 853376, "end": 886188}, {"filename": "/SR_wavetables/WaveEdit/BANK_B.WAV", "start": 886188, "end": 919000}, {"filename": "/SR_wavetables/WaveEdit/BANK_C.WAV", "start": 919000, "end": 951812}, {"filename": "/SR_wavetables/WaveEdit/BASIC_TH.WAV", "start": 951812, "end": 984624}, {"filename": "/SR_wavetables/WaveEdit/BASIC_WA.WAV", "start": 984624, "end": 1017436}, {"filename": "/SR_wavetables/WaveEdit/BASS_BY_.WAV", "start": 1017436, "end": 1050248}, {"filename": "/SR_wavetables/WaveEdit/BBELLS.WAV", "start": 1050248, "end": 1083060}, {"filename": "/SR_wavetables/WaveEdit/BELL02.WAV", "start": 1083060, "end": 1115872}, {"filename": "/SR_wavetables/WaveEdit/BELL03.WAV", "start": 1115872, "end": 1148684}, {"filename": "/SR_wavetables/WaveEdit/BELLS.WAV", "start": 1148684, "end": 1181496}, {"filename": "/SR_wavetables/WaveEdit/BEST_OF_.WAV", "start": 1181496, "end": 1214308}, {"filename": "/SR_wavetables/WaveEdit/BOWED_00.WAV", "start": 1214308, "end": 1247120}, {"filename": "/SR_wavetables/WaveEdit/BOWED_CY.WAV", "start": 1247120, "end": 1279932}, {"filename": "/SR_wavetables/WaveEdit/BOWING.WAV", "start": 1279932, "end": 1312744}, {"filename": "/SR_wavetables/WaveEdit/BRAIDS01.WAV", "start": 1312744, "end": 1345556}, {"filename": "/SR_wavetables/WaveEdit/BRAIDS02.WAV", "start": 1345556, "end": 1378368}, {"filename": "/SR_wavetables/WaveEdit/BRAIDS03.WAV", "start": 1378368, "end": 1411180}, {"filename": "/SR_wavetables/WaveEdit/BRAIDS04.WAV", "start": 1411180, "end": 1443992}, {"filename": "/SR_wavetables/WaveEdit/CHEBYSHE.WAV", "start": 1443992, "end": 1476804}, {"filename": "/SR_wavetables/WaveEdit/CLOCK_MU.WAV", "start": 1476804, "end": 1509616}, {"filename": "/SR_wavetables/WaveEdit/COLUNDI-.WAV", "start": 1509616, "end": 1542428}, {"filename": "/SR_wavetables/WaveEdit/CRUSH_AD.WAV", "start": 1542428, "end": 1575240}, {"filename": "/SR_wavetables/WaveEdit/CYBERNET.WAV", "start": 1575240, "end": 1608052}, {"filename": "/SR_wavetables/WaveEdit/CYBORG.WAV", "start": 1608052, "end": 1640864}, {"filename": "/SR_wavetables/WaveEdit/CZ-ISH.WAV", "start": 1640864, "end": 1673676}, {"filename": "/SR_wavetables/WaveEdit/DECIDE.WAV", "start": 1673676, "end": 1706488}, {"filename": "/SR_wavetables/WaveEdit/DIGITAL_.WAV", "start": 1706488, "end": 1739300}, {"filename": "/SR_wavetables/WaveEdit/DIRTY_01.WAV", "start": 1739300, "end": 1772112}, {"filename": "/SR_wavetables/WaveEdit/DIRTY_02.WAV", "start": 1772112, "end": 1804924}, {"filename": "/SR_wavetables/WaveEdit/DISCORDA.WAV", "start": 1804924, "end": 1837736}, {"filename": "/SR_wavetables/WaveEdit/DISTORTE.WAV", "start": 1837736, "end": 1870548}, {"filename": "/SR_wavetables/WaveEdit/DOSE_WIT.WAV", "start": 1870548, "end": 1903360}, {"filename": "/SR_wavetables/WaveEdit/DRONE.WAV", "start": 1903360, "end": 1936172}, {"filename": "/SR_wavetables/WaveEdit/DRONE_.WAV", "start": 1936172, "end": 1968984}, {"filename": "/SR_wavetables/WaveEdit/DRUMSTRU.WAV", "start": 1968984, "end": 2001796}, {"filename": "/SR_wavetables/WaveEdit/E.GUITAR.WAV", "start": 2001796, "end": 2034608}, {"filename": "/SR_wavetables/WaveEdit/ELOB_A.WAV", "start": 2034608, "end": 2067420}, {"filename": "/SR_wavetables/WaveEdit/ELOB_B.WAV", "start": 2067420, "end": 2100232}, {"filename": "/SR_wavetables/WaveEdit/ELOB_C.WAV", "start": 2100232, "end": 2133044}, {"filename": "/SR_wavetables/WaveEdit/ENSHTU02.WAV", "start": 2133044, "end": 2165856}, {"filename": "/SR_wavetables/WaveEdit/ENSHTU03.WAV", "start": 2165856, "end": 2198668}, {"filename": "/SR_wavetables/WaveEdit/ENSHTURZ.WAV", "start": 2198668, "end": 2231480}, {"filename": "/SR_wavetables/WaveEdit/ENSONIQ_.WAV", "start": 2231480, "end": 2264292}, {"filename": "/SR_wavetables/WaveEdit/ENVELO00.WAV", "start": 2264292, "end": 2297104}, {"filename": "/SR_wavetables/WaveEdit/ENVELO01.WAV", "start": 2297104, "end": 2329916}, {"filename": "/SR_wavetables/WaveEdit/ENVELOPE.WAV", "start": 2329916, "end": 2362728}, {"filename": "/SR_wavetables/WaveEdit/ESQ1-HI.WAV", "start": 2362728, "end": 2395540}, {"filename": "/SR_wavetables/WaveEdit/ESQ1-LO.WAV", "start": 2395540, "end": 2428352}, {"filename": "/SR_wavetables/WaveEdit/EUCLIDEA.WAV", "start": 2428352, "end": 2461164}, {"filename": "/SR_wavetables/WaveEdit/FAIRLI01.WAV", "start": 2461164, "end": 2493976}, {"filename": "/SR_wavetables/WaveEdit/FAIRLIGH.WAV", "start": 2493976, "end": 2526788}, {"filename": "/SR_wavetables/WaveEdit/FEEDBACK.WAV", "start": 2526788, "end": 2559600}, {"filename": "/SR_wavetables/WaveEdit/FMADDI02.WAV", "start": 2559600, "end": 2592412}, {"filename": "/SR_wavetables/WaveEdit/FM_-_COM.WAV", "start": 2592412, "end": 2625224}, {"filename": "/SR_wavetables/WaveEdit/FOLDFEED.WAV", "start": 2625224, "end": 2658036}, {"filename": "/SR_wavetables/WaveEdit/FOLDING_.WAV", "start": 2658036, "end": 2690848}, {"filename": "/SR_wavetables/WaveEdit/FOURIER.WAV", "start": 2690848, "end": 2723660}, {"filename": "/SR_wavetables/WaveEdit/FOURIER2.WAV", "start": 2723660, "end": 2756472}, {"filename": "/SR_wavetables/WaveEdit/FRACTA01.WAV", "start": 2756472, "end": 2789284}, {"filename": "/SR_wavetables/WaveEdit/FRACTA02.WAV", "start": 2789284, "end": 2822096}, {"filename": "/SR_wavetables/WaveEdit/FRACTA03.WAV", "start": 2822096, "end": 2854908}, {"filename": "/SR_wavetables/WaveEdit/FRED_DUR.WAV", "start": 2854908, "end": 2887720}, {"filename": "/SR_wavetables/WaveEdit/FX_BITNO.WAV", "start": 2887720, "end": 2920532}, {"filename": "/SR_wavetables/WaveEdit/FX_BIT_N.WAV", "start": 2920532, "end": 2953344}, {"filename": "/SR_wavetables/WaveEdit/G2_ASTRA.WAV", "start": 2953344, "end": 2986156}, {"filename": "/SR_wavetables/WaveEdit/GENTLE_M.WAV", "start": 2986156, "end": 3018968}, {"filename": "/SR_wavetables/WaveEdit/GEOMETRI.WAV", "start": 3018968, "end": 3051780}, {"filename": "/SR_wavetables/WaveEdit/GLITCHBO.WAV", "start": 3051780, "end": 3084592}, {"filename": "/SR_wavetables/WaveEdit/GRAV-A1.WAV", "start": 3084592, "end": 3117404}, {"filename": "/SR_wavetables/WaveEdit/GRAV-A10.WAV", "start": 3117404, "end": 3150216}, {"filename": "/SR_wavetables/WaveEdit/GRAV-A2.WAV", "start": 3150216, "end": 3183028}, {"filename": "/SR_wavetables/WaveEdit/GRAV-A3.WAV", "start": 3183028, "end": 3215840}, {"filename": "/SR_wavetables/WaveEdit/GRAV-A4.WAV", "start": 3215840, "end": 3248652}, {"filename": "/SR_wavetables/WaveEdit/GRAV-A5.WAV", "start": 3248652, "end": 3281464}, {"filename": "/SR_wavetables/WaveEdit/GRAV-A6.WAV", "start": 3281464, "end": 3314276}, {"filename": "/SR_wavetables/WaveEdit/GRAV-A7.WAV", "start": 3314276, "end": 3347088}, {"filename": "/SR_wavetables/WaveEdit/GRAV-A8.WAV", "start": 3347088, "end": 3379900}, {"filename": "/SR_wavetables/WaveEdit/GRAV-A9.WAV", "start": 3379900, "end": 3412712}, {"filename": "/SR_wavetables/WaveEdit/GRAV-B1.WAV", "start": 3412712, "end": 3445524}, {"filename": "/SR_wavetables/WaveEdit/GRAV-B10.WAV", "start": 3445524, "end": 3478336}, {"filename": "/SR_wavetables/WaveEdit/GRAV-B2.WAV", "start": 3478336, "end": 3511148}, {"filename": "/SR_wavetables/WaveEdit/GRAV-B3.WAV", "start": 3511148, "end": 3543960}, {"filename": "/SR_wavetables/WaveEdit/GRAV-B4.WAV", "start": 3543960, "end": 3576772}, {"filename": "/SR_wavetables/WaveEdit/GRAV-B5.WAV", "start": 3576772, "end": 3609584}, {"filename": "/SR_wavetables/WaveEdit/GRAV-B6.WAV", "start": 3609584, "end": 3642396}, {"filename": "/SR_wavetables/WaveEdit/GRAV-B7.WAV", "start": 3642396, "end": 3675208}, {"filename": "/SR_wavetables/WaveEdit/GRAV-B8.WAV", "start": 3675208, "end": 3708020}, {"filename": "/SR_wavetables/WaveEdit/GRAV-B9.WAV", "start": 3708020, "end": 3740832}, {"filename": "/SR_wavetables/WaveEdit/GRAV-C1.WAV", "start": 3740832, "end": 3773644}, {"filename": "/SR_wavetables/WaveEdit/GRAV-C10.WAV", "start": 3773644, "end": 3806456}, {"filename": "/SR_wavetables/WaveEdit/GRAV-C2.WAV", "start": 3806456, "end": 3839268}, {"filename": "/SR_wavetables/WaveEdit/GRAV-C3.WAV", "start": 3839268, "end": 3872080}, {"filename": "/SR_wavetables/WaveEdit/GRAV-C5.WAV", "start": 3872080, "end": 3904892}, {"filename": "/SR_wavetables/WaveEdit/GRAV-C6.WAV", "start": 3904892, "end": 3937704}, {"filename": "/SR_wavetables/WaveEdit/GRAV-C7.WAV", "start": 3937704, "end": 3970516}, {"filename": "/SR_wavetables/WaveEdit/GRAV-C8.WAV", "start": 3970516, "end": 4003328}, {"filename": "/SR_wavetables/WaveEdit/GRAV-C9.WAV", "start": 4003328, "end": 4036140}, {"filename": "/SR_wavetables/WaveEdit/HARMOMET.WAV", "start": 4036140, "end": 4068952}, {"filename": "/SR_wavetables/WaveEdit/HARMON00.WAV", "start": 4068952, "end": 4101764}, {"filename": "/SR_wavetables/WaveEdit/HARMONIC.WAV", "start": 4101764, "end": 4134576}, {"filename": "/SR_wavetables/WaveEdit/HARMONIO.WAV", "start": 4134576, "end": 4167388}, {"filename": "/SR_wavetables/WaveEdit/HARMONIX.WAV", "start": 4167388, "end": 4200200}, {"filename": "/SR_wavetables/WaveEdit/HIENHARM.WAV", "start": 4200200, "end": 4233012}, {"filename": "/SR_wavetables/WaveEdit/HIGH_FRE.WAV", "start": 4233012, "end": 4265824}, {"filename": "/SR_wavetables/WaveEdit/HMMMMMMM.WAV", "start": 4265824, "end": 4298636}, {"filename": "/SR_wavetables/WaveEdit/HORROR.WAV", "start": 4298636, "end": 4331448}, {"filename": "/SR_wavetables/WaveEdit/HVOICEA.WAV", "start": 4331448, "end": 4364260}, {"filename": "/SR_wavetables/WaveEdit/HYPERBOL.WAV", "start": 4364260, "end": 4397072}, {"filename": "/SR_wavetables/WaveEdit/ISOBELLE.WAV", "start": 4397072, "end": 4429884}, {"filename": "/SR_wavetables/WaveEdit/ISOLDE.WAV", "start": 4429884, "end": 4462696}, {"filename": "/SR_wavetables/WaveEdit/ITERAT00.WAV", "start": 4462696, "end": 4495508}, {"filename": "/SR_wavetables/WaveEdit/ITERATIV.WAV", "start": 4495508, "end": 4528320}, {"filename": "/SR_wavetables/WaveEdit/I_HEART_.WAV", "start": 4528320, "end": 4561132}, {"filename": "/SR_wavetables/WaveEdit/JUNOX_HO.WAV", "start": 4561132, "end": 4593944}, {"filename": "/SR_wavetables/WaveEdit/JUST_RAN.WAV", "start": 4593944, "end": 4626756}, {"filename": "/SR_wavetables/WaveEdit/KAWAI_K1.WAV", "start": 4626756, "end": 4659568}, {"filename": "/SR_wavetables/WaveEdit/KEEN.WAV", "start": 4659568, "end": 4692380}, {"filename": "/SR_wavetables/WaveEdit/KERMIT00.WAV", "start": 4692380, "end": 4725192}, {"filename": "/SR_wavetables/WaveEdit/KERMIT01.WAV", "start": 4725192, "end": 4758004}, {"filename": "/SR_wavetables/WaveEdit/KERMITEN.WAV", "start": 4758004, "end": 4790816}, {"filename": "/SR_wavetables/WaveEdit/KERMIT_0.WAV", "start": 4790816, "end": 4823628}, {"filename": "/SR_wavetables/WaveEdit/KERMIT_K.WAV", "start": 4823628, "end": 4856440}, {"filename": "/SR_wavetables/WaveEdit/KERMIT_R.WAV", "start": 4856440, "end": 4889252}, {"filename": "/SR_wavetables/WaveEdit/KOMPLE01.WAV", "start": 4889252, "end": 4922064}, {"filename": "/SR_wavetables/WaveEdit/KONBANWA.WAV", "start": 4922064, "end": 4954876}, {"filename": "/SR_wavetables/WaveEdit/KUATO.WAV", "start": 4954876, "end": 4987688}, {"filename": "/SR_wavetables/WaveEdit/KYMA_PAR.WAV", "start": 4987688, "end": 5020500}, {"filename": "/SR_wavetables/WaveEdit/LASER_CR.WAV", "start": 5020500, "end": 5053312}, {"filename": "/SR_wavetables/WaveEdit/LERNING2.WAV", "start": 5053312, "end": 5086124}, {"filename": "/SR_wavetables/WaveEdit/LFO_PL00.WAV", "start": 5086124, "end": 5118936}, {"filename": "/SR_wavetables/WaveEdit/LFO_PLAY.WAV", "start": 5118936, "end": 5151748}, {"filename": "/SR_wavetables/WaveEdit/LICENSE.CC0.md", "start": 5151748, "end": 5152093}, {"filename": "/SR_wavetables/WaveEdit/LIGHT_00.WAV", "start": 5152093, "end": 5184905}, {"filename": "/SR_wavetables/WaveEdit/LIGHT_YE.WAV", "start": 5184905, "end": 5217717}, {"filename": "/SR_wavetables/WaveEdit/LOFIRISE.WAV", "start": 5217717, "end": 5250529}, {"filename": "/SR_wavetables/WaveEdit/LOM_A.WAV", "start": 5250529, "end": 5283341}, {"filename": "/SR_wavetables/WaveEdit/LSDJ_WAV.WAV", "start": 5283341, "end": 5316153}, {"filename": "/SR_wavetables/WaveEdit/MAGNET00.WAV", "start": 5316153, "end": 5348965}, {"filename": "/SR_wavetables/WaveEdit/MAGNETIC.WAV", "start": 5348965, "end": 5381777}, {"filename": "/SR_wavetables/WaveEdit/MELLOW_D.WAV", "start": 5381777, "end": 5414589}, {"filename": "/SR_wavetables/WaveEdit/MERAVIGL.WAV", "start": 5414589, "end": 5447401}, {"filename": "/SR_wavetables/WaveEdit/MICROBRU.WAV", "start": 5447401, "end": 5480213}, {"filename": "/SR_wavetables/WaveEdit/MICROW02.WAV", "start": 5480213, "end": 5513025}, {"filename": "/SR_wavetables/WaveEdit/MICRO_Q_.WAV", "start": 5513025, "end": 5545837}, {"filename": "/SR_wavetables/WaveEdit/MIXED02.WAV", "start": 5545837, "end": 5578649}, {"filename": "/SR_wavetables/WaveEdit/MIXED_AS.WAV", "start": 5578649, "end": 5611461}, {"filename": "/SR_wavetables/WaveEdit/MK_DWG_H.WAV", "start": 5611461, "end": 5644273}, {"filename": "/SR_wavetables/WaveEdit/MODDROP.WAV", "start": 5644273, "end": 5677085}, {"filename": "/SR_wavetables/WaveEdit/MONICS.WAV", "start": 5677085, "end": 5709897}, {"filename": "/SR_wavetables/WaveEdit/MORPHING.WAV", "start": 5709897, "end": 5742709}, {"filename": "/SR_wavetables/WaveEdit/MS2K.WAV", "start": 5742709, "end": 5775521}, {"filename": "/SR_wavetables/WaveEdit/MUTATION.WAV", "start": 5775521, "end": 5808333}, {"filename": "/SR_wavetables/WaveEdit/NOISE_WA.WAV", "start": 5808333, "end": 5841145}, {"filename": "/SR_wavetables/WaveEdit/NOMAD.WAV", "start": 5841145, "end": 5873957}, {"filename": "/SR_wavetables/WaveEdit/ORGANIC_.WAV", "start": 5873957, "end": 5906769}, {"filename": "/SR_wavetables/WaveEdit/ORGANS01.WAV", "start": 5906769, "end": 5939581}, {"filename": "/SR_wavetables/WaveEdit/ORGAN_DI.WAV", "start": 5939581, "end": 5972393}, {"filename": "/SR_wavetables/WaveEdit/OSMAOS.WAV", "start": 5972393, "end": 6005205}, {"filename": "/SR_wavetables/WaveEdit/PD101.WAV", "start": 6005205, "end": 6038017}, {"filename": "/SR_wavetables/WaveEdit/PD102.WAV", "start": 6038017, "end": 6070829}, {"filename": "/SR_wavetables/WaveEdit/PD103.WAV", "start": 6070829, "end": 6103641}, {"filename": "/SR_wavetables/WaveEdit/PD104.WAV", "start": 6103641, "end": 6136453}, {"filename": "/SR_wavetables/WaveEdit/PHANTOMS.WAV", "start": 6136453, "end": 6169265}, {"filename": "/SR_wavetables/WaveEdit/PISTON_H.WAV", "start": 6169265, "end": 6202077}, {"filename": "/SR_wavetables/WaveEdit/PLAITS01.WAV", "start": 6202077, "end": 6234889}, {"filename": "/SR_wavetables/WaveEdit/PLAITS02.WAV", "start": 6234889, "end": 6267701}, {"filename": "/SR_wavetables/WaveEdit/PLAITS03.WAV", "start": 6267701, "end": 6300513}, {"filename": "/SR_wavetables/WaveEdit/PLESANT_.WAV", "start": 6300513, "end": 6333325}, {"filename": "/SR_wavetables/WaveEdit/PPG_BES.WAV", "start": 6333325, "end": 6366137}, {"filename": "/SR_wavetables/WaveEdit/PPG_UPPE.WAV", "start": 6366137, "end": 6398949}, {"filename": "/SR_wavetables/WaveEdit/PPG_WA00.WAV", "start": 6398949, "end": 6431761}, {"filename": "/SR_wavetables/WaveEdit/PPG_WA01.WAV", "start": 6431761, "end": 6464573}, {"filename": "/SR_wavetables/WaveEdit/PPG_WA02.WAV", "start": 6464573, "end": 6497385}, {"filename": "/SR_wavetables/WaveEdit/PPG_WA03.WAV", "start": 6497385, "end": 6530197}, {"filename": "/SR_wavetables/WaveEdit/PPG_WA04.WAV", "start": 6530197, "end": 6563009}, {"filename": "/fonts/Console.cnfont", "start": 6563009, "end": 6763792}, {"filename": "/fonts/Default.cnfont", "start": 6763792, "end": 6964572}, {"filename": "/fonts/IBM_VGA.cnfont", "start": 6964572, "end": 7165380}, {"filename": "/fonts/PSGCAPITAL.cnfont", "start": 7165380, "end": 7366640}, {"filename": "/fonts/Pixel16x24/01_TechMonoAudit.cnfont", "start": 7366640, "end": 7380606}, {"filename": "/fonts/Pixel16x24/02_DepartureMono.cnfont", "start": 7380606, "end": 7394571}, {"filename": "/fonts/Pixel16x24/03_Spleen.cnfont", "start": 7394571, "end": 7408534}, {"filename": "/fonts/Pixel16x24/04_Cozette.cnfont", "start": 7408534, "end": 7422484}, {"filename": "/fonts/Pixel16x24/README.txt", "start": 7422484, "end": 7425667}, {"filename": "/fonts/Pixel16x24/licenses/Cozette-LICENSE.txt", "start": 7425667, "end": 7426747}, {"filename": "/fonts/Pixel16x24/licenses/DepartureMono-OFL.txt", "start": 7426747, "end": 7431104}, {"filename": "/fonts/Pixel16x24/licenses/ShareTechMono-OFL.txt", "start": 7431104, "end": 7435533}, {"filename": "/fonts/Pixel16x24/licenses/Spleen-LICENSE.txt", "start": 7435533, "end": 7436846}, {"filename": "/fonts/RobotoMono.cnfont", "start": 7436846, "end": 7637656}, {"filename": "/fonts/tm-prosto-constructivist.cnfont", "start": 7637656, "end": 7838468}, {"filename": "/instruments/BD 1.cni", "start": 7838468, "end": 7839231}, {"filename": "/instruments/BD Bass 1.cni", "start": 7839231, "end": 7839999}, {"filename": "/instruments/Bass 1.cni", "start": 7839999, "end": 7840766}, {"filename": "/instruments/Bass 2.cni", "start": 7840766, "end": 7841535}, {"filename": "/instruments/Bass Saw 1.cni", "start": 7841535, "end": 7842303}, {"filename": "/instruments/Bass Slap 1.cni", "start": 7842303, "end": 7843074}, {"filename": "/instruments/Bass Slap 2.cni", "start": 7843074, "end": 7843845}, {"filename": "/instruments/Bass Slap 3.cni", "start": 7843845, "end": 7844616}, {"filename": "/instruments/Bass Tri 1.cni", "start": 7844616, "end": 7845384}, {"filename": "/instruments/Clap.cni", "start": 7845384, "end": 7846149}, {"filename": "/instruments/DrumSynth Clap.cni", "start": 7846149, "end": 7846594}, {"filename": "/instruments/DrumSynth Clave.cni", "start": 7846594, "end": 7847041}, {"filename": "/instruments/DrumSynth Cowbell.cni", "start": 7847041, "end": 7847493}, {"filename": "/instruments/DrumSynth Cymbal.cni", "start": 7847493, "end": 7847943}, {"filename": "/instruments/DrumSynth FM.cni", "start": 7847943, "end": 7848389}, {"filename": "/instruments/DrumSynth Hat.cni", "start": 7848389, "end": 7848835}, {"filename": "/instruments/DrumSynth Kick.cni", "start": 7848835, "end": 7849282}, {"filename": "/instruments/DrumSynth Noise.cni", "start": 7849282, "end": 7849728}, {"filename": "/instruments/DrumSynth Rim.cni", "start": 7849728, "end": 7850172}, {"filename": "/instruments/DrumSynth Shaker.cni", "start": 7850172, "end": 7850620}, {"filename": "/instruments/DrumSynth Snare.cni", "start": 7850620, "end": 7851068}, {"filename": "/instruments/DrumSynth Tom.cni", "start": 7851068, "end": 7851513}, {"filename": "/instruments/Fall.cni", "start": 7851513, "end": 7852278}, {"filename": "/instruments/Hat 1.cni", "start": 7852278, "end": 7853041}, {"filename": "/instruments/Lead 1.cni", "start": 7853041, "end": 7853808}, {"filename": "/instruments/Pluck 1.cni", "start": 7853808, "end": 7854574}, {"filename": "/instruments/Rim.cni", "start": 7854574, "end": 7855337}, {"filename": "/instruments/Riser 1.cni", "start": 7855337, "end": 7856104}, {"filename": "/instruments/Sax.cni", "start": 7856104, "end": 7856868}, {"filename": "/instruments/ShortArp 1.cni", "start": 7856868, "end": 7857638}, {"filename": "/instruments/Sintered Burst.cni", "start": 7857638, "end": 7857964}, {"filename": "/instruments/Sintered Comb.cni", "start": 7857964, "end": 7858292}, {"filename": "/instruments/Sintered Knot.cni", "start": 7858292, "end": 7858740}, {"filename": "/instruments/Sintered Logic.cni", "start": 7858740, "end": 7859069}, {"filename": "/instruments/Sintered Melt.cni", "start": 7859069, "end": 7859396}, {"filename": "/instruments/Sintered Shard.cni", "start": 7859396, "end": 7859724}, {"filename": "/instruments/Snare 1.cni", "start": 7859724, "end": 7860487}, {"filename": "/instruments/Snare 2.cni", "start": 7860487, "end": 7861253}, {"filename": "/instruments/Tom 1.cni", "start": 7861253, "end": 7862016}, {"filename": "/instruments/Waves.cni", "start": 7862016, "end": 7862784}, {"filename": "/instruments/chips/builtin-17-01.cni", "start": 7862784, "end": 7863724}, {"filename": "/instruments/chips/builtin-17-02.cni", "start": 7863724, "end": 7864664}, {"filename": "/instruments/chips/builtin-17-03.cni", "start": 7864664, "end": 7865602}, {"filename": "/instruments/chips/builtin-17-04.cni", "start": 7865602, "end": 7866541}, {"filename": "/instruments/chips/builtin-17-05.cni", "start": 7866541, "end": 7867481}, {"filename": "/instruments/chips/builtin-17-06.cni", "start": 7867481, "end": 7868418}, {"filename": "/instruments/chips/builtin-17-07.cni", "start": 7868418, "end": 7869357}, {"filename": "/instruments/chips/builtin-17-08.cni", "start": 7869357, "end": 7870294}, {"filename": "/instruments/chips/builtin-17-09.cni", "start": 7870294, "end": 7871231}, {"filename": "/instruments/chips/builtin-17-10.cni", "start": 7871231, "end": 7872177}, {"filename": "/instruments/chips/builtin-17-11.cni", "start": 7872177, "end": 7873122}, {"filename": "/instruments/chips/builtin-17-12.cni", "start": 7873122, "end": 7874067}, {"filename": "/instruments/chips/builtin-17-13.cni", "start": 7874067, "end": 7875016}, {"filename": "/instruments/chips/builtin-17-14.cni", "start": 7875016, "end": 7875959}, {"filename": "/instruments/chips/builtin-17-15.cni", "start": 7875959, "end": 7876909}, {"filename": "/instruments/chips/builtin-18-01.cni", "start": 7876909, "end": 7877850}, {"filename": "/instruments/chips/builtin-18-02.cni", "start": 7877850, "end": 7878790}, {"filename": "/instruments/chips/builtin-18-03.cni", "start": 7878790, "end": 7879727}, {"filename": "/instruments/chips/builtin-18-04.cni", "start": 7879727, "end": 7880665}, {"filename": "/instruments/chips/builtin-18-05.cni", "start": 7880665, "end": 7881605}, {"filename": "/instruments/chips/builtin-18-06.cni", "start": 7881605, "end": 7882538}, {"filename": "/instruments/chips/builtin-18-07.cni", "start": 7882538, "end": 7883477}, {"filename": "/instruments/chips/builtin-18-08.cni", "start": 7883477, "end": 7884415}, {"filename": "/instruments/chips/builtin-18-09.cni", "start": 7884415, "end": 7885352}, {"filename": "/instruments/chips/builtin-18-10.cni", "start": 7885352, "end": 7886291}, {"filename": "/instruments/chips/builtin-18-11.cni", "start": 7886291, "end": 7887236}, {"filename": "/instruments/chips/builtin-18-12.cni", "start": 7887236, "end": 7888176}, {"filename": "/instruments/chips/builtin-18-13.cni", "start": 7888176, "end": 7889119}, {"filename": "/instruments/chips/builtin-18-14.cni", "start": 7889119, "end": 7890062}, {"filename": "/instruments/chips/builtin-18-15.cni", "start": 7890062, "end": 7891000}, {"filename": "/instruments/chips/builtin-21-00.cni", "start": 7891000, "end": 7892096}, {"filename": "/instruments/chips/builtin-21-01.cni", "start": 7892096, "end": 7893191}, {"filename": "/instruments/chips/builtin-21-02.cni", "start": 7893191, "end": 7894287}, {"filename": "/instruments/chips/builtin-21-03.cni", "start": 7894287, "end": 7895383}, {"filename": "/instruments/chips/builtin-21-04.cni", "start": 7895383, "end": 7896476}, {"filename": "/instruments/chips/builtin-21-05.cni", "start": 7896476, "end": 7897572}, {"filename": "/instruments/chips/builtin-21-06.cni", "start": 7897572, "end": 7898667}, {"filename": "/instruments/chips/builtin-21-07.cni", "start": 7898667, "end": 7899760}, {"filename": "/instruments/chips/builtin-21-08.cni", "start": 7899760, "end": 7900852}, {"filename": "/instruments/chips/builtin-21-09.cni", "start": 7900852, "end": 7901947}, {"filename": "/instruments/chips/builtin-21-10.cni", "start": 7901947, "end": 7903041}, {"filename": "/instruments/chips/builtin-21-11.cni", "start": 7903041, "end": 7904136}, {"filename": "/instruments/chips/builtin-21-12.cni", "start": 7904136, "end": 7905227}, {"filename": "/instruments/chips/builtin-21-13.cni", "start": 7905227, "end": 7906326}, {"filename": "/instruments/chips/builtin-22-00.cni", "start": 7906326, "end": 7907422}, {"filename": "/instruments/chips/builtin-22-01.cni", "start": 7907422, "end": 7908519}, {"filename": "/instruments/chips/builtin-22-02.cni", "start": 7908519, "end": 7909613}, {"filename": "/instruments/chips/builtin-22-03.cni", "start": 7909613, "end": 7910705}, {"filename": "/instruments/chips/builtin-22-04.cni", "start": 7910705, "end": 7911801}, {"filename": "/instruments/chips/builtin-22-05.cni", "start": 7911801, "end": 7912898}, {"filename": "/instruments/chips/builtin-22-06.cni", "start": 7912898, "end": 7913992}, {"filename": "/instruments/chips/builtin-22-07.cni", "start": 7913992, "end": 7915083}, {"filename": "/instruments/chips/builtin-22-08.cni", "start": 7915083, "end": 7916179}, {"filename": "/instruments/chips/builtin-22-09.cni", "start": 7916179, "end": 7917274}, {"filename": "/instruments/chips/builtin-23-00.cni", "start": 7917274, "end": 7918368}, {"filename": "/instruments/chips/builtin-23-01.cni", "start": 7918368, "end": 7919460}, {"filename": "/instruments/chips/builtin-23-02.cni", "start": 7919460, "end": 7920555}, {"filename": "/instruments/chips/builtin-23-03.cni", "start": 7920555, "end": 7921645}, {"filename": "/instruments/chips/builtin-23-04.cni", "start": 7921645, "end": 7922738}, {"filename": "/instruments/chips/builtin-23-05.cni", "start": 7922738, "end": 7923829}, {"filename": "/instruments/chips/builtin-23-06.cni", "start": 7923829, "end": 7924923}, {"filename": "/instruments/chips/builtin-23-07.cni", "start": 7924923, "end": 7926017}, {"filename": "/instruments/chips/builtin-23-08.cni", "start": 7926017, "end": 7927113}, {"filename": "/instruments/chips/builtin-23-09.cni", "start": 7927113, "end": 7928208}, {"filename": "/instruments/chips/builtins-manifest.json", "start": 7928208, "end": 7943643}, {"filename": "/instruments/chips/builtins.tsv", "start": 7943643, "end": 7946995}, {"filename": "/instruments/chips/catalog.tsv", "start": 7946995, "end": 8001580}, {"filename": "/instruments/chips/dmxopl3-0-00000-000.cni", "start": 8001580, "end": 8002694}, {"filename": "/instruments/chips/dmxopl3-0-00000-001.cni", "start": 8002694, "end": 8003810}, {"filename": "/instruments/chips/dmxopl3-0-00000-002.cni", "start": 8003810, "end": 8004917}, {"filename": "/instruments/chips/dmxopl3-0-00000-003.cni", "start": 8004917, "end": 8006029}, {"filename": "/instruments/chips/dmxopl3-0-00000-004.cni", "start": 8006029, "end": 8007146}, {"filename": "/instruments/chips/dmxopl3-0-00000-005.cni", "start": 8007146, "end": 8008263}, {"filename": "/instruments/chips/dmxopl3-0-00000-006.cni", "start": 8008263, "end": 8009366}, {"filename": "/instruments/chips/dmxopl3-0-00000-007.cni", "start": 8009366, "end": 8010463}, {"filename": "/instruments/chips/dmxopl3-0-00000-008.cni", "start": 8010463, "end": 8011554}, {"filename": "/instruments/chips/dmxopl3-0-00000-009.cni", "start": 8011554, "end": 8012664}, {"filename": "/instruments/chips/dmxopl3-0-00000-010.cni", "start": 8012664, "end": 8013757}, {"filename": "/instruments/chips/dmxopl3-0-00000-011.cni", "start": 8013757, "end": 8014855}, {"filename": "/instruments/chips/dmxopl3-0-00000-012.cni", "start": 8014855, "end": 8015949}, {"filename": "/instruments/chips/dmxopl3-0-00000-013.cni", "start": 8015949, "end": 8017049}, {"filename": "/instruments/chips/dmxopl3-0-00000-014.cni", "start": 8017049, "end": 8018159}, {"filename": "/instruments/chips/dmxopl3-0-00000-015.cni", "start": 8018159, "end": 8019251}, {"filename": "/instruments/chips/dmxopl3-0-00000-016.cni", "start": 8019251, "end": 8020355}, {"filename": "/instruments/chips/dmxopl3-0-00000-017.cni", "start": 8020355, "end": 8021468}, {"filename": "/instruments/chips/dmxopl3-0-00000-018.cni", "start": 8021468, "end": 8022568}, {"filename": "/instruments/chips/dmxopl3-0-00000-019.cni", "start": 8022568, "end": 8023665}, {"filename": "/instruments/chips/dmxopl3-0-00000-020.cni", "start": 8023665, "end": 8024757}, {"filename": "/instruments/chips/dmxopl3-0-00000-021.cni", "start": 8024757, "end": 8025848}, {"filename": "/instruments/chips/dmxopl3-0-00000-022.cni", "start": 8025848, "end": 8026947}, {"filename": "/instruments/chips/dmxopl3-0-00000-023.cni", "start": 8026947, "end": 8028052}, {"filename": "/instruments/chips/dmxopl3-0-00000-024.cni", "start": 8028052, "end": 8029155}, {"filename": "/instruments/chips/dmxopl3-0-00000-025.cni", "start": 8029155, "end": 8030274}, {"filename": "/instruments/chips/dmxopl3-0-00000-026.cni", "start": 8030274, "end": 8031389}, {"filename": "/instruments/chips/dmxopl3-0-00000-027.cni", "start": 8031389, "end": 8032505}, {"filename": "/instruments/chips/dmxopl3-0-00000-028.cni", "start": 8032505, "end": 8033623}, {"filename": "/instruments/chips/dmxopl3-0-00000-029.cni", "start": 8033623, "end": 8034735}, {"filename": "/instruments/chips/dmxopl3-0-00000-030.cni", "start": 8034735, "end": 8035848}, {"filename": "/instruments/chips/dmxopl3-0-00000-031.cni", "start": 8035848, "end": 8036958}, {"filename": "/instruments/chips/dmxopl3-0-00000-032.cni", "start": 8036958, "end": 8038060}, {"filename": "/instruments/chips/dmxopl3-0-00000-033.cni", "start": 8038060, "end": 8039179}, {"filename": "/instruments/chips/dmxopl3-0-00000-034.cni", "start": 8039179, "end": 8040295}, {"filename": "/instruments/chips/dmxopl3-0-00000-035.cni", "start": 8040295, "end": 8041397}, {"filename": "/instruments/chips/dmxopl3-0-00000-036.cni", "start": 8041397, "end": 8042496}, {"filename": "/instruments/chips/dmxopl3-0-00000-037.cni", "start": 8042496, "end": 8043596}, {"filename": "/instruments/chips/dmxopl3-0-00000-038.cni", "start": 8043596, "end": 8044695}, {"filename": "/instruments/chips/dmxopl3-0-00000-039.cni", "start": 8044695, "end": 8045808}, {"filename": "/instruments/chips/dmxopl3-0-00000-040.cni", "start": 8045808, "end": 8046892}, {"filename": "/instruments/chips/dmxopl3-0-00000-041.cni", "start": 8046892, "end": 8047974}, {"filename": "/instruments/chips/dmxopl3-0-00000-042.cni", "start": 8047974, "end": 8049058}, {"filename": "/instruments/chips/dmxopl3-0-00000-043.cni", "start": 8049058, "end": 8050150}, {"filename": "/instruments/chips/dmxopl3-0-00000-044.cni", "start": 8050150, "end": 8051267}, {"filename": "/instruments/chips/dmxopl3-0-00000-045.cni", "start": 8051267, "end": 8052375}, {"filename": "/instruments/chips/dmxopl3-0-00000-046.cni", "start": 8052375, "end": 8053485}, {"filename": "/instruments/chips/dmxopl3-0-00000-047.cni", "start": 8053485, "end": 8054582}, {"filename": "/instruments/chips/dmxopl3-0-00000-048.cni", "start": 8054582, "end": 8055678}, {"filename": "/instruments/chips/dmxopl3-0-00000-049.cni", "start": 8055678, "end": 8056784}, {"filename": "/instruments/chips/dmxopl3-0-00000-050.cni", "start": 8056784, "end": 8057887}, {"filename": "/instruments/chips/dmxopl3-0-00000-051.cni", "start": 8057887, "end": 8058990}, {"filename": "/instruments/chips/dmxopl3-0-00000-052.cni", "start": 8058990, "end": 8060087}, {"filename": "/instruments/chips/dmxopl3-0-00000-053.cni", "start": 8060087, "end": 8061183}, {"filename": "/instruments/chips/dmxopl3-0-00000-054.cni", "start": 8061183, "end": 8062279}, {"filename": "/instruments/chips/dmxopl3-0-00000-055.cni", "start": 8062279, "end": 8063379}, {"filename": "/instruments/chips/dmxopl3-0-00000-056.cni", "start": 8063379, "end": 8064468}, {"filename": "/instruments/chips/dmxopl3-0-00000-057.cni", "start": 8064468, "end": 8065556}, {"filename": "/instruments/chips/dmxopl3-0-00000-058.cni", "start": 8065556, "end": 8066635}, {"filename": "/instruments/chips/dmxopl3-0-00000-059.cni", "start": 8066635, "end": 8067735}, {"filename": "/instruments/chips/dmxopl3-0-00000-060.cni", "start": 8067735, "end": 8068830}, {"filename": "/instruments/chips/dmxopl3-0-00000-061.cni", "start": 8068830, "end": 8069931}, {"filename": "/instruments/chips/dmxopl3-0-00000-062.cni", "start": 8069931, "end": 8071032}, {"filename": "/instruments/chips/dmxopl3-0-00000-063.cni", "start": 8071032, "end": 8072132}, {"filename": "/instruments/chips/dmxopl3-0-00000-064.cni", "start": 8072132, "end": 8073228}, {"filename": "/instruments/chips/dmxopl3-0-00000-065.cni", "start": 8073228, "end": 8074314}, {"filename": "/instruments/chips/dmxopl3-0-00000-066.cni", "start": 8074314, "end": 8075405}, {"filename": "/instruments/chips/dmxopl3-0-00000-067.cni", "start": 8075405, "end": 8076501}, {"filename": "/instruments/chips/dmxopl3-0-00000-068.cni", "start": 8076501, "end": 8077584}, {"filename": "/instruments/chips/dmxopl3-0-00000-069.cni", "start": 8077584, "end": 8078679}, {"filename": "/instruments/chips/dmxopl3-0-00000-070.cni", "start": 8078679, "end": 8079764}, {"filename": "/instruments/chips/dmxopl3-0-00000-071.cni", "start": 8079764, "end": 8080854}, {"filename": "/instruments/chips/dmxopl3-0-00000-072.cni", "start": 8080854, "end": 8081940}, {"filename": "/instruments/chips/dmxopl3-0-00000-073.cni", "start": 8081940, "end": 8083022}, {"filename": "/instruments/chips/dmxopl3-0-00000-074.cni", "start": 8083022, "end": 8084109}, {"filename": "/instruments/chips/dmxopl3-0-00000-075.cni", "start": 8084109, "end": 8085201}, {"filename": "/instruments/chips/dmxopl3-0-00000-076.cni", "start": 8085201, "end": 8086298}, {"filename": "/instruments/chips/dmxopl3-0-00000-077.cni", "start": 8086298, "end": 8087391}, {"filename": "/instruments/chips/dmxopl3-0-00000-078.cni", "start": 8087391, "end": 8088477}, {"filename": "/instruments/chips/dmxopl3-0-00000-079.cni", "start": 8088477, "end": 8089562}, {"filename": "/instruments/chips/dmxopl3-0-00000-080.cni", "start": 8089562, "end": 8090669}, {"filename": "/instruments/chips/dmxopl3-0-00000-081.cni", "start": 8090669, "end": 8091779}, {"filename": "/instruments/chips/dmxopl3-0-00000-082.cni", "start": 8091779, "end": 8092883}, {"filename": "/instruments/chips/dmxopl3-0-00000-083.cni", "start": 8092883, "end": 8093989}, {"filename": "/instruments/chips/dmxopl3-0-00000-084.cni", "start": 8093989, "end": 8095092}, {"filename": "/instruments/chips/dmxopl3-0-00000-085.cni", "start": 8095092, "end": 8096195}, {"filename": "/instruments/chips/dmxopl3-0-00000-086.cni", "start": 8096195, "end": 8097307}, {"filename": "/instruments/chips/dmxopl3-0-00000-087.cni", "start": 8097307, "end": 8098422}, {"filename": "/instruments/chips/dmxopl3-0-00000-088.cni", "start": 8098422, "end": 8099522}, {"filename": "/instruments/chips/dmxopl3-0-00000-089.cni", "start": 8099522, "end": 8100619}, {"filename": "/instruments/chips/dmxopl3-0-00000-090.cni", "start": 8100619, "end": 8101727}, {"filename": "/instruments/chips/dmxopl3-0-00000-091.cni", "start": 8101727, "end": 8102826}, {"filename": "/instruments/chips/dmxopl3-0-00000-092.cni", "start": 8102826, "end": 8103933}, {"filename": "/instruments/chips/dmxopl3-0-00000-093.cni", "start": 8103933, "end": 8105031}, {"filename": "/instruments/chips/dmxopl3-0-00000-094.cni", "start": 8105031, "end": 8106121}, {"filename": "/instruments/chips/dmxopl3-0-00000-095.cni", "start": 8106121, "end": 8107220}, {"filename": "/instruments/chips/dmxopl3-0-00000-096.cni", "start": 8107220, "end": 8108315}, {"filename": "/instruments/chips/dmxopl3-0-00000-097.cni", "start": 8108315, "end": 8109415}, {"filename": "/instruments/chips/dmxopl3-0-00000-098.cni", "start": 8109415, "end": 8110517}, {"filename": "/instruments/chips/dmxopl3-0-00000-099.cni", "start": 8110517, "end": 8111630}, {"filename": "/instruments/chips/dmxopl3-0-00000-100.cni", "start": 8111630, "end": 8112742}, {"filename": "/instruments/chips/dmxopl3-0-00000-101.cni", "start": 8112742, "end": 8113844}, {"filename": "/instruments/chips/dmxopl3-0-00000-102.cni", "start": 8113844, "end": 8114955}, {"filename": "/instruments/chips/dmxopl3-0-00000-103.cni", "start": 8114955, "end": 8116064}, {"filename": "/instruments/chips/dmxopl3-0-00000-104.cni", "start": 8116064, "end": 8117151}, {"filename": "/instruments/chips/dmxopl3-0-00000-105.cni", "start": 8117151, "end": 8118239}, {"filename": "/instruments/chips/dmxopl3-0-00000-106.cni", "start": 8118239, "end": 8119336}, {"filename": "/instruments/chips/dmxopl3-0-00000-107.cni", "start": 8119336, "end": 8120420}, {"filename": "/instruments/chips/dmxopl3-0-00000-108.cni", "start": 8120420, "end": 8121512}, {"filename": "/instruments/chips/dmxopl3-0-00000-109.cni", "start": 8121512, "end": 8122601}, {"filename": "/instruments/chips/dmxopl3-0-00000-110.cni", "start": 8122601, "end": 8123686}, {"filename": "/instruments/chips/dmxopl3-0-00000-111.cni", "start": 8123686, "end": 8124770}, {"filename": "/instruments/chips/dmxopl3-0-00000-112.cni", "start": 8124770, "end": 8125865}, {"filename": "/instruments/chips/dmxopl3-0-00000-113.cni", "start": 8125865, "end": 8126947}, {"filename": "/instruments/chips/dmxopl3-0-00000-114.cni", "start": 8126947, "end": 8128044}, {"filename": "/instruments/chips/dmxopl3-0-00000-115.cni", "start": 8128044, "end": 8129135}, {"filename": "/instruments/chips/dmxopl3-0-00000-116.cni", "start": 8129135, "end": 8130245}, {"filename": "/instruments/chips/dmxopl3-0-00000-117.cni", "start": 8130245, "end": 8131347}, {"filename": "/instruments/chips/dmxopl3-0-00000-118.cni", "start": 8131347, "end": 8132445}, {"filename": "/instruments/chips/dmxopl3-0-00000-119.cni", "start": 8132445, "end": 8133545}, {"filename": "/instruments/chips/dmxopl3-0-00000-120.cni", "start": 8133545, "end": 8134651}, {"filename": "/instruments/chips/dmxopl3-0-00000-121.cni", "start": 8134651, "end": 8135753}, {"filename": "/instruments/chips/dmxopl3-0-00000-122.cni", "start": 8135753, "end": 8136851}, {"filename": "/instruments/chips/dmxopl3-0-00000-123.cni", "start": 8136851, "end": 8137946}, {"filename": "/instruments/chips/dmxopl3-0-00000-124.cni", "start": 8137946, "end": 8139058}, {"filename": "/instruments/chips/dmxopl3-0-00000-125.cni", "start": 8139058, "end": 8140157}, {"filename": "/instruments/chips/dmxopl3-0-00000-126.cni", "start": 8140157, "end": 8141251}, {"filename": "/instruments/chips/dmxopl3-0-00000-127.cni", "start": 8141251, "end": 8142338}, {"filename": "/instruments/chips/dmxopl3-0-00128-048.cni", "start": 8142338, "end": 8143455}, {"filename": "/instruments/chips/dmxopl3-0-00256-033.cni", "start": 8143455, "end": 8144567}, {"filename": "/instruments/chips/dmxopl3-0-00256-048.cni", "start": 8144567, "end": 8145676}, {"filename": "/instruments/chips/dmxopl3-0-00256-060.cni", "start": 8145676, "end": 8146777}, {"filename": "/instruments/chips/dmxopl3-0-00256-073.cni", "start": 8146777, "end": 8147875}, {"filename": "/instruments/chips/dmxopl3-0-00384-048.cni", "start": 8147875, "end": 8148973}, {"filename": "/instruments/chips/dmxopl3-0-00768-016.cni", "start": 8148973, "end": 8150090}, {"filename": "/instruments/chips/dmxopl3-0-01024-000.cni", "start": 8150090, "end": 8151190}, {"filename": "/instruments/chips/dmxopl3-0-01024-014.cni", "start": 8151190, "end": 8152298}, {"filename": "/instruments/chips/dmxopl3-0-01024-024.cni", "start": 8152298, "end": 8153393}, {"filename": "/instruments/chips/dmxopl3-0-01024-026.cni", "start": 8153393, "end": 8154488}, {"filename": "/instruments/chips/dmxopl3-0-01024-030.cni", "start": 8154488, "end": 8155601}, {"filename": "/instruments/chips/dmxopl3-0-01024-065.cni", "start": 8155601, "end": 8156697}, {"filename": "/instruments/chips/dmxopl3-0-01024-080.cni", "start": 8156697, "end": 8157794}, {"filename": "/instruments/chips/dmxopl3-0-01280-095.cni", "start": 8157794, "end": 8158906}, {"filename": "/instruments/chips/dmxopl3-0-02048-000.cni", "start": 8158906, "end": 8160022}, {"filename": "/instruments/chips/dmxopl3-0-02048-016.cni", "start": 8160022, "end": 8161126}, {"filename": "/instruments/chips/dmxopl3-0-02048-024.cni", "start": 8161126, "end": 8162227}, {"filename": "/instruments/chips/dmxopl3-0-02048-030.cni", "start": 8162227, "end": 8163336}, {"filename": "/instruments/chips/dmxopl3-0-02048-089.cni", "start": 8163336, "end": 8164453}, {"filename": "/instruments/chips/dmxopl3-0-03072-048.cni", "start": 8164453, "end": 8165558}, {"filename": "/instruments/chips/dmxopl3-0-04096-019.cni", "start": 8165558, "end": 8166658}, {"filename": "/instruments/chips/dmxopl3-0-04096-035.cni", "start": 8166658, "end": 8167782}, {"filename": "/instruments/chips/dmxopl3-0-04352-081.cni", "start": 8167782, "end": 8168883}, {"filename": "/instruments/chips/dmxopl3-1-00000-027.cni", "start": 8168883, "end": 8169982}, {"filename": "/instruments/chips/dmxopl3-1-00000-028.cni", "start": 8169982, "end": 8171080}, {"filename": "/instruments/chips/dmxopl3-1-00000-029.cni", "start": 8171080, "end": 8172183}, {"filename": "/instruments/chips/dmxopl3-1-00000-030.cni", "start": 8172183, "end": 8173286}, {"filename": "/instruments/chips/dmxopl3-1-00000-031.cni", "start": 8173286, "end": 8174395}, {"filename": "/instruments/chips/dmxopl3-1-00000-032.cni", "start": 8174395, "end": 8175499}, {"filename": "/instruments/chips/dmxopl3-1-00000-033.cni", "start": 8175499, "end": 8176601}, {"filename": "/instruments/chips/dmxopl3-1-00000-034.cni", "start": 8176601, "end": 8177711}, {"filename": "/instruments/chips/dmxopl3-1-00000-035.cni", "start": 8177711, "end": 8178813}, {"filename": "/instruments/chips/dmxopl3-1-00000-036.cni", "start": 8178813, "end": 8179921}, {"filename": "/instruments/chips/dmxopl3-1-00000-037.cni", "start": 8179921, "end": 8181019}, {"filename": "/instruments/chips/dmxopl3-1-00000-038.cni", "start": 8181019, "end": 8182123}, {"filename": "/instruments/chips/dmxopl3-1-00000-039.cni", "start": 8182123, "end": 8183220}, {"filename": "/instruments/chips/dmxopl3-1-00000-040.cni", "start": 8183220, "end": 8184322}, {"filename": "/instruments/chips/dmxopl3-1-00000-041.cni", "start": 8184322, "end": 8185425}, {"filename": "/instruments/chips/dmxopl3-1-00000-042.cni", "start": 8185425, "end": 8186530}, {"filename": "/instruments/chips/dmxopl3-1-00000-043.cni", "start": 8186530, "end": 8187633}, {"filename": "/instruments/chips/dmxopl3-1-00000-044.cni", "start": 8187633, "end": 8188731}, {"filename": "/instruments/chips/dmxopl3-1-00000-045.cni", "start": 8188731, "end": 8189834}, {"filename": "/instruments/chips/dmxopl3-1-00000-046.cni", "start": 8189834, "end": 8190941}, {"filename": "/instruments/chips/dmxopl3-1-00000-047.cni", "start": 8190941, "end": 8192044}, {"filename": "/instruments/chips/dmxopl3-1-00000-048.cni", "start": 8192044, "end": 8193148}, {"filename": "/instruments/chips/dmxopl3-1-00000-049.cni", "start": 8193148, "end": 8194252}, {"filename": "/instruments/chips/dmxopl3-1-00000-050.cni", "start": 8194252, "end": 8195355}, {"filename": "/instruments/chips/dmxopl3-1-00000-051.cni", "start": 8195355, "end": 8196463}, {"filename": "/instruments/chips/dmxopl3-1-00000-052.cni", "start": 8196463, "end": 8197567}, {"filename": "/instruments/chips/dmxopl3-1-00000-053.cni", "start": 8197567, "end": 8198659}, {"filename": "/instruments/chips/dmxopl3-1-00000-054.cni", "start": 8198659, "end": 8199750}, {"filename": "/instruments/chips/dmxopl3-1-00000-055.cni", "start": 8199750, "end": 8200850}, {"filename": "/instruments/chips/dmxopl3-1-00000-056.cni", "start": 8200850, "end": 8201935}, {"filename": "/instruments/chips/dmxopl3-1-00000-057.cni", "start": 8201935, "end": 8203039}, {"filename": "/instruments/chips/dmxopl3-1-00000-058.cni", "start": 8203039, "end": 8204133}, {"filename": "/instruments/chips/dmxopl3-1-00000-059.cni", "start": 8204133, "end": 8205241}, {"filename": "/instruments/chips/dmxopl3-1-00000-060.cni", "start": 8205241, "end": 8206347}, {"filename": "/instruments/chips/dmxopl3-1-00000-061.cni", "start": 8206347, "end": 8207454}, {"filename": "/instruments/chips/dmxopl3-1-00000-062.cni", "start": 8207454, "end": 8208568}, {"filename": "/instruments/chips/dmxopl3-1-00000-063.cni", "start": 8208568, "end": 8209679}, {"filename": "/instruments/chips/dmxopl3-1-00000-064.cni", "start": 8209679, "end": 8210784}, {"filename": "/instruments/chips/dmxopl3-1-00000-065.cni", "start": 8210784, "end": 8211885}, {"filename": "/instruments/chips/dmxopl3-1-00000-066.cni", "start": 8211885, "end": 8212984}, {"filename": "/instruments/chips/dmxopl3-1-00000-067.cni", "start": 8212984, "end": 8214080}, {"filename": "/instruments/chips/dmxopl3-1-00000-068.cni", "start": 8214080, "end": 8215175}, {"filename": "/instruments/chips/dmxopl3-1-00000-069.cni", "start": 8215175, "end": 8216260}, {"filename": "/instruments/chips/dmxopl3-1-00000-070.cni", "start": 8216260, "end": 8217345}, {"filename": "/instruments/chips/dmxopl3-1-00000-071.cni", "start": 8217345, "end": 8218443}, {"filename": "/instruments/chips/dmxopl3-1-00000-072.cni", "start": 8218443, "end": 8219540}, {"filename": "/instruments/chips/dmxopl3-1-00000-073.cni", "start": 8219540, "end": 8220644}, {"filename": "/instruments/chips/dmxopl3-1-00000-074.cni", "start": 8220644, "end": 8221750}, {"filename": "/instruments/chips/dmxopl3-1-00000-075.cni", "start": 8221750, "end": 8222834}, {"filename": "/instruments/chips/dmxopl3-1-00000-076.cni", "start": 8222834, "end": 8223942}, {"filename": "/instruments/chips/dmxopl3-1-00000-077.cni", "start": 8223942, "end": 8225042}, {"filename": "/instruments/chips/dmxopl3-1-00000-078.cni", "start": 8225042, "end": 8226139}, {"filename": "/instruments/chips/dmxopl3-1-00000-079.cni", "start": 8226139, "end": 8227236}, {"filename": "/instruments/chips/dmxopl3-1-00000-080.cni", "start": 8227236, "end": 8228334}, {"filename": "/instruments/chips/dmxopl3-1-00000-081.cni", "start": 8228334, "end": 8229433}, {"filename": "/instruments/chips/dmxopl3-1-00000-082.cni", "start": 8229433, "end": 8230538}, {"filename": "/instruments/chips/dmxopl3-1-00000-083.cni", "start": 8230538, "end": 8231646}, {"filename": "/instruments/chips/dmxopl3-1-00000-084.cni", "start": 8231646, "end": 8232754}, {"filename": "/instruments/chips/dmxopl3-1-00000-085.cni", "start": 8232754, "end": 8233853}, {"filename": "/instruments/chips/dmxopl3-1-00000-086.cni", "start": 8233853, "end": 8234959}, {"filename": "/instruments/chips/dmxopl3-1-00000-087.cni", "start": 8234959, "end": 8236062}, {"filename": "/instruments/chips/dmxopl3-1-00016-027.cni", "start": 8236062, "end": 8237162}, {"filename": "/instruments/chips/dmxopl3-1-00016-028.cni", "start": 8237162, "end": 8238261}, {"filename": "/instruments/chips/dmxopl3-1-00016-029.cni", "start": 8238261, "end": 8239365}, {"filename": "/instruments/chips/dmxopl3-1-00016-030.cni", "start": 8239365, "end": 8240469}, {"filename": "/instruments/chips/dmxopl3-1-00016-031.cni", "start": 8240469, "end": 8241579}, {"filename": "/instruments/chips/dmxopl3-1-00016-032.cni", "start": 8241579, "end": 8242684}, {"filename": "/instruments/chips/dmxopl3-1-00016-033.cni", "start": 8242684, "end": 8243787}, {"filename": "/instruments/chips/dmxopl3-1-00016-034.cni", "start": 8243787, "end": 8244898}, {"filename": "/instruments/chips/dmxopl3-1-00016-035.cni", "start": 8244898, "end": 8246001}, {"filename": "/instruments/chips/dmxopl3-1-00016-036.cni", "start": 8246001, "end": 8247110}, {"filename": "/instruments/chips/dmxopl3-1-00016-037.cni", "start": 8247110, "end": 8248209}, {"filename": "/instruments/chips/dmxopl3-1-00016-038.cni", "start": 8248209, "end": 8249317}, {"filename": "/instruments/chips/dmxopl3-1-00016-039.cni", "start": 8249317, "end": 8250415}, {"filename": "/instruments/chips/dmxopl3-1-00016-040.cni", "start": 8250415, "end": 8251518}, {"filename": "/instruments/chips/dmxopl3-1-00016-041.cni", "start": 8251518, "end": 8252624}, {"filename": "/instruments/chips/dmxopl3-1-00016-042.cni", "start": 8252624, "end": 8253731}, {"filename": "/instruments/chips/dmxopl3-1-00016-043.cni", "start": 8253731, "end": 8254837}, {"filename": "/instruments/chips/dmxopl3-1-00016-044.cni", "start": 8254837, "end": 8255936}, {"filename": "/instruments/chips/dmxopl3-1-00016-045.cni", "start": 8255936, "end": 8257042}, {"filename": "/instruments/chips/dmxopl3-1-00016-046.cni", "start": 8257042, "end": 8258150}, {"filename": "/instruments/chips/dmxopl3-1-00016-047.cni", "start": 8258150, "end": 8259256}, {"filename": "/instruments/chips/dmxopl3-1-00016-048.cni", "start": 8259256, "end": 8260362}, {"filename": "/instruments/chips/dmxopl3-1-00016-049.cni", "start": 8260362, "end": 8261467}, {"filename": "/instruments/chips/dmxopl3-1-00016-050.cni", "start": 8261467, "end": 8262573}, {"filename": "/instruments/chips/dmxopl3-1-00016-051.cni", "start": 8262573, "end": 8263679}, {"filename": "/instruments/chips/dmxopl3-1-00016-052.cni", "start": 8263679, "end": 8264784}, {"filename": "/instruments/chips/dmxopl3-1-00016-053.cni", "start": 8264784, "end": 8265877}, {"filename": "/instruments/chips/dmxopl3-1-00016-054.cni", "start": 8265877, "end": 8266969}, {"filename": "/instruments/chips/dmxopl3-1-00016-055.cni", "start": 8266969, "end": 8268070}, {"filename": "/instruments/chips/dmxopl3-1-00016-056.cni", "start": 8268070, "end": 8269156}, {"filename": "/instruments/chips/dmxopl3-1-00016-057.cni", "start": 8269156, "end": 8270261}, {"filename": "/instruments/chips/dmxopl3-1-00016-058.cni", "start": 8270261, "end": 8271356}, {"filename": "/instruments/chips/dmxopl3-1-00016-059.cni", "start": 8271356, "end": 8272456}, {"filename": "/instruments/chips/dmxopl3-1-00016-060.cni", "start": 8272456, "end": 8273563}, {"filename": "/instruments/chips/dmxopl3-1-00016-061.cni", "start": 8273563, "end": 8274671}, {"filename": "/instruments/chips/dmxopl3-1-00016-062.cni", "start": 8274671, "end": 8275786}, {"filename": "/instruments/chips/dmxopl3-1-00016-063.cni", "start": 8275786, "end": 8276898}, {"filename": "/instruments/chips/dmxopl3-1-00016-064.cni", "start": 8276898, "end": 8278004}, {"filename": "/instruments/chips/dmxopl3-1-00016-065.cni", "start": 8278004, "end": 8279106}, {"filename": "/instruments/chips/dmxopl3-1-00016-066.cni", "start": 8279106, "end": 8280206}, {"filename": "/instruments/chips/dmxopl3-1-00016-067.cni", "start": 8280206, "end": 8281303}, {"filename": "/instruments/chips/dmxopl3-1-00016-068.cni", "start": 8281303, "end": 8282399}, {"filename": "/instruments/chips/dmxopl3-1-00016-069.cni", "start": 8282399, "end": 8283485}, {"filename": "/instruments/chips/dmxopl3-1-00016-070.cni", "start": 8283485, "end": 8284571}, {"filename": "/instruments/chips/dmxopl3-1-00016-071.cni", "start": 8284571, "end": 8285670}, {"filename": "/instruments/chips/dmxopl3-1-00016-072.cni", "start": 8285670, "end": 8286768}, {"filename": "/instruments/chips/dmxopl3-1-00016-073.cni", "start": 8286768, "end": 8287873}, {"filename": "/instruments/chips/dmxopl3-1-00016-074.cni", "start": 8287873, "end": 8288980}, {"filename": "/instruments/chips/dmxopl3-1-00016-075.cni", "start": 8288980, "end": 8290065}, {"filename": "/instruments/chips/dmxopl3-1-00016-076.cni", "start": 8290065, "end": 8291174}, {"filename": "/instruments/chips/dmxopl3-1-00016-077.cni", "start": 8291174, "end": 8292275}, {"filename": "/instruments/chips/dmxopl3-1-00016-078.cni", "start": 8292275, "end": 8293373}, {"filename": "/instruments/chips/dmxopl3-1-00016-079.cni", "start": 8293373, "end": 8294471}, {"filename": "/instruments/chips/dmxopl3-1-00016-080.cni", "start": 8294471, "end": 8295570}, {"filename": "/instruments/chips/dmxopl3-1-00016-081.cni", "start": 8295570, "end": 8296670}, {"filename": "/instruments/chips/dmxopl3-1-00016-082.cni", "start": 8296670, "end": 8297776}, {"filename": "/instruments/chips/dmxopl3-1-00016-083.cni", "start": 8297776, "end": 8298885}, {"filename": "/instruments/chips/dmxopl3-1-00016-084.cni", "start": 8298885, "end": 8299994}, {"filename": "/instruments/chips/dmxopl3-1-00016-085.cni", "start": 8299994, "end": 8301094}, {"filename": "/instruments/chips/dmxopl3-1-00016-086.cni", "start": 8301094, "end": 8302201}, {"filename": "/instruments/chips/dmxopl3-1-00016-087.cni", "start": 8302201, "end": 8303305}, {"filename": "/instruments/chips/dmxopl3-1-00025-027.cni", "start": 8303305, "end": 8304405}, {"filename": "/instruments/chips/dmxopl3-1-00025-028.cni", "start": 8304405, "end": 8305504}, {"filename": "/instruments/chips/dmxopl3-1-00025-029.cni", "start": 8305504, "end": 8306608}, {"filename": "/instruments/chips/dmxopl3-1-00025-030.cni", "start": 8306608, "end": 8307712}, {"filename": "/instruments/chips/dmxopl3-1-00025-031.cni", "start": 8307712, "end": 8308822}, {"filename": "/instruments/chips/dmxopl3-1-00025-032.cni", "start": 8308822, "end": 8309927}, {"filename": "/instruments/chips/dmxopl3-1-00025-033.cni", "start": 8309927, "end": 8311030}, {"filename": "/instruments/chips/dmxopl3-1-00025-034.cni", "start": 8311030, "end": 8312141}, {"filename": "/instruments/chips/dmxopl3-1-00025-035.cni", "start": 8312141, "end": 8313244}, {"filename": "/instruments/chips/dmxopl3-1-00025-036.cni", "start": 8313244, "end": 8314353}, {"filename": "/instruments/chips/dmxopl3-1-00025-037.cni", "start": 8314353, "end": 8315452}, {"filename": "/instruments/chips/dmxopl3-1-00025-038.cni", "start": 8315452, "end": 8316560}, {"filename": "/instruments/chips/dmxopl3-1-00025-039.cni", "start": 8316560, "end": 8317658}, {"filename": "/instruments/chips/dmxopl3-1-00025-040.cni", "start": 8317658, "end": 8318761}, {"filename": "/instruments/chips/dmxopl3-1-00025-041.cni", "start": 8318761, "end": 8319867}, {"filename": "/instruments/chips/dmxopl3-1-00025-042.cni", "start": 8319867, "end": 8320974}, {"filename": "/instruments/chips/dmxopl3-1-00025-043.cni", "start": 8320974, "end": 8322080}, {"filename": "/instruments/chips/dmxopl3-1-00025-044.cni", "start": 8322080, "end": 8323179}, {"filename": "/instruments/chips/dmxopl3-1-00025-045.cni", "start": 8323179, "end": 8324285}, {"filename": "/instruments/chips/dmxopl3-1-00025-046.cni", "start": 8324285, "end": 8325392}, {"filename": "/instruments/chips/dmxopl3-1-00025-047.cni", "start": 8325392, "end": 8326498}, {"filename": "/instruments/chips/dmxopl3-1-00025-048.cni", "start": 8326498, "end": 8327604}, {"filename": "/instruments/chips/dmxopl3-1-00025-049.cni", "start": 8327604, "end": 8328709}, {"filename": "/instruments/chips/dmxopl3-1-00025-050.cni", "start": 8328709, "end": 8329815}, {"filename": "/instruments/chips/dmxopl3-1-00025-051.cni", "start": 8329815, "end": 8330921}, {"filename": "/instruments/chips/dmxopl3-1-00025-052.cni", "start": 8330921, "end": 8332026}, {"filename": "/instruments/chips/dmxopl3-1-00025-053.cni", "start": 8332026, "end": 8333119}, {"filename": "/instruments/chips/dmxopl3-1-00025-054.cni", "start": 8333119, "end": 8334211}, {"filename": "/instruments/chips/dmxopl3-1-00025-055.cni", "start": 8334211, "end": 8335312}, {"filename": "/instruments/chips/dmxopl3-1-00025-056.cni", "start": 8335312, "end": 8336424}, {"filename": "/instruments/chips/dmxopl3-1-00025-057.cni", "start": 8336424, "end": 8337529}, {"filename": "/instruments/chips/dmxopl3-1-00025-058.cni", "start": 8337529, "end": 8338624}, {"filename": "/instruments/chips/dmxopl3-1-00025-059.cni", "start": 8338624, "end": 8339724}, {"filename": "/instruments/chips/dmxopl3-1-00025-060.cni", "start": 8339724, "end": 8340831}, {"filename": "/instruments/chips/dmxopl3-1-00025-061.cni", "start": 8340831, "end": 8341939}, {"filename": "/instruments/chips/dmxopl3-1-00025-062.cni", "start": 8341939, "end": 8343054}, {"filename": "/instruments/chips/dmxopl3-1-00025-063.cni", "start": 8343054, "end": 8344166}, {"filename": "/instruments/chips/dmxopl3-1-00025-064.cni", "start": 8344166, "end": 8345272}, {"filename": "/instruments/chips/dmxopl3-1-00025-065.cni", "start": 8345272, "end": 8346374}, {"filename": "/instruments/chips/dmxopl3-1-00025-066.cni", "start": 8346374, "end": 8347474}, {"filename": "/instruments/chips/dmxopl3-1-00025-067.cni", "start": 8347474, "end": 8348571}, {"filename": "/instruments/chips/dmxopl3-1-00025-068.cni", "start": 8348571, "end": 8349667}, {"filename": "/instruments/chips/dmxopl3-1-00025-069.cni", "start": 8349667, "end": 8350753}, {"filename": "/instruments/chips/dmxopl3-1-00025-070.cni", "start": 8350753, "end": 8351839}, {"filename": "/instruments/chips/dmxopl3-1-00025-071.cni", "start": 8351839, "end": 8352938}, {"filename": "/instruments/chips/dmxopl3-1-00025-072.cni", "start": 8352938, "end": 8354036}, {"filename": "/instruments/chips/dmxopl3-1-00025-073.cni", "start": 8354036, "end": 8355141}, {"filename": "/instruments/chips/dmxopl3-1-00025-074.cni", "start": 8355141, "end": 8356248}, {"filename": "/instruments/chips/dmxopl3-1-00025-075.cni", "start": 8356248, "end": 8357333}, {"filename": "/instruments/chips/dmxopl3-1-00025-076.cni", "start": 8357333, "end": 8358442}, {"filename": "/instruments/chips/dmxopl3-1-00025-077.cni", "start": 8358442, "end": 8359543}, {"filename": "/instruments/chips/dmxopl3-1-00025-078.cni", "start": 8359543, "end": 8360641}, {"filename": "/instruments/chips/dmxopl3-1-00025-079.cni", "start": 8360641, "end": 8361739}, {"filename": "/instruments/chips/dmxopl3-1-00025-080.cni", "start": 8361739, "end": 8362838}, {"filename": "/instruments/chips/dmxopl3-1-00025-081.cni", "start": 8362838, "end": 8363938}, {"filename": "/instruments/chips/dmxopl3-1-00025-082.cni", "start": 8363938, "end": 8365044}, {"filename": "/instruments/chips/dmxopl3-1-00025-083.cni", "start": 8365044, "end": 8366153}, {"filename": "/instruments/chips/dmxopl3-1-00025-084.cni", "start": 8366153, "end": 8367262}, {"filename": "/instruments/chips/dmxopl3-1-00025-085.cni", "start": 8367262, "end": 8368362}, {"filename": "/instruments/chips/dmxopl3-1-00025-086.cni", "start": 8368362, "end": 8369469}, {"filename": "/instruments/chips/dmxopl3-1-00025-087.cni", "start": 8369469, "end": 8370573}, {"filename": "/instruments/chips/dx7-019db9e0d047ba9d14b86fbf.cni", "start": 8370573, "end": 8371881}, {"filename": "/instruments/chips/dx7-03738155ddf306ce0a2cbe14.cni", "start": 8371881, "end": 8373186}, {"filename": "/instruments/chips/dx7-085bda3a22e1e9cee5714bd8.cni", "start": 8373186, "end": 8374497}, {"filename": "/instruments/chips/dx7-0c17f6f75ba7674fd2550340.cni", "start": 8374497, "end": 8375801}, {"filename": "/instruments/chips/dx7-0e259fa61a58a5634d371390.cni", "start": 8375801, "end": 8377118}, {"filename": "/instruments/chips/dx7-230d4d27311e503197da0dda.cni", "start": 8377118, "end": 8378431}, {"filename": "/instruments/chips/dx7-25629585e134700d22da9ae4.cni", "start": 8378431, "end": 8379755}, {"filename": "/instruments/chips/dx7-260bdcdd1ab68b4e88e0404f.cni", "start": 8379755, "end": 8381074}, {"filename": "/instruments/chips/dx7-284014b49fbd99fff0d64d69.cni", "start": 8381074, "end": 8382378}, {"filename": "/instruments/chips/dx7-2d4ed252ff8bd817ce831e58.cni", "start": 8382378, "end": 8383677}, {"filename": "/instruments/chips/dx7-2e62571db3bee2ffd2669862.cni", "start": 8383677, "end": 8384978}, {"filename": "/instruments/chips/dx7-31332a9c0f3b2d1985510098.cni", "start": 8384978, "end": 8386290}, {"filename": "/instruments/chips/dx7-327f916dc8bca9c36adfb763.cni", "start": 8386290, "end": 8387605}, {"filename": "/instruments/chips/dx7-3504d8f5e5b26f3e17d464e3.cni", "start": 8387605, "end": 8388917}, {"filename": "/instruments/chips/dx7-354cc74709ecccd6ce235813.cni", "start": 8388917, "end": 8390226}, {"filename": "/instruments/chips/dx7-35cfb882790ad6b1a828ea5d.cni", "start": 8390226, "end": 8391536}, {"filename": "/instruments/chips/dx7-39a80716c81936f30bd32bed.cni", "start": 8391536, "end": 8392845}, {"filename": "/instruments/chips/dx7-3b24b51a08076dcce15e414a.cni", "start": 8392845, "end": 8394160}, {"filename": "/instruments/chips/dx7-3c56555577c34354eec887f9.cni", "start": 8394160, "end": 8395470}, {"filename": "/instruments/chips/dx7-430c801e7f9e88d25e8a28c0.cni", "start": 8395470, "end": 8396774}, {"filename": "/instruments/chips/dx7-43d4f4b185f1d016c123c726.cni", "start": 8396774, "end": 8398093}, {"filename": "/instruments/chips/dx7-4545e08c5efcba4c937b4025.cni", "start": 8398093, "end": 8399405}, {"filename": "/instruments/chips/dx7-463fa61b6a043f5c6f2f3be6.cni", "start": 8399405, "end": 8400715}, {"filename": "/instruments/chips/dx7-4b2d94eb36dd6fc268ed1917.cni", "start": 8400715, "end": 8402034}, {"filename": "/instruments/chips/dx7-58cd81bc1735968d22da4c44.cni", "start": 8402034, "end": 8403335}, {"filename": "/instruments/chips/dx7-59475013d782a2f166467341.cni", "start": 8403335, "end": 8404639}, {"filename": "/instruments/chips/dx7-5dcbd4b0bba4b4a63f0ddc52.cni", "start": 8404639, "end": 8405948}, {"filename": "/instruments/chips/dx7-5e0ee32b0aeb4883a6e0f108.cni", "start": 8405948, "end": 8407266}, {"filename": "/instruments/chips/dx7-6158177464e010fd8f4893aa.cni", "start": 8407266, "end": 8408586}, {"filename": "/instruments/chips/dx7-6f52bacabbefa0e6ddfed46b.cni", "start": 8408586, "end": 8409901}, {"filename": "/instruments/chips/dx7-72e9067a8863f440634b5cd0.cni", "start": 8409901, "end": 8411218}, {"filename": "/instruments/chips/dx7-78c07716a9cde3fd5c5f764b.cni", "start": 8411218, "end": 8412536}, {"filename": "/instruments/chips/dx7-7c9268637cb821bbfb8c16ab.cni", "start": 8412536, "end": 8413842}, {"filename": "/instruments/chips/dx7-7ce4e7b335158dbc96e30008.cni", "start": 8413842, "end": 8415157}, {"filename": "/instruments/chips/dx7-88e5fb6ec714c240e0540393.cni", "start": 8415157, "end": 8416472}, {"filename": "/instruments/chips/dx7-8b448aa8f27f5eb57679eb4c.cni", "start": 8416472, "end": 8417793}, {"filename": "/instruments/chips/dx7-90b5a0e40c102f04ccda3b7d.cni", "start": 8417793, "end": 8419099}, {"filename": "/instruments/chips/dx7-955494a141de8d5496f66bf0.cni", "start": 8419099, "end": 8420420}, {"filename": "/instruments/chips/dx7-a37107690d3ecf66cf58c465.cni", "start": 8420420, "end": 8421734}, {"filename": "/instruments/chips/dx7-a65fd4c315b7f086b82bbd49.cni", "start": 8421734, "end": 8423048}, {"filename": "/instruments/chips/dx7-a7d0676d2b753163a43afdc4.cni", "start": 8423048, "end": 8424362}, {"filename": "/instruments/chips/dx7-a8949fe8c28807d2052ad627.cni", "start": 8424362, "end": 8425661}, {"filename": "/instruments/chips/dx7-ad847b114b727b7eb2961d15.cni", "start": 8425661, "end": 8426972}, {"filename": "/instruments/chips/dx7-ae1d16e946d0340aaa69f69c.cni", "start": 8426972, "end": 8428288}, {"filename": "/instruments/chips/dx7-b2df13005fb1e76ccbe09dcc.cni", "start": 8428288, "end": 8429587}, {"filename": "/instruments/chips/dx7-b5f9a633a3f169022b91fe0a.cni", "start": 8429587, "end": 8430895}, {"filename": "/instruments/chips/dx7-c106cd76cad13f43b259564b.cni", "start": 8430895, "end": 8432212}, {"filename": "/instruments/chips/dx7-c69a0adc5d41186835897f0f.cni", "start": 8432212, "end": 8433526}, {"filename": "/instruments/chips/dx7-c8c99c5c0edb7a9a9f5a3332.cni", "start": 8433526, "end": 8434837}, {"filename": "/instruments/chips/dx7-cd59238b81c68a3bdc64f5d3.cni", "start": 8434837, "end": 8436144}, {"filename": "/instruments/chips/dx7-cfb38388dca8010a35171dbd.cni", "start": 8436144, "end": 8437450}, {"filename": "/instruments/chips/dx7-d06d69dea469a0eae3b86f33.cni", "start": 8437450, "end": 8438768}, {"filename": "/instruments/chips/dx7-d85e05f7dff128610e3ac84d.cni", "start": 8438768, "end": 8440072}, {"filename": "/instruments/chips/dx7-d86066bda99be8d6532e51e9.cni", "start": 8440072, "end": 8441392}, {"filename": "/instruments/chips/dx7-dc268eb7ab649b07472b53fa.cni", "start": 8441392, "end": 8442705}, {"filename": "/instruments/chips/dx7-e07b455688d822573d72cefc.cni", "start": 8442705, "end": 8444015}, {"filename": "/instruments/chips/dx7-e20cdd395eb4e21c362e4ff1.cni", "start": 8444015, "end": 8445332}, {"filename": "/instruments/chips/dx7-e32d67ffe3eab1c9ae83a540.cni", "start": 8445332, "end": 8446649}, {"filename": "/instruments/chips/dx7-e3aa90d8976eefb386a319e0.cni", "start": 8446649, "end": 8447959}, {"filename": "/instruments/chips/dx7-e8668b7fab22a639deabf0de.cni", "start": 8447959, "end": 8449272}, {"filename": "/instruments/chips/dx7-eaf6e205a574f00e71a2cbd8.cni", "start": 8449272, "end": 8450581}, {"filename": "/instruments/chips/dx7-ef4fd6422129e6ab9d8f17a6.cni", "start": 8450581, "end": 8451881}, {"filename": "/instruments/chips/dx7-f10188d288a79ed3abe48597.cni", "start": 8451881, "end": 8453193}, {"filename": "/instruments/chips/dx7-f1afe1d091d63b8421760c2b.cni", "start": 8453193, "end": 8454500}, {"filename": "/instruments/chips/dx7-f355d1b0f5445341d76080dd.cni", "start": 8454500, "end": 8455813}, {"filename": "/instruments/chips/dx7-f7224942b5218d3f85547ed3.cni", "start": 8455813, "end": 8457127}, {"filename": "/instruments/chips/dx7-f86f8b5d49840fa1df2069e3.cni", "start": 8457127, "end": 8458435}, {"filename": "/instruments/chips/dx7-manifest.json", "start": 8458435, "end": 8485114}, {"filename": "/instruments/chips/fatman-2op-0-00000-000.cni", "start": 8485114, "end": 8486215}, {"filename": "/instruments/chips/fatman-2op-0-00000-001.cni", "start": 8486215, "end": 8487312}, {"filename": "/instruments/chips/fatman-2op-0-00000-002.cni", "start": 8487312, "end": 8488412}, {"filename": "/instruments/chips/fatman-2op-0-00000-003.cni", "start": 8488412, "end": 8489505}, {"filename": "/instruments/chips/fatman-2op-0-00000-004.cni", "start": 8489505, "end": 8490609}, {"filename": "/instruments/chips/fatman-2op-0-00000-005.cni", "start": 8490609, "end": 8491713}, {"filename": "/instruments/chips/fatman-2op-0-00000-006.cni", "start": 8491713, "end": 8492809}, {"filename": "/instruments/chips/fatman-2op-0-00000-007.cni", "start": 8492809, "end": 8493898}, {"filename": "/instruments/chips/fatman-2op-0-00000-008.cni", "start": 8493898, "end": 8494987}, {"filename": "/instruments/chips/fatman-2op-0-00000-009.cni", "start": 8494987, "end": 8496086}, {"filename": "/instruments/chips/fatman-2op-0-00000-010.cni", "start": 8496086, "end": 8497178}, {"filename": "/instruments/chips/fatman-2op-0-00000-011.cni", "start": 8497178, "end": 8498272}, {"filename": "/instruments/chips/fatman-2op-0-00000-012.cni", "start": 8498272, "end": 8499359}, {"filename": "/instruments/chips/fatman-2op-0-00000-013.cni", "start": 8499359, "end": 8500450}, {"filename": "/instruments/chips/fatman-2op-0-00000-014.cni", "start": 8500450, "end": 8501551}, {"filename": "/instruments/chips/fatman-2op-0-00000-015.cni", "start": 8501551, "end": 8502640}, {"filename": "/instruments/chips/fatman-2op-0-00000-016.cni", "start": 8502640, "end": 8503739}, {"filename": "/instruments/chips/fatman-2op-0-00000-017.cni", "start": 8503739, "end": 8504843}, {"filename": "/instruments/chips/fatman-2op-0-00000-018.cni", "start": 8504843, "end": 8505936}, {"filename": "/instruments/chips/fatman-2op-0-00000-019.cni", "start": 8505936, "end": 8507032}, {"filename": "/instruments/chips/fatman-2op-0-00000-020.cni", "start": 8507032, "end": 8508124}, {"filename": "/instruments/chips/fatman-2op-0-00000-021.cni", "start": 8508124, "end": 8509214}, {"filename": "/instruments/chips/fatman-2op-0-00000-022.cni", "start": 8509214, "end": 8510303}, {"filename": "/instruments/chips/fatman-2op-0-00000-023.cni", "start": 8510303, "end": 8511404}, {"filename": "/instruments/chips/fatman-2op-0-00000-024.cni", "start": 8511404, "end": 8512501}, {"filename": "/instruments/chips/fatman-2op-0-00000-025.cni", "start": 8512501, "end": 8513600}, {"filename": "/instruments/chips/fatman-2op-0-00000-026.cni", "start": 8513600, "end": 8514696}, {"filename": "/instruments/chips/fatman-2op-0-00000-027.cni", "start": 8514696, "end": 8515792}, {"filename": "/instruments/chips/fatman-2op-0-00000-028.cni", "start": 8515792, "end": 8516889}, {"filename": "/instruments/chips/fatman-2op-0-00000-029.cni", "start": 8516889, "end": 8517991}, {"filename": "/instruments/chips/fatman-2op-0-00000-030.cni", "start": 8517991, "end": 8519093}, {"filename": "/instruments/chips/fatman-2op-0-00000-031.cni", "start": 8519093, "end": 8520198}, {"filename": "/instruments/chips/fatman-2op-0-00000-032.cni", "start": 8520198, "end": 8521297}, {"filename": "/instruments/chips/fatman-2op-0-00000-033.cni", "start": 8521297, "end": 8522392}, {"filename": "/instruments/chips/fatman-2op-0-00000-034.cni", "start": 8522392, "end": 8523484}, {"filename": "/instruments/chips/fatman-2op-0-00000-035.cni", "start": 8523484, "end": 8524581}, {"filename": "/instruments/chips/fatman-2op-0-00000-036.cni", "start": 8524581, "end": 8525678}, {"filename": "/instruments/chips/fatman-2op-0-00000-037.cni", "start": 8525678, "end": 8526774}, {"filename": "/instruments/chips/fatman-2op-0-00000-038.cni", "start": 8526774, "end": 8527872}, {"filename": "/instruments/chips/fatman-2op-0-00000-039.cni", "start": 8527872, "end": 8528969}, {"filename": "/instruments/chips/fatman-2op-0-00000-040.cni", "start": 8528969, "end": 8530054}, {"filename": "/instruments/chips/fatman-2op-0-00000-041.cni", "start": 8530054, "end": 8531137}, {"filename": "/instruments/chips/fatman-2op-0-00000-042.cni", "start": 8531137, "end": 8532219}, {"filename": "/instruments/chips/fatman-2op-0-00000-043.cni", "start": 8532219, "end": 8533310}, {"filename": "/instruments/chips/fatman-2op-0-00000-044.cni", "start": 8533310, "end": 8534412}, {"filename": "/instruments/chips/fatman-2op-0-00000-045.cni", "start": 8534412, "end": 8535516}, {"filename": "/instruments/chips/fatman-2op-0-00000-046.cni", "start": 8535516, "end": 8536620}, {"filename": "/instruments/chips/fatman-2op-0-00000-047.cni", "start": 8536620, "end": 8537707}, {"filename": "/instruments/chips/fatman-2op-0-00000-048.cni", "start": 8537707, "end": 8538797}, {"filename": "/instruments/chips/fatman-2op-0-00000-049.cni", "start": 8538797, "end": 8539888}, {"filename": "/instruments/chips/fatman-2op-0-00000-050.cni", "start": 8539888, "end": 8540992}, {"filename": "/instruments/chips/fatman-2op-0-00000-051.cni", "start": 8540992, "end": 8542096}, {"filename": "/instruments/chips/fatman-2op-0-00000-052.cni", "start": 8542096, "end": 8543190}, {"filename": "/instruments/chips/fatman-2op-0-00000-053.cni", "start": 8543190, "end": 8544281}, {"filename": "/instruments/chips/fatman-2op-0-00000-054.cni", "start": 8544281, "end": 8545376}, {"filename": "/instruments/chips/fatman-2op-0-00000-055.cni", "start": 8545376, "end": 8546473}, {"filename": "/instruments/chips/fatman-2op-0-00000-056.cni", "start": 8546473, "end": 8547559}, {"filename": "/instruments/chips/fatman-2op-0-00000-057.cni", "start": 8547559, "end": 8548647}, {"filename": "/instruments/chips/fatman-2op-0-00000-058.cni", "start": 8548647, "end": 8549726}, {"filename": "/instruments/chips/fatman-2op-0-00000-059.cni", "start": 8549726, "end": 8550823}, {"filename": "/instruments/chips/fatman-2op-0-00000-060.cni", "start": 8550823, "end": 8551919}, {"filename": "/instruments/chips/fatman-2op-0-00000-061.cni", "start": 8551919, "end": 8553017}, {"filename": "/instruments/chips/fatman-2op-0-00000-062.cni", "start": 8553017, "end": 8554113}, {"filename": "/instruments/chips/fatman-2op-0-00000-063.cni", "start": 8554113, "end": 8555212}, {"filename": "/instruments/chips/fatman-2op-0-00000-064.cni", "start": 8555212, "end": 8556306}, {"filename": "/instruments/chips/fatman-2op-0-00000-065.cni", "start": 8556306, "end": 8557393}, {"filename": "/instruments/chips/fatman-2op-0-00000-066.cni", "start": 8557393, "end": 8558482}, {"filename": "/instruments/chips/fatman-2op-0-00000-067.cni", "start": 8558482, "end": 8559578}, {"filename": "/instruments/chips/fatman-2op-0-00000-068.cni", "start": 8559578, "end": 8560661}, {"filename": "/instruments/chips/fatman-2op-0-00000-069.cni", "start": 8560661, "end": 8561758}, {"filename": "/instruments/chips/fatman-2op-0-00000-070.cni", "start": 8561758, "end": 8562842}, {"filename": "/instruments/chips/fatman-2op-0-00000-071.cni", "start": 8562842, "end": 8563930}, {"filename": "/instruments/chips/fatman-2op-0-00000-072.cni", "start": 8563930, "end": 8565017}, {"filename": "/instruments/chips/fatman-2op-0-00000-073.cni", "start": 8565017, "end": 8566099}, {"filename": "/instruments/chips/fatman-2op-0-00000-074.cni", "start": 8566099, "end": 8567188}, {"filename": "/instruments/chips/fatman-2op-0-00000-075.cni", "start": 8567188, "end": 8568278}, {"filename": "/instruments/chips/fatman-2op-0-00000-076.cni", "start": 8568278, "end": 8569373}, {"filename": "/instruments/chips/fatman-2op-0-00000-077.cni", "start": 8569373, "end": 8570464}, {"filename": "/instruments/chips/fatman-2op-0-00000-078.cni", "start": 8570464, "end": 8571549}, {"filename": "/instruments/chips/fatman-2op-0-00000-079.cni", "start": 8571549, "end": 8572634}, {"filename": "/instruments/chips/fatman-2op-0-00000-080.cni", "start": 8572634, "end": 8573731}, {"filename": "/instruments/chips/fatman-2op-0-00000-081.cni", "start": 8573731, "end": 8574823}, {"filename": "/instruments/chips/fatman-2op-0-00000-082.cni", "start": 8574823, "end": 8575919}, {"filename": "/instruments/chips/fatman-2op-0-00000-083.cni", "start": 8575919, "end": 8577010}, {"filename": "/instruments/chips/fatman-2op-0-00000-084.cni", "start": 8577010, "end": 8578107}, {"filename": "/instruments/chips/fatman-2op-0-00000-085.cni", "start": 8578107, "end": 8579201}, {"filename": "/instruments/chips/fatman-2op-0-00000-086.cni", "start": 8579201, "end": 8580297}, {"filename": "/instruments/chips/fatman-2op-0-00000-087.cni", "start": 8580297, "end": 8581388}, {"filename": "/instruments/chips/fatman-2op-0-00000-088.cni", "start": 8581388, "end": 8582483}, {"filename": "/instruments/chips/fatman-2op-0-00000-089.cni", "start": 8582483, "end": 8583572}, {"filename": "/instruments/chips/fatman-2op-0-00000-090.cni", "start": 8583572, "end": 8584669}, {"filename": "/instruments/chips/fatman-2op-0-00000-091.cni", "start": 8584669, "end": 8585760}, {"filename": "/instruments/chips/fatman-2op-0-00000-092.cni", "start": 8585760, "end": 8586850}, {"filename": "/instruments/chips/fatman-2op-0-00000-093.cni", "start": 8586850, "end": 8587946}, {"filename": "/instruments/chips/fatman-2op-0-00000-094.cni", "start": 8587946, "end": 8589033}, {"filename": "/instruments/chips/fatman-2op-0-00000-095.cni", "start": 8589033, "end": 8590124}, {"filename": "/instruments/chips/fatman-2op-0-00000-096.cni", "start": 8590124, "end": 8591212}, {"filename": "/instruments/chips/fatman-2op-0-00000-097.cni", "start": 8591212, "end": 8592310}, {"filename": "/instruments/chips/fatman-2op-0-00000-098.cni", "start": 8592310, "end": 8593403}, {"filename": "/instruments/chips/fatman-2op-0-00000-099.cni", "start": 8593403, "end": 8594502}, {"filename": "/instruments/chips/fatman-2op-0-00000-100.cni", "start": 8594502, "end": 8595603}, {"filename": "/instruments/chips/fatman-2op-0-00000-101.cni", "start": 8595603, "end": 8596696}, {"filename": "/instruments/chips/fatman-2op-0-00000-102.cni", "start": 8596696, "end": 8597788}, {"filename": "/instruments/chips/fatman-2op-0-00000-103.cni", "start": 8597788, "end": 8598880}, {"filename": "/instruments/chips/fatman-2op-0-00000-104.cni", "start": 8598880, "end": 8599963}, {"filename": "/instruments/chips/fatman-2op-0-00000-105.cni", "start": 8599963, "end": 8601048}, {"filename": "/instruments/chips/fatman-2op-0-00000-106.cni", "start": 8601048, "end": 8602137}, {"filename": "/instruments/chips/fatman-2op-0-00000-107.cni", "start": 8602137, "end": 8603222}, {"filename": "/instruments/chips/fatman-2op-0-00000-108.cni", "start": 8603222, "end": 8604311}, {"filename": "/instruments/chips/fatman-2op-0-00000-109.cni", "start": 8604311, "end": 8605398}, {"filename": "/instruments/chips/fatman-2op-0-00000-110.cni", "start": 8605398, "end": 8606483}, {"filename": "/instruments/chips/fatman-2op-0-00000-111.cni", "start": 8606483, "end": 8607570}, {"filename": "/instruments/chips/fatman-2op-0-00000-112.cni", "start": 8607570, "end": 8608668}, {"filename": "/instruments/chips/fatman-2op-0-00000-113.cni", "start": 8608668, "end": 8609751}, {"filename": "/instruments/chips/fatman-2op-0-00000-114.cni", "start": 8609751, "end": 8610847}, {"filename": "/instruments/chips/fatman-2op-0-00000-115.cni", "start": 8610847, "end": 8611940}, {"filename": "/instruments/chips/fatman-2op-0-00000-116.cni", "start": 8611940, "end": 8613034}, {"filename": "/instruments/chips/fatman-2op-0-00000-117.cni", "start": 8613034, "end": 8614129}, {"filename": "/instruments/chips/fatman-2op-0-00000-118.cni", "start": 8614129, "end": 8615223}, {"filename": "/instruments/chips/fatman-2op-0-00000-119.cni", "start": 8615223, "end": 8616325}, {"filename": "/instruments/chips/fatman-2op-0-00000-120.cni", "start": 8616325, "end": 8617429}, {"filename": "/instruments/chips/fatman-2op-0-00000-121.cni", "start": 8617429, "end": 8618526}, {"filename": "/instruments/chips/fatman-2op-0-00000-122.cni", "start": 8618526, "end": 8619618}, {"filename": "/instruments/chips/fatman-2op-0-00000-123.cni", "start": 8619618, "end": 8620710}, {"filename": "/instruments/chips/fatman-2op-0-00000-124.cni", "start": 8620710, "end": 8621802}, {"filename": "/instruments/chips/fatman-2op-0-00000-125.cni", "start": 8621802, "end": 8622894}, {"filename": "/instruments/chips/fatman-2op-0-00000-126.cni", "start": 8622894, "end": 8623983}, {"filename": "/instruments/chips/fatman-2op-0-00000-127.cni", "start": 8623983, "end": 8625070}, {"filename": "/instruments/chips/fatman-2op-1-00000-035.cni", "start": 8625070, "end": 8626168}, {"filename": "/instruments/chips/fatman-2op-1-00000-036.cni", "start": 8626168, "end": 8627266}, {"filename": "/instruments/chips/fatman-2op-1-00000-037.cni", "start": 8627266, "end": 8628367}, {"filename": "/instruments/chips/fatman-2op-1-00000-038.cni", "start": 8628367, "end": 8629467}, {"filename": "/instruments/chips/fatman-2op-1-00000-039.cni", "start": 8629467, "end": 8630567}, {"filename": "/instruments/chips/fatman-2op-1-00000-040.cni", "start": 8630567, "end": 8631667}, {"filename": "/instruments/chips/fatman-2op-1-00000-041.cni", "start": 8631667, "end": 8632766}, {"filename": "/instruments/chips/fatman-2op-1-00000-042.cni", "start": 8632766, "end": 8633866}, {"filename": "/instruments/chips/fatman-2op-1-00000-043.cni", "start": 8633866, "end": 8634965}, {"filename": "/instruments/chips/fatman-2op-1-00000-044.cni", "start": 8634965, "end": 8636064}, {"filename": "/instruments/chips/fatman-2op-1-00000-045.cni", "start": 8636064, "end": 8637163}, {"filename": "/instruments/chips/fatman-2op-1-00000-046.cni", "start": 8637163, "end": 8638265}, {"filename": "/instruments/chips/fatman-2op-1-00000-047.cni", "start": 8638265, "end": 8639364}, {"filename": "/instruments/chips/fatman-2op-1-00000-048.cni", "start": 8639364, "end": 8640463}, {"filename": "/instruments/chips/fatman-2op-1-00000-049.cni", "start": 8640463, "end": 8641564}, {"filename": "/instruments/chips/fatman-2op-1-00000-050.cni", "start": 8641564, "end": 8642663}, {"filename": "/instruments/chips/fatman-2op-1-00000-051.cni", "start": 8642663, "end": 8643766}, {"filename": "/instruments/chips/fatman-2op-1-00000-052.cni", "start": 8643766, "end": 8644868}, {"filename": "/instruments/chips/fatman-2op-1-00000-053.cni", "start": 8644868, "end": 8645973}, {"filename": "/instruments/chips/fatman-2op-1-00000-054.cni", "start": 8645973, "end": 8647072}, {"filename": "/instruments/chips/fatman-2op-1-00000-055.cni", "start": 8647072, "end": 8648174}, {"filename": "/instruments/chips/fatman-2op-1-00000-056.cni", "start": 8648174, "end": 8649272}, {"filename": "/instruments/chips/fatman-2op-1-00000-057.cni", "start": 8649272, "end": 8650373}, {"filename": "/instruments/chips/fatman-2op-1-00000-058.cni", "start": 8650373, "end": 8651476}, {"filename": "/instruments/chips/fatman-2op-1-00000-059.cni", "start": 8651476, "end": 8652579}, {"filename": "/instruments/chips/fatman-2op-1-00000-060.cni", "start": 8652579, "end": 8653679}, {"filename": "/instruments/chips/fatman-2op-1-00000-061.cni", "start": 8653679, "end": 8654780}, {"filename": "/instruments/chips/fatman-2op-1-00000-062.cni", "start": 8654780, "end": 8655882}, {"filename": "/instruments/chips/fatman-2op-1-00000-063.cni", "start": 8655882, "end": 8656984}, {"filename": "/instruments/chips/fatman-2op-1-00000-064.cni", "start": 8656984, "end": 8658085}, {"filename": "/instruments/chips/fatman-2op-1-00000-065.cni", "start": 8658085, "end": 8659185}, {"filename": "/instruments/chips/fatman-2op-1-00000-066.cni", "start": 8659185, "end": 8660283}, {"filename": "/instruments/chips/fatman-2op-1-00000-067.cni", "start": 8660283, "end": 8661383}, {"filename": "/instruments/chips/fatman-2op-1-00000-068.cni", "start": 8661383, "end": 8662483}, {"filename": "/instruments/chips/fatman-2op-1-00000-069.cni", "start": 8662483, "end": 8663581}, {"filename": "/instruments/chips/fatman-2op-1-00000-070.cni", "start": 8663581, "end": 8664680}, {"filename": "/instruments/chips/fatman-2op-1-00000-071.cni", "start": 8664680, "end": 8665781}, {"filename": "/instruments/chips/fatman-2op-1-00000-072.cni", "start": 8665781, "end": 8666881}, {"filename": "/instruments/chips/fatman-2op-1-00000-073.cni", "start": 8666881, "end": 8667978}, {"filename": "/instruments/chips/fatman-2op-1-00000-074.cni", "start": 8667978, "end": 8669075}, {"filename": "/instruments/chips/fatman-2op-1-00000-075.cni", "start": 8669075, "end": 8670175}, {"filename": "/instruments/chips/fatman-2op-1-00000-076.cni", "start": 8670175, "end": 8671275}, {"filename": "/instruments/chips/fatman-2op-1-00000-077.cni", "start": 8671275, "end": 8672375}, {"filename": "/instruments/chips/fatman-2op-1-00000-078.cni", "start": 8672375, "end": 8673473}, {"filename": "/instruments/chips/fatman-2op-1-00000-079.cni", "start": 8673473, "end": 8674572}, {"filename": "/instruments/chips/fatman-2op-1-00000-080.cni", "start": 8674572, "end": 8675675}, {"filename": "/instruments/chips/fatman-2op-1-00000-081.cni", "start": 8675675, "end": 8676781}, {"filename": "/instruments/chips/fatman-2op-1-00000-082.cni", "start": 8676781, "end": 8677881}, {"filename": "/instruments/chips/fatman-2op-1-00000-083.cni", "start": 8677881, "end": 8678981}, {"filename": "/instruments/chips/fatman-2op-1-00000-084.cni", "start": 8678981, "end": 8680080}, {"filename": "/instruments/chips/fatman-2op-1-00000-085.cni", "start": 8680080, "end": 8681180}, {"filename": "/instruments/chips/fatman-2op-1-00000-086.cni", "start": 8681180, "end": 8682283}, {"filename": "/instruments/chips/fatman-2op-1-00000-087.cni", "start": 8682283, "end": 8683382}, {"filename": "/instruments/chips/fatman-4op-0-00000-000.cni", "start": 8683382, "end": 8684491}, {"filename": "/instruments/chips/fatman-4op-0-00000-001.cni", "start": 8684491, "end": 8685593}, {"filename": "/instruments/chips/fatman-4op-0-00000-002.cni", "start": 8685593, "end": 8686702}, {"filename": "/instruments/chips/fatman-4op-0-00000-003.cni", "start": 8686702, "end": 8687801}, {"filename": "/instruments/chips/fatman-4op-0-00000-004.cni", "start": 8687801, "end": 8688911}, {"filename": "/instruments/chips/fatman-4op-0-00000-005.cni", "start": 8688911, "end": 8690021}, {"filename": "/instruments/chips/fatman-4op-0-00000-006.cni", "start": 8690021, "end": 8691118}, {"filename": "/instruments/chips/fatman-4op-0-00000-007.cni", "start": 8691118, "end": 8692213}, {"filename": "/instruments/chips/fatman-4op-0-00000-008.cni", "start": 8692213, "end": 8693307}, {"filename": "/instruments/chips/fatman-4op-0-00000-009.cni", "start": 8693307, "end": 8694410}, {"filename": "/instruments/chips/fatman-4op-0-00000-010.cni", "start": 8694410, "end": 8695506}, {"filename": "/instruments/chips/fatman-4op-0-00000-011.cni", "start": 8695506, "end": 8696605}, {"filename": "/instruments/chips/fatman-4op-0-00000-012.cni", "start": 8696605, "end": 8697698}, {"filename": "/instruments/chips/fatman-4op-0-00000-013.cni", "start": 8697698, "end": 8698795}, {"filename": "/instruments/chips/fatman-4op-0-00000-014.cni", "start": 8698795, "end": 8699901}, {"filename": "/instruments/chips/fatman-4op-0-00000-015.cni", "start": 8699901, "end": 8700991}, {"filename": "/instruments/chips/fatman-4op-0-00000-016.cni", "start": 8700991, "end": 8702097}, {"filename": "/instruments/chips/fatman-4op-0-00000-017.cni", "start": 8702097, "end": 8703204}, {"filename": "/instruments/chips/fatman-4op-0-00000-018.cni", "start": 8703204, "end": 8704309}, {"filename": "/instruments/chips/fatman-4op-0-00000-019.cni", "start": 8704309, "end": 8705407}, {"filename": "/instruments/chips/fatman-4op-0-00000-020.cni", "start": 8705407, "end": 8706505}, {"filename": "/instruments/chips/fatman-4op-0-00000-021.cni", "start": 8706505, "end": 8707599}, {"filename": "/instruments/chips/fatman-4op-0-00000-022.cni", "start": 8707599, "end": 8708697}, {"filename": "/instruments/chips/fatman-4op-0-00000-023.cni", "start": 8708697, "end": 8709803}, {"filename": "/instruments/chips/fatman-4op-0-00000-024.cni", "start": 8709803, "end": 8710904}, {"filename": "/instruments/chips/fatman-4op-0-00000-025.cni", "start": 8710904, "end": 8712009}, {"filename": "/instruments/chips/fatman-4op-0-00000-026.cni", "start": 8712009, "end": 8713114}, {"filename": "/instruments/chips/fatman-4op-0-00000-027.cni", "start": 8713114, "end": 8714219}, {"filename": "/instruments/chips/fatman-4op-0-00000-028.cni", "start": 8714219, "end": 8715321}, {"filename": "/instruments/chips/fatman-4op-0-00000-029.cni", "start": 8715321, "end": 8716429}, {"filename": "/instruments/chips/fatman-4op-0-00000-030.cni", "start": 8716429, "end": 8717539}, {"filename": "/instruments/chips/fatman-4op-0-00000-031.cni", "start": 8717539, "end": 8718648}, {"filename": "/instruments/chips/fatman-4op-0-00000-032.cni", "start": 8718648, "end": 8719749}, {"filename": "/instruments/chips/fatman-4op-0-00000-033.cni", "start": 8719749, "end": 8720852}, {"filename": "/instruments/chips/fatman-4op-0-00000-034.cni", "start": 8720852, "end": 8721947}, {"filename": "/instruments/chips/fatman-4op-0-00000-035.cni", "start": 8721947, "end": 8723045}, {"filename": "/instruments/chips/fatman-4op-0-00000-036.cni", "start": 8723045, "end": 8724148}, {"filename": "/instruments/chips/fatman-4op-0-00000-037.cni", "start": 8724148, "end": 8725250}, {"filename": "/instruments/chips/fatman-4op-0-00000-038.cni", "start": 8725250, "end": 8726354}, {"filename": "/instruments/chips/fatman-4op-0-00000-039.cni", "start": 8726354, "end": 8727456}, {"filename": "/instruments/chips/fatman-4op-0-00000-040.cni", "start": 8727456, "end": 8728544}, {"filename": "/instruments/chips/fatman-4op-0-00000-041.cni", "start": 8728544, "end": 8729630}, {"filename": "/instruments/chips/fatman-4op-0-00000-042.cni", "start": 8729630, "end": 8730716}, {"filename": "/instruments/chips/fatman-4op-0-00000-043.cni", "start": 8730716, "end": 8731813}, {"filename": "/instruments/chips/fatman-4op-0-00000-044.cni", "start": 8731813, "end": 8732923}, {"filename": "/instruments/chips/fatman-4op-0-00000-045.cni", "start": 8732923, "end": 8734027}, {"filename": "/instruments/chips/fatman-4op-0-00000-046.cni", "start": 8734027, "end": 8735130}, {"filename": "/instruments/chips/fatman-4op-0-00000-047.cni", "start": 8735130, "end": 8736221}, {"filename": "/instruments/chips/fatman-4op-0-00000-048.cni", "start": 8736221, "end": 8737311}, {"filename": "/instruments/chips/fatman-4op-0-00000-049.cni", "start": 8737311, "end": 8738403}, {"filename": "/instruments/chips/fatman-4op-0-00000-050.cni", "start": 8738403, "end": 8739510}, {"filename": "/instruments/chips/fatman-4op-0-00000-051.cni", "start": 8739510, "end": 8740618}, {"filename": "/instruments/chips/fatman-4op-0-00000-052.cni", "start": 8740618, "end": 8741715}, {"filename": "/instruments/chips/fatman-4op-0-00000-053.cni", "start": 8741715, "end": 8742808}, {"filename": "/instruments/chips/fatman-4op-0-00000-054.cni", "start": 8742808, "end": 8743906}, {"filename": "/instruments/chips/fatman-4op-0-00000-055.cni", "start": 8743906, "end": 8745002}, {"filename": "/instruments/chips/fatman-4op-0-00000-056.cni", "start": 8745002, "end": 8746092}, {"filename": "/instruments/chips/fatman-4op-0-00000-057.cni", "start": 8746092, "end": 8747184}, {"filename": "/instruments/chips/fatman-4op-0-00000-058.cni", "start": 8747184, "end": 8748265}, {"filename": "/instruments/chips/fatman-4op-0-00000-059.cni", "start": 8748265, "end": 8749365}, {"filename": "/instruments/chips/fatman-4op-0-00000-060.cni", "start": 8749365, "end": 8750465}, {"filename": "/instruments/chips/fatman-4op-0-00000-061.cni", "start": 8750465, "end": 8751568}, {"filename": "/instruments/chips/fatman-4op-0-00000-062.cni", "start": 8751568, "end": 8752671}, {"filename": "/instruments/chips/fatman-4op-0-00000-063.cni", "start": 8752671, "end": 8753775}, {"filename": "/instruments/chips/fatman-4op-0-00000-064.cni", "start": 8753775, "end": 8754871}, {"filename": "/instruments/chips/fatman-4op-0-00000-065.cni", "start": 8754871, "end": 8755960}, {"filename": "/instruments/chips/fatman-4op-0-00000-066.cni", "start": 8755960, "end": 8757050}, {"filename": "/instruments/chips/fatman-4op-0-00000-067.cni", "start": 8757050, "end": 8758148}, {"filename": "/instruments/chips/fatman-4op-0-00000-068.cni", "start": 8758148, "end": 8759236}, {"filename": "/instruments/chips/fatman-4op-0-00000-069.cni", "start": 8759236, "end": 8760336}, {"filename": "/instruments/chips/fatman-4op-0-00000-070.cni", "start": 8760336, "end": 8761425}, {"filename": "/instruments/chips/fatman-4op-0-00000-071.cni", "start": 8761425, "end": 8762516}, {"filename": "/instruments/chips/fatman-4op-0-00000-072.cni", "start": 8762516, "end": 8763607}, {"filename": "/instruments/chips/fatman-4op-0-00000-073.cni", "start": 8763607, "end": 8764693}, {"filename": "/instruments/chips/fatman-4op-0-00000-074.cni", "start": 8764693, "end": 8765786}, {"filename": "/instruments/chips/fatman-4op-0-00000-075.cni", "start": 8765786, "end": 8766880}, {"filename": "/instruments/chips/fatman-4op-0-00000-076.cni", "start": 8766880, "end": 8767978}, {"filename": "/instruments/chips/fatman-4op-0-00000-077.cni", "start": 8767978, "end": 8769071}, {"filename": "/instruments/chips/fatman-4op-0-00000-078.cni", "start": 8769071, "end": 8770157}, {"filename": "/instruments/chips/fatman-4op-0-00000-079.cni", "start": 8770157, "end": 8771245}, {"filename": "/instruments/chips/fatman-4op-0-00000-080.cni", "start": 8771245, "end": 8772351}, {"filename": "/instruments/chips/fatman-4op-0-00000-081.cni", "start": 8772351, "end": 8773451}, {"filename": "/instruments/chips/fatman-4op-0-00000-082.cni", "start": 8773451, "end": 8774550}, {"filename": "/instruments/chips/fatman-4op-0-00000-083.cni", "start": 8774550, "end": 8775644}, {"filename": "/instruments/chips/fatman-4op-0-00000-084.cni", "start": 8775644, "end": 8776745}, {"filename": "/instruments/chips/fatman-4op-0-00000-085.cni", "start": 8776745, "end": 8777841}, {"filename": "/instruments/chips/fatman-4op-0-00000-086.cni", "start": 8777841, "end": 8778942}, {"filename": "/instruments/chips/fatman-4op-0-00000-087.cni", "start": 8778942, "end": 8780036}, {"filename": "/instruments/chips/fatman-4op-0-00000-088.cni", "start": 8780036, "end": 8781133}, {"filename": "/instruments/chips/fatman-4op-0-00000-089.cni", "start": 8781133, "end": 8782224}, {"filename": "/instruments/chips/fatman-4op-0-00000-090.cni", "start": 8782224, "end": 8783325}, {"filename": "/instruments/chips/fatman-4op-0-00000-091.cni", "start": 8783325, "end": 8784419}, {"filename": "/instruments/chips/fatman-4op-0-00000-092.cni", "start": 8784419, "end": 8785512}, {"filename": "/instruments/chips/fatman-4op-0-00000-093.cni", "start": 8785512, "end": 8786610}, {"filename": "/instruments/chips/fatman-4op-0-00000-094.cni", "start": 8786610, "end": 8787699}, {"filename": "/instruments/chips/fatman-4op-0-00000-095.cni", "start": 8787699, "end": 8788793}, {"filename": "/instruments/chips/fatman-4op-0-00000-096.cni", "start": 8788793, "end": 8789887}, {"filename": "/instruments/chips/fatman-4op-0-00000-097.cni", "start": 8789887, "end": 8790987}, {"filename": "/instruments/chips/fatman-4op-0-00000-098.cni", "start": 8790987, "end": 8792083}, {"filename": "/instruments/chips/fatman-4op-0-00000-099.cni", "start": 8792083, "end": 8793185}, {"filename": "/instruments/chips/fatman-4op-0-00000-100.cni", "start": 8793185, "end": 8794290}, {"filename": "/instruments/chips/fatman-4op-0-00000-101.cni", "start": 8794290, "end": 8795386}, {"filename": "/instruments/chips/fatman-4op-0-00000-102.cni", "start": 8795386, "end": 8796481}, {"filename": "/instruments/chips/fatman-4op-0-00000-103.cni", "start": 8796481, "end": 8797577}, {"filename": "/instruments/chips/fatman-4op-0-00000-104.cni", "start": 8797577, "end": 8798664}, {"filename": "/instruments/chips/fatman-4op-0-00000-105.cni", "start": 8798664, "end": 8799753}, {"filename": "/instruments/chips/fatman-4op-0-00000-106.cni", "start": 8799753, "end": 8800851}, {"filename": "/instruments/chips/fatman-4op-0-00000-107.cni", "start": 8800851, "end": 8801941}, {"filename": "/instruments/chips/fatman-4op-0-00000-108.cni", "start": 8801941, "end": 8803035}, {"filename": "/instruments/chips/fatman-4op-0-00000-109.cni", "start": 8803035, "end": 8804125}, {"filename": "/instruments/chips/fatman-4op-0-00000-110.cni", "start": 8804125, "end": 8805212}, {"filename": "/instruments/chips/fatman-4op-0-00000-111.cni", "start": 8805212, "end": 8806303}, {"filename": "/instruments/chips/fatman-4op-0-00000-112.cni", "start": 8806303, "end": 8807405}, {"filename": "/instruments/chips/fatman-4op-0-00000-113.cni", "start": 8807405, "end": 8808492}, {"filename": "/instruments/chips/fatman-4op-0-00000-114.cni", "start": 8808492, "end": 8809592}, {"filename": "/instruments/chips/fatman-4op-0-00000-115.cni", "start": 8809592, "end": 8810696}, {"filename": "/instruments/chips/fatman-4op-0-00000-116.cni", "start": 8810696, "end": 8811793}, {"filename": "/instruments/chips/fatman-4op-0-00000-117.cni", "start": 8811793, "end": 8812894}, {"filename": "/instruments/chips/fatman-4op-0-00000-118.cni", "start": 8812894, "end": 8813992}, {"filename": "/instruments/chips/fatman-4op-0-00000-119.cni", "start": 8813992, "end": 8815101}, {"filename": "/instruments/chips/fatman-4op-0-00000-120.cni", "start": 8815101, "end": 8816207}, {"filename": "/instruments/chips/fatman-4op-0-00000-121.cni", "start": 8816207, "end": 8817308}, {"filename": "/instruments/chips/fatman-4op-0-00000-122.cni", "start": 8817308, "end": 8818401}, {"filename": "/instruments/chips/fatman-4op-0-00000-123.cni", "start": 8818401, "end": 8819496}, {"filename": "/instruments/chips/fatman-4op-0-00000-124.cni", "start": 8819496, "end": 8820590}, {"filename": "/instruments/chips/fatman-4op-0-00000-125.cni", "start": 8820590, "end": 8821683}, {"filename": "/instruments/chips/fatman-4op-0-00000-126.cni", "start": 8821683, "end": 8822776}, {"filename": "/instruments/chips/fatman-4op-0-00000-127.cni", "start": 8822776, "end": 8823865}, {"filename": "/instruments/chips/fatman-4op-1-00000-035.cni", "start": 8823865, "end": 8824963}, {"filename": "/instruments/chips/fatman-4op-1-00000-036.cni", "start": 8824963, "end": 8826068}, {"filename": "/instruments/chips/fatman-4op-1-00000-037.cni", "start": 8826068, "end": 8827178}, {"filename": "/instruments/chips/fatman-4op-1-00000-038.cni", "start": 8827178, "end": 8828281}, {"filename": "/instruments/chips/fatman-4op-1-00000-039.cni", "start": 8828281, "end": 8829385}, {"filename": "/instruments/chips/fatman-4op-1-00000-040.cni", "start": 8829385, "end": 8830488}, {"filename": "/instruments/chips/fatman-4op-1-00000-041.cni", "start": 8830488, "end": 8831592}, {"filename": "/instruments/chips/fatman-4op-1-00000-042.cni", "start": 8831592, "end": 8832696}, {"filename": "/instruments/chips/fatman-4op-1-00000-043.cni", "start": 8832696, "end": 8833800}, {"filename": "/instruments/chips/fatman-4op-1-00000-044.cni", "start": 8833800, "end": 8834902}, {"filename": "/instruments/chips/fatman-4op-1-00000-045.cni", "start": 8834902, "end": 8836006}, {"filename": "/instruments/chips/fatman-4op-1-00000-046.cni", "start": 8836006, "end": 8837113}, {"filename": "/instruments/chips/fatman-4op-1-00000-047.cni", "start": 8837113, "end": 8838217}, {"filename": "/instruments/chips/fatman-4op-1-00000-048.cni", "start": 8838217, "end": 8839321}, {"filename": "/instruments/chips/fatman-4op-1-00000-049.cni", "start": 8839321, "end": 8840425}, {"filename": "/instruments/chips/fatman-4op-1-00000-050.cni", "start": 8840425, "end": 8841529}, {"filename": "/instruments/chips/fatman-4op-1-00000-051.cni", "start": 8841529, "end": 8842636}, {"filename": "/instruments/chips/fatman-4op-1-00000-052.cni", "start": 8842636, "end": 8843738}, {"filename": "/instruments/chips/fatman-4op-1-00000-053.cni", "start": 8843738, "end": 8844847}, {"filename": "/instruments/chips/fatman-4op-1-00000-054.cni", "start": 8844847, "end": 8845948}, {"filename": "/instruments/chips/fatman-4op-1-00000-055.cni", "start": 8845948, "end": 8847052}, {"filename": "/instruments/chips/fatman-4op-1-00000-056.cni", "start": 8847052, "end": 8848152}, {"filename": "/instruments/chips/fatman-4op-1-00000-057.cni", "start": 8848152, "end": 8849256}, {"filename": "/instruments/chips/fatman-4op-1-00000-058.cni", "start": 8849256, "end": 8850363}, {"filename": "/instruments/chips/fatman-4op-1-00000-059.cni", "start": 8850363, "end": 8851470}, {"filename": "/instruments/chips/fatman-4op-1-00000-060.cni", "start": 8851470, "end": 8852573}, {"filename": "/instruments/chips/fatman-4op-1-00000-061.cni", "start": 8852573, "end": 8853682}, {"filename": "/instruments/chips/fatman-4op-1-00000-062.cni", "start": 8853682, "end": 8854790}, {"filename": "/instruments/chips/fatman-4op-1-00000-063.cni", "start": 8854790, "end": 8855900}, {"filename": "/instruments/chips/fatman-4op-1-00000-064.cni", "start": 8855900, "end": 8857009}, {"filename": "/instruments/chips/fatman-4op-1-00000-065.cni", "start": 8857009, "end": 8858114}, {"filename": "/instruments/chips/fatman-4op-1-00000-066.cni", "start": 8858114, "end": 8859215}, {"filename": "/instruments/chips/fatman-4op-1-00000-067.cni", "start": 8859215, "end": 8860321}, {"filename": "/instruments/chips/fatman-4op-1-00000-068.cni", "start": 8860321, "end": 8861426}, {"filename": "/instruments/chips/fatman-4op-1-00000-069.cni", "start": 8861426, "end": 8862527}, {"filename": "/instruments/chips/fatman-4op-1-00000-070.cni", "start": 8862527, "end": 8863631}, {"filename": "/instruments/chips/fatman-4op-1-00000-071.cni", "start": 8863631, "end": 8864737}, {"filename": "/instruments/chips/fatman-4op-1-00000-072.cni", "start": 8864737, "end": 8865839}, {"filename": "/instruments/chips/fatman-4op-1-00000-073.cni", "start": 8865839, "end": 8866941}, {"filename": "/instruments/chips/fatman-4op-1-00000-074.cni", "start": 8866941, "end": 8868043}, {"filename": "/instruments/chips/fatman-4op-1-00000-075.cni", "start": 8868043, "end": 8869147}, {"filename": "/instruments/chips/fatman-4op-1-00000-076.cni", "start": 8869147, "end": 8870251}, {"filename": "/instruments/chips/fatman-4op-1-00000-077.cni", "start": 8870251, "end": 8871355}, {"filename": "/instruments/chips/fatman-4op-1-00000-078.cni", "start": 8871355, "end": 8872452}, {"filename": "/instruments/chips/fatman-4op-1-00000-079.cni", "start": 8872452, "end": 8873554}, {"filename": "/instruments/chips/fatman-4op-1-00000-080.cni", "start": 8873554, "end": 8874662}, {"filename": "/instruments/chips/fatman-4op-1-00000-081.cni", "start": 8874662, "end": 8875774}, {"filename": "/instruments/chips/fatman-4op-1-00000-082.cni", "start": 8875774, "end": 8876880}, {"filename": "/instruments/chips/fatman-4op-1-00000-083.cni", "start": 8876880, "end": 8877982}, {"filename": "/instruments/chips/fatman-4op-1-00000-084.cni", "start": 8877982, "end": 8879090}, {"filename": "/instruments/chips/fatman-4op-1-00000-085.cni", "start": 8879090, "end": 8880194}, {"filename": "/instruments/chips/fatman-4op-1-00000-086.cni", "start": 8880194, "end": 8881304}, {"filename": "/instruments/chips/fatman-4op-1-00000-087.cni", "start": 8881304, "end": 8882411}, {"filename": "/instruments/chips/four-op-25-1bd290e1ea30ba8351bfd3e9.cni", "start": 8882411, "end": 8883508}, {"filename": "/instruments/chips/four-op-25-327a4f2df1166c9733831c1c.cni", "start": 8883508, "end": 8884602}, {"filename": "/instruments/chips/four-op-25-37135cf2ecc1224a4e836a4a.cni", "start": 8884602, "end": 8885702}, {"filename": "/instruments/chips/four-op-25-3c6196f593feec27aa0a6b2c.cni", "start": 8885702, "end": 8886796}, {"filename": "/instruments/chips/four-op-25-5425996969f84106e11b8cf9.cni", "start": 8886796, "end": 8887897}, {"filename": "/instruments/chips/four-op-25-58deb7e800b2a5e092a30a0e.cni", "start": 8887897, "end": 8888993}, {"filename": "/instruments/chips/four-op-25-593895637c90004fd749a5f8.cni", "start": 8888993, "end": 8890087}, {"filename": "/instruments/chips/four-op-25-621b7712eb2fbfd942580078.cni", "start": 8890087, "end": 8891187}, {"filename": "/instruments/chips/four-op-25-64525bc4894dabfdbf2d1e42.cni", "start": 8891187, "end": 8892281}, {"filename": "/instruments/chips/four-op-25-6b7f8034ec71ff9016e36bd6.cni", "start": 8892281, "end": 8893379}, {"filename": "/instruments/chips/four-op-25-6e86a43a75e2b54bc0e5ae40.cni", "start": 8893379, "end": 8894478}, {"filename": "/instruments/chips/four-op-25-7cf490a208f525f773c5a5e8.cni", "start": 8894478, "end": 8895575}, {"filename": "/instruments/chips/four-op-25-85e59787aa9152c1ef5a5868.cni", "start": 8895575, "end": 8896677}, {"filename": "/instruments/chips/four-op-25-9e5033939edf8050cee841d1.cni", "start": 8896677, "end": 8897777}, {"filename": "/instruments/chips/four-op-25-a973239a215eb6e73023aeca.cni", "start": 8897777, "end": 8898871}, {"filename": "/instruments/chips/four-op-25-b20e1075b4f460fb1c731fb0.cni", "start": 8898871, "end": 8899968}, {"filename": "/instruments/chips/four-op-25-bf1c563799f65438baf1be2c.cni", "start": 8899968, "end": 8901082}, {"filename": "/instruments/chips/four-op-25-c84b38de7b5599cfc720792a.cni", "start": 8901082, "end": 8902175}, {"filename": "/instruments/chips/four-op-25-cc52406e47a015376d3bb71d.cni", "start": 8902175, "end": 8903268}, {"filename": "/instruments/chips/four-op-25-de2593c99f35e338e938ac25.cni", "start": 8903268, "end": 8904370}, {"filename": "/instruments/chips/four-op-25-e43cd950c3967131fc7ebd43.cni", "start": 8904370, "end": 8905470}, {"filename": "/instruments/chips/four-op-25-e67f6ada41b52b08246d6b5d.cni", "start": 8905470, "end": 8906566}, {"filename": "/instruments/chips/four-op-25-efe8ca3492ab4b18c1a70ae5.cni", "start": 8906566, "end": 8907661}, {"filename": "/instruments/chips/four-op-25-fc399b8705b19f3bf9834a44.cni", "start": 8907661, "end": 8908761}, {"filename": "/instruments/chips/four-op-26-04777794d03540487528dfbc.cni", "start": 8908761, "end": 8909856}, {"filename": "/instruments/chips/four-op-26-0d515e057a58c8baa1c4ddb9.cni", "start": 8909856, "end": 8910952}, {"filename": "/instruments/chips/four-op-26-0fd5944d2eba5674d515e2e7.cni", "start": 8910952, "end": 8912049}, {"filename": "/instruments/chips/four-op-26-196057e5fd3b3011cc95aca9.cni", "start": 8912049, "end": 8913151}, {"filename": "/instruments/chips/four-op-26-3bc58da07c457e0c9562cec4.cni", "start": 8913151, "end": 8914244}, {"filename": "/instruments/chips/four-op-26-40cb5cc58942f6d089d21aa9.cni", "start": 8914244, "end": 8915338}, {"filename": "/instruments/chips/four-op-26-41e76fd664baa6d19fc6206f.cni", "start": 8915338, "end": 8916434}, {"filename": "/instruments/chips/four-op-26-60c8ce112d72c013ca14ae8f.cni", "start": 8916434, "end": 8917534}, {"filename": "/instruments/chips/four-op-26-793d20d6bddf68aa27769c19.cni", "start": 8917534, "end": 8918634}, {"filename": "/instruments/chips/four-op-26-7ab50a5fba58d0919adebdc3.cni", "start": 8918634, "end": 8919733}, {"filename": "/instruments/chips/four-op-26-8f494c1aef5ed5b12ce16532.cni", "start": 8919733, "end": 8920827}, {"filename": "/instruments/chips/four-op-26-9407bb393164e3f2e537b548.cni", "start": 8920827, "end": 8921927}, {"filename": "/instruments/chips/four-op-26-a7050f5de9755006b8f21df2.cni", "start": 8921927, "end": 8923021}, {"filename": "/instruments/chips/four-op-26-ae549239045a11dc71b5cfc1.cni", "start": 8923021, "end": 8924118}, {"filename": "/instruments/chips/four-op-26-af779b098ce72cb781453247.cni", "start": 8924118, "end": 8925212}, {"filename": "/instruments/chips/four-op-26-be2f974596da03090061d5b9.cni", "start": 8925212, "end": 8926326}, {"filename": "/instruments/chips/four-op-26-c5adf0689ea99744c0da89e6.cni", "start": 8926326, "end": 8927427}, {"filename": "/instruments/chips/four-op-26-cef824149bd59e00259b82dd.cni", "start": 8927427, "end": 8928527}, {"filename": "/instruments/chips/four-op-26-dc8ace5c79e9fe7ad1471821.cni", "start": 8928527, "end": 8929627}, {"filename": "/instruments/chips/four-op-26-dd71474c4c0eaf6d73d88a04.cni", "start": 8929627, "end": 8930729}, {"filename": "/instruments/chips/four-op-26-f0f2ac229cf1d28b9c4b21a7.cni", "start": 8930729, "end": 8931822}, {"filename": "/instruments/chips/four-op-26-f247b47f1cd694d1d9366f12.cni", "start": 8931822, "end": 8932920}, {"filename": "/instruments/chips/four-op-26-f6379a46372f3ab5efd0b0fe.cni", "start": 8932920, "end": 8934017}, {"filename": "/instruments/chips/four-op-26-f773d60a622b7f189307b488.cni", "start": 8934017, "end": 8935111}, {"filename": "/instruments/chips/manifest.json", "start": 8935111, "end": 9321078}, {"filename": "/licenses/INSERT_FX.txt", "start": 9321078, "end": 9329304}, {"filename": "/licenses/chip-banks/builtin-opll-notice.txt", "start": 9329304, "end": 9329528}, {"filename": "/licenses/chip-banks/choochoo-dx7.txt", "start": 9329528, "end": 9329971}, {"filename": "/licenses/chip-banks/choochoo-four-op-MIT.txt", "start": 9329971, "end": 9331120}, {"filename": "/licenses/chip-banks/choochoo-simple-MIT.txt", "start": 9331120, "end": 9332218}, {"filename": "/licenses/chip-banks/dmxopl3.txt", "start": 9332218, "end": 9333469}, {"filename": "/licenses/chip-banks/fatman-2op.txt", "start": 9333469, "end": 9334920}, {"filename": "/licenses/chip-banks/fatman-4op.txt", "start": 9334920, "end": 9336362}, {"filename": "/licenses/chip-banks/opendx7.txt", "start": 9336362, "end": 9337430}, {"filename": "/licenses/chip-banks/yse-originals.txt", "start": 9337430, "end": 9338006}, {"filename": "/licenses/emu76489/LICENSE", "start": 9338006, "end": 9339090}, {"filename": "/licenses/gb_apu/Blip_Buffer.txt", "start": 9339090, "end": 9340162}, {"filename": "/licenses/gb_apu/LICENCE.txt", "start": 9340162, "end": 9341231}, {"filename": "/licenses/gb_apu/upstream-README.md", "start": 9341231, "end": 9343968}, {"filename": "/licenses/msfa/LICENSE", "start": 9343968, "end": 9355326}, {"filename": "/licenses/msfa/NOTICE", "start": 9355326, "end": 9355839}, {"filename": "/licenses/ymfm/LICENSE", "start": 9355839, "end": 9357358}, {"filename": "/pitch-tables/24TET Linear.csv", "start": 9357358, "end": 9359353}, {"filename": "/pitch-tables/Just D Phrygian 177 433.csv", "start": 9359353, "end": 9360665}, {"filename": "/pitch-tables/PT3-0.csv", "start": 9360665, "end": 9361429}, {"filename": "/pitch-tables/PT3-1.csv", "start": 9361429, "end": 9362201}, {"filename": "/pitch-tables/PT3-2.csv", "start": 9362201, "end": 9362967}, {"filename": "/pitch-tables/PT3-3.csv", "start": 9362967, "end": 9363733}, {"filename": "/projects/DNB.cct", "start": 9363733, "end": 9370405}, {"filename": "/projects/alf dance.cct", "start": 9370405, "end": 9380360}, {"filename": "/projects/dub-reich.cct", "start": 9380360, "end": 9390646}, {"filename": "/projects/grieg-mountain-king-fm.cct", "start": 9390646, "end": 9476301}, {"filename": "/projects/maple-leaf-rag.cct", "start": 9476301, "end": 9561742}, {"filename": "/projects/native-chip-audition.cct", "start": 9561742, "end": 9579163}, {"filename": "/projects/psy.cct", "start": 9579163, "end": 9591373}, {"filename": "/samples/909/BT0A0A7.WAV", "start": 9591373, "end": 9616525}, {"filename": "/samples/909/BT0A0D0.WAV", "start": 9616525, "end": 9625547}, {"filename": "/samples/909/BT0A0D3.WAV", "start": 9625547, "end": 9640729}, {"filename": "/samples/909/BT0A0DA.WAV", "start": 9640729, "end": 9684757}, {"filename": "/samples/909/BT0AAD0.WAV", "start": 9684757, "end": 9694385}, {"filename": "/samples/909/BT0AADA.WAV", "start": 9694385, "end": 9738405}, {"filename": "/samples/909/BT3A0D0.WAV", "start": 9738405, "end": 9747145}, {"filename": "/samples/909/BT3A0D3.WAV", "start": 9747145, "end": 9763069}, {"filename": "/samples/909/BT3A0D7.WAV", "start": 9763069, "end": 9791663}, {"filename": "/samples/909/BT3A0DA.WAV", "start": 9791663, "end": 9834543}, {"filename": "/samples/909/BT3AAD0.WAV", "start": 9834543, "end": 9843249}, {"filename": "/samples/909/BT3AADA.WAV", "start": 9843249, "end": 9886149}, {"filename": "/samples/909/BT7A0D0.WAV", "start": 9886149, "end": 9895621}, {"filename": "/samples/909/BT7A0D3.WAV", "start": 9895621, "end": 9910581}, {"filename": "/samples/909/BT7A0D7.WAV", "start": 9910581, "end": 9938125}, {"filename": "/samples/909/BT7A0DA.WAV", "start": 9938125, "end": 9981793}, {"filename": "/samples/909/BT7AAD0.WAV", "start": 9981793, "end": 9991241}, {"filename": "/samples/909/BT7AADA.WAV", "start": 9991241, "end": 10034857}, {"filename": "/samples/909/BTAA0D0.WAV", "start": 10034857, "end": 10044077}, {"filename": "/samples/909/BTAA0D3.WAV", "start": 10044077, "end": 10060387}, {"filename": "/samples/909/BTAA0D7.WAV", "start": 10060387, "end": 10089261}, {"filename": "/samples/909/BTAA0DA.WAV", "start": 10089261, "end": 10132271}, {"filename": "/samples/909/BTAAAD0.WAV", "start": 10132271, "end": 10141487}, {"filename": "/samples/909/BTAAADA.WAV", "start": 10141487, "end": 10184501}, {"filename": "/samples/909/CLOP1.WAV", "start": 10184501, "end": 10223515}, {"filename": "/samples/909/CLOP2.WAV", "start": 10223515, "end": 10246659}, {"filename": "/samples/909/CLOP3.WAV", "start": 10246659, "end": 10299823}, {"filename": "/samples/909/CLOP4.WAV", "start": 10299823, "end": 10320119}, {"filename": "/samples/909/CSHD0.WAV", "start": 10320119, "end": 10417945}, {"filename": "/samples/909/CSHD2.WAV", "start": 10417945, "end": 10508935}, {"filename": "/samples/909/CSHD4.WAV", "start": 10508935, "end": 10588559}, {"filename": "/samples/909/CSHD6.WAV", "start": 10588559, "end": 10653169}, {"filename": "/samples/909/CSHD8.WAV", "start": 10653169, "end": 10708123}, {"filename": "/samples/909/CSHDA.WAV", "start": 10708123, "end": 10755807}, {"filename": "/samples/909/HANDCLP1.WAV", "start": 10755807, "end": 10795199}, {"filename": "/samples/909/HANDCLP2.WAV", "start": 10795199, "end": 10827511}, {"filename": "/samples/909/HHCD0.WAV", "start": 10827511, "end": 10831315}, {"filename": "/samples/909/HHCD2.WAV", "start": 10831315, "end": 10838927}, {"filename": "/samples/909/HHCD4.WAV", "start": 10838927, "end": 10848959}, {"filename": "/samples/909/HHCD6.WAV", "start": 10848959, "end": 10860709}, {"filename": "/samples/909/HHCD8.WAV", "start": 10860709, "end": 10872797}, {"filename": "/samples/909/HHCDA.WAV", "start": 10872797, "end": 10885591}, {"filename": "/samples/909/HHOD0.WAV", "start": 10885591, "end": 10907959}, {"filename": "/samples/909/HHOD2.WAV", "start": 10907959, "end": 10937227}, {"filename": "/samples/909/HHOD4.WAV", "start": 10937227, "end": 10972495}, {"filename": "/samples/909/HHOD6.WAV", "start": 10972495, "end": 11011183}, {"filename": "/samples/909/HHOD8.WAV", "start": 11011183, "end": 11056739}, {"filename": "/samples/909/HHODA.WAV", "start": 11056739, "end": 11102397}, {"filename": "/samples/909/HT0D0.WAV", "start": 11102397, "end": 11123231}, {"filename": "/samples/909/HT0D3.WAV", "start": 11123231, "end": 11148851}, {"filename": "/samples/909/HT0D7.WAV", "start": 11148851, "end": 11183167}, {"filename": "/samples/909/HT0DA.WAV", "start": 11183167, "end": 11220579}, {"filename": "/samples/909/HT3D0.WAV", "start": 11220579, "end": 11240567}, {"filename": "/samples/909/HT3D3.WAV", "start": 11240567, "end": 11265985}, {"filename": "/samples/909/HT3D7.WAV", "start": 11265985, "end": 11301667}, {"filename": "/samples/909/HT3DA.WAV", "start": 11301667, "end": 11339705}, {"filename": "/samples/909/HT7D0.WAV", "start": 11339705, "end": 11360343}, {"filename": "/samples/909/HT7D3.WAV", "start": 11360343, "end": 11386603}, {"filename": "/samples/909/HT7D7.WAV", "start": 11386603, "end": 11423317}, {"filename": "/samples/909/HT7DA.WAV", "start": 11423317, "end": 11461873}, {"filename": "/samples/909/HTAD0.WAV", "start": 11461873, "end": 11482531}, {"filename": "/samples/909/HTAD3.WAV", "start": 11482531, "end": 11509325}, {"filename": "/samples/909/HTAD7.WAV", "start": 11509325, "end": 11544369}, {"filename": "/samples/909/HTADA.WAV", "start": 11544369, "end": 11584603}, {"filename": "/samples/909/LT0D0.WAV", "start": 11584603, "end": 11616175}, {"filename": "/samples/909/LT0D3.WAV", "start": 11616175, "end": 11655111}, {"filename": "/samples/909/LT0D7.WAV", "start": 11655111, "end": 11708353}, {"filename": "/samples/909/LT0DA.WAV", "start": 11708353, "end": 11768429}, {"filename": "/samples/909/LT3D0.WAV", "start": 11768429, "end": 11799611}, {"filename": "/samples/909/LT3D3.WAV", "start": 11799611, "end": 11838931}, {"filename": "/samples/909/LT3D7.WAV", "start": 11838931, "end": 11893511}, {"filename": "/samples/909/LT3DA.WAV", "start": 11893511, "end": 11953099}, {"filename": "/samples/909/LT7D0.WAV", "start": 11953099, "end": 11985679}, {"filename": "/samples/909/LT7D3.WAV", "start": 11985679, "end": 12027785}, {"filename": "/samples/909/LT7D7.WAV", "start": 12027785, "end": 12085975}, {"filename": "/samples/909/LT7DA.WAV", "start": 12085975, "end": 12147969}, {"filename": "/samples/909/LTAD0.WAV", "start": 12147969, "end": 12180371}, {"filename": "/samples/909/LTAD3.WAV", "start": 12180371, "end": 12222351}, {"filename": "/samples/909/LTAD7.WAV", "start": 12222351, "end": 12279967}, {"filename": "/samples/909/LTADA.WAV", "start": 12279967, "end": 12343617}, {"filename": "/samples/909/MT0D0.WAV", "start": 12343617, "end": 12363069}, {"filename": "/samples/909/MT0D3.WAV", "start": 12363069, "end": 12388811}, {"filename": "/samples/909/MT0D7.WAV", "start": 12388811, "end": 12423203}, {"filename": "/samples/909/MT0DA.WAV", "start": 12423203, "end": 12459779}, {"filename": "/samples/909/MT3D0.WAV", "start": 12459779, "end": 12479657}, {"filename": "/samples/909/MT3D3.WAV", "start": 12479657, "end": 12505423}, {"filename": "/samples/909/MT3D7.WAV", "start": 12505423, "end": 12541963}, {"filename": "/samples/909/MT3DA.WAV", "start": 12541963, "end": 12580919}, {"filename": "/samples/909/MT7D0.WAV", "start": 12580919, "end": 12600319}, {"filename": "/samples/909/MT7D3.WAV", "start": 12600319, "end": 12627191}, {"filename": "/samples/909/MT7D7.WAV", "start": 12627191, "end": 12662799}, {"filename": "/samples/909/MT7DA.WAV", "start": 12662799, "end": 12703955}, {"filename": "/samples/909/MTAD0.WAV", "start": 12703955, "end": 12724381}, {"filename": "/samples/909/MTAD3.WAV", "start": 12724381, "end": 12750089}, {"filename": "/samples/909/MTAD7.WAV", "start": 12750089, "end": 12788183}, {"filename": "/samples/909/MTADA.WAV", "start": 12788183, "end": 12829647}, {"filename": "/samples/909/OPCL1.WAV", "start": 12829647, "end": 12864693}, {"filename": "/samples/909/OPCL2.WAV", "start": 12864693, "end": 12891361}, {"filename": "/samples/909/OPCL3.WAV", "start": 12891361, "end": 12912131}, {"filename": "/samples/909/OPCL4.WAV", "start": 12912131, "end": 12962607}, {"filename": "/samples/909/RIDED0.WAV", "start": 12962607, "end": 13065455}, {"filename": "/samples/909/RIDED2.WAV", "start": 13065455, "end": 13161669}, {"filename": "/samples/909/RIDED4.WAV", "start": 13161669, "end": 13231751}, {"filename": "/samples/909/RIDED6.WAV", "start": 13231751, "end": 13301833}, {"filename": "/samples/909/RIDED8.WAV", "start": 13301833, "end": 13359705}, {"filename": "/samples/909/RIDEDA.WAV", "start": 13359705, "end": 13407345}, {"filename": "/samples/909/RIM127.WAV", "start": 13407345, "end": 13410927}, {"filename": "/samples/909/RIM63.WAV", "start": 13410927, "end": 13414509}, {"filename": "/samples/909/ST0T0S0.WAV", "start": 13414509, "end": 13430291}, {"filename": "/samples/909/ST0T0S3.WAV", "start": 13430291, "end": 13443787}, {"filename": "/samples/909/ST0T0S7.WAV", "start": 13443787, "end": 13457595}, {"filename": "/samples/909/ST0T0SA.WAV", "start": 13457595, "end": 13471143}, {"filename": "/samples/909/ST0T3S3.WAV", "start": 13471143, "end": 13486865}, {"filename": "/samples/909/ST0T3S7.WAV", "start": 13486865, "end": 13502831}, {"filename": "/samples/909/ST0T3SA.WAV", "start": 13502831, "end": 13518887}, {"filename": "/samples/909/ST0T7S3.WAV", "start": 13518887, "end": 13540305}, {"filename": "/samples/909/ST0T7S7.WAV", "start": 13540305, "end": 13563199}, {"filename": "/samples/909/ST0T7SA.WAV", "start": 13563199, "end": 13586733}, {"filename": "/samples/909/ST0TAS3.WAV", "start": 13586733, "end": 13609569}, {"filename": "/samples/909/ST0TAS7.WAV", "start": 13609569, "end": 13634633}, {"filename": "/samples/909/ST0TASA.WAV", "start": 13634633, "end": 13660269}, {"filename": "/samples/909/ST3T0S0.WAV", "start": 13660269, "end": 13674295}, {"filename": "/samples/909/ST3T0S3.WAV", "start": 13674295, "end": 13688463}, {"filename": "/samples/909/ST3T0S7.WAV", "start": 13688463, "end": 13701979}, {"filename": "/samples/909/ST3T0SA.WAV", "start": 13701979, "end": 13716753}, {"filename": "/samples/909/ST3T3S3.WAV", "start": 13716753, "end": 13732341}, {"filename": "/samples/909/ST3T3S7.WAV", "start": 13732341, "end": 13748315}, {"filename": "/samples/909/ST3T3SA.WAV", "start": 13748315, "end": 13764261}, {"filename": "/samples/909/ST3T7S3.WAV", "start": 13764261, "end": 13785423}, {"filename": "/samples/909/ST3T7S7.WAV", "start": 13785423, "end": 13808163}, {"filename": "/samples/909/ST3T7SA.WAV", "start": 13808163, "end": 13831695}, {"filename": "/samples/909/ST3TAS3.WAV", "start": 13831695, "end": 13854585}, {"filename": "/samples/909/ST3TAS7.WAV", "start": 13854585, "end": 13879777}, {"filename": "/samples/909/ST3TASA.WAV", "start": 13879777, "end": 13905483}, {"filename": "/samples/909/ST7T0S0.WAV", "start": 13905483, "end": 13919559}, {"filename": "/samples/909/ST7T0S3.WAV", "start": 13919559, "end": 13933565}, {"filename": "/samples/909/ST7T0S7.WAV", "start": 13933565, "end": 13948011}, {"filename": "/samples/909/ST7T0SA.WAV", "start": 13948011, "end": 13962649}, {"filename": "/samples/909/ST7T3S3.WAV", "start": 13962649, "end": 13978411}, {"filename": "/samples/909/ST7T3S7.WAV", "start": 13978411, "end": 13994379}, {"filename": "/samples/909/ST7T3SA.WAV", "start": 13994379, "end": 14010719}, {"filename": "/samples/909/ST7T7S3.WAV", "start": 14010719, "end": 14031691}, {"filename": "/samples/909/ST7T7S7.WAV", "start": 14031691, "end": 14055347}, {"filename": "/samples/909/ST7T7SA.WAV", "start": 14055347, "end": 14079001}, {"filename": "/samples/909/ST7TAS3.WAV", "start": 14079001, "end": 14101765}, {"filename": "/samples/909/ST7TAS7.WAV", "start": 14101765, "end": 14127467}, {"filename": "/samples/909/ST7TASA.WAV", "start": 14127467, "end": 14153365}, {"filename": "/samples/909/STAT0S0.WAV", "start": 14153365, "end": 14167627}, {"filename": "/samples/909/STAT0S3.WAV", "start": 14167627, "end": 14182265}, {"filename": "/samples/909/STAT0S7.WAV", "start": 14182265, "end": 14196901}, {"filename": "/samples/909/STAT0SA.WAV", "start": 14196901, "end": 14211209}, {"filename": "/samples/909/STAT3S3.WAV", "start": 14211209, "end": 14227297}, {"filename": "/samples/909/STAT3S7.WAV", "start": 14227297, "end": 14243833}, {"filename": "/samples/909/STAT3SA.WAV", "start": 14243833, "end": 14260565}, {"filename": "/samples/909/STAT7S3.WAV", "start": 14260565, "end": 14281409}, {"filename": "/samples/909/STAT7S7.WAV", "start": 14281409, "end": 14304861}, {"filename": "/samples/909/STAT7SA.WAV", "start": 14304861, "end": 14328265}, {"filename": "/samples/909/STATAS3.WAV", "start": 14328265, "end": 14351217}, {"filename": "/samples/909/STATAS7.WAV", "start": 14351217, "end": 14377239}, {"filename": "/samples/909/STATASA.WAV", "start": 14377239, "end": 14402947}, {"filename": "/samples/909/TR909SET.TXT", "start": 14402947, "end": 14409597}, {"filename": "/samples/ChocolateAmen/01-kik.wav", "start": 14409597, "end": 14411255}, {"filename": "/samples/ChocolateAmen/02-hat.wav", "start": 14411255, "end": 14412913}, {"filename": "/samples/ChocolateAmen/03-sn1.wav", "start": 14412913, "end": 14414571}, {"filename": "/samples/ChocolateAmen/04-gsn.wav", "start": 14414571, "end": 14416229}, {"filename": "/samples/ChocolateAmen/05-sn2.wav", "start": 14416229, "end": 14417887}, {"filename": "/samples/ChocolateAmen/06-csh.wav", "start": 14417887, "end": 14420897}, {"filename": "/samples/ST-01/Alien.wav", "start": 14420897, "end": 14428741}, {"filename": "/samples/ST-01/Aligator.wav", "start": 14428741, "end": 14431485}, {"filename": "/samples/ST-01/AnalogString.wav", "start": 14431485, "end": 14440329}, {"filename": "/samples/ST-01/Asia.wav", "start": 14440329, "end": 14448573}, {"filename": "/samples/ST-01/BassDrum1.wav", "start": 14448573, "end": 14449717}, {"filename": "/samples/ST-01/BassDrum2.wav", "start": 14449717, "end": 14452761}, {"filename": "/samples/ST-01/BassDrum3.wav", "start": 14452761, "end": 14456205}, {"filename": "/samples/ST-01/BassDrum4.wav", "start": 14456205, "end": 14459749}, {"filename": "/samples/ST-01/BigBow.wav", "start": 14459749, "end": 14467593}, {"filename": "/samples/ST-01/Blast.wav", "start": 14467593, "end": 14477537}, {"filename": "/samples/ST-01/Blubzing.wav", "start": 14477537, "end": 14478881}, {"filename": "/samples/ST-01/Breath.wav", "start": 14478881, "end": 14482725}, {"filename": "/samples/ST-01/Call.wav", "start": 14482725, "end": 14490769}, {"filename": "/samples/ST-01/Celeste.wav", "start": 14490769, "end": 14498813}, {"filename": "/samples/ST-01/Chink.wav", "start": 14498813, "end": 14504757}, {"filename": "/samples/ST-01/Cinema.wav", "start": 14504757, "end": 14509301}, {"filename": "/samples/ST-01/Claps1.wav", "start": 14509301, "end": 14511645}, {"filename": "/samples/ST-01/Claps2.wav", "start": 14511645, "end": 14513089}, {"filename": "/samples/ST-01/Claves.wav", "start": 14513089, "end": 14516133}, {"filename": "/samples/ST-01/CloseHiHat.wav", "start": 14516133, "end": 14517377}, {"filename": "/samples/ST-01/Conga.wav", "start": 14517377, "end": 14519021}, {"filename": "/samples/ST-01/CowBell.wav", "start": 14519021, "end": 14520465}, {"filename": "/samples/ST-01/DXBass.wav", "start": 14520465, "end": 14523209}, {"filename": "/samples/ST-01/Dangerous.wav", "start": 14523209, "end": 14530253}, {"filename": "/samples/ST-01/DeepBass.wav", "start": 14530253, "end": 14538497}, {"filename": "/samples/ST-01/Detune.wav", "start": 14538497, "end": 14544241}, {"filename": "/samples/ST-01/DigDug.wav", "start": 14544241, "end": 14547385}, {"filename": "/samples/ST-01/DigiHarp.wav", "start": 14547385, "end": 14551429}, {"filename": "/samples/ST-01/DreamBells.wav", "start": 14551429, "end": 14560673}, {"filename": "/samples/ST-01/DxTom.wav", "start": 14560673, "end": 14564717}, {"filename": "/samples/ST-01/EPiano.wav", "start": 14564717, "end": 14572761}, {"filename": "/samples/ST-01/ElecTom.wav", "start": 14572761, "end": 14575805}, {"filename": "/samples/ST-01/ExBells.wav", "start": 14575805, "end": 14579349}, {"filename": "/samples/ST-01/FaeryTale.wav", "start": 14579349, "end": 14588293}, {"filename": "/samples/ST-01/FilterBass.wav", "start": 14588293, "end": 14594237}, {"filename": "/samples/ST-01/FunBass.wav", "start": 14594237, "end": 14600781}, {"filename": "/samples/ST-01/FunkBass.wav", "start": 14600781, "end": 14606125}, {"filename": "/samples/ST-01/Gato.wav", "start": 14606125, "end": 14611169}, {"filename": "/samples/ST-01/Great.wav", "start": 14611169, "end": 14616213}, {"filename": "/samples/ST-01/HallBrass.wav", "start": 14616213, "end": 14625657}, {"filename": "/samples/ST-01/Heaven.wav", "start": 14625657, "end": 14632301}, {"filename": "/samples/ST-01/HeavySynth.wav", "start": 14632301, "end": 14642145}, {"filename": "/samples/ST-01/Heifer.wav", "start": 14642145, "end": 14644789}, {"filename": "/samples/ST-01/HiHat1.wav", "start": 14644789, "end": 14646233}, {"filename": "/samples/ST-01/HiHat2.wav", "start": 14646233, "end": 14648277}, {"filename": "/samples/ST-01/Hooman.wav", "start": 14648277, "end": 14654821}, {"filename": "/samples/ST-01/Horns.wav", "start": 14654821, "end": 14657365}, {"filename": "/samples/ST-01/JahrMarkt1.wav", "start": 14657365, "end": 14667209}, {"filename": "/samples/ST-01/JahrMarkt2.wav", "start": 14667209, "end": 14677053}, {"filename": "/samples/ST-01/Jetes.wav", "start": 14677053, "end": 14686697}, {"filename": "/samples/ST-01/Klickorgan.wav", "start": 14686697, "end": 14692441}, {"filename": "/samples/ST-01/KorgBass.wav", "start": 14692441, "end": 14696485}, {"filename": "/samples/ST-01/KorgBeau.wav", "start": 14696485, "end": 14703529}, {"filename": "/samples/ST-01/KorgBow.wav", "start": 14703529, "end": 14708973}, {"filename": "/samples/ST-01/KorgFilter.wav", "start": 14708973, "end": 14712417}, {"filename": "/samples/ST-01/KorgString.wav", "start": 14712417, "end": 14716461}, {"filename": "/samples/ST-01/Koto.wav", "start": 14716461, "end": 14723605}, {"filename": "/samples/ST-01/Leader.wav", "start": 14723605, "end": 14727049}, {"filename": "/samples/ST-01/Licks.wav", "start": 14727049, "end": 14733293}, {"filename": "/samples/ST-01/Magic.wav", "start": 14733293, "end": 14742237}, {"filename": "/samples/ST-01/Marimba.wav", "start": 14742237, "end": 14750281}, {"filename": "/samples/ST-01/Mechanic1.wav", "start": 14750281, "end": 14757825}, {"filename": "/samples/ST-01/Mechanic2.wav", "start": 14757825, "end": 14767569}, {"filename": "/samples/ST-01/MetalKeys.wav", "start": 14767569, "end": 14777013}, {"filename": "/samples/ST-01/MonoBass.wav", "start": 14777013, "end": 14783657}, {"filename": "/samples/ST-01/MonsterBass.wav", "start": 14783657, "end": 14792701}, {"filename": "/samples/ST-01/MuteClav.wav", "start": 14792701, "end": 14797845}, {"filename": "/samples/ST-01/Nice.wav", "start": 14797845, "end": 14804489}, {"filename": "/samples/ST-01/NightMare.wav", "start": 14804489, "end": 14814433}, {"filename": "/samples/ST-01/NoteMan.wav", "start": 14814433, "end": 14821477}, {"filename": "/samples/ST-01/Organ.wav", "start": 14821477, "end": 14827921}, {"filename": "/samples/ST-01/Outlaw.wav", "start": 14827921, "end": 14836365}, {"filename": "/samples/ST-01/PanFlute.wav", "start": 14836365, "end": 14846309}, {"filename": "/samples/ST-01/Perco.wav", "start": 14846309, "end": 14850853}, {"filename": "/samples/ST-01/PingBells.wav", "start": 14850853, "end": 14856297}, {"filename": "/samples/ST-01/Pizza.wav", "start": 14856297, "end": 14865741}, {"filename": "/samples/ST-01/PolySynth.wav", "start": 14865741, "end": 14875685}, {"filename": "/samples/ST-01/PopBass.wav", "start": 14875685, "end": 14878429}, {"filename": "/samples/ST-01/PopSnare1.wav", "start": 14878429, "end": 14880473}, {"filename": "/samples/ST-01/PopSnare2.wav", "start": 14880473, "end": 14884517}, {"filename": "/samples/ST-01/PopSnare3.wav", "start": 14884517, "end": 14887261}, {"filename": "/samples/ST-01/Pulse.wav", "start": 14887261, "end": 14893705}, {"filename": "/samples/ST-01/RichString.wav", "start": 14893705, "end": 14900649}, {"filename": "/samples/ST-01/RingPiano.wav", "start": 14900649, "end": 14910593}, {"filename": "/samples/ST-01/RoomBrass.wav", "start": 14910593, "end": 14915237}, {"filename": "/samples/ST-01/RubberBass.wav", "start": 14915237, "end": 14924281}, {"filename": "/samples/ST-01/Shaker.wav", "start": 14924281, "end": 14926625}, {"filename": "/samples/ST-01/Shamus.wav", "start": 14926625, "end": 14935669}, {"filename": "/samples/ST-01/SineCZ.wav", "start": 14935669, "end": 14939613}, {"filename": "/samples/ST-01/SixTease.wav", "start": 14939613, "end": 14948057}, {"filename": "/samples/ST-01/SlapBass.wav", "start": 14948057, "end": 14953001}, {"filename": "/samples/ST-01/Smash1.wav", "start": 14953001, "end": 14956545}, {"filename": "/samples/ST-01/Smash2.wav", "start": 14956545, "end": 14960989}, {"filename": "/samples/ST-01/Snare1.wav", "start": 14960989, "end": 14963033}, {"filename": "/samples/ST-01/Snare2.wav", "start": 14963033, "end": 14964977}, {"filename": "/samples/ST-01/Snare3.wav", "start": 14964977, "end": 14968821}, {"filename": "/samples/ST-01/Snare4.wav", "start": 14968821, "end": 14970865}, {"filename": "/samples/ST-01/Snare5.wav", "start": 14970865, "end": 14974909}, {"filename": "/samples/ST-01/SoftBass.wav", "start": 14974909, "end": 14979853}, {"filename": "/samples/ST-01/Soundtrack.wav", "start": 14979853, "end": 14989797}, {"filename": "/samples/ST-01/Squares.wav", "start": 14989797, "end": 14999741}, {"filename": "/samples/ST-01/Stabs.wav", "start": 14999741, "end": 15007185}, {"filename": "/samples/ST-01/Steinway.wav", "start": 15007185, "end": 15014129}, {"filename": "/samples/ST-01/Strange.wav", "start": 15014129, "end": 15021173}, {"filename": "/samples/ST-01/Strings1.wav", "start": 15021173, "end": 15030117}, {"filename": "/samples/ST-01/Strings2.wav", "start": 15030117, "end": 15039861}, {"filename": "/samples/ST-01/Strings3.wav", "start": 15039861, "end": 15048405}, {"filename": "/samples/ST-01/Strings4.wav", "start": 15048405, "end": 15058149}, {"filename": "/samples/ST-01/Strings5.wav", "start": 15058149, "end": 15068093}, {"filename": "/samples/ST-01/Strings7.wav", "start": 15068093, "end": 15078037}, {"filename": "/samples/ST-01/Strings8.wav", "start": 15078037, "end": 15086181}, {"filename": "/samples/ST-01/Sweep.wav", "start": 15086181, "end": 15093525}, {"filename": "/samples/ST-01/SynBrass.wav", "start": 15093525, "end": 15097569}, {"filename": "/samples/ST-01/SynClaves.wav", "start": 15097569, "end": 15098613}, {"filename": "/samples/ST-01/SynthPiano.wav", "start": 15098613, "end": 15104157}, {"filename": "/samples/ST-01/SyntheBass.wav", "start": 15104157, "end": 15112101}, {"filename": "/samples/ST-01/TechBass.wav", "start": 15112101, "end": 15117245}, {"filename": "/samples/ST-01/TheEgg.wav", "start": 15117245, "end": 15127189}, {"filename": "/samples/ST-01/TineWave.wav", "start": 15127189, "end": 15137133}, {"filename": "/samples/ST-01/Touch.wav", "start": 15137133, "end": 15146377}, {"filename": "/samples/ST-01/TuneBass.wav", "start": 15146377, "end": 15151221}, {"filename": "/samples/ST-01/Voices.wav", "start": 15151221, "end": 15161165}, {"filename": "/samples/ST-01/WabberString.wav", "start": 15161165, "end": 15165109}, {"filename": "/samples/ST-01/WoodBlock.wav", "start": 15165109, "end": 15166353}, {"filename": "/samples/ST-01/WowBass.wav", "start": 15166353, "end": 15171397}, {"filename": "/samples/ST-01/st-notes.txt", "start": 15171397, "end": 15171624}, {"filename": "/samples/ST-01/strings6.wav", "start": 15171624, "end": 15181670}, {"filename": "/themes/Choo.cth", "start": 15181670, "end": 15181920}, {"filename": "/themes/DarkPink.cth", "start": 15181920, "end": 15182170}, {"filename": "/themes/Default.cth", "start": 15182170, "end": 15182420}, {"filename": "/themes/IDEColorThemes/AbletonDark.cth", "start": 15182420, "end": 15182670}, {"filename": "/themes/IDEColorThemes/AbletonLight.cth", "start": 15182670, "end": 15182920}, {"filename": "/themes/IDEColorThemes/AtomOneDark.cth", "start": 15182920, "end": 15183170}, {"filename": "/themes/IDEColorThemes/AtomOneLight.cth", "start": 15183170, "end": 15183420}, {"filename": "/themes/IDEColorThemes/CatpuccinDrk.cth", "start": 15183420, "end": 15183670}, {"filename": "/themes/IDEColorThemes/CatpuccinLight.cth", "start": 15183670, "end": 15183920}, {"filename": "/themes/IDEColorThemes/CyberpunkDark.cth", "start": 15183920, "end": 15184170}, {"filename": "/themes/IDEColorThemes/CyberpunkLight.cth", "start": 15184170, "end": 15184420}, {"filename": "/themes/IDEColorThemes/DraculaDark.cth", "start": 15184420, "end": 15184670}, {"filename": "/themes/IDEColorThemes/DraculaLight.cth", "start": 15184670, "end": 15184920}, {"filename": "/themes/IDEColorThemes/FLStudioDark.cth", "start": 15184920, "end": 15185170}, {"filename": "/themes/IDEColorThemes/FLStudioLight.cth", "start": 15185170, "end": 15185420}, {"filename": "/themes/IDEColorThemes/GBDMGDark.cth", "start": 15185420, "end": 15185670}, {"filename": "/themes/IDEColorThemes/GBDMGLight.cth", "start": 15185670, "end": 15185920}, {"filename": "/themes/IDEColorThemes/GitHubDark.cth", "start": 15185920, "end": 15186170}, {"filename": "/themes/IDEColorThemes/GitHubLight.cth", "start": 15186170, "end": 15186420}, {"filename": "/themes/IDEColorThemes/GruvDark.cth", "start": 15186420, "end": 15186670}, {"filename": "/themes/IDEColorThemes/GruvLight.cth", "start": 15186670, "end": 15186920}, {"filename": "/themes/IDEColorThemes/MatchaDark.cth", "start": 15186920, "end": 15187170}, {"filename": "/themes/IDEColorThemes/MatchaLight.cth", "start": 15187170, "end": 15187420}, {"filename": "/themes/IDEColorThemes/MonokaiProDark.cth", "start": 15187420, "end": 15187670}, {"filename": "/themes/IDEColorThemes/MonokaiProLight.cth", "start": 15187670, "end": 15187920}, {"filename": "/themes/IDEColorThemes/NordDark.cth", "start": 15187920, "end": 15188170}, {"filename": "/themes/IDEColorThemes/NordLight.cth", "start": 15188170, "end": 15188420}, {"filename": "/themes/IDEColorThemes/NostromoAmberDark.cth", "start": 15188420, "end": 15188670}, {"filename": "/themes/IDEColorThemes/NostromoAmberLight.cth", "start": 15188670, "end": 15188920}, {"filename": "/themes/IDEColorThemes/TokyoNightDark.cth", "start": 15188920, "end": 15189170}, {"filename": "/themes/IDEColorThemes/TokyoNightLight.cth", "start": 15189170, "end": 15189420}, {"filename": "/themes/IDEColorThemes/WLTerminalGreenDark.cth", "start": 15189420, "end": 15189670}, {"filename": "/themes/IDEColorThemes/WLTerminalGreenLight.cth", "start": 15189670, "end": 15189920}, {"filename": "/themes/IDEColorThemes/ZenBurnDark.cth", "start": 15189920, "end": 15190170}, {"filename": "/themes/IDEColorThemes/ZenBurnLight.cth", "start": 15190170, "end": 15190420}, {"filename": "/themes/NostromoAmberDa2.cth", "start": 15190420, "end": 15190670}, {"filename": "/themes/Wood.cth", "start": 15190670, "end": 15190920}, {"filename": "/themes/cndef.cth", "start": 15190920, "end": 15191170}, {"filename": "/themes/nIkO.cth", "start": 15191170, "end": 15191420}, {"filename": "/title/SNES_ART.md", "start": 15191420, "end": 15192481}, {"filename": "/title/snes_foreground.bmp", "start": 15192481, "end": 15327703}, {"filename": "/title/snes_logo.bmp", "start": 15327703, "end": 15344173}, {"filename": "/title/snes_scene.bmp", "start": 15344173, "end": 15490723}, {"filename": "/title/snes_sky.bmp", "start": 15490723, "end": 15834841}, {"filename": "/title/snes_train.bmp", "start": 15834841, "end": 15857935}, {"filename": "/title/snes_viaduct.bmp", "start": 15857935, "end": 15898597}, {"filename": "/waveforms/AKWF/AKWF_cello_0001.wav", "start": 15898597, "end": 15899941}, {"filename": "/waveforms/AKWF/AKWF_cello_0002.wav", "start": 15899941, "end": 15901285}, {"filename": "/waveforms/AKWF/AKWF_cello_0003.wav", "start": 15901285, "end": 15902629}, {"filename": "/waveforms/AKWF/AKWF_clarinett_0001.wav", "start": 15902629, "end": 15903973}, {"filename": "/waveforms/AKWF/AKWF_clarinett_0002.wav", "start": 15903973, "end": 15905317}, {"filename": "/waveforms/AKWF/AKWF_piano_0001.wav", "start": 15905317, "end": 15906661}, {"filename": "/waveforms/AKWF/AKWF_piano_0002.wav", "start": 15906661, "end": 15908005}, {"filename": "/waveforms/AKWF/AKWF_piano_0003.wav", "start": 15908005, "end": 15909349}, {"filename": "/waveforms/AKWF/AKWF_piano_0004.wav", "start": 15909349, "end": 15910693}, {"filename": "/waveforms/AKWF/AKWF_piano_0005.wav", "start": 15910693, "end": 15912037}, {"filename": "/waveforms/AKWF/AKWF_piano_0006.wav", "start": 15912037, "end": 15913381}, {"filename": "/waveforms/AKWF/AKWF_piano_0007.wav", "start": 15913381, "end": 15914725}, {"filename": "/waveforms/AKWF/AKWF_piano_0008.wav", "start": 15914725, "end": 15916069}, {"filename": "/waveforms/AKWF/AKWF_piano_0009.wav", "start": 15916069, "end": 15917413}, {"filename": "/waveforms/AKWF/AKWF_piano_0010.wav", "start": 15917413, "end": 15918757}, {"filename": "/waveforms/AKWF/AKWF_piano_0011.wav", "start": 15918757, "end": 15920101}, {"filename": "/waveforms/AKWF/AKWF_piano_0012.wav", "start": 15920101, "end": 15921445}, {"filename": "/waveforms/AKWF/AKWF_pluckalgo_0001.wav", "start": 15921445, "end": 15922789}, {"filename": "/waveforms/AKWF/AKWF_pluckalgo_0002.wav", "start": 15922789, "end": 15924133}, {"filename": "/waveforms/AKWF/AKWF_pluckalgo_0003.wav", "start": 15924133, "end": 15925477}, {"filename": "/waveforms/AKWF/AKWF_pluckalgo_0004.wav", "start": 15925477, "end": 15926821}, {"filename": "/waveforms/AKWF/AKWF_pluckalgo_0005.wav", "start": 15926821, "end": 15928165}, {"filename": "/waveforms/AKWF/AKWF_pluckalgo_0006.wav", "start": 15928165, "end": 15929509}, {"filename": "/waveforms/AKWF/AKWF_pluckalgo_0007.wav", "start": 15929509, "end": 15930853}, {"filename": "/waveforms/AKWF/AKWF_pluckalgo_0008.wav", "start": 15930853, "end": 15932197}, {"filename": "/waveforms/AKWF/AKWF_pluckalgo_0009.wav", "start": 15932197, "end": 15933541}, {"filename": "/waveforms/AKWF/AKWF_vgame_0001.wav", "start": 15933541, "end": 15934885}, {"filename": "/waveforms/AKWF/AKWF_vgame_0002.wav", "start": 15934885, "end": 15936229}, {"filename": "/waveforms/AKWF/AKWF_vgame_0003.wav", "start": 15936229, "end": 15937573}, {"filename": "/waveforms/AKWF/AKWF_vgame_0004.wav", "start": 15937573, "end": 15938917}, {"filename": "/waveforms/AKWF/AKWF_vgame_0005.wav", "start": 15938917, "end": 15940261}, {"filename": "/waveforms/AKWF/AKWF_vgame_0006.wav", "start": 15940261, "end": 15941605}, {"filename": "/waveforms/AKWF/AKWF_vgame_0007.wav", "start": 15941605, "end": 15942949}, {"filename": "/waveforms/AKWF/AKWF_vgame_0008.wav", "start": 15942949, "end": 15944293}, {"filename": "/waveforms/AKWF/AKWF_vgame_0009.wav", "start": 15944293, "end": 15945637}, {"filename": "/waveforms/AKWF/AKWF_vgame_0010.wav", "start": 15945637, "end": 15946981}, {"filename": "/waveforms/AKWF/AKWF_vgame_0011.wav", "start": 15946981, "end": 15948325}, {"filename": "/waveforms/AKWF/AKWF_vgame_0012.wav", "start": 15948325, "end": 15949669}, {"filename": "/waveforms/AKWF/AKWF_violin_0001.wav", "start": 15949669, "end": 15951013}, {"filename": "/waveforms/AKWF/AKWF_violin_0002.wav", "start": 15951013, "end": 15952357}, {"filename": "/waveforms/AKWF/AKWF_violin_0003.wav", "start": 15952357, "end": 15953701}, {"filename": "/waveforms/AKWF/AKWF_violin_0004.wav", "start": 15953701, "end": 15955045}, {"filename": "/waveforms/AKWF/AKWF_violin_0005.wav", "start": 15955045, "end": 15956389}, {"filename": "/waveforms/AKWF/AKWF_violin_0006.wav", "start": 15956389, "end": 15957733}, {"filename": "/waveforms/AKWF/AKWF_violin_0007.wav", "start": 15957733, "end": 15959077}, {"filename": "/waveforms/AKWF/AKWF_violin_0008.wav", "start": 15959077, "end": 15960421}, {"filename": "/waveforms/AKWF/AKWF_violin_0009.wav", "start": 15960421, "end": 15961765}, {"filename": "/waveforms/AKWF/AKWF_violin_0010.wav", "start": 15961765, "end": 15963109}, {"filename": "/waveforms/AKWF/AKWF_violin_0011.wav", "start": 15963109, "end": 15964453}, {"filename": "/waveforms/AKWF/AKWF_violin_0012.wav", "start": 15964453, "end": 15965797}, {"filename": "/waveforms/AKWF/LICENSE.AKWF-CC0.md", "start": 15965797, "end": 15972352}], "remote_package_size": 15972352});
+    loadPackage({"files": [{"filename": "/AY_wavetables/AY-Waves-4.aywave", "start": 0, "end": 132}, {"filename": "/AY_wavetables/FIFTH.aywave", "start": 132, "end": 165}, {"filename": "/AY_wavetables/NESTRI.aywave", "start": 165, "end": 198}, {"filename": "/AY_wavetables/VRC6DSAW.aywave", "start": 198, "end": 231}, {"filename": "/AY_wavetables/VRC6SAW.aywave", "start": 231, "end": 264}, {"filename": "/SR_wavetables/WaveEdit/11-2020_.WAV", "start": 264, "end": 33076}, {"filename": "/SR_wavetables/WaveEdit/111.WAV", "start": 33076, "end": 65888}, {"filename": "/SR_wavetables/WaveEdit/111___00.WAV", "start": 65888, "end": 98700}, {"filename": "/SR_wavetables/WaveEdit/303.WAV", "start": 98700, "end": 131512}, {"filename": "/SR_wavetables/WaveEdit/AAHWOHYE.WAV", "start": 131512, "end": 164324}, {"filename": "/SR_wavetables/WaveEdit/ACCESS_V.WAV", "start": 164324, "end": 197136}, {"filename": "/SR_wavetables/WaveEdit/ACID_RIN.WAV", "start": 197136, "end": 229948}, {"filename": "/SR_wavetables/WaveEdit/ACID_SP.WAV", "start": 229948, "end": 262760}, {"filename": "/SR_wavetables/WaveEdit/ADDITIVE.WAV", "start": 262760, "end": 295572}, {"filename": "/SR_wavetables/WaveEdit/AEIOUTSX.WAV", "start": 295572, "end": 328384}, {"filename": "/SR_wavetables/WaveEdit/AKVF_GRA.WAV", "start": 328384, "end": 361196}, {"filename": "/SR_wavetables/WaveEdit/AKVF_NES.WAV", "start": 361196, "end": 394008}, {"filename": "/SR_wavetables/WaveEdit/AKVF_VID.WAV", "start": 394008, "end": 426820}, {"filename": "/SR_wavetables/WaveEdit/AKWF_FMS.WAV", "start": 426820, "end": 459632}, {"filename": "/SR_wavetables/WaveEdit/ALIEN_SP.WAV", "start": 459632, "end": 492444}, {"filename": "/SR_wavetables/WaveEdit/ALIEN_VO.WAV", "start": 492444, "end": 525256}, {"filename": "/SR_wavetables/WaveEdit/ALPHA_2_.WAV", "start": 525256, "end": 558068}, {"filename": "/SR_wavetables/WaveEdit/ALTO_SAX.WAV", "start": 558068, "end": 590880}, {"filename": "/SR_wavetables/WaveEdit/AMEN.WAV", "start": 590880, "end": 623692}, {"filename": "/SR_wavetables/WaveEdit/AMEN_LOO.WAV", "start": 623692, "end": 656504}, {"filename": "/SR_wavetables/WaveEdit/AM_SINE.WAV", "start": 656504, "end": 689316}, {"filename": "/SR_wavetables/WaveEdit/ANALOG_W.WAV", "start": 689316, "end": 722128}, {"filename": "/SR_wavetables/WaveEdit/ASSYMETR.WAV", "start": 722128, "end": 754940}, {"filename": "/SR_wavetables/WaveEdit/AUDIOTER.WAV", "start": 754940, "end": 787752}, {"filename": "/SR_wavetables/WaveEdit/A_55HZ_-.WAV", "start": 787752, "end": 820564}, {"filename": "/SR_wavetables/WaveEdit/BANK_410.WAV", "start": 820564, "end": 853376}, {"filename": "/SR_wavetables/WaveEdit/BANK_A.WAV", "start": 853376, "end": 886188}, {"filename": "/SR_wavetables/WaveEdit/BANK_B.WAV", "start": 886188, "end": 919000}, {"filename": "/SR_wavetables/WaveEdit/BANK_C.WAV", "start": 919000, "end": 951812}, {"filename": "/SR_wavetables/WaveEdit/BASIC_TH.WAV", "start": 951812, "end": 984624}, {"filename": "/SR_wavetables/WaveEdit/BASIC_WA.WAV", "start": 984624, "end": 1017436}, {"filename": "/SR_wavetables/WaveEdit/BASS_BY_.WAV", "start": 1017436, "end": 1050248}, {"filename": "/SR_wavetables/WaveEdit/BBELLS.WAV", "start": 1050248, "end": 1083060}, {"filename": "/SR_wavetables/WaveEdit/BELL02.WAV", "start": 1083060, "end": 1115872}, {"filename": "/SR_wavetables/WaveEdit/BELL03.WAV", "start": 1115872, "end": 1148684}, {"filename": "/SR_wavetables/WaveEdit/BELLS.WAV", "start": 1148684, "end": 1181496}, {"filename": "/SR_wavetables/WaveEdit/BEST_OF_.WAV", "start": 1181496, "end": 1214308}, {"filename": "/SR_wavetables/WaveEdit/BOWED_00.WAV", "start": 1214308, "end": 1247120}, {"filename": "/SR_wavetables/WaveEdit/BOWED_CY.WAV", "start": 1247120, "end": 1279932}, {"filename": "/SR_wavetables/WaveEdit/BOWING.WAV", "start": 1279932, "end": 1312744}, {"filename": "/SR_wavetables/WaveEdit/BRAIDS01.WAV", "start": 1312744, "end": 1345556}, {"filename": "/SR_wavetables/WaveEdit/BRAIDS02.WAV", "start": 1345556, "end": 1378368}, {"filename": "/SR_wavetables/WaveEdit/BRAIDS03.WAV", "start": 1378368, "end": 1411180}, {"filename": "/SR_wavetables/WaveEdit/BRAIDS04.WAV", "start": 1411180, "end": 1443992}, {"filename": "/SR_wavetables/WaveEdit/CHEBYSHE.WAV", "start": 1443992, "end": 1476804}, {"filename": "/SR_wavetables/WaveEdit/CLOCK_MU.WAV", "start": 1476804, "end": 1509616}, {"filename": "/SR_wavetables/WaveEdit/COLUNDI-.WAV", "start": 1509616, "end": 1542428}, {"filename": "/SR_wavetables/WaveEdit/CRUSH_AD.WAV", "start": 1542428, "end": 1575240}, {"filename": "/SR_wavetables/WaveEdit/CYBERNET.WAV", "start": 1575240, "end": 1608052}, {"filename": "/SR_wavetables/WaveEdit/CYBORG.WAV", "start": 1608052, "end": 1640864}, {"filename": "/SR_wavetables/WaveEdit/CZ-ISH.WAV", "start": 1640864, "end": 1673676}, {"filename": "/SR_wavetables/WaveEdit/DECIDE.WAV", "start": 1673676, "end": 1706488}, {"filename": "/SR_wavetables/WaveEdit/DIGITAL_.WAV", "start": 1706488, "end": 1739300}, {"filename": "/SR_wavetables/WaveEdit/DIRTY_01.WAV", "start": 1739300, "end": 1772112}, {"filename": "/SR_wavetables/WaveEdit/DIRTY_02.WAV", "start": 1772112, "end": 1804924}, {"filename": "/SR_wavetables/WaveEdit/DISCORDA.WAV", "start": 1804924, "end": 1837736}, {"filename": "/SR_wavetables/WaveEdit/DISTORTE.WAV", "start": 1837736, "end": 1870548}, {"filename": "/SR_wavetables/WaveEdit/DOSE_WIT.WAV", "start": 1870548, "end": 1903360}, {"filename": "/SR_wavetables/WaveEdit/DRONE.WAV", "start": 1903360, "end": 1936172}, {"filename": "/SR_wavetables/WaveEdit/DRONE_.WAV", "start": 1936172, "end": 1968984}, {"filename": "/SR_wavetables/WaveEdit/DRUMSTRU.WAV", "start": 1968984, "end": 2001796}, {"filename": "/SR_wavetables/WaveEdit/E.GUITAR.WAV", "start": 2001796, "end": 2034608}, {"filename": "/SR_wavetables/WaveEdit/ELOB_A.WAV", "start": 2034608, "end": 2067420}, {"filename": "/SR_wavetables/WaveEdit/ELOB_B.WAV", "start": 2067420, "end": 2100232}, {"filename": "/SR_wavetables/WaveEdit/ELOB_C.WAV", "start": 2100232, "end": 2133044}, {"filename": "/SR_wavetables/WaveEdit/ENSHTU02.WAV", "start": 2133044, "end": 2165856}, {"filename": "/SR_wavetables/WaveEdit/ENSHTU03.WAV", "start": 2165856, "end": 2198668}, {"filename": "/SR_wavetables/WaveEdit/ENSHTURZ.WAV", "start": 2198668, "end": 2231480}, {"filename": "/SR_wavetables/WaveEdit/ENSONIQ_.WAV", "start": 2231480, "end": 2264292}, {"filename": "/SR_wavetables/WaveEdit/ENVELO00.WAV", "start": 2264292, "end": 2297104}, {"filename": "/SR_wavetables/WaveEdit/ENVELO01.WAV", "start": 2297104, "end": 2329916}, {"filename": "/SR_wavetables/WaveEdit/ENVELOPE.WAV", "start": 2329916, "end": 2362728}, {"filename": "/SR_wavetables/WaveEdit/ESQ1-HI.WAV", "start": 2362728, "end": 2395540}, {"filename": "/SR_wavetables/WaveEdit/ESQ1-LO.WAV", "start": 2395540, "end": 2428352}, {"filename": "/SR_wavetables/WaveEdit/EUCLIDEA.WAV", "start": 2428352, "end": 2461164}, {"filename": "/SR_wavetables/WaveEdit/FAIRLI01.WAV", "start": 2461164, "end": 2493976}, {"filename": "/SR_wavetables/WaveEdit/FAIRLIGH.WAV", "start": 2493976, "end": 2526788}, {"filename": "/SR_wavetables/WaveEdit/FEEDBACK.WAV", "start": 2526788, "end": 2559600}, {"filename": "/SR_wavetables/WaveEdit/FMADDI02.WAV", "start": 2559600, "end": 2592412}, {"filename": "/SR_wavetables/WaveEdit/FM_-_COM.WAV", "start": 2592412, "end": 2625224}, {"filename": "/SR_wavetables/WaveEdit/FOLDFEED.WAV", "start": 2625224, "end": 2658036}, {"filename": "/SR_wavetables/WaveEdit/FOLDING_.WAV", "start": 2658036, "end": 2690848}, {"filename": "/SR_wavetables/WaveEdit/FOURIER.WAV", "start": 2690848, "end": 2723660}, {"filename": "/SR_wavetables/WaveEdit/FOURIER2.WAV", "start": 2723660, "end": 2756472}, {"filename": "/SR_wavetables/WaveEdit/FRACTA01.WAV", "start": 2756472, "end": 2789284}, {"filename": "/SR_wavetables/WaveEdit/FRACTA02.WAV", "start": 2789284, "end": 2822096}, {"filename": "/SR_wavetables/WaveEdit/FRACTA03.WAV", "start": 2822096, "end": 2854908}, {"filename": "/SR_wavetables/WaveEdit/FRED_DUR.WAV", "start": 2854908, "end": 2887720}, {"filename": "/SR_wavetables/WaveEdit/FX_BITNO.WAV", "start": 2887720, "end": 2920532}, {"filename": "/SR_wavetables/WaveEdit/FX_BIT_N.WAV", "start": 2920532, "end": 2953344}, {"filename": "/SR_wavetables/WaveEdit/G2_ASTRA.WAV", "start": 2953344, "end": 2986156}, {"filename": "/SR_wavetables/WaveEdit/GENTLE_M.WAV", "start": 2986156, "end": 3018968}, {"filename": "/SR_wavetables/WaveEdit/GEOMETRI.WAV", "start": 3018968, "end": 3051780}, {"filename": "/SR_wavetables/WaveEdit/GLITCHBO.WAV", "start": 3051780, "end": 3084592}, {"filename": "/SR_wavetables/WaveEdit/GRAV-A1.WAV", "start": 3084592, "end": 3117404}, {"filename": "/SR_wavetables/WaveEdit/GRAV-A10.WAV", "start": 3117404, "end": 3150216}, {"filename": "/SR_wavetables/WaveEdit/GRAV-A2.WAV", "start": 3150216, "end": 3183028}, {"filename": "/SR_wavetables/WaveEdit/GRAV-A3.WAV", "start": 3183028, "end": 3215840}, {"filename": "/SR_wavetables/WaveEdit/GRAV-A4.WAV", "start": 3215840, "end": 3248652}, {"filename": "/SR_wavetables/WaveEdit/GRAV-A5.WAV", "start": 3248652, "end": 3281464}, {"filename": "/SR_wavetables/WaveEdit/GRAV-A6.WAV", "start": 3281464, "end": 3314276}, {"filename": "/SR_wavetables/WaveEdit/GRAV-A7.WAV", "start": 3314276, "end": 3347088}, {"filename": "/SR_wavetables/WaveEdit/GRAV-A8.WAV", "start": 3347088, "end": 3379900}, {"filename": "/SR_wavetables/WaveEdit/GRAV-A9.WAV", "start": 3379900, "end": 3412712}, {"filename": "/SR_wavetables/WaveEdit/GRAV-B1.WAV", "start": 3412712, "end": 3445524}, {"filename": "/SR_wavetables/WaveEdit/GRAV-B10.WAV", "start": 3445524, "end": 3478336}, {"filename": "/SR_wavetables/WaveEdit/GRAV-B2.WAV", "start": 3478336, "end": 3511148}, {"filename": "/SR_wavetables/WaveEdit/GRAV-B3.WAV", "start": 3511148, "end": 3543960}, {"filename": "/SR_wavetables/WaveEdit/GRAV-B4.WAV", "start": 3543960, "end": 3576772}, {"filename": "/SR_wavetables/WaveEdit/GRAV-B5.WAV", "start": 3576772, "end": 3609584}, {"filename": "/SR_wavetables/WaveEdit/GRAV-B6.WAV", "start": 3609584, "end": 3642396}, {"filename": "/SR_wavetables/WaveEdit/GRAV-B7.WAV", "start": 3642396, "end": 3675208}, {"filename": "/SR_wavetables/WaveEdit/GRAV-B8.WAV", "start": 3675208, "end": 3708020}, {"filename": "/SR_wavetables/WaveEdit/GRAV-B9.WAV", "start": 3708020, "end": 3740832}, {"filename": "/SR_wavetables/WaveEdit/GRAV-C1.WAV", "start": 3740832, "end": 3773644}, {"filename": "/SR_wavetables/WaveEdit/GRAV-C10.WAV", "start": 3773644, "end": 3806456}, {"filename": "/SR_wavetables/WaveEdit/GRAV-C2.WAV", "start": 3806456, "end": 3839268}, {"filename": "/SR_wavetables/WaveEdit/GRAV-C3.WAV", "start": 3839268, "end": 3872080}, {"filename": "/SR_wavetables/WaveEdit/GRAV-C5.WAV", "start": 3872080, "end": 3904892}, {"filename": "/SR_wavetables/WaveEdit/GRAV-C6.WAV", "start": 3904892, "end": 3937704}, {"filename": "/SR_wavetables/WaveEdit/GRAV-C7.WAV", "start": 3937704, "end": 3970516}, {"filename": "/SR_wavetables/WaveEdit/GRAV-C8.WAV", "start": 3970516, "end": 4003328}, {"filename": "/SR_wavetables/WaveEdit/GRAV-C9.WAV", "start": 4003328, "end": 4036140}, {"filename": "/SR_wavetables/WaveEdit/HARMOMET.WAV", "start": 4036140, "end": 4068952}, {"filename": "/SR_wavetables/WaveEdit/HARMON00.WAV", "start": 4068952, "end": 4101764}, {"filename": "/SR_wavetables/WaveEdit/HARMONIC.WAV", "start": 4101764, "end": 4134576}, {"filename": "/SR_wavetables/WaveEdit/HARMONIO.WAV", "start": 4134576, "end": 4167388}, {"filename": "/SR_wavetables/WaveEdit/HARMONIX.WAV", "start": 4167388, "end": 4200200}, {"filename": "/SR_wavetables/WaveEdit/HIENHARM.WAV", "start": 4200200, "end": 4233012}, {"filename": "/SR_wavetables/WaveEdit/HIGH_FRE.WAV", "start": 4233012, "end": 4265824}, {"filename": "/SR_wavetables/WaveEdit/HMMMMMMM.WAV", "start": 4265824, "end": 4298636}, {"filename": "/SR_wavetables/WaveEdit/HORROR.WAV", "start": 4298636, "end": 4331448}, {"filename": "/SR_wavetables/WaveEdit/HVOICEA.WAV", "start": 4331448, "end": 4364260}, {"filename": "/SR_wavetables/WaveEdit/HYPERBOL.WAV", "start": 4364260, "end": 4397072}, {"filename": "/SR_wavetables/WaveEdit/ISOBELLE.WAV", "start": 4397072, "end": 4429884}, {"filename": "/SR_wavetables/WaveEdit/ISOLDE.WAV", "start": 4429884, "end": 4462696}, {"filename": "/SR_wavetables/WaveEdit/ITERAT00.WAV", "start": 4462696, "end": 4495508}, {"filename": "/SR_wavetables/WaveEdit/ITERATIV.WAV", "start": 4495508, "end": 4528320}, {"filename": "/SR_wavetables/WaveEdit/I_HEART_.WAV", "start": 4528320, "end": 4561132}, {"filename": "/SR_wavetables/WaveEdit/JUNOX_HO.WAV", "start": 4561132, "end": 4593944}, {"filename": "/SR_wavetables/WaveEdit/JUST_RAN.WAV", "start": 4593944, "end": 4626756}, {"filename": "/SR_wavetables/WaveEdit/KAWAI_K1.WAV", "start": 4626756, "end": 4659568}, {"filename": "/SR_wavetables/WaveEdit/KEEN.WAV", "start": 4659568, "end": 4692380}, {"filename": "/SR_wavetables/WaveEdit/KERMIT00.WAV", "start": 4692380, "end": 4725192}, {"filename": "/SR_wavetables/WaveEdit/KERMIT01.WAV", "start": 4725192, "end": 4758004}, {"filename": "/SR_wavetables/WaveEdit/KERMITEN.WAV", "start": 4758004, "end": 4790816}, {"filename": "/SR_wavetables/WaveEdit/KERMIT_0.WAV", "start": 4790816, "end": 4823628}, {"filename": "/SR_wavetables/WaveEdit/KERMIT_K.WAV", "start": 4823628, "end": 4856440}, {"filename": "/SR_wavetables/WaveEdit/KERMIT_R.WAV", "start": 4856440, "end": 4889252}, {"filename": "/SR_wavetables/WaveEdit/KOMPLE01.WAV", "start": 4889252, "end": 4922064}, {"filename": "/SR_wavetables/WaveEdit/KONBANWA.WAV", "start": 4922064, "end": 4954876}, {"filename": "/SR_wavetables/WaveEdit/KUATO.WAV", "start": 4954876, "end": 4987688}, {"filename": "/SR_wavetables/WaveEdit/KYMA_PAR.WAV", "start": 4987688, "end": 5020500}, {"filename": "/SR_wavetables/WaveEdit/LASER_CR.WAV", "start": 5020500, "end": 5053312}, {"filename": "/SR_wavetables/WaveEdit/LERNING2.WAV", "start": 5053312, "end": 5086124}, {"filename": "/SR_wavetables/WaveEdit/LFO_PL00.WAV", "start": 5086124, "end": 5118936}, {"filename": "/SR_wavetables/WaveEdit/LFO_PLAY.WAV", "start": 5118936, "end": 5151748}, {"filename": "/SR_wavetables/WaveEdit/LICENSE.CC0.md", "start": 5151748, "end": 5152093}, {"filename": "/SR_wavetables/WaveEdit/LIGHT_00.WAV", "start": 5152093, "end": 5184905}, {"filename": "/SR_wavetables/WaveEdit/LIGHT_YE.WAV", "start": 5184905, "end": 5217717}, {"filename": "/SR_wavetables/WaveEdit/LOFIRISE.WAV", "start": 5217717, "end": 5250529}, {"filename": "/SR_wavetables/WaveEdit/LOM_A.WAV", "start": 5250529, "end": 5283341}, {"filename": "/SR_wavetables/WaveEdit/LSDJ_WAV.WAV", "start": 5283341, "end": 5316153}, {"filename": "/SR_wavetables/WaveEdit/MAGNET00.WAV", "start": 5316153, "end": 5348965}, {"filename": "/SR_wavetables/WaveEdit/MAGNETIC.WAV", "start": 5348965, "end": 5381777}, {"filename": "/SR_wavetables/WaveEdit/MELLOW_D.WAV", "start": 5381777, "end": 5414589}, {"filename": "/SR_wavetables/WaveEdit/MERAVIGL.WAV", "start": 5414589, "end": 5447401}, {"filename": "/SR_wavetables/WaveEdit/MICROBRU.WAV", "start": 5447401, "end": 5480213}, {"filename": "/SR_wavetables/WaveEdit/MICROW02.WAV", "start": 5480213, "end": 5513025}, {"filename": "/SR_wavetables/WaveEdit/MICRO_Q_.WAV", "start": 5513025, "end": 5545837}, {"filename": "/SR_wavetables/WaveEdit/MIXED02.WAV", "start": 5545837, "end": 5578649}, {"filename": "/SR_wavetables/WaveEdit/MIXED_AS.WAV", "start": 5578649, "end": 5611461}, {"filename": "/SR_wavetables/WaveEdit/MK_DWG_H.WAV", "start": 5611461, "end": 5644273}, {"filename": "/SR_wavetables/WaveEdit/MODDROP.WAV", "start": 5644273, "end": 5677085}, {"filename": "/SR_wavetables/WaveEdit/MONICS.WAV", "start": 5677085, "end": 5709897}, {"filename": "/SR_wavetables/WaveEdit/MORPHING.WAV", "start": 5709897, "end": 5742709}, {"filename": "/SR_wavetables/WaveEdit/MS2K.WAV", "start": 5742709, "end": 5775521}, {"filename": "/SR_wavetables/WaveEdit/MUTATION.WAV", "start": 5775521, "end": 5808333}, {"filename": "/SR_wavetables/WaveEdit/NOISE_WA.WAV", "start": 5808333, "end": 5841145}, {"filename": "/SR_wavetables/WaveEdit/NOMAD.WAV", "start": 5841145, "end": 5873957}, {"filename": "/SR_wavetables/WaveEdit/ORGANIC_.WAV", "start": 5873957, "end": 5906769}, {"filename": "/SR_wavetables/WaveEdit/ORGANS01.WAV", "start": 5906769, "end": 5939581}, {"filename": "/SR_wavetables/WaveEdit/ORGAN_DI.WAV", "start": 5939581, "end": 5972393}, {"filename": "/SR_wavetables/WaveEdit/OSMAOS.WAV", "start": 5972393, "end": 6005205}, {"filename": "/SR_wavetables/WaveEdit/PD101.WAV", "start": 6005205, "end": 6038017}, {"filename": "/SR_wavetables/WaveEdit/PD102.WAV", "start": 6038017, "end": 6070829}, {"filename": "/SR_wavetables/WaveEdit/PD103.WAV", "start": 6070829, "end": 6103641}, {"filename": "/SR_wavetables/WaveEdit/PD104.WAV", "start": 6103641, "end": 6136453}, {"filename": "/SR_wavetables/WaveEdit/PHANTOMS.WAV", "start": 6136453, "end": 6169265}, {"filename": "/SR_wavetables/WaveEdit/PISTON_H.WAV", "start": 6169265, "end": 6202077}, {"filename": "/SR_wavetables/WaveEdit/PLAITS01.WAV", "start": 6202077, "end": 6234889}, {"filename": "/SR_wavetables/WaveEdit/PLAITS02.WAV", "start": 6234889, "end": 6267701}, {"filename": "/SR_wavetables/WaveEdit/PLAITS03.WAV", "start": 6267701, "end": 6300513}, {"filename": "/SR_wavetables/WaveEdit/PLESANT_.WAV", "start": 6300513, "end": 6333325}, {"filename": "/SR_wavetables/WaveEdit/PPG_BES.WAV", "start": 6333325, "end": 6366137}, {"filename": "/SR_wavetables/WaveEdit/PPG_UPPE.WAV", "start": 6366137, "end": 6398949}, {"filename": "/SR_wavetables/WaveEdit/PPG_WA00.WAV", "start": 6398949, "end": 6431761}, {"filename": "/SR_wavetables/WaveEdit/PPG_WA01.WAV", "start": 6431761, "end": 6464573}, {"filename": "/SR_wavetables/WaveEdit/PPG_WA02.WAV", "start": 6464573, "end": 6497385}, {"filename": "/SR_wavetables/WaveEdit/PPG_WA03.WAV", "start": 6497385, "end": 6530197}, {"filename": "/SR_wavetables/WaveEdit/PPG_WA04.WAV", "start": 6530197, "end": 6563009}, {"filename": "/fonts/Console.cnfont", "start": 6563009, "end": 6763792}, {"filename": "/fonts/Default.cnfont", "start": 6763792, "end": 6964572}, {"filename": "/fonts/IBM_VGA.cnfont", "start": 6964572, "end": 7165380}, {"filename": "/fonts/PSGCAPITAL.cnfont", "start": 7165380, "end": 7366640}, {"filename": "/fonts/Pixel16x24/01_TechMonoAudit.cnfont", "start": 7366640, "end": 7380606}, {"filename": "/fonts/Pixel16x24/02_DepartureMono.cnfont", "start": 7380606, "end": 7394571}, {"filename": "/fonts/Pixel16x24/03_Spleen.cnfont", "start": 7394571, "end": 7408534}, {"filename": "/fonts/Pixel16x24/04_Cozette.cnfont", "start": 7408534, "end": 7422484}, {"filename": "/fonts/Pixel16x24/README.txt", "start": 7422484, "end": 7425667}, {"filename": "/fonts/Pixel16x24/licenses/Cozette-LICENSE.txt", "start": 7425667, "end": 7426747}, {"filename": "/fonts/Pixel16x24/licenses/DepartureMono-OFL.txt", "start": 7426747, "end": 7431104}, {"filename": "/fonts/Pixel16x24/licenses/ShareTechMono-OFL.txt", "start": 7431104, "end": 7435533}, {"filename": "/fonts/Pixel16x24/licenses/Spleen-LICENSE.txt", "start": 7435533, "end": 7436846}, {"filename": "/fonts/RobotoMono.cnfont", "start": 7436846, "end": 7637656}, {"filename": "/fonts/tm-prosto-constructivist.cnfont", "start": 7637656, "end": 7838468}, {"filename": "/instruments/BD 1.cni", "start": 7838468, "end": 7839231}, {"filename": "/instruments/BD Bass 1.cni", "start": 7839231, "end": 7839999}, {"filename": "/instruments/Bass 1.cni", "start": 7839999, "end": 7840766}, {"filename": "/instruments/Bass 2.cni", "start": 7840766, "end": 7841535}, {"filename": "/instruments/Bass Saw 1.cni", "start": 7841535, "end": 7842303}, {"filename": "/instruments/Bass Slap 1.cni", "start": 7842303, "end": 7843074}, {"filename": "/instruments/Bass Slap 2.cni", "start": 7843074, "end": 7843845}, {"filename": "/instruments/Bass Slap 3.cni", "start": 7843845, "end": 7844616}, {"filename": "/instruments/Bass Tri 1.cni", "start": 7844616, "end": 7845384}, {"filename": "/instruments/Clap.cni", "start": 7845384, "end": 7846149}, {"filename": "/instruments/DrumSynth Clap.cni", "start": 7846149, "end": 7846594}, {"filename": "/instruments/DrumSynth Clave.cni", "start": 7846594, "end": 7847041}, {"filename": "/instruments/DrumSynth Cowbell.cni", "start": 7847041, "end": 7847493}, {"filename": "/instruments/DrumSynth Cymbal.cni", "start": 7847493, "end": 7847943}, {"filename": "/instruments/DrumSynth FM.cni", "start": 7847943, "end": 7848389}, {"filename": "/instruments/DrumSynth Hat.cni", "start": 7848389, "end": 7848835}, {"filename": "/instruments/DrumSynth Kick.cni", "start": 7848835, "end": 7849282}, {"filename": "/instruments/DrumSynth Noise.cni", "start": 7849282, "end": 7849728}, {"filename": "/instruments/DrumSynth Rim.cni", "start": 7849728, "end": 7850172}, {"filename": "/instruments/DrumSynth Shaker.cni", "start": 7850172, "end": 7850620}, {"filename": "/instruments/DrumSynth Snare.cni", "start": 7850620, "end": 7851068}, {"filename": "/instruments/DrumSynth Tom.cni", "start": 7851068, "end": 7851513}, {"filename": "/instruments/Fall.cni", "start": 7851513, "end": 7852278}, {"filename": "/instruments/Hat 1.cni", "start": 7852278, "end": 7853041}, {"filename": "/instruments/Lead 1.cni", "start": 7853041, "end": 7853808}, {"filename": "/instruments/Pluck 1.cni", "start": 7853808, "end": 7854574}, {"filename": "/instruments/Rim.cni", "start": 7854574, "end": 7855337}, {"filename": "/instruments/Riser 1.cni", "start": 7855337, "end": 7856104}, {"filename": "/instruments/Sax.cni", "start": 7856104, "end": 7856868}, {"filename": "/instruments/ShortArp 1.cni", "start": 7856868, "end": 7857638}, {"filename": "/instruments/Sintered Burst.cni", "start": 7857638, "end": 7857964}, {"filename": "/instruments/Sintered Comb.cni", "start": 7857964, "end": 7858292}, {"filename": "/instruments/Sintered Knot.cni", "start": 7858292, "end": 7858740}, {"filename": "/instruments/Sintered Logic.cni", "start": 7858740, "end": 7859069}, {"filename": "/instruments/Sintered Melt.cni", "start": 7859069, "end": 7859396}, {"filename": "/instruments/Sintered Shard.cni", "start": 7859396, "end": 7859724}, {"filename": "/instruments/Snare 1.cni", "start": 7859724, "end": 7860487}, {"filename": "/instruments/Snare 2.cni", "start": 7860487, "end": 7861253}, {"filename": "/instruments/Tom 1.cni", "start": 7861253, "end": 7862016}, {"filename": "/instruments/Waves.cni", "start": 7862016, "end": 7862784}, {"filename": "/instruments/banks/dx7/README.txt", "start": 7862784, "end": 7863501}, {"filename": "/instruments/chips/16bit-station-000-000.cni", "start": 7863501, "end": 7864603}, {"filename": "/instruments/chips/16bit-station-000-001.cni", "start": 7864603, "end": 7865700}, {"filename": "/instruments/chips/16bit-station-000-002.cni", "start": 7865700, "end": 7866801}, {"filename": "/instruments/chips/16bit-station-000-003.cni", "start": 7866801, "end": 7867892}, {"filename": "/instruments/chips/16bit-station-000-004.cni", "start": 7867892, "end": 7868999}, {"filename": "/instruments/chips/16bit-station-000-005.cni", "start": 7868999, "end": 7870106}, {"filename": "/instruments/chips/16bit-station-000-006.cni", "start": 7870106, "end": 7871205}, {"filename": "/instruments/chips/16bit-station-000-008.cni", "start": 7871205, "end": 7872294}, {"filename": "/instruments/chips/16bit-station-000-009.cni", "start": 7872294, "end": 7873391}, {"filename": "/instruments/chips/16bit-station-000-010.cni", "start": 7873391, "end": 7874486}, {"filename": "/instruments/chips/16bit-station-000-011.cni", "start": 7874486, "end": 7875582}, {"filename": "/instruments/chips/16bit-station-000-012.cni", "start": 7875582, "end": 7876673}, {"filename": "/instruments/chips/16bit-station-000-013.cni", "start": 7876673, "end": 7877770}, {"filename": "/instruments/chips/16bit-station-000-015.cni", "start": 7877770, "end": 7878862}, {"filename": "/instruments/chips/16bit-station-000-016.cni", "start": 7878862, "end": 7879958}, {"filename": "/instruments/chips/16bit-station-000-022.cni", "start": 7879958, "end": 7881049}, {"filename": "/instruments/chips/16bit-station-000-024.cni", "start": 7881049, "end": 7882149}, {"filename": "/instruments/chips/16bit-station-000-025.cni", "start": 7882149, "end": 7883250}, {"filename": "/instruments/chips/16bit-station-000-027.cni", "start": 7883250, "end": 7884350}, {"filename": "/instruments/chips/16bit-station-000-030.cni", "start": 7884350, "end": 7885455}, {"filename": "/instruments/chips/16bit-station-000-032.cni", "start": 7885455, "end": 7886562}, {"filename": "/instruments/chips/16bit-station-000-035.cni", "start": 7886562, "end": 7887666}, {"filename": "/instruments/chips/16bit-station-000-036.cni", "start": 7887666, "end": 7888768}, {"filename": "/instruments/chips/16bit-station-000-038.cni", "start": 7888768, "end": 7889872}, {"filename": "/instruments/chips/16bit-station-000-040.cni", "start": 7889872, "end": 7890959}, {"filename": "/instruments/chips/16bit-station-000-046.cni", "start": 7890959, "end": 7892064}, {"filename": "/instruments/chips/16bit-station-000-048.cni", "start": 7892064, "end": 7893156}, {"filename": "/instruments/chips/16bit-station-000-050.cni", "start": 7893156, "end": 7894259}, {"filename": "/instruments/chips/16bit-station-000-052.cni", "start": 7894259, "end": 7895351}, {"filename": "/instruments/chips/16bit-station-000-056.cni", "start": 7895351, "end": 7896442}, {"filename": "/instruments/chips/16bit-station-000-057.cni", "start": 7896442, "end": 7897537}, {"filename": "/instruments/chips/16bit-station-000-058.cni", "start": 7897537, "end": 7898624}, {"filename": "/instruments/chips/16bit-station-000-062.cni", "start": 7898624, "end": 7899724}, {"filename": "/instruments/chips/16bit-station-000-063.cni", "start": 7899724, "end": 7900825}, {"filename": "/instruments/chips/16bit-station-000-064.cni", "start": 7900825, "end": 7901925}, {"filename": "/instruments/chips/16bit-station-000-065.cni", "start": 7901925, "end": 7903019}, {"filename": "/instruments/chips/16bit-station-000-066.cni", "start": 7903019, "end": 7904115}, {"filename": "/instruments/chips/16bit-station-000-067.cni", "start": 7904115, "end": 7905217}, {"filename": "/instruments/chips/16bit-station-000-074.cni", "start": 7905217, "end": 7906313}, {"filename": "/instruments/chips/16bit-station-000-078.cni", "start": 7906313, "end": 7907403}, {"filename": "/instruments/chips/16bit-station-000-079.cni", "start": 7907403, "end": 7908499}, {"filename": "/instruments/chips/16bit-station-000-080.cni", "start": 7908499, "end": 7909599}, {"filename": "/instruments/chips/16bit-station-000-081.cni", "start": 7909599, "end": 7910691}, {"filename": "/instruments/chips/16bit-station-000-089.cni", "start": 7910691, "end": 7911780}, {"filename": "/instruments/chips/16bit-station-000-090.cni", "start": 7911780, "end": 7912877}, {"filename": "/instruments/chips/16bit-station-000-098.cni", "start": 7912877, "end": 7913971}, {"filename": "/instruments/chips/16bit-station-000-100.cni", "start": 7913971, "end": 7915073}, {"filename": "/instruments/chips/16bit-station-000-102.cni", "start": 7915073, "end": 7916166}, {"filename": "/instruments/chips/16bit-station-000-114.cni", "start": 7916166, "end": 7917271}, {"filename": "/instruments/chips/builtin-17-01.cni", "start": 7917271, "end": 7918248}, {"filename": "/instruments/chips/builtin-17-02.cni", "start": 7918248, "end": 7919225}, {"filename": "/instruments/chips/builtin-17-03.cni", "start": 7919225, "end": 7920199}, {"filename": "/instruments/chips/builtin-17-04.cni", "start": 7920199, "end": 7921174}, {"filename": "/instruments/chips/builtin-17-05.cni", "start": 7921174, "end": 7922153}, {"filename": "/instruments/chips/builtin-17-06.cni", "start": 7922153, "end": 7923125}, {"filename": "/instruments/chips/builtin-17-07.cni", "start": 7923125, "end": 7924102}, {"filename": "/instruments/chips/builtin-17-08.cni", "start": 7924102, "end": 7925075}, {"filename": "/instruments/chips/builtin-17-09.cni", "start": 7925075, "end": 7926047}, {"filename": "/instruments/chips/builtin-17-10.cni", "start": 7926047, "end": 7927035}, {"filename": "/instruments/chips/builtin-17-11.cni", "start": 7927035, "end": 7928022}, {"filename": "/instruments/chips/builtin-17-12.cni", "start": 7928022, "end": 7929008}, {"filename": "/instruments/chips/builtin-17-13.cni", "start": 7929008, "end": 7930004}, {"filename": "/instruments/chips/builtin-17-14.cni", "start": 7930004, "end": 7930991}, {"filename": "/instruments/chips/builtin-17-15.cni", "start": 7930991, "end": 7931987}, {"filename": "/instruments/chips/builtin-18-01.cni", "start": 7931987, "end": 7932969}, {"filename": "/instruments/chips/builtin-18-02.cni", "start": 7932969, "end": 7933946}, {"filename": "/instruments/chips/builtin-18-03.cni", "start": 7933946, "end": 7934919}, {"filename": "/instruments/chips/builtin-18-04.cni", "start": 7934919, "end": 7935893}, {"filename": "/instruments/chips/builtin-18-05.cni", "start": 7935893, "end": 7936872}, {"filename": "/instruments/chips/builtin-18-06.cni", "start": 7936872, "end": 7937841}, {"filename": "/instruments/chips/builtin-18-07.cni", "start": 7937841, "end": 7938818}, {"filename": "/instruments/chips/builtin-18-08.cni", "start": 7938818, "end": 7939792}, {"filename": "/instruments/chips/builtin-18-09.cni", "start": 7939792, "end": 7940765}, {"filename": "/instruments/chips/builtin-18-10.cni", "start": 7940765, "end": 7941740}, {"filename": "/instruments/chips/builtin-18-11.cni", "start": 7941740, "end": 7942726}, {"filename": "/instruments/chips/builtin-18-12.cni", "start": 7942726, "end": 7943702}, {"filename": "/instruments/chips/builtin-18-13.cni", "start": 7943702, "end": 7944684}, {"filename": "/instruments/chips/builtin-18-14.cni", "start": 7944684, "end": 7945668}, {"filename": "/instruments/chips/builtin-18-15.cni", "start": 7945668, "end": 7946642}, {"filename": "/instruments/chips/builtin-21-00.cni", "start": 7946642, "end": 7947753}, {"filename": "/instruments/chips/builtin-21-01.cni", "start": 7947753, "end": 7948863}, {"filename": "/instruments/chips/builtin-21-02.cni", "start": 7948863, "end": 7949974}, {"filename": "/instruments/chips/builtin-21-03.cni", "start": 7949974, "end": 7951085}, {"filename": "/instruments/chips/builtin-21-04.cni", "start": 7951085, "end": 7952193}, {"filename": "/instruments/chips/builtin-21-05.cni", "start": 7952193, "end": 7953304}, {"filename": "/instruments/chips/builtin-21-06.cni", "start": 7953304, "end": 7954414}, {"filename": "/instruments/chips/builtin-21-07.cni", "start": 7954414, "end": 7955522}, {"filename": "/instruments/chips/builtin-21-08.cni", "start": 7955522, "end": 7956629}, {"filename": "/instruments/chips/builtin-21-09.cni", "start": 7956629, "end": 7957739}, {"filename": "/instruments/chips/builtin-21-10.cni", "start": 7957739, "end": 7958848}, {"filename": "/instruments/chips/builtin-21-11.cni", "start": 7958848, "end": 7959958}, {"filename": "/instruments/chips/builtin-21-12.cni", "start": 7959958, "end": 7961064}, {"filename": "/instruments/chips/builtin-21-13.cni", "start": 7961064, "end": 7962178}, {"filename": "/instruments/chips/builtin-21-14.cni", "start": 7962178, "end": 7963292}, {"filename": "/instruments/chips/builtin-21-15.cni", "start": 7963292, "end": 7964403}, {"filename": "/instruments/chips/builtin-21-16.cni", "start": 7964403, "end": 7965519}, {"filename": "/instruments/chips/builtin-21-17.cni", "start": 7965519, "end": 7966629}, {"filename": "/instruments/chips/builtin-21-18.cni", "start": 7966629, "end": 7967738}, {"filename": "/instruments/chips/builtin-21-19.cni", "start": 7967738, "end": 7968851}, {"filename": "/instruments/chips/builtin-21-20.cni", "start": 7968851, "end": 7969963}, {"filename": "/instruments/chips/builtin-21-21.cni", "start": 7969963, "end": 7971077}, {"filename": "/instruments/chips/builtin-21-22.cni", "start": 7971077, "end": 7972191}, {"filename": "/instruments/chips/builtin-21-23.cni", "start": 7972191, "end": 7973300}, {"filename": "/instruments/chips/builtin-22-00.cni", "start": 7973300, "end": 7974396}, {"filename": "/instruments/chips/builtin-22-01.cni", "start": 7974396, "end": 7975493}, {"filename": "/instruments/chips/builtin-22-02.cni", "start": 7975493, "end": 7976587}, {"filename": "/instruments/chips/builtin-22-03.cni", "start": 7976587, "end": 7977679}, {"filename": "/instruments/chips/builtin-22-04.cni", "start": 7977679, "end": 7978775}, {"filename": "/instruments/chips/builtin-22-05.cni", "start": 7978775, "end": 7979872}, {"filename": "/instruments/chips/builtin-22-06.cni", "start": 7979872, "end": 7980966}, {"filename": "/instruments/chips/builtin-22-07.cni", "start": 7980966, "end": 7982057}, {"filename": "/instruments/chips/builtin-22-08.cni", "start": 7982057, "end": 7983153}, {"filename": "/instruments/chips/builtin-22-09.cni", "start": 7983153, "end": 7984248}, {"filename": "/instruments/chips/builtin-22-10.cni", "start": 7984248, "end": 7985342}, {"filename": "/instruments/chips/builtin-22-11.cni", "start": 7985342, "end": 7986437}, {"filename": "/instruments/chips/builtin-22-12.cni", "start": 7986437, "end": 7987532}, {"filename": "/instruments/chips/builtin-22-13.cni", "start": 7987532, "end": 7988626}, {"filename": "/instruments/chips/builtin-22-14.cni", "start": 7988626, "end": 7989721}, {"filename": "/instruments/chips/builtin-22-15.cni", "start": 7989721, "end": 7990811}, {"filename": "/instruments/chips/builtin-22-16.cni", "start": 7990811, "end": 7991909}, {"filename": "/instruments/chips/builtin-22-17.cni", "start": 7991909, "end": 7993007}, {"filename": "/instruments/chips/builtin-22-18.cni", "start": 7993007, "end": 7994106}, {"filename": "/instruments/chips/builtin-22-19.cni", "start": 7994106, "end": 7995202}, {"filename": "/instruments/chips/builtin-22-20.cni", "start": 7995202, "end": 7996299}, {"filename": "/instruments/chips/builtin-22-21.cni", "start": 7996299, "end": 7997401}, {"filename": "/instruments/chips/builtin-22-22.cni", "start": 7997401, "end": 7998499}, {"filename": "/instruments/chips/builtin-22-23.cni", "start": 7998499, "end": 7999593}, {"filename": "/instruments/chips/builtin-23-00.cni", "start": 7999593, "end": 8000687}, {"filename": "/instruments/chips/builtin-23-01.cni", "start": 8000687, "end": 8001779}, {"filename": "/instruments/chips/builtin-23-02.cni", "start": 8001779, "end": 8002874}, {"filename": "/instruments/chips/builtin-23-03.cni", "start": 8002874, "end": 8003964}, {"filename": "/instruments/chips/builtin-23-04.cni", "start": 8003964, "end": 8005057}, {"filename": "/instruments/chips/builtin-23-05.cni", "start": 8005057, "end": 8006148}, {"filename": "/instruments/chips/builtin-23-06.cni", "start": 8006148, "end": 8007242}, {"filename": "/instruments/chips/builtin-23-07.cni", "start": 8007242, "end": 8008336}, {"filename": "/instruments/chips/builtin-23-08.cni", "start": 8008336, "end": 8009432}, {"filename": "/instruments/chips/builtin-23-09.cni", "start": 8009432, "end": 8010527}, {"filename": "/instruments/chips/builtin-23-10.cni", "start": 8010527, "end": 8011623}, {"filename": "/instruments/chips/builtin-23-11.cni", "start": 8011623, "end": 8012718}, {"filename": "/instruments/chips/builtin-23-12.cni", "start": 8012718, "end": 8013813}, {"filename": "/instruments/chips/builtin-23-13.cni", "start": 8013813, "end": 8014904}, {"filename": "/instruments/chips/builtin-23-14.cni", "start": 8014904, "end": 8016001}, {"filename": "/instruments/chips/builtin-23-15.cni", "start": 8016001, "end": 8017093}, {"filename": "/instruments/chips/builtin-23-16.cni", "start": 8017093, "end": 8018184}, {"filename": "/instruments/chips/builtin-23-17.cni", "start": 8018184, "end": 8019278}, {"filename": "/instruments/chips/builtin-23-18.cni", "start": 8019278, "end": 8020375}, {"filename": "/instruments/chips/builtin-23-19.cni", "start": 8020375, "end": 8021472}, {"filename": "/instruments/chips/builtin-23-20.cni", "start": 8021472, "end": 8022568}, {"filename": "/instruments/chips/builtin-23-21.cni", "start": 8022568, "end": 8023662}, {"filename": "/instruments/chips/builtin-23-22.cni", "start": 8023662, "end": 8024755}, {"filename": "/instruments/chips/builtin-23-23.cni", "start": 8024755, "end": 8025852}, {"filename": "/instruments/chips/builtin-23-24.cni", "start": 8025852, "end": 8026951}, {"filename": "/instruments/chips/builtin-23-25.cni", "start": 8026951, "end": 8028046}, {"filename": "/instruments/chips/builtin-23-26.cni", "start": 8028046, "end": 8029142}, {"filename": "/instruments/chips/builtin-23-27.cni", "start": 8029142, "end": 8030237}, {"filename": "/instruments/chips/builtins-manifest.json", "start": 8030237, "end": 8048428}, {"filename": "/instruments/chips/builtins.tsv", "start": 8048428, "end": 8052526}, {"filename": "/instruments/chips/catalog.tsv", "start": 8052526, "end": 8123483}, {"filename": "/instruments/chips/dmxopl3-0-00000-000.cni", "start": 8123483, "end": 8124597}, {"filename": "/instruments/chips/dmxopl3-0-00000-001.cni", "start": 8124597, "end": 8125713}, {"filename": "/instruments/chips/dmxopl3-0-00000-002.cni", "start": 8125713, "end": 8126820}, {"filename": "/instruments/chips/dmxopl3-0-00000-003.cni", "start": 8126820, "end": 8127932}, {"filename": "/instruments/chips/dmxopl3-0-00000-004.cni", "start": 8127932, "end": 8129049}, {"filename": "/instruments/chips/dmxopl3-0-00000-005.cni", "start": 8129049, "end": 8130166}, {"filename": "/instruments/chips/dmxopl3-0-00000-006.cni", "start": 8130166, "end": 8131269}, {"filename": "/instruments/chips/dmxopl3-0-00000-007.cni", "start": 8131269, "end": 8132366}, {"filename": "/instruments/chips/dmxopl3-0-00000-008.cni", "start": 8132366, "end": 8133457}, {"filename": "/instruments/chips/dmxopl3-0-00000-009.cni", "start": 8133457, "end": 8134567}, {"filename": "/instruments/chips/dmxopl3-0-00000-010.cni", "start": 8134567, "end": 8135660}, {"filename": "/instruments/chips/dmxopl3-0-00000-011.cni", "start": 8135660, "end": 8136758}, {"filename": "/instruments/chips/dmxopl3-0-00000-012.cni", "start": 8136758, "end": 8137852}, {"filename": "/instruments/chips/dmxopl3-0-00000-013.cni", "start": 8137852, "end": 8138952}, {"filename": "/instruments/chips/dmxopl3-0-00000-014.cni", "start": 8138952, "end": 8140062}, {"filename": "/instruments/chips/dmxopl3-0-00000-015.cni", "start": 8140062, "end": 8141154}, {"filename": "/instruments/chips/dmxopl3-0-00000-016.cni", "start": 8141154, "end": 8142258}, {"filename": "/instruments/chips/dmxopl3-0-00000-017.cni", "start": 8142258, "end": 8143371}, {"filename": "/instruments/chips/dmxopl3-0-00000-018.cni", "start": 8143371, "end": 8144471}, {"filename": "/instruments/chips/dmxopl3-0-00000-019.cni", "start": 8144471, "end": 8145568}, {"filename": "/instruments/chips/dmxopl3-0-00000-020.cni", "start": 8145568, "end": 8146660}, {"filename": "/instruments/chips/dmxopl3-0-00000-021.cni", "start": 8146660, "end": 8147751}, {"filename": "/instruments/chips/dmxopl3-0-00000-022.cni", "start": 8147751, "end": 8148850}, {"filename": "/instruments/chips/dmxopl3-0-00000-023.cni", "start": 8148850, "end": 8149955}, {"filename": "/instruments/chips/dmxopl3-0-00000-024.cni", "start": 8149955, "end": 8151058}, {"filename": "/instruments/chips/dmxopl3-0-00000-025.cni", "start": 8151058, "end": 8152177}, {"filename": "/instruments/chips/dmxopl3-0-00000-026.cni", "start": 8152177, "end": 8153292}, {"filename": "/instruments/chips/dmxopl3-0-00000-027.cni", "start": 8153292, "end": 8154408}, {"filename": "/instruments/chips/dmxopl3-0-00000-028.cni", "start": 8154408, "end": 8155526}, {"filename": "/instruments/chips/dmxopl3-0-00000-029.cni", "start": 8155526, "end": 8156638}, {"filename": "/instruments/chips/dmxopl3-0-00000-030.cni", "start": 8156638, "end": 8157751}, {"filename": "/instruments/chips/dmxopl3-0-00000-031.cni", "start": 8157751, "end": 8158861}, {"filename": "/instruments/chips/dmxopl3-0-00000-032.cni", "start": 8158861, "end": 8159963}, {"filename": "/instruments/chips/dmxopl3-0-00000-033.cni", "start": 8159963, "end": 8161082}, {"filename": "/instruments/chips/dmxopl3-0-00000-034.cni", "start": 8161082, "end": 8162198}, {"filename": "/instruments/chips/dmxopl3-0-00000-035.cni", "start": 8162198, "end": 8163300}, {"filename": "/instruments/chips/dmxopl3-0-00000-036.cni", "start": 8163300, "end": 8164399}, {"filename": "/instruments/chips/dmxopl3-0-00000-037.cni", "start": 8164399, "end": 8165499}, {"filename": "/instruments/chips/dmxopl3-0-00000-038.cni", "start": 8165499, "end": 8166598}, {"filename": "/instruments/chips/dmxopl3-0-00000-039.cni", "start": 8166598, "end": 8167711}, {"filename": "/instruments/chips/dmxopl3-0-00000-040.cni", "start": 8167711, "end": 8168795}, {"filename": "/instruments/chips/dmxopl3-0-00000-041.cni", "start": 8168795, "end": 8169877}, {"filename": "/instruments/chips/dmxopl3-0-00000-042.cni", "start": 8169877, "end": 8170961}, {"filename": "/instruments/chips/dmxopl3-0-00000-043.cni", "start": 8170961, "end": 8172053}, {"filename": "/instruments/chips/dmxopl3-0-00000-044.cni", "start": 8172053, "end": 8173170}, {"filename": "/instruments/chips/dmxopl3-0-00000-045.cni", "start": 8173170, "end": 8174278}, {"filename": "/instruments/chips/dmxopl3-0-00000-046.cni", "start": 8174278, "end": 8175388}, {"filename": "/instruments/chips/dmxopl3-0-00000-047.cni", "start": 8175388, "end": 8176485}, {"filename": "/instruments/chips/dmxopl3-0-00000-048.cni", "start": 8176485, "end": 8177581}, {"filename": "/instruments/chips/dmxopl3-0-00000-049.cni", "start": 8177581, "end": 8178687}, {"filename": "/instruments/chips/dmxopl3-0-00000-050.cni", "start": 8178687, "end": 8179790}, {"filename": "/instruments/chips/dmxopl3-0-00000-051.cni", "start": 8179790, "end": 8180893}, {"filename": "/instruments/chips/dmxopl3-0-00000-052.cni", "start": 8180893, "end": 8181990}, {"filename": "/instruments/chips/dmxopl3-0-00000-053.cni", "start": 8181990, "end": 8183086}, {"filename": "/instruments/chips/dmxopl3-0-00000-054.cni", "start": 8183086, "end": 8184182}, {"filename": "/instruments/chips/dmxopl3-0-00000-055.cni", "start": 8184182, "end": 8185282}, {"filename": "/instruments/chips/dmxopl3-0-00000-056.cni", "start": 8185282, "end": 8186371}, {"filename": "/instruments/chips/dmxopl3-0-00000-057.cni", "start": 8186371, "end": 8187459}, {"filename": "/instruments/chips/dmxopl3-0-00000-058.cni", "start": 8187459, "end": 8188538}, {"filename": "/instruments/chips/dmxopl3-0-00000-059.cni", "start": 8188538, "end": 8189638}, {"filename": "/instruments/chips/dmxopl3-0-00000-060.cni", "start": 8189638, "end": 8190733}, {"filename": "/instruments/chips/dmxopl3-0-00000-061.cni", "start": 8190733, "end": 8191834}, {"filename": "/instruments/chips/dmxopl3-0-00000-062.cni", "start": 8191834, "end": 8192935}, {"filename": "/instruments/chips/dmxopl3-0-00000-063.cni", "start": 8192935, "end": 8194035}, {"filename": "/instruments/chips/dmxopl3-0-00000-064.cni", "start": 8194035, "end": 8195131}, {"filename": "/instruments/chips/dmxopl3-0-00000-065.cni", "start": 8195131, "end": 8196217}, {"filename": "/instruments/chips/dmxopl3-0-00000-066.cni", "start": 8196217, "end": 8197308}, {"filename": "/instruments/chips/dmxopl3-0-00000-067.cni", "start": 8197308, "end": 8198404}, {"filename": "/instruments/chips/dmxopl3-0-00000-068.cni", "start": 8198404, "end": 8199487}, {"filename": "/instruments/chips/dmxopl3-0-00000-069.cni", "start": 8199487, "end": 8200582}, {"filename": "/instruments/chips/dmxopl3-0-00000-070.cni", "start": 8200582, "end": 8201667}, {"filename": "/instruments/chips/dmxopl3-0-00000-071.cni", "start": 8201667, "end": 8202757}, {"filename": "/instruments/chips/dmxopl3-0-00000-072.cni", "start": 8202757, "end": 8203843}, {"filename": "/instruments/chips/dmxopl3-0-00000-073.cni", "start": 8203843, "end": 8204925}, {"filename": "/instruments/chips/dmxopl3-0-00000-074.cni", "start": 8204925, "end": 8206012}, {"filename": "/instruments/chips/dmxopl3-0-00000-075.cni", "start": 8206012, "end": 8207104}, {"filename": "/instruments/chips/dmxopl3-0-00000-076.cni", "start": 8207104, "end": 8208201}, {"filename": "/instruments/chips/dmxopl3-0-00000-077.cni", "start": 8208201, "end": 8209294}, {"filename": "/instruments/chips/dmxopl3-0-00000-078.cni", "start": 8209294, "end": 8210380}, {"filename": "/instruments/chips/dmxopl3-0-00000-079.cni", "start": 8210380, "end": 8211465}, {"filename": "/instruments/chips/dmxopl3-0-00000-080.cni", "start": 8211465, "end": 8212572}, {"filename": "/instruments/chips/dmxopl3-0-00000-081.cni", "start": 8212572, "end": 8213682}, {"filename": "/instruments/chips/dmxopl3-0-00000-082.cni", "start": 8213682, "end": 8214786}, {"filename": "/instruments/chips/dmxopl3-0-00000-083.cni", "start": 8214786, "end": 8215892}, {"filename": "/instruments/chips/dmxopl3-0-00000-084.cni", "start": 8215892, "end": 8216995}, {"filename": "/instruments/chips/dmxopl3-0-00000-085.cni", "start": 8216995, "end": 8218098}, {"filename": "/instruments/chips/dmxopl3-0-00000-086.cni", "start": 8218098, "end": 8219210}, {"filename": "/instruments/chips/dmxopl3-0-00000-087.cni", "start": 8219210, "end": 8220325}, {"filename": "/instruments/chips/dmxopl3-0-00000-088.cni", "start": 8220325, "end": 8221425}, {"filename": "/instruments/chips/dmxopl3-0-00000-089.cni", "start": 8221425, "end": 8222522}, {"filename": "/instruments/chips/dmxopl3-0-00000-090.cni", "start": 8222522, "end": 8223630}, {"filename": "/instruments/chips/dmxopl3-0-00000-091.cni", "start": 8223630, "end": 8224729}, {"filename": "/instruments/chips/dmxopl3-0-00000-092.cni", "start": 8224729, "end": 8225836}, {"filename": "/instruments/chips/dmxopl3-0-00000-093.cni", "start": 8225836, "end": 8226934}, {"filename": "/instruments/chips/dmxopl3-0-00000-094.cni", "start": 8226934, "end": 8228024}, {"filename": "/instruments/chips/dmxopl3-0-00000-095.cni", "start": 8228024, "end": 8229123}, {"filename": "/instruments/chips/dmxopl3-0-00000-096.cni", "start": 8229123, "end": 8230218}, {"filename": "/instruments/chips/dmxopl3-0-00000-097.cni", "start": 8230218, "end": 8231318}, {"filename": "/instruments/chips/dmxopl3-0-00000-098.cni", "start": 8231318, "end": 8232420}, {"filename": "/instruments/chips/dmxopl3-0-00000-099.cni", "start": 8232420, "end": 8233533}, {"filename": "/instruments/chips/dmxopl3-0-00000-100.cni", "start": 8233533, "end": 8234645}, {"filename": "/instruments/chips/dmxopl3-0-00000-101.cni", "start": 8234645, "end": 8235747}, {"filename": "/instruments/chips/dmxopl3-0-00000-102.cni", "start": 8235747, "end": 8236858}, {"filename": "/instruments/chips/dmxopl3-0-00000-103.cni", "start": 8236858, "end": 8237967}, {"filename": "/instruments/chips/dmxopl3-0-00000-104.cni", "start": 8237967, "end": 8239054}, {"filename": "/instruments/chips/dmxopl3-0-00000-105.cni", "start": 8239054, "end": 8240142}, {"filename": "/instruments/chips/dmxopl3-0-00000-106.cni", "start": 8240142, "end": 8241239}, {"filename": "/instruments/chips/dmxopl3-0-00000-107.cni", "start": 8241239, "end": 8242323}, {"filename": "/instruments/chips/dmxopl3-0-00000-108.cni", "start": 8242323, "end": 8243415}, {"filename": "/instruments/chips/dmxopl3-0-00000-109.cni", "start": 8243415, "end": 8244504}, {"filename": "/instruments/chips/dmxopl3-0-00000-110.cni", "start": 8244504, "end": 8245589}, {"filename": "/instruments/chips/dmxopl3-0-00000-111.cni", "start": 8245589, "end": 8246673}, {"filename": "/instruments/chips/dmxopl3-0-00000-112.cni", "start": 8246673, "end": 8247768}, {"filename": "/instruments/chips/dmxopl3-0-00000-113.cni", "start": 8247768, "end": 8248850}, {"filename": "/instruments/chips/dmxopl3-0-00000-114.cni", "start": 8248850, "end": 8249947}, {"filename": "/instruments/chips/dmxopl3-0-00000-115.cni", "start": 8249947, "end": 8251038}, {"filename": "/instruments/chips/dmxopl3-0-00000-116.cni", "start": 8251038, "end": 8252148}, {"filename": "/instruments/chips/dmxopl3-0-00000-117.cni", "start": 8252148, "end": 8253250}, {"filename": "/instruments/chips/dmxopl3-0-00000-118.cni", "start": 8253250, "end": 8254348}, {"filename": "/instruments/chips/dmxopl3-0-00000-119.cni", "start": 8254348, "end": 8255448}, {"filename": "/instruments/chips/dmxopl3-0-00000-120.cni", "start": 8255448, "end": 8256554}, {"filename": "/instruments/chips/dmxopl3-0-00000-121.cni", "start": 8256554, "end": 8257656}, {"filename": "/instruments/chips/dmxopl3-0-00000-122.cni", "start": 8257656, "end": 8258754}, {"filename": "/instruments/chips/dmxopl3-0-00000-123.cni", "start": 8258754, "end": 8259849}, {"filename": "/instruments/chips/dmxopl3-0-00000-124.cni", "start": 8259849, "end": 8260961}, {"filename": "/instruments/chips/dmxopl3-0-00000-125.cni", "start": 8260961, "end": 8262060}, {"filename": "/instruments/chips/dmxopl3-0-00000-126.cni", "start": 8262060, "end": 8263154}, {"filename": "/instruments/chips/dmxopl3-0-00000-127.cni", "start": 8263154, "end": 8264241}, {"filename": "/instruments/chips/dmxopl3-0-00128-048.cni", "start": 8264241, "end": 8265358}, {"filename": "/instruments/chips/dmxopl3-0-00256-033.cni", "start": 8265358, "end": 8266470}, {"filename": "/instruments/chips/dmxopl3-0-00256-048.cni", "start": 8266470, "end": 8267579}, {"filename": "/instruments/chips/dmxopl3-0-00256-060.cni", "start": 8267579, "end": 8268680}, {"filename": "/instruments/chips/dmxopl3-0-00256-073.cni", "start": 8268680, "end": 8269778}, {"filename": "/instruments/chips/dmxopl3-0-00384-048.cni", "start": 8269778, "end": 8270876}, {"filename": "/instruments/chips/dmxopl3-0-00768-016.cni", "start": 8270876, "end": 8271993}, {"filename": "/instruments/chips/dmxopl3-0-01024-000.cni", "start": 8271993, "end": 8273093}, {"filename": "/instruments/chips/dmxopl3-0-01024-014.cni", "start": 8273093, "end": 8274201}, {"filename": "/instruments/chips/dmxopl3-0-01024-024.cni", "start": 8274201, "end": 8275296}, {"filename": "/instruments/chips/dmxopl3-0-01024-026.cni", "start": 8275296, "end": 8276391}, {"filename": "/instruments/chips/dmxopl3-0-01024-030.cni", "start": 8276391, "end": 8277504}, {"filename": "/instruments/chips/dmxopl3-0-01024-065.cni", "start": 8277504, "end": 8278600}, {"filename": "/instruments/chips/dmxopl3-0-01024-080.cni", "start": 8278600, "end": 8279697}, {"filename": "/instruments/chips/dmxopl3-0-01280-095.cni", "start": 8279697, "end": 8280809}, {"filename": "/instruments/chips/dmxopl3-0-02048-000.cni", "start": 8280809, "end": 8281925}, {"filename": "/instruments/chips/dmxopl3-0-02048-016.cni", "start": 8281925, "end": 8283029}, {"filename": "/instruments/chips/dmxopl3-0-02048-024.cni", "start": 8283029, "end": 8284130}, {"filename": "/instruments/chips/dmxopl3-0-02048-030.cni", "start": 8284130, "end": 8285239}, {"filename": "/instruments/chips/dmxopl3-0-02048-089.cni", "start": 8285239, "end": 8286356}, {"filename": "/instruments/chips/dmxopl3-0-03072-048.cni", "start": 8286356, "end": 8287461}, {"filename": "/instruments/chips/dmxopl3-0-04096-019.cni", "start": 8287461, "end": 8288561}, {"filename": "/instruments/chips/dmxopl3-0-04096-035.cni", "start": 8288561, "end": 8289685}, {"filename": "/instruments/chips/dmxopl3-0-04352-081.cni", "start": 8289685, "end": 8290786}, {"filename": "/instruments/chips/dmxopl3-1-00000-027.cni", "start": 8290786, "end": 8291885}, {"filename": "/instruments/chips/dmxopl3-1-00000-028.cni", "start": 8291885, "end": 8292983}, {"filename": "/instruments/chips/dmxopl3-1-00000-029.cni", "start": 8292983, "end": 8294086}, {"filename": "/instruments/chips/dmxopl3-1-00000-030.cni", "start": 8294086, "end": 8295189}, {"filename": "/instruments/chips/dmxopl3-1-00000-031.cni", "start": 8295189, "end": 8296298}, {"filename": "/instruments/chips/dmxopl3-1-00000-032.cni", "start": 8296298, "end": 8297402}, {"filename": "/instruments/chips/dmxopl3-1-00000-033.cni", "start": 8297402, "end": 8298504}, {"filename": "/instruments/chips/dmxopl3-1-00000-034.cni", "start": 8298504, "end": 8299614}, {"filename": "/instruments/chips/dmxopl3-1-00000-035.cni", "start": 8299614, "end": 8300716}, {"filename": "/instruments/chips/dmxopl3-1-00000-036.cni", "start": 8300716, "end": 8301824}, {"filename": "/instruments/chips/dmxopl3-1-00000-037.cni", "start": 8301824, "end": 8302922}, {"filename": "/instruments/chips/dmxopl3-1-00000-038.cni", "start": 8302922, "end": 8304026}, {"filename": "/instruments/chips/dmxopl3-1-00000-039.cni", "start": 8304026, "end": 8305123}, {"filename": "/instruments/chips/dmxopl3-1-00000-040.cni", "start": 8305123, "end": 8306225}, {"filename": "/instruments/chips/dmxopl3-1-00000-041.cni", "start": 8306225, "end": 8307328}, {"filename": "/instruments/chips/dmxopl3-1-00000-042.cni", "start": 8307328, "end": 8308433}, {"filename": "/instruments/chips/dmxopl3-1-00000-043.cni", "start": 8308433, "end": 8309536}, {"filename": "/instruments/chips/dmxopl3-1-00000-044.cni", "start": 8309536, "end": 8310634}, {"filename": "/instruments/chips/dmxopl3-1-00000-045.cni", "start": 8310634, "end": 8311737}, {"filename": "/instruments/chips/dmxopl3-1-00000-046.cni", "start": 8311737, "end": 8312844}, {"filename": "/instruments/chips/dmxopl3-1-00000-047.cni", "start": 8312844, "end": 8313947}, {"filename": "/instruments/chips/dmxopl3-1-00000-048.cni", "start": 8313947, "end": 8315051}, {"filename": "/instruments/chips/dmxopl3-1-00000-049.cni", "start": 8315051, "end": 8316155}, {"filename": "/instruments/chips/dmxopl3-1-00000-050.cni", "start": 8316155, "end": 8317258}, {"filename": "/instruments/chips/dmxopl3-1-00000-051.cni", "start": 8317258, "end": 8318366}, {"filename": "/instruments/chips/dmxopl3-1-00000-052.cni", "start": 8318366, "end": 8319470}, {"filename": "/instruments/chips/dmxopl3-1-00000-053.cni", "start": 8319470, "end": 8320562}, {"filename": "/instruments/chips/dmxopl3-1-00000-054.cni", "start": 8320562, "end": 8321653}, {"filename": "/instruments/chips/dmxopl3-1-00000-055.cni", "start": 8321653, "end": 8322753}, {"filename": "/instruments/chips/dmxopl3-1-00000-056.cni", "start": 8322753, "end": 8323838}, {"filename": "/instruments/chips/dmxopl3-1-00000-057.cni", "start": 8323838, "end": 8324942}, {"filename": "/instruments/chips/dmxopl3-1-00000-058.cni", "start": 8324942, "end": 8326036}, {"filename": "/instruments/chips/dmxopl3-1-00000-059.cni", "start": 8326036, "end": 8327144}, {"filename": "/instruments/chips/dmxopl3-1-00000-060.cni", "start": 8327144, "end": 8328250}, {"filename": "/instruments/chips/dmxopl3-1-00000-061.cni", "start": 8328250, "end": 8329357}, {"filename": "/instruments/chips/dmxopl3-1-00000-062.cni", "start": 8329357, "end": 8330471}, {"filename": "/instruments/chips/dmxopl3-1-00000-063.cni", "start": 8330471, "end": 8331582}, {"filename": "/instruments/chips/dmxopl3-1-00000-064.cni", "start": 8331582, "end": 8332687}, {"filename": "/instruments/chips/dmxopl3-1-00000-065.cni", "start": 8332687, "end": 8333788}, {"filename": "/instruments/chips/dmxopl3-1-00000-066.cni", "start": 8333788, "end": 8334887}, {"filename": "/instruments/chips/dmxopl3-1-00000-067.cni", "start": 8334887, "end": 8335983}, {"filename": "/instruments/chips/dmxopl3-1-00000-068.cni", "start": 8335983, "end": 8337078}, {"filename": "/instruments/chips/dmxopl3-1-00000-069.cni", "start": 8337078, "end": 8338163}, {"filename": "/instruments/chips/dmxopl3-1-00000-070.cni", "start": 8338163, "end": 8339248}, {"filename": "/instruments/chips/dmxopl3-1-00000-071.cni", "start": 8339248, "end": 8340346}, {"filename": "/instruments/chips/dmxopl3-1-00000-072.cni", "start": 8340346, "end": 8341443}, {"filename": "/instruments/chips/dmxopl3-1-00000-073.cni", "start": 8341443, "end": 8342547}, {"filename": "/instruments/chips/dmxopl3-1-00000-074.cni", "start": 8342547, "end": 8343653}, {"filename": "/instruments/chips/dmxopl3-1-00000-075.cni", "start": 8343653, "end": 8344737}, {"filename": "/instruments/chips/dmxopl3-1-00000-076.cni", "start": 8344737, "end": 8345845}, {"filename": "/instruments/chips/dmxopl3-1-00000-077.cni", "start": 8345845, "end": 8346945}, {"filename": "/instruments/chips/dmxopl3-1-00000-078.cni", "start": 8346945, "end": 8348042}, {"filename": "/instruments/chips/dmxopl3-1-00000-079.cni", "start": 8348042, "end": 8349139}, {"filename": "/instruments/chips/dmxopl3-1-00000-080.cni", "start": 8349139, "end": 8350237}, {"filename": "/instruments/chips/dmxopl3-1-00000-081.cni", "start": 8350237, "end": 8351336}, {"filename": "/instruments/chips/dmxopl3-1-00000-082.cni", "start": 8351336, "end": 8352441}, {"filename": "/instruments/chips/dmxopl3-1-00000-083.cni", "start": 8352441, "end": 8353549}, {"filename": "/instruments/chips/dmxopl3-1-00000-084.cni", "start": 8353549, "end": 8354657}, {"filename": "/instruments/chips/dmxopl3-1-00000-085.cni", "start": 8354657, "end": 8355756}, {"filename": "/instruments/chips/dmxopl3-1-00000-086.cni", "start": 8355756, "end": 8356862}, {"filename": "/instruments/chips/dmxopl3-1-00000-087.cni", "start": 8356862, "end": 8357965}, {"filename": "/instruments/chips/dmxopl3-1-00016-027.cni", "start": 8357965, "end": 8359065}, {"filename": "/instruments/chips/dmxopl3-1-00016-028.cni", "start": 8359065, "end": 8360164}, {"filename": "/instruments/chips/dmxopl3-1-00016-029.cni", "start": 8360164, "end": 8361268}, {"filename": "/instruments/chips/dmxopl3-1-00016-030.cni", "start": 8361268, "end": 8362372}, {"filename": "/instruments/chips/dmxopl3-1-00016-031.cni", "start": 8362372, "end": 8363482}, {"filename": "/instruments/chips/dmxopl3-1-00016-032.cni", "start": 8363482, "end": 8364587}, {"filename": "/instruments/chips/dmxopl3-1-00016-033.cni", "start": 8364587, "end": 8365690}, {"filename": "/instruments/chips/dmxopl3-1-00016-034.cni", "start": 8365690, "end": 8366801}, {"filename": "/instruments/chips/dmxopl3-1-00016-035.cni", "start": 8366801, "end": 8367904}, {"filename": "/instruments/chips/dmxopl3-1-00016-036.cni", "start": 8367904, "end": 8369013}, {"filename": "/instruments/chips/dmxopl3-1-00016-037.cni", "start": 8369013, "end": 8370112}, {"filename": "/instruments/chips/dmxopl3-1-00016-038.cni", "start": 8370112, "end": 8371220}, {"filename": "/instruments/chips/dmxopl3-1-00016-039.cni", "start": 8371220, "end": 8372318}, {"filename": "/instruments/chips/dmxopl3-1-00016-040.cni", "start": 8372318, "end": 8373421}, {"filename": "/instruments/chips/dmxopl3-1-00016-041.cni", "start": 8373421, "end": 8374527}, {"filename": "/instruments/chips/dmxopl3-1-00016-042.cni", "start": 8374527, "end": 8375634}, {"filename": "/instruments/chips/dmxopl3-1-00016-043.cni", "start": 8375634, "end": 8376740}, {"filename": "/instruments/chips/dmxopl3-1-00016-044.cni", "start": 8376740, "end": 8377839}, {"filename": "/instruments/chips/dmxopl3-1-00016-045.cni", "start": 8377839, "end": 8378945}, {"filename": "/instruments/chips/dmxopl3-1-00016-046.cni", "start": 8378945, "end": 8380053}, {"filename": "/instruments/chips/dmxopl3-1-00016-047.cni", "start": 8380053, "end": 8381159}, {"filename": "/instruments/chips/dmxopl3-1-00016-048.cni", "start": 8381159, "end": 8382265}, {"filename": "/instruments/chips/dmxopl3-1-00016-049.cni", "start": 8382265, "end": 8383370}, {"filename": "/instruments/chips/dmxopl3-1-00016-050.cni", "start": 8383370, "end": 8384476}, {"filename": "/instruments/chips/dmxopl3-1-00016-051.cni", "start": 8384476, "end": 8385582}, {"filename": "/instruments/chips/dmxopl3-1-00016-052.cni", "start": 8385582, "end": 8386687}, {"filename": "/instruments/chips/dmxopl3-1-00016-053.cni", "start": 8386687, "end": 8387780}, {"filename": "/instruments/chips/dmxopl3-1-00016-054.cni", "start": 8387780, "end": 8388872}, {"filename": "/instruments/chips/dmxopl3-1-00016-055.cni", "start": 8388872, "end": 8389973}, {"filename": "/instruments/chips/dmxopl3-1-00016-056.cni", "start": 8389973, "end": 8391059}, {"filename": "/instruments/chips/dmxopl3-1-00016-057.cni", "start": 8391059, "end": 8392164}, {"filename": "/instruments/chips/dmxopl3-1-00016-058.cni", "start": 8392164, "end": 8393259}, {"filename": "/instruments/chips/dmxopl3-1-00016-059.cni", "start": 8393259, "end": 8394359}, {"filename": "/instruments/chips/dmxopl3-1-00016-060.cni", "start": 8394359, "end": 8395466}, {"filename": "/instruments/chips/dmxopl3-1-00016-061.cni", "start": 8395466, "end": 8396574}, {"filename": "/instruments/chips/dmxopl3-1-00016-062.cni", "start": 8396574, "end": 8397689}, {"filename": "/instruments/chips/dmxopl3-1-00016-063.cni", "start": 8397689, "end": 8398801}, {"filename": "/instruments/chips/dmxopl3-1-00016-064.cni", "start": 8398801, "end": 8399907}, {"filename": "/instruments/chips/dmxopl3-1-00016-065.cni", "start": 8399907, "end": 8401009}, {"filename": "/instruments/chips/dmxopl3-1-00016-066.cni", "start": 8401009, "end": 8402109}, {"filename": "/instruments/chips/dmxopl3-1-00016-067.cni", "start": 8402109, "end": 8403206}, {"filename": "/instruments/chips/dmxopl3-1-00016-068.cni", "start": 8403206, "end": 8404302}, {"filename": "/instruments/chips/dmxopl3-1-00016-069.cni", "start": 8404302, "end": 8405388}, {"filename": "/instruments/chips/dmxopl3-1-00016-070.cni", "start": 8405388, "end": 8406474}, {"filename": "/instruments/chips/dmxopl3-1-00016-071.cni", "start": 8406474, "end": 8407573}, {"filename": "/instruments/chips/dmxopl3-1-00016-072.cni", "start": 8407573, "end": 8408671}, {"filename": "/instruments/chips/dmxopl3-1-00016-073.cni", "start": 8408671, "end": 8409776}, {"filename": "/instruments/chips/dmxopl3-1-00016-074.cni", "start": 8409776, "end": 8410883}, {"filename": "/instruments/chips/dmxopl3-1-00016-075.cni", "start": 8410883, "end": 8411968}, {"filename": "/instruments/chips/dmxopl3-1-00016-076.cni", "start": 8411968, "end": 8413077}, {"filename": "/instruments/chips/dmxopl3-1-00016-077.cni", "start": 8413077, "end": 8414178}, {"filename": "/instruments/chips/dmxopl3-1-00016-078.cni", "start": 8414178, "end": 8415276}, {"filename": "/instruments/chips/dmxopl3-1-00016-079.cni", "start": 8415276, "end": 8416374}, {"filename": "/instruments/chips/dmxopl3-1-00016-080.cni", "start": 8416374, "end": 8417473}, {"filename": "/instruments/chips/dmxopl3-1-00016-081.cni", "start": 8417473, "end": 8418573}, {"filename": "/instruments/chips/dmxopl3-1-00016-082.cni", "start": 8418573, "end": 8419679}, {"filename": "/instruments/chips/dmxopl3-1-00016-083.cni", "start": 8419679, "end": 8420788}, {"filename": "/instruments/chips/dmxopl3-1-00016-084.cni", "start": 8420788, "end": 8421897}, {"filename": "/instruments/chips/dmxopl3-1-00016-085.cni", "start": 8421897, "end": 8422997}, {"filename": "/instruments/chips/dmxopl3-1-00016-086.cni", "start": 8422997, "end": 8424104}, {"filename": "/instruments/chips/dmxopl3-1-00016-087.cni", "start": 8424104, "end": 8425208}, {"filename": "/instruments/chips/dmxopl3-1-00025-027.cni", "start": 8425208, "end": 8426308}, {"filename": "/instruments/chips/dmxopl3-1-00025-028.cni", "start": 8426308, "end": 8427407}, {"filename": "/instruments/chips/dmxopl3-1-00025-029.cni", "start": 8427407, "end": 8428511}, {"filename": "/instruments/chips/dmxopl3-1-00025-030.cni", "start": 8428511, "end": 8429615}, {"filename": "/instruments/chips/dmxopl3-1-00025-031.cni", "start": 8429615, "end": 8430725}, {"filename": "/instruments/chips/dmxopl3-1-00025-032.cni", "start": 8430725, "end": 8431830}, {"filename": "/instruments/chips/dmxopl3-1-00025-033.cni", "start": 8431830, "end": 8432933}, {"filename": "/instruments/chips/dmxopl3-1-00025-034.cni", "start": 8432933, "end": 8434044}, {"filename": "/instruments/chips/dmxopl3-1-00025-035.cni", "start": 8434044, "end": 8435147}, {"filename": "/instruments/chips/dmxopl3-1-00025-036.cni", "start": 8435147, "end": 8436256}, {"filename": "/instruments/chips/dmxopl3-1-00025-037.cni", "start": 8436256, "end": 8437355}, {"filename": "/instruments/chips/dmxopl3-1-00025-038.cni", "start": 8437355, "end": 8438463}, {"filename": "/instruments/chips/dmxopl3-1-00025-039.cni", "start": 8438463, "end": 8439561}, {"filename": "/instruments/chips/dmxopl3-1-00025-040.cni", "start": 8439561, "end": 8440664}, {"filename": "/instruments/chips/dmxopl3-1-00025-041.cni", "start": 8440664, "end": 8441770}, {"filename": "/instruments/chips/dmxopl3-1-00025-042.cni", "start": 8441770, "end": 8442877}, {"filename": "/instruments/chips/dmxopl3-1-00025-043.cni", "start": 8442877, "end": 8443983}, {"filename": "/instruments/chips/dmxopl3-1-00025-044.cni", "start": 8443983, "end": 8445082}, {"filename": "/instruments/chips/dmxopl3-1-00025-045.cni", "start": 8445082, "end": 8446188}, {"filename": "/instruments/chips/dmxopl3-1-00025-046.cni", "start": 8446188, "end": 8447295}, {"filename": "/instruments/chips/dmxopl3-1-00025-047.cni", "start": 8447295, "end": 8448401}, {"filename": "/instruments/chips/dmxopl3-1-00025-048.cni", "start": 8448401, "end": 8449507}, {"filename": "/instruments/chips/dmxopl3-1-00025-049.cni", "start": 8449507, "end": 8450612}, {"filename": "/instruments/chips/dmxopl3-1-00025-050.cni", "start": 8450612, "end": 8451718}, {"filename": "/instruments/chips/dmxopl3-1-00025-051.cni", "start": 8451718, "end": 8452824}, {"filename": "/instruments/chips/dmxopl3-1-00025-052.cni", "start": 8452824, "end": 8453929}, {"filename": "/instruments/chips/dmxopl3-1-00025-053.cni", "start": 8453929, "end": 8455022}, {"filename": "/instruments/chips/dmxopl3-1-00025-054.cni", "start": 8455022, "end": 8456114}, {"filename": "/instruments/chips/dmxopl3-1-00025-055.cni", "start": 8456114, "end": 8457215}, {"filename": "/instruments/chips/dmxopl3-1-00025-056.cni", "start": 8457215, "end": 8458327}, {"filename": "/instruments/chips/dmxopl3-1-00025-057.cni", "start": 8458327, "end": 8459432}, {"filename": "/instruments/chips/dmxopl3-1-00025-058.cni", "start": 8459432, "end": 8460527}, {"filename": "/instruments/chips/dmxopl3-1-00025-059.cni", "start": 8460527, "end": 8461627}, {"filename": "/instruments/chips/dmxopl3-1-00025-060.cni", "start": 8461627, "end": 8462734}, {"filename": "/instruments/chips/dmxopl3-1-00025-061.cni", "start": 8462734, "end": 8463842}, {"filename": "/instruments/chips/dmxopl3-1-00025-062.cni", "start": 8463842, "end": 8464957}, {"filename": "/instruments/chips/dmxopl3-1-00025-063.cni", "start": 8464957, "end": 8466069}, {"filename": "/instruments/chips/dmxopl3-1-00025-064.cni", "start": 8466069, "end": 8467175}, {"filename": "/instruments/chips/dmxopl3-1-00025-065.cni", "start": 8467175, "end": 8468277}, {"filename": "/instruments/chips/dmxopl3-1-00025-066.cni", "start": 8468277, "end": 8469377}, {"filename": "/instruments/chips/dmxopl3-1-00025-067.cni", "start": 8469377, "end": 8470474}, {"filename": "/instruments/chips/dmxopl3-1-00025-068.cni", "start": 8470474, "end": 8471570}, {"filename": "/instruments/chips/dmxopl3-1-00025-069.cni", "start": 8471570, "end": 8472656}, {"filename": "/instruments/chips/dmxopl3-1-00025-070.cni", "start": 8472656, "end": 8473742}, {"filename": "/instruments/chips/dmxopl3-1-00025-071.cni", "start": 8473742, "end": 8474841}, {"filename": "/instruments/chips/dmxopl3-1-00025-072.cni", "start": 8474841, "end": 8475939}, {"filename": "/instruments/chips/dmxopl3-1-00025-073.cni", "start": 8475939, "end": 8477044}, {"filename": "/instruments/chips/dmxopl3-1-00025-074.cni", "start": 8477044, "end": 8478151}, {"filename": "/instruments/chips/dmxopl3-1-00025-075.cni", "start": 8478151, "end": 8479236}, {"filename": "/instruments/chips/dmxopl3-1-00025-076.cni", "start": 8479236, "end": 8480345}, {"filename": "/instruments/chips/dmxopl3-1-00025-077.cni", "start": 8480345, "end": 8481446}, {"filename": "/instruments/chips/dmxopl3-1-00025-078.cni", "start": 8481446, "end": 8482544}, {"filename": "/instruments/chips/dmxopl3-1-00025-079.cni", "start": 8482544, "end": 8483642}, {"filename": "/instruments/chips/dmxopl3-1-00025-080.cni", "start": 8483642, "end": 8484741}, {"filename": "/instruments/chips/dmxopl3-1-00025-081.cni", "start": 8484741, "end": 8485841}, {"filename": "/instruments/chips/dmxopl3-1-00025-082.cni", "start": 8485841, "end": 8486947}, {"filename": "/instruments/chips/dmxopl3-1-00025-083.cni", "start": 8486947, "end": 8488056}, {"filename": "/instruments/chips/dmxopl3-1-00025-084.cni", "start": 8488056, "end": 8489165}, {"filename": "/instruments/chips/dmxopl3-1-00025-085.cni", "start": 8489165, "end": 8490265}, {"filename": "/instruments/chips/dmxopl3-1-00025-086.cni", "start": 8490265, "end": 8491372}, {"filename": "/instruments/chips/dmxopl3-1-00025-087.cni", "start": 8491372, "end": 8492476}, {"filename": "/instruments/chips/dx7-019db9e0d047ba9d14b86fbf.cni", "start": 8492476, "end": 8493784}, {"filename": "/instruments/chips/dx7-03738155ddf306ce0a2cbe14.cni", "start": 8493784, "end": 8495089}, {"filename": "/instruments/chips/dx7-085bda3a22e1e9cee5714bd8.cni", "start": 8495089, "end": 8496400}, {"filename": "/instruments/chips/dx7-0c17f6f75ba7674fd2550340.cni", "start": 8496400, "end": 8497704}, {"filename": "/instruments/chips/dx7-0e259fa61a58a5634d371390.cni", "start": 8497704, "end": 8499021}, {"filename": "/instruments/chips/dx7-230d4d27311e503197da0dda.cni", "start": 8499021, "end": 8500334}, {"filename": "/instruments/chips/dx7-25629585e134700d22da9ae4.cni", "start": 8500334, "end": 8501658}, {"filename": "/instruments/chips/dx7-260bdcdd1ab68b4e88e0404f.cni", "start": 8501658, "end": 8502977}, {"filename": "/instruments/chips/dx7-284014b49fbd99fff0d64d69.cni", "start": 8502977, "end": 8504281}, {"filename": "/instruments/chips/dx7-2d4ed252ff8bd817ce831e58.cni", "start": 8504281, "end": 8505580}, {"filename": "/instruments/chips/dx7-2e62571db3bee2ffd2669862.cni", "start": 8505580, "end": 8506881}, {"filename": "/instruments/chips/dx7-31332a9c0f3b2d1985510098.cni", "start": 8506881, "end": 8508193}, {"filename": "/instruments/chips/dx7-327f916dc8bca9c36adfb763.cni", "start": 8508193, "end": 8509508}, {"filename": "/instruments/chips/dx7-3504d8f5e5b26f3e17d464e3.cni", "start": 8509508, "end": 8510820}, {"filename": "/instruments/chips/dx7-354cc74709ecccd6ce235813.cni", "start": 8510820, "end": 8512129}, {"filename": "/instruments/chips/dx7-35cfb882790ad6b1a828ea5d.cni", "start": 8512129, "end": 8513439}, {"filename": "/instruments/chips/dx7-39a80716c81936f30bd32bed.cni", "start": 8513439, "end": 8514748}, {"filename": "/instruments/chips/dx7-3b24b51a08076dcce15e414a.cni", "start": 8514748, "end": 8516063}, {"filename": "/instruments/chips/dx7-3c56555577c34354eec887f9.cni", "start": 8516063, "end": 8517373}, {"filename": "/instruments/chips/dx7-430c801e7f9e88d25e8a28c0.cni", "start": 8517373, "end": 8518677}, {"filename": "/instruments/chips/dx7-43d4f4b185f1d016c123c726.cni", "start": 8518677, "end": 8519996}, {"filename": "/instruments/chips/dx7-4545e08c5efcba4c937b4025.cni", "start": 8519996, "end": 8521308}, {"filename": "/instruments/chips/dx7-463fa61b6a043f5c6f2f3be6.cni", "start": 8521308, "end": 8522618}, {"filename": "/instruments/chips/dx7-4b2d94eb36dd6fc268ed1917.cni", "start": 8522618, "end": 8523937}, {"filename": "/instruments/chips/dx7-58cd81bc1735968d22da4c44.cni", "start": 8523937, "end": 8525238}, {"filename": "/instruments/chips/dx7-59475013d782a2f166467341.cni", "start": 8525238, "end": 8526542}, {"filename": "/instruments/chips/dx7-5dcbd4b0bba4b4a63f0ddc52.cni", "start": 8526542, "end": 8527851}, {"filename": "/instruments/chips/dx7-5e0ee32b0aeb4883a6e0f108.cni", "start": 8527851, "end": 8529169}, {"filename": "/instruments/chips/dx7-6158177464e010fd8f4893aa.cni", "start": 8529169, "end": 8530489}, {"filename": "/instruments/chips/dx7-6f52bacabbefa0e6ddfed46b.cni", "start": 8530489, "end": 8531804}, {"filename": "/instruments/chips/dx7-72e9067a8863f440634b5cd0.cni", "start": 8531804, "end": 8533121}, {"filename": "/instruments/chips/dx7-78c07716a9cde3fd5c5f764b.cni", "start": 8533121, "end": 8534439}, {"filename": "/instruments/chips/dx7-7c9268637cb821bbfb8c16ab.cni", "start": 8534439, "end": 8535745}, {"filename": "/instruments/chips/dx7-7ce4e7b335158dbc96e30008.cni", "start": 8535745, "end": 8537060}, {"filename": "/instruments/chips/dx7-88e5fb6ec714c240e0540393.cni", "start": 8537060, "end": 8538375}, {"filename": "/instruments/chips/dx7-8b448aa8f27f5eb57679eb4c.cni", "start": 8538375, "end": 8539696}, {"filename": "/instruments/chips/dx7-90b5a0e40c102f04ccda3b7d.cni", "start": 8539696, "end": 8541002}, {"filename": "/instruments/chips/dx7-955494a141de8d5496f66bf0.cni", "start": 8541002, "end": 8542323}, {"filename": "/instruments/chips/dx7-a37107690d3ecf66cf58c465.cni", "start": 8542323, "end": 8543637}, {"filename": "/instruments/chips/dx7-a65fd4c315b7f086b82bbd49.cni", "start": 8543637, "end": 8544951}, {"filename": "/instruments/chips/dx7-a7d0676d2b753163a43afdc4.cni", "start": 8544951, "end": 8546265}, {"filename": "/instruments/chips/dx7-a8949fe8c28807d2052ad627.cni", "start": 8546265, "end": 8547564}, {"filename": "/instruments/chips/dx7-ad847b114b727b7eb2961d15.cni", "start": 8547564, "end": 8548875}, {"filename": "/instruments/chips/dx7-ae1d16e946d0340aaa69f69c.cni", "start": 8548875, "end": 8550191}, {"filename": "/instruments/chips/dx7-b2df13005fb1e76ccbe09dcc.cni", "start": 8550191, "end": 8551490}, {"filename": "/instruments/chips/dx7-b5f9a633a3f169022b91fe0a.cni", "start": 8551490, "end": 8552798}, {"filename": "/instruments/chips/dx7-c106cd76cad13f43b259564b.cni", "start": 8552798, "end": 8554115}, {"filename": "/instruments/chips/dx7-c69a0adc5d41186835897f0f.cni", "start": 8554115, "end": 8555429}, {"filename": "/instruments/chips/dx7-c8c99c5c0edb7a9a9f5a3332.cni", "start": 8555429, "end": 8556740}, {"filename": "/instruments/chips/dx7-cd59238b81c68a3bdc64f5d3.cni", "start": 8556740, "end": 8558047}, {"filename": "/instruments/chips/dx7-cfb38388dca8010a35171dbd.cni", "start": 8558047, "end": 8559353}, {"filename": "/instruments/chips/dx7-d06d69dea469a0eae3b86f33.cni", "start": 8559353, "end": 8560671}, {"filename": "/instruments/chips/dx7-d85e05f7dff128610e3ac84d.cni", "start": 8560671, "end": 8561975}, {"filename": "/instruments/chips/dx7-d86066bda99be8d6532e51e9.cni", "start": 8561975, "end": 8563295}, {"filename": "/instruments/chips/dx7-dc268eb7ab649b07472b53fa.cni", "start": 8563295, "end": 8564608}, {"filename": "/instruments/chips/dx7-e07b455688d822573d72cefc.cni", "start": 8564608, "end": 8565918}, {"filename": "/instruments/chips/dx7-e20cdd395eb4e21c362e4ff1.cni", "start": 8565918, "end": 8567235}, {"filename": "/instruments/chips/dx7-e32d67ffe3eab1c9ae83a540.cni", "start": 8567235, "end": 8568552}, {"filename": "/instruments/chips/dx7-e3aa90d8976eefb386a319e0.cni", "start": 8568552, "end": 8569862}, {"filename": "/instruments/chips/dx7-e8668b7fab22a639deabf0de.cni", "start": 8569862, "end": 8571175}, {"filename": "/instruments/chips/dx7-eaf6e205a574f00e71a2cbd8.cni", "start": 8571175, "end": 8572484}, {"filename": "/instruments/chips/dx7-ef4fd6422129e6ab9d8f17a6.cni", "start": 8572484, "end": 8573784}, {"filename": "/instruments/chips/dx7-f10188d288a79ed3abe48597.cni", "start": 8573784, "end": 8575096}, {"filename": "/instruments/chips/dx7-f1afe1d091d63b8421760c2b.cni", "start": 8575096, "end": 8576403}, {"filename": "/instruments/chips/dx7-f355d1b0f5445341d76080dd.cni", "start": 8576403, "end": 8577716}, {"filename": "/instruments/chips/dx7-f7224942b5218d3f85547ed3.cni", "start": 8577716, "end": 8579030}, {"filename": "/instruments/chips/dx7-f86f8b5d49840fa1df2069e3.cni", "start": 8579030, "end": 8580338}, {"filename": "/instruments/chips/dx7-manifest.json", "start": 8580338, "end": 8607017}, {"filename": "/instruments/chips/expansion-manifest.json", "start": 8607017, "end": 8695893}, {"filename": "/instruments/chips/fatman-2op-0-00000-000.cni", "start": 8695893, "end": 8696994}, {"filename": "/instruments/chips/fatman-2op-0-00000-001.cni", "start": 8696994, "end": 8698091}, {"filename": "/instruments/chips/fatman-2op-0-00000-002.cni", "start": 8698091, "end": 8699191}, {"filename": "/instruments/chips/fatman-2op-0-00000-003.cni", "start": 8699191, "end": 8700284}, {"filename": "/instruments/chips/fatman-2op-0-00000-004.cni", "start": 8700284, "end": 8701388}, {"filename": "/instruments/chips/fatman-2op-0-00000-005.cni", "start": 8701388, "end": 8702492}, {"filename": "/instruments/chips/fatman-2op-0-00000-006.cni", "start": 8702492, "end": 8703588}, {"filename": "/instruments/chips/fatman-2op-0-00000-007.cni", "start": 8703588, "end": 8704677}, {"filename": "/instruments/chips/fatman-2op-0-00000-008.cni", "start": 8704677, "end": 8705766}, {"filename": "/instruments/chips/fatman-2op-0-00000-009.cni", "start": 8705766, "end": 8706865}, {"filename": "/instruments/chips/fatman-2op-0-00000-010.cni", "start": 8706865, "end": 8707957}, {"filename": "/instruments/chips/fatman-2op-0-00000-011.cni", "start": 8707957, "end": 8709051}, {"filename": "/instruments/chips/fatman-2op-0-00000-012.cni", "start": 8709051, "end": 8710138}, {"filename": "/instruments/chips/fatman-2op-0-00000-013.cni", "start": 8710138, "end": 8711229}, {"filename": "/instruments/chips/fatman-2op-0-00000-014.cni", "start": 8711229, "end": 8712330}, {"filename": "/instruments/chips/fatman-2op-0-00000-015.cni", "start": 8712330, "end": 8713419}, {"filename": "/instruments/chips/fatman-2op-0-00000-016.cni", "start": 8713419, "end": 8714518}, {"filename": "/instruments/chips/fatman-2op-0-00000-017.cni", "start": 8714518, "end": 8715622}, {"filename": "/instruments/chips/fatman-2op-0-00000-018.cni", "start": 8715622, "end": 8716715}, {"filename": "/instruments/chips/fatman-2op-0-00000-019.cni", "start": 8716715, "end": 8717811}, {"filename": "/instruments/chips/fatman-2op-0-00000-020.cni", "start": 8717811, "end": 8718903}, {"filename": "/instruments/chips/fatman-2op-0-00000-021.cni", "start": 8718903, "end": 8719993}, {"filename": "/instruments/chips/fatman-2op-0-00000-022.cni", "start": 8719993, "end": 8721082}, {"filename": "/instruments/chips/fatman-2op-0-00000-023.cni", "start": 8721082, "end": 8722183}, {"filename": "/instruments/chips/fatman-2op-0-00000-024.cni", "start": 8722183, "end": 8723280}, {"filename": "/instruments/chips/fatman-2op-0-00000-025.cni", "start": 8723280, "end": 8724379}, {"filename": "/instruments/chips/fatman-2op-0-00000-026.cni", "start": 8724379, "end": 8725475}, {"filename": "/instruments/chips/fatman-2op-0-00000-027.cni", "start": 8725475, "end": 8726571}, {"filename": "/instruments/chips/fatman-2op-0-00000-028.cni", "start": 8726571, "end": 8727668}, {"filename": "/instruments/chips/fatman-2op-0-00000-029.cni", "start": 8727668, "end": 8728770}, {"filename": "/instruments/chips/fatman-2op-0-00000-030.cni", "start": 8728770, "end": 8729872}, {"filename": "/instruments/chips/fatman-2op-0-00000-031.cni", "start": 8729872, "end": 8730977}, {"filename": "/instruments/chips/fatman-2op-0-00000-032.cni", "start": 8730977, "end": 8732076}, {"filename": "/instruments/chips/fatman-2op-0-00000-033.cni", "start": 8732076, "end": 8733171}, {"filename": "/instruments/chips/fatman-2op-0-00000-034.cni", "start": 8733171, "end": 8734263}, {"filename": "/instruments/chips/fatman-2op-0-00000-035.cni", "start": 8734263, "end": 8735360}, {"filename": "/instruments/chips/fatman-2op-0-00000-036.cni", "start": 8735360, "end": 8736457}, {"filename": "/instruments/chips/fatman-2op-0-00000-037.cni", "start": 8736457, "end": 8737553}, {"filename": "/instruments/chips/fatman-2op-0-00000-038.cni", "start": 8737553, "end": 8738651}, {"filename": "/instruments/chips/fatman-2op-0-00000-039.cni", "start": 8738651, "end": 8739748}, {"filename": "/instruments/chips/fatman-2op-0-00000-040.cni", "start": 8739748, "end": 8740833}, {"filename": "/instruments/chips/fatman-2op-0-00000-041.cni", "start": 8740833, "end": 8741916}, {"filename": "/instruments/chips/fatman-2op-0-00000-042.cni", "start": 8741916, "end": 8742998}, {"filename": "/instruments/chips/fatman-2op-0-00000-043.cni", "start": 8742998, "end": 8744089}, {"filename": "/instruments/chips/fatman-2op-0-00000-044.cni", "start": 8744089, "end": 8745191}, {"filename": "/instruments/chips/fatman-2op-0-00000-045.cni", "start": 8745191, "end": 8746295}, {"filename": "/instruments/chips/fatman-2op-0-00000-046.cni", "start": 8746295, "end": 8747399}, {"filename": "/instruments/chips/fatman-2op-0-00000-047.cni", "start": 8747399, "end": 8748486}, {"filename": "/instruments/chips/fatman-2op-0-00000-048.cni", "start": 8748486, "end": 8749576}, {"filename": "/instruments/chips/fatman-2op-0-00000-049.cni", "start": 8749576, "end": 8750667}, {"filename": "/instruments/chips/fatman-2op-0-00000-050.cni", "start": 8750667, "end": 8751771}, {"filename": "/instruments/chips/fatman-2op-0-00000-051.cni", "start": 8751771, "end": 8752875}, {"filename": "/instruments/chips/fatman-2op-0-00000-052.cni", "start": 8752875, "end": 8753969}, {"filename": "/instruments/chips/fatman-2op-0-00000-053.cni", "start": 8753969, "end": 8755060}, {"filename": "/instruments/chips/fatman-2op-0-00000-054.cni", "start": 8755060, "end": 8756155}, {"filename": "/instruments/chips/fatman-2op-0-00000-055.cni", "start": 8756155, "end": 8757252}, {"filename": "/instruments/chips/fatman-2op-0-00000-056.cni", "start": 8757252, "end": 8758338}, {"filename": "/instruments/chips/fatman-2op-0-00000-057.cni", "start": 8758338, "end": 8759426}, {"filename": "/instruments/chips/fatman-2op-0-00000-058.cni", "start": 8759426, "end": 8760505}, {"filename": "/instruments/chips/fatman-2op-0-00000-059.cni", "start": 8760505, "end": 8761602}, {"filename": "/instruments/chips/fatman-2op-0-00000-060.cni", "start": 8761602, "end": 8762698}, {"filename": "/instruments/chips/fatman-2op-0-00000-061.cni", "start": 8762698, "end": 8763796}, {"filename": "/instruments/chips/fatman-2op-0-00000-062.cni", "start": 8763796, "end": 8764892}, {"filename": "/instruments/chips/fatman-2op-0-00000-063.cni", "start": 8764892, "end": 8765991}, {"filename": "/instruments/chips/fatman-2op-0-00000-064.cni", "start": 8765991, "end": 8767085}, {"filename": "/instruments/chips/fatman-2op-0-00000-065.cni", "start": 8767085, "end": 8768172}, {"filename": "/instruments/chips/fatman-2op-0-00000-066.cni", "start": 8768172, "end": 8769261}, {"filename": "/instruments/chips/fatman-2op-0-00000-067.cni", "start": 8769261, "end": 8770357}, {"filename": "/instruments/chips/fatman-2op-0-00000-068.cni", "start": 8770357, "end": 8771440}, {"filename": "/instruments/chips/fatman-2op-0-00000-069.cni", "start": 8771440, "end": 8772537}, {"filename": "/instruments/chips/fatman-2op-0-00000-070.cni", "start": 8772537, "end": 8773621}, {"filename": "/instruments/chips/fatman-2op-0-00000-071.cni", "start": 8773621, "end": 8774709}, {"filename": "/instruments/chips/fatman-2op-0-00000-072.cni", "start": 8774709, "end": 8775796}, {"filename": "/instruments/chips/fatman-2op-0-00000-073.cni", "start": 8775796, "end": 8776878}, {"filename": "/instruments/chips/fatman-2op-0-00000-074.cni", "start": 8776878, "end": 8777967}, {"filename": "/instruments/chips/fatman-2op-0-00000-075.cni", "start": 8777967, "end": 8779057}, {"filename": "/instruments/chips/fatman-2op-0-00000-076.cni", "start": 8779057, "end": 8780152}, {"filename": "/instruments/chips/fatman-2op-0-00000-077.cni", "start": 8780152, "end": 8781243}, {"filename": "/instruments/chips/fatman-2op-0-00000-078.cni", "start": 8781243, "end": 8782328}, {"filename": "/instruments/chips/fatman-2op-0-00000-079.cni", "start": 8782328, "end": 8783413}, {"filename": "/instruments/chips/fatman-2op-0-00000-080.cni", "start": 8783413, "end": 8784510}, {"filename": "/instruments/chips/fatman-2op-0-00000-081.cni", "start": 8784510, "end": 8785602}, {"filename": "/instruments/chips/fatman-2op-0-00000-082.cni", "start": 8785602, "end": 8786698}, {"filename": "/instruments/chips/fatman-2op-0-00000-083.cni", "start": 8786698, "end": 8787789}, {"filename": "/instruments/chips/fatman-2op-0-00000-084.cni", "start": 8787789, "end": 8788886}, {"filename": "/instruments/chips/fatman-2op-0-00000-085.cni", "start": 8788886, "end": 8789980}, {"filename": "/instruments/chips/fatman-2op-0-00000-086.cni", "start": 8789980, "end": 8791076}, {"filename": "/instruments/chips/fatman-2op-0-00000-087.cni", "start": 8791076, "end": 8792167}, {"filename": "/instruments/chips/fatman-2op-0-00000-088.cni", "start": 8792167, "end": 8793262}, {"filename": "/instruments/chips/fatman-2op-0-00000-089.cni", "start": 8793262, "end": 8794351}, {"filename": "/instruments/chips/fatman-2op-0-00000-090.cni", "start": 8794351, "end": 8795448}, {"filename": "/instruments/chips/fatman-2op-0-00000-091.cni", "start": 8795448, "end": 8796539}, {"filename": "/instruments/chips/fatman-2op-0-00000-092.cni", "start": 8796539, "end": 8797629}, {"filename": "/instruments/chips/fatman-2op-0-00000-093.cni", "start": 8797629, "end": 8798725}, {"filename": "/instruments/chips/fatman-2op-0-00000-094.cni", "start": 8798725, "end": 8799812}, {"filename": "/instruments/chips/fatman-2op-0-00000-095.cni", "start": 8799812, "end": 8800903}, {"filename": "/instruments/chips/fatman-2op-0-00000-096.cni", "start": 8800903, "end": 8801991}, {"filename": "/instruments/chips/fatman-2op-0-00000-097.cni", "start": 8801991, "end": 8803089}, {"filename": "/instruments/chips/fatman-2op-0-00000-098.cni", "start": 8803089, "end": 8804182}, {"filename": "/instruments/chips/fatman-2op-0-00000-099.cni", "start": 8804182, "end": 8805281}, {"filename": "/instruments/chips/fatman-2op-0-00000-100.cni", "start": 8805281, "end": 8806382}, {"filename": "/instruments/chips/fatman-2op-0-00000-101.cni", "start": 8806382, "end": 8807475}, {"filename": "/instruments/chips/fatman-2op-0-00000-102.cni", "start": 8807475, "end": 8808567}, {"filename": "/instruments/chips/fatman-2op-0-00000-103.cni", "start": 8808567, "end": 8809659}, {"filename": "/instruments/chips/fatman-2op-0-00000-104.cni", "start": 8809659, "end": 8810742}, {"filename": "/instruments/chips/fatman-2op-0-00000-105.cni", "start": 8810742, "end": 8811827}, {"filename": "/instruments/chips/fatman-2op-0-00000-106.cni", "start": 8811827, "end": 8812916}, {"filename": "/instruments/chips/fatman-2op-0-00000-107.cni", "start": 8812916, "end": 8814001}, {"filename": "/instruments/chips/fatman-2op-0-00000-108.cni", "start": 8814001, "end": 8815090}, {"filename": "/instruments/chips/fatman-2op-0-00000-109.cni", "start": 8815090, "end": 8816177}, {"filename": "/instruments/chips/fatman-2op-0-00000-110.cni", "start": 8816177, "end": 8817262}, {"filename": "/instruments/chips/fatman-2op-0-00000-111.cni", "start": 8817262, "end": 8818349}, {"filename": "/instruments/chips/fatman-2op-0-00000-112.cni", "start": 8818349, "end": 8819447}, {"filename": "/instruments/chips/fatman-2op-0-00000-113.cni", "start": 8819447, "end": 8820530}, {"filename": "/instruments/chips/fatman-2op-0-00000-114.cni", "start": 8820530, "end": 8821626}, {"filename": "/instruments/chips/fatman-2op-0-00000-115.cni", "start": 8821626, "end": 8822719}, {"filename": "/instruments/chips/fatman-2op-0-00000-116.cni", "start": 8822719, "end": 8823813}, {"filename": "/instruments/chips/fatman-2op-0-00000-117.cni", "start": 8823813, "end": 8824908}, {"filename": "/instruments/chips/fatman-2op-0-00000-118.cni", "start": 8824908, "end": 8826002}, {"filename": "/instruments/chips/fatman-2op-0-00000-119.cni", "start": 8826002, "end": 8827104}, {"filename": "/instruments/chips/fatman-2op-0-00000-120.cni", "start": 8827104, "end": 8828208}, {"filename": "/instruments/chips/fatman-2op-0-00000-121.cni", "start": 8828208, "end": 8829305}, {"filename": "/instruments/chips/fatman-2op-0-00000-122.cni", "start": 8829305, "end": 8830397}, {"filename": "/instruments/chips/fatman-2op-0-00000-123.cni", "start": 8830397, "end": 8831489}, {"filename": "/instruments/chips/fatman-2op-0-00000-124.cni", "start": 8831489, "end": 8832581}, {"filename": "/instruments/chips/fatman-2op-0-00000-125.cni", "start": 8832581, "end": 8833673}, {"filename": "/instruments/chips/fatman-2op-0-00000-126.cni", "start": 8833673, "end": 8834762}, {"filename": "/instruments/chips/fatman-2op-0-00000-127.cni", "start": 8834762, "end": 8835849}, {"filename": "/instruments/chips/fatman-2op-1-00000-035.cni", "start": 8835849, "end": 8836947}, {"filename": "/instruments/chips/fatman-2op-1-00000-036.cni", "start": 8836947, "end": 8838045}, {"filename": "/instruments/chips/fatman-2op-1-00000-037.cni", "start": 8838045, "end": 8839146}, {"filename": "/instruments/chips/fatman-2op-1-00000-038.cni", "start": 8839146, "end": 8840246}, {"filename": "/instruments/chips/fatman-2op-1-00000-039.cni", "start": 8840246, "end": 8841346}, {"filename": "/instruments/chips/fatman-2op-1-00000-040.cni", "start": 8841346, "end": 8842446}, {"filename": "/instruments/chips/fatman-2op-1-00000-041.cni", "start": 8842446, "end": 8843545}, {"filename": "/instruments/chips/fatman-2op-1-00000-042.cni", "start": 8843545, "end": 8844645}, {"filename": "/instruments/chips/fatman-2op-1-00000-043.cni", "start": 8844645, "end": 8845744}, {"filename": "/instruments/chips/fatman-2op-1-00000-044.cni", "start": 8845744, "end": 8846843}, {"filename": "/instruments/chips/fatman-2op-1-00000-045.cni", "start": 8846843, "end": 8847942}, {"filename": "/instruments/chips/fatman-2op-1-00000-046.cni", "start": 8847942, "end": 8849044}, {"filename": "/instruments/chips/fatman-2op-1-00000-047.cni", "start": 8849044, "end": 8850143}, {"filename": "/instruments/chips/fatman-2op-1-00000-048.cni", "start": 8850143, "end": 8851242}, {"filename": "/instruments/chips/fatman-2op-1-00000-049.cni", "start": 8851242, "end": 8852343}, {"filename": "/instruments/chips/fatman-2op-1-00000-050.cni", "start": 8852343, "end": 8853442}, {"filename": "/instruments/chips/fatman-2op-1-00000-051.cni", "start": 8853442, "end": 8854545}, {"filename": "/instruments/chips/fatman-2op-1-00000-052.cni", "start": 8854545, "end": 8855647}, {"filename": "/instruments/chips/fatman-2op-1-00000-053.cni", "start": 8855647, "end": 8856752}, {"filename": "/instruments/chips/fatman-2op-1-00000-054.cni", "start": 8856752, "end": 8857851}, {"filename": "/instruments/chips/fatman-2op-1-00000-055.cni", "start": 8857851, "end": 8858953}, {"filename": "/instruments/chips/fatman-2op-1-00000-056.cni", "start": 8858953, "end": 8860051}, {"filename": "/instruments/chips/fatman-2op-1-00000-057.cni", "start": 8860051, "end": 8861152}, {"filename": "/instruments/chips/fatman-2op-1-00000-058.cni", "start": 8861152, "end": 8862255}, {"filename": "/instruments/chips/fatman-2op-1-00000-059.cni", "start": 8862255, "end": 8863358}, {"filename": "/instruments/chips/fatman-2op-1-00000-060.cni", "start": 8863358, "end": 8864458}, {"filename": "/instruments/chips/fatman-2op-1-00000-061.cni", "start": 8864458, "end": 8865559}, {"filename": "/instruments/chips/fatman-2op-1-00000-062.cni", "start": 8865559, "end": 8866661}, {"filename": "/instruments/chips/fatman-2op-1-00000-063.cni", "start": 8866661, "end": 8867763}, {"filename": "/instruments/chips/fatman-2op-1-00000-064.cni", "start": 8867763, "end": 8868864}, {"filename": "/instruments/chips/fatman-2op-1-00000-065.cni", "start": 8868864, "end": 8869964}, {"filename": "/instruments/chips/fatman-2op-1-00000-066.cni", "start": 8869964, "end": 8871062}, {"filename": "/instruments/chips/fatman-2op-1-00000-067.cni", "start": 8871062, "end": 8872162}, {"filename": "/instruments/chips/fatman-2op-1-00000-068.cni", "start": 8872162, "end": 8873262}, {"filename": "/instruments/chips/fatman-2op-1-00000-069.cni", "start": 8873262, "end": 8874360}, {"filename": "/instruments/chips/fatman-2op-1-00000-070.cni", "start": 8874360, "end": 8875459}, {"filename": "/instruments/chips/fatman-2op-1-00000-071.cni", "start": 8875459, "end": 8876560}, {"filename": "/instruments/chips/fatman-2op-1-00000-072.cni", "start": 8876560, "end": 8877660}, {"filename": "/instruments/chips/fatman-2op-1-00000-073.cni", "start": 8877660, "end": 8878757}, {"filename": "/instruments/chips/fatman-2op-1-00000-074.cni", "start": 8878757, "end": 8879854}, {"filename": "/instruments/chips/fatman-2op-1-00000-075.cni", "start": 8879854, "end": 8880954}, {"filename": "/instruments/chips/fatman-2op-1-00000-076.cni", "start": 8880954, "end": 8882054}, {"filename": "/instruments/chips/fatman-2op-1-00000-077.cni", "start": 8882054, "end": 8883154}, {"filename": "/instruments/chips/fatman-2op-1-00000-078.cni", "start": 8883154, "end": 8884252}, {"filename": "/instruments/chips/fatman-2op-1-00000-079.cni", "start": 8884252, "end": 8885351}, {"filename": "/instruments/chips/fatman-2op-1-00000-080.cni", "start": 8885351, "end": 8886454}, {"filename": "/instruments/chips/fatman-2op-1-00000-081.cni", "start": 8886454, "end": 8887560}, {"filename": "/instruments/chips/fatman-2op-1-00000-082.cni", "start": 8887560, "end": 8888660}, {"filename": "/instruments/chips/fatman-2op-1-00000-083.cni", "start": 8888660, "end": 8889760}, {"filename": "/instruments/chips/fatman-2op-1-00000-084.cni", "start": 8889760, "end": 8890859}, {"filename": "/instruments/chips/fatman-2op-1-00000-085.cni", "start": 8890859, "end": 8891959}, {"filename": "/instruments/chips/fatman-2op-1-00000-086.cni", "start": 8891959, "end": 8893062}, {"filename": "/instruments/chips/fatman-2op-1-00000-087.cni", "start": 8893062, "end": 8894161}, {"filename": "/instruments/chips/fatman-4op-0-00000-000.cni", "start": 8894161, "end": 8895270}, {"filename": "/instruments/chips/fatman-4op-0-00000-001.cni", "start": 8895270, "end": 8896372}, {"filename": "/instruments/chips/fatman-4op-0-00000-002.cni", "start": 8896372, "end": 8897481}, {"filename": "/instruments/chips/fatman-4op-0-00000-003.cni", "start": 8897481, "end": 8898580}, {"filename": "/instruments/chips/fatman-4op-0-00000-004.cni", "start": 8898580, "end": 8899690}, {"filename": "/instruments/chips/fatman-4op-0-00000-005.cni", "start": 8899690, "end": 8900800}, {"filename": "/instruments/chips/fatman-4op-0-00000-006.cni", "start": 8900800, "end": 8901897}, {"filename": "/instruments/chips/fatman-4op-0-00000-007.cni", "start": 8901897, "end": 8902992}, {"filename": "/instruments/chips/fatman-4op-0-00000-008.cni", "start": 8902992, "end": 8904086}, {"filename": "/instruments/chips/fatman-4op-0-00000-009.cni", "start": 8904086, "end": 8905189}, {"filename": "/instruments/chips/fatman-4op-0-00000-010.cni", "start": 8905189, "end": 8906285}, {"filename": "/instruments/chips/fatman-4op-0-00000-011.cni", "start": 8906285, "end": 8907384}, {"filename": "/instruments/chips/fatman-4op-0-00000-012.cni", "start": 8907384, "end": 8908477}, {"filename": "/instruments/chips/fatman-4op-0-00000-013.cni", "start": 8908477, "end": 8909574}, {"filename": "/instruments/chips/fatman-4op-0-00000-014.cni", "start": 8909574, "end": 8910680}, {"filename": "/instruments/chips/fatman-4op-0-00000-015.cni", "start": 8910680, "end": 8911770}, {"filename": "/instruments/chips/fatman-4op-0-00000-016.cni", "start": 8911770, "end": 8912876}, {"filename": "/instruments/chips/fatman-4op-0-00000-017.cni", "start": 8912876, "end": 8913983}, {"filename": "/instruments/chips/fatman-4op-0-00000-018.cni", "start": 8913983, "end": 8915088}, {"filename": "/instruments/chips/fatman-4op-0-00000-019.cni", "start": 8915088, "end": 8916186}, {"filename": "/instruments/chips/fatman-4op-0-00000-020.cni", "start": 8916186, "end": 8917284}, {"filename": "/instruments/chips/fatman-4op-0-00000-021.cni", "start": 8917284, "end": 8918378}, {"filename": "/instruments/chips/fatman-4op-0-00000-022.cni", "start": 8918378, "end": 8919476}, {"filename": "/instruments/chips/fatman-4op-0-00000-023.cni", "start": 8919476, "end": 8920582}, {"filename": "/instruments/chips/fatman-4op-0-00000-024.cni", "start": 8920582, "end": 8921683}, {"filename": "/instruments/chips/fatman-4op-0-00000-025.cni", "start": 8921683, "end": 8922788}, {"filename": "/instruments/chips/fatman-4op-0-00000-026.cni", "start": 8922788, "end": 8923893}, {"filename": "/instruments/chips/fatman-4op-0-00000-027.cni", "start": 8923893, "end": 8924998}, {"filename": "/instruments/chips/fatman-4op-0-00000-028.cni", "start": 8924998, "end": 8926100}, {"filename": "/instruments/chips/fatman-4op-0-00000-029.cni", "start": 8926100, "end": 8927208}, {"filename": "/instruments/chips/fatman-4op-0-00000-030.cni", "start": 8927208, "end": 8928318}, {"filename": "/instruments/chips/fatman-4op-0-00000-031.cni", "start": 8928318, "end": 8929427}, {"filename": "/instruments/chips/fatman-4op-0-00000-032.cni", "start": 8929427, "end": 8930528}, {"filename": "/instruments/chips/fatman-4op-0-00000-033.cni", "start": 8930528, "end": 8931631}, {"filename": "/instruments/chips/fatman-4op-0-00000-034.cni", "start": 8931631, "end": 8932726}, {"filename": "/instruments/chips/fatman-4op-0-00000-035.cni", "start": 8932726, "end": 8933824}, {"filename": "/instruments/chips/fatman-4op-0-00000-036.cni", "start": 8933824, "end": 8934927}, {"filename": "/instruments/chips/fatman-4op-0-00000-037.cni", "start": 8934927, "end": 8936029}, {"filename": "/instruments/chips/fatman-4op-0-00000-038.cni", "start": 8936029, "end": 8937133}, {"filename": "/instruments/chips/fatman-4op-0-00000-039.cni", "start": 8937133, "end": 8938235}, {"filename": "/instruments/chips/fatman-4op-0-00000-040.cni", "start": 8938235, "end": 8939323}, {"filename": "/instruments/chips/fatman-4op-0-00000-041.cni", "start": 8939323, "end": 8940409}, {"filename": "/instruments/chips/fatman-4op-0-00000-042.cni", "start": 8940409, "end": 8941495}, {"filename": "/instruments/chips/fatman-4op-0-00000-043.cni", "start": 8941495, "end": 8942592}, {"filename": "/instruments/chips/fatman-4op-0-00000-044.cni", "start": 8942592, "end": 8943702}, {"filename": "/instruments/chips/fatman-4op-0-00000-045.cni", "start": 8943702, "end": 8944806}, {"filename": "/instruments/chips/fatman-4op-0-00000-046.cni", "start": 8944806, "end": 8945909}, {"filename": "/instruments/chips/fatman-4op-0-00000-047.cni", "start": 8945909, "end": 8947000}, {"filename": "/instruments/chips/fatman-4op-0-00000-048.cni", "start": 8947000, "end": 8948090}, {"filename": "/instruments/chips/fatman-4op-0-00000-049.cni", "start": 8948090, "end": 8949182}, {"filename": "/instruments/chips/fatman-4op-0-00000-050.cni", "start": 8949182, "end": 8950289}, {"filename": "/instruments/chips/fatman-4op-0-00000-051.cni", "start": 8950289, "end": 8951397}, {"filename": "/instruments/chips/fatman-4op-0-00000-052.cni", "start": 8951397, "end": 8952494}, {"filename": "/instruments/chips/fatman-4op-0-00000-053.cni", "start": 8952494, "end": 8953587}, {"filename": "/instruments/chips/fatman-4op-0-00000-054.cni", "start": 8953587, "end": 8954685}, {"filename": "/instruments/chips/fatman-4op-0-00000-055.cni", "start": 8954685, "end": 8955781}, {"filename": "/instruments/chips/fatman-4op-0-00000-056.cni", "start": 8955781, "end": 8956871}, {"filename": "/instruments/chips/fatman-4op-0-00000-057.cni", "start": 8956871, "end": 8957963}, {"filename": "/instruments/chips/fatman-4op-0-00000-058.cni", "start": 8957963, "end": 8959044}, {"filename": "/instruments/chips/fatman-4op-0-00000-059.cni", "start": 8959044, "end": 8960144}, {"filename": "/instruments/chips/fatman-4op-0-00000-060.cni", "start": 8960144, "end": 8961244}, {"filename": "/instruments/chips/fatman-4op-0-00000-061.cni", "start": 8961244, "end": 8962347}, {"filename": "/instruments/chips/fatman-4op-0-00000-062.cni", "start": 8962347, "end": 8963450}, {"filename": "/instruments/chips/fatman-4op-0-00000-063.cni", "start": 8963450, "end": 8964554}, {"filename": "/instruments/chips/fatman-4op-0-00000-064.cni", "start": 8964554, "end": 8965650}, {"filename": "/instruments/chips/fatman-4op-0-00000-065.cni", "start": 8965650, "end": 8966739}, {"filename": "/instruments/chips/fatman-4op-0-00000-066.cni", "start": 8966739, "end": 8967829}, {"filename": "/instruments/chips/fatman-4op-0-00000-067.cni", "start": 8967829, "end": 8968927}, {"filename": "/instruments/chips/fatman-4op-0-00000-068.cni", "start": 8968927, "end": 8970015}, {"filename": "/instruments/chips/fatman-4op-0-00000-069.cni", "start": 8970015, "end": 8971115}, {"filename": "/instruments/chips/fatman-4op-0-00000-070.cni", "start": 8971115, "end": 8972204}, {"filename": "/instruments/chips/fatman-4op-0-00000-071.cni", "start": 8972204, "end": 8973295}, {"filename": "/instruments/chips/fatman-4op-0-00000-072.cni", "start": 8973295, "end": 8974386}, {"filename": "/instruments/chips/fatman-4op-0-00000-073.cni", "start": 8974386, "end": 8975472}, {"filename": "/instruments/chips/fatman-4op-0-00000-074.cni", "start": 8975472, "end": 8976565}, {"filename": "/instruments/chips/fatman-4op-0-00000-075.cni", "start": 8976565, "end": 8977659}, {"filename": "/instruments/chips/fatman-4op-0-00000-076.cni", "start": 8977659, "end": 8978757}, {"filename": "/instruments/chips/fatman-4op-0-00000-077.cni", "start": 8978757, "end": 8979850}, {"filename": "/instruments/chips/fatman-4op-0-00000-078.cni", "start": 8979850, "end": 8980936}, {"filename": "/instruments/chips/fatman-4op-0-00000-079.cni", "start": 8980936, "end": 8982024}, {"filename": "/instruments/chips/fatman-4op-0-00000-080.cni", "start": 8982024, "end": 8983130}, {"filename": "/instruments/chips/fatman-4op-0-00000-081.cni", "start": 8983130, "end": 8984230}, {"filename": "/instruments/chips/fatman-4op-0-00000-082.cni", "start": 8984230, "end": 8985329}, {"filename": "/instruments/chips/fatman-4op-0-00000-083.cni", "start": 8985329, "end": 8986423}, {"filename": "/instruments/chips/fatman-4op-0-00000-084.cni", "start": 8986423, "end": 8987524}, {"filename": "/instruments/chips/fatman-4op-0-00000-085.cni", "start": 8987524, "end": 8988620}, {"filename": "/instruments/chips/fatman-4op-0-00000-086.cni", "start": 8988620, "end": 8989721}, {"filename": "/instruments/chips/fatman-4op-0-00000-087.cni", "start": 8989721, "end": 8990815}, {"filename": "/instruments/chips/fatman-4op-0-00000-088.cni", "start": 8990815, "end": 8991912}, {"filename": "/instruments/chips/fatman-4op-0-00000-089.cni", "start": 8991912, "end": 8993003}, {"filename": "/instruments/chips/fatman-4op-0-00000-090.cni", "start": 8993003, "end": 8994104}, {"filename": "/instruments/chips/fatman-4op-0-00000-091.cni", "start": 8994104, "end": 8995198}, {"filename": "/instruments/chips/fatman-4op-0-00000-092.cni", "start": 8995198, "end": 8996291}, {"filename": "/instruments/chips/fatman-4op-0-00000-093.cni", "start": 8996291, "end": 8997389}, {"filename": "/instruments/chips/fatman-4op-0-00000-094.cni", "start": 8997389, "end": 8998478}, {"filename": "/instruments/chips/fatman-4op-0-00000-095.cni", "start": 8998478, "end": 8999572}, {"filename": "/instruments/chips/fatman-4op-0-00000-096.cni", "start": 8999572, "end": 9000666}, {"filename": "/instruments/chips/fatman-4op-0-00000-097.cni", "start": 9000666, "end": 9001766}, {"filename": "/instruments/chips/fatman-4op-0-00000-098.cni", "start": 9001766, "end": 9002862}, {"filename": "/instruments/chips/fatman-4op-0-00000-099.cni", "start": 9002862, "end": 9003964}, {"filename": "/instruments/chips/fatman-4op-0-00000-100.cni", "start": 9003964, "end": 9005069}, {"filename": "/instruments/chips/fatman-4op-0-00000-101.cni", "start": 9005069, "end": 9006165}, {"filename": "/instruments/chips/fatman-4op-0-00000-102.cni", "start": 9006165, "end": 9007260}, {"filename": "/instruments/chips/fatman-4op-0-00000-103.cni", "start": 9007260, "end": 9008356}, {"filename": "/instruments/chips/fatman-4op-0-00000-104.cni", "start": 9008356, "end": 9009443}, {"filename": "/instruments/chips/fatman-4op-0-00000-105.cni", "start": 9009443, "end": 9010532}, {"filename": "/instruments/chips/fatman-4op-0-00000-106.cni", "start": 9010532, "end": 9011630}, {"filename": "/instruments/chips/fatman-4op-0-00000-107.cni", "start": 9011630, "end": 9012720}, {"filename": "/instruments/chips/fatman-4op-0-00000-108.cni", "start": 9012720, "end": 9013814}, {"filename": "/instruments/chips/fatman-4op-0-00000-109.cni", "start": 9013814, "end": 9014904}, {"filename": "/instruments/chips/fatman-4op-0-00000-110.cni", "start": 9014904, "end": 9015991}, {"filename": "/instruments/chips/fatman-4op-0-00000-111.cni", "start": 9015991, "end": 9017082}, {"filename": "/instruments/chips/fatman-4op-0-00000-112.cni", "start": 9017082, "end": 9018184}, {"filename": "/instruments/chips/fatman-4op-0-00000-113.cni", "start": 9018184, "end": 9019271}, {"filename": "/instruments/chips/fatman-4op-0-00000-114.cni", "start": 9019271, "end": 9020371}, {"filename": "/instruments/chips/fatman-4op-0-00000-115.cni", "start": 9020371, "end": 9021475}, {"filename": "/instruments/chips/fatman-4op-0-00000-116.cni", "start": 9021475, "end": 9022572}, {"filename": "/instruments/chips/fatman-4op-0-00000-117.cni", "start": 9022572, "end": 9023673}, {"filename": "/instruments/chips/fatman-4op-0-00000-118.cni", "start": 9023673, "end": 9024771}, {"filename": "/instruments/chips/fatman-4op-0-00000-119.cni", "start": 9024771, "end": 9025880}, {"filename": "/instruments/chips/fatman-4op-0-00000-120.cni", "start": 9025880, "end": 9026986}, {"filename": "/instruments/chips/fatman-4op-0-00000-121.cni", "start": 9026986, "end": 9028087}, {"filename": "/instruments/chips/fatman-4op-0-00000-122.cni", "start": 9028087, "end": 9029180}, {"filename": "/instruments/chips/fatman-4op-0-00000-123.cni", "start": 9029180, "end": 9030275}, {"filename": "/instruments/chips/fatman-4op-0-00000-124.cni", "start": 9030275, "end": 9031369}, {"filename": "/instruments/chips/fatman-4op-0-00000-125.cni", "start": 9031369, "end": 9032462}, {"filename": "/instruments/chips/fatman-4op-0-00000-126.cni", "start": 9032462, "end": 9033555}, {"filename": "/instruments/chips/fatman-4op-0-00000-127.cni", "start": 9033555, "end": 9034644}, {"filename": "/instruments/chips/fatman-4op-1-00000-035.cni", "start": 9034644, "end": 9035742}, {"filename": "/instruments/chips/fatman-4op-1-00000-036.cni", "start": 9035742, "end": 9036847}, {"filename": "/instruments/chips/fatman-4op-1-00000-037.cni", "start": 9036847, "end": 9037957}, {"filename": "/instruments/chips/fatman-4op-1-00000-038.cni", "start": 9037957, "end": 9039060}, {"filename": "/instruments/chips/fatman-4op-1-00000-039.cni", "start": 9039060, "end": 9040164}, {"filename": "/instruments/chips/fatman-4op-1-00000-040.cni", "start": 9040164, "end": 9041267}, {"filename": "/instruments/chips/fatman-4op-1-00000-041.cni", "start": 9041267, "end": 9042371}, {"filename": "/instruments/chips/fatman-4op-1-00000-042.cni", "start": 9042371, "end": 9043475}, {"filename": "/instruments/chips/fatman-4op-1-00000-043.cni", "start": 9043475, "end": 9044579}, {"filename": "/instruments/chips/fatman-4op-1-00000-044.cni", "start": 9044579, "end": 9045681}, {"filename": "/instruments/chips/fatman-4op-1-00000-045.cni", "start": 9045681, "end": 9046785}, {"filename": "/instruments/chips/fatman-4op-1-00000-046.cni", "start": 9046785, "end": 9047892}, {"filename": "/instruments/chips/fatman-4op-1-00000-047.cni", "start": 9047892, "end": 9048996}, {"filename": "/instruments/chips/fatman-4op-1-00000-048.cni", "start": 9048996, "end": 9050100}, {"filename": "/instruments/chips/fatman-4op-1-00000-049.cni", "start": 9050100, "end": 9051204}, {"filename": "/instruments/chips/fatman-4op-1-00000-050.cni", "start": 9051204, "end": 9052308}, {"filename": "/instruments/chips/fatman-4op-1-00000-051.cni", "start": 9052308, "end": 9053415}, {"filename": "/instruments/chips/fatman-4op-1-00000-052.cni", "start": 9053415, "end": 9054517}, {"filename": "/instruments/chips/fatman-4op-1-00000-053.cni", "start": 9054517, "end": 9055626}, {"filename": "/instruments/chips/fatman-4op-1-00000-054.cni", "start": 9055626, "end": 9056727}, {"filename": "/instruments/chips/fatman-4op-1-00000-055.cni", "start": 9056727, "end": 9057831}, {"filename": "/instruments/chips/fatman-4op-1-00000-056.cni", "start": 9057831, "end": 9058931}, {"filename": "/instruments/chips/fatman-4op-1-00000-057.cni", "start": 9058931, "end": 9060035}, {"filename": "/instruments/chips/fatman-4op-1-00000-058.cni", "start": 9060035, "end": 9061142}, {"filename": "/instruments/chips/fatman-4op-1-00000-059.cni", "start": 9061142, "end": 9062249}, {"filename": "/instruments/chips/fatman-4op-1-00000-060.cni", "start": 9062249, "end": 9063352}, {"filename": "/instruments/chips/fatman-4op-1-00000-061.cni", "start": 9063352, "end": 9064461}, {"filename": "/instruments/chips/fatman-4op-1-00000-062.cni", "start": 9064461, "end": 9065569}, {"filename": "/instruments/chips/fatman-4op-1-00000-063.cni", "start": 9065569, "end": 9066679}, {"filename": "/instruments/chips/fatman-4op-1-00000-064.cni", "start": 9066679, "end": 9067788}, {"filename": "/instruments/chips/fatman-4op-1-00000-065.cni", "start": 9067788, "end": 9068893}, {"filename": "/instruments/chips/fatman-4op-1-00000-066.cni", "start": 9068893, "end": 9069994}, {"filename": "/instruments/chips/fatman-4op-1-00000-067.cni", "start": 9069994, "end": 9071100}, {"filename": "/instruments/chips/fatman-4op-1-00000-068.cni", "start": 9071100, "end": 9072205}, {"filename": "/instruments/chips/fatman-4op-1-00000-069.cni", "start": 9072205, "end": 9073306}, {"filename": "/instruments/chips/fatman-4op-1-00000-070.cni", "start": 9073306, "end": 9074410}, {"filename": "/instruments/chips/fatman-4op-1-00000-071.cni", "start": 9074410, "end": 9075516}, {"filename": "/instruments/chips/fatman-4op-1-00000-072.cni", "start": 9075516, "end": 9076618}, {"filename": "/instruments/chips/fatman-4op-1-00000-073.cni", "start": 9076618, "end": 9077720}, {"filename": "/instruments/chips/fatman-4op-1-00000-074.cni", "start": 9077720, "end": 9078822}, {"filename": "/instruments/chips/fatman-4op-1-00000-075.cni", "start": 9078822, "end": 9079926}, {"filename": "/instruments/chips/fatman-4op-1-00000-076.cni", "start": 9079926, "end": 9081030}, {"filename": "/instruments/chips/fatman-4op-1-00000-077.cni", "start": 9081030, "end": 9082134}, {"filename": "/instruments/chips/fatman-4op-1-00000-078.cni", "start": 9082134, "end": 9083231}, {"filename": "/instruments/chips/fatman-4op-1-00000-079.cni", "start": 9083231, "end": 9084333}, {"filename": "/instruments/chips/fatman-4op-1-00000-080.cni", "start": 9084333, "end": 9085441}, {"filename": "/instruments/chips/fatman-4op-1-00000-081.cni", "start": 9085441, "end": 9086553}, {"filename": "/instruments/chips/fatman-4op-1-00000-082.cni", "start": 9086553, "end": 9087659}, {"filename": "/instruments/chips/fatman-4op-1-00000-083.cni", "start": 9087659, "end": 9088761}, {"filename": "/instruments/chips/fatman-4op-1-00000-084.cni", "start": 9088761, "end": 9089869}, {"filename": "/instruments/chips/fatman-4op-1-00000-085.cni", "start": 9089869, "end": 9090973}, {"filename": "/instruments/chips/fatman-4op-1-00000-086.cni", "start": 9090973, "end": 9092083}, {"filename": "/instruments/chips/fatman-4op-1-00000-087.cni", "start": 9092083, "end": 9093190}, {"filename": "/instruments/chips/four-op-25-1bd290e1ea30ba8351bfd3e9.cni", "start": 9093190, "end": 9094287}, {"filename": "/instruments/chips/four-op-25-327a4f2df1166c9733831c1c.cni", "start": 9094287, "end": 9095381}, {"filename": "/instruments/chips/four-op-25-37135cf2ecc1224a4e836a4a.cni", "start": 9095381, "end": 9096481}, {"filename": "/instruments/chips/four-op-25-3c6196f593feec27aa0a6b2c.cni", "start": 9096481, "end": 9097575}, {"filename": "/instruments/chips/four-op-25-5425996969f84106e11b8cf9.cni", "start": 9097575, "end": 9098676}, {"filename": "/instruments/chips/four-op-25-58deb7e800b2a5e092a30a0e.cni", "start": 9098676, "end": 9099772}, {"filename": "/instruments/chips/four-op-25-593895637c90004fd749a5f8.cni", "start": 9099772, "end": 9100866}, {"filename": "/instruments/chips/four-op-25-621b7712eb2fbfd942580078.cni", "start": 9100866, "end": 9101966}, {"filename": "/instruments/chips/four-op-25-64525bc4894dabfdbf2d1e42.cni", "start": 9101966, "end": 9103060}, {"filename": "/instruments/chips/four-op-25-6b7f8034ec71ff9016e36bd6.cni", "start": 9103060, "end": 9104158}, {"filename": "/instruments/chips/four-op-25-6e86a43a75e2b54bc0e5ae40.cni", "start": 9104158, "end": 9105257}, {"filename": "/instruments/chips/four-op-25-7cf490a208f525f773c5a5e8.cni", "start": 9105257, "end": 9106354}, {"filename": "/instruments/chips/four-op-25-85e59787aa9152c1ef5a5868.cni", "start": 9106354, "end": 9107456}, {"filename": "/instruments/chips/four-op-25-9e5033939edf8050cee841d1.cni", "start": 9107456, "end": 9108556}, {"filename": "/instruments/chips/four-op-25-a973239a215eb6e73023aeca.cni", "start": 9108556, "end": 9109650}, {"filename": "/instruments/chips/four-op-25-b20e1075b4f460fb1c731fb0.cni", "start": 9109650, "end": 9110747}, {"filename": "/instruments/chips/four-op-25-bf1c563799f65438baf1be2c.cni", "start": 9110747, "end": 9111861}, {"filename": "/instruments/chips/four-op-25-c84b38de7b5599cfc720792a.cni", "start": 9111861, "end": 9112954}, {"filename": "/instruments/chips/four-op-25-cc52406e47a015376d3bb71d.cni", "start": 9112954, "end": 9114047}, {"filename": "/instruments/chips/four-op-25-de2593c99f35e338e938ac25.cni", "start": 9114047, "end": 9115149}, {"filename": "/instruments/chips/four-op-25-e43cd950c3967131fc7ebd43.cni", "start": 9115149, "end": 9116249}, {"filename": "/instruments/chips/four-op-25-e67f6ada41b52b08246d6b5d.cni", "start": 9116249, "end": 9117345}, {"filename": "/instruments/chips/four-op-25-efe8ca3492ab4b18c1a70ae5.cni", "start": 9117345, "end": 9118440}, {"filename": "/instruments/chips/four-op-25-fc399b8705b19f3bf9834a44.cni", "start": 9118440, "end": 9119540}, {"filename": "/instruments/chips/four-op-26-04777794d03540487528dfbc.cni", "start": 9119540, "end": 9120635}, {"filename": "/instruments/chips/four-op-26-0d515e057a58c8baa1c4ddb9.cni", "start": 9120635, "end": 9121731}, {"filename": "/instruments/chips/four-op-26-0fd5944d2eba5674d515e2e7.cni", "start": 9121731, "end": 9122828}, {"filename": "/instruments/chips/four-op-26-196057e5fd3b3011cc95aca9.cni", "start": 9122828, "end": 9123930}, {"filename": "/instruments/chips/four-op-26-3bc58da07c457e0c9562cec4.cni", "start": 9123930, "end": 9125023}, {"filename": "/instruments/chips/four-op-26-40cb5cc58942f6d089d21aa9.cni", "start": 9125023, "end": 9126117}, {"filename": "/instruments/chips/four-op-26-41e76fd664baa6d19fc6206f.cni", "start": 9126117, "end": 9127213}, {"filename": "/instruments/chips/four-op-26-60c8ce112d72c013ca14ae8f.cni", "start": 9127213, "end": 9128313}, {"filename": "/instruments/chips/four-op-26-793d20d6bddf68aa27769c19.cni", "start": 9128313, "end": 9129413}, {"filename": "/instruments/chips/four-op-26-7ab50a5fba58d0919adebdc3.cni", "start": 9129413, "end": 9130512}, {"filename": "/instruments/chips/four-op-26-8f494c1aef5ed5b12ce16532.cni", "start": 9130512, "end": 9131606}, {"filename": "/instruments/chips/four-op-26-9407bb393164e3f2e537b548.cni", "start": 9131606, "end": 9132706}, {"filename": "/instruments/chips/four-op-26-a7050f5de9755006b8f21df2.cni", "start": 9132706, "end": 9133800}, {"filename": "/instruments/chips/four-op-26-ae549239045a11dc71b5cfc1.cni", "start": 9133800, "end": 9134897}, {"filename": "/instruments/chips/four-op-26-af779b098ce72cb781453247.cni", "start": 9134897, "end": 9135991}, {"filename": "/instruments/chips/four-op-26-be2f974596da03090061d5b9.cni", "start": 9135991, "end": 9137105}, {"filename": "/instruments/chips/four-op-26-c5adf0689ea99744c0da89e6.cni", "start": 9137105, "end": 9138206}, {"filename": "/instruments/chips/four-op-26-cef824149bd59e00259b82dd.cni", "start": 9138206, "end": 9139306}, {"filename": "/instruments/chips/four-op-26-dc8ace5c79e9fe7ad1471821.cni", "start": 9139306, "end": 9140406}, {"filename": "/instruments/chips/four-op-26-dd71474c4c0eaf6d73d88a04.cni", "start": 9140406, "end": 9141508}, {"filename": "/instruments/chips/four-op-26-f0f2ac229cf1d28b9c4b21a7.cni", "start": 9141508, "end": 9142601}, {"filename": "/instruments/chips/four-op-26-f247b47f1cd694d1d9366f12.cni", "start": 9142601, "end": 9143699}, {"filename": "/instruments/chips/four-op-26-f6379a46372f3ab5efd0b0fe.cni", "start": 9143699, "end": 9144796}, {"filename": "/instruments/chips/four-op-26-f773d60a622b7f189307b488.cni", "start": 9144796, "end": 9145890}, {"filename": "/instruments/chips/manifest.json", "start": 9145890, "end": 9600040}, {"filename": "/instruments/chips/opll-17-390-00.cni", "start": 9600040, "end": 9601017}, {"filename": "/instruments/chips/opll-17-390-01.cni", "start": 9601017, "end": 9601994}, {"filename": "/instruments/chips/opll-17-390-02.cni", "start": 9601994, "end": 9602968}, {"filename": "/instruments/chips/opll-17-390-03.cni", "start": 9602968, "end": 9603943}, {"filename": "/instruments/chips/opll-17-390-04.cni", "start": 9603943, "end": 9604922}, {"filename": "/instruments/chips/opll-17-390-05.cni", "start": 9604922, "end": 9605893}, {"filename": "/instruments/chips/opll-17-390-06.cni", "start": 9605893, "end": 9606870}, {"filename": "/instruments/chips/opll-17-390-07.cni", "start": 9606870, "end": 9607843}, {"filename": "/instruments/chips/opll-17-390-08.cni", "start": 9607843, "end": 9608815}, {"filename": "/instruments/chips/opll-17-390-09.cni", "start": 9608815, "end": 9609802}, {"filename": "/instruments/chips/opll-17-390-10.cni", "start": 9609802, "end": 9610788}, {"filename": "/instruments/chips/opll-17-390-11.cni", "start": 9610788, "end": 9611773}, {"filename": "/instruments/chips/opll-17-390-12.cni", "start": 9611773, "end": 9612757}, {"filename": "/instruments/chips/opll-17-390-13.cni", "start": 9612757, "end": 9613743}, {"filename": "/instruments/chips/opll-17-390-14.cni", "start": 9613743, "end": 9614739}, {"filename": "/instruments/chips/opll-17-391-00.cni", "start": 9614739, "end": 9615721}, {"filename": "/instruments/chips/opll-17-391-01.cni", "start": 9615721, "end": 9616698}, {"filename": "/instruments/chips/opll-17-391-02.cni", "start": 9616698, "end": 9617671}, {"filename": "/instruments/chips/opll-17-391-03.cni", "start": 9617671, "end": 9618645}, {"filename": "/instruments/chips/opll-17-391-05.cni", "start": 9618645, "end": 9619618}, {"filename": "/instruments/chips/opll-17-391-07.cni", "start": 9619618, "end": 9620592}, {"filename": "/instruments/chips/opll-17-391-08.cni", "start": 9620592, "end": 9621565}, {"filename": "/instruments/chips/opll-17-391-09.cni", "start": 9621565, "end": 9622539}, {"filename": "/instruments/chips/opll-17-391-11.cni", "start": 9622539, "end": 9623514}, {"filename": "/instruments/chips/opll-17-391-12.cni", "start": 9623514, "end": 9624491}, {"filename": "/instruments/chips/opll-17-391-13.cni", "start": 9624491, "end": 9625476}, {"filename": "/instruments/chips/opll-17-391-14.cni", "start": 9625476, "end": 9626450}, {"filename": "/instruments/chips/opll-17-392-00.cni", "start": 9626450, "end": 9627445}, {"filename": "/instruments/chips/opll-17-392-01.cni", "start": 9627445, "end": 9628424}, {"filename": "/instruments/chips/opll-17-392-02.cni", "start": 9628424, "end": 9629418}, {"filename": "/instruments/chips/opll-17-392-03.cni", "start": 9629418, "end": 9630393}, {"filename": "/instruments/chips/opll-17-392-05.cni", "start": 9630393, "end": 9631375}, {"filename": "/instruments/chips/opll-17-392-06.cni", "start": 9631375, "end": 9632352}, {"filename": "/instruments/chips/opll-17-392-07.cni", "start": 9632352, "end": 9633341}, {"filename": "/instruments/chips/opll-17-392-08.cni", "start": 9633341, "end": 9634324}, {"filename": "/instruments/chips/opll-17-392-09.cni", "start": 9634324, "end": 9635315}, {"filename": "/instruments/chips/opll-17-392-10.cni", "start": 9635315, "end": 9636285}, {"filename": "/instruments/chips/opll-17-392-12.cni", "start": 9636285, "end": 9637263}, {"filename": "/instruments/chips/opll-17-392-13.cni", "start": 9637263, "end": 9638248}, {"filename": "/instruments/chips/opll-17-392-14.cni", "start": 9638248, "end": 9639222}, {"filename": "/instruments/chips/opll-17-393-00.cni", "start": 9639222, "end": 9640204}, {"filename": "/instruments/chips/opll-17-393-01.cni", "start": 9640204, "end": 9641186}, {"filename": "/instruments/chips/opll-17-393-02.cni", "start": 9641186, "end": 9642167}, {"filename": "/instruments/chips/opll-17-393-03.cni", "start": 9642167, "end": 9643154}, {"filename": "/instruments/chips/opll-17-393-04.cni", "start": 9643154, "end": 9644140}, {"filename": "/instruments/chips/opll-17-393-05.cni", "start": 9644140, "end": 9645122}, {"filename": "/instruments/chips/opll-17-393-06.cni", "start": 9645122, "end": 9646102}, {"filename": "/instruments/chips/opll-17-393-07.cni", "start": 9646102, "end": 9647087}, {"filename": "/instruments/chips/opll-17-393-08.cni", "start": 9647087, "end": 9648073}, {"filename": "/instruments/chips/opll-17-393-09.cni", "start": 9648073, "end": 9649057}, {"filename": "/instruments/chips/opll-17-393-10.cni", "start": 9649057, "end": 9650041}, {"filename": "/instruments/chips/opll-17-393-11.cni", "start": 9650041, "end": 9651023}, {"filename": "/instruments/chips/opll-17-393-12.cni", "start": 9651023, "end": 9652002}, {"filename": "/instruments/chips/opll-17-393-13.cni", "start": 9652002, "end": 9652988}, {"filename": "/instruments/chips/opll-17-393-14.cni", "start": 9652988, "end": 9653968}, {"filename": "/instruments/chips/opll-17-393-15.cni", "start": 9653968, "end": 9654952}, {"filename": "/instruments/chips/opll-17-393-16.cni", "start": 9654952, "end": 9655934}, {"filename": "/instruments/chips/opll-17-393-17.cni", "start": 9655934, "end": 9656916}, {"filename": "/instruments/chips/opll-18-400-00.cni", "start": 9656916, "end": 9657893}, {"filename": "/instruments/chips/opll-18-400-01.cni", "start": 9657893, "end": 9658870}, {"filename": "/instruments/chips/opll-18-400-02.cni", "start": 9658870, "end": 9659844}, {"filename": "/instruments/chips/opll-18-400-03.cni", "start": 9659844, "end": 9660819}, {"filename": "/instruments/chips/opll-18-400-04.cni", "start": 9660819, "end": 9661798}, {"filename": "/instruments/chips/opll-18-400-05.cni", "start": 9661798, "end": 9662769}, {"filename": "/instruments/chips/opll-18-400-06.cni", "start": 9662769, "end": 9663746}, {"filename": "/instruments/chips/opll-18-400-07.cni", "start": 9663746, "end": 9664719}, {"filename": "/instruments/chips/opll-18-400-08.cni", "start": 9664719, "end": 9665691}, {"filename": "/instruments/chips/opll-18-400-09.cni", "start": 9665691, "end": 9666678}, {"filename": "/instruments/chips/opll-18-400-10.cni", "start": 9666678, "end": 9667664}, {"filename": "/instruments/chips/opll-18-400-11.cni", "start": 9667664, "end": 9668649}, {"filename": "/instruments/chips/opll-18-400-12.cni", "start": 9668649, "end": 9669633}, {"filename": "/instruments/chips/opll-18-400-13.cni", "start": 9669633, "end": 9670619}, {"filename": "/instruments/chips/opll-18-400-14.cni", "start": 9670619, "end": 9671615}, {"filename": "/instruments/chips/opll-18-401-00.cni", "start": 9671615, "end": 9672597}, {"filename": "/instruments/chips/opll-18-401-01.cni", "start": 9672597, "end": 9673574}, {"filename": "/instruments/chips/opll-18-401-02.cni", "start": 9673574, "end": 9674547}, {"filename": "/instruments/chips/opll-18-401-03.cni", "start": 9674547, "end": 9675521}, {"filename": "/instruments/chips/opll-18-401-05.cni", "start": 9675521, "end": 9676494}, {"filename": "/instruments/chips/opll-18-401-07.cni", "start": 9676494, "end": 9677468}, {"filename": "/instruments/chips/opll-18-401-08.cni", "start": 9677468, "end": 9678441}, {"filename": "/instruments/chips/opll-18-401-09.cni", "start": 9678441, "end": 9679415}, {"filename": "/instruments/chips/opll-18-401-11.cni", "start": 9679415, "end": 9680390}, {"filename": "/instruments/chips/opll-18-401-12.cni", "start": 9680390, "end": 9681367}, {"filename": "/instruments/chips/opll-18-401-13.cni", "start": 9681367, "end": 9682352}, {"filename": "/instruments/chips/opll-18-401-14.cni", "start": 9682352, "end": 9683326}, {"filename": "/instruments/chips/opll-18-402-00.cni", "start": 9683326, "end": 9684321}, {"filename": "/instruments/chips/opll-18-402-01.cni", "start": 9684321, "end": 9685300}, {"filename": "/instruments/chips/opll-18-402-02.cni", "start": 9685300, "end": 9686294}, {"filename": "/instruments/chips/opll-18-402-03.cni", "start": 9686294, "end": 9687269}, {"filename": "/instruments/chips/opll-18-402-05.cni", "start": 9687269, "end": 9688251}, {"filename": "/instruments/chips/opll-18-402-06.cni", "start": 9688251, "end": 9689228}, {"filename": "/instruments/chips/opll-18-402-07.cni", "start": 9689228, "end": 9690217}, {"filename": "/instruments/chips/opll-18-402-08.cni", "start": 9690217, "end": 9691200}, {"filename": "/instruments/chips/opll-18-402-09.cni", "start": 9691200, "end": 9692191}, {"filename": "/instruments/chips/opll-18-402-10.cni", "start": 9692191, "end": 9693161}, {"filename": "/instruments/chips/opll-18-402-12.cni", "start": 9693161, "end": 9694139}, {"filename": "/instruments/chips/opll-18-402-13.cni", "start": 9694139, "end": 9695124}, {"filename": "/instruments/chips/opll-18-402-14.cni", "start": 9695124, "end": 9696098}, {"filename": "/instruments/chips/opll-18-403-00.cni", "start": 9696098, "end": 9697080}, {"filename": "/instruments/chips/opll-18-403-01.cni", "start": 9697080, "end": 9698062}, {"filename": "/instruments/chips/opll-18-403-02.cni", "start": 9698062, "end": 9699043}, {"filename": "/instruments/chips/opll-18-403-03.cni", "start": 9699043, "end": 9700030}, {"filename": "/instruments/chips/opll-18-403-04.cni", "start": 9700030, "end": 9701016}, {"filename": "/instruments/chips/opll-18-403-05.cni", "start": 9701016, "end": 9701998}, {"filename": "/instruments/chips/opll-18-403-06.cni", "start": 9701998, "end": 9702978}, {"filename": "/instruments/chips/opll-18-403-07.cni", "start": 9702978, "end": 9703963}, {"filename": "/instruments/chips/opll-18-403-08.cni", "start": 9703963, "end": 9704949}, {"filename": "/instruments/chips/opll-18-403-09.cni", "start": 9704949, "end": 9705933}, {"filename": "/instruments/chips/opll-18-403-10.cni", "start": 9705933, "end": 9706917}, {"filename": "/instruments/chips/opll-18-403-11.cni", "start": 9706917, "end": 9707899}, {"filename": "/instruments/chips/opll-18-403-12.cni", "start": 9707899, "end": 9708878}, {"filename": "/instruments/chips/opll-18-403-13.cni", "start": 9708878, "end": 9709864}, {"filename": "/instruments/chips/opll-18-403-14.cni", "start": 9709864, "end": 9710844}, {"filename": "/instruments/chips/opll-18-403-15.cni", "start": 9710844, "end": 9711828}, {"filename": "/instruments/chips/opll-18-403-16.cni", "start": 9711828, "end": 9712810}, {"filename": "/instruments/chips/opll-18-403-17.cni", "start": 9712810, "end": 9713792}, {"filename": "/instruments/chips/ymulator-000.cni", "start": 9713792, "end": 9714892}, {"filename": "/instruments/chips/ymulator-001.cni", "start": 9714892, "end": 9715986}, {"filename": "/instruments/chips/ymulator-002.cni", "start": 9715986, "end": 9717086}, {"filename": "/instruments/chips/ymulator-003.cni", "start": 9717086, "end": 9718186}, {"filename": "/instruments/chips/ymulator-004.cni", "start": 9718186, "end": 9719289}, {"filename": "/instruments/chips/ymulator-005.cni", "start": 9719289, "end": 9720384}, {"filename": "/instruments/chips/ymulator-006.cni", "start": 9720384, "end": 9721478}, {"filename": "/instruments/chips/ymulator-007.cni", "start": 9721478, "end": 9722572}, {"filename": "/instruments/chips/ymulator-008.cni", "start": 9722572, "end": 9723672}, {"filename": "/instruments/chips/ymulator-009.cni", "start": 9723672, "end": 9724766}, {"filename": "/instruments/chips/ymulator-010.cni", "start": 9724766, "end": 9725865}, {"filename": "/instruments/chips/ymulator-011.cni", "start": 9725865, "end": 9726962}, {"filename": "/instruments/chips/ymulator-012.cni", "start": 9726962, "end": 9728073}, {"filename": "/instruments/chips/ymulator-013.cni", "start": 9728073, "end": 9729179}, {"filename": "/instruments/chips/ymulator-015.cni", "start": 9729179, "end": 9730279}, {"filename": "/instruments/chips/ymulator-016.cni", "start": 9730279, "end": 9731376}, {"filename": "/instruments/chips/ymulator-017.cni", "start": 9731376, "end": 9732467}, {"filename": "/instruments/chips/ymulator-019.cni", "start": 9732467, "end": 9733564}, {"filename": "/instruments/chips/ymulator-020.cni", "start": 9733564, "end": 9734660}, {"filename": "/instruments/chips/ymulator-021.cni", "start": 9734660, "end": 9735754}, {"filename": "/instruments/chips/ymulator-022.cni", "start": 9735754, "end": 9736845}, {"filename": "/instruments/chips/ymulator-023.cni", "start": 9736845, "end": 9737940}, {"filename": "/instruments/chips/ymulator-024.cni", "start": 9737940, "end": 9739038}, {"filename": "/instruments/chips/ymulator-025.cni", "start": 9739038, "end": 9740145}, {"filename": "/instruments/chips/ymulator-026.cni", "start": 9740145, "end": 9741256}, {"filename": "/instruments/chips/ymulator-027.cni", "start": 9741256, "end": 9742362}, {"filename": "/instruments/chips/ymulator-028.cni", "start": 9742362, "end": 9743462}, {"filename": "/instruments/chips/ymulator-029.cni", "start": 9743462, "end": 9744566}, {"filename": "/instruments/chips/ymulator-030.cni", "start": 9744566, "end": 9745661}, {"filename": "/instruments/chips/ymulator-031.cni", "start": 9745661, "end": 9746756}, {"filename": "/instruments/chips/ymulator-032.cni", "start": 9746756, "end": 9747859}, {"filename": "/instruments/chips/ymulator-033.cni", "start": 9747859, "end": 9748963}, {"filename": "/instruments/chips/ymulator-034.cni", "start": 9748963, "end": 9750063}, {"filename": "/instruments/chips/ymulator-035.cni", "start": 9750063, "end": 9751160}, {"filename": "/instruments/chips/ymulator-036.cni", "start": 9751160, "end": 9752263}, {"filename": "/instruments/chips/ymulator-037.cni", "start": 9752263, "end": 9753361}, {"filename": "/instruments/chips/ymulator-038.cni", "start": 9753361, "end": 9754460}, {"filename": "/instruments/chips/ymulator-039.cni", "start": 9754460, "end": 9755559}, {"filename": "/instruments/chips/ymulator-040.cni", "start": 9755559, "end": 9756653}, {"filename": "/instruments/chips/ymulator-041.cni", "start": 9756653, "end": 9757753}, {"filename": "/instruments/chips/ymulator-042.cni", "start": 9757753, "end": 9758862}, {"filename": "/instruments/chips/ymulator-044.cni", "start": 9758862, "end": 9759950}, {"filename": "/instruments/chips/ymulator-045.cni", "start": 9759950, "end": 9761037}, {"filename": "/instruments/chips/ymulator-048.cni", "start": 9761037, "end": 9762130}, {"filename": "/instruments/chips/ymulator-051.cni", "start": 9762130, "end": 9763229}, {"filename": "/instruments/chips/ymulator-052.cni", "start": 9763229, "end": 9764321}, {"filename": "/instruments/chips/ymulator-053.cni", "start": 9764321, "end": 9765418}, {"filename": "/instruments/chips/ymulator-054.cni", "start": 9765418, "end": 9766519}, {"filename": "/instruments/chips/ymulator-055.cni", "start": 9766519, "end": 9767615}, {"filename": "/instruments/chips/ymulator-056.cni", "start": 9767615, "end": 9768710}, {"filename": "/instruments/chips/ymulator-057.cni", "start": 9768710, "end": 9769806}, {"filename": "/instruments/chips/ymulator-058.cni", "start": 9769806, "end": 9770908}, {"filename": "/instruments/chips/ymulator-059.cni", "start": 9770908, "end": 9772006}, {"filename": "/instruments/chips/ymulator-060.cni", "start": 9772006, "end": 9773102}, {"filename": "/instruments/chips/ymulator-061.cni", "start": 9773102, "end": 9774205}, {"filename": "/instruments/chips/ymulator-062.cni", "start": 9774205, "end": 9775299}, {"filename": "/instruments/chips/ymulator-063.cni", "start": 9775299, "end": 9776395}, {"filename": "/licenses/INSERT_FX.txt", "start": 9776395, "end": 9784621}, {"filename": "/licenses/chip-banks/builtin-opll-notice.txt", "start": 9784621, "end": 9784845}, {"filename": "/licenses/chip-banks/choochoo-dx7.txt", "start": 9784845, "end": 9785288}, {"filename": "/licenses/chip-banks/choochoo-four-op-MIT.txt", "start": 9785288, "end": 9786437}, {"filename": "/licenses/chip-banks/choochoo-simple-MIT.txt", "start": 9786437, "end": 9787535}, {"filename": "/licenses/chip-banks/dmxopl3.txt", "start": 9787535, "end": 9788786}, {"filename": "/licenses/chip-banks/expansion/16bit-station.wopn", "start": 9788786, "end": 9806536}, {"filename": "/licenses/chip-banks/expansion/16bit-station.wopn.LICENSE", "start": 9806536, "end": 9813584}, {"filename": "/licenses/chip-banks/expansion/README.txt", "start": 9813584, "end": 9814801}, {"filename": "/licenses/chip-banks/expansion/emu2413.c", "start": 9814801, "end": 9860038}, {"filename": "/licenses/chip-banks/expansion/emu2413.c.LICENSE", "start": 9860038, "end": 9861127}, {"filename": "/licenses/chip-banks/expansion/expansion.py", "start": 9861127, "end": 9869970}, {"filename": "/licenses/chip-banks/expansion/four_op.py", "start": 9869970, "end": 9877798}, {"filename": "/licenses/chip-banks/expansion/sources.json", "start": 9877798, "end": 9879191}, {"filename": "/licenses/chip-banks/expansion/ymulator.opm", "start": 9879191, "end": 9891527}, {"filename": "/licenses/chip-banks/expansion/ymulator.opm.LICENSE", "start": 9891527, "end": 9926676}, {"filename": "/licenses/chip-banks/fatman-2op.txt", "start": 9926676, "end": 9928127}, {"filename": "/licenses/chip-banks/fatman-4op.txt", "start": 9928127, "end": 9929569}, {"filename": "/licenses/chip-banks/opendx7.txt", "start": 9929569, "end": 9930637}, {"filename": "/licenses/chip-banks/yse-originals.txt", "start": 9930637, "end": 9931213}, {"filename": "/licenses/emu76489/LICENSE", "start": 9931213, "end": 9932297}, {"filename": "/licenses/gb_apu/Blip_Buffer.txt", "start": 9932297, "end": 9933369}, {"filename": "/licenses/gb_apu/LICENCE.txt", "start": 9933369, "end": 9934438}, {"filename": "/licenses/gb_apu/upstream-README.md", "start": 9934438, "end": 9937175}, {"filename": "/licenses/msfa/LICENSE", "start": 9937175, "end": 9948533}, {"filename": "/licenses/msfa/NOTICE", "start": 9948533, "end": 9949046}, {"filename": "/licenses/ymfm/LICENSE", "start": 9949046, "end": 9950565}, {"filename": "/pitch-tables/24TET Linear.csv", "start": 9950565, "end": 9952560}, {"filename": "/pitch-tables/Just D Phrygian 177 433.csv", "start": 9952560, "end": 9953872}, {"filename": "/pitch-tables/PT3-0.csv", "start": 9953872, "end": 9954636}, {"filename": "/pitch-tables/PT3-1.csv", "start": 9954636, "end": 9955408}, {"filename": "/pitch-tables/PT3-2.csv", "start": 9955408, "end": 9956174}, {"filename": "/pitch-tables/PT3-3.csv", "start": 9956174, "end": 9956940}, {"filename": "/projects/DNB.cct", "start": 9956940, "end": 9963612}, {"filename": "/projects/alf dance.cct", "start": 9963612, "end": 9973567}, {"filename": "/projects/dub-reich.cct", "start": 9973567, "end": 9983853}, {"filename": "/projects/grieg-mountain-king-fm.cct", "start": 9983853, "end": 10069508}, {"filename": "/projects/maple-leaf-rag.cct", "start": 10069508, "end": 10154949}, {"filename": "/projects/native-chip-audition.cct", "start": 10154949, "end": 10172370}, {"filename": "/projects/psy.cct", "start": 10172370, "end": 10184580}, {"filename": "/samples/909/BT0A0A7.WAV", "start": 10184580, "end": 10209732}, {"filename": "/samples/909/BT0A0D0.WAV", "start": 10209732, "end": 10218754}, {"filename": "/samples/909/BT0A0D3.WAV", "start": 10218754, "end": 10233936}, {"filename": "/samples/909/BT0A0DA.WAV", "start": 10233936, "end": 10277964}, {"filename": "/samples/909/BT0AAD0.WAV", "start": 10277964, "end": 10287592}, {"filename": "/samples/909/BT0AADA.WAV", "start": 10287592, "end": 10331612}, {"filename": "/samples/909/BT3A0D0.WAV", "start": 10331612, "end": 10340352}, {"filename": "/samples/909/BT3A0D3.WAV", "start": 10340352, "end": 10356276}, {"filename": "/samples/909/BT3A0D7.WAV", "start": 10356276, "end": 10384870}, {"filename": "/samples/909/BT3A0DA.WAV", "start": 10384870, "end": 10427750}, {"filename": "/samples/909/BT3AAD0.WAV", "start": 10427750, "end": 10436456}, {"filename": "/samples/909/BT3AADA.WAV", "start": 10436456, "end": 10479356}, {"filename": "/samples/909/BT7A0D0.WAV", "start": 10479356, "end": 10488828}, {"filename": "/samples/909/BT7A0D3.WAV", "start": 10488828, "end": 10503788}, {"filename": "/samples/909/BT7A0D7.WAV", "start": 10503788, "end": 10531332}, {"filename": "/samples/909/BT7A0DA.WAV", "start": 10531332, "end": 10575000}, {"filename": "/samples/909/BT7AAD0.WAV", "start": 10575000, "end": 10584448}, {"filename": "/samples/909/BT7AADA.WAV", "start": 10584448, "end": 10628064}, {"filename": "/samples/909/BTAA0D0.WAV", "start": 10628064, "end": 10637284}, {"filename": "/samples/909/BTAA0D3.WAV", "start": 10637284, "end": 10653594}, {"filename": "/samples/909/BTAA0D7.WAV", "start": 10653594, "end": 10682468}, {"filename": "/samples/909/BTAA0DA.WAV", "start": 10682468, "end": 10725478}, {"filename": "/samples/909/BTAAAD0.WAV", "start": 10725478, "end": 10734694}, {"filename": "/samples/909/BTAAADA.WAV", "start": 10734694, "end": 10777708}, {"filename": "/samples/909/CLOP1.WAV", "start": 10777708, "end": 10816722}, {"filename": "/samples/909/CLOP2.WAV", "start": 10816722, "end": 10839866}, {"filename": "/samples/909/CLOP3.WAV", "start": 10839866, "end": 10893030}, {"filename": "/samples/909/CLOP4.WAV", "start": 10893030, "end": 10913326}, {"filename": "/samples/909/CSHD0.WAV", "start": 10913326, "end": 11011152}, {"filename": "/samples/909/CSHD2.WAV", "start": 11011152, "end": 11102142}, {"filename": "/samples/909/CSHD4.WAV", "start": 11102142, "end": 11181766}, {"filename": "/samples/909/CSHD6.WAV", "start": 11181766, "end": 11246376}, {"filename": "/samples/909/CSHD8.WAV", "start": 11246376, "end": 11301330}, {"filename": "/samples/909/CSHDA.WAV", "start": 11301330, "end": 11349014}, {"filename": "/samples/909/HANDCLP1.WAV", "start": 11349014, "end": 11388406}, {"filename": "/samples/909/HANDCLP2.WAV", "start": 11388406, "end": 11420718}, {"filename": "/samples/909/HHCD0.WAV", "start": 11420718, "end": 11424522}, {"filename": "/samples/909/HHCD2.WAV", "start": 11424522, "end": 11432134}, {"filename": "/samples/909/HHCD4.WAV", "start": 11432134, "end": 11442166}, {"filename": "/samples/909/HHCD6.WAV", "start": 11442166, "end": 11453916}, {"filename": "/samples/909/HHCD8.WAV", "start": 11453916, "end": 11466004}, {"filename": "/samples/909/HHCDA.WAV", "start": 11466004, "end": 11478798}, {"filename": "/samples/909/HHOD0.WAV", "start": 11478798, "end": 11501166}, {"filename": "/samples/909/HHOD2.WAV", "start": 11501166, "end": 11530434}, {"filename": "/samples/909/HHOD4.WAV", "start": 11530434, "end": 11565702}, {"filename": "/samples/909/HHOD6.WAV", "start": 11565702, "end": 11604390}, {"filename": "/samples/909/HHOD8.WAV", "start": 11604390, "end": 11649946}, {"filename": "/samples/909/HHODA.WAV", "start": 11649946, "end": 11695604}, {"filename": "/samples/909/HT0D0.WAV", "start": 11695604, "end": 11716438}, {"filename": "/samples/909/HT0D3.WAV", "start": 11716438, "end": 11742058}, {"filename": "/samples/909/HT0D7.WAV", "start": 11742058, "end": 11776374}, {"filename": "/samples/909/HT0DA.WAV", "start": 11776374, "end": 11813786}, {"filename": "/samples/909/HT3D0.WAV", "start": 11813786, "end": 11833774}, {"filename": "/samples/909/HT3D3.WAV", "start": 11833774, "end": 11859192}, {"filename": "/samples/909/HT3D7.WAV", "start": 11859192, "end": 11894874}, {"filename": "/samples/909/HT3DA.WAV", "start": 11894874, "end": 11932912}, {"filename": "/samples/909/HT7D0.WAV", "start": 11932912, "end": 11953550}, {"filename": "/samples/909/HT7D3.WAV", "start": 11953550, "end": 11979810}, {"filename": "/samples/909/HT7D7.WAV", "start": 11979810, "end": 12016524}, {"filename": "/samples/909/HT7DA.WAV", "start": 12016524, "end": 12055080}, {"filename": "/samples/909/HTAD0.WAV", "start": 12055080, "end": 12075738}, {"filename": "/samples/909/HTAD3.WAV", "start": 12075738, "end": 12102532}, {"filename": "/samples/909/HTAD7.WAV", "start": 12102532, "end": 12137576}, {"filename": "/samples/909/HTADA.WAV", "start": 12137576, "end": 12177810}, {"filename": "/samples/909/LT0D0.WAV", "start": 12177810, "end": 12209382}, {"filename": "/samples/909/LT0D3.WAV", "start": 12209382, "end": 12248318}, {"filename": "/samples/909/LT0D7.WAV", "start": 12248318, "end": 12301560}, {"filename": "/samples/909/LT0DA.WAV", "start": 12301560, "end": 12361636}, {"filename": "/samples/909/LT3D0.WAV", "start": 12361636, "end": 12392818}, {"filename": "/samples/909/LT3D3.WAV", "start": 12392818, "end": 12432138}, {"filename": "/samples/909/LT3D7.WAV", "start": 12432138, "end": 12486718}, {"filename": "/samples/909/LT3DA.WAV", "start": 12486718, "end": 12546306}, {"filename": "/samples/909/LT7D0.WAV", "start": 12546306, "end": 12578886}, {"filename": "/samples/909/LT7D3.WAV", "start": 12578886, "end": 12620992}, {"filename": "/samples/909/LT7D7.WAV", "start": 12620992, "end": 12679182}, {"filename": "/samples/909/LT7DA.WAV", "start": 12679182, "end": 12741176}, {"filename": "/samples/909/LTAD0.WAV", "start": 12741176, "end": 12773578}, {"filename": "/samples/909/LTAD3.WAV", "start": 12773578, "end": 12815558}, {"filename": "/samples/909/LTAD7.WAV", "start": 12815558, "end": 12873174}, {"filename": "/samples/909/LTADA.WAV", "start": 12873174, "end": 12936824}, {"filename": "/samples/909/MT0D0.WAV", "start": 12936824, "end": 12956276}, {"filename": "/samples/909/MT0D3.WAV", "start": 12956276, "end": 12982018}, {"filename": "/samples/909/MT0D7.WAV", "start": 12982018, "end": 13016410}, {"filename": "/samples/909/MT0DA.WAV", "start": 13016410, "end": 13052986}, {"filename": "/samples/909/MT3D0.WAV", "start": 13052986, "end": 13072864}, {"filename": "/samples/909/MT3D3.WAV", "start": 13072864, "end": 13098630}, {"filename": "/samples/909/MT3D7.WAV", "start": 13098630, "end": 13135170}, {"filename": "/samples/909/MT3DA.WAV", "start": 13135170, "end": 13174126}, {"filename": "/samples/909/MT7D0.WAV", "start": 13174126, "end": 13193526}, {"filename": "/samples/909/MT7D3.WAV", "start": 13193526, "end": 13220398}, {"filename": "/samples/909/MT7D7.WAV", "start": 13220398, "end": 13256006}, {"filename": "/samples/909/MT7DA.WAV", "start": 13256006, "end": 13297162}, {"filename": "/samples/909/MTAD0.WAV", "start": 13297162, "end": 13317588}, {"filename": "/samples/909/MTAD3.WAV", "start": 13317588, "end": 13343296}, {"filename": "/samples/909/MTAD7.WAV", "start": 13343296, "end": 13381390}, {"filename": "/samples/909/MTADA.WAV", "start": 13381390, "end": 13422854}, {"filename": "/samples/909/OPCL1.WAV", "start": 13422854, "end": 13457900}, {"filename": "/samples/909/OPCL2.WAV", "start": 13457900, "end": 13484568}, {"filename": "/samples/909/OPCL3.WAV", "start": 13484568, "end": 13505338}, {"filename": "/samples/909/OPCL4.WAV", "start": 13505338, "end": 13555814}, {"filename": "/samples/909/RIDED0.WAV", "start": 13555814, "end": 13658662}, {"filename": "/samples/909/RIDED2.WAV", "start": 13658662, "end": 13754876}, {"filename": "/samples/909/RIDED4.WAV", "start": 13754876, "end": 13824958}, {"filename": "/samples/909/RIDED6.WAV", "start": 13824958, "end": 13895040}, {"filename": "/samples/909/RIDED8.WAV", "start": 13895040, "end": 13952912}, {"filename": "/samples/909/RIDEDA.WAV", "start": 13952912, "end": 14000552}, {"filename": "/samples/909/RIM127.WAV", "start": 14000552, "end": 14004134}, {"filename": "/samples/909/RIM63.WAV", "start": 14004134, "end": 14007716}, {"filename": "/samples/909/ST0T0S0.WAV", "start": 14007716, "end": 14023498}, {"filename": "/samples/909/ST0T0S3.WAV", "start": 14023498, "end": 14036994}, {"filename": "/samples/909/ST0T0S7.WAV", "start": 14036994, "end": 14050802}, {"filename": "/samples/909/ST0T0SA.WAV", "start": 14050802, "end": 14064350}, {"filename": "/samples/909/ST0T3S3.WAV", "start": 14064350, "end": 14080072}, {"filename": "/samples/909/ST0T3S7.WAV", "start": 14080072, "end": 14096038}, {"filename": "/samples/909/ST0T3SA.WAV", "start": 14096038, "end": 14112094}, {"filename": "/samples/909/ST0T7S3.WAV", "start": 14112094, "end": 14133512}, {"filename": "/samples/909/ST0T7S7.WAV", "start": 14133512, "end": 14156406}, {"filename": "/samples/909/ST0T7SA.WAV", "start": 14156406, "end": 14179940}, {"filename": "/samples/909/ST0TAS3.WAV", "start": 14179940, "end": 14202776}, {"filename": "/samples/909/ST0TAS7.WAV", "start": 14202776, "end": 14227840}, {"filename": "/samples/909/ST0TASA.WAV", "start": 14227840, "end": 14253476}, {"filename": "/samples/909/ST3T0S0.WAV", "start": 14253476, "end": 14267502}, {"filename": "/samples/909/ST3T0S3.WAV", "start": 14267502, "end": 14281670}, {"filename": "/samples/909/ST3T0S7.WAV", "start": 14281670, "end": 14295186}, {"filename": "/samples/909/ST3T0SA.WAV", "start": 14295186, "end": 14309960}, {"filename": "/samples/909/ST3T3S3.WAV", "start": 14309960, "end": 14325548}, {"filename": "/samples/909/ST3T3S7.WAV", "start": 14325548, "end": 14341522}, {"filename": "/samples/909/ST3T3SA.WAV", "start": 14341522, "end": 14357468}, {"filename": "/samples/909/ST3T7S3.WAV", "start": 14357468, "end": 14378630}, {"filename": "/samples/909/ST3T7S7.WAV", "start": 14378630, "end": 14401370}, {"filename": "/samples/909/ST3T7SA.WAV", "start": 14401370, "end": 14424902}, {"filename": "/samples/909/ST3TAS3.WAV", "start": 14424902, "end": 14447792}, {"filename": "/samples/909/ST3TAS7.WAV", "start": 14447792, "end": 14472984}, {"filename": "/samples/909/ST3TASA.WAV", "start": 14472984, "end": 14498690}, {"filename": "/samples/909/ST7T0S0.WAV", "start": 14498690, "end": 14512766}, {"filename": "/samples/909/ST7T0S3.WAV", "start": 14512766, "end": 14526772}, {"filename": "/samples/909/ST7T0S7.WAV", "start": 14526772, "end": 14541218}, {"filename": "/samples/909/ST7T0SA.WAV", "start": 14541218, "end": 14555856}, {"filename": "/samples/909/ST7T3S3.WAV", "start": 14555856, "end": 14571618}, {"filename": "/samples/909/ST7T3S7.WAV", "start": 14571618, "end": 14587586}, {"filename": "/samples/909/ST7T3SA.WAV", "start": 14587586, "end": 14603926}, {"filename": "/samples/909/ST7T7S3.WAV", "start": 14603926, "end": 14624898}, {"filename": "/samples/909/ST7T7S7.WAV", "start": 14624898, "end": 14648554}, {"filename": "/samples/909/ST7T7SA.WAV", "start": 14648554, "end": 14672208}, {"filename": "/samples/909/ST7TAS3.WAV", "start": 14672208, "end": 14694972}, {"filename": "/samples/909/ST7TAS7.WAV", "start": 14694972, "end": 14720674}, {"filename": "/samples/909/ST7TASA.WAV", "start": 14720674, "end": 14746572}, {"filename": "/samples/909/STAT0S0.WAV", "start": 14746572, "end": 14760834}, {"filename": "/samples/909/STAT0S3.WAV", "start": 14760834, "end": 14775472}, {"filename": "/samples/909/STAT0S7.WAV", "start": 14775472, "end": 14790108}, {"filename": "/samples/909/STAT0SA.WAV", "start": 14790108, "end": 14804416}, {"filename": "/samples/909/STAT3S3.WAV", "start": 14804416, "end": 14820504}, {"filename": "/samples/909/STAT3S7.WAV", "start": 14820504, "end": 14837040}, {"filename": "/samples/909/STAT3SA.WAV", "start": 14837040, "end": 14853772}, {"filename": "/samples/909/STAT7S3.WAV", "start": 14853772, "end": 14874616}, {"filename": "/samples/909/STAT7S7.WAV", "start": 14874616, "end": 14898068}, {"filename": "/samples/909/STAT7SA.WAV", "start": 14898068, "end": 14921472}, {"filename": "/samples/909/STATAS3.WAV", "start": 14921472, "end": 14944424}, {"filename": "/samples/909/STATAS7.WAV", "start": 14944424, "end": 14970446}, {"filename": "/samples/909/STATASA.WAV", "start": 14970446, "end": 14996154}, {"filename": "/samples/909/TR909SET.TXT", "start": 14996154, "end": 15002804}, {"filename": "/samples/ChocolateAmen/01-kik.wav", "start": 15002804, "end": 15004462}, {"filename": "/samples/ChocolateAmen/02-hat.wav", "start": 15004462, "end": 15006120}, {"filename": "/samples/ChocolateAmen/03-sn1.wav", "start": 15006120, "end": 15007778}, {"filename": "/samples/ChocolateAmen/04-gsn.wav", "start": 15007778, "end": 15009436}, {"filename": "/samples/ChocolateAmen/05-sn2.wav", "start": 15009436, "end": 15011094}, {"filename": "/samples/ChocolateAmen/06-csh.wav", "start": 15011094, "end": 15014104}, {"filename": "/samples/ST-01/Alien.wav", "start": 15014104, "end": 15021948}, {"filename": "/samples/ST-01/Aligator.wav", "start": 15021948, "end": 15024692}, {"filename": "/samples/ST-01/AnalogString.wav", "start": 15024692, "end": 15033536}, {"filename": "/samples/ST-01/Asia.wav", "start": 15033536, "end": 15041780}, {"filename": "/samples/ST-01/BassDrum1.wav", "start": 15041780, "end": 15042924}, {"filename": "/samples/ST-01/BassDrum2.wav", "start": 15042924, "end": 15045968}, {"filename": "/samples/ST-01/BassDrum3.wav", "start": 15045968, "end": 15049412}, {"filename": "/samples/ST-01/BassDrum4.wav", "start": 15049412, "end": 15052956}, {"filename": "/samples/ST-01/BigBow.wav", "start": 15052956, "end": 15060800}, {"filename": "/samples/ST-01/Blast.wav", "start": 15060800, "end": 15070744}, {"filename": "/samples/ST-01/Blubzing.wav", "start": 15070744, "end": 15072088}, {"filename": "/samples/ST-01/Breath.wav", "start": 15072088, "end": 15075932}, {"filename": "/samples/ST-01/Call.wav", "start": 15075932, "end": 15083976}, {"filename": "/samples/ST-01/Celeste.wav", "start": 15083976, "end": 15092020}, {"filename": "/samples/ST-01/Chink.wav", "start": 15092020, "end": 15097964}, {"filename": "/samples/ST-01/Cinema.wav", "start": 15097964, "end": 15102508}, {"filename": "/samples/ST-01/Claps1.wav", "start": 15102508, "end": 15104852}, {"filename": "/samples/ST-01/Claps2.wav", "start": 15104852, "end": 15106296}, {"filename": "/samples/ST-01/Claves.wav", "start": 15106296, "end": 15109340}, {"filename": "/samples/ST-01/CloseHiHat.wav", "start": 15109340, "end": 15110584}, {"filename": "/samples/ST-01/Conga.wav", "start": 15110584, "end": 15112228}, {"filename": "/samples/ST-01/CowBell.wav", "start": 15112228, "end": 15113672}, {"filename": "/samples/ST-01/DXBass.wav", "start": 15113672, "end": 15116416}, {"filename": "/samples/ST-01/Dangerous.wav", "start": 15116416, "end": 15123460}, {"filename": "/samples/ST-01/DeepBass.wav", "start": 15123460, "end": 15131704}, {"filename": "/samples/ST-01/Detune.wav", "start": 15131704, "end": 15137448}, {"filename": "/samples/ST-01/DigDug.wav", "start": 15137448, "end": 15140592}, {"filename": "/samples/ST-01/DigiHarp.wav", "start": 15140592, "end": 15144636}, {"filename": "/samples/ST-01/DreamBells.wav", "start": 15144636, "end": 15153880}, {"filename": "/samples/ST-01/DxTom.wav", "start": 15153880, "end": 15157924}, {"filename": "/samples/ST-01/EPiano.wav", "start": 15157924, "end": 15165968}, {"filename": "/samples/ST-01/ElecTom.wav", "start": 15165968, "end": 15169012}, {"filename": "/samples/ST-01/ExBells.wav", "start": 15169012, "end": 15172556}, {"filename": "/samples/ST-01/FaeryTale.wav", "start": 15172556, "end": 15181500}, {"filename": "/samples/ST-01/FilterBass.wav", "start": 15181500, "end": 15187444}, {"filename": "/samples/ST-01/FunBass.wav", "start": 15187444, "end": 15193988}, {"filename": "/samples/ST-01/FunkBass.wav", "start": 15193988, "end": 15199332}, {"filename": "/samples/ST-01/Gato.wav", "start": 15199332, "end": 15204376}, {"filename": "/samples/ST-01/Great.wav", "start": 15204376, "end": 15209420}, {"filename": "/samples/ST-01/HallBrass.wav", "start": 15209420, "end": 15218864}, {"filename": "/samples/ST-01/Heaven.wav", "start": 15218864, "end": 15225508}, {"filename": "/samples/ST-01/HeavySynth.wav", "start": 15225508, "end": 15235352}, {"filename": "/samples/ST-01/Heifer.wav", "start": 15235352, "end": 15237996}, {"filename": "/samples/ST-01/HiHat1.wav", "start": 15237996, "end": 15239440}, {"filename": "/samples/ST-01/HiHat2.wav", "start": 15239440, "end": 15241484}, {"filename": "/samples/ST-01/Hooman.wav", "start": 15241484, "end": 15248028}, {"filename": "/samples/ST-01/Horns.wav", "start": 15248028, "end": 15250572}, {"filename": "/samples/ST-01/JahrMarkt1.wav", "start": 15250572, "end": 15260416}, {"filename": "/samples/ST-01/JahrMarkt2.wav", "start": 15260416, "end": 15270260}, {"filename": "/samples/ST-01/Jetes.wav", "start": 15270260, "end": 15279904}, {"filename": "/samples/ST-01/Klickorgan.wav", "start": 15279904, "end": 15285648}, {"filename": "/samples/ST-01/KorgBass.wav", "start": 15285648, "end": 15289692}, {"filename": "/samples/ST-01/KorgBeau.wav", "start": 15289692, "end": 15296736}, {"filename": "/samples/ST-01/KorgBow.wav", "start": 15296736, "end": 15302180}, {"filename": "/samples/ST-01/KorgFilter.wav", "start": 15302180, "end": 15305624}, {"filename": "/samples/ST-01/KorgString.wav", "start": 15305624, "end": 15309668}, {"filename": "/samples/ST-01/Koto.wav", "start": 15309668, "end": 15316812}, {"filename": "/samples/ST-01/Leader.wav", "start": 15316812, "end": 15320256}, {"filename": "/samples/ST-01/Licks.wav", "start": 15320256, "end": 15326500}, {"filename": "/samples/ST-01/Magic.wav", "start": 15326500, "end": 15335444}, {"filename": "/samples/ST-01/Marimba.wav", "start": 15335444, "end": 15343488}, {"filename": "/samples/ST-01/Mechanic1.wav", "start": 15343488, "end": 15351032}, {"filename": "/samples/ST-01/Mechanic2.wav", "start": 15351032, "end": 15360776}, {"filename": "/samples/ST-01/MetalKeys.wav", "start": 15360776, "end": 15370220}, {"filename": "/samples/ST-01/MonoBass.wav", "start": 15370220, "end": 15376864}, {"filename": "/samples/ST-01/MonsterBass.wav", "start": 15376864, "end": 15385908}, {"filename": "/samples/ST-01/MuteClav.wav", "start": 15385908, "end": 15391052}, {"filename": "/samples/ST-01/Nice.wav", "start": 15391052, "end": 15397696}, {"filename": "/samples/ST-01/NightMare.wav", "start": 15397696, "end": 15407640}, {"filename": "/samples/ST-01/NoteMan.wav", "start": 15407640, "end": 15414684}, {"filename": "/samples/ST-01/Organ.wav", "start": 15414684, "end": 15421128}, {"filename": "/samples/ST-01/Outlaw.wav", "start": 15421128, "end": 15429572}, {"filename": "/samples/ST-01/PanFlute.wav", "start": 15429572, "end": 15439516}, {"filename": "/samples/ST-01/Perco.wav", "start": 15439516, "end": 15444060}, {"filename": "/samples/ST-01/PingBells.wav", "start": 15444060, "end": 15449504}, {"filename": "/samples/ST-01/Pizza.wav", "start": 15449504, "end": 15458948}, {"filename": "/samples/ST-01/PolySynth.wav", "start": 15458948, "end": 15468892}, {"filename": "/samples/ST-01/PopBass.wav", "start": 15468892, "end": 15471636}, {"filename": "/samples/ST-01/PopSnare1.wav", "start": 15471636, "end": 15473680}, {"filename": "/samples/ST-01/PopSnare2.wav", "start": 15473680, "end": 15477724}, {"filename": "/samples/ST-01/PopSnare3.wav", "start": 15477724, "end": 15480468}, {"filename": "/samples/ST-01/Pulse.wav", "start": 15480468, "end": 15486912}, {"filename": "/samples/ST-01/RichString.wav", "start": 15486912, "end": 15493856}, {"filename": "/samples/ST-01/RingPiano.wav", "start": 15493856, "end": 15503800}, {"filename": "/samples/ST-01/RoomBrass.wav", "start": 15503800, "end": 15508444}, {"filename": "/samples/ST-01/RubberBass.wav", "start": 15508444, "end": 15517488}, {"filename": "/samples/ST-01/Shaker.wav", "start": 15517488, "end": 15519832}, {"filename": "/samples/ST-01/Shamus.wav", "start": 15519832, "end": 15528876}, {"filename": "/samples/ST-01/SineCZ.wav", "start": 15528876, "end": 15532820}, {"filename": "/samples/ST-01/SixTease.wav", "start": 15532820, "end": 15541264}, {"filename": "/samples/ST-01/SlapBass.wav", "start": 15541264, "end": 15546208}, {"filename": "/samples/ST-01/Smash1.wav", "start": 15546208, "end": 15549752}, {"filename": "/samples/ST-01/Smash2.wav", "start": 15549752, "end": 15554196}, {"filename": "/samples/ST-01/Snare1.wav", "start": 15554196, "end": 15556240}, {"filename": "/samples/ST-01/Snare2.wav", "start": 15556240, "end": 15558184}, {"filename": "/samples/ST-01/Snare3.wav", "start": 15558184, "end": 15562028}, {"filename": "/samples/ST-01/Snare4.wav", "start": 15562028, "end": 15564072}, {"filename": "/samples/ST-01/Snare5.wav", "start": 15564072, "end": 15568116}, {"filename": "/samples/ST-01/SoftBass.wav", "start": 15568116, "end": 15573060}, {"filename": "/samples/ST-01/Soundtrack.wav", "start": 15573060, "end": 15583004}, {"filename": "/samples/ST-01/Squares.wav", "start": 15583004, "end": 15592948}, {"filename": "/samples/ST-01/Stabs.wav", "start": 15592948, "end": 15600392}, {"filename": "/samples/ST-01/Steinway.wav", "start": 15600392, "end": 15607336}, {"filename": "/samples/ST-01/Strange.wav", "start": 15607336, "end": 15614380}, {"filename": "/samples/ST-01/Strings1.wav", "start": 15614380, "end": 15623324}, {"filename": "/samples/ST-01/Strings2.wav", "start": 15623324, "end": 15633068}, {"filename": "/samples/ST-01/Strings3.wav", "start": 15633068, "end": 15641612}, {"filename": "/samples/ST-01/Strings4.wav", "start": 15641612, "end": 15651356}, {"filename": "/samples/ST-01/Strings5.wav", "start": 15651356, "end": 15661300}, {"filename": "/samples/ST-01/Strings7.wav", "start": 15661300, "end": 15671244}, {"filename": "/samples/ST-01/Strings8.wav", "start": 15671244, "end": 15679388}, {"filename": "/samples/ST-01/Sweep.wav", "start": 15679388, "end": 15686732}, {"filename": "/samples/ST-01/SynBrass.wav", "start": 15686732, "end": 15690776}, {"filename": "/samples/ST-01/SynClaves.wav", "start": 15690776, "end": 15691820}, {"filename": "/samples/ST-01/SynthPiano.wav", "start": 15691820, "end": 15697364}, {"filename": "/samples/ST-01/SyntheBass.wav", "start": 15697364, "end": 15705308}, {"filename": "/samples/ST-01/TechBass.wav", "start": 15705308, "end": 15710452}, {"filename": "/samples/ST-01/TheEgg.wav", "start": 15710452, "end": 15720396}, {"filename": "/samples/ST-01/TineWave.wav", "start": 15720396, "end": 15730340}, {"filename": "/samples/ST-01/Touch.wav", "start": 15730340, "end": 15739584}, {"filename": "/samples/ST-01/TuneBass.wav", "start": 15739584, "end": 15744428}, {"filename": "/samples/ST-01/Voices.wav", "start": 15744428, "end": 15754372}, {"filename": "/samples/ST-01/WabberString.wav", "start": 15754372, "end": 15758316}, {"filename": "/samples/ST-01/WoodBlock.wav", "start": 15758316, "end": 15759560}, {"filename": "/samples/ST-01/WowBass.wav", "start": 15759560, "end": 15764604}, {"filename": "/samples/ST-01/st-notes.txt", "start": 15764604, "end": 15764831}, {"filename": "/samples/ST-01/strings6.wav", "start": 15764831, "end": 15774877}, {"filename": "/themes/Choo.cth", "start": 15774877, "end": 15775127}, {"filename": "/themes/DarkPink.cth", "start": 15775127, "end": 15775377}, {"filename": "/themes/Default.cth", "start": 15775377, "end": 15775627}, {"filename": "/themes/IDEColorThemes/AbletonDark.cth", "start": 15775627, "end": 15775877}, {"filename": "/themes/IDEColorThemes/AbletonLight.cth", "start": 15775877, "end": 15776127}, {"filename": "/themes/IDEColorThemes/AtomOneDark.cth", "start": 15776127, "end": 15776377}, {"filename": "/themes/IDEColorThemes/AtomOneLight.cth", "start": 15776377, "end": 15776627}, {"filename": "/themes/IDEColorThemes/CatpuccinDrk.cth", "start": 15776627, "end": 15776877}, {"filename": "/themes/IDEColorThemes/CatpuccinLight.cth", "start": 15776877, "end": 15777127}, {"filename": "/themes/IDEColorThemes/CyberpunkDark.cth", "start": 15777127, "end": 15777377}, {"filename": "/themes/IDEColorThemes/CyberpunkLight.cth", "start": 15777377, "end": 15777627}, {"filename": "/themes/IDEColorThemes/DraculaDark.cth", "start": 15777627, "end": 15777877}, {"filename": "/themes/IDEColorThemes/DraculaLight.cth", "start": 15777877, "end": 15778127}, {"filename": "/themes/IDEColorThemes/FLStudioDark.cth", "start": 15778127, "end": 15778377}, {"filename": "/themes/IDEColorThemes/FLStudioLight.cth", "start": 15778377, "end": 15778627}, {"filename": "/themes/IDEColorThemes/GBDMGDark.cth", "start": 15778627, "end": 15778877}, {"filename": "/themes/IDEColorThemes/GBDMGLight.cth", "start": 15778877, "end": 15779127}, {"filename": "/themes/IDEColorThemes/GitHubDark.cth", "start": 15779127, "end": 15779377}, {"filename": "/themes/IDEColorThemes/GitHubLight.cth", "start": 15779377, "end": 15779627}, {"filename": "/themes/IDEColorThemes/GruvDark.cth", "start": 15779627, "end": 15779877}, {"filename": "/themes/IDEColorThemes/GruvLight.cth", "start": 15779877, "end": 15780127}, {"filename": "/themes/IDEColorThemes/MatchaDark.cth", "start": 15780127, "end": 15780377}, {"filename": "/themes/IDEColorThemes/MatchaLight.cth", "start": 15780377, "end": 15780627}, {"filename": "/themes/IDEColorThemes/MonokaiProDark.cth", "start": 15780627, "end": 15780877}, {"filename": "/themes/IDEColorThemes/MonokaiProLight.cth", "start": 15780877, "end": 15781127}, {"filename": "/themes/IDEColorThemes/NordDark.cth", "start": 15781127, "end": 15781377}, {"filename": "/themes/IDEColorThemes/NordLight.cth", "start": 15781377, "end": 15781627}, {"filename": "/themes/IDEColorThemes/NostromoAmberDark.cth", "start": 15781627, "end": 15781877}, {"filename": "/themes/IDEColorThemes/NostromoAmberLight.cth", "start": 15781877, "end": 15782127}, {"filename": "/themes/IDEColorThemes/TokyoNightDark.cth", "start": 15782127, "end": 15782377}, {"filename": "/themes/IDEColorThemes/TokyoNightLight.cth", "start": 15782377, "end": 15782627}, {"filename": "/themes/IDEColorThemes/WLTerminalGreenDark.cth", "start": 15782627, "end": 15782877}, {"filename": "/themes/IDEColorThemes/WLTerminalGreenLight.cth", "start": 15782877, "end": 15783127}, {"filename": "/themes/IDEColorThemes/ZenBurnDark.cth", "start": 15783127, "end": 15783377}, {"filename": "/themes/IDEColorThemes/ZenBurnLight.cth", "start": 15783377, "end": 15783627}, {"filename": "/themes/NostromoAmberDa2.cth", "start": 15783627, "end": 15783877}, {"filename": "/themes/Wood.cth", "start": 15783877, "end": 15784127}, {"filename": "/themes/cndef.cth", "start": 15784127, "end": 15784377}, {"filename": "/themes/nIkO.cth", "start": 15784377, "end": 15784627}, {"filename": "/title/SNES_ART.md", "start": 15784627, "end": 15785688}, {"filename": "/title/snes_foreground.bmp", "start": 15785688, "end": 15920910}, {"filename": "/title/snes_logo.bmp", "start": 15920910, "end": 15937380}, {"filename": "/title/snes_scene.bmp", "start": 15937380, "end": 16083930}, {"filename": "/title/snes_sky.bmp", "start": 16083930, "end": 16428048}, {"filename": "/title/snes_train.bmp", "start": 16428048, "end": 16451142}, {"filename": "/title/snes_viaduct.bmp", "start": 16451142, "end": 16491804}, {"filename": "/waveforms/AKWF/AKWF_cello_0001.wav", "start": 16491804, "end": 16493148}, {"filename": "/waveforms/AKWF/AKWF_cello_0002.wav", "start": 16493148, "end": 16494492}, {"filename": "/waveforms/AKWF/AKWF_cello_0003.wav", "start": 16494492, "end": 16495836}, {"filename": "/waveforms/AKWF/AKWF_clarinett_0001.wav", "start": 16495836, "end": 16497180}, {"filename": "/waveforms/AKWF/AKWF_clarinett_0002.wav", "start": 16497180, "end": 16498524}, {"filename": "/waveforms/AKWF/AKWF_piano_0001.wav", "start": 16498524, "end": 16499868}, {"filename": "/waveforms/AKWF/AKWF_piano_0002.wav", "start": 16499868, "end": 16501212}, {"filename": "/waveforms/AKWF/AKWF_piano_0003.wav", "start": 16501212, "end": 16502556}, {"filename": "/waveforms/AKWF/AKWF_piano_0004.wav", "start": 16502556, "end": 16503900}, {"filename": "/waveforms/AKWF/AKWF_piano_0005.wav", "start": 16503900, "end": 16505244}, {"filename": "/waveforms/AKWF/AKWF_piano_0006.wav", "start": 16505244, "end": 16506588}, {"filename": "/waveforms/AKWF/AKWF_piano_0007.wav", "start": 16506588, "end": 16507932}, {"filename": "/waveforms/AKWF/AKWF_piano_0008.wav", "start": 16507932, "end": 16509276}, {"filename": "/waveforms/AKWF/AKWF_piano_0009.wav", "start": 16509276, "end": 16510620}, {"filename": "/waveforms/AKWF/AKWF_piano_0010.wav", "start": 16510620, "end": 16511964}, {"filename": "/waveforms/AKWF/AKWF_piano_0011.wav", "start": 16511964, "end": 16513308}, {"filename": "/waveforms/AKWF/AKWF_piano_0012.wav", "start": 16513308, "end": 16514652}, {"filename": "/waveforms/AKWF/AKWF_pluckalgo_0001.wav", "start": 16514652, "end": 16515996}, {"filename": "/waveforms/AKWF/AKWF_pluckalgo_0002.wav", "start": 16515996, "end": 16517340}, {"filename": "/waveforms/AKWF/AKWF_pluckalgo_0003.wav", "start": 16517340, "end": 16518684}, {"filename": "/waveforms/AKWF/AKWF_pluckalgo_0004.wav", "start": 16518684, "end": 16520028}, {"filename": "/waveforms/AKWF/AKWF_pluckalgo_0005.wav", "start": 16520028, "end": 16521372}, {"filename": "/waveforms/AKWF/AKWF_pluckalgo_0006.wav", "start": 16521372, "end": 16522716}, {"filename": "/waveforms/AKWF/AKWF_pluckalgo_0007.wav", "start": 16522716, "end": 16524060}, {"filename": "/waveforms/AKWF/AKWF_pluckalgo_0008.wav", "start": 16524060, "end": 16525404}, {"filename": "/waveforms/AKWF/AKWF_pluckalgo_0009.wav", "start": 16525404, "end": 16526748}, {"filename": "/waveforms/AKWF/AKWF_vgame_0001.wav", "start": 16526748, "end": 16528092}, {"filename": "/waveforms/AKWF/AKWF_vgame_0002.wav", "start": 16528092, "end": 16529436}, {"filename": "/waveforms/AKWF/AKWF_vgame_0003.wav", "start": 16529436, "end": 16530780}, {"filename": "/waveforms/AKWF/AKWF_vgame_0004.wav", "start": 16530780, "end": 16532124}, {"filename": "/waveforms/AKWF/AKWF_vgame_0005.wav", "start": 16532124, "end": 16533468}, {"filename": "/waveforms/AKWF/AKWF_vgame_0006.wav", "start": 16533468, "end": 16534812}, {"filename": "/waveforms/AKWF/AKWF_vgame_0007.wav", "start": 16534812, "end": 16536156}, {"filename": "/waveforms/AKWF/AKWF_vgame_0008.wav", "start": 16536156, "end": 16537500}, {"filename": "/waveforms/AKWF/AKWF_vgame_0009.wav", "start": 16537500, "end": 16538844}, {"filename": "/waveforms/AKWF/AKWF_vgame_0010.wav", "start": 16538844, "end": 16540188}, {"filename": "/waveforms/AKWF/AKWF_vgame_0011.wav", "start": 16540188, "end": 16541532}, {"filename": "/waveforms/AKWF/AKWF_vgame_0012.wav", "start": 16541532, "end": 16542876}, {"filename": "/waveforms/AKWF/AKWF_violin_0001.wav", "start": 16542876, "end": 16544220}, {"filename": "/waveforms/AKWF/AKWF_violin_0002.wav", "start": 16544220, "end": 16545564}, {"filename": "/waveforms/AKWF/AKWF_violin_0003.wav", "start": 16545564, "end": 16546908}, {"filename": "/waveforms/AKWF/AKWF_violin_0004.wav", "start": 16546908, "end": 16548252}, {"filename": "/waveforms/AKWF/AKWF_violin_0005.wav", "start": 16548252, "end": 16549596}, {"filename": "/waveforms/AKWF/AKWF_violin_0006.wav", "start": 16549596, "end": 16550940}, {"filename": "/waveforms/AKWF/AKWF_violin_0007.wav", "start": 16550940, "end": 16552284}, {"filename": "/waveforms/AKWF/AKWF_violin_0008.wav", "start": 16552284, "end": 16553628}, {"filename": "/waveforms/AKWF/AKWF_violin_0009.wav", "start": 16553628, "end": 16554972}, {"filename": "/waveforms/AKWF/AKWF_violin_0010.wav", "start": 16554972, "end": 16556316}, {"filename": "/waveforms/AKWF/AKWF_violin_0011.wav", "start": 16556316, "end": 16557660}, {"filename": "/waveforms/AKWF/AKWF_violin_0012.wav", "start": 16557660, "end": 16559004}, {"filename": "/waveforms/AKWF/LICENSE.AKWF-CC0.md", "start": 16559004, "end": 16565559}], "remote_package_size": 16565559});
 
   })();
 
-// end include: /var/folders/g9/899ky8t11x9g4x5pskvtwrrh0000gn/T/tmpsnbksijs.js
-// include: /var/folders/g9/899ky8t11x9g4x5pskvtwrrh0000gn/T/tmp9hwp2i4v.js
+// end include: /var/folders/g9/899ky8t11x9g4x5pskvtwrrh0000gn/T/tmpaj1my23m.js
+// include: /var/folders/g9/899ky8t11x9g4x5pskvtwrrh0000gn/T/tmp5koosvgq.js
 
     // All the pre-js content up to here must remain later on, we need to run
     // it.
     if ((typeof ENVIRONMENT_IS_WASM_WORKER != 'undefined' && ENVIRONMENT_IS_WASM_WORKER) || (typeof ENVIRONMENT_IS_PTHREAD != 'undefined' && ENVIRONMENT_IS_PTHREAD) || (typeof ENVIRONMENT_IS_AUDIO_WORKLET != 'undefined' && ENVIRONMENT_IS_AUDIO_WORKLET)) Module['preRun'] = [];
     var necessaryPreJSTasks = Module['preRun'].slice();
-  // end include: /var/folders/g9/899ky8t11x9g4x5pskvtwrrh0000gn/T/tmp9hwp2i4v.js
-// include: /var/folders/g9/899ky8t11x9g4x5pskvtwrrh0000gn/T/tmpb96l6qfv.js
+  // end include: /var/folders/g9/899ky8t11x9g4x5pskvtwrrh0000gn/T/tmp5koosvgq.js
+// include: /var/folders/g9/899ky8t11x9g4x5pskvtwrrh0000gn/T/tmpty1w27zy.js
 
     if (!Module['preRun']) throw 'Module.preRun should exist because file support used it; did a pre-js delete it?';
     necessaryPreJSTasks.forEach((task) => {
       if (Module['preRun'].indexOf(task) < 0) throw 'All preRun tasks that exist before user pre-js code should remain after; did you replace Module or modify Module.preRun?';
     });
-  // end include: /var/folders/g9/899ky8t11x9g4x5pskvtwrrh0000gn/T/tmpb96l6qfv.js
+  // end include: /var/folders/g9/899ky8t11x9g4x5pskvtwrrh0000gn/T/tmpty1w27zy.js
 
 
 var programArgs = [];
@@ -673,7 +676,7 @@ function updateMemoryViews() {
   HEAPF32 = new Float32Array(b);
   HEAPF64 = new Float64Array(b);
   HEAP64 = new BigInt64Array(b);
-
+  
 }
 
 // include: memoryprofiler.js
@@ -976,11 +979,11 @@ async function createWasm() {
       assert(ptr, `null function pointer in dynCall`);
       assert(!promising, 'async dynCall is not supported in this mode')
       var rtn = dynCallLegacy(sig, ptr, args);
-
+  
       function convert(rtn) {
         return rtn;
       }
-
+  
       return convert(rtn);
     };
 
@@ -1006,11 +1009,11 @@ async function createWasm() {
       }
     };
 
-
+  
 
   var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
-
-
+  
+  
     /**
    * heapOrArray is either a regular array, or a JavaScript typed array view.
    * @param {number} idx
@@ -1028,8 +1031,8 @@ async function createWasm() {
       while (heapOrArray[idx] && !(idx >= maxIdx)) ++idx;
       return idx;
     };
-
-
+  
+  
     /**
    * Given a pointer 'idx' to a null-terminated UTF8-encoded string in the given
    * array that contains uint8 values, returns a copy of that string as a
@@ -1041,9 +1044,9 @@ async function createWasm() {
    * @return {string}
    */
   var UTF8ArrayToString = (heapOrArray, idx = 0, maxBytesToRead, ignoreNul) => {
-
+  
       var endPtr = findStringEnd(heapOrArray, idx, maxBytesToRead, ignoreNul);
-
+  
       // When using conditional TextDecoder, skip it for short strings as the overhead of the native call is not worth it.
       if (endPtr - idx > 16 && heapOrArray.buffer && UTF8Decoder) {
         return UTF8Decoder.decode(heapOrArray.subarray(idx, endPtr));
@@ -1065,7 +1068,7 @@ async function createWasm() {
           if ((u0 & 0xF8) != 0xF0) warnOnce(`Invalid UTF-8 leading byte ${ptrToString(u0)} encountered when deserializing a UTF-8 string in wasm memory to a JS string!`);
           u0 = ((u0 & 7) << 18) | (u1 << 12) | (u2 << 6) | (heapOrArray[idx++] & 63);
         }
-
+  
         if (u0 < 0x10000) {
           str += String.fromCharCode(u0);
         } else {
@@ -1075,10 +1078,10 @@ async function createWasm() {
       }
       return str;
     };
-
+  
   /** @type {!Uint8Array} */
   var HEAPU8;
-
+  
     /**
    * Given a pointer 'ptr' to a null-terminated UTF8-encoded string in the
    * emscripten HEAP, returns a copy of that string as a Javascript String object.
@@ -1099,66 +1102,66 @@ async function createWasm() {
   var ___assert_fail = (condition, filename, line, func) =>
       abort(`Assertion failed: ${UTF8ToString(condition)}, at: ` + [filename ? UTF8ToString(filename) : 'unknown filename', line, func ? UTF8ToString(func) : 'unknown function']);
 
-
+  
   class ExceptionInfo {
       // excPtr - Thrown object pointer to wrap. Metadata pointer is calculated from it.
       constructor(excPtr) {
         this.excPtr = excPtr;
         this.ptr = excPtr - 24;
       }
-
+  
       set_type(type) {
         HEAPU32[(((this.ptr)+(4))>>2)] = type;
       }
-
+  
       get_type() {
         return HEAPU32[(((this.ptr)+(4))>>2)];
       }
-
+  
       set_destructor(destructor) {
         HEAPU32[(((this.ptr)+(8))>>2)] = destructor;
       }
-
+  
       get_destructor() {
         return HEAPU32[(((this.ptr)+(8))>>2)];
       }
-
+  
       set_caught(caught) {
         caught = caught ? 1 : 0;
         HEAP8[(this.ptr)+(12)] = caught;
       }
-
+  
       get_caught() {
         return HEAP8[(this.ptr)+(12)] != 0;
       }
-
+  
       set_rethrown(rethrown) {
         rethrown = rethrown ? 1 : 0;
         HEAP8[(this.ptr)+(13)] = rethrown;
       }
-
+  
       get_rethrown() {
         return HEAP8[(this.ptr)+(13)] != 0;
       }
-
+  
       // Initialize native structure fields. Should be called once after allocated.
       init(type, destructor) {
         this.set_adjusted_ptr(0);
         this.set_type(type);
         this.set_destructor(destructor);
       }
-
+  
       set_adjusted_ptr(adjustedPtr) {
         HEAPU32[(((this.ptr)+(16))>>2)] = adjustedPtr;
       }
-
+  
       get_adjusted_ptr() {
         return HEAPU32[(((this.ptr)+(16))>>2)];
       }
     }
-
+  
   var uncaughtExceptionCount = 0;
-
+  
   var __Unwind_RaiseException = (ex) => {
       assert(false, 'Exception thrown, but exception catching is not enabled. Compile with -sNO_DISABLE_EXCEPTION_CATCHING or -sEXCEPTION_CATCHING_ALLOWED=[..] to catch.');
     };
@@ -1178,8 +1181,8 @@ async function createWasm() {
       return ret;
     };
   var syscallGetVarargP = syscallGetVarargI;
-
-
+  
+  
   var PATH = {
   isAbs:(path) => path.charAt(0) === '/',
   splitPath:(filename) => {
@@ -1391,7 +1394,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
           var BUFSIZE = 256;
           var buf = Buffer.alloc(BUFSIZE);
           var bytesRead = 0;
-
+  
           // For some reason we must suppress a closure warning here, even though
           // fd definitely exists on process.stdin, and is even the proper way to
           // get the fd of stdin,
@@ -1400,7 +1403,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
           // so it is related to the surrounding code in some unclear manner.
           /** @suppress {missingProperties} */
           var fd = process.stdin.fd;
-
+  
           try {
             bytesRead = fs.readSync(fd, buf, 0, BUFSIZE);
           } catch(e) {
@@ -1410,7 +1413,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
             if (e.toString().includes('EOF')) bytesRead = 0;
             else throw e;
           }
-
+  
           if (bytesRead > 0) {
             result = buf.slice(0, bytesRead).toString('utf-8');
           }
@@ -1574,12 +1577,12 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         },
   },
   };
-
-
+  
+  
   var mmapAlloc = (size) => {
       abort('internal error: mmapAlloc called but `emscripten_builtin_memalign` native symbol not exported');
     };
-
+  
   var MEMFS = {
   ops_table:null,
   mount(mount) {
@@ -1803,11 +1806,11 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
           if (buffer.buffer === HEAP8.buffer) {
             canOwn = false;
           }
-
+  
           if (!length) return 0;
           var node = stream.node;
           node.mtime = node.ctime = Date.now();
-
+  
           if (canOwn) {
             assert(!position, 'canOwn must imply no weird position inside the file');
             node.contents = buffer.subarray(offset, offset + length);
@@ -1877,7 +1880,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         },
   },
   };
-
+  
   var FS_modeStringToFlags = (str) => {
       if (typeof str != 'string') return str;
       var flagModes = {
@@ -1894,7 +1897,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       }
       return flags;
     };
-
+  
   var FS_fileDataToTypedArray = (data) => {
       if (typeof data == 'string') {
         data = intArrayFromString(data, true);
@@ -1904,17 +1907,17 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       }
       return data;
     };
-
+  
   var FS_getMode = (canRead, canWrite) => {
       var mode = 0;
       if (canRead) mode |= 292 | 73;
       if (canWrite) mode |= 146;
       return mode;
     };
-
-
-
-
+  
+  
+  
+  
   var IDBFS = {
   dbs:{
   },
@@ -1937,7 +1940,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
           IDBFS.onAutoPersistStateChanged?.(true);
           IDBFS.syncfs(mount, /*populate:*/false, onPersistComplete);
         }
-
+  
         if (!mount.idbPersistState) {
           // Programs typically write/copy/move multiple files in the in-memory
           // filesystem within a single app frame, so when a filesystem sync
@@ -1972,14 +1975,14 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
             node.memfs_stream_ops = node.stream_ops;
             // Clone stream_ops to inject write tracking
             node.stream_ops = {...node.stream_ops};
-
+  
             // Track all file writes
             node.stream_ops.write = (stream, buffer, offset, length, position, canOwn) => {
               // This file has been modified, we must persist IndexedDB when this file closes
               stream.node.isModified = true;
               return node.memfs_stream_ops.write(stream, buffer, offset, length, position, canOwn);
             };
-
+  
             // Persist IndexedDB on file close
             node.stream_ops.close = (stream) => {
               var n = stream.node;
@@ -1989,10 +1992,10 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
               }
               if (n.memfs_stream_ops.close) return n.memfs_stream_ops.close(stream);
             };
-
+  
             // Persist the node we just created to IndexedDB
             IDBFS.queuePersist(mnt.mount);
-
+  
             return node;
           };
           // Also kick off persisting the filesystem on other operations that modify the filesystem.
@@ -2006,13 +2009,13 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
   syncfs:(mount, populate, callback) => {
         IDBFS.getLocalSet(mount, (err, local) => {
           if (err) return callback(err);
-
+  
           IDBFS.getRemoteSet(mount, (err, remote) => {
             if (err) return callback(err);
-
+  
             var src = populate ? remote : local;
             var dst = populate ? local : remote;
-
+  
             IDBFS.reconcile(src, dst, callback);
           });
         });
@@ -2029,7 +2032,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         if (db) {
           return callback(null, db);
         }
-
+  
         var req;
         try {
           req = IDBFS.indexedDB().open(name, IDBFS.DB_VERSION);
@@ -2042,22 +2045,22 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         req.onupgradeneeded = (e) => {
           var db = /** @type {IDBDatabase} */ (e.target.result);
           var transaction = e.target.transaction;
-
+  
           var fileStore;
-
+  
           if (db.objectStoreNames.contains(IDBFS.DB_STORE_NAME)) {
             fileStore = transaction.objectStore(IDBFS.DB_STORE_NAME);
           } else {
             fileStore = db.createObjectStore(IDBFS.DB_STORE_NAME);
           }
-
+  
           if (!fileStore.indexNames.contains('timestamp')) {
             fileStore.createIndex('timestamp', 'timestamp', { unique: false });
           }
         };
         req.onsuccess = () => {
           db = /** @type {IDBDatabase} */ (req.result);
-
+  
           // add to the cache
           IDBFS.dbs[name] = db;
           callback(null, db);
@@ -2069,60 +2072,60 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       },
   getLocalSet:(mount, callback) => {
         var entries = {};
-
+  
         function isRealDir(p) {
           return p !== '.' && p !== '..';
         };
         function toAbsolute(root) {
           return (p) => PATH.join2(root, p);
         };
-
+  
         var check = FS.readdir(mount.mountpoint).filter(isRealDir).map(toAbsolute(mount.mountpoint));
-
+  
         while (check.length) {
           var path = check.pop();
           var stat;
-
+  
           try {
             stat = FS.lstat(path);
           } catch (e) {
             return callback(e);
           }
-
+  
           if (FS.isDir(stat.mode)) {
             check.push(...FS.readdir(path).filter(isRealDir).map(toAbsolute(path)));
           }
-
+  
           entries[path] = { 'timestamp': stat.mtime };
         }
-
+  
         return callback(null, { type: 'local', entries: entries });
       },
   getRemoteSet:(mount, callback) => {
         var entries = {};
-
+  
         IDBFS.getDB(mount.mountpoint, (err, db) => {
           if (err) return callback(err);
-
+  
           try {
             var transaction = db.transaction([IDBFS.DB_STORE_NAME], 'readonly');
             transaction.onerror = (e) => {
               callback(e.target.error);
               e.preventDefault();
             };
-
+  
             var store = transaction.objectStore(IDBFS.DB_STORE_NAME);
             var index = store.index('timestamp');
-
+  
             index.openKeyCursor().onsuccess = (event) => {
               var cursor = event.target.result;
-
+  
               if (!cursor) {
                 return callback(null, { type: 'remote', db, entries });
               }
-
+  
               entries[cursor.primaryKey] = { 'timestamp': cursor.key };
-
+  
               cursor.continue();
             };
           } catch (e) {
@@ -2132,7 +2135,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       },
   loadLocalEntry:(path, callback) => {
         var stat, node;
-
+  
         try {
           var lookup = FS.lookupPath(path);
           node = lookup.node;
@@ -2140,7 +2143,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         } catch (e) {
           return callback(e);
         }
-
+  
         if (FS.isDir(stat.mode)) {
           return callback(null, { 'timestamp': stat.mtime, 'mode': stat.mode });
         } else if (FS.isLink(stat.mode)) {
@@ -2165,19 +2168,19 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
           } else {
             return callback(new Error('node type not supported'));
           }
-
+  
           FS.chmod(path, entry['mode']);
           FS.utime(path, entry['timestamp'], entry['timestamp']);
         } catch (e) {
           return callback(e);
         }
-
+  
         callback(null);
       },
   removeLocalEntry:(path, callback) => {
         try {
           var stat = FS.lstat(path);
-
+  
           if (FS.isDir(stat.mode)) {
             FS.rmdir(path);
           } else {
@@ -2186,7 +2189,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         } catch (e) {
           return callback(e);
         }
-
+  
         callback(null);
       },
   loadRemoteEntry:(store, path, callback) => {
@@ -2220,7 +2223,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       },
   reconcile:(src, dst, callback) => {
         var total = 0;
-
+  
         var create = [];
         for (var [key, e] of Object.entries(src.entries)) {
           var e2 = dst.entries[key];
@@ -2229,7 +2232,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
             total++;
           }
         }
-
+  
         var remove = [];
         for (var key of Object.keys(dst.entries)) {
           if (!src.entries[key]) {
@@ -2237,35 +2240,35 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
             total++;
           }
         }
-
+  
         if (!total) {
           return callback(null);
         }
-
+  
         var errored = false;
         var db = src.type === 'remote' ? src.db : dst.db;
         var transaction = db.transaction([IDBFS.DB_STORE_NAME], 'readwrite');
         var store = transaction.objectStore(IDBFS.DB_STORE_NAME);
-
+  
         function done(err) {
           if (err && !errored) {
             errored = true;
             return callback(err);
           }
         };
-
+  
         // transaction may abort if (for example) there is a QuotaExceededError
         transaction.onerror = transaction.onabort = (e) => {
           done(e.target.error);
           e.preventDefault();
         };
-
+  
         transaction.oncomplete = (e) => {
           if (!errored) {
             callback(null);
           }
         };
-
+  
         // sort paths in ascending order so directory entries are created
         // before the files inside them
         for (const path of create.sort()) {
@@ -2281,7 +2284,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
             });
           }
         }
-
+  
         // sort paths in descending order so files are deleted before their
         // parent directories
         for (var path of remove.sort().reverse()) {
@@ -2293,11 +2296,11 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         }
       },
   };
-
-
-
+  
+  
+  
   var strError = (errno) => UTF8ToString(_strerror(errno));
-
+  
   var ERRNO_CODES = {
       'EPERM': 63,
       'ENOENT': 44,
@@ -2421,16 +2424,16 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       'EOWNERDEAD': 62,
       'ESTRPIPE': 135,
     };
-
+  
   var asyncLoad = async (url) => {
       var arrayBuffer = await readAsync(url);
       assert(arrayBuffer, `Loading data file "${url}" failed (no arrayBuffer).`);
       return new Uint8Array(arrayBuffer);
     };
-
-
+  
+  
   var FS_createDataFile = (...args) => FS.createDataFile(...args);
-
+  
   var getUniqueRunDependency = (id) => {
       var orig = id;
       while (1) {
@@ -2438,23 +2441,23 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         id = orig + Math.random();
       }
     };
-
+  
   var dependenciesPromise = null;
   var resolveRunDependencies = async () => dependenciesPromise;
   var runDependencies = 0;
-
-
+  
+  
   var dependenciesPromiseResolve = null;
-
+  
   var runDependencyTracking = {
   };
-
+  
   var runDependencyWatcher = null;
   var removeRunDependency = (id) => {
       runDependencies--;
-
+  
       Module['monitorRunDependencies']?.(runDependencies);
-
+  
       assert(id, 'removeRunDependency requires an ID');
       assert(runDependencyTracking[id]);
       delete runDependencyTracking[id];
@@ -2466,18 +2469,18 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         dependenciesPromiseResolve();
       }
     };
-
-
-
-
+  
+  
+  
+  
   var addRunDependency = (id) => {
       if (!runDependencies) {
         dependenciesPromise = new Promise((resolve) => dependenciesPromiseResolve = resolve);
       }
       runDependencies++;
-
+  
       Module['monitorRunDependencies']?.(runDependencies);
-
+  
       assert(id, 'addRunDependency requires an ID')
       assert(!runDependencyTracking[id]);
       runDependencyTracking[id] = 1;
@@ -2506,13 +2509,13 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         runDependencyWatcher.unref?.()
       }
     };
-
-
+  
+  
   var preloadPlugins = [];
   var FS_handledByPreloadPlugin = async (byteArray, fullname) => {
       // Ensure plugins are ready.
       if (typeof Browser != 'undefined') Browser.init();
-
+  
       for (var plugin of preloadPlugins) {
         if (plugin['canHandle'](fullname)) {
           assert(plugin['handle'].constructor.name === 'AsyncFunction', 'Filesystem plugin handlers must be async functions (See #24914)')
@@ -2529,13 +2532,13 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       var fullname = name ? PATH_FS.resolve(PATH.join2(parent, name)) : parent;
       var dep = getUniqueRunDependency(`cp ${fullname}`); // might have several active requests for the same fullname
       addRunDependency(dep);
-
+  
       try {
         var byteArray = url;
         if (typeof url == 'string') {
           byteArray = await asyncLoad(url);
         }
-
+  
         byteArray = await FS_handledByPreloadPlugin(byteArray, fullname);
         preFinish?.();
         if (!dontCreateFile) {
@@ -2548,7 +2551,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
   var FS_createPreloadedFile = (parent, name, url, canRead, canWrite, onload, onerror, dontCreateFile, canOwn, preFinish) => {
       FS_preloadFile(parent, name, url, canRead, canWrite, dontCreateFile, canOwn, preFinish).then(onload).catch(onerror);
     };
-
+  
   var FS = {
   root:null,
   mounts:[],
@@ -2695,31 +2698,31 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
           throw new FS.ErrnoError(44);
         }
         opts.follow_mount ??= true
-
+  
         if (!PATH.isAbs(path)) {
           path = FS.cwd() + '/' + path;
         }
-
+  
         // limit max consecutive symlinks to SYMLOOP_MAX.
         linkloop: for (var nlinks = 0; nlinks < 40; nlinks++) {
           // split the absolute path
           var parts = path.split('/').filter((p) => !!p);
-
+  
           // start at the root
           var current = FS.root;
           var current_path = '/';
-
+  
           for (var i = 0; i < parts.length; i++) {
             var islast = (i === parts.length-1);
             if (islast && opts.parent) {
               // stop resolving
               break;
             }
-
+  
             if (parts[i] === '.') {
               continue;
             }
-
+  
             if (parts[i] === '..') {
               current_path = PATH.dirname(current_path);
               if (FS.isRoot(current)) {
@@ -2733,7 +2736,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
               }
               continue;
             }
-
+  
             current_path = PATH.join2(current_path, parts[i]);
             try {
               current = FS.lookupNode(current, parts[i]);
@@ -2746,12 +2749,12 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
               }
               throw e;
             }
-
+  
             // jump to the mount's root node if this is a mountpoint
             if (FS.isMountpoint(current) && (!islast || opts.follow_mount)) {
               current = current.mounted.root;
             }
-
+  
             // by default, lookupPath will not follow a symlink if it is the final path component.
             // setting opts.follow = true will override this behavior.
             if (FS.isLink(current.mode) && (!islast || opts.follow)) {
@@ -2784,7 +2787,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       },
   hashName(parentid, name) {
         var hash = 0;
-
+  
         for (var i = 0; i < name.length; i++) {
           hash = ((hash << 5) - hash + name.charCodeAt(i)) | 0;
         }
@@ -2828,9 +2831,9 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
   createNode(parent, name, mode, rdev) {
         assert(typeof parent == 'object')
         var node = new FS.FSNode(parent, name, mode, rdev);
-
+  
         FS.hashAddNode(node);
-
+  
         return node;
       },
   destroyNode(node) {
@@ -2969,7 +2972,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
   getStream:(fd) => FS.streams[fd],
   createStream(stream, fd = -1) {
         assert(fd >= -1);
-
+  
         // clone it, so we can return an instance of FSStream
         stream = Object.assign(new FS.FSStream(), stream);
         if (fd == -1) {
@@ -3023,15 +3026,15 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
   getMounts(mount) {
         var mounts = [];
         var check = [mount];
-
+  
         while (check.length) {
           var m = check.pop();
-
+  
           mounts.push(m);
-
+  
           check.push(...m.mounts);
         }
-
+  
         return mounts;
       },
   syncfs(populate, callback) {
@@ -3039,22 +3042,22 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
           callback = populate;
           populate = false;
         }
-
+  
         FS.syncFSRequests++;
-
+  
         if (FS.syncFSRequests > 1) {
           err(`warning: ${FS.syncFSRequests} FS.syncfs operations in flight at once, probably just doing extra work`);
         }
-
+  
         var mounts = FS.getMounts(FS.root.mount);
         var completed = 0;
-
+  
         function doCallback(errCode) {
           assert(FS.syncFSRequests > 0);
           FS.syncFSRequests--;
           return callback(errCode);
         }
-
+  
         function done(errCode) {
           if (errCode) {
             if (!done.errored) {
@@ -3067,7 +3070,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
             doCallback(null);
           }
         };
-
+  
         // sync all mounts
         for (var mount of mounts) {
           if (mount.type.syncfs) {
@@ -3086,77 +3089,77 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         var root = mountpoint === '/';
         var pseudo = !mountpoint;
         var node;
-
+  
         if (root && FS.root) {
           throw new FS.ErrnoError(10);
         } else if (!root && !pseudo) {
           var lookup = FS.lookupPath(mountpoint, { follow_mount: false });
-
+  
           mountpoint = lookup.path;  // use the absolute path
           node = lookup.node;
-
+  
           if (FS.isMountpoint(node)) {
             throw new FS.ErrnoError(10);
           }
-
+  
           if (!FS.isDir(node.mode)) {
             throw new FS.ErrnoError(54);
           }
         }
-
+  
         var mount = {
           type,
           opts,
           mountpoint,
           mounts: []
         };
-
+  
         // create a root node for the fs
         var mountRoot = type.mount(mount);
         mountRoot.mount = mount;
         mount.root = mountRoot;
-
+  
         if (root) {
           FS.root = mountRoot;
         } else if (node) {
           // set as a mountpoint
           node.mounted = mount;
-
+  
           // add the new mount to the current mount's children
           if (node.mount) {
             node.mount.mounts.push(mount);
           }
         }
-
+  
         return mountRoot;
       },
   unmount(mountpoint) {
         var lookup = FS.lookupPath(mountpoint, { follow_mount: false });
-
+  
         if (!FS.isMountpoint(lookup.node)) {
           throw new FS.ErrnoError(28);
         }
-
+  
         // destroy the nodes for this mount, and all its child mounts
         var node = lookup.node;
         var mount = node.mounted;
         var mounts = FS.getMounts(mount);
-
+  
         for (var [hash, current] of Object.entries(FS.nameTable)) {
           while (current) {
             var next = current.name_next;
-
+  
             if (mounts.includes(current.mount)) {
               FS.destroyNode(current);
             }
-
+  
             current = next;
           }
         }
-
+  
         // no longer a mountpoint
         node.mounted = null;
-
+  
         // remove this mount from the child mounts
         var idx = node.mount.mounts.indexOf(mount);
         assert(idx !== -1);
@@ -3209,7 +3212,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
           flags: 2,
           namelen: 255,
         };
-
+  
         if (node.node_ops.statfs) {
           Object.assign(rtn, node.node_ops.statfs(node.mount.opts.root));
         }
@@ -3292,13 +3295,13 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         var new_name = PATH.basename(new_path);
         // parents must exist
         var lookup, old_dir, new_dir;
-
+  
         // let the errors from non existent directories percolate up
         lookup = FS.lookupPath(old_path, { parent: true });
         old_dir = lookup.node;
         lookup = FS.lookupPath(new_path, { parent: true });
         new_dir = lookup.node;
-
+  
         if (!old_dir || !new_dir) throw new FS.ErrnoError(44);
         // need to be part of the same mount
         if (old_dir.mount !== new_dir.mount) {
@@ -3610,7 +3613,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         }
         // we've already handled these, don't pass down to the underlying vfs
         flags &= ~(128 | 512 | 131072);
-
+  
         // register the stream with the filesystem
         var stream = FS.createStream({
           node,
@@ -3882,7 +3885,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         // TODO deprecate the old functionality of a single
         // input / output callback and that utilizes FS.createDevice
         // and instead require a unique set of stream ops
-
+  
         // by default, we symlink the standard streams to the
         // default tty devices. however, if the standard streams
         // have been overwritten we create a unique device for
@@ -3902,7 +3905,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         } else {
           FS.symlink('/dev/tty1', '/dev/stderr');
         }
-
+  
         // open default streams for the stdin, stdout and stderr devices
         var stdin = FS.open('/dev/stdin', 0);
         var stdout = FS.open('/dev/stdout', 1);
@@ -3913,13 +3916,13 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       },
   staticInit() {
         FS.nameTable = new Array(4096);
-
+  
         FS.mount(MEMFS, {}, '/');
-
+  
         FS.createDefaultDirectories();
         FS.createDefaultDevices();
         FS.createSpecialDirectories();
-
+  
         FS.filesystems = {
           'MEMFS': MEMFS,
           'IDBFS': IDBFS,
@@ -3928,12 +3931,12 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
   init(input, output, error) {
         assert(!FS.initialized, 'FS.init was previously called. If you want to initialize later with custom parameters, remove any earlier calls (note that one is automatically added to the generated code)');
         FS.initialized = true;
-
+  
         // Allow Module.stdin etc. to provide defaults, if none explicitly passed to us here
         input ??= Module['stdin'];
         output ??= Module['stdout'];
         error ??= Module['stderr'];
-
+  
         FS.createStandardStreams(input, output, error);
       },
   quit() {
@@ -4114,27 +4117,27 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
             var header;
             var hasByteServing = (header = xhr.getResponseHeader('Accept-Ranges')) && header === 'bytes';
             var usesGzip = (header = xhr.getResponseHeader('Content-Encoding')) && header === 'gzip';
-
+  
             var chunkSize = 1024*1024; // Chunk size in bytes
-
+  
             if (!hasByteServing) chunkSize = datalength;
-
+  
             // Function to get a range from the remote URL.
             var doXHR = (from, to) => {
               if (from > to) abort(`invalid range (${from}, ${to}) or no bytes requested!`);
               if (to > datalength-1) abort(`only ${datalength} bytes available! programmer error!`);
-
+  
               // TODO: Use mozResponseArrayBuffer, responseStream, etc. if available.
               var xhr = new XMLHttpRequest();
               xhr.open('GET', url, false);
               if (datalength !== chunkSize) xhr.setRequestHeader('Range', `bytes=${from}-${to}`);
-
+  
               // Some hints to the browser that we want binary data.
               xhr.responseType = 'arraybuffer';
               if (xhr.overrideMimeType) {
                 xhr.overrideMimeType('text/plain; charset=x-user-defined');
               }
-
+  
               xhr.send(null);
               if (!(xhr.status >= 200 && xhr.status < 300 || xhr.status === 304)) abort(`Couldn't load ${url}. Status: ${xhr.status}`);
               if (xhr.response !== undefined) {
@@ -4153,7 +4156,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
               if (typeof lazyArray.chunks[chunkNum] == 'undefined') abort('doXHR failed!');
               return lazyArray.chunks[chunkNum];
             });
-
+  
             if (usesGzip || !datalength) {
               // if the server uses gzip or doesn't supply the length, we have to download the whole file to get the (uncompressed) length
               chunkSize = datalength = 1; // this will force getter(0)/doXHR do download the whole file
@@ -4161,7 +4164,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
               chunkSize = datalength;
               out('LazyFiles on gzip forces download of the whole file when length is accessed');
             }
-
+  
             this._length = datalength;
             this._chunkSize = chunkSize;
             this.lengthKnown = true;
@@ -4179,7 +4182,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
             return this._chunkSize;
           }
         }
-
+  
         if (globalThis.XMLHttpRequest) {
           if (!ENVIRONMENT_IS_WORKER) abort('Cannot do synchronous binary XHRs outside webworkers in modern browsers. Use --embed-file or --preload-file in emcc');
           var lazyArray = new LazyUint8Array();
@@ -4187,7 +4190,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         } else {
           var properties = { isDevice: false, url: url };
         }
-
+  
         var node = FS.createFile(parent, name, properties, canRead, canWrite);
         // This is a total hack, but I want to get this lazy file code out of the
         // core of MEMFS. If we want to keep this lazy file concept I feel it should
@@ -4248,11 +4251,11 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         return node;
       },
   };
-
-
-
-
-
+  
+  
+  
+  
+  
   /** not-@type {!BigInt64Array} */
   var HEAP64;
   var SYSCALLS = {
@@ -4332,13 +4335,13 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         return ret;
       },
   };
-
+  
   /** @type {!Int16Array} */
   var HEAP16;
   function ___syscall_fcntl64(fd, cmd, varargs) {
   SYSCALLS.varargs = varargs;
   try {
-
+  
       var stream = SYSCALLS.getStreamFromFD(fd);
       switch (cmd) {
         case 0: {
@@ -4385,28 +4388,28 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
     return -e.errno;
   }
   }
-
+  
 
   function ___syscall_fstat64(fd, buf) {
   try {
-
+  
       return SYSCALLS.writeStat(buf, FS.fstat(fd));
     } catch (e) {
     if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
     return -e.errno;
   }
   }
+  
 
-
-
-
+  
+  
   var stringToUTF8 = (str, outPtr, maxBytesToWrite) => {
       assert(typeof maxBytesToWrite == 'number', 'stringToUTF8 requires a third parameter that specifies the length of the output buffer');
       return stringToUTF8Array(str, HEAPU8, outPtr, maxBytesToWrite);
     };
   function ___syscall_getcwd(buf, size) {
   try {
-
+  
       if (!size) return -28;
       var cwd = FS.cwd();
       var cwdLengthInBytes = lengthBytesUTF8(cwd) + 1;
@@ -4418,22 +4421,22 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
     return -e.errno;
   }
   }
+  
 
-
-
-
-
-
+  
+  
+  
+  
   function ___syscall_getdents64(fd, dirp, count) {
   try {
-
+  
       var stream = SYSCALLS.getStreamFromFD(fd)
       stream.getdents ||= FS.readdir(stream.path);
-
+  
       var struct_size = 280;
       var pos = 0;
       var off = FS.llseek(stream, 0, 1);
-
+  
       var startIdx = Math.floor(off / struct_size);
       var endIdx = Math.min(stream.getdents.length, startIdx + Math.floor(count/struct_size))
       for (var idx = startIdx; idx < endIdx; idx++) {
@@ -4482,16 +4485,16 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
     return -e.errno;
   }
   }
+  
 
-
-
-
-
-
+  
+  
+  
+  
   function ___syscall_ioctl(fd, op, varargs) {
   SYSCALLS.varargs = varargs;
   try {
-
+  
       var stream = SYSCALLS.getStreamFromFD(fd);
       switch (op) {
         case 21509: {
@@ -4583,11 +4586,11 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
     return -e.errno;
   }
   }
-
+  
 
   function ___syscall_lstat64(path, buf) {
   try {
-
+  
       path = SYSCALLS.getStr(path);
       return SYSCALLS.writeStat(buf, FS.lstat(path));
     } catch (e) {
@@ -4595,11 +4598,11 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
     return -e.errno;
   }
   }
-
+  
 
   function ___syscall_mkdirat(dirfd, path, mode) {
   try {
-
+  
       path = SYSCALLS.getStr(path);
       path = SYSCALLS.calculateAt(dirfd, path);
       mode &= ~SYSCALLS.currentUmask;
@@ -4610,11 +4613,11 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
     return -e.errno;
   }
   }
-
+  
 
   function ___syscall_newfstatat(dirfd, path, buf, flags) {
   try {
-
+  
       path = SYSCALLS.getStr(path);
       var nofollow = flags & 256;
       var allowEmpty = flags & 4096;
@@ -4627,13 +4630,13 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
     return -e.errno;
   }
   }
+  
 
-
-
+  
   function ___syscall_openat(dirfd, path, flags, varargs) {
   SYSCALLS.varargs = varargs;
   try {
-
+  
       path = SYSCALLS.getStr(path);
       path = SYSCALLS.calculateAt(dirfd, path);
       var mode = varargs ? syscallGetVarargI() : 0;
@@ -4646,19 +4649,19 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
     return -e.errno;
   }
   }
+  
 
-
-
-
-
+  
+  
+  
   function ___syscall_readlinkat(dirfd, path, buf, bufsize) {
   try {
-
+  
       path = SYSCALLS.getStr(path);
       path = SYSCALLS.calculateAt(dirfd, path);
       if (bufsize <= 0) return -28;
       var ret = FS.readlink(path);
-
+  
       var len = Math.min(bufsize, lengthBytesUTF8(ret));
       var endChar = HEAP8[buf+len];
       stringToUTF8(ret, buf, bufsize+1);
@@ -4671,11 +4674,11 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
     return -e.errno;
   }
   }
-
+  
 
   function ___syscall_rmdir(path) {
   try {
-
+  
       path = SYSCALLS.getStr(path);
       FS.rmdir(path);
       return 0;
@@ -4684,11 +4687,11 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
     return -e.errno;
   }
   }
-
+  
 
   function ___syscall_stat64(path, buf) {
   try {
-
+  
       path = SYSCALLS.getStr(path);
       return SYSCALLS.writeStat(buf, FS.stat(path));
     } catch (e) {
@@ -4696,11 +4699,11 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
     return -e.errno;
   }
   }
-
+  
 
   function ___syscall_unlinkat(dirfd, path, flags) {
   try {
-
+  
       path = SYSCALLS.getStr(path);
       path = SYSCALLS.calculateAt(dirfd, path);
       if (!flags) {
@@ -4716,28 +4719,28 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
     return -e.errno;
   }
   }
-
+  
 
   var __abort_js = () =>
       abort('native code called abort()');
 
   var _emscripten_get_now = () => performance.now();
-
+  
   var _emscripten_date_now = () => Date.now();
-
+  
   var nowIsMonotonic = 1;
-
+  
   var checkWasiClock = (clock_id) => clock_id >= 0 && clock_id <= 3;
-
+  
   var INT53_MAX = 9007199254740992;
-
+  
   var INT53_MIN = -9007199254740992;
   var bigintToI53Checked = (num) => (num < INT53_MIN || num > INT53_MAX) ? NaN : Number(num);
-
+  
   function _clock_time_get(clk_id, ignored_precision, ptime) {
     ignored_precision = bigintToI53Checked(ignored_precision);
-
-
+  
+  
       if (!checkWasiClock(clk_id)) {
         return 28;
       }
@@ -4774,8 +4777,8 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       }
       quit_(1, e);
     };
-
-
+  
+  
   var runtimeKeepaliveCounter = 0;
   var keepRuntimeAlive = () => noExitRuntime || runtimeKeepaliveCounter > 0;
   var _proc_exit = (code) => {
@@ -4786,25 +4789,25 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       }
       quit_(code, new ExitStatus(code));
     };
-
-
+  
+  
   /** @param {boolean|number=} implicit */
   var exitJS = (status, implicit) => {
       EXITSTATUS = status;
-
+  
       checkUnflushedContent();
-
+  
       // if exit() was called explicitly, warn the user if the runtime isn't actually being shut down
       if (keepRuntimeAlive() && !implicit) {
         var msg = `program exited (with status: ${status}), but keepRuntimeAlive() is set (counter=${runtimeKeepaliveCounter}) due to an async operation, so halting execution but not exiting the runtime or preventing further async execution (you can use emscripten_force_exit, if you want to force a true shutdown)`;
         err(msg);
       }
-
+  
       _proc_exit(status);
     };
   var _exit = exitJS;
-
-
+  
+  
   var maybeExit = () => {
       if (!keepRuntimeAlive()) {
         try {
@@ -4827,31 +4830,31 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         maybeExit();
       }
     };
-
+  
   function getFullscreenElement() {
       return document.fullscreenElement
              ?? document.webkitFullscreenElement
              ;
     }
-
+  
   /** @param {number=} timeout */
   var safeSetTimeout = (func, timeout) => {
-
+      
       // Slot 0 is reserved so that, like setTimeout, ids are always non-zero.
       safeSetTimeout.mapping ||= [0];
       var id = safeSetTimeout.mapping.length;
       safeSetTimeout.mapping[id] = setTimeout(() => {
         safeSetTimeout.mapping[id] = undefined;
-
+        
         callUserCallback(func);
       }, timeout);
       return id;
     };
-
-
-
-
-
+  
+  
+  
+  
+  
   var Browser = {
   useWebGL:false,
   isFullscreen:false,
@@ -4865,7 +4868,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
   init() {
         if (Browser.initted) return;
         Browser.initted = true;
-
+  
         // Support for plugins that can process preloaded files. You can add more of these to
         // your app by creating and appending to preloadPlugins.
         //
@@ -4873,7 +4876,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         // it is given the file's raw data. When it is done, it calls a callback with the file's
         // (possibly modified) data. For example, a plugin might decompress a file, or it
         // might create some side data structure for use later (like an Image element, etc.).
-
+  
         var imagePlugin = {};
         imagePlugin['canHandle'] = (name) => {
           return !Module['noImageDecoding'] && /\.(jpg|jpeg|png|bmp|webp)$/i.test(name);
@@ -4906,7 +4909,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
           });
         };
         preloadPlugins.push(imagePlugin);
-
+  
         var audioPlugin = {};
         audioPlugin['canHandle'] = (name) => {
           return !Module['noAudioDecoding'] && name.slice(-4) in { '.ogg': 1, '.wav': 1, '.mp3': 1 };
@@ -4962,9 +4965,9 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
           });
         };
         preloadPlugins.push(audioPlugin);
-
+  
         // Canvas event setup
-
+  
         function pointerLockChange() {
           var canvas = Browser.getCanvas();
           Browser.pointerLock = document.pointerLockElement === canvas;
@@ -4973,9 +4976,9 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         if (canvas) {
           // forced aspect ratio can be enabled by defining 'forcedAspectRatio' on Module
           // Module['forcedAspectRatio'] = 4 / 3;
-
+  
           document.addEventListener('pointerlockchange', pointerLockChange);
-
+  
           if (Module['elementPointerLock']) {
             canvas.addEventListener('click', (ev) => {
               if (!Browser.pointerLock && Browser.getCanvas().requestPointerLock) {
@@ -4988,7 +4991,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       },
   createContext(/** @type {HTMLCanvasElement} */ canvas, useWebGL, setInModule, webGLContextAttributes) {
         if (useWebGL && Module['ctx'] && canvas == Browser.getCanvas()) return Module['ctx']; // no need to recreate GL context if it's already been created for this canvas.
-
+  
         var ctx;
         var contextHandle;
         if (useWebGL) {
@@ -4998,13 +5001,13 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
             alpha: false,
             majorVersion: 1,
           };
-
+  
           if (webGLContextAttributes) {
             for (var attribute in webGLContextAttributes) {
               contextAttributes[attribute] = webGLContextAttributes[attribute];
             }
           }
-
+  
           // This check of existence of GL is here to satisfy Closure compiler, which yells if variable GL is referenced below but GL object is not
           // actually compiled in because application is not doing any GL operations. TODO: Ideally if GL is not being used, this function
           // Browser.createContext() should not even be emitted.
@@ -5017,9 +5020,9 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         } else {
           ctx = canvas.getContext('2d');
         }
-
+  
         if (!ctx) return null;
-
+  
         if (setInModule) {
           if (!useWebGL) assert(typeof GLctx == 'undefined', 'cannot set in module if GLctx is used, but we are a non-GL context that would replace it');
           Module['ctx'] = ctx;
@@ -5038,7 +5041,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         Browser.resizeCanvas = resizeCanvas;
         if (typeof Browser.lockPointer == 'undefined') Browser.lockPointer = true;
         if (typeof Browser.resizeCanvas == 'undefined') Browser.resizeCanvas = false;
-
+  
         var canvas = Browser.getCanvas();
         function fullscreenChange() {
           Browser.isFullscreen = false;
@@ -5056,7 +5059,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
             // remove the full screen specific parent of the canvas again to restore the HTML structure from before going full screen
             canvasContainer.parentNode.insertBefore(canvas, canvasContainer);
             canvasContainer.parentNode.removeChild(canvasContainer);
-
+  
             if (Browser.resizeCanvas) {
               Browser.setWindowedCanvasSize();
             } else {
@@ -5064,25 +5067,25 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
             }
           }
         }
-
+  
         if (!Browser.fullscreenHandlersInstalled) {
           Browser.fullscreenHandlersInstalled = true;
           document.addEventListener('fullscreenchange', fullscreenChange);
           document.addEventListener('webkitfullscreenchange', fullscreenChange);
         }
-
+  
         // create a new parent to ensure the canvas has no siblings. this allows browsers to optimize full screen performance when its parent is the full screen root
         var canvasContainer = document.createElement('div');
         canvas.parentNode.insertBefore(canvasContainer, canvas);
         canvasContainer.appendChild(canvas);
-
+  
         // use parent of canvas as full screen root to allow aspect ratio correction (Firefox stretches the root to screen size)
         // Safari didn't support Element.requestFullscreen until 16.4
         // See: https://developer.mozilla.org/en-US/docs/Web/API/Element/requestFullscreen
         /** @suppress {checkTypes} */
         canvasContainer.requestFullscreen ??= (canvasContainer['webkitRequestFullscreen'] ? () => canvasContainer['webkitRequestFullscreen'](Element.ALLOW_KEYBOARD_INPUT) : null) ??
                                               (canvasContainer['webkitRequestFullScreen'] ? () => canvasContainer['webkitRequestFullScreen'](Element.ALLOW_KEYBOARD_INPUT) : null);
-
+  
         canvasContainer.requestFullscreen();
       },
   exitFullscreen() {
@@ -5092,7 +5095,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         if (!Browser.isFullscreen) {
           return false;
         }
-
+  
         var CFS = document.exitFullscreen ?? document['webkitCancelFullScreen'];
         CFS.apply(document, []);
         return true;
@@ -5165,16 +5168,16 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         // in the coordinates.
         var canvas = Browser.getCanvas();
         var rect = canvas.getBoundingClientRect();
-
+  
         var adjustedX = pageX - (window.scrollX + rect.left);
         var adjustedY = pageY - (window.scrollY + rect.top);
-
+  
         // the canvas might be CSS-scaled compared to its backbuffer;
         // SDL-using content will want mouse coordinates in terms
         // of backbuffer units.
         adjustedX = adjustedX * (canvas.width / rect.width);
         adjustedY = adjustedY * (canvas.height / rect.height);
-
+  
         return { x: adjustedX, y: adjustedY };
       },
   setMouseCoords(pageX, pageY) {
@@ -5190,7 +5193,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
           // based on the movement of the mouse.
           Browser.mouseMovementX = event.movementX;
           Browser.mouseMovementY = event.movementY;
-
+  
           // add the mouse delta to the current absolute mouse position
           Browser.mouseX += Browser.mouseMovementX;
           Browser.mouseY += Browser.mouseMovementY;
@@ -5199,10 +5202,10 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
             var touch = event.touch;
             if (touch === undefined) {
               return; // the 'touch' property is only defined in SDL
-
+  
             }
             var coords = Browser.calculateMouseCoords(touch.pageX, touch.pageY);
-
+  
             if (event.type === 'touchstart') {
               Browser.lastTouches[touch.identifier] = coords;
               Browser.touches[touch.identifier] = coords;
@@ -5214,7 +5217,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
             }
             return;
           }
-
+  
           Browser.setMouseCoords(event.pageX, event.pageY);
         }
       },
@@ -5287,9 +5290,9 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         }
       },
   };
-
-
-
+  
+  
+  
   var EGL = {
   errorCode:12288,
   defaultDisplayInitialized:false,
@@ -5312,7 +5315,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
           EGL.setErrorCode(0x3008 /* EGL_BAD_DISPLAY */);
           return 0;
         }
-
+  
         if (attribList) {
           // read attribList if it is non-null
           for (;;) {
@@ -5341,7 +5344,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
             attribList += 8;
           }
         }
-
+  
         if ((!config || !config_size) && !numConfigs) {
           EGL.setErrorCode(0x300C /* EGL_BAD_PARAMETER */);
           return 0;
@@ -5352,7 +5355,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         if (config && config_size > 0) {
           HEAPU32[((config)>>2)] = 62002;
         }
-
+  
         EGL.setErrorCode(0x3000 /* EGL_SUCCESS */);
         return 1;
       },
@@ -5371,7 +5374,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       EGL.chooseConfig(display, attrib_list, configs, config_size, numConfigs);
 
   var GLctx;
-
+  
   var webgl_enable_ANGLE_instanced_arrays = (ctx) => {
       // Extension available in WebGL 1 from Firefox 26 and Google Chrome 30 onwards. Core feature in WebGL 2.
       var ext = ctx.getExtension('ANGLE_instanced_arrays');
@@ -5385,7 +5388,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         return 1;
       }
     };
-
+  
   var webgl_enable_OES_vertex_array_object = (ctx) => {
       // Extension available in WebGL 1 from Firefox 25 and WebKit 536.28/desktop Safari 6.0.3 onwards. Core feature in WebGL 2.
       var ext = ctx.getExtension('OES_vertex_array_object');
@@ -5397,7 +5400,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         return 1;
       }
     };
-
+  
   var webgl_enable_WEBGL_draw_buffers = (ctx) => {
       // Extension available in WebGL 1 from Firefox 28 onwards. Core feature in WebGL 2.
       var ext = ctx.getExtension('WEBGL_draw_buffers');
@@ -5406,20 +5409,20 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         return 1;
       }
     };
-
+  
   var webgl_enable_EXT_polygon_offset_clamp = (ctx) =>
       !!(ctx.extPolygonOffsetClamp = ctx.getExtension('EXT_polygon_offset_clamp'));
-
+  
   var webgl_enable_EXT_clip_control = (ctx) =>
       !!(ctx.extClipControl = ctx.getExtension('EXT_clip_control'));
-
+  
   var webgl_enable_WEBGL_polygon_mode = (ctx) =>
       !!(ctx.webglPolygonMode = ctx.getExtension('WEBGL_polygon_mode'));
-
+  
   var webgl_enable_WEBGL_multi_draw = (ctx) =>
       // Closure is expected to be allowed to minify the '.multiDrawWebgl' property, so not accessing it quoted.
       !!(ctx.multiDrawWebgl = ctx.getExtension('WEBGL_multi_draw'));
-
+  
   var getEmscriptenSupportedExtensions = (ctx) => {
       // Restrict the list of advertised extensions to those that we actually
       // support.
@@ -5467,10 +5470,10 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       // .getSupportedExtensions() can return null if context is lost, so coerce to empty array.
       return ctx.getSupportedExtensions()?.filter(ext => supportedExtensions.includes(ext)) ?? [];
     };
-
-
-
-
+  
+  
+  
+  
   var GL = {
   counter:1,
   buffers:[],
@@ -5573,7 +5576,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         }
       },
   createContext:(/** @type {HTMLCanvasElement} */ canvas, webGLContextAttributes) => {
-
+  
         // BUG: Workaround Safari WebGL issue: After successfully acquiring WebGL
         // context on a canvas, calling .getContext() will always return that
         // context independent of which 'webgl' or 'webgl2'
@@ -5592,27 +5595,27 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
           }
           canvas.getContext = fixedGetContext;
         }
-
+  
         var ctx =
           canvas.getContext('webgl', webGLContextAttributes);
-
+  
         if (!ctx) return 0;
-
+  
         var handle = GL.registerContext(ctx, webGLContextAttributes);
-
+  
         return handle;
       },
   registerContext:(ctx, webGLContextAttributes) => {
         // without pthreads a context is just an integer ID
         var handle = GL.getNewId(GL.contexts);
-
+  
         var context = {
           handle,
           attributes: webGLContextAttributes,
           version: webGLContextAttributes.majorVersion,
           GLctx: ctx
         };
-
+  
         // Store the created context object so that we can access the context
         // given a canvas without having to pass the parameters again.
         if (ctx.canvas) ctx.canvas.GLctxObject = context;
@@ -5620,11 +5623,11 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         if (typeof webGLContextAttributes.enableExtensionsByDefault == 'undefined' || webGLContextAttributes.enableExtensionsByDefault) {
           GL.initExtensions(context);
         }
-
+  
         return handle;
       },
   makeContextCurrent:(contextHandle) => {
-
+  
         // Active Emscripten GL layer context object.
         GL.currentContext = GL.contexts[contextHandle];
         // Active WebGL context object.
@@ -5654,15 +5657,15 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         // If this function is called without a specific context object, init the
         // extensions of the currently active context.
         context ||= GL.currentContext;
-
+  
         if (context.initExtensionsDone) return;
         context.initExtensionsDone = true;
-
+  
         var GLctx = context.GLctx;
-
+  
         // Detect the presence of a few extensions manually, since the GL interop
         // layer itself will need to know if they exist.
-
+  
         // Extensions that are available in both WebGL 1 and WebGL 2
         webgl_enable_WEBGL_multi_draw(GLctx);
         webgl_enable_EXT_polygon_offset_clamp(GLctx);
@@ -5676,7 +5679,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         {
           GLctx.disjointTimerQueryExt = GLctx.getExtension('EXT_disjoint_timer_query');
         }
-
+  
         for (var ext of getEmscriptenSupportedExtensions(GLctx)) {
           // WEBGL_lose_context, WEBGL_debug_renderer_info and WEBGL_debug_shaders
           // are not enabled by default.
@@ -5687,14 +5690,14 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         }
       },
   };
-
-
+  
+  
   var _eglCreateContext = (display, config, hmm, contextAttribs) => {
       if (display != 62000) {
         EGL.setErrorCode(0x3008 /* EGL_BAD_DISPLAY */);
         return 0;
       }
-
+  
       // EGL 1.4 spec says default EGL_CONTEXT_CLIENT_VERSION is GLES1, but this is not supported by Emscripten.
       // So user must pass EGL_CONTEXT_CLIENT_VERSION == 2 to initialize EGL.
       var glesContextVersion = 1;
@@ -5720,20 +5723,20 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         EGL.setErrorCode(0x3005 /* EGL_BAD_CONFIG */);
         return 0; /* EGL_NO_CONTEXT */
       }
-
+  
       EGL.contextAttributes.majorVersion = glesContextVersion - 1; // WebGL 1 is GLES 2, WebGL2 is GLES3
       EGL.contextAttributes.minorVersion = 0;
-
+  
       EGL.context = GL.createContext(Browser.getCanvas(), EGL.contextAttributes);
-
+  
       if (EGL.context != 0) {
         EGL.setErrorCode(0x3000 /* EGL_SUCCESS */);
-
+  
         // Run callbacks so that GL emulation works
         GL.makeContextCurrent(EGL.context);
         Browser.useWebGL = true;
         Browser.moduleContextCreatedCallbacks.forEach((callback) => callback());
-
+  
         // Note: This function only creates a context, but it shall not make it active.
         GL.makeContextCurrent(null);
         return 62004;
@@ -5760,7 +5763,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       return 62006; /* Magic ID for Emscripten 'default surface' */
     };
 
-
+  
   var _eglDestroyContext = (display, context) => {
       if (display != 62000) {
         EGL.setErrorCode(0x3008 /* EGL_BAD_DISPLAY */);
@@ -5770,7 +5773,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         EGL.setErrorCode(0x3006 /* EGL_BAD_CONTEXT */);
         return 0;
       }
-
+  
       GL.deleteContext(EGL.context);
       EGL.setErrorCode(0x3000 /* EGL_SUCCESS */);
       if (EGL.currentContext == context) {
@@ -5798,7 +5801,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       return 1; /* Magic ID for Emscripten 'default surface' */
     };
 
-
+  
   var _eglGetConfigAttrib = (display, config, attribute, value) => {
       if (display != 62000) {
         EGL.setErrorCode(0x3008 /* EGL_BAD_DISPLAY */);
@@ -5927,7 +5930,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
 
   var _eglGetError = () => EGL.errorCode;
 
-
+  
   var _eglInitialize = (display, majorVersion, minorVersion) => {
       if (display != 62000) {
         EGL.setErrorCode(0x3008 /* EGL_BAD_DISPLAY */);
@@ -5944,7 +5947,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       return 1;
     };
 
-
+  
   var _eglMakeCurrent = (display, draw, read, context) => {
       if (display != 62000) {
         EGL.setErrorCode(0x3008 /* EGL_BAD_DISPLAY */);
@@ -5959,9 +5962,9 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         EGL.setErrorCode(0x300D /* EGL_BAD_SURFACE */);
         return 0;
       }
-
+  
       GL.makeContextCurrent(context ? EGL.context : null);
-
+  
       EGL.currentContext = context;
       EGL.currentDrawSurface = draw;
       EGL.currentReadSurface = read;
@@ -5969,15 +5972,15 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       return 1 /* EGL_TRUE */;
     };
 
-
-
+  
+  
   var stringToNewUTF8 = (str) => {
       var size = lengthBytesUTF8(str) + 1;
       var ret = _malloc(size);
       if (ret) stringToUTF8(str, ret, size);
       return ret;
     };
-
+  
   var _eglQueryString = (display, name) => {
       if (display != 62000) {
         EGL.setErrorCode(0x3008 /* EGL_BAD_DISPLAY */);
@@ -6000,7 +6003,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       return ret;
     };
 
-
+  
   var _eglSwapBuffers = (dpy, surface) => {
       if (!EGL.defaultDisplayInitialized) {
         EGL.setErrorCode(0x3001 /* EGL_NOT_INITIALIZED */);
@@ -6019,10 +6022,10 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       return 0 /* EGL_FALSE */;
     };
 
-
-
-
-
+  
+  
+  
+  
     /**
    * @param {number=} arg
    * @param {boolean=} noSetTiming
@@ -6031,7 +6034,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       assert(!MainLoop.func, 'emscripten_set_main_loop: there can only be one main loop function at once')
       MainLoop.func = iterFunc;
       MainLoop.arg = arg;
-
+  
       var thisMainLoopId = MainLoop.currentlyRunningMainloop;
       function checkIsRunning() {
         if (thisMainLoopId < MainLoop.currentlyRunningMainloop) {
@@ -6040,7 +6043,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         }
         return true;
       }
-
+  
       // We create the loop runner here but it is not actually running until
       // _emscripten_set_main_loop_timing is called (which might happen at a
       // later time).
@@ -6062,17 +6065,17 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
             }
           }
           MainLoop.updateStatus();
-
+  
           // catches pause/resume main loop from blocker execution
           if (!checkIsRunning()) return;
-
+  
           setTimeout(MainLoop.runner, 0);
           return;
         }
-
+  
         // catch pauses from non-main loop sources
         if (!checkIsRunning()) return;
-
+  
         // Implement very basic swap interval control
         MainLoop.currentFrameNumber = MainLoop.currentFrameNumber + 1 | 0;
         if (MainLoop.timingMode == 1 && MainLoop.timingValue > 1 && MainLoop.currentFrameNumber % MainLoop.timingValue != 0) {
@@ -6085,15 +6088,15 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
             warnOnce('Looks like you are rendering without using requestAnimationFrame for the main loop. You should use 0 for the frame rate in emscripten_set_main_loop in order to use requestAnimationFrame, as that can greatly improve your frame rates!');
           }
         }
-
+  
         MainLoop.runIter(iterFunc);
-
+  
         // catch pauses from the main loop itself
         if (!checkIsRunning()) return;
-
+  
         MainLoop.scheduler();
       }
-
+  
       if (!noSetTiming) {
         if (fps > 0) {
           _emscripten_set_main_loop_timing(0, 1000.0 / fps);
@@ -6101,16 +6104,16 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
           // Do rAF by rendering each frame (no decimating)
           _emscripten_set_main_loop_timing(1, 1);
         }
-
+  
         MainLoop.scheduler();
       }
-
+  
       if (simulateInfiniteLoop) {
         throw 'unwind';
       }
     };
-
-
+  
+  
   var MainLoop = {
   func:null,
   scheduler:null,
@@ -6127,7 +6130,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
           MainLoop.scheduler = null;
           // Incrementing this signals the previous main loop that it's now become old, and it must return.
           MainLoop.currentlyRunningMainloop++;
-
+          
         }
       },
   resume() {
@@ -6197,12 +6200,12 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
   var _emscripten_set_main_loop_timing = (mode, value) => {
       MainLoop.timingMode = mode;
       MainLoop.timingValue = value;
-
+  
       if (!MainLoop.func) {
         err('emscripten_set_main_loop_timing: Cannot set timing mode for main loop since a main loop does not exist! Call emscripten_set_main_loop first to set one up.');
         return 1; // Return non-zero on failure, can't set timing mode when there is no main loop.
       }
-
+  
       if (mode == 0) {
         MainLoop.scheduler = function MainLoop_scheduler_setTimeout() {
           var timeUntilNextTick = Math.max(0, MainLoop.tickStartTime + value - _emscripten_get_now())|0;
@@ -6250,7 +6253,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       }
       return 0;
     };
-
+  
   var _eglSwapInterval = (display, interval) => {
       if (display != 62000) {
         EGL.setErrorCode(0x3008 /* EGL_BAD_DISPLAY */);
@@ -6258,7 +6261,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       }
       if (interval == 0) _emscripten_set_main_loop_timing(0, 0);
       else _emscripten_set_main_loop_timing(1, interval);
-
+  
       EGL.setErrorCode(0x3000 /* EGL_SUCCESS */);
       return 1;
     };
@@ -6276,7 +6279,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       return 1;
     };
 
-
+  
   var _eglWaitClient = () => {
       EGL.setErrorCode(0x3000 /* EGL_SUCCESS */);
       return 1;
@@ -6289,13 +6292,13 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
     };
 
   var readEmAsmArgsArray = [];
-
-
-
-
+  
+  
+  
+  
   /** @type {!Float64Array} */
   var HEAPF64;
-
+  
   var readEmAsmArgs = (sigPtr, buf) => {
       // Nobody should have mutated _readEmAsmArgsArray underneath us to be something else than an array.
       assert(Array.isArray(readEmAsmArgsArray));
@@ -6366,7 +6369,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
   deferCall(targetFunction, precedence, argsList) {
         function arraysHaveEqualContent(arrA, arrB) {
           if (arrA.length != arrB.length) return false;
-
+  
           for (var i = 0; i < arrA.length; i++) {
             if (arrA[i] != arrB[i]) return false;
           }
@@ -6383,7 +6386,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
           precedence,
           argsList
         });
-
+  
         JSEvents.deferredCalls.sort((x,y) => x.precedence - y.precedence);
       },
   removeDeferredCalls(targetFunction) {
@@ -6398,7 +6401,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
           // and https://caniuse.com/mdn-api_useractivation
           return navigator.userActivation.isActive;
         }
-
+  
         return JSEvents.inEventHandler && JSEvents.currentEventHandler.allowsDeferredCalls;
       },
   runDeferredCalls() {
@@ -6445,7 +6448,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
             // Out of event handler - restore nesting count.
             --JSEvents.inEventHandler;
           };
-
+  
           eventHandler.target.addEventListener(eventHandler.eventTypeString,
                                                eventHandler.eventListenerFunc,
                                                eventHandler.useCapture);
@@ -6488,11 +6491,11 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
          ;
       },
   };
-
+  
   /** @type {Object} */
   var specialHTMLTargets = [0, globalThis.document ?? 0, globalThis.window ?? 0];
-
-
+  
+  
   var maybeCStringToJsString = (cString) => {
       // 'cString > 2' checks if the input is a number, and isn't of the special
       // values we accept here, EMSCRIPTEN_EVENT_TARGET_* (which map to 0, 1, 2).
@@ -6500,25 +6503,25 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       // memory, and points to a C string.
       return cString > 2 ? UTF8ToString(cString) : cString;
     };
-
+  
   var findEventTarget = (target) => {
       target = maybeCStringToJsString(target);
       var domElement = specialHTMLTargets[target] || globalThis.document?.querySelector(target);
       return domElement;
     };
   var findCanvasEventTarget = findEventTarget;
-
+  
   var _emscripten_get_canvas_element_size = (target, width, height) => {
       var canvas = findCanvasEventTarget(target);
       if (!canvas) return -4;
       HEAP32[((width)>>2)] = canvas.width;
       HEAP32[((height)>>2)] = canvas.height;
     };
-
-
-
-
-
+  
+  
+  
+  
+  
   var stackAlloc = (sz) => __emscripten_stack_alloc(sz);
   var stringToUTF8OnStack = (str) => {
       var size = lengthBytesUTF8(str) + 1;
@@ -6526,19 +6529,19 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       stringToUTF8(str, ret, size);
       return ret;
     };
-
+  
   var getCanvasElementSize = (target) => {
       var sp = stackSave();
       var w = stackAlloc(8);
       var h = w + 4;
-
+  
       var targetInt = stringToUTF8OnStack(target.id);
       var ret = _emscripten_get_canvas_element_size(targetInt, w, h);
       var size = [HEAP32[((w)>>2)], HEAP32[((h)>>2)]];
       stackRestore(sp);
       return size;
     };
-
+  
   var _emscripten_set_canvas_element_size = (target, width, height) => {
       var canvas = findCanvasEventTarget(target);
       if (!canvas) return -4;
@@ -6546,9 +6549,9 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       canvas.height = height;
       return 0;
     };
-
-
-
+  
+  
+  
   var setCanvasElementSize = (target, width, height) => {
       if (!target.controlTransferredOffscreen) {
         target.width = width;
@@ -6562,9 +6565,9 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         stackRestore(sp);
       }
     };
-
+  
   var currentFullscreenStrategy = 0;
-
+  
   var callCanvasResizedCallback = (strategy) => {
       if (strategy.canvasResizedCallback) {
         ((a1, a2, a3) => dynCall_iiii(strategy.canvasResizedCallback, a1, a2, a3))(37, 0, strategy.canvasResizedCallbackUserData);
@@ -6591,15 +6594,15 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       var oldDocumentOverflow = document.documentElement.style.overflow; // Chrome, Firefox
       var oldDocumentScroll = document.body.scroll; // IE
       var oldImageRendering = canvas.style.imageRendering;
-
+  
       function restoreOldStyle() {
         if (!getFullscreenElement()) {
           document.removeEventListener('fullscreenchange', restoreOldStyle);
-
+  
           document.removeEventListener('webkitfullscreenchange', restoreOldStyle);
-
+  
           setCanvasElementSize(canvas, oldWidth, oldHeight);
-
+  
           canvas.style.width = oldCssWidth;
           canvas.style.height = oldCssHeight;
           canvas.style.backgroundColor = oldBackgroundColor; // Chrome
@@ -6621,7 +6624,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
           document.body.scroll = oldDocumentScroll; // IE
           canvas.style.imageRendering = oldImageRendering;
           if (canvas.GLctxObject) canvas.GLctxObject.GLctx.viewport(0, 0, oldWidth, oldHeight);
-
+  
           callCanvasResizedCallback(currentFullscreenStrategy);
         }
       }
@@ -6629,15 +6632,15 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       document.addEventListener('webkitfullscreenchange', restoreOldStyle);
       return restoreOldStyle;
     };
-
-
+  
+  
   var setLetterbox = (element, topBottom, leftRight) => {
       // Cannot use margin to specify letterboxes in FF or Chrome, since those ignore margins in fullscreen mode.
       element.style.paddingLeft = element.style.paddingRight = leftRight + 'px';
       element.style.paddingTop = element.style.paddingBottom = topBottom + 'px';
     };
-
-
+  
+  
   var getBoundingClientRect = (e) => specialHTMLTargets.indexOf(e) < 0 ? e.getBoundingClientRect() : {'left':0,'top':0};
   var JSEvents_resizeCanvasForFullscreen = (target, strategy) => {
       var restoreOldStyle = registerRestoreOldStyle(target);
@@ -6649,7 +6652,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       var canvasSize = getCanvasElementSize(target);
       var windowedRttWidth = canvasSize[0];
       var windowedRttHeight = canvasSize[1];
-
+  
       if (strategy.scaleMode == 3) {
         setLetterbox(target, (cssHeight - windowedCssHeight) / 2, (cssWidth - windowedCssWidth) / 2);
         cssWidth = windowedCssWidth;
@@ -6665,17 +6668,17 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
           cssWidth = desiredCssWidth;
         }
       }
-
+  
       // If we are adding padding, must choose a background color or otherwise Chrome will give the
       // padding a default white color. Do it only if user has not customized their own background color.
       target.style.backgroundColor ||= 'black';
       // IE11 does the same, but requires the color to be set in the document body.
       document.body.style.backgroundColor ||= 'black'; // IE11
       // Firefox always shows black letterboxes independent of style color.
-
+  
       target.style.width = cssWidth + 'px';
       target.style.height = cssHeight + 'px';
-
+  
       if (strategy.filteringMode == 1) {
         target.style.imageRendering = 'optimizeSpeed';
         target.style.imageRendering = '-moz-crisp-edges';
@@ -6685,7 +6688,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         target.style.imageRendering = 'crisp-edges';
         target.style.imageRendering = 'pixelated';
       }
-
+  
       var dpiScale = (strategy.canvasResolutionScaleMode == 2) ? devicePixelRatio : 1;
       if (strategy.canvasResolutionScaleMode != 0) {
         var newWidth = (cssWidth * dpiScale)|0;
@@ -6695,13 +6698,13 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       }
       return restoreOldStyle;
     };
-
+  
   var JSEvents_requestFullscreen = (target, strategy) => {
       // EMSCRIPTEN_FULLSCREEN_SCALE_DEFAULT + EMSCRIPTEN_FULLSCREEN_CANVAS_SCALE_NONE is a mode where no extra logic is performed to the DOM elements.
       if (strategy.scaleMode != 0 || strategy.canvasResolutionScaleMode != 0) {
         JSEvents_resizeCanvasForFullscreen(target, strategy);
       }
-
+  
       if (target.requestFullscreen) {
         target.requestFullscreen();
       } else if (target.webkitRequestFullscreen) {
@@ -6711,7 +6714,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       } else {
         return JSEvents.fullscreenEnabled() ? -3 : -1;
       }
-
+  
       currentFullscreenStrategy = strategy;
       callCanvasResizedCallback(strategy);
       return 0;
@@ -6720,7 +6723,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       if (!JSEvents.fullscreenEnabled()) return -1;
       // Make sure no queued up calls will fire after this.
       JSEvents.removeDeferredCalls(JSEvents_requestFullscreen);
-
+  
       var d = specialHTMLTargets[1];
       if (d.exitFullscreen) {
         d.fullscreenElement && d.exitFullscreen();
@@ -6729,11 +6732,11 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       } else {
         return -1;
       }
-
+  
       return 0;
     };
 
-
+  
   var requestPointerLock = (target) => {
       if (target.requestPointerLock) {
         target.requestPointerLock();
@@ -6755,12 +6758,12 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       return 0;
     };
 
-
+  
   var __emscripten_runtime_keepalive_clear = () => {
       noExitRuntime = false;
       runtimeKeepaliveCounter = 0;
     };
-
+  
   var _emscripten_force_exit = (status) => {
       warnOnce('emscripten_force_exit cannot actually shut down the runtime, as the build does not have EXIT_RUNTIME set');
       __emscripten_runtime_keepalive_clear();
@@ -6771,23 +6774,23 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       return globalThis.devicePixelRatio ?? 1.0;
     };
 
-
-
+  
+  
   var _emscripten_get_element_css_size = (target, width, height) => {
       target = findEventTarget(target);
       if (!target) return -4;
-
+  
       var rect = getBoundingClientRect(target);
       HEAPF64[((width)>>3)] = rect.width;
       HEAPF64[((height)>>3)] = rect.height;
-
+  
       return 0;
     };
 
-
-
-
-
+  
+  
+  
+  
   var fillGamepadEventData = (eventStruct, e) => {
       HEAPF64[((eventStruct)>>3)] = e.timestamp;
       for (var i = 0; i < e.axes.length; ++i) {
@@ -6808,13 +6811,13 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       assert(JSEvents.lastGamepadState, 'emscripten_get_gamepad_status() called before emscripten_sample_gamepad_data()');
       // INVALID_PARAM is returned on a Gamepad index that never was there.
       if (index < 0 || index >= JSEvents.lastGamepadState.length) return -5;
-
+  
       // NO_DATA is returned on a Gamepad index that was removed.
       // For previously disconnected gamepads there should be an empty slot (null/undefined/false) at the index.
       // This is because gamepads must keep their original position in the array.
       // For example, removing the first of two gamepads produces [null/undefined/false, gamepad].
       if (!JSEvents.lastGamepadState[index]) return -7;
-
+  
       fillGamepadEventData(gamepadState, JSEvents.lastGamepadState[index]);
       return 0;
     };
@@ -6827,7 +6830,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       return JSEvents.lastGamepadState.length;
     };
 
-
+  
   var _emscripten_get_screen_size = (width, height) => {
       HEAP32[((width)>>2)] = screen.width;
       HEAP32[((height)>>2)] = screen.height;
@@ -6846,7 +6849,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       GLctx.disjointTimerQueryExt['beginQueryEXT'](target, GL.queries[id]);
     };
 
-
+  
   var _emscripten_glBindAttribLocation = (program, index, name) => {
       GL.validateGLObjectID(GL.programs, program, 'glBindAttribLocation', 'program');
       GLctx.bindAttribLocation(GL.programs[program], index, UTF8ToString(name));
@@ -6854,15 +6857,15 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
 
   var _emscripten_glBindBuffer = (target, buffer) => {
       GL.validateGLObjectID(GL.buffers, buffer, 'glBindBuffer', 'buffer');
-
+  
       GLctx.bindBuffer(target, GL.buffers[buffer]);
     };
 
   var _emscripten_glBindFramebuffer = (target, framebuffer) => {
       GL.validateGLObjectID(GL.framebuffers, framebuffer, 'glBindFramebuffer', 'framebuffer');
-
+  
       GLctx.bindFramebuffer(target, GL.framebuffers[framebuffer]);
-
+  
     };
 
   var _emscripten_glBindRenderbuffer = (target, renderbuffer) => {
@@ -6875,7 +6878,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       GLctx.bindTexture(target, GL.textures[texture]);
     };
 
-
+  
   var _emscripten_glBindVertexArray = (vao) => {
       assert(GLctx.bindVertexArray, 'Must have WebGL2 or OES_vertex_array_object to use vao');
       GLctx.bindVertexArray(GL.vaos[vao]);
@@ -6893,9 +6896,9 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
 
   var _emscripten_glBlendFuncSeparate = (x0, x1, x2, x3) => GLctx.blendFuncSeparate(x0, x1, x2, x3);
 
-
+  
   var _emscripten_glBufferData = (target, size, data, usage) => {
-
+  
       // N.b. here first form specifies a heap subarray, second form an integer
       // size, so the ?: code here is polymorphic. It is advised to avoid
       // randomly mixing both uses in calling code, to avoid any potential JS
@@ -6903,11 +6906,11 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       GLctx.bufferData(target, data ? HEAPU8.subarray(data, data+size) : size, usage);
     };
 
-
+  
   var webglBufferSubData = (target, offset, size, data, src = HEAPU8) => {
       GLctx.bufferSubData(target, offset, src.subarray(data, data + size));
     };
-
+  
   var _emscripten_glBufferSubData = (target, offset, size, data) => webglBufferSubData(target, offset, size, data);
 
   var _emscripten_glCheckFramebufferStatus = (x0) => GLctx.checkFramebufferStatus(x0);
@@ -6934,7 +6937,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       GLctx.compileShader(GL.shaders[shader]);
     };
 
-
+  
   var _emscripten_glCompressedTexImage2D = (target, level, internalFormat, width, height, border, imageSize, data) => {
       // `data` may be null here, which means "allocate uninitialized space but
       // don't upload" in GLES parlance, but `compressedTexImage2D` requires the
@@ -6944,7 +6947,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       GLctx.compressedTexImage2D(target, level, internalFormat, width, height, border, HEAPU8.subarray(data, data + imageSize));
     };
 
-
+  
   var _emscripten_glCompressedTexSubImage2D = (target, level, xoffset, yoffset, width, height, format, imageSize, data) => {
       GLctx.compressedTexSubImage2D(target, level, xoffset, yoffset, width, height, format, HEAPU8.subarray(data, data + imageSize));
     };
@@ -6969,30 +6972,30 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
   var _emscripten_glCreateShader = (shaderType) => {
       var id = GL.getNewId(GL.shaders);
       GL.shaders[id] = GLctx.createShader(shaderType);
-
+  
       return id;
     };
 
   var _emscripten_glCullFace = (x0) => GLctx.cullFace(x0);
 
-
+  
   var _emscripten_glDeleteBuffers = (n, buffers) => {
       for (var i = 0; i < n; i++) {
         var id = HEAP32[(((buffers)+(i*4))>>2)];
         var buffer = GL.buffers[id];
-
+  
         // From spec: "glDeleteBuffers silently ignores 0's and names that do not
         // correspond to existing buffer objects."
         if (!buffer) continue;
-
+  
         GLctx.deleteBuffer(buffer);
         buffer.name = 0;
         GL.buffers[id] = null;
-
+  
       }
     };
 
-
+  
   var _emscripten_glDeleteFramebuffers = (n, framebuffers) => {
       for (var i = 0; i < n; ++i) {
         var id = HEAP32[(((framebuffers)+(i*4))>>2)];
@@ -7018,7 +7021,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       GL.programs[id] = null;
     };
 
-
+  
   var _emscripten_glDeleteQueriesEXT = (n, ids) => {
       for (var i = 0; i < n; i++) {
         var id = HEAP32[(((ids)+(i*4))>>2)];
@@ -7029,7 +7032,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       }
     };
 
-
+  
   var _emscripten_glDeleteRenderbuffers = (n, renderbuffers) => {
       for (var i = 0; i < n; i++) {
         var id = HEAP32[(((renderbuffers)+(i*4))>>2)];
@@ -7054,7 +7057,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       GL.shaders[id] = null;
     };
 
-
+  
   var _emscripten_glDeleteTextures = (n, textures) => {
       for (var i = 0; i < n; i++) {
         var id = HEAP32[(((textures)+(i*4))>>2)];
@@ -7068,8 +7071,8 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       }
     };
 
-
-
+  
+  
   var _emscripten_glDeleteVertexArrays = (n, vaos) => {
       assert(GLctx.deleteVertexArray, 'Must have WebGL2 or OES_vertex_array_object to use vao');
       for (var i = 0; i < n; i++) {
@@ -7102,12 +7105,12 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
     };
 
   var _emscripten_glDrawArrays = (mode, first, count) => {
-
+  
       GLctx.drawArrays(mode, first, count);
-
+  
     };
 
-
+  
   var _emscripten_glDrawArraysInstanced = (mode, first, count, primcount) => {
       assert(GLctx.drawArraysInstanced, 'Must have ANGLE_instanced_arrays extension or WebGL 2 to use WebGL instancing');
       GLctx.drawArraysInstanced(mode, first, count, primcount);
@@ -7115,32 +7118,32 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
   var _glDrawArraysInstanced = _emscripten_glDrawArraysInstanced;
   var _emscripten_glDrawArraysInstancedANGLE = _glDrawArraysInstanced;
 
-
+  
   var tempFixedLengthArray = [];
-
-
+  
+  
   var _emscripten_glDrawBuffers = (n, bufs) => {
       assert(GLctx.drawBuffers, 'Must have WebGL2 or WEBGL_draw_buffers extension to use drawBuffers');
       assert(n < tempFixedLengthArray.length, `Invalid count of numBuffers=${n} passed to glDrawBuffers (that many draw buffer points do not exist in GL)`);
-
+  
       var bufArray = tempFixedLengthArray[n];
       for (var i = 0; i < n; i++) {
         bufArray[i] = HEAP32[(((bufs)+(i*4))>>2)];
       }
-
+  
       GLctx.drawBuffers(bufArray);
     };
   var _glDrawBuffers = _emscripten_glDrawBuffers;
   var _emscripten_glDrawBuffersWEBGL = _glDrawBuffers;
 
-
+  
   var _emscripten_glDrawElements = (mode, count, type, indices) => {
-
+  
       GLctx.drawElements(mode, count, type, indices);
-
+  
     };
 
-
+  
   var _emscripten_glDrawElementsInstanced = (mode, count, type, indices, primcount) => {
       assert(GLctx.drawElementsInstanced, 'Must have ANGLE_instanced_arrays extension or WebGL 2 to use WebGL instancing');
       GLctx.drawElementsInstanced(mode, count, type, indices, primcount);
@@ -7188,7 +7191,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         );
     };
 
-
+  
   var _emscripten_glGenQueriesEXT = (n, ids) => {
       for (var i = 0; i < n; i++) {
         var query = GLctx.disjointTimerQueryExt['createQueryEXT']();
@@ -7217,7 +7220,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         );
     };
 
-
+  
   var _emscripten_glGenVertexArrays = (n, arrays) => {
       assert(GLctx.createVertexArray, 'Must have WebGL2 or OES_vertex_array_object to use vao');
       GL.genObject(n, arrays, 'createVertexArray', GL.vaos
@@ -7229,8 +7232,8 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
 
   var _emscripten_glGenerateMipmap = (x0) => GLctx.generateMipmap(x0);
 
-
-
+  
+  
   var __glGetActiveAttribOrUniform = (funcName, program, index, bufSize, length, size, type, name) => {
       GL.validateGLObjectID(GL.programs, program, funcName, 'program');
       program = GL.programs[program];
@@ -7243,15 +7246,15 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         if (type) HEAP32[((type)>>2)] = info.type;
       }
     };
-
+  
   var _emscripten_glGetActiveAttrib = (program, index, bufSize, length, size, type, name) =>
       __glGetActiveAttribOrUniform('getActiveAttrib', program, index, bufSize, length, size, type, name);
 
-
+  
   var _emscripten_glGetActiveUniform = (program, index, bufSize, length, size, type, name) =>
       __glGetActiveAttribOrUniform('getActiveUniform', program, index, bufSize, length, size, type, name);
 
-
+  
   var _emscripten_glGetAttachedShaders = (program, maxCount, count, shaders) => {
       GL.validateGLObjectID(GL.programs, program, 'glGetAttachedShaders', 'program');
       var result = GLctx.getAttachedShaders(GL.programs[program]);
@@ -7267,19 +7270,19 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       }
     };
 
-
+  
   var _emscripten_glGetAttribLocation = (program, name) =>
       GLctx.getAttribLocation(GL.programs[program], UTF8ToString(name));
 
-
+  
   var readI53FromI64 = (ptr) => {
       return HEAPU32[((ptr)>>2)] + HEAP32[(((ptr)+(4))>>2)] * 4294967296;
     };
-
+  
   var readI53FromU64 = (ptr) => {
       return HEAPU32[((ptr)>>2)] + HEAPU32[(((ptr)+(4))>>2)] * 4294967296;
     };
-
+  
   var writeI53ToI64 = (ptr, num) => {
       HEAPU32[((ptr)>>2)] = num;
       var lower = HEAPU32[((ptr)>>2)];
@@ -7288,10 +7291,10 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       var offset = ((ptr)>>2);
       if (deserialized != num) warnOnce(`writeI53ToI64() out of range: serialized JS Number ${num} to Wasm heap as bytes lo=${ptrToString(HEAPU32[offset])}, hi=${ptrToString(HEAPU32[offset+1])}, which deserializes back to ${deserialized} instead!`);
     };
-
-
-
-
+  
+  
+  
+  
   /** @type {!Float32Array} */
   var HEAPF32;
   var emscriptenWebGLGet = (name_, p, type) => {
@@ -7329,9 +7332,9 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
           var formats = GLctx.getParameter(0x86A3 /*GL_COMPRESSED_TEXTURE_FORMATS*/);
           ret = formats ? formats.length : 0;
           break;
-
+  
       }
-
+  
       if (ret === undefined) {
         var result = GLctx.getParameter(name_);
         switch (typeof result) {
@@ -7397,7 +7400,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
             return;
         }
       }
-
+  
       switch (type) {
         case 1: writeI53ToI64(p, ret); break;
         case 0: HEAP32[((p)>>2)] = ret; break;
@@ -7406,10 +7409,10 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         default: abort(`internal glGet error, bad type: ${type}`);
       }
     };
-
+  
   var _emscripten_glGetBooleanv = (name_, p) => emscriptenWebGLGet(name_, p, 4);
 
-
+  
   var _emscripten_glGetBufferParameteriv = (target, value, data) => {
       if (!data) {
         // GLES2 specification does not specify how to behave if data is a null
@@ -7428,10 +7431,10 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       return error;
     };
 
-
+  
   var _emscripten_glGetFloatv = (name_, p) => emscriptenWebGLGet(name_, p, 2);
 
-
+  
   var _emscripten_glGetFramebufferAttachmentParameteriv = (target, attachment, pname, params) => {
       var result = GLctx.getFramebufferAttachmentParameter(target, attachment, pname);
       if (result instanceof WebGLRenderbuffer ||
@@ -7441,10 +7444,10 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       HEAP32[((params)>>2)] = result;
     };
 
-
+  
   var _emscripten_glGetIntegerv = (name_, p) => emscriptenWebGLGet(name_, p, 0);
 
-
+  
   var _emscripten_glGetProgramInfoLog = (program, maxLength, length, infoLog) => {
       GL.validateGLObjectID(GL.programs, program, 'glGetProgramInfoLog', 'program');
       var log = GLctx.getProgramInfoLog(GL.programs[program]);
@@ -7453,7 +7456,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       if (length) HEAP32[((length)>>2)] = numBytesWrittenExclNull;
     };
 
-
+  
   var _emscripten_glGetProgramiv = (program, pname, p) => {
       if (!p) {
         // GLES2 specification does not specify how to behave if p is a null
@@ -7464,15 +7467,15 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         return;
       }
       GL.validateGLObjectID(GL.programs, program, 'glGetProgramiv', 'program');
-
+  
       if (program >= GL.counter) {
         err(`GL_INVALID_VALUE in glGetProgramiv(program=${program}, pname=${pname}, p=${ptrToString(p)}): The specified program object name was not generated by GL!`);
         GL.recordError(0x501 /* GL_INVALID_VALUE */);
         return;
       }
-
+  
       program = GL.programs[program];
-
+  
       if (pname == 0x8B84) { // GL_INFO_LOG_LENGTH
         var log = GLctx.getProgramInfoLog(program);
         if (log === null) log = '(unknown error)';
@@ -7506,7 +7509,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       }
     };
 
-
+  
   var _emscripten_glGetQueryObjecti64vEXT = (id, pname, params) => {
       if (!params) {
         // GLES2 specification does not specify how to behave if params is a null pointer. Since calling this function does not make sense
@@ -7530,7 +7533,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       writeI53ToI64(params, ret);
     };
 
-
+  
   var _emscripten_glGetQueryObjectivEXT = (id, pname, params) => {
       if (!params) {
         // GLES2 specification does not specify how to behave if params is a null pointer. Since calling this function does not make sense
@@ -7551,15 +7554,15 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       HEAP32[((params)>>2)] = ret;
     };
 
-
+  
   var _glGetQueryObjecti64vEXT = _emscripten_glGetQueryObjecti64vEXT;
   var _emscripten_glGetQueryObjectui64vEXT = _glGetQueryObjecti64vEXT;
 
-
+  
   var _glGetQueryObjectivEXT = _emscripten_glGetQueryObjectivEXT;
   var _emscripten_glGetQueryObjectuivEXT = _glGetQueryObjectivEXT;
 
-
+  
   var _emscripten_glGetQueryivEXT = (target, pname, params) => {
       if (!params) {
         // GLES2 specification does not specify how to behave if params is a null pointer. Since calling this function does not make sense
@@ -7571,7 +7574,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       HEAP32[((params)>>2)] = GLctx.disjointTimerQueryExt['getQueryEXT'](target, pname);
     };
 
-
+  
   var _emscripten_glGetRenderbufferParameteriv = (target, pname, params) => {
       if (!params) {
         // GLES2 specification does not specify how to behave if params is a null pointer. Since calling this function does not make sense
@@ -7583,8 +7586,8 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       HEAP32[((params)>>2)] = GLctx.getRenderbufferParameter(target, pname);
     };
 
-
-
+  
+  
   var _emscripten_glGetShaderInfoLog = (shader, maxLength, length, infoLog) => {
       GL.validateGLObjectID(GL.shaders, shader, 'glGetShaderInfoLog', 'shader');
       var log = GLctx.getShaderInfoLog(GL.shaders[shader]);
@@ -7593,7 +7596,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       if (length) HEAP32[((length)>>2)] = numBytesWrittenExclNull;
     };
 
-
+  
   var _emscripten_glGetShaderPrecisionFormat = (shaderType, precisionType, range, precision) => {
       var result = GLctx.getShaderPrecisionFormat(shaderType, precisionType);
       HEAP32[((range)>>2)] = result.rangeMin;
@@ -7601,7 +7604,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       HEAP32[((precision)>>2)] = result.precision;
     };
 
-
+  
   var _emscripten_glGetShaderSource = (shader, bufSize, length, source) => {
       GL.validateGLObjectID(GL.shaders, shader, 'glGetShaderSource', 'shader');
       var result = GLctx.getShaderSource(GL.shaders[shader]);
@@ -7610,7 +7613,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       if (length) HEAP32[((length)>>2)] = numBytesWrittenExclNull;
     };
 
-
+  
   var _emscripten_glGetShaderiv = (shader, pname, p) => {
       if (!p) {
         // GLES2 specification does not specify how to behave if p is a null
@@ -7641,14 +7644,14 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       }
     };
 
-
-
+  
+  
   var webglGetExtensions = () => {
       var exts = getEmscriptenSupportedExtensions(GLctx);
       exts = exts.concat(exts.map((e) => 'GL_' + e));
       return exts;
     };
-
+  
   var _emscripten_glGetString = (name_) => {
       var ret = GL.stringCache[name_];
       if (!ret) {
@@ -7668,7 +7671,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
             }
             ret = s ? stringToNewUTF8(s) : 0;
             break;
-
+  
           case 0x1F02 /* GL_VERSION */:
             var webGLVersion = GLctx.getParameter(0x1F02 /*GL_VERSION*/);
             // return GLES version string corresponding to the version of the WebGL context
@@ -7696,7 +7699,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       return ret;
     };
 
-
+  
   var _emscripten_glGetTexParameterfv = (target, pname, params) => {
       if (!params) {
         // GLES2 specification does not specify how to behave if params is a null
@@ -7709,7 +7712,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       HEAPF32[((params)>>2)] = GLctx.getTexParameter(target, pname);
     };
 
-
+  
   var _emscripten_glGetTexParameteriv = (target, pname, params) => {
       if (!params) {
         // GLES2 specification does not specify how to behave if params is a null
@@ -7724,15 +7727,15 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
 
   /** @suppress {checkTypes} */
   var jstoi_q = (str) => parseInt(str);
-
+  
   /** @noinline */
   var webglGetLeftBracePos = (name) => name.slice(-1) == ']' && name.lastIndexOf('[');
-
+  
   var webglPrepareUniformLocationsBeforeFirstUse = (program) => {
       var uniformLocsById = program.uniformLocsById, // Maps GLuint -> WebGLUniformLocation
         uniformSizeAndIdsByName = program.uniformSizeAndIdsByName, // Maps name -> [uniform array length, GLuint]
         i, j;
-
+  
       // On the first time invocation of glGetUniformLocation on this shader program:
       // initialize cache data structures and discover which uniforms are arrays.
       if (!uniformLocsById) {
@@ -7740,7 +7743,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         program.uniformLocsById = uniformLocsById = {};
         // maps integer locations back to uniform name strings, so that we can lazily fetch uniform array locations
         program.uniformArrayNamesById = {};
-
+  
         var numActiveUniforms = GLctx.getProgramParameter(program, 0x8B86/*GL_ACTIVE_UNIFORMS*/);
         for (i = 0; i < numActiveUniforms; ++i) {
           var u = GLctx.getActiveUniform(program, i);
@@ -7748,7 +7751,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
           var sz = u.size;
           var lb = webglGetLeftBracePos(nm);
           var arrayName = lb > 0 ? nm.slice(0, lb) : nm;
-
+  
           // Assign a new location.
           var id = program.uniformIdCounter;
           program.uniformIdCounter += sz;
@@ -7758,7 +7761,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
           // application fills arrays always in full starting from the first
           // element of the array.
           uniformSizeAndIdsByName[arrayName] = [sz, id];
-
+  
           // Store placeholder integers in place that highlight that these
           // >0 index locations are array indices pending population.
           for (j = 0; j < sz; ++j) {
@@ -7768,22 +7771,22 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         }
       }
     };
-
-
-
+  
+  
+  
   var _emscripten_glGetUniformLocation = (program, name) => {
-
+  
       GL.validateGLObjectID(GL.programs, program, 'glGetUniformLocation', 'program');
       name = UTF8ToString(name);
-
+  
       assert(!name.includes(' '), `Uniform names passed to glGetUniformLocation() should not contain spaces! (received "${name}")`);
-
+  
       if (program = GL.programs[program]) {
         webglPrepareUniformLocationsBeforeFirstUse(program);
         var uniformLocsById = program.uniformLocsById; // Maps GLuint -> WebGLUniformLocation
         var arrayIndex = 0;
         var uniformBaseName = name;
-
+  
         // Invariant: when populating integer IDs for uniform locations, we must
         // maintain the precondition that arrays reside in contiguous addresses,
         // i.e. for a 'vec4 colors[10];', colors[4] must be at location
@@ -7793,18 +7796,18 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         // way to discover which uniforms are arrays is to enumerate over all the
         // active uniforms in the program.
         var leftBrace = webglGetLeftBracePos(name);
-
+  
         // If user passed an array accessor "[index]", parse the array index off the accessor.
         if (leftBrace > 0) {
           assert(name.slice(leftBrace + 1).length == 1 || !isNaN(jstoi_q(name.slice(leftBrace + 1))), `Malformed input parameter name "${name}" passed to glGetUniformLocation!`);
           arrayIndex = jstoi_q(name.slice(leftBrace + 1)) >>> 0; // "index]", coerce parseInt(']') with >>>0 to treat "foo[]" as "foo[0]" and foo[-1] as unsigned out-of-bounds.
           uniformBaseName = name.slice(0, leftBrace);
         }
-
+  
         // Have we cached the location of this uniform before?
         // A pair [array length, GLint of the uniform location]
         var sizeAndId = program.uniformSizeAndIdsByName[uniformBaseName];
-
+  
         // If a uniform with this name exists, and if its index is within the
         // array limits (if it's even an array), query the WebGLlocation, or
         // return an existing cached location.
@@ -7824,9 +7827,9 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       return -1;
     };
 
-
+  
   var webglGetProgramUniformLocation = (program, location) => {
-
+  
       if (program) {
         var webglLoc = program.uniformLocsById[location];
         // program.uniformLocsById[location] stores either an integer, or a
@@ -7842,10 +7845,10 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         GL.recordError(0x502/*GL_INVALID_OPERATION*/);
       }
     };
-
-
-
-
+  
+  
+  
+  
   /** @suppress{checkTypes} */
   var emscriptenWebGLGetUniform = (program, location, params, type) => {
       if (!params) {
@@ -7877,17 +7880,17 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         }
       }
     };
-
+  
   var _emscripten_glGetUniformfv = (program, location, params) => {
       emscriptenWebGLGetUniform(program, location, params, 2);
     };
 
-
+  
   var _emscripten_glGetUniformiv = (program, location, params) => {
       emscriptenWebGLGetUniform(program, location, params, 0);
     };
 
-
+  
   var _emscripten_glGetVertexAttribPointerv = (index, pname, pointer) => {
       if (!pointer) {
         // GLES2 specification does not specify how to behave if pointer is a null
@@ -7900,8 +7903,8 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       HEAP32[((pointer)>>2)] = GLctx.getVertexAttribOffset(index, pname);
     };
 
-
-
+  
+  
   /** @suppress{checkTypes} */
   var emscriptenWebGLGetVertexAttrib = (index, pname, params, type) => {
       if (!params) {
@@ -7933,7 +7936,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         }
       }
     };
-
+  
   var _emscripten_glGetVertexAttribfv = (index, pname, params) => {
       // N.B. This function may only be called if the vertex attribute was
       // specified using the function glVertexAttrib*f(), otherwise the results
@@ -7941,7 +7944,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       emscriptenWebGLGetVertexAttrib(index, pname, params, 2);
     };
 
-
+  
   var _emscripten_glGetVertexAttribiv = (index, pname, params) => {
       // N.B. This function may only be called if the vertex attribute was
       // specified using the function glVertexAttrib*f(), otherwise the results
@@ -7995,10 +7998,10 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       return GLctx.isTexture(texture);
     };
 
-
+  
   var _emscripten_glIsVertexArray = (array) => {
       assert(GLctx.isVertexArray, 'Must have WebGL2 or OES_vertex_array_object to use vao');
-
+  
       var vao = GL.vaos[array];
       if (!vao) return 0;
       return GLctx.isVertexArray(vao);
@@ -8015,7 +8018,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       // Invalidate earlier computed uniform->ID mappings, those have now become stale
       program.uniformLocsById = 0; // Mark as null-like so that glGetUniformLocation() knows to populate this again.
       program.uniformSizeAndIdsByName = {};
-
+  
     };
 
   var _emscripten_glPixelStorei = (pname, param) => {
@@ -8053,7 +8056,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       var alignedRowSize = roundedToNextMultipleOf(plainRowSize, GL.unpackAlignment);
       return height * alignedRowSize;
     };
-
+  
   var colorChannelsInGlTextureFormat = (format) => {
       // Micro-optimizations for size: map format to size by subtracting smallest
       // enum value (0x1902) from all values first.  Also omit the most common
@@ -8079,32 +8082,32 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       }
       return colorChannels[format - 0x1902]||1;
     };
-
-
-
+  
+  
+  
   /** @type {!Uint16Array} */
   var HEAPU16;
-
-
-
+  
+  
+  
   var heapObjectForWebGLType = (type) => {
       // Micro-optimization for size: Subtract lowest GL enum number (0x1400/* GL_BYTE */) from type to compare
       // smaller values for the heap, for shorter generated code size.
       // Also the type HEAPU16 is not tested for explicitly, but any unrecognized type will return out HEAPU16.
       // (since most types are HEAPU16)
       type -= 0x1400;
-
+  
       if (type == 1) return HEAPU8;
-
+  
       if (type == 4) return HEAP32;
-
+  
       if (type == 6) return HEAPF32;
-
+  
       if (type == 5
         || type == 28922
         )
         return HEAPU32;
-
+  
         if (type != 3
           && type != 27699
           && type != 27700
@@ -8114,10 +8117,10 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         }
       return HEAPU16;
     };
-
+  
   var toTypedArrayIndex = (pointer, heap) =>
       pointer >>> (31 - Math.clz32(heap.BYTES_PER_ELEMENT));
-
+  
   var emscriptenWebGLGetTexPixelData = (type, format, width, height, pixels) => {
       var heap = heapObjectForWebGLType(type);
       var sizePerPixel = colorChannelsInGlTextureFormat(format) * heap.BYTES_PER_ELEMENT;
@@ -8125,7 +8128,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       assert(pixels % heap.BYTES_PER_ELEMENT == 0, 'Pointer to texture data passed to texture get function must be aligned to the byte size of the pixel type');
       return heap.subarray(toTypedArrayIndex(pixels, heap), toTypedArrayIndex(pixels + bytes, heap));
     };
-
+  
   var _emscripten_glReadPixels = (x, y, width, height, format, type, pixels) => {
       var pixelData = emscriptenWebGLGetTexPixelData(type, format, width, height, pixels);
       if (!pixelData) {
@@ -8156,7 +8159,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
   var _emscripten_glShaderSource = (shader, count, string, length) => {
       GL.validateGLObjectID(GL.shaders, shader, 'glShaderSource', 'shader');
       var source = GL.getSource(shader, count, string, length);
-
+  
       GLctx.shaderSource(GL.shaders[shader], source);
     };
 
@@ -8172,7 +8175,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
 
   var _emscripten_glStencilOpSeparate = (x0, x1, x2, x3) => GLctx.stencilOpSeparate(x0, x1, x2, x3);
 
-
+  
   var _emscripten_glTexImage2D = (target, level, internalFormat, width, height, border, format, type, pixels) => {
       var pixelData = pixels ? emscriptenWebGLGetTexPixelData(type, format, width, height, pixels) : null;
       GLctx.texImage2D(target, level, internalFormat, width, height, border, format, type, pixelData);
@@ -8180,7 +8183,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
 
   var _emscripten_glTexParameterf = (x0, x1, x2) => GLctx.texParameterf(x0, x1, x2);
 
-
+  
   var _emscripten_glTexParameterfv = (target, pname, params) => {
       var param = HEAPF32[((params)>>2)];
       GLctx.texParameterf(target, pname, param);
@@ -8188,37 +8191,37 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
 
   var _emscripten_glTexParameteri = (x0, x1, x2) => GLctx.texParameteri(x0, x1, x2);
 
-
+  
   var _emscripten_glTexParameteriv = (target, pname, params) => {
       var param = HEAP32[((params)>>2)];
       GLctx.texParameteri(target, pname, param);
     };
 
-
+  
   var _emscripten_glTexSubImage2D = (target, level, xoffset, yoffset, width, height, format, type, pixels) => {
       var pixelData = pixels ? emscriptenWebGLGetTexPixelData(type, format, width, height, pixels) : null;
       GLctx.texSubImage2D(target, level, xoffset, yoffset, width, height, format, type, pixelData);
     };
 
-
+  
   var webglGetUniformLocation = (location) => {
-
+  
       return webglGetProgramUniformLocation(GLctx.currentProgram, location);
     };
-
+  
   var _emscripten_glUniform1f = (location, v0) => {
       GL.validateGLObjectID(GLctx.currentProgram.uniformLocsById, location, 'glUniform1f', 'location');
       GLctx.uniform1f(webglGetUniformLocation(location), v0);
     };
 
-
+  
   var miniTempWebGLFloatBuffers = [];
-
-
+  
+  
   var _emscripten_glUniform1fv = (location, count, value) => {
       GL.validateGLObjectID(GLctx.currentProgram.uniformLocsById, location, 'glUniform1fv', 'location');
       assert((value & 3) == 0, 'pointer passed to glUniform1fv must be 4-byte aligned');
-
+  
       if (count <= 288) {
         // avoid allocation when uploading few enough uniforms
         var view = miniTempWebGLFloatBuffers[count];
@@ -8232,20 +8235,20 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       GLctx.uniform1fv(webglGetUniformLocation(location), view);
     };
 
-
+  
   var _emscripten_glUniform1i = (location, v0) => {
       GL.validateGLObjectID(GLctx.currentProgram.uniformLocsById, location, 'glUniform1i', 'location');
       GLctx.uniform1i(webglGetUniformLocation(location), v0);
     };
 
-
+  
   var miniTempWebGLIntBuffers = [];
-
-
+  
+  
   var _emscripten_glUniform1iv = (location, count, value) => {
       GL.validateGLObjectID(GLctx.currentProgram.uniformLocsById, location, 'glUniform1iv', 'location');
       assert((value & 3) == 0, 'pointer passed to glUniform1iv must be 4-byte aligned');
-
+  
       if (count <= 288) {
         // avoid allocation when uploading few enough uniforms
         var view = miniTempWebGLIntBuffers[count];
@@ -8259,19 +8262,19 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       GLctx.uniform1iv(webglGetUniformLocation(location), view);
     };
 
-
+  
   var _emscripten_glUniform2f = (location, v0, v1) => {
       GL.validateGLObjectID(GLctx.currentProgram.uniformLocsById, location, 'glUniform2f', 'location');
       GLctx.uniform2f(webglGetUniformLocation(location), v0, v1);
     };
 
-
-
-
+  
+  
+  
   var _emscripten_glUniform2fv = (location, count, value) => {
       GL.validateGLObjectID(GLctx.currentProgram.uniformLocsById, location, 'glUniform2fv', 'location');
       assert((value & 3) == 0, 'pointer passed to glUniform2fv must be 4-byte aligned');
-
+  
       if (count <= 144) {
         // avoid allocation when uploading few enough uniforms
         count *= 2;
@@ -8287,19 +8290,19 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       GLctx.uniform2fv(webglGetUniformLocation(location), view);
     };
 
-
+  
   var _emscripten_glUniform2i = (location, v0, v1) => {
       GL.validateGLObjectID(GLctx.currentProgram.uniformLocsById, location, 'glUniform2i', 'location');
       GLctx.uniform2i(webglGetUniformLocation(location), v0, v1);
     };
 
-
-
-
+  
+  
+  
   var _emscripten_glUniform2iv = (location, count, value) => {
       GL.validateGLObjectID(GLctx.currentProgram.uniformLocsById, location, 'glUniform2iv', 'location');
       assert((value & 3) == 0, 'pointer passed to glUniform2iv must be 4-byte aligned');
-
+  
       if (count <= 144) {
         // avoid allocation when uploading few enough uniforms
         count *= 2;
@@ -8315,19 +8318,19 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       GLctx.uniform2iv(webglGetUniformLocation(location), view);
     };
 
-
+  
   var _emscripten_glUniform3f = (location, v0, v1, v2) => {
       GL.validateGLObjectID(GLctx.currentProgram.uniformLocsById, location, 'glUniform3f', 'location');
       GLctx.uniform3f(webglGetUniformLocation(location), v0, v1, v2);
     };
 
-
-
-
+  
+  
+  
   var _emscripten_glUniform3fv = (location, count, value) => {
       GL.validateGLObjectID(GLctx.currentProgram.uniformLocsById, location, 'glUniform3fv', 'location');
       assert((value % 4) == 0, 'pointer passed to glUniform3fv must be 4-byte aligned');
-
+  
       if (count <= 96) {
         // avoid allocation when uploading few enough uniforms
         count *= 3;
@@ -8344,19 +8347,19 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       GLctx.uniform3fv(webglGetUniformLocation(location), view);
     };
 
-
+  
   var _emscripten_glUniform3i = (location, v0, v1, v2) => {
       GL.validateGLObjectID(GLctx.currentProgram.uniformLocsById, location, 'glUniform3i', 'location');
       GLctx.uniform3i(webglGetUniformLocation(location), v0, v1, v2);
     };
 
-
-
-
+  
+  
+  
   var _emscripten_glUniform3iv = (location, count, value) => {
       GL.validateGLObjectID(GLctx.currentProgram.uniformLocsById, location, 'glUniform3iv', 'location');
       assert((value & 3) == 0, 'pointer passed to glUniform3iv must be 4-byte aligned');
-
+  
       if (count <= 96) {
         // avoid allocation when uploading few enough uniforms
         count *= 3;
@@ -8373,19 +8376,19 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       GLctx.uniform3iv(webglGetUniformLocation(location), view);
     };
 
-
+  
   var _emscripten_glUniform4f = (location, v0, v1, v2, v3) => {
       GL.validateGLObjectID(GLctx.currentProgram.uniformLocsById, location, 'glUniform4f', 'location');
       GLctx.uniform4f(webglGetUniformLocation(location), v0, v1, v2, v3);
     };
 
-
-
-
+  
+  
+  
   var _emscripten_glUniform4fv = (location, count, value) => {
       GL.validateGLObjectID(GLctx.currentProgram.uniformLocsById, location, 'glUniform4fv', 'location');
       assert((value & 3) == 0, 'pointer passed to glUniform4fv must be 4-byte aligned');
-
+  
       if (count <= 72) {
         // avoid allocation when uploading few enough uniforms
         var view = miniTempWebGLFloatBuffers[4*count];
@@ -8407,19 +8410,19 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       GLctx.uniform4fv(webglGetUniformLocation(location), view);
     };
 
-
+  
   var _emscripten_glUniform4i = (location, v0, v1, v2, v3) => {
       GL.validateGLObjectID(GLctx.currentProgram.uniformLocsById, location, 'glUniform4i', 'location');
       GLctx.uniform4i(webglGetUniformLocation(location), v0, v1, v2, v3);
     };
 
-
-
-
+  
+  
+  
   var _emscripten_glUniform4iv = (location, count, value) => {
       GL.validateGLObjectID(GLctx.currentProgram.uniformLocsById, location, 'glUniform4iv', 'location');
       assert((value & 3) == 0, 'pointer passed to glUniform4iv must be 4-byte aligned');
-
+  
       if (count <= 72) {
         // avoid allocation when uploading few enough uniforms
         count *= 4;
@@ -8437,13 +8440,13 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       GLctx.uniform4iv(webglGetUniformLocation(location), view);
     };
 
-
-
-
+  
+  
+  
   var _emscripten_glUniformMatrix2fv = (location, count, transpose, value) => {
       GL.validateGLObjectID(GLctx.currentProgram.uniformLocsById, location, 'glUniformMatrix2fv', 'location');
       assert((value & 3) == 0, 'pointer passed to glUniformMatrix2fv must be 4-byte aligned');
-
+  
       if (count <= 72) {
         // avoid allocation when uploading few enough uniforms
         count *= 4;
@@ -8461,13 +8464,13 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       GLctx.uniformMatrix2fv(webglGetUniformLocation(location), !!transpose, view);
     };
 
-
-
-
+  
+  
+  
   var _emscripten_glUniformMatrix3fv = (location, count, transpose, value) => {
       GL.validateGLObjectID(GLctx.currentProgram.uniformLocsById, location, 'glUniformMatrix3fv', 'location');
       assert((value & 3) == 0, 'pointer passed to glUniformMatrix3fv must be 4-byte aligned');
-
+  
       if (count <= 32) {
         // avoid allocation when uploading few enough uniforms
         count *= 9;
@@ -8490,13 +8493,13 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       GLctx.uniformMatrix3fv(webglGetUniformLocation(location), !!transpose, view);
     };
 
-
-
-
+  
+  
+  
   var _emscripten_glUniformMatrix4fv = (location, count, transpose, value) => {
       GL.validateGLObjectID(GLctx.currentProgram.uniformLocsById, location, 'glUniformMatrix4fv', 'location');
       assert((value & 3) == 0, 'pointer passed to glUniformMatrix4fv must be 4-byte aligned');
-
+  
       if (count <= 18) {
         // avoid allocation when uploading few enough uniforms
         var view = miniTempWebGLFloatBuffers[16*count];
@@ -8546,45 +8549,45 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
 
   var _emscripten_glVertexAttrib1f = (x0, x1) => GLctx.vertexAttrib1f(x0, x1);
 
-
+  
   var _emscripten_glVertexAttrib1fv = (index, v) => {
       assert((v & 3) == 0, 'pointer passed to glVertexAttrib1fv must be 4-byte aligned');
       assert(v != 0, 'null pointer passed to glVertexAttrib1fv');
-
+  
       GLctx.vertexAttrib1f(index, HEAPF32[v>>2]);
     };
 
   var _emscripten_glVertexAttrib2f = (x0, x1, x2) => GLctx.vertexAttrib2f(x0, x1, x2);
 
-
+  
   var _emscripten_glVertexAttrib2fv = (index, v) => {
       assert((v & 3) == 0, 'pointer passed to glVertexAttrib2fv must be 4-byte aligned');
       assert(v != 0, 'null pointer passed to glVertexAttrib2fv');
-
+  
       GLctx.vertexAttrib2f(index, HEAPF32[v>>2], HEAPF32[v+4>>2]);
     };
 
   var _emscripten_glVertexAttrib3f = (x0, x1, x2, x3) => GLctx.vertexAttrib3f(x0, x1, x2, x3);
 
-
+  
   var _emscripten_glVertexAttrib3fv = (index, v) => {
       assert((v & 3) == 0, 'pointer passed to glVertexAttrib3fv must be 4-byte aligned');
       assert(v != 0, 'null pointer passed to glVertexAttrib3fv');
-
+  
       GLctx.vertexAttrib3f(index, HEAPF32[v>>2], HEAPF32[v+4>>2], HEAPF32[v+8>>2]);
     };
 
   var _emscripten_glVertexAttrib4f = (x0, x1, x2, x3, x4) => GLctx.vertexAttrib4f(x0, x1, x2, x3, x4);
 
-
+  
   var _emscripten_glVertexAttrib4fv = (index, v) => {
       assert((v & 3) == 0, 'pointer passed to glVertexAttrib4fv must be 4-byte aligned');
       assert(v != 0, 'null pointer passed to glVertexAttrib4fv');
-
+  
       GLctx.vertexAttrib4f(index, HEAPF32[v>>2], HEAPF32[v+4>>2], HEAPF32[v+8>>2], HEAPF32[v+12>>2]);
     };
 
-
+  
   var _emscripten_glVertexAttribDivisor = (index, divisor) => {
       assert(GLctx.vertexAttribDivisor, 'Must have ANGLE_instanced_arrays extension or WebGL 2 to use WebGL instancing');
       GLctx.vertexAttribDivisor(index, divisor);
@@ -8601,13 +8604,13 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
 
   var _emscripten_has_asyncify = () => 1;
 
-
-
+  
+  
   var doRequestFullscreen = (target, strategy) => {
       if (!JSEvents.fullscreenEnabled()) return -1;
       target = findEventTarget(target);
       if (!target) return -4;
-
+  
       if (!target.requestFullscreen
         // Safari didn't Element.requestFullscreen support until 16.4
         // See: https://developer.mozilla.org/en-US/docs/Web/API/Element/requestFullscreen
@@ -8615,7 +8618,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         ) {
         return -3;
       }
-
+  
       // Queue this function call if we're not currently in an event handler and
       // the user saw it appropriate to do so.
       if (!JSEvents.canPerformEventHandlerRequests()) {
@@ -8625,10 +8628,10 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         }
         return -2;
       }
-
+  
       return JSEvents_requestFullscreen(target, strategy);
     };
-
+  
   var _emscripten_request_fullscreen_strategy = (target, deferUntilInEventHandler, fullscreenStrategy) => {
       var strategy = {
         scaleMode: HEAP32[((fullscreenStrategy)>>2)],
@@ -8638,19 +8641,19 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         canvasResizedCallback: HEAP32[(((fullscreenStrategy)+(12))>>2)],
         canvasResizedCallbackUserData: HEAP32[(((fullscreenStrategy)+(16))>>2)]
       };
-
+  
       return doRequestFullscreen(target, strategy);
     };
 
-
-
+  
+  
   var _emscripten_request_pointerlock = (target, deferUntilInEventHandler) => {
       target = findEventTarget(target);
       if (!target) return -4;
       if (!target.requestPointerLock) {
         return -1;
       }
-
+  
       // Queue this function call if we're not currently in an event handler and
       // the user saw it appropriate to do so.
       if (!JSEvents.canPerformEventHandlerRequests()) {
@@ -8660,7 +8663,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         }
         return -2;
       }
-
+  
       return requestPointerLock(target);
     };
 
@@ -8670,12 +8673,12 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       // for any code that deals with heap sizes, which would require special
       // casing all heap size related code to treat 0 specially.
       2147483648;
-
+  
   var alignMemory = (size, alignment) => {
       assert(alignment, 'alignment argument is required');
       return Math.ceil(size / alignment) * alignment;
     };
-
+  
   var growMemory = (size) => {
       var oldHeapSize = wasmMemory.buffer.byteLength;
       var pages = ((size - oldHeapSize + 65535) / 65536) | 0;
@@ -8690,7 +8693,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       // implicit 0 return to save code size (caller will cast 'undefined' into 0
       // anyhow)
     };
-
+  
   var _emscripten_resize_heap = (requestedSize) => {
       var oldSize = HEAPU8.length;
       // With CAN_ADDRESS_2GB or MEMORY64, pointers are already unsigned.
@@ -8698,7 +8701,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       // With multithreaded builds, races can happen (another thread might increase the size
       // in between), so return a failure, and let the caller retry.
       assert(requestedSize > oldSize);
-
+  
       // Memory resize rules:
       // 1.  Always increase heap size to at least the requested size, rounded up
       //     to next page multiple.
@@ -8715,7 +8718,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       //     over-eager decision to excessively reserve due to (3) above.
       //     Hence if an allocation fails, cut down on the amount of excess
       //     growth, in an attempt to succeed to perform a smaller allocation.
-
+  
       // A limit is set for how much we can grow. We should not exceed that
       // (the wasm binary specifies it, so if we tried, we'd fail anyhow).
       var maxHeapSize = getHeapMax();
@@ -8723,7 +8726,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         err(`Cannot enlarge memory, requested ${requestedSize} bytes, but the limit is ${maxHeapSize} bytes!`);
         return false;
       }
-
+  
       // Loop through potential heap size increases. If we attempt a too eager
       // reservation that fails, cut down on the attempted size and reserve a
       // smaller bump instead. (max 3 times, chosen somewhat arbitrarily)
@@ -8731,12 +8734,12 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         var overGrownHeapSize = oldSize * (1 + 0.2 / cutDown); // ensure geometric growth
         // but limit overreserving (default to capping at +96MB overgrowth at most)
         overGrownHeapSize = Math.min(overGrownHeapSize, requestedSize + 100663296 );
-
+  
         var newSize = Math.min(maxHeapSize, alignMemory(Math.max(requestedSize, overGrownHeapSize), 65536));
-
+  
         var replacement = growMemory(newSize);
         if (replacement) {
-
+  
           return true;
         }
       }
@@ -8756,13 +8759,13 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       return -1;
     };
 
-
-
+  
+  
   var registerBeforeUnloadEventCallback = (target, userData, useCapture, callbackfunc, eventTypeId, eventTypeString) => {
       var beforeUnloadEventHandlerFunc = (e) => {
         // Note: This is always called on the main browser thread, since it needs synchronously return a value!
         var confirmationMessage = ((a1, a2, a3) => dynCall_iiii(callbackfunc, a1, a2, a3))(eventTypeId, 0, userData);
-
+  
         if (confirmationMessage) {
           confirmationMessage = UTF8ToString(confirmationMessage);
         }
@@ -8772,7 +8775,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
           return confirmationMessage;
         }
       };
-
+  
       var eventHandler = {
         target: findEventTarget(target),
         eventTypeString,
@@ -8792,24 +8795,24 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       return registerBeforeUnloadEventCallback(2, userData, true, callbackfunc, 28, 'beforeunload');
     };
 
-
-
-
+  
+  
+  
   var registerFocusEventCallback = (target, userData, useCapture, callbackfunc, eventTypeId, eventTypeString, targetThread) => {
       var eventSize = 256;
       JSEvents.focusEvent ||= _malloc(eventSize);
-
+  
       var focusEventHandlerFunc = (e) => {
         var nodeName = JSEvents.getNodeNameForTarget(e.target);
         var id = e.target.id ?? '';
-
+  
         var focusEvent = JSEvents.focusEvent;
         stringToUTF8(nodeName, focusEvent + 0, 128);
         stringToUTF8(id, focusEvent + 128, 128);
-
+  
         if (((a1, a2, a3) => dynCall_iiii(callbackfunc, a1, a2, a3))(eventTypeId, focusEvent, userData)) e.preventDefault();
       };
-
+  
       var eventHandler = {
         target: findEventTarget(target),
         eventTypeString,
@@ -8828,22 +8831,22 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
   var _emscripten_set_element_css_size = (target, width, height) => {
       target = findEventTarget(target);
       if (!target) return -4;
-
+  
       target.style.width = width + 'px';
       target.style.height = height + 'px';
-
+  
       return 0;
     };
 
   var _emscripten_set_focus_callback_on_thread = (target, userData, useCapture, callbackfunc, targetThread) =>
       registerFocusEventCallback(target, userData, useCapture, callbackfunc, 13, 'focus', targetThread);
 
-
-
-
-
-
-
+  
+  
+  
+  
+  
+  
   var fillFullscreenChangeEventData = (eventStruct) => {
       var fullscreenElement = getFullscreenElement();
       var isFullscreen = !!fullscreenElement;
@@ -8866,18 +8869,18 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         JSEvents.previousFullscreenElement = fullscreenElement;
       }
     };
-
+  
   var registerFullscreenChangeEventCallback = (target, userData, useCapture, callbackfunc, eventTypeId, eventTypeString, targetThread) => {
       var eventSize = 276;
       JSEvents.fullscreenChangeEvent ||= _malloc(eventSize);
-
+  
       var fullscreenChangeEventHandlerFunc = (e) => {
         var fullscreenChangeEvent = JSEvents.fullscreenChangeEvent;
         fillFullscreenChangeEventData(fullscreenChangeEvent);
-
+  
         if (((a1, a2, a3) => dynCall_iiii(callbackfunc, a1, a2, a3))(eventTypeId, fullscreenChangeEvent, userData)) e.preventDefault();
       };
-
+  
       var eventHandler = {
         target,
         eventTypeString,
@@ -8889,32 +8892,32 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       };
       return JSEvents.registerOrRemoveHandler(eventHandler);
     };
-
+  
   var _emscripten_set_fullscreenchange_callback_on_thread = (target, userData, useCapture, callbackfunc, targetThread) => {
       if (!JSEvents.fullscreenEnabled()) return -1;
       target = findEventTarget(target);
       if (!target) return -4;
-
+  
       // TODO: When this block is removed, also change test/test_html5_remove_event_listener.c test expectation on emscripten_set_fullscreenchange_callback().
       registerFullscreenChangeEventCallback(target, userData, useCapture, callbackfunc, 19, 'webkitfullscreenchange', targetThread);
-
+  
       return registerFullscreenChangeEventCallback(target, userData, useCapture, callbackfunc, 19, 'fullscreenchange', targetThread);
     };
 
-
-
-
+  
+  
+  
   var registerGamepadEventCallback = (target, userData, useCapture, callbackfunc, eventTypeId, eventTypeString, targetThread) => {
       var eventSize = 1240;
       JSEvents.gamepadEvent ||= _malloc(eventSize);
-
+  
       var gamepadEventHandlerFunc = (e) => {
         var gamepadEvent = JSEvents.gamepadEvent;
         fillGamepadEventData(gamepadEvent, e['gamepad']);
-
+  
         if (((a1, a2, a3) => dynCall_iiii(callbackfunc, a1, a2, a3))(eventTypeId, gamepadEvent, userData)) e.preventDefault();
       };
-
+  
       var eventHandler = {
         target: findEventTarget(target),
         allowsDeferredCalls: true,
@@ -8927,36 +8930,36 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       };
       return JSEvents.registerOrRemoveHandler(eventHandler);
     };
-
+  
   var _emscripten_set_gamepadconnected_callback_on_thread = (userData, useCapture, callbackfunc, targetThread) => {
       if (_emscripten_sample_gamepad_data()) return -1;
       return registerGamepadEventCallback(2, userData, useCapture, callbackfunc, 26, 'gamepadconnected', targetThread);
     };
 
-
+  
   var _emscripten_set_gamepaddisconnected_callback_on_thread = (userData, useCapture, callbackfunc, targetThread) => {
       if (_emscripten_sample_gamepad_data()) return -1;
       return registerGamepadEventCallback(2, userData, useCapture, callbackfunc, 27, 'gamepaddisconnected', targetThread);
     };
 
-
-
-
-
-
-
+  
+  
+  
+  
+  
+  
   var registerKeyEventCallback = (target, userData, useCapture, callbackfunc, eventTypeId, eventTypeString, targetThread) => {
       var eventSize = 160;
       JSEvents.keyEvent ||= _malloc(eventSize);
-
+  
       var keyEventHandlerFunc = (e) => {
         assert(e);
-
+  
         var keyEventData = JSEvents.keyEvent;
         HEAPF64[((keyEventData)>>3)] = e.timeStamp;
-
+  
         var idx = ((keyEventData)>>2);
-
+  
         HEAP32[idx + 2] = e.location;
         HEAP8[keyEventData + 12] = e.ctrlKey;
         HEAP8[keyEventData + 13] = e.shiftKey;
@@ -8970,10 +8973,10 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         stringToUTF8(e.code ?? '', keyEventData + 64, 32);
         stringToUTF8(e.char ?? '', keyEventData + 96, 32);
         stringToUTF8(e.locale ?? '', keyEventData + 128, 32);
-
+  
         if (((a1, a2, a3) => dynCall_iiii(callbackfunc, a1, a2, a3))(eventTypeId, keyEventData, userData)) e.preventDefault();
       };
-
+  
       var eventHandler = {
         target: findEventTarget(target),
         eventTypeString,
@@ -8999,11 +9002,11 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       setMainLoop(iterFunc, fps, simulateInfiniteLoop, arg);
     };
 
-
-
-
-
-
+  
+  
+  
+  
+  
   var fillMouseEventData = (eventStruct, e, target) => {
       assert(eventStruct % 4 == 0);
       HEAPF64[((eventStruct)>>3)] = e.timeStamp;
@@ -9020,26 +9023,26 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       HEAP16[idx*2 + 15] = e.buttons;
       HEAP32[idx + 8] = e.movementX;
       HEAP32[idx + 9] = e.movementY;
-
+  
       // Note: rect contains doubles (truncated to placate SAFE_HEAP, which is the same behaviour when writing to HEAP32 anyway)
       var rect = getBoundingClientRect(target);
       HEAP32[idx + 10] = e.clientX - (rect.left | 0);
       HEAP32[idx + 11] = e.clientY - (rect.top  | 0);
     };
-
-
+  
+  
   var registerMouseEventCallback = (target, userData, useCapture, callbackfunc, eventTypeId, eventTypeString, targetThread) => {
       var eventSize = 64;
       JSEvents.mouseEvent ||= _malloc(eventSize);
       target = findEventTarget(target);
-
+  
       var mouseEventHandlerFunc = (e) => {
         // TODO: Make this access thread safe, or this could update live while app is reading it.
         fillMouseEventData(JSEvents.mouseEvent, e, target);
-
+  
         if (((a1, a2, a3) => dynCall_iiii(callbackfunc, a1, a2, a3))(eventTypeId, JSEvents.mouseEvent, userData)) e.preventDefault();
       };
-
+  
       var eventHandler = {
         target,
         allowsDeferredCalls: eventTypeString != 'mousemove' && eventTypeString != 'mouseenter' && eventTypeString != 'mouseleave', // Mouse move events do not allow fullscreen/pointer lock requests to be handled in them!
@@ -9067,10 +9070,10 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
   var _emscripten_set_mouseup_callback_on_thread = (target, userData, useCapture, callbackfunc, targetThread) =>
       registerMouseEventCallback(target, userData, useCapture, callbackfunc, 6, 'mouseup', targetThread);
 
-
-
-
-
+  
+  
+  
+  
   var fillPointerlockChangeEventData = (eventStruct) => {
       var pointerLockElement = document.pointerLockElement;
       var isPointerlocked = !!pointerLockElement;
@@ -9082,18 +9085,18 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       stringToUTF8(nodeName, eventStruct + 1, 128);
       stringToUTF8(id, eventStruct + 129, 128);
     };
-
+  
   var registerPointerlockChangeEventCallback = (target, userData, useCapture, callbackfunc, eventTypeId, eventTypeString, targetThread) => {
       var eventSize = 257;
       JSEvents.pointerlockChangeEvent ||= _malloc(eventSize);
-
+  
       var pointerlockChangeEventHandlerFunc = (e) => {
         var pointerlockChangeEvent = JSEvents.pointerlockChangeEvent;
         fillPointerlockChangeEventData(pointerlockChangeEvent);
-
+  
         if (((a1, a2, a3) => dynCall_iiii(callbackfunc, a1, a2, a3))(eventTypeId, pointerlockChangeEvent, userData)) e.preventDefault();
       };
-
+  
       var eventHandler = {
         target,
         eventTypeString,
@@ -9105,26 +9108,26 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       };
       return JSEvents.registerOrRemoveHandler(eventHandler);
     };
-
+  
   var _emscripten_set_pointerlockchange_callback_on_thread = (target, userData, useCapture, callbackfunc, targetThread) => {
       if (!document.body?.requestPointerLock) {
         return -1;
       }
-
+  
       target = findEventTarget(target);
       if (!target) return -4;
       return registerPointerlockChangeEventCallback(target, userData, useCapture, callbackfunc, 20, 'pointerlockchange', targetThread);
     };
 
-
-
-
+  
+  
+  
   var registerUiEventCallback = (target, userData, useCapture, callbackfunc, eventTypeId, eventTypeString, targetThread) => {
       var eventSize = 36;
       JSEvents.uiEvent ||= _malloc(eventSize);
-
+  
       target = findEventTarget(target);
-
+  
       var uiEventHandlerFunc = (e) => {
         if (e.target != target) {
           // Never take ui events such as scroll via a 'bubbled' route, but always from the direct element that
@@ -9150,7 +9153,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         HEAP32[(((uiEvent)+(32))>>2)] = pageYOffset | 0;
         if (((a1, a2, a3) => dynCall_iiii(callbackfunc, a1, a2, a3))(eventTypeId, uiEvent, userData)) e.preventDefault();
       };
-
+  
       var eventHandler = {
         target,
         eventTypeString,
@@ -9165,25 +9168,25 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
   var _emscripten_set_resize_callback_on_thread = (target, userData, useCapture, callbackfunc, targetThread) =>
       registerUiEventCallback(target, userData, useCapture, callbackfunc, 10, 'resize', targetThread);
 
-
-
-
-
-
-
+  
+  
+  
+  
+  
+  
   var registerTouchEventCallback = (target, userData, useCapture, callbackfunc, eventTypeId, eventTypeString, targetThread) => {
       var eventSize = 1552;
       JSEvents.touchEvent ||= _malloc(eventSize);
-
+  
       target = findEventTarget(target);
-
+  
       var touchEventHandlerFunc = (e) => {
         assert(e);
         var t, touches = {}, et = e.touches;
         // To ease marshalling different kinds of touches that browser reports (all touches are listed in e.touches,
         // only changed touches in e.changedTouches, and touches on target at a.targetTouches), mark a boolean in
         // each Touch object so that we can later loop only once over all touches we see to marshall over to Wasm.
-
+  
         for (let t of et) {
           // Browser might recycle the generated Touch objects between each frame (Firefox on Android), so reset any
           // changed/target states we may have set from previous frame.
@@ -9199,7 +9202,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         for (let t of e.targetTouches) {
           touches[t.identifier].onTarget = 1;
         }
-
+  
         var touchEvent = JSEvents.touchEvent;
         HEAPF64[((touchEvent)>>3)] = e.timeStamp;
         HEAP8[touchEvent + 12] = e.ctrlKey;
@@ -9222,18 +9225,18 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
           HEAP8[idx + 29] = t.onTarget;
           HEAP32[idx32 + 8] = t.clientX - (targetRect.left | 0);
           HEAP32[idx32 + 9] = t.clientY - (targetRect.top  | 0);
-
+  
           idx += 48;
-
+  
           if (++numTouches > 31) {
             break;
           }
         }
         HEAP32[(((touchEvent)+(8))>>2)] = numTouches;
-
+  
         if (((a1, a2, a3) => dynCall_iiii(callbackfunc, a1, a2, a3))(eventTypeId, touchEvent, userData)) e.preventDefault();
       };
-
+  
       var eventHandler = {
         target,
         allowsDeferredCalls: eventTypeString == 'touchstart' || eventTypeString == 'touchend',
@@ -9258,29 +9261,29 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
   var _emscripten_set_touchstart_callback_on_thread = (target, userData, useCapture, callbackfunc, targetThread) =>
       registerTouchEventCallback(target, userData, useCapture, callbackfunc, 22, 'touchstart', targetThread);
 
-
-
+  
+  
   var fillVisibilityChangeEventData = (eventStruct) => {
       var visibilityStates = [ 'hidden', 'visible', 'prerender', 'unloaded' ];
       var visibilityState = visibilityStates.indexOf(document.visibilityState);
-
+  
       // Assigning a boolean to HEAP32 with expected type coercion.
       /** @suppress{checkTypes} */
       HEAP8[eventStruct] = document.hidden;
       HEAP32[(((eventStruct)+(4))>>2)] = visibilityState;
     };
-
+  
   var registerVisibilityChangeEventCallback = (target, userData, useCapture, callbackfunc, eventTypeId, eventTypeString, targetThread) => {
       var eventSize = 8;
       JSEvents.visibilityChangeEvent ||= _malloc(eventSize);
-
+  
       var visibilityChangeEventHandlerFunc = (e) => {
         var visibilityChangeEvent = JSEvents.visibilityChangeEvent;
         fillVisibilityChangeEventData(visibilityChangeEvent);
-
+  
         if (((a1, a2, a3) => dynCall_iiii(callbackfunc, a1, a2, a3))(eventTypeId, visibilityChangeEvent, userData)) e.preventDefault();
       };
-
+  
       var eventHandler = {
         target,
         eventTypeString,
@@ -9292,7 +9295,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       };
       return JSEvents.registerOrRemoveHandler(eventHandler);
     };
-
+  
   var _emscripten_set_visibilitychange_callback_on_thread = (userData, useCapture, callbackfunc, targetThread) => {
     if (!specialHTMLTargets[1]) {
       return -4;
@@ -9300,14 +9303,14 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       return registerVisibilityChangeEventCallback(specialHTMLTargets[1], userData, useCapture, callbackfunc, 21, 'visibilitychange', targetThread);
     };
 
-
-
-
-
+  
+  
+  
+  
   var registerWheelEventCallback = (target, userData, useCapture, callbackfunc, eventTypeId, eventTypeString, targetThread) => {
       var eventSize = 96;
       JSEvents.wheelEvent ||= _malloc(eventSize)
-
+  
       // The DOM Level 3 events spec event 'wheel'
       var wheelHandlerFunc = (e) => {
         var wheelEvent = JSEvents.wheelEvent;
@@ -9318,7 +9321,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         HEAP32[(((wheelEvent)+(88))>>2)] = e["deltaMode"];
         if (((a1, a2, a3) => dynCall_iiii(callbackfunc, a1, a2, a3))(eventTypeId, wheelEvent, userData)) e.preventDefault();
       };
-
+  
       var eventHandler = {
         target,
         allowsDeferredCalls: true,
@@ -9331,7 +9334,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       };
       return JSEvents.registerOrRemoveHandler(eventHandler);
     };
-
+  
   var _emscripten_set_wheel_callback_on_thread = (target, userData, useCapture, callbackfunc, targetThread) => {
       target = findEventTarget(target);
       if (!target) return -4;
@@ -9342,7 +9345,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       }
     };
 
-
+  
   var _emscripten_set_window_title = (title) => document.title = UTF8ToString(title);
 
   var _emscripten_sleep = function(ms) {
@@ -9354,7 +9357,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
 
   var ENV = {
   };
-
+  
   var getExecutableName = () => thisProgram;
   var getEnvStrings = () => {
       if (!getEnvStrings.strings) {
@@ -9385,8 +9388,8 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       }
       return getEnvStrings.strings;
     };
-
-
+  
+  
   var _environ_get = (__environ, environ_buf) => {
       var bufSize = 0;
       var envp = 0;
@@ -9399,8 +9402,8 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       return 0;
     };
 
-
-
+  
+  
   var _environ_sizes_get = (penviron_count, penviron_buf_size) => {
       var strings = getEnvStrings();
       HEAPU32[((penviron_count)>>2)] = strings.length;
@@ -9414,7 +9417,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
 
   function _fd_close(fd) {
   try {
-
+  
       var stream = SYSCALLS.getStreamFromFD(fd);
       FS.close(stream);
       return 0;
@@ -9423,9 +9426,9 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
     return e.errno;
   }
   }
+  
 
-
-
+  
   /** @param {number=} offset */
   var doReadv = (stream, iov, iovcnt, offset) => {
       var ret = 0;
@@ -9454,11 +9457,11 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       }
       return ret;
     };
-
-
+  
+  
   function _fd_read(fd, iov, iovcnt, pnum) {
   try {
-
+  
       var stream = SYSCALLS.getStreamFromFD(fd);
       var num = doReadv(stream, iov, iovcnt);
       HEAPU32[((pnum)>>2)] = num;
@@ -9468,16 +9471,16 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
     return e.errno;
   }
   }
+  
 
-
-
-
+  
+  
   function _fd_seek(fd, offset, whence, newOffset) {
     offset = bigintToI53Checked(offset);
-
-
+  
+  
   try {
-
+  
       if (isNaN(offset)) return 22;
       var stream = SYSCALLS.getStreamFromFD(fd);
       FS.llseek(stream, offset, whence);
@@ -9491,8 +9494,8 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
   ;
   }
 
-
-
+  
+  
   /** @param {number=} offset */
   var doWritev = (stream, iov, iovcnt, offset) => {
       // Gather all iovecs into one contiguous buffer and issue a single
@@ -9517,11 +9520,11 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       }
       return FS.write(stream, view, 0, total, offset);
     };
-
-
+  
+  
   function _fd_write(fd, iov, iovcnt, pnum) {
   try {
-
+  
       var stream = SYSCALLS.getStreamFromFD(fd);
       var num = doWritev(stream, iov, iovcnt);
       HEAPU32[((pnum)>>2)] = num;
@@ -9531,7 +9534,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
     return e.errno;
   }
   }
-
+  
 
 
 
@@ -9558,26 +9561,26 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         abort(e);
       }
     };
-
-
+  
+  
   var createNamedFunction = (name, func) => Object.defineProperty(func, 'name', { value: name });
-
+  
   var runtimeKeepalivePush = () => {
       runtimeKeepaliveCounter += 1;
     };
-
+  
   var runtimeKeepalivePop = () => {
       assert(runtimeKeepaliveCounter > 0);
       runtimeKeepaliveCounter -= 1;
     };
-
-
-
-
+  
+  
+  
+  
   var Asyncify = {
   instrumentWasmImports(imports) {
         var importPattern = /^(invoke_.*|__asyncjs__.*)$/;
-
+  
         for (let [x, original] of Object.entries(imports)) {
           if (typeof original == 'function') {
             let isAsyncifyImport = original.isAsync || importPattern.test(x);
@@ -9674,7 +9677,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
           // the dbg() function itself can call back into WebAssembly to get the
           // current pthread_self() pointer).
           Asyncify.state = Asyncify.State.Normal;
-
+          
           // Keep the runtime alive so that a re-wind can be done later.
           runAndAbortIfError(_asyncify_stop_unwind);
           if (typeof Fibers != 'undefined') {
@@ -9726,7 +9729,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         assert(func);
         // Once we have rewound and the stack we no longer need to artificially
         // keep the runtime alive.
-
+        
         return callUserCallback(func);
       },
   handleSleep(startAsync) {
@@ -9828,13 +9831,13 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
 
 
 
-
-
-
-
-
-
-
+  
+  
+  
+  
+  
+  
+  
     /**
    * @param {number} ptr
    * @param {number} value
@@ -9864,19 +9867,19 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       assert(func, `Cannot call unknown function ${ident}, make sure it is exported`);
       return func;
     };
-
+  
   var writeArrayToMemory = (array, buffer) => {
       assert(array.length >= 0, 'writeArrayToMemory array must have a length (should be an array or typed array)')
       HEAP8.set(array, buffer);
     };
-
-
-
-
-
-
-
-
+  
+  
+  
+  
+  
+  
+  
+  
     /**
    * @param {string|null=} returnType
    * @param {Array=} argTypes
@@ -9899,7 +9902,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
           return ret;
         }
       };
-
+  
       function convertReturnValue(ret) {
         if (returnType === 'string') {
           return UTF8ToString(ret);
@@ -9907,7 +9910,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         if (returnType === 'boolean') return Boolean(ret);
         return ret;
       }
-
+  
       var func = getCFunc(ident);
       var cArgs = [];
       var stack = 0;
@@ -9932,7 +9935,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         return convertReturnValue(ret);
       }
     var asyncMode = opts?.async;
-
+  
       // Keep the runtime alive through all calls. Note that this call might not be
       // async, but for simplicity we push and pop in all calls.
       runtimeKeepalivePush();
@@ -9951,7 +9954,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         assert(asyncMode, `The call to ${ident} is running asynchronously. If this was intended, add the async option to the ccall/cwrap call.`);
         return Asyncify.whenDone().then(onDone);
       }
-
+  
       ret = onDone(ret);
       // If this is an async ccall, ensure we return a promise
       if (asyncMode) return Promise.resolve(ret);
@@ -10487,22 +10490,22 @@ function checkIncomingModuleAPI() {
   ignoredModuleProp('wasmBinary');
 }
 var ASM_CONSTS = {
-  460720: ($0) => { var str = UTF8ToString($0) + '\n\n' + 'Abort/Retry/Ignore/AlwaysIgnore? [ariA] :'; var reply = window.prompt(str, "i"); if (reply === null) { reply = "i"; } return reply.length === 1 ? reply.charCodeAt(0) : -1; },
- 460935: () => { if (typeof(AudioContext) !== 'undefined') { return true; } else if (typeof(webkitAudioContext) !== 'undefined') { return true; } return false; },
- 461082: () => { if ((typeof(navigator.mediaDevices) !== 'undefined') && (typeof(navigator.mediaDevices.getUserMedia) !== 'undefined')) { return true; } else if (typeof(navigator.webkitGetUserMedia) !== 'undefined') { return true; } return false; },
- 461316: ($0) => { if(typeof(Module['SDL2']) === 'undefined') { Module['SDL2'] = {}; } var SDL2 = Module['SDL2']; if (!$0) { SDL2.audio = {}; } else { SDL2.capture = {}; } if (!SDL2.audioContext) { if (typeof(AudioContext) !== 'undefined') { SDL2.audioContext = new AudioContext(); } else if (typeof(webkitAudioContext) !== 'undefined') { SDL2.audioContext = new webkitAudioContext(); } if (SDL2.audioContext) { if ((typeof navigator.userActivation) === 'undefined') { autoResumeAudioContext(SDL2.audioContext); } } } return SDL2.audioContext === undefined ? -1 : 0; },
- 461868: () => { var SDL2 = Module['SDL2']; return SDL2.audioContext.sampleRate; },
- 461936: ($0, $1, $2, $3) => { var SDL2 = Module['SDL2']; var have_microphone = function(stream) { if (SDL2.capture.silenceTimer !== undefined) { clearInterval(SDL2.capture.silenceTimer); SDL2.capture.silenceTimer = undefined; SDL2.capture.silenceBuffer = undefined } SDL2.capture.mediaStreamNode = SDL2.audioContext.createMediaStreamSource(stream); SDL2.capture.scriptProcessorNode = SDL2.audioContext.createScriptProcessor($1, $0, 1); SDL2.capture.scriptProcessorNode.onaudioprocess = function(audioProcessingEvent) { if ((SDL2 === undefined) || (SDL2.capture === undefined)) { return; } audioProcessingEvent.outputBuffer.getChannelData(0).fill(0.0); SDL2.capture.currentCaptureBuffer = audioProcessingEvent.inputBuffer; dynCall('vp', $2, [$3]); }; SDL2.capture.mediaStreamNode.connect(SDL2.capture.scriptProcessorNode); SDL2.capture.scriptProcessorNode.connect(SDL2.audioContext.destination); SDL2.capture.stream = stream; }; var no_microphone = function(error) { }; SDL2.capture.silenceBuffer = SDL2.audioContext.createBuffer($0, $1, SDL2.audioContext.sampleRate); SDL2.capture.silenceBuffer.getChannelData(0).fill(0.0); var silence_callback = function() { SDL2.capture.currentCaptureBuffer = SDL2.capture.silenceBuffer; dynCall('vp', $2, [$3]); }; SDL2.capture.silenceTimer = setInterval(silence_callback, ($1 / SDL2.audioContext.sampleRate) * 1000); if ((navigator.mediaDevices !== undefined) && (navigator.mediaDevices.getUserMedia !== undefined)) { navigator.mediaDevices.getUserMedia({ audio: true, video: false }).then(have_microphone).catch(no_microphone); } else if (navigator.webkitGetUserMedia !== undefined) { navigator.webkitGetUserMedia({ audio: true, video: false }, have_microphone, no_microphone); } },
- 463629: ($0, $1, $2, $3) => { var SDL2 = Module['SDL2']; SDL2.audio.scriptProcessorNode = SDL2.audioContext['createScriptProcessor']($1, 0, $0); SDL2.audio.scriptProcessorNode['onaudioprocess'] = function (e) { if ((SDL2 === undefined) || (SDL2.audio === undefined)) { return; } if (SDL2.audio.silenceTimer !== undefined) { clearInterval(SDL2.audio.silenceTimer); SDL2.audio.silenceTimer = undefined; SDL2.audio.silenceBuffer = undefined; } SDL2.audio.currentOutputBuffer = e['outputBuffer']; dynCall('vp', $2, [$3]); }; SDL2.audio.scriptProcessorNode['connect'](SDL2.audioContext['destination']); if (SDL2.audioContext.state === 'suspended') { SDL2.audio.silenceBuffer = SDL2.audioContext.createBuffer($0, $1, SDL2.audioContext.sampleRate); SDL2.audio.silenceBuffer.getChannelData(0).fill(0.0); var silence_callback = function() { if ((typeof navigator.userActivation) !== 'undefined') { if (navigator.userActivation.hasBeenActive) { SDL2.audioContext.resume(); } } SDL2.audio.currentOutputBuffer = SDL2.audio.silenceBuffer; dynCall('vp', $2, [$3]); SDL2.audio.currentOutputBuffer = undefined; }; SDL2.audio.silenceTimer = setInterval(silence_callback, ($1 / SDL2.audioContext.sampleRate) * 1000); } },
- 464804: ($0, $1) => { var SDL2 = Module['SDL2']; var numChannels = SDL2.capture.currentCaptureBuffer.numberOfChannels; for (var c = 0; c < numChannels; ++c) { var channelData = SDL2.capture.currentCaptureBuffer.getChannelData(c); if (channelData.length != $1) { throw 'Web Audio capture buffer length mismatch! Destination size: ' + channelData.length + ' samples vs expected ' + $1 + ' samples!'; } if (numChannels == 1) { for (var j = 0; j < $1; ++j) { setValue($0 + (j * 4), channelData[j], 'float'); } } else { for (var j = 0; j < $1; ++j) { setValue($0 + (((j * numChannels) + c) * 4), channelData[j], 'float'); } } } },
- 465409: ($0, $1) => { var SDL2 = Module['SDL2']; var buf = $0 >>> 2; var numChannels = SDL2.audio.currentOutputBuffer['numberOfChannels']; for (var c = 0; c < numChannels; ++c) { var channelData = SDL2.audio.currentOutputBuffer['getChannelData'](c); if (channelData.length != $1) { throw 'Web Audio output buffer length mismatch! Destination size: ' + channelData.length + ' samples vs expected ' + $1 + ' samples!'; } for (var j = 0; j < $1; ++j) { channelData[j] = HEAPF32[buf + (j*numChannels + c)]; } } },
- 465898: ($0) => { var SDL2 = Module['SDL2']; if ($0) { if (SDL2.capture.silenceTimer !== undefined) { clearInterval(SDL2.capture.silenceTimer); } if (SDL2.capture.stream !== undefined) { var tracks = SDL2.capture.stream.getAudioTracks(); for (var i = 0; i < tracks.length; i++) { SDL2.capture.stream.removeTrack(tracks[i]); } } if (SDL2.capture.scriptProcessorNode !== undefined) { SDL2.capture.scriptProcessorNode.onaudioprocess = function(audioProcessingEvent) {}; SDL2.capture.scriptProcessorNode.disconnect(); } if (SDL2.capture.mediaStreamNode !== undefined) { SDL2.capture.mediaStreamNode.disconnect(); } SDL2.capture = undefined; } else { if (SDL2.audio.scriptProcessorNode != undefined) { SDL2.audio.scriptProcessorNode.disconnect(); } if (SDL2.audio.silenceTimer !== undefined) { clearInterval(SDL2.audio.silenceTimer); } SDL2.audio = undefined; } if ((SDL2.audioContext !== undefined) && (SDL2.audio === undefined) && (SDL2.capture === undefined)) { SDL2.audioContext.close(); SDL2.audioContext = undefined; } },
- 466904: ($0, $1, $2) => { var w = $0; var h = $1; var pixels = $2; if (!Module['SDL2']) Module['SDL2'] = {}; var SDL2 = Module['SDL2']; if (SDL2.ctxCanvas !== Module['canvas']) { SDL2.ctx = Browser.createContext(Module['canvas'], false, true); SDL2.ctxCanvas = Module['canvas']; } if (SDL2.w !== w || SDL2.h !== h || SDL2.imageCtx !== SDL2.ctx) { SDL2.image = SDL2.ctx.createImageData(w, h); SDL2.w = w; SDL2.h = h; SDL2.imageCtx = SDL2.ctx; } var data = SDL2.image.data; var src = pixels / 4; var dst = 0; var num; if (typeof CanvasPixelArray !== 'undefined' && data instanceof CanvasPixelArray) { num = data.length; while (dst < num) { var val = HEAP32[src]; data[dst ] = val & 0xff; data[dst+1] = (val >> 8) & 0xff; data[dst+2] = (val >> 16) & 0xff; data[dst+3] = 0xff; src++; dst += 4; } } else { if (SDL2.data32Data !== data) { SDL2.data32 = new Int32Array(data.buffer); SDL2.data8 = new Uint8Array(data.buffer); SDL2.data32Data = data; } var data32 = SDL2.data32; num = data32.length; data32.set(HEAP32.subarray(src, src + num)); var data8 = SDL2.data8; var i = 3; var j = i + 4*num; if (num % 8 == 0) { while (i < j) { data8[i] = 0xff; i = i + 4 | 0; data8[i] = 0xff; i = i + 4 | 0; data8[i] = 0xff; i = i + 4 | 0; data8[i] = 0xff; i = i + 4 | 0; data8[i] = 0xff; i = i + 4 | 0; data8[i] = 0xff; i = i + 4 | 0; data8[i] = 0xff; i = i + 4 | 0; data8[i] = 0xff; i = i + 4 | 0; } } else { while (i < j) { data8[i] = 0xff; i = i + 4 | 0; } } } SDL2.ctx.putImageData(SDL2.image, 0, 0); },
- 468370: ($0, $1, $2, $3, $4) => { var w = $0; var h = $1; var hot_x = $2; var hot_y = $3; var pixels = $4; var canvas = document.createElement("canvas"); canvas.width = w; canvas.height = h; var ctx = canvas.getContext("2d"); var image = ctx.createImageData(w, h); var data = image.data; var src = pixels / 4; var dst = 0; var num; if (typeof CanvasPixelArray !== 'undefined' && data instanceof CanvasPixelArray) { num = data.length; while (dst < num) { var val = HEAP32[src]; data[dst ] = val & 0xff; data[dst+1] = (val >> 8) & 0xff; data[dst+2] = (val >> 16) & 0xff; data[dst+3] = (val >> 24) & 0xff; src++; dst += 4; } } else { var data32 = new Int32Array(data.buffer); num = data32.length; data32.set(HEAP32.subarray(src, src + num)); } ctx.putImageData(image, 0, 0); var url = hot_x === 0 && hot_y === 0 ? "url(" + canvas.toDataURL() + "), auto" : "url(" + canvas.toDataURL() + ") " + hot_x + " " + hot_y + ", auto"; var urlBuf = _malloc(url.length + 1); stringToUTF8(url, urlBuf, url.length + 1); return urlBuf; },
- 469358: ($0) => { if (Module['canvas']) { Module['canvas'].style['cursor'] = UTF8ToString($0); } },
- 469441: () => { if (Module['canvas']) { Module['canvas'].style['cursor'] = 'none'; } },
- 469510: () => { return window.innerWidth; },
- 469540: () => { return window.innerHeight; }
+  464536: ($0) => { var str = UTF8ToString($0) + '\n\n' + 'Abort/Retry/Ignore/AlwaysIgnore? [ariA] :'; var reply = window.prompt(str, "i"); if (reply === null) { reply = "i"; } return reply.length === 1 ? reply.charCodeAt(0) : -1; },  
+ 464751: () => { if (typeof(AudioContext) !== 'undefined') { return true; } else if (typeof(webkitAudioContext) !== 'undefined') { return true; } return false; },  
+ 464898: () => { if ((typeof(navigator.mediaDevices) !== 'undefined') && (typeof(navigator.mediaDevices.getUserMedia) !== 'undefined')) { return true; } else if (typeof(navigator.webkitGetUserMedia) !== 'undefined') { return true; } return false; },  
+ 465132: ($0) => { if(typeof(Module['SDL2']) === 'undefined') { Module['SDL2'] = {}; } var SDL2 = Module['SDL2']; if (!$0) { SDL2.audio = {}; } else { SDL2.capture = {}; } if (!SDL2.audioContext) { if (typeof(AudioContext) !== 'undefined') { SDL2.audioContext = new AudioContext(); } else if (typeof(webkitAudioContext) !== 'undefined') { SDL2.audioContext = new webkitAudioContext(); } if (SDL2.audioContext) { if ((typeof navigator.userActivation) === 'undefined') { autoResumeAudioContext(SDL2.audioContext); } } } return SDL2.audioContext === undefined ? -1 : 0; },  
+ 465684: () => { var SDL2 = Module['SDL2']; return SDL2.audioContext.sampleRate; },  
+ 465752: ($0, $1, $2, $3) => { var SDL2 = Module['SDL2']; var have_microphone = function(stream) { if (SDL2.capture.silenceTimer !== undefined) { clearInterval(SDL2.capture.silenceTimer); SDL2.capture.silenceTimer = undefined; SDL2.capture.silenceBuffer = undefined } SDL2.capture.mediaStreamNode = SDL2.audioContext.createMediaStreamSource(stream); SDL2.capture.scriptProcessorNode = SDL2.audioContext.createScriptProcessor($1, $0, 1); SDL2.capture.scriptProcessorNode.onaudioprocess = function(audioProcessingEvent) { if ((SDL2 === undefined) || (SDL2.capture === undefined)) { return; } audioProcessingEvent.outputBuffer.getChannelData(0).fill(0.0); SDL2.capture.currentCaptureBuffer = audioProcessingEvent.inputBuffer; dynCall('vp', $2, [$3]); }; SDL2.capture.mediaStreamNode.connect(SDL2.capture.scriptProcessorNode); SDL2.capture.scriptProcessorNode.connect(SDL2.audioContext.destination); SDL2.capture.stream = stream; }; var no_microphone = function(error) { }; SDL2.capture.silenceBuffer = SDL2.audioContext.createBuffer($0, $1, SDL2.audioContext.sampleRate); SDL2.capture.silenceBuffer.getChannelData(0).fill(0.0); var silence_callback = function() { SDL2.capture.currentCaptureBuffer = SDL2.capture.silenceBuffer; dynCall('vp', $2, [$3]); }; SDL2.capture.silenceTimer = setInterval(silence_callback, ($1 / SDL2.audioContext.sampleRate) * 1000); if ((navigator.mediaDevices !== undefined) && (navigator.mediaDevices.getUserMedia !== undefined)) { navigator.mediaDevices.getUserMedia({ audio: true, video: false }).then(have_microphone).catch(no_microphone); } else if (navigator.webkitGetUserMedia !== undefined) { navigator.webkitGetUserMedia({ audio: true, video: false }, have_microphone, no_microphone); } },  
+ 467445: ($0, $1, $2, $3) => { var SDL2 = Module['SDL2']; SDL2.audio.scriptProcessorNode = SDL2.audioContext['createScriptProcessor']($1, 0, $0); SDL2.audio.scriptProcessorNode['onaudioprocess'] = function (e) { if ((SDL2 === undefined) || (SDL2.audio === undefined)) { return; } if (SDL2.audio.silenceTimer !== undefined) { clearInterval(SDL2.audio.silenceTimer); SDL2.audio.silenceTimer = undefined; SDL2.audio.silenceBuffer = undefined; } SDL2.audio.currentOutputBuffer = e['outputBuffer']; dynCall('vp', $2, [$3]); }; SDL2.audio.scriptProcessorNode['connect'](SDL2.audioContext['destination']); if (SDL2.audioContext.state === 'suspended') { SDL2.audio.silenceBuffer = SDL2.audioContext.createBuffer($0, $1, SDL2.audioContext.sampleRate); SDL2.audio.silenceBuffer.getChannelData(0).fill(0.0); var silence_callback = function() { if ((typeof navigator.userActivation) !== 'undefined') { if (navigator.userActivation.hasBeenActive) { SDL2.audioContext.resume(); } } SDL2.audio.currentOutputBuffer = SDL2.audio.silenceBuffer; dynCall('vp', $2, [$3]); SDL2.audio.currentOutputBuffer = undefined; }; SDL2.audio.silenceTimer = setInterval(silence_callback, ($1 / SDL2.audioContext.sampleRate) * 1000); } },  
+ 468620: ($0, $1) => { var SDL2 = Module['SDL2']; var numChannels = SDL2.capture.currentCaptureBuffer.numberOfChannels; for (var c = 0; c < numChannels; ++c) { var channelData = SDL2.capture.currentCaptureBuffer.getChannelData(c); if (channelData.length != $1) { throw 'Web Audio capture buffer length mismatch! Destination size: ' + channelData.length + ' samples vs expected ' + $1 + ' samples!'; } if (numChannels == 1) { for (var j = 0; j < $1; ++j) { setValue($0 + (j * 4), channelData[j], 'float'); } } else { for (var j = 0; j < $1; ++j) { setValue($0 + (((j * numChannels) + c) * 4), channelData[j], 'float'); } } } },  
+ 469225: ($0, $1) => { var SDL2 = Module['SDL2']; var buf = $0 >>> 2; var numChannels = SDL2.audio.currentOutputBuffer['numberOfChannels']; for (var c = 0; c < numChannels; ++c) { var channelData = SDL2.audio.currentOutputBuffer['getChannelData'](c); if (channelData.length != $1) { throw 'Web Audio output buffer length mismatch! Destination size: ' + channelData.length + ' samples vs expected ' + $1 + ' samples!'; } for (var j = 0; j < $1; ++j) { channelData[j] = HEAPF32[buf + (j*numChannels + c)]; } } },  
+ 469714: ($0) => { var SDL2 = Module['SDL2']; if ($0) { if (SDL2.capture.silenceTimer !== undefined) { clearInterval(SDL2.capture.silenceTimer); } if (SDL2.capture.stream !== undefined) { var tracks = SDL2.capture.stream.getAudioTracks(); for (var i = 0; i < tracks.length; i++) { SDL2.capture.stream.removeTrack(tracks[i]); } } if (SDL2.capture.scriptProcessorNode !== undefined) { SDL2.capture.scriptProcessorNode.onaudioprocess = function(audioProcessingEvent) {}; SDL2.capture.scriptProcessorNode.disconnect(); } if (SDL2.capture.mediaStreamNode !== undefined) { SDL2.capture.mediaStreamNode.disconnect(); } SDL2.capture = undefined; } else { if (SDL2.audio.scriptProcessorNode != undefined) { SDL2.audio.scriptProcessorNode.disconnect(); } if (SDL2.audio.silenceTimer !== undefined) { clearInterval(SDL2.audio.silenceTimer); } SDL2.audio = undefined; } if ((SDL2.audioContext !== undefined) && (SDL2.audio === undefined) && (SDL2.capture === undefined)) { SDL2.audioContext.close(); SDL2.audioContext = undefined; } },  
+ 470720: ($0, $1, $2) => { var w = $0; var h = $1; var pixels = $2; if (!Module['SDL2']) Module['SDL2'] = {}; var SDL2 = Module['SDL2']; if (SDL2.ctxCanvas !== Module['canvas']) { SDL2.ctx = Browser.createContext(Module['canvas'], false, true); SDL2.ctxCanvas = Module['canvas']; } if (SDL2.w !== w || SDL2.h !== h || SDL2.imageCtx !== SDL2.ctx) { SDL2.image = SDL2.ctx.createImageData(w, h); SDL2.w = w; SDL2.h = h; SDL2.imageCtx = SDL2.ctx; } var data = SDL2.image.data; var src = pixels / 4; var dst = 0; var num; if (typeof CanvasPixelArray !== 'undefined' && data instanceof CanvasPixelArray) { num = data.length; while (dst < num) { var val = HEAP32[src]; data[dst ] = val & 0xff; data[dst+1] = (val >> 8) & 0xff; data[dst+2] = (val >> 16) & 0xff; data[dst+3] = 0xff; src++; dst += 4; } } else { if (SDL2.data32Data !== data) { SDL2.data32 = new Int32Array(data.buffer); SDL2.data8 = new Uint8Array(data.buffer); SDL2.data32Data = data; } var data32 = SDL2.data32; num = data32.length; data32.set(HEAP32.subarray(src, src + num)); var data8 = SDL2.data8; var i = 3; var j = i + 4*num; if (num % 8 == 0) { while (i < j) { data8[i] = 0xff; i = i + 4 | 0; data8[i] = 0xff; i = i + 4 | 0; data8[i] = 0xff; i = i + 4 | 0; data8[i] = 0xff; i = i + 4 | 0; data8[i] = 0xff; i = i + 4 | 0; data8[i] = 0xff; i = i + 4 | 0; data8[i] = 0xff; i = i + 4 | 0; data8[i] = 0xff; i = i + 4 | 0; } } else { while (i < j) { data8[i] = 0xff; i = i + 4 | 0; } } } SDL2.ctx.putImageData(SDL2.image, 0, 0); },  
+ 472186: ($0, $1, $2, $3, $4) => { var w = $0; var h = $1; var hot_x = $2; var hot_y = $3; var pixels = $4; var canvas = document.createElement("canvas"); canvas.width = w; canvas.height = h; var ctx = canvas.getContext("2d"); var image = ctx.createImageData(w, h); var data = image.data; var src = pixels / 4; var dst = 0; var num; if (typeof CanvasPixelArray !== 'undefined' && data instanceof CanvasPixelArray) { num = data.length; while (dst < num) { var val = HEAP32[src]; data[dst ] = val & 0xff; data[dst+1] = (val >> 8) & 0xff; data[dst+2] = (val >> 16) & 0xff; data[dst+3] = (val >> 24) & 0xff; src++; dst += 4; } } else { var data32 = new Int32Array(data.buffer); num = data32.length; data32.set(HEAP32.subarray(src, src + num)); } ctx.putImageData(image, 0, 0); var url = hot_x === 0 && hot_y === 0 ? "url(" + canvas.toDataURL() + "), auto" : "url(" + canvas.toDataURL() + ") " + hot_x + " " + hot_y + ", auto"; var urlBuf = _malloc(url.length + 1); stringToUTF8(url, urlBuf, url.length + 1); return urlBuf; },  
+ 473174: ($0) => { if (Module['canvas']) { Module['canvas'].style['cursor'] = UTF8ToString($0); } },  
+ 473257: () => { if (Module['canvas']) { Module['canvas'].style['cursor'] = 'none'; } },  
+ 473326: () => { return window.innerWidth; },  
+ 473356: () => { return window.innerHeight; }
 };
 function webDownloadExportFile(path) { if (window.choochooDownloadFile) window.choochooDownloadFile(UTF8ToString(path)); }
 

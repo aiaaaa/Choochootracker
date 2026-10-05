@@ -18,7 +18,7 @@ TEST_CASE("OPLL types preserve existing IDs and do not grow instrument snapshots
     Instrument instrument{}; getInstrumentFunctions(type).init(&instrument);
     CHECK(instrument.type == type); CHECK(instrument.chip.opll.schema == 1);
     CHECK(instrument.chip.opll.program == 3);
-    CHECK(getInstrumentDefinition(type)->screen == InstrumentScreenKind::opll);
+    CHECK(getInstrumentDefinition(type)->screen == InstrumentScreenKind::opl);
   }
 }
 TEST_CASE("OPLL programs render independently across arbitrary blocks and sample rates") {
@@ -49,6 +49,8 @@ TEST_CASE("OPLL CNI and CCT round trips preserve native patch without installed 
   REQUIRE(projectLoad(a.get(), "packaging/common/projects/gm-midi-demo.cct") == 0);
   for (auto type : {InstrumentType::OPLL,InstrumentType::VRC7}) {
     auto* instrument=&a->instruments[7]; getInstrumentFunctions(type).init(instrument); opllApplyPreset(instrument,14);instrument->chip.opll.fineTune=-27;
+    instrument->chip.opll.program=0;instrument->chip.opll.bankId=500;
+    strcpy(instrument->chip.opll.presetName,"Custom portable tone");
     REQUIRE(instrumentSave(a.get(),"test_opll.cni",7) == 0);
     REQUIRE(instrumentLoad(b.get(),"test_opll.cni",12) == 0);
     CHECK(b->instruments[12].type == type);

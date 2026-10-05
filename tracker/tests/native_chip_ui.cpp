@@ -1,3 +1,4 @@
+#include <filesystem>
 // Developer-only offscreen production UI integration; never shipped.
 #include <SDL2/SDL.h>
 #include <cstdio>
@@ -19,12 +20,13 @@
 #include "dx7_patch.h"
 #include "copy_paste.h"
 #include "insert_fx.h"
+#include "help.h"
 extern SDL_Renderer* renderer;
 static const char* output;
 static void require(bool condition,const char* why){if(!condition){fprintf(stderr,"FAIL: %s\n",why);exit(2);}}
 static void capture(const char* name){appDraw();auto* s=SDL_CreateRGBSurfaceWithFormat(0,640,480,32,SDL_PIXELFORMAT_ARGB8888);require(s,"surface");require(SDL_RenderReadPixels(renderer,nullptr,s->format->format,s->pixels,s->pitch)==0,"pixels");char path[2048];snprintf(path,sizeof(path),"%s/%s.bmp",output,name);require(SDL_SaveBMP(s,path)==0,"capture");SDL_FreeSurface(s);}
-static void key(int down,int keys){currentScreen->onInput(down,keys,1);appDraw();}
-static void tapEdit(){key(1,keyEdit);key(0,keyEdit);}
+static void key(int down,int keys){appDraw();currentScreen->onInput(down,keys,1);appDraw();}
+static void tapEdit(){key(1,keyEdit);key(0,0);}
 int main(int argc,char** argv){
   if(argc!=2)return 1;output=argv[1];initDefaultAppSettings();appSettings.screenWidth=640;appSettings.screenHeight=480;fontSetCurrent(fontGetDefault());require(!gfxSetup(&appSettings.screenWidth,&appSettings.screenHeight),"SDL dummy setup");
   chipnomadState=chipnomadCreate();require(chipnomadState,"state");require(!projectLoad(&chipnomadState->project,"projects/gm-midi-demo.cct"),"fixture");
@@ -78,10 +80,39 @@ int main(int argc,char** argv){
   }
   printf("Type popup passed: all seven FM types selected and reopened\n");
   for(auto type:{InstrumentType::OPLL,InstrumentType::VRC7,InstrumentType::OPL2,InstrumentType::OPL3,InstrumentType::SegaPSG,InstrumentType::GBPulse,InstrumentType::GBNoise,InstrumentType::GenesisFM,InstrumentType::ArcadeFM,InstrumentType::DX7}){
-    getInstrumentFunctions(type).init(&chipnomadState->project.instruments[0]);screenSetup(&screenInstrument,0);if(type==InstrumentType::SegaPSG)require(screenInstrumentSimpleChip.isCellValid(0,6),"Sega bass extension selectable");char name[40];snprintf(name,sizeof(name),"instrument-%d",int(type));capture(name);
+    getInstrumentFunctions(type).init(&chipnomadState->project.instruments[0]);screenSetup(&screenInstrument,0);appDraw();if(type==InstrumentType::SegaPSG)require(screenInstrumentSimpleChip.isCellValid(0,6),"Sega bass extension selectable");char name[40];snprintf(name,sizeof(name),"instrument-%d",int(type));capture(name);
   }
   // Real SDL pixel regression: incremental ADSR edits must match a fresh draw.
   auto pixels=[](){std::vector<uint32_t> p(640*480);require(SDL_RenderReadPixels(renderer,nullptr,SDL_PIXELFORMAT_ARGB8888,p.data(),640*4)==0,"read graph pixels");return p;};
+  // A bank stays selected within its engine, but switching engines must return
+  // to All, even between OPL2 and OPL3 which share compatible bank IDs.
+  appSettings.persistentWaveform=0;
+  for(auto type:{InstrumentType::OPLL,InstrumentType::VRC7,InstrumentType::OPL2,InstrumentType::OPL3,InstrumentType::GenesisFM,InstrumentType::ArcadeFM,InstrumentType::DX7}) {
+    getInstrumentFunctions(type).init(&chipnomadState->project.instruments[0]);screenSetup(&screenInstrument,0);appDraw();
+    screenInstrumentOPL.onEdit(0,3,CellEditAction::tap);appDraw();auto allBanks=pixels();
+    key(1,keyDown);tapEdit();screenInstrumentOPL.onEdit(0,3,CellEditAction::tap);appDraw();
+    require(pixels()!=allBanks,"bank selection persists within engine");key(1,keyOpt);
+    getInstrumentFunctions(InstrumentType::GBPulse).init(&chipnomadState->project.instruments[0]);screenSetup(&screenInstrument,0);appDraw();
+    getInstrumentFunctions(type).init(&chipnomadState->project.instruments[0]);screenSetup(&screenInstrument,0);appDraw();
+    screenInstrumentOPL.onEdit(0,3,CellEditAction::tap);appDraw();require(pixels()==allBanks,"engine round trip resets bank to All");
+    char name[64];snprintf(name,sizeof(name),"banks-%d-all",int(type));capture(name);key(1,keyOpt);
+    if(type==InstrumentType::OPL3) {
+      getInstrumentFunctions(InstrumentType::OPL2).init(&chipnomadState->project.instruments[0]);screenSetup(&screenInstrument,0);appDraw();
+      screenInstrumentOPL.onEdit(0,3,CellEditAction::tap);key(1,keyDown);tapEdit();
+      getInstrumentFunctions(type).init(&chipnomadState->project.instruments[0]);screenSetup(&screenInstrument,0);appDraw();
+      screenInstrumentOPL.onEdit(0,3,CellEditAction::tap);appDraw();require(pixels()==allBanks,"compatible OPL bank cannot carry across engines");key(1,keyOpt);
+    }
+  }
+  for(int fx=fxFBR;fx<=fxCED;++fx) {
+    const char* description=helpFXDescription((FX)fx,0);
+    require(description&&description[0]&&strchr(description,'\n'),"native FX has title and description");
+    uint8_t value[]={uint8_t(fx),0};require(helpFXHint(value,0,0)[0],"native FX has value hint");
+  }
+  for(auto type:{InstrumentType::SegaPSG,InstrumentType::GBPulse,InstrumentType::GBNoise}) {
+    getInstrumentFunctions(type).init(&chipnomadState->project.instruments[0]);
+    require(strstr(helpFXDescription(fxCMD,0),type==InstrumentType::SegaPSG?"Tone / Noise":type==InstrumentType::GBPulse?"Pulse Duty":"Noise Width"),"chip mode description follows engine");
+  }
+  printf("Bank reset and native FX description regressions passed\n");
   for(int header:{0,1})for(auto type:{InstrumentType::SegaPSG,InstrumentType::GBPulse,InstrumentType::GBNoise,InstrumentType::OPLL,InstrumentType::VRC7,InstrumentType::OPL2,InstrumentType::OPL3,InstrumentType::GenesisFM,InstrumentType::ArcadeFM,InstrumentType::DX7}) {
     appSettings.persistentWaveform=header;getInstrumentFunctions(type).init(&chipnomadState->project.instruments[0]);screenSetup(&screenInstrument,0);appDraw();
     auto* amp=instrumentFMAmpSettings(&chipnomadState->project.instruments[0]);
@@ -109,10 +140,26 @@ int main(int argc,char** argv){
   screenInstrumentOPL.onEdit(0,4,CellEditAction::tap);appDraw();key(1,keyRight);tapEdit();require(currentScreen==&screenInstrument,"confirm returns");require(!memcmp(before->tables,chipnomadState->project.tables,sizeof(before->tables)),"table changed");require(!memcmp(before->trackInserts,chipnomadState->project.trackInserts,sizeof(before->trackInserts)),"insert changed");capture("dx7-loaded");
   // Local SysEx opens the same transactional browser from another instrument.
   InstrumentDX7 patch{};initDX7Patch(&patch);char path[2048];snprintf(path,sizeof(path),"%s/original-test.syx",output);FILE* f=fopen(path,"wb");require(f,"syx fixture");uint8_t h[]={240,67,0,0,1,27};fwrite(h,1,6,f);fwrite(patch.voice,1,155,f);unsigned sum=0;for(auto b:patch.voice)sum+=b;fputc((-sum)&127,f);fputc(247,f);fclose(f);
+  // A bank dropped in the persistent hierarchy appears without Load Instrument.
+  const char* libraryFile="instruments/banks/dx7/UI-test.syx";
+  require(!std::filesystem::exists(libraryFile),"isolated persistent library fixture");
+  std::filesystem::copy_file(path,libraryFile);
+  getInstrumentFunctions(InstrumentType::DX7).init(&chipnomadState->project.instruments[0]);screenSetup(&screenInstrument,0);appDraw();
+  screenInstrumentOPL.onEdit(0,3,CellEditAction::tap);appDraw();capture("dx7-persistent-banks");
+  // All, three shipped banks, then the newly discovered file.
+  for(int n=0;n<4;++n)key(1,keyDown);tapEdit();
+  screenInstrumentOPL.onEdit(0,4,CellEditAction::tap);key(1,keyRight);tapEdit();
+  require(chipnomadState->project.instruments[0].chip.dx7.bankId>=40000,"persistent bank selected");
+  require(!memcmp(patch.voice,chipnomadState->project.instruments[0].chip.dx7.voice,155),"persistent bank voice exact");
+  auto savedLibraryPatch=chipnomadState->project.instruments[0];
+  std::filesystem::remove(libraryFile);
+  screenInstrumentOPL.onEdit(0,3,CellEditAction::tap);key(1,keyOpt);
+  require(!memcmp(&savedLibraryPatch,&chipnomadState->project.instruments[0],sizeof(Instrument)),"rescan preserves selected patch after file removal");
+  printf("Persistent DX7 folder discovery, selection and removal passed\n");
   getInstrumentFunctions(InstrumentType::MME).init(&chipnomadState->project.instruments[0]);*before=chipnomadState->project;instrumentFMImportSysEx(path);appDraw();require(currentScreen==&screenSelectionPopup,"local import browser");require(!memcmp(before.get(),&chipnomadState->project,sizeof(Project)),"import must not commit");capture("dx7-user-bank");key(1,keyRight);tapEdit();require(chipnomadState->project.instruments[0].type==InstrumentType::DX7,"import commit type");require(!memcmp(patch.voice,chipnomadState->project.instruments[0].chip.dx7.voice,155),"import patch");
   auto original=chipnomadState->project.instruments[0];copyInstrument(0);pasteInstrument(3);require(!memcmp(&original,&chipnomadState->project.instruments[3],sizeof(Instrument)),"DX7 paste");
   require(cloneInstrument(0,4),"DX7 clone");require(!memcmp(&original,&chipnomadState->project.instruments[4],sizeof(Instrument)),"DX7 clone payload");
-  for(auto type:{InstrumentType::GenesisFM,InstrumentType::ArcadeFM}){getInstrumentFunctions(type).init(&chipnomadState->project.instruments[0]);screenSetup(&screenInstrument,0);appDraw();screenInstrumentOPL.onEdit(0,4,CellEditAction::tap);appDraw();require(currentScreen==&screenSelectionPopup,"four-op browser");key(1,keyRight);key(1,keyEdit);key(1,keyEdit|keyPlay);for(int n=0;n<8;++n)chipnomadRender(chipnomadState,audio.data(),1024);key(0,keyPlay);tapEdit();require(currentScreen==&screenInstrument,"four-op confirm");char name[64];snprintf(name,sizeof(name),"four-op-%d-loaded",int(type));capture(name);}
+  for(auto type:{InstrumentType::OPLL,InstrumentType::VRC7,InstrumentType::GenesisFM,InstrumentType::ArcadeFM}){getInstrumentFunctions(type).init(&chipnomadState->project.instruments[0]);screenSetup(&screenInstrument,0);appDraw();screenInstrumentOPL.onEdit(0,4,CellEditAction::tap);appDraw();require(currentScreen==&screenSelectionPopup,"four-op browser");key(1,keyRight);key(1,keyEdit);key(1,keyEdit|keyPlay);for(int n=0;n<8;++n)chipnomadRender(chipnomadState,audio.data(),1024);key(0,keyPlay);tapEdit();require(currentScreen==&screenInstrument,"four-op confirm");char name[64];snprintf(name,sizeof(name),"four-op-%d-loaded",int(type));capture(name);}
   // Actual sequencer playback with UI rendering and the existing song sends.
   for(auto& i:chipnomadState->project.instruments)if(i.type==InstrumentType::Midi)getInstrumentFunctions(InstrumentType::DX7).init(&i);
   require(chipnomadQueueProjectRefresh(chipnomadState),"snapshot");chipnomadQueuePlaybackStartSong(chipnomadState,0,0,1);energy=0;std::vector<double> timings;
@@ -122,5 +169,20 @@ int main(int argc,char** argv){
   require(currentScreen==&screenSelectionPopup,"browser during playback");capture("fm-presets-during-playback");
   key(1,keyRight);key(1,keyEdit);key(1,keyEdit|keyPlay);chipnomadRender(chipnomadState,audio.data(),1024);
   require(chipnomadState->opllPreviewTrack<0,"playback cannot admit extra preview voice");key(0,keyPlay);key(1,keyOpt);
+  // Drive the app event path, including a tick between press and release: the
+  // press snapshot must not swallow the preset committed by the release.
+  getInstrumentFunctions(InstrumentType::DX7).init(&chipnomadState->project.instruments[0]);screenSetup(&screenInstrument,0);appDraw();
+  require(chipnomadQueueProjectRefresh(chipnomadState),"initial live patch snapshot");chipnomadRender(chipnomadState,audio.data(),1024);
+  screenInstrumentOPL.onEdit(0,4,CellEditAction::tap);key(1,keyRight);key(1,keyDown);
+  MainLoopEventData event{};event.type=MainLoopEvent::keyDown;event.data.input={InputDeviceType::logical,keyEdit};appOnEvent(event);appDraw();
+  event.type=MainLoopEvent::tick;appOnEvent(event);chipnomadRender(chipnomadState,audio.data(),1024);
+  auto oldVoice=chipnomadState->audioProject.instruments[0].chip.dx7;
+  event.type=MainLoopEvent::keyUp;event.data.input={InputDeviceType::logical,keyEdit};appOnEvent(event);appDraw();
+  require(currentScreen==&screenInstrument,"app release commits preset");
+  require(memcmp(oldVoice.voice,chipnomadState->project.instruments[0].chip.dx7.voice,155)!=0,"live preset choice changes patch");
+  event.type=MainLoopEvent::tick;appOnEvent(event);chipnomadRender(chipnomadState,audio.data(),1024);
+  require(!memcmp(&chipnomadState->audioProject.instruments[0],&chipnomadState->project.instruments[0],sizeof(Instrument)),"release commit reaches audio without another input or phrase restart");
+  require(chipnomadGetPlaybackStatus(chipnomadState)->isPlaying,"preset change preserves playback");
+  printf("Playing preset release refresh regression passed\n");
   chipnomadDestroy(chipnomadState);SDL_Quit();return 0;
 }

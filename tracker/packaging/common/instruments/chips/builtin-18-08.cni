@@ -18,6 +18,8 @@
 - Program: 8
 - Fine tune: 0
 - Tone bytes: 35,33,34,23,255,115,0,23
+- OPLL bank: 318
+- OPLL name: Organ
 
 ### Table 0 (Retrig: Inst)
 

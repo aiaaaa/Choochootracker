@@ -371,6 +371,18 @@ const char* helpFXHint(uint8_t* fx, int isTable, uint8_t instrumentIdx) {
     case fxMOD: snprintf(buffer, bufferSize, "Modulo %hhu:%hhu", fx[1] >> 4, fx[1] & 15); break;
     case fxSPD: snprintf(buffer, bufferSize, "Track clock mode %02hX", fx[1]); break;
     case fxSLE: snprintf(buffer, bufferSize, "Engine FX slew %hhu ticks", fx[1]); break;
+    case fxFBR: snprintf(buffer, bufferSize, "FM brightness %+d", (fx[1] > 126 ? 126 : fx[1]) - 63); break;
+    case fxFFB:
+      if (!fx[1]) snprintf(buffer, bufferSize, "FM feedback: preset");
+      else snprintf(buffer, bufferSize, "FM feedback %d", (fx[1] > 8 ? 8 : fx[1]) - 1);
+      break;
+    case fxCMD: case fxCNR: case fxCND: case fxCNS: case fxCSP: case fxCSS:
+    case fxCSD: case fxCEI: case fxCEP: case fxCED: {
+      const char* description = helpFXDescription((FX)fx[0], instrumentIdx);
+      const char* end = strchr(description, '\n');
+      snprintf(buffer, bufferSize, "%.*s %02X", int(end ? end - description : strlen(description)), description, fx[1]);
+      break;
+    }
     case fxRSN: snprintf(buffer, bufferSize, "Track reverb send %hhu", fx[1]); break;
     case fxDSN: snprintf(buffer, bufferSize, "Track delay send %hhu", fx[1]); break;
     case fxEAT: snprintf(buffer, bufferSize, "Envelope attack %hhu", fx[1]); break;
@@ -514,6 +526,18 @@ static void initFxHelpText() {
   fxHelpText[fxMOD] = "Modulo condition\nAB triggers pass A of B\nExample 34 = 3:4";
   fxHelpText[fxSPD] = "Track playback speed\n00=x1, 01=x2, FF=/2\nPersists until next SPD";
   fxHelpText[fxSLE] = "Engine FX Slew\n00 immediate; higher values\nglide continuous engine FX";
+  fxHelpText[fxFBR] = "FM Brightness\n00 dark; 3F preset; 7E bright\nChanges modulator levels; supports SLE";
+  fxHelpText[fxFFB] = "FM Feedback\n00 uses preset feedback\n01-08 select feedback 0-7";
+  fxHelpText[fxCMD] = "Chip Mode\nSega: tone / white / periodic noise\nGB: pulse duty or noise width";
+  fxHelpText[fxCNR] = "Sega Noise Rate\n00-02 select fixed noise clocks\n03 follows the played note";
+  fxHelpText[fxCND] = "GB Noise Divisor\n00-07 select clock divisor\nChanges live; combine with CNS";
+  fxHelpText[fxCNS] = "GB Noise Shift\n00-0D select clock shift\nHigher values lower noise frequency";
+  fxHelpText[fxCSP] = "GB Sweep Period\n00-07 set native sweep timer\nLatches on the next note trigger";
+  fxHelpText[fxCSS] = "GB Sweep Shift\n00-07 set native pitch sweep shift\n00 disables frequency calculation\nLatches on the next note trigger";
+  fxHelpText[fxCSD] = "GB Sweep Direction\n00 up; 01 down\nLatches on the next note trigger";
+  fxHelpText[fxCEI] = "GB Envelope Initial Level\n00-0F set native starting volume\nLatches on the next note trigger";
+  fxHelpText[fxCEP] = "GB Envelope Period\n00 holds; 01-07 set step period\nLatches on the next note trigger";
+  fxHelpText[fxCED] = "GB Envelope Direction\n00 falling; 01 rising\nLatches on the next note trigger";
   fxHelpText[fxRSN] = "Reverb Send FX\nSets this track's reverb send\nuntil the next note trigger";
   fxHelpText[fxDSN] = "Delay Send FX\nSets this track's delay send\nuntil the next note trigger";
   fxHelpText[fxEAT] = "ADSR Attack FX\nOverrides attack until\nthe next note trigger";
@@ -553,6 +577,15 @@ static void initFxHelpText() {
 
 const char* helpFXDescription(enum FX fxIdx, uint8_t instrumentIdx) {
   initFxHelpText(); // Initialize on first use
+
+  if (fxIdx == fxCMD && chipnomadState && instrumentIdx < PROJECT_MAX_INSTRUMENTS) {
+    switch (chipnomadState->project.instruments[instrumentIdx].type) {
+      case InstrumentType::SegaPSG: return "Sega Tone / Noise\n00 tone; 01 white; 02 periodic\nNoise clock is set by CNR";
+      case InstrumentType::GBPulse: return "GB Pulse Duty\n00 12.5%; 01 25%; 02 50%; 03 75%\nChanges duty while the note plays";
+      case InstrumentType::GBNoise: return "GB Noise Width\n00 15-bit; 01 7-bit metallic noise\nChanges width while the note plays";
+      default: break;
+    }
+  }
 
   static const int bufferSize = 120;
   static char buffer[bufferSize]; // Buffer for dynamic description

@@ -100,7 +100,23 @@
         "ADSR graph redraw fix"
       ],
       "r2_validation_report": "docs/chip-r36h-r2-validation.json",
-      "integration_policy": "Keep the personal feature until incorporated upstream, including if its PR is pending or declined. Then use the maintainer's implementation instead of the earlier personal code."
+      "integration_policy": "Keep the personal feature until incorporated upstream, including if its PR is pending or declined. Then use the maintainer's implementation instead of the earlier personal code.",
+      "preset_revision_20261005": {
+        "native_presets": 1140,
+        "added_presets": 264,
+        "drop_in_bank_folder": "instruments/banks/dx7/",
+        "shared_bank_browser": [
+          "OPLL",
+          "VRC7",
+          "OPL2",
+          "OPL3",
+          "Genesis FM",
+          "Arcade FM",
+          "DX7"
+        ],
+        "validation": "477 host tests, 15 converter tests, real offscreen UI, all additions rendered, web rebuilt; device evaluation requested",
+        "report": "docs/instrument-revision-20261005.txt"
+      }
     },
     {
       "id": "track-insert-fx",

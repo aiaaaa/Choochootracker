@@ -264,7 +264,9 @@ static void appInput(int isKeyDown, int keys, int tapCount) {
     }
   }
   // The UI owns Project. Coalesce edits into one snapshot for the next audio tick.
-  if (isKeyDown) audioProjectDirty = 1;
+  // Popup choices (including native presets) commit on release. Publish those
+  // edits too, even if no further button is pressed while the song plays.
+  audioProjectDirty = 1;
 }
 
 

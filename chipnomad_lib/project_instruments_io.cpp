@@ -468,7 +468,7 @@ static int loadInstrumentOPLL(FILE* file, Instrument* instrument) {
       if ((seen & 1) || sscanf(line + 15, "%d %c", &a[0], &extra) != 1 || a[0] != 1) return 1;
       value.schema = 1; seen |= 1;
     } else if (strncmp(line, "- Program: ", 11) == 0) {
-      if ((seen & 2) || sscanf(line + 11, "%d %c", &a[0], &extra) != 1 || a[0] < 1 || a[0] > 15) return 1;
+      if ((seen & 2) || sscanf(line + 11, "%d %c", &a[0], &extra) != 1 || a[0] < 0 || a[0] > 15) return 1;
       value.program = a[0]; seen |= 2;
     } else if (strncmp(line, "- Fine tune: ", 13) == 0) {
       if ((seen & 4) || sscanf(line + 13, "%d %c", &a[0], &extra) != 1 || a[0] < -100 || a[0] > 100) return 1;
@@ -477,10 +477,18 @@ static int loadInstrumentOPLL(FILE* file, Instrument* instrument) {
       if ((seen & 8) || sscanf(line + 14, "%d,%d,%d,%d,%d,%d,%d,%d %c", &a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7], &extra) != 8) return 1;
       for (int i = 0; i < 8; ++i) { if (a[i] < 0 || a[i] > 255) return 1; value.patch[i] = a[i]; }
       seen |= 8;
+    } else if (strncmp(line, "- OPLL bank: ", 13) == 0) {
+      if ((seen & 16) || sscanf(line + 13, "%d %c", &a[0], &extra) != 1 || a[0] < 0 || a[0] > 65535) return 1;
+      value.bankId = a[0]; seen |= 16;
+    } else if (strncmp(line, "- OPLL name: ", 13) == 0) {
+      if ((seen & 32) || strlen(line + 13) >= sizeof(value.presetName)) return 1;
+      strcpy(value.presetName, line + 13); seen |= 32;
     } else if (loadFMAmpSetting(line, value.amp, ampSeen) != 1 && loadFMToneSetting(line, value.tone, toneSeen) != 1) return 1;
     consumeLine(file);
   }
-  if (seen != 15) return 1;
+  if ((seen & 15) != 15) return 1;
+  if (!(seen & 16)) value.bankId = 300 + int(instrument->type);
+  if (!(seen & 32)) strncpy(value.presetName, instrument->name, sizeof(value.presetName)-1);
   instrument->chip.opll = value;
   return 0;
 }
@@ -945,6 +953,7 @@ int instrumentSaveData(FILE* file, int idx, Instrument* instrument) {
       const auto& v = instrument->chip.opll;
       fprintf(file, "- OPLL schema: %u\n- Program: %u\n- Fine tune: %d\n", v.schema, v.program, v.fineTune);
       fprintf(file, "- Tone bytes: %u,%u,%u,%u,%u,%u,%u,%u\n", v.patch[0], v.patch[1], v.patch[2], v.patch[3], v.patch[4], v.patch[5], v.patch[6], v.patch[7]);
+      fprintf(file, "- OPLL bank: %u\n- OPLL name: %s\n", v.bankId, v.presetName);
       saveFMAmpSetting(file, v.amp);saveFMToneSetting(file, v.tone);
       break;
     }

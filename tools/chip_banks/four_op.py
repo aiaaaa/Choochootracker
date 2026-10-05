@@ -30,7 +30,7 @@ def parse_opm(data):
   if 'MiOPMdrv sound bank Paramer Ver' in line and 'Ver2002.04.22' not in line:raise ValueError('unsupported OPM version')
  for raw in text.splitlines():
   if len(raw)>1024:raise ValueError('OPM line too long')
-  line=raw.split('//',1)[0].strip()
+  line=raw.split('//',1)[0].split(';',1)[0].strip()
   if not line:continue
   if line.startswith('@:'):
    match=re.fullmatch(r'@:\s*(\d+)\s+(.+)',line)

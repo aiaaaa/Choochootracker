@@ -148,11 +148,18 @@ def convert(output,writer):
     for row in (output/'builtins.tsv').read_text().splitlines()[1:]:
         t,b,bank,cat,name,path=row.split('\t')
         builtin_records.append(dict(type=int(t),bank_id=int(b),bank=bank,category=cat,name=name,path=path,source='pinned ymfm tone table' if int(t)<19 else 'ChooChoo original recipe',license='BSD-3-Clause' if int(t)<19 else 'MIT'))
+    records.extend(r for r in builtin_records if r['type'] in (17,18))
+    from expansion import convert_expansion
+    expansion_records=convert_expansion(output,writer,builtin_records)
+    records.extend(expansion_records)
+    # OPLL now participates in the shared bank browser; keep one inventory row.
+    builtin_records=[r for r in builtin_records if r['type'] not in (17,18)]
+    (output/'builtins.tsv').write_text('CCT-CHIP-CATALOG\t1\n'+''.join('\t'.join(str(r[k]) for k in ['type','bank_id','bank','category','name','path'])+'\n' for r in builtin_records))
     (output/'builtins-manifest.json').write_text(json.dumps(dict(schema=1,count=len(builtin_records),entries=builtin_records),indent=2)+'\n')
     (output/'dx7-manifest.json').write_text(json.dumps(dx7_report,indent=2)+'\n')
     (output/'catalog.tsv').write_text('CCT-CHIP-CATALOG\t1\n'+''.join('\t'.join(str(r[k]) for k in ['type','bank_id','bank','category','name','path'])+'\n' for r in records))
-    (output/'manifest.json').write_text(json.dumps({'schema':1,'sources':manifest['banks'],'conversion_version':1,'entries':records,'unique_patches':len(unique)+dx7_report['distinct_parameter_patches']+len(four_records),'dx7':dx7_report,'aliases':unique,'reports':reports,'playback_policy':'Native full-velocity patch levels; tracker software gain. Source volume-model and velocity offsets retained, not applied as MIDI player curves. Duration estimates retained and never used to truncate notes. Human listening pending.'},indent=2)+'\n')
-    print(json.dumps({'entries':len(records),'unique':len(unique)+dx7_report['distinct_parameter_patches']+len(four_records),'banks':reports},indent=2))
+    (output/'manifest.json').write_text(json.dumps({'schema':1,'sources':manifest['banks'],'conversion_version':1,'entries':records,'unique_patches':len(unique)+dx7_report['distinct_parameter_patches']+len(four_records)+30+len(expansion_records),'dx7':dx7_report,'aliases':unique,'reports':reports,'playback_policy':'Native full-velocity patch levels; tracker software gain. Source volume-model and velocity offsets retained, not applied as MIDI player curves. Duration estimates retained and never used to truncate notes. Human listening pending.'},indent=2)+'\n')
+    print(json.dumps({'entries':len(records),'unique':len(unique)+dx7_report['distinct_parameter_patches']+len(four_records)+30+len(expansion_records),'banks':reports},indent=2))
 
 if __name__=='__main__':
     parser=argparse.ArgumentParser();parser.add_argument('--output',type=Path,required=True);parser.add_argument('--writer',type=Path,required=True);args=parser.parse_args()

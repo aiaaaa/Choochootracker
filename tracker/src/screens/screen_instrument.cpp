@@ -277,6 +277,8 @@ static ScreenData screenInstrumentNone = {
 };
 
 static ScreenData* instrumentScreen(void) {
+  // Slot navigation can redraw directly without running setup().
+  instrumentFMSetContext(cInstrument, chipnomadState->project.instruments[cInstrument].type);
   static ScreenData* const screens[] = {
     &screenInstrumentNone, &screenInstrumentAY, &screenInstrumentAY2,
     &screenInstrumentAYSample, &screenInstrumentBraids, &screenInstrumentSample,

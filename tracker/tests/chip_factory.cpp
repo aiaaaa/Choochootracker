@@ -12,6 +12,10 @@
 #include <cstdio>
 int main(int argc,char** argv){
   if(argc!=3)return 2;
+  if(!strcmp(argv[1],"--validate")) {
+    auto p=std::make_unique<Project>();projectInit(p.get());fillFXNames();
+    int result=instrumentLoad(p.get(),argv[2],0);projectFree(p.get());return result;
+  }
   if(!strcmp(argv[1],"--dx7-default")) {
     auto p=std::make_unique<Project>();projectInit(p.get());getInstrumentFunctions(InstrumentType::DX7).init(&p->instruments[0]);
     p->instruments[0].chip.dx7.bankId=100;int result=instrumentSave(p.get(),argv[2],0);projectFree(p.get());return result;

@@ -14,9 +14,13 @@ python3 tools/chip_banks/convert.py --output tracker/packaging/common/instrument
 python3 -m unittest discover -s tools/chip_banks -p 'test_*.py'
 ```
 
-Output is 876 CNI files, 812 shared FM index entries plus a 64-entry builtins
-inventory. The FM index represents 704 parameter sets with source aliases
-identified; DX7 contributes 67 unique sounds. Ten-thousand-entry tests use
+Output is 1,140 CNI files: 1,064 shared FM index entries and a 76-entry simple-chip
+inventory. `expansion.py` adds source-pinned emu2413 tone tables, supported WOPN v2
+melodic programs from 16-Bit FM Music Station, supported YMulator OPM programs,
+and deliberately authored OPLL programs. Full source forms and licenses ship
+with the converted data. `expansion-manifest.json` records exclusions, including
+unsupported source features, duplicates and silent carrier operators. DX7 still
+contributes 67 distinct factory sounds. Ten-thousand-entry tests use
 synthetic metadata only. Consult `docs/chip-instruments-report.md` for counts,
 measured validation, provenance exclusions and pending listening/device work.
 
@@ -34,7 +38,11 @@ not accepted. Conversion stages in a temporary directory and publishes a new
 user directory only after native validation. Its manifest makes no licensing
 claim about user files. Load its CNI files using the ordinary instrument loader.
 
-`chip-auditions` emits thirteen bank WAVs and a portable native song; see the
+Native DX7 users can drop `.syx` files into `instruments/banks/dx7/`, including
+subfolders, and reopen Banks. This requires no offline converter.
+
+`chip-auditions` emits bank WAVs and a portable native song; `--expanded` renders
+every preset in the new/simple/OPLL banks in addition to the original samples. See the
 build notes. `package_desktop.py` packages an existing macOS personal build plus
 all assets/notices, preserves the framework's internal symlinks, records hashes,
 and verifies the ZIP. It does not build or install on the R36H.
