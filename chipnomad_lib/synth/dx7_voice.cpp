@@ -5,6 +5,32 @@
 #include "../external/msfa/freqlut.h"
 #include <mutex>
 #include <cstring>
+#include "../fm_macros.h"
+
+namespace {
+void macroPatch(const InstrumentDX7& saved,uint8_t* out) {
+  memcpy(out,saved.voice,155);
+  const auto& t=saved.tone;
+  for(int op=0;op<6;++op) {
+    auto* p=out+op*21;
+    const bool modulator=!choochoo_msfa::FmCore::isCarrier(out[134],op);
+    for(int stage=0;stage<4;++stage) {
+      int delta=fmMacroDelta(t.macro[fmTime],99);
+      if(modulator&&(stage==1||stage==2))delta+=fmMacroDelta(t.macro[fmDecay],99);
+      p[stage]=std::clamp(int(p[stage])-delta,0,99);
+    }
+    // Yamaha canonical order is OP6..OP1; alternate around the saved detune.
+    p[20]=std::clamp(int(p[20])+((5-op)&1?-1:1)*fmMacroDelta(t.macro[fmDetune],7),0,14);
+    // Fixed-frequency operators retain their absolute frequency.
+    if(modulator&&!p[17])p[18]=fmMacroValue(p[18],t.macro[fmRatio],31);
+  }
+  out[137]=fmMacroValue(out[137],t.macro[fmLFORate],99);
+  out[139]=fmMacroValue(out[139],t.macro[fmLFODepth],99);
+  out[140]=fmMacroValue(out[140],t.macro[fmLFODepth],99);
+  out[143]=fmMacroValue(out[143],t.macro[fmLFODepth],7);
+}
+}
+
 void DX7Part::init(float rate) {
   // Shared tables remain immutable at44100 after initialization off callback.
   // This supports independent offline/live renderers at different output rates.
@@ -29,7 +55,9 @@ bool DX7Voice::applyEvents() {
   if(pendingOn_) {
     baseNote_=std::clamp(int(std::lround(cents_/100)),0,127);
     amp_.noteOn();
-    note_.start(patch_.voice,baseNote_+int(patch_.voice[144])-24,patch_.velocity);
+    uint8_t effective[155];macroPatch(patch_,effective);
+    note_.start(effective,baseNote_+int(patch_.voice[144])-24,patch_.velocity);
+    memcpy(macroCache_,patch_.tone.macro,6);
     pendingOn_=false;active_=gated_=true;
   }
   if(pendingOff_){amp_.noteOff();note_.keyup();gated_=false;pendingOff_=false;}
@@ -39,6 +67,11 @@ void DX7Voice::compute(int32_t lfo,int32_t delay) {
   std::memset(block_,0,sizeof(block_));
   if(!active_)return;
   if(!gated_&&!note_.playing()){active_=false;return;}
+  if(memcmp(macroCache_,patch_.tone.macro,6)) {
+    uint8_t effective[155];macroPatch(patch_,effective);
+    note_.updateTimbre(effective,baseNote_+int(patch_.voice[144])-24);
+    memcpy(macroCache_,patch_.tone.macro,6);
+  }
   int32_t pitch=int32_t(std::lround((cents_-baseNote_*100.f)*16777216.0/1200));
   note_.compute(block_,lfo,delay,pitch,patch_.tone.brightness,patch_.tone.feedback?patch_.tone.feedback-1:-1,patch_.tone.operatorOffset);
 }
@@ -49,8 +82,12 @@ void DX7Part::native(float& left,float& right) {
   if(cursor_==64) {
     bool trigger=false;
     for(auto& v:voices) {
-      if(v.active_&&(!configured_||memcmp(lfoParameters_,v.patch_.voice+137,6))) {
-        std::memcpy(lfoParameters_,v.patch_.voice+137,6);lfo_.reset(lfoParameters_);configured_=true;
+      if(v.active_) {
+        uint8_t parameters[6];memcpy(parameters,v.patch_.voice+137,6);
+        parameters[0]=fmMacroValue(parameters[0],v.patch_.tone.macro[fmLFORate],99);
+        if(!configured_||memcmp(lfoParameters_,parameters,6)) {
+          memcpy(lfoParameters_,parameters,6);lfo_.reset(lfoParameters_);configured_=true;
+        }
       }
       trigger|=v.applyEvents();
     }

@@ -109,6 +109,19 @@ int32_t Env::getsample() {
     return level_;
 }
 
+void Env::setRates(const int rates[4]) {
+    for(int i=0;i<4;++i)rates_[i]=rates[i];
+    if(ix_>=4)return;
+    const int oldIncrement=inc_;
+    int qrate=min(63,((rates_[ix_]*41)>>6)+rate_scaling_);
+    inc_=(4+(qrate&3))<<(2+LG_N+(qrate>>2));
+    inc_=int((int64_t(inc_)*sr_multiplier)>>24);
+#ifdef ACCURATE_ENVELOPE
+    if(staticcount_>0 && inc_>0)
+        staticcount_=int(min(int64_t(2147483647),int64_t(staticcount_)*oldIncrement/inc_));
+#endif
+}
+
 void Env::keydown(bool d) {
     if (down_ != d) {
         down_ = d;

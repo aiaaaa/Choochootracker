@@ -1,5 +1,6 @@
 #include "four_op_voice.h"
 #include <cstring>
+#include "../fm_macros.h"
 void FourOpVoice::init(float rate){amp_.init(rate);dcCoefficient_=std::exp(-2*3.14159265358979323846*20/rate);opn_.reset();opm_.reset();configured_=false;opnResampler_.init(opn_.sample_rate(7670454),rate);opmResampler_.init(opm_.sample_rate(3579545),rate);kill();}
 void FourOpVoice::write(unsigned reg,unsigned value){if(type_==InstrumentType::GenesisFM){opn_.write_address(reg);opn_.write_data(value);}else{opm_.write_address(reg);opm_.write_data(value);}}
 void FourOpVoice::configure(InstrumentType type,const InstrumentFourOp* p,float cents,float gain){
@@ -20,6 +21,7 @@ void FourOpVoice::applyPatch(){
   }
 }
 void FourOpVoice::tone(){
+  macros();
   const int brightness=std::clamp(int(patch_.tone.brightness),-63,63);
   const int feedback=patch_.tone.feedback?std::min(7,int(patch_.tone.feedback)-1):patch_.feedback;
   if(brightness==macroBrightness_&&feedback==macroFeedback_&&!memcmp(macroOperators_,patch_.tone.operatorOffset,6))return;
@@ -59,4 +61,36 @@ void FourOpVoice::native(float& l,float& r){
 void FourOpVoice::render(float* stereo,size_t frames){
   auto& resampler=type_==InstrumentType::GenesisFM?opnResampler_:opmResampler_;
   for(size_t i=0;i<frames;++i){float l=0,r=0;if(active_)resampler.next([&](float& a,float& b){native(a,b);},l,r);float values[]={l,r};for(int c=0;c<2;++c){float filtered=values[c]-dcInput_[c]+dcCoefficient_*dcOutput_[c];dcInput_[c]=values[c];dcOutput_[c]=filtered;stereo[2*i+c]=filtered*.25f;}amp_.process(stereo[2*i],stereo[2*i+1]);level_=std::max(std::max(std::abs(l),std::abs(r)),level_*.999f);if(silent_>56000)kill();}
+}
+
+void FourOpVoice::macros() {
+  const auto& t=patch_.tone;
+  if(macroBrightness_!=999&&!memcmp(macroCache_,t.macro,6))return;
+  const bool genesis=type_==InstrumentType::GenesisFM;
+  const int order[]={0,2,1,3};
+  const unsigned carriers=fmFourOpCarriers(patch_.algorithm);
+  for(int op=0;op<4;++op) {
+    const auto& o=patch_.operators[op];const int a=order[op]*(genesis?4:8);const bool modulator=!(carriers&(1u<<op));
+    const int ratio=modulator?fmMacroValue(o.multiplier,t.macro[fmRatio],15):o.multiplier;
+    const int detune=t.macro[fmDetune]?fmNativeDetune(o.detune,t.macro[fmDetune],op):o.detune;
+    write((genesis?0x30:0x40)+a,(detune<<4)|ratio);
+    write((genesis?0x50:0x80)+a,(o.keyScale<<6)|fmMacroRate(o.attack,31,t,false));
+    write((genesis?0x60:0xa0)+a,(o.amplitudeMod<<7)|fmMacroRate(o.decay,31,t,modulator));
+    write((genesis?0x70:0xc0)+a,(genesis?0:o.detune2<<6)|fmMacroRate(o.sustainRate,31,t,modulator));
+    write((genesis?0x80:0xe0)+a,(o.sustainLevel<<4)|fmMacroRate(o.release,15,t,false));
+  }
+  const int depth=t.macro[fmLFODepth];
+  const bool enabled=patch_.lfoEnabled||depth>0;
+  const int rate=fmMacroValue(patch_.lfoRate,t.macro[fmLFORate],genesis?7:255);
+  if(genesis) {
+    write(0x22,(enabled?8:0)|rate);
+    write(0xb4,((patch_.pan&1)?128:0)|((patch_.pan&2)?64:0)|
+      (fmMacroValue(patch_.amplitudeSensitivity,depth,3)<<4)|fmMacroValue(patch_.pitchSensitivity,depth,7));
+  } else {
+    write(0x18,rate);
+    write(0x19,enabled?fmMacroValue(patch_.amplitudeDepth,depth,127):0);
+    write(0x19,128|(enabled?fmMacroValue(patch_.pitchDepth,depth,127):0));
+    write(0x38,(fmMacroValue(patch_.pitchSensitivity,depth,7)<<4)|fmMacroValue(patch_.amplitudeSensitivity,depth,3));
+  }
+  memcpy(macroCache_,t.macro,6);
 }

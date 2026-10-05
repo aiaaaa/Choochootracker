@@ -30,8 +30,28 @@ const InstrumentModDestination* instrumentNativeModDestination(InstrumentType t,
     {"Ring modulation",fxSRG,1,InstrumentMotionValue::raw},
     {"Hard sync",fxSSY,1,InstrumentMotionValue::raw},
   };
-  if(g>=genericModSIDPulse)return t==InstrumentType::SID?&sid[g-genericModSIDPulse]:nullptr;
+  if(g>=genericModSIDPulse&&g<=genericModSIDSync)return t==InstrumentType::SID?&sid[g-genericModSIDPulse]:nullptr;
   bool fm=t==InstrumentType::OPLL||t==InstrumentType::VRC7||t==InstrumentType::OPL2||t==InstrumentType::OPL3||t==InstrumentType::GenesisFM||t==InstrumentType::ArcadeFM||t==InstrumentType::DX7;
+  static const InstrumentModDestination macros[] = {
+    {"FM envelope time",fxFET,255,InstrumentMotionValue::raw},
+    {"FM tone decay",fxFTD,255,InstrumentMotionValue::raw},
+    {"FM detune spread",fxFDT,255,InstrumentMotionValue::raw},
+    {"FM harmonic ratio",fxFHR,255,InstrumentMotionValue::raw},
+    {"FM LFO rate",fxFLR,255,InstrumentMotionValue::raw},
+    {"FM LFO depth",fxFLD,255,InstrumentMotionValue::raw},
+  };
+  if(g>=genericModFMTime&&g<=genericModFMLFODepth) {
+    bool extended=t==InstrumentType::GenesisFM||t==InstrumentType::ArcadeFM||t==InstrumentType::DX7;
+    return fm&&((g!=genericModFMDetune&&g<genericModFMLFORate)||extended)?&macros[g-genericModFMTime]:nullptr;
+  }
+  static const InstrumentModDestination sidEnvelope[] = {
+    {"SID attack",fxSAT,15,InstrumentMotionValue::raw},
+    {"SID decay",fxSDE,15,InstrumentMotionValue::raw},
+    {"SID sustain",fxSSU,15,InstrumentMotionValue::raw},
+    {"SID release",fxSRL,15,InstrumentMotionValue::raw},
+    {"SID partner ratio",fxSPR,15,InstrumentMotionValue::raw},
+  };
+  if(g>=genericModSIDAttack)return t==InstrumentType::SID?&sidEnvelope[g-genericModSIDAttack]:nullptr;
   static const InstrumentModDestination operators[] = {
     {"Operator 1 level",fxFO1,255,InstrumentMotionValue::raw},
     {"Operator 2 level",fxFO2,255,InstrumentMotionValue::raw},
@@ -66,6 +86,7 @@ int instrumentNativeControlValue(const Instrument* i,int g) {
   // This access is read-only; the mutable overload also serves the UI editor.
   const auto* tone=instrumentFMToneSettings(const_cast<Instrument*>(i));
   if(tone) {
+    if(g>=genericModFMTime&&g<=genericModFMLFODepth)return 128+tone->macro[g-genericModFMTime];
     if(g>=genericModFMOperator1&&g<=genericModFMOperator6)return 128+tone->operatorOffset[g-genericModFMOperator1];
     return g==genericModFMBrightness?fmBrightnessToByte(tone->brightness):g==genericModFMFeedback?tone->feedback:0;
   }
@@ -80,6 +101,11 @@ int instrumentNativeControlValue(const Instrument* i,int g) {
       case genericModSIDMacroRate:return ((v[sidMacroRate]-1)*255+99)/199;
       case genericModSIDRing:return v[sidRing];
       case genericModSIDSync:return v[sidSync];
+      case genericModSIDAttack:return v[sidAttack];
+      case genericModSIDDecay:return v[sidDecay];
+      case genericModSIDSustain:return v[sidSustain];
+      case genericModSIDRelease:return v[sidRelease];
+      case genericModSIDPartner:return v[sidPartnerRatio]-1;
       default:return 0;
     }
   }

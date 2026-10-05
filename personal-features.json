@@ -157,6 +157,28 @@
       "fm_controls": "Full-byte brightness and operator levels; stepped native feedback; legacy FBR migration",
       "sid_model": "floooh/chips 6581 approximation; no alternate model/character options",
       "included_commit": "70d7eee5ca3878e9143821735f4ed41ae15e7ebc"
+    },
+    {
+      "id": "fm-master-macros",
+      "branch": "personal/r36h",
+      "status": "Implemented; device validation pending",
+      "documentation": "docs/fm-macros-revision-20261005.txt",
+      "fm_controls": [
+        "FET",
+        "FTD",
+        "FDT",
+        "FHR",
+        "FLR",
+        "FLD"
+      ],
+      "sid_controls": [
+        "SAT",
+        "SDE",
+        "SSU",
+        "SRL",
+        "SPR"
+      ],
+      "preset_neutral": "80 for preset-relative FM macros; native discrete ranges retained"
     }
   ],
   "personal_fixes": [

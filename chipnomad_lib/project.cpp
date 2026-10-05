@@ -146,7 +146,7 @@ void fillFXNames() {
     auto type=fxGroups[group].instType;auto* names=instrumentGroupNames[int(type)];int count=0;
     for(int g=genericModFMBrightness;g<genericModTotalCount;++g)if(const auto* d=instrumentNativeModDestination(type,g)) {
       names[count].fx=FX(d->fx);
-      const char* labels[]={"FBR","FFB","CMD","CNR","CND","CNS","CSP","CSS","CSD","CEI","CEP","CED","FO1","FO2","FO3","FO4","FO5","FO6","SCP","SCT","SRN","SWV","SFI","SMR","SRG","SSY"};
+      const char* labels[]={"FBR","FFB","CMD","CNR","CND","CNS","CSP","CSS","CSD","CEI","CEP","CED","FO1","FO2","FO3","FO4","FO5","FO6","SCP","SCT","SRN","SWV","SFI","SMR","SRG","SSY","FET","FTD","FDT","FHR","FLR","FLD","SAT","SDE","SSU","SRL","SPR"};
       strcpy(names[count++].name,labels[g-genericModFMBrightness]);
     }
     fxGroups[group].fxList=names;fxGroups[group].count=count;
