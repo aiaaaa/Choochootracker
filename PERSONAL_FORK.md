@@ -32,10 +32,13 @@ key jazz, Settings submenus and the aChChid workflow improvements.
 
 ## Current personal source
 
-Upstream base: `df173ece4658e67c8c1d06e7d85e79ac4394fb1f` (October 4 sync). Personal includes
+Upstream base: `ccbf261e28efc192875448c5e6deb2bd78ab8c59` (October 4 archive sync). Personal includes
 upstream’s track-visuals/GPU integration, corrected Graphics touch mapping, sample
 editor and processing updates, sample stretching, and bounce/export improvements.
-Native chip instruments and Get Lucky remain included.
+Native chip instruments and Get Lucky remain included. New saves use upstream’s
+self-contained sample archives when audio is loaded; older text songs still open.
+Native patches remain stored inside the song. Existing songs are converted when
+explicitly saved, not rewritten in bulk.
 
 Insert effects now uses the maintainer’s accepted implementation from
 [PR #31](https://github.com/paiheulevrai/Choochootracker/pull/31) and

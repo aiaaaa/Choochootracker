@@ -1,7 +1,7 @@
 {
   "upstream": "paiheulevrai/Choochootracker",
   "upstream_branch": "main",
-  "upstream_commit": "df173ece4658e67c8c1d06e7d85e79ac4394fb1f",
+  "upstream_commit": "ccbf261e28efc192875448c5e6deb2bd78ab8c59",
   "personal_branch": "personal/r36h",
   "update_policy": "Personal combines upstream main, my additions not yet incorporated upstream, and my experiments. Keep unmerged additions, including pending or declined submissions. Once incorporated upstream, replace my earlier implementation with the maintainer's merged version, including his fixes and changes; remove duplicate code and controls. Test, preserve user data, record commit, and retain rollback before installation.",
   "features": [
@@ -139,6 +139,11 @@
       "status": "Personal fix; not submitted upstream",
       "source_commit": "d0403eca2fc9ea0ba01d323b975a72ceabe7c0f0",
       "description": "Release owned sample-stretch processors when voices are destroyed; prevent shallow copies. Fixes memory growth during repeated exports and engine recreation."
+    },
+    {
+      "id": "embedded-wavetable-layout",
+      "status": "Personal fix; not submitted upstream",
+      "description": "Preserve Serum clm frame-size metadata in archived wavetable WAVs and restore it through the shared loader, so songs retain wavetable playback without the original WAV."
     }
   ],
   "current_device_build": {
@@ -146,5 +151,6 @@
     "binary_sha256": "58058dbf3d45acaa1a7668689b7a2c10b56c33cc17dfdff024b03d58807aad71",
     "validation_report": "docs/personal-device-sync-20261004.json",
     "human_listening": "pending"
-  }
+  },
+  "song_storage": "Upstream CCT archives embed loaded Sample, SCWF and BYOWTBL audio. Text songs remain readable; no-sample songs stay text. Native patches remain owned by the song."
 }

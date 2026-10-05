@@ -571,7 +571,7 @@ This clean Sample engine plays mono or stereo PCM samples loaded into RAM.
 - Tap **Sample** to load an uncompressed `8-bit`, `16-bit` or `24-bit` PCM WAV. Press **PLAY** in the browser to audition the highlighted file.
 - When a sample is loaded, **EDIT** appears next to its name. Tap it to open the Sample Edit screen. **OPT** or **SELECT + [LEFT]** returns to the instrument.
 - The Sample Edit screen shows the filename (with a `*` marker when the sample in RAM differs from the file on disk), a format readout (sample rate, channels), a tall waveform, and the **Region**, **Select**, **Slice**, **Process** and **File** fields.
-- Edits live in RAM only until a save flow writes them: the project stores the sample's file path and reloads the WAV from disk on the next project load, so leaving the tracker without **Save**/**Save As** discards process operations (the `*` marker is the warning). Loading a different sample into the instrument also discards unsaved edits and resets the Region to the full sample (Start `00`, End `FF`).
+- Edits live in RAM until saved. **Project > Save** embeds the current sample audio in the song archive; the sample's own **File > Save / Save As** writes a separate WAV. Leaving without either save discards process operations (the `*` marker indicates a difference from the external WAV). Loading a different sample into the instrument also discards unsaved edits and resets the Region to the full sample (Start `00`, End `FF`).
 - **Region** sets the playback Start/End markers, also available on the Sampler instrument screen. They set normalised playback boundaries (`00-FF`); if Start is after End, the sample plays in reverse. **EDIT + [LEFT/RIGHT]** fine-adjusts the marker in steps of one (`01`) and zooms the waveform around it while **EDIT** is held; **EDIT + [UP/DOWN]** coarse-adjusts (step 16) and returns the view to the full sample. **EDIT + OPT** resets the marker to its default (Start `00`, End `FF`).
 - The waveform view zooms to a fixed window of one second of audio around the edited marker and pans to keep it visible; samples that fit inside the window stay at the full 1:1 view. The zoom is transient: it lasts while **EDIT** is held, and releasing **EDIT** returns to the full 1:1 view, as do coarse steps. Entering the screen always resets the view to the full sample.
 - **Select** sets a processing selection in absolute frames, independent of the playback Start/End markers. **EDIT + [LEFT/RIGHT]** moves a handle fifteen frames and zooms onto it while **EDIT** is held; **EDIT + [UP/DOWN]** jumps by `frameCount/64` (minimum 16) and returns to the full-sample view. **EDIT (tap)** on a handle copies the current Start or End marker position to it. **EDIT + OPT** on either handle empties the whole selection. When the selection is empty both handles show `-`; when the handles are inverted they swap automatically. The selection is session-only editor state: it is not saved with the project, and entering the screen seeds it with the playback Region span (the whole sample with the default markers).
@@ -1045,7 +1045,7 @@ The Scale screen controls the global 12-TET playback quantizer. Phrase entry rem
 
 - **Linear pitch** selects the pitch-table mode. **Off** is the default and the hardware-validated setting for correct AY, Braids and Plaits octave tracking.
 - **Tick rate** sets tracker timing and displays the corresponding BPM (`tick rate x 60 / 24`).
-- ChooChooTracker saves projects as `.cct`. This format is not compatible with ChipNomad.
+- ChooChooTracker saves projects as `.cct`. When a song contains loaded samples, Save writes an archive containing the song and its PCM audio, including both SCWF and BYOWTBL oscillators. Wavetable frame layouts are included too. You can move that file without carrying the original WAVs. Songs without loaded samples keep the text format. Older text songs still load; their external WAV files must remain available until you load and save the song with this version. Native-chip patches remain stored in the song in either format. This format is not compatible with ChipNomad.
 
 Use **Save** before changing instrument types or loading another project.
 
@@ -1074,7 +1074,7 @@ If you run into pops, crashes or slowdowns, send us the `.cct` file that trigger
 
 ### No sound
 
-Check the instrument number, track mute or solo state, track LVL, application Mix volume and instrument envelope. For samples, check that the original WAV still exists at its saved path. On ArkOS, press **MENU + L3** to toggle the operating system mute. If that does not help, restart the hardware and reconnect your audio interface.
+Check the instrument number, track mute or solo state, track LVL, application Mix volume and instrument envelope. For older text songs with external samples, check that the original WAV still exists at its saved path. New song archives carry their loaded samples inside the `.cct` file. On ArkOS, press **MENU + L3** to toggle the operating system mute. If that does not help, restart the hardware and reconnect your audio interface.
 
 ### Input feels wrong
 

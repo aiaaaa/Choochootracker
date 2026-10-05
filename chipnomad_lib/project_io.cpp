@@ -1117,7 +1117,8 @@ static int cctReadFile(const char* path, std::vector<uint8_t>* data) {
   int ok = fread(data->data(), 1, data->size(), file) == data->size(); fclose(file); return ok ? 0 : 1;
 }
 
-static void cctAppendSampleWav(const InstrumentSample* sample, std::vector<uint8_t>* wav) {
+static void cctAppendSampleWav(const InstrumentSample* sample, std::vector<uint8_t>* wav,
+                               uint16_t wavetableFrameSize = 0) {
   uint32_t channels = sample->channels >= 2 ? 2 : 1;
   uint32_t dataBytes = sample->frameCount * channels * 2;
   wav->resize(44 + dataBytes); uint8_t* p = wav->data();
@@ -1129,6 +1130,20 @@ static void cctAppendSampleWav(const InstrumentSample* sample, std::vector<uint8
   p[32] = channels * 2; p[34] = 16; memcpy(p + 36, "data", 4);
   for (int i = 0; i < 4; ++i) p[40 + i] = dataBytes >> (i * 8);
   memcpy(p + 44, sample->data, dataBytes);
+  // Keep the wavetable's cycle length in the WAV itself, using the same
+  // Serum metadata understood by the normal loader. PCM alone loses it.
+  if (wavetableFrameSize) {
+    char layout[32];
+    uint32_t length = (uint32_t)snprintf(layout, sizeof(layout), "<!>%u", wavetableFrameSize);
+    size_t offset = wav->size();
+    wav->resize(offset + 8 + length + (length & 1), 0);
+    p = wav->data();
+    memcpy(p + offset, "clm ", 4);
+    for (int i = 0; i < 4; ++i) p[offset + 4 + i] = length >> (i * 8);
+    memcpy(p + offset + 8, layout, length);
+    riffSize = (uint32_t)wav->size() - 8;
+    for (int i = 0; i < 4; ++i) p[4 + i] = riffSize >> (i * 8);
+  }
 }
 
 static bool cctHasSamples(const Project* project) {
@@ -1223,7 +1238,13 @@ int projectLoad(Project* p, const char* path) {
         }
         rewind(sampleFile);
         char error[64];
-        sampleLoadWav16File(sampleFile, samples[j]->path, samples[j], error, sizeof(error));
+        if (instrument->type == InstrumentType::BYOWTBL) {
+          srWavetableLoadWavFile(sampleFile, samples[j]->path, samples[j],
+                                &instrument->chip.byowtbl.frameSize[j],
+                                &instrument->chip.byowtbl.tableFrames[j], error, sizeof(error));
+        } else {
+          sampleLoadWav16File(sampleFile, samples[j]->path, samples[j], error, sizeof(error));
+        }
         fclose(sampleFile);
       }
     }
@@ -1533,7 +1554,9 @@ int projectSave(Project* p, const char* path) {
       }
       for (int j = 0; j < count; ++j, ++sampleIndex) if (samples[j]->data && samples[j]->frameCount) {
         CctZipEntry sample; char name[32]; snprintf(name, sizeof(name), "samples/%03d.wav", sampleIndex); sample.name = name;
-        cctAppendSampleWav(samples[j], &sample.data); entries.push_back(std::move(sample));
+        cctAppendSampleWav(samples[j], &sample.data,
+                           instrument->type == InstrumentType::BYOWTBL ? instrument->chip.byowtbl.frameSize[j] : 0);
+        entries.push_back(std::move(sample));
       }
     }
     FILE* file = fopen(path, "wb");
