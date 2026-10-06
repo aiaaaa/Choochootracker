@@ -1446,7 +1446,8 @@ latch at the next note trigger; duty/width and noise frequency can change live.
 
 Native FX selection uses the instrument in the phrase row's `I` column, or the
 active instrument found by looking backward when `I` is blank. The FX popup
-shows its current preset value and valid command range. Selecting a different
+shows a short control description, its current preset value and valid command
+range in a compact block. Selecting a different
 native effect starts at that value; reopening the same effect preserves its
 edited value. A multi-row selection resolves each row's instrument separately.
 Tables use their instrument context. Native value edits stop at their legal
