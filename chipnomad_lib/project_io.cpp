@@ -483,7 +483,10 @@ static int projectLoadPhrases(FILE* file, Project* p) {
     for (int c = 0; c < 16; c++) {
       line = peekLine(file);
       if (line == NULL) return 1;
-      if (strlen(line) != 30) return 1;
+      // Empty FX names are serialized as blank fields when the FX name table
+      // has not been initialized yet, so the shortest valid phrase row is 21
+      // characters instead of the usual 30.
+      if (strlen(line) < 21) return 1;
       // Note
       p->phrases[idx].rows[c].note = scanNote(line, p);
       // Instrument
