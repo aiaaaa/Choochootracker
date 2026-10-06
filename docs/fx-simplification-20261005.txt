@@ -41,3 +41,6 @@ No full suite, performance, audio stress or listening tests were run.
 Installed and rollback inventories verified; 2011 unrelated files,
 settings, launcher and all songs preserved. No song conversions.
 Receipt: docs/fx-simplification-device-20261005.json.
+
+User acceptance: handheld check accepted on October 5; approved harmonization
+to the GitHub fork and preparation of an upstream draft contribution.
