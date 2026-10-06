@@ -63,6 +63,17 @@ bundled native audition. Upstream legacy-format support remains. See
 
 ## Current installed device build
 
+Source: `ee0e85c3cde127e24c138d8e58e14ead0cf5a6a2`. Compact tracker FX lists and consistent description
+colors; Preset/Range retains its distinct color. Synthesis and live modulation
+are unchanged. Settings, songs, assets and launcher were preserved.
+
+Focused host/device checks and the production build passed. No full suite,
+performance or listening tests were run. See the
+[installation receipt](docs/fx-simplification-device-20261005.json) and
+[simplification notes](docs/fx-simplification-20261005.txt).
+
+## Previous installed device build (absolute FX)
+
 Source: `f4b086d5f18100ba239b018a2abaf2dc10bb81af`. Absolute native FM controls, fixed-operator
 modulation, SID native numbering, and compact descriptions/preset/range readouts.
 Eleven personal/test songs were converted once; their original files are retained

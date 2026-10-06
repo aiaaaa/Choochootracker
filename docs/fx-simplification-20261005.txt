@@ -24,4 +24,20 @@ Preset/Range remains textInfo. No empty placeholder commands are displayed.
 
 Validation scope requested by user: focused FX list/color check and build only.
 No full functional suite, performance tests, audio stress or extended playtest.
-Build and installation results pending.
+Installed and verified.
+Source: ee0e85c3cde127e24c138d8e58e14ead0cf5a6a2
+Binary SHA-256: a632262a7fa337addf347d3957147ce76b75e22b12c072c1fe777a5510841578
+Rollback: /roms/choochootracker-backups/pre-fx-simplification-ee0e85c3cde1/previous-install
+
+Three focused host cases / 220 assertions passed; all other cases skipped.
+Production ARM build/package check and focused seven-engine popup checks passed.
+Final Genesis/DX7/OPLL popup captures visually inspected. The fixture needed a
+follow-up to use real key input; its initial direct drawing showed phrase cursor
+overlays, and the first correction used an unavailable test API. Final captures
+use the actual popup. A leftover operator-hint format string was corrected
+before installation. These earlier attempts remain in .tmp/fx-simplification.
+Web bundle rebuilt; JavaScript syntax and WebAssembly validation passed.
+No full suite, performance, audio stress or listening tests were run.
+Installed and rollback inventories verified; 2011 unrelated files,
+settings, launcher and all songs preserved. No song conversions.
+Receipt: docs/fx-simplification-device-20261005.json.
