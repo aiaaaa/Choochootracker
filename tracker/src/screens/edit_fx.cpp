@@ -408,23 +408,25 @@ void fxEditFullDraw(uint8_t currentFX, uint8_t instrumentIdx, int isTable) {
 
   // Draw help for current FX at top (with instrument context)
   NativeFXInfo direct{};
+  int presetRow=6;
   if(nativeInfo(instrumentIdx,currentFX,direct,currentOperator) && direct.label) {
     gfxSetFgColor(appSettings.colorScheme.textTitles);gfxPrint(1,1,direct.label);
     gfxSetFgColor(appSettings.colorScheme.textInfo);
     gfxPrint(1,2,nativeControlDescription(currentFX,instType));
-    if(currentFX>=fxOAR&&currentFX<=fxOE4)gfxPrintf(1,3,"Operator %d (FOP)",currentOperator+1);
-    else if(currentFX==fxFOP)gfxPrint(1,3,"Select before Oxx in this note");
-    gfxPrint(1,4,"Absolute native value");
+    int nextRow=3;
+    if(currentFX>=fxOAR&&currentFX<=fxOE4)gfxPrintf(1,nextRow++,"Operator %d (FOP)",currentOperator+1);
+    else if(currentFX==fxFOP)gfxPrint(1,nextRow++,"Select before Oxx in this note");
+    gfxPrint(1,nextRow++,"Absolute native value");
+    presetRow=nextRow;
   } else drawFXHelp((enum FX)currentFX, instrumentIdx);
   NativeFXInfo info{};
   if(nativeInfo(instrumentIdx,currentFX,info,currentOperator)) {
     gfxSetFgColor(appSettings.colorScheme.textInfo);
-    if(currentFX==fxFFB)gfxPrintf(1,6,"Preset FX %02X (feedback %X); 00-08",info.preset,info.preset-1);
-    else gfxPrintf(1,6,"%s %02X   Range %02X-%02X",info.relative?"Preset FX":"Preset",info.preset,info.minimum,info.maximum);
+    gfxPrintf(1,presetRow,"%s %02X   Range %02X-%02X",info.relative?"Preset FX":"Preset",info.preset,info.minimum,info.maximum);
   }
 
   // Draw all visible groups (headers + expanded group's FX list)
-  int y = 7;  // Start below help text
+  int y = presetRow+1;
   FXGroup* expanded = getVisibleGroup(expandedGroup, getCurrentInstrumentType());
   int expandedRows = expanded ? (visibleFXCount(expanded) + expanded->columns - 1) / expanded->columns : 0;
   bool separateGroups = !screenScopeRows(currentScreen) &&
