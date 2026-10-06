@@ -55,7 +55,6 @@ static void motionRecordFrame(ChipNomadState* state);
 static int instrumentFXCutoff(uint8_t value);
 static int slewEngineFX(PlaybackTrackState*, FX, int);
 static void updateInsertValues(ChipNomadState*);
-
 class AudioCommandQueue {
  public:
   void requestStop() { stopRequested_.store(1, std::memory_order_release); }
@@ -68,6 +67,10 @@ class AudioCommandQueue {
 
   int pushScale(uint8_t root, ScalePreset preset) {
     return pushCommand(kSetScale, root, preset);
+  }
+
+  int pushMidiCC(int instrument, int destination, uint8_t value, int enabled) {
+    return pushCommand(kMidiCC, instrument, destination, value, enabled);
   }
 
   void discardProject() {
@@ -202,6 +205,12 @@ class AudioCommandQueue {
             playback->scalePreset = (ScalePreset)command.b;
           }
           break;
+        case kMidiCC:
+          if (command.a >= 0 && command.a < PROJECT_MAX_INSTRUMENTS && command.b >= 0 && command.b < 16) {
+            playback->midiCC[command.a][command.b] = {(uint8_t)(command.d != 0), (uint8_t)clampInt(command.c, 0, 127)};
+            if (playback->p && command.d) instrumentSetCCDestination(&playback->p->instruments[command.a], command.b, (uint8_t)command.c);
+          }
+          break;
       }
       tail = (tail + 1) % kCommandCapacity;
     }
@@ -238,7 +247,7 @@ class AudioCommandQueue {
   template <typename T> struct Slot { T value; std::atomic<int> state{kFree}; };
   struct Settings { uint64_t trackMask = ~UINT64_C(0); LoopRange loopRange{}; uint8_t loopDirty = 0; };
   struct AudioCommand { uint8_t type; int a, b, c, d; PhraseRow row; InstrumentOPLL patch; InstrumentOPL opl; InstrumentSimpleChip simple; InstrumentDX7 dx7; InstrumentFourOp fourOp; InstrumentSID sid; };
-  enum CommandType { kStartSong, kStartChain, kStartPhrase, kStartPhraseRow, kQueuePhrase, kPreviewNote, kStopPreview, kClearTrackFX, kStartLiveChain, kQueueLiveChain, kSetScale, kChipPreview, kOPLPreview, kSimplePreview };
+  enum CommandType { kStartSong, kStartChain, kStartPhrase, kStartPhraseRow, kQueuePhrase, kPreviewNote, kStopPreview, kClearTrackFX, kStartLiveChain, kQueueLiveChain, kSetScale, kChipPreview, kOPLPreview, kSimplePreview, kMidiCC };
   static constexpr unsigned int kSlotCount = 3;
   static constexpr unsigned int kCommandCapacity = 64;
 
@@ -847,6 +856,10 @@ int chipnomadQueuePlaybackStopPreview(ChipNomadState* state, int trackIdx) {
 int chipnomadQueuePlaybackClearTrackFX(ChipNomadState* state, int trackIdx) {
   return state && state->audioCommands ? state->audioCommands->pushCommand(7, trackIdx) : 0;
 }
+
+int chipnomadQueueMidiCC(ChipNomadState* state, int instrument, int destination, uint8_t value, int enabled) {
+  return state && state->audioCommands ? state->audioCommands->pushMidiCC(instrument, destination, value, enabled) : 0;
+}
 void chipnomadQueueLoopRange(ChipNomadState* state, LoopRange range) {
   if (state && state->audioCommands) state->audioCommands->pushLoopRange(range);
 }
@@ -973,7 +986,7 @@ static void renderChipTracks(ChipNomadState* state, float* output, int frames) {
   for (int chipIdx = 0; chipIdx < state->audioProject.chipsCount; ++chipIdx) {
     if (chipIdx >= state->audioProject.tracksCount || !state->playbackState.trackEnabled[chipIdx]) continue;
     uint8_t instrumentIdx = state->playbackState.tracks[chipIdx].note.instrument;
-    if (instrumentIdx == EMPTY_VALUE_8) continue;
+    if (instrumentIdx >= PROJECT_MAX_INSTRUMENTS) continue;
     InstrumentType type = state->audioProject.instruments[instrumentIdx].type;
     if (type != InstrumentType::AY1 && type != InstrumentType::AY2 && type != InstrumentType::AYSample) continue;
     SoundChip* chip = state->chips[chipIdx];
