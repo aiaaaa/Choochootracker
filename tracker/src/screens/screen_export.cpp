@@ -773,6 +773,19 @@ static int bounceOnInput(int isKeyDown, int keys, int tapCount) {
   return screenInput(&bounceScreenData, isKeyDown, keys, tapCount);
 }
 
+#ifdef DESKTOP_BUILD
+int bounceKeyJazzTextField(KeyJazzTextField* field) {
+  ScreenData* screen = &bounceScreenData;
+  field->screen = screen;
+  field->row = 0;
+  field->popupOpen = bounceIsCharEdit || currentExporter != NULL;
+  field->marksProjectModified = 0;
+  field->str = NULL;
+  if (screen->cursorRow == 0) { field->str = bounceName; field->maxLen = FILENAME_LENGTH; }
+  return 1;
+}
+#endif
+
 const AppScreen screenBounce = {
   .init = NULL,
   .setup = bounceSetup,
