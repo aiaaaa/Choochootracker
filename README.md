@@ -1,4 +1,17 @@
-> **Personal Alpha — device build:** current upstream `main`, my retained visual options, and requested experiments. Build/install from `personal/r36h`; `main` is the unchanged upstream mirror. See [what is included and the PR status](PERSONAL_FORK.md).
+## Fork setup
+
+- **[Main](https://github.com/aiaaaa/Choochootracker/tree/main)** — a mirror of the original developer’s code.
+- **[Personal](https://github.com/aiaaaa/Choochootracker/tree/personal/r36h)** — the combined branch and full device personal build: upstream code, my additions that haven’t been merged upstream, and my experiments. When an addition is merged upstream, Personal uses the maintainer’s merged version instead of my earlier version.
+
+Personal uses the maintainer’s merged insert-effects version, including the review fixes.
+
+## Individual work branches
+
+- **[Experimental](PERSONAL_FORK.md#experimental)** — Get Lucky and other explorations I want to keep using, without implying they’re ready for upstream.
+- **[Submitted contributions](PERSONAL_FORK.md#submitted-contributions)** — work submitted as PRs, marked as pending, merged, incorporated differently, or closed. Unmerged features stay in Personal, including declined ones; features incorporated upstream use the maintainer’s version.
+- **[Upstream candidates](PERSONAL_FORK.md#upstream-candidates)** — active work that might become a future pull request.
+
+See [the branch links, PR statuses and build details](PERSONAL_FORK.md).
 
 > ** ALPHA VERSION. Software is not finished. CHOO CHOO.**
 
@@ -75,17 +88,24 @@ Synthesis
 - AY Classic, AY Plus, and crunchy AY Sample playback (from Chipnomad)
 - All 47 Braids engines, 24 stock Plaits engines, and 24 additional Plaits-Alt engines
 - Clean mono or stereo PCM8/PCM16 sample playback (one-shot samples with autoslice mode)
+- Stretch mode, autoslicing, chromatic sample playback
 - Dual single cycle waveform oscillator: with mix & detune
 - Dual wavetable oscillator: bring your own Serum wavetables !
 - Achchid: acid engine (open303 based) that can take Braids as VCO
 - Bogie: In-house drum synth with 12 VA/FM models (including cowbells).
 - MME: Multi Modulation Engine. An aggressive voice inspired by the Loquelic Iteritas, but with Mutable Warps algos
 - Sintered: experimental synthetic percussions. MME for drums. Very wild.
-- Multimode LP/HP/BP 12/24dB filters for all new synth/sample engines
+
+Sound design
+- Multimode LP/HP/BP 12/24dB filters on each track (except special engines)
 - Several filter flavours inspired by analog synths
 - Per-track volume, mute, solo, tiltEQ, Reverb send, and Delay send
-- Mutable Instruments Clouds meme lush reverb
-- Tick-synchronized filtered ping-pong delay
+- Send reverb: Mutable Instruments Clouds meme lush reverb
+- Send delay: Tick-synchronized filtered ping-pong delay
+- Insert effects: 2x effect slots per track (in-house & Airwindows effects)
+- Capable sample editor
+- Resampling support
+- Timesretch: in-house dirty mode or Signalsmith Stretch
 
 Articulations
 - Three tracker FX columns per row
@@ -141,7 +161,16 @@ I wanted a mobile groovebox to make techno... but none of the available option t
 
 ChooChooTracker is a fork of [ChipNomad](https://github.com/Megus/chipnomad-tracker). Its Braids, Plaits, Clouds, and stmlib code comes from Mutable Instruments' open-source releases. See the included license files for exact attribution.
 
-Thanks to [luginf](https://github.com/luginf) for project-loading and VT2 import fixes, and to [aiaaaa](https://github.com/aiaaaa) for Stick live mode improvements.
+Thanks to [luginf](https://github.com/luginf) for project-loading, VT2 import,
+desktop MIDI, and AppImage fixes; to [aiaaaa](https://github.com/aiaaaa) for
+Stick live mode and track-display improvements; to [am0k161](https://github.com/am0k161)
+for the sample editor and sampler improvements; and to Ian (hifi) for the
+instrument-navigation improvements.
+
+The time-stretching processor is based on [Signalsmith Stretch](https://github.com/Signalsmith-Audio/stretch)
+by Signalsmith Audio. Several insert effects are adapted from
+[Airwindows](https://github.com/airwindows/airwindows); see the included
+license files for the individual attributions.
 
 The project is released under the [MIT License](LICENSE).
 
@@ -157,3 +186,10 @@ Mad respects to the people I stole ideas from:
 - Whoever invented the menu navigation style of vintage RPGs
 - the Noise Engineering team, who inspired the MME engine
 - All musicians who I saw playing live sets on gameboys and other constrained hardware rigs.
+
+## Native chip and FM instruments
+
+This contribution adds SID, OPLL/VRC7, AdLib/OPL2, OPL3, Sega PSG, Game Boy
+Pulse/Noise, Genesis/Arcade FM and DX7 instruments with preset browsing.
+See [the instrument notes](docs/native-chip-instruments.md) and
+[the user manual](docs/USER_MANUAL.md) for controls, banks and limitations.

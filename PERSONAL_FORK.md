@@ -1,19 +1,27 @@
 # My R36H build
 
-This is my personal ChooChooTracker build: the author's `main` branch plus the
-features I want on my handheld. These additions stay here even if their upstream
-pull requests are declined. Other contributors' unmerged work is not included.
+- **Main** mirrors the original developer’s code.
+- **Personal** is my full combined build: upstream code, my additions that haven’t
+  been merged upstream, and my experiments. Unmerged features stay in Personal,
+  including declined ones. Once a feature is incorporated upstream, Personal uses
+  the maintainer’s version—with his fixes and changes—instead of my earlier code.
 
-## Included features
+Other contributors’ unmerged work is not included.
 
-| Addition | Upstream proposal | Personal choice |
+## Earlier personal additions (history)
+
+This table records earlier additions, not the current installed implementation.
+Updates use upstream's accepted versions; retain a deliberate personal difference
+only when it is still needed or explicitly requested.
+
+| Addition | Upstream proposal | Recorded personal behavior |
 | --- | --- | --- |
-| Share Tech Mono, Departure Mono, Spleen, Cozette + NostromoAmberDa2 | [#17](https://github.com/paiheulevrai/Choochootracker/pull/17) | Keep the fonts and theme available |
-| Reactive pixel piano | [#18](https://github.com/paiheulevrai/Choochootracker/pull/18) | Keep the dark keys, orange theme outline and waveform-color highlights |
-| Project page spacing | [#19](https://github.com/paiheulevrai/Choochootracker/pull/19) | Keep version and file actions separated |
-| Track visuals | [#20](https://github.com/paiheulevrai/Choochootracker/pull/20) | Keep one Detailed / Audio waveform choice per track |
-| Persistent waveform | [#21](https://github.com/paiheulevrai/Choochootracker/pull/21) | Keep it available with an ON/OFF setting |
-| Mixer level meters | [#22](https://github.com/paiheulevrai/Choochootracker/pull/22) | Keep the meters and numeric TRK labels |
+| Share Tech Mono, Departure Mono, Spleen, Cozette + NostromoAmberDa2 | [#17](https://github.com/paiheulevrai/Choochootracker/pull/17) | Fonts and theme available |
+| Reactive pixel piano | [#18](https://github.com/paiheulevrai/Choochootracker/pull/18) | Dark keys, orange theme outline and waveform-color highlights |
+| Project page spacing | [#19](https://github.com/paiheulevrai/Choochootracker/pull/19) | Version and file actions separated |
+| Track visuals | [#20](https://github.com/paiheulevrai/Choochootracker/pull/20) | One Detailed / Audio waveform choice per track |
+| Persistent waveform | [#21](https://github.com/paiheulevrai/Choochootracker/pull/21) | Available with an ON/OFF setting |
+| Mixer level meters | [#22](https://github.com/paiheulevrai/Choochootracker/pull/22) | Meters and numeric TRK labels |
 
 The personal launcher cover also carries a diagonal red **GITHUB FORK** stamp.
 This is a personal-only asset change, separate from the six upstream proposals.
@@ -22,12 +30,67 @@ The exact included commits and upstream base are in
 [personal-features.json](personal-features.json). MIDI support is now included through upstream `main`, along with sample slicing,
 key jazz, Settings submenus and the aChChid workflow improvements.
 
-## Current Alpha
+## Current personal source
+
+Upstream base: `6e9eb2b79f7024027e8ff1308d131aa05c0096ed` (October 6 harmonization). Personal includes
+upstream’s track-visuals/GPU integration, corrected Graphics touch mapping, sample
+editor and processing updates, sample stretching, and bounce/export improvements.
+Native chip instruments and Get Lucky remain included. New saves use upstream’s
+self-contained sample archives when audio is loaded; older text songs still open.
+Native patches remain stored inside the song. Existing songs are converted when
+explicitly saved, not rewritten in bulk.
+
+Insert effects now uses the maintainer’s accepted implementation from
+[PR #31](https://github.com/paiheulevrai/Choochootracker/pull/31) and
+[review PR #34](https://github.com/paiheulevrai/Choochootracker/pull/34), including
+the follow-up review polish: grouped module chooser, CPU readout, full-height
+Insert FX page and hint cleanup. The earlier temporary exception is removed.
+Native-chip preset audition and Get Lucky remain included. See
+[the insert review report](docs/personal-insert-review-20261004.txt) and
+[the preceding sync report](docs/personal-upstream-sync-20261004.txt).
+
+Native tracker FX now use a compact per-engine list. OPLL/VRC7/OPL2/OPL3 keep
+operator-1 envelope and multiplier controls; Genesis/Arcade keep the multiplier
+and LFO controls; DX7 keeps operator levels and feedback. The operator selector
+is removed. Live fixed-operator modulation and synthesis remain unchanged.
+SID waveform, macro speed and partner ratio use native numbering.
+See [the simplification notes](docs/fx-simplification-20261005.txt).
+
+Personal-only relative FM commands and native phrase-volume migration are
+removed. A one-time conversion updates the affected personal songs and our
+bundled native audition. Upstream legacy-format support remains. See
+[the complete audit](docs/absolute-fx-audit-20261005.txt). That earlier simplification revision is installed; the October 6 source update has not been installed.
+
+## Current installed device build
+
+Source: `ee0e85c3cde127e24c138d8e58e14ead0cf5a6a2`. Compact tracker FX lists and consistent description
+colors; Preset/Range retains its distinct color. Synthesis and live modulation
+are unchanged. Settings, songs, assets and launcher were preserved.
+
+Focused host/device checks and the production build passed. No full suite,
+performance or listening tests were run. See the
+[installation receipt](docs/fx-simplification-device-20261005.json) and
+[simplification notes](docs/fx-simplification-20261005.txt).
+
+## Previous installed device build (absolute FX)
+
+Source: `f4b086d5f18100ba239b018a2abaf2dc10bb81af`. Absolute native FM controls, fixed-operator
+modulation, SID native numbering, and compact descriptions/preset/range readouts.
+Eleven personal/test songs were converted once; their original files are retained
+in the verified rollback. Personal compatibility translations are removed.
+AY, upstream compatibility and stock songs are unchanged.
+
+Host and ARM functional suites, production UI and startup checks passed. GitHub
+CI passed for this source. Performance tests were skipped at the user's request;
+startup used the ALSA null output and human listening is pending. See
+[the installation receipt](docs/absolute-fx-device-20261005.json).
+
+## Previous installed device build (R2)
 
 Upstream base: `a02a88098a03b10518806268f039b9d9b8b2f5a9` (October 2).
-The device channel is **personal Alpha**: current main plus retained personal
-features and experiments explicitly requested for testing. Upstream acceptance
-is not required for a personal feature to remain on the handheld.
+The device channel is **device personal build**: upstream code plus my unmerged
+additions and experiments. Pending or declined submissions stay included; once
+incorporated upstream, the maintainer’s version replaces my earlier version.
 
 | PR | GitHub status | How it reaches the handheld |
 | --- | --- | --- |
@@ -35,33 +98,82 @@ is not required for a personal feature to remain on the handheld.
 | #17 Fonts/theme | Merged | Upstream main |
 | #18 Piano | Closed as superseded by #23 | Upstream's integrated implementation |
 | #19 Project spacing | Merged | Upstream main |
-| #20 Track visuals | Open | Retained personal Detailed / Audio waveform setting |
+| #20 Track visuals | Merged | Retained personal Detailed / Audio waveform setting; upstream proposal accepted |
 | #21 Persistent waveform | Merged | Upstream feature with retained personal layout, default OFF |
 | #22 Mixer meters | Closed as superseded by #23 | Upstream's integrated implementation |
-| Track Insert FX | Alpha experiment; PR pending | Two track slots, five native effects, Fxx and MOD |
+| Track Insert FX | [#31 merged](https://github.com/paiheulevrai/Choochootracker/pull/31) | That R2 build used our earlier implementation; the current build uses the maintainer’s merged review |
+| Native chip instruments | Personal feature; no upstream PR | Ten chip types, shared FM browsing, local DX7 import and 876 native presets; ARM64 tests and configured-device audio validated |
 | I’m Feeling Lucky | Personal experiment; no upstream PR | One Settings row, compiled only with `CHOOCHOO_EXPERIMENTAL_MOD_LUCKY=1` |
+
+R2 adds FM onset smoothing, optional amp ADSR and tone macros, Sega low-note
+extension, chip automation and the ADSR graph fix. Host and ARM tests, personal desktop/Web, SDL UI, mixed benchmarks and
+physical ALSA checks pass. R2 listening acceptance remains pending; the installed
+source and rollback are recorded in personal-build.json and the progress log. See [the current report](docs/chip-instruments-report.md).
 
 Piano/meters are not duplicated just because their original proposal commits
 remain in Git history. GitHub's ahead/behind counts describe history; they are
 not a count of missing features. No original PR needs closing for #18 or #22:
 the maintainer already closed them with an explanation.
 
-Graphics keeps current-main Waveform FPS and renderer information alongside
-Load font, theme, Track visuals and Persistent waveform. MIDI, current rendering
-fixes and Chord mode come from main. The installed `personal-build.json` records
+The updated source uses upstream’s Graphics menu and rendering integration,
+with compatibility for our native chip types. MIDI and Chord mode come from main.
+The installed `personal-build.json` records
 the exact source commit, upstream base, binary hash, checks and rollback location.
 
-## Branches
+## Branches and contribution groups
 
-- `main` mirrors upstream `main`.
-- `personal/r36h` is the combined source for the handheld.
-- `contribution/*` keeps each upstream proposal separate. Updating the personal
-  build does not alter those PRs or their descriptions.
+The two primary branches are [`main`](https://github.com/aiaaaa/Choochootracker/tree/main),
+the upstream mirror, and [`personal/r36h`](https://github.com/aiaaaa/Choochootracker/tree/personal/r36h),
+the combined source for the device personal build and this fork's default branch.
 
-The personal branch merges the feature branches, including their shared audio
-foundation once. It retains that history; upstream acceptance is not required.
-If upstream accepts a changed or squashed version of a feature, compare the two
-implementations during the next update and retain one coherent implementation.
+The groups below describe the work's purpose. Existing branch names and PRs stay
+intact; a group's name does not require renaming its branches. Submission moves
+work from Upstream candidates to Submitted contributions. Later status changes
+update that entry rather than moving it to another group.
+
+### Experimental
+
+Personal explorations with no commitment to an upstream submission.
+
+| Work | Branch | Notes |
+| --- | --- | --- |
+| Get Lucky (I’m Feeling Lucky) | [`experimental/mod-lucky-integrated`](https://github.com/aiaaaa/Choochootracker/tree/experimental/mod-lucky-integrated) | Opt-in sample discovery; [build instructions and limits](docs/mod-lucky.md) |
+
+### Native instruments accepted upstream
+
+[PR #39](https://github.com/paiheulevrai/Choochootracker/pull/39) is merged.
+Personal now adopts the maintained waveform previews, compact native FX grouping,
+SID preview guards and CI/Windows fixes. Earlier proposal branches and revision
+notes remain as history. See [the synchronization record](docs/personal-harmonization-20261006.txt).
+
+### Submitted contributions
+
+Every submitted proposal stays here, whether pending, merged, closed, or
+incorporated differently. These branches retain proposal history; normal updates
+come through upstream `main`, with personal choices reconciled on `personal/r36h`.
+Status checked on October 6, 2026; follow the PR links for subsequent changes.
+
+| Contribution | Branch | PR | Status |
+| --- | --- | --- | --- |
+| Stick live toggle | [`feature/stick-live-toggle`](https://github.com/aiaaaa/Choochootracker/tree/feature/stick-live-toggle) | [#1](https://github.com/paiheulevrai/Choochootracker/pull/1) | Merged |
+| Fonts and theme | [`contribution/fonts-16x24`](https://github.com/aiaaaa/Choochootracker/tree/contribution/fonts-16x24) | [#17](https://github.com/paiheulevrai/Choochootracker/pull/17) | Merged |
+| Reactive piano | [`contribution/piano-visualization`](https://github.com/aiaaaa/Choochootracker/tree/contribution/piano-visualization) | [#18](https://github.com/paiheulevrai/Choochootracker/pull/18) | Closed; incorporated through #23 |
+| Project page spacing | [`contribution/project-page-spacing`](https://github.com/aiaaaa/Choochootracker/tree/contribution/project-page-spacing) | [#19](https://github.com/paiheulevrai/Choochootracker/pull/19) | Merged |
+| Track visuals | [`contribution/track-visuals`](https://github.com/aiaaaa/Choochootracker/tree/contribution/track-visuals) | [#20](https://github.com/paiheulevrai/Choochootracker/pull/20) | Merged |
+| Persistent waveform | [`contribution/persistent-waveform`](https://github.com/aiaaaa/Choochootracker/tree/contribution/persistent-waveform) | [#21](https://github.com/paiheulevrai/Choochootracker/pull/21) | Merged |
+| Mixer level meters | [`contribution/mixer-level-meters`](https://github.com/aiaaaa/Choochootracker/tree/contribution/mixer-level-meters) | [#22](https://github.com/paiheulevrai/Choochootracker/pull/22) | Closed; incorporated through #23 |
+| Track insert effects | [`feature/track-insert-fx`](https://github.com/aiaaaa/Choochootracker/tree/feature/track-insert-fx) | [#31](https://github.com/paiheulevrai/Choochootracker/pull/31) | Merged |
+
+| Native chip and FM instruments | [`contribution/native-chip-instruments`](https://github.com/aiaaaa/Choochootracker/tree/contribution/native-chip-instruments) | [#39](https://github.com/paiheulevrai/Choochootracker/pull/39) | Merged |
+
+### After an upstream merge
+
+Use the maintainer’s merged version, including his fixes and changes, in place
+of my earlier implementation. Check for and remove duplicate code or controls.
+The old branch can remain as history. Insert effects now follows this policy too.
+
+This policy applies at the next tested update; it does not mean the installed
+build has already been updated. Keep all other unmerged personal additions.
 
 ## Updating
 
@@ -77,9 +189,11 @@ git merge --no-ff upstream/main
 make -C tracker -f Makefile.test -j4
 ```
 
-Resolve source conflicts individually, retaining both upstream fixes and the
-personal choices above. Generated `web/dist` conflicts require a fresh combined
-web build, not choosing one branch's bundle as the finished result. Follow
+Resolve source conflicts individually, adopting the accepted upstream version
+of merged contributions and keeping only selected additions not covered by it.
+Check changed or squashed merges for leftover personal code even when Git reports
+no conflict. Generated `web/dist` conflicts require a fresh combined web build,
+not choosing one branch's bundle as the finished result. Follow
 [build notes](docs/build-notes.md) for the web and ARM64 PortMaster builds, then
 validate `releases/choochootracker.zip` with `unzip -t`.
 

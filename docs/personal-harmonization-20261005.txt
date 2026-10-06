@@ -1,0 +1,84 @@
+Personal harmonization — October 5, 2026
+
+Requested sequence: reconcile GitHub/upstream and the personal build before the
+final handheld validation and installation. No public PR is requested.
+
+Pinned upstream: 8c87091 (full hash recorded in personal-features.json).
+Previous personal source: 65223b2666205e00f4775103cd3931215e76a609.
+GitHub personal/r36h was twelve local commits behind; no remote-only commits.
+The previous 65223b2 deployment supervisor was stopped during compilation,
+before physical audio checks or installation. Its build is only a cache/input
+for the final combined revision, never the final installed candidate.
+
+Adopted upstream main:
+- Phrase volume 00-7F, MIDI velocity/export and playback updates.
+- Chorus, Flanger, Phaser, Rotary, Saturation, Bitcrusher and Destruction inserts.
+  Insert DSP, descriptors and screen use the accepted upstream files exactly.
+- Export/path fixes, explicit wavetable frame metadata, updated MIDI layout
+  expectations, merged Android USB MIDI and build workflows.
+- Only merged main is included. Existing personal native engines, presets,
+  preset browser, Get Lucky, visuals and FX controls remain present.
+
+Resolved overlap:
+- Native song formats 6-8 predate the expanded phrase-volume range. Their old
+  levels migrate on load; format 6 is disambiguated by native instrument types.
+  Upstream format 6 keeps its 00-7F values. Blank volume remains inherited.
+  Native songs now save as format 9; ordinary songs use upstream format 6.
+  Instrument table volume retains 00-0F, and absolute CNI commands use format 8.
+- VT2 import scales its native 0-15 phrase volumes into the expanded domain and
+  uses the new empty-volume sentinel. Table volumes remain unchanged.
+- Keep personal CPU-load test instrumentation with upstream's expanded insert
+  chooser; retain native popup defaults/bounds in the updated phrase editor.
+- Wavetable frame metadata serialization now matches upstream. Personal archive
+  clm metadata recovery remains necessary and is recorded separately.
+
+Resume: upstream additionally reached 8c87091 (Android SDL2 header layout and
+web workflow commit ordering, plus generated upstream bundle). These build
+fixes are merged after completing the existing a88a403 merge. Personal
+web assets retain the verified rebuild from the combined source; upstream
+changed no application sources after a88a403.
+
+The final DX7 popup group fits with persistent waveform both OFF and ON.
+The relative preset label is shortened so its complete range remains visible.
+Host engine validation: 497 tests / 122,382,803 assertions passed; no failures
+or skips. Logs: .tmp/native-fx-values/resumed-full-tests.log.
+Final production UI harness passed, including Get Lucky, seven FM engines,
+ADSR pixel checks, DX7 bank discovery/audition, native FX preset values and
+bounds, and waveform OFF/ON. Final captures visually verified the last DX7
+commands and complete relative FX range. Final web-deploy succeeded; generated
+JavaScript whitespace normalized.
+Logs: .tmp/native-fx-values/resumed-ui.log and resumed-web-build.log.
+
+GitHub branches were published before final device validation and installation.
+
+Final device receipt
+Source: 5bfab9779f317f4fc6580292f285d0104917e52b
+Binary SHA256: 668de6a6a89f2087060c33990aac2a96cfe655ae9d8914415e81831808183886
+Upstream/main mirror: 8c8709182b90a492ae8b5e2fc0bb0e7516644388
+ARM64 full suite (afc009e; identical production sources/binary to 5bfab97):
+[doctest] run with "--help" for options
+===============================================================================
+[doctest] test cases:       509 |       509 passed | 0 failed | 2 skipped
+[doctest] assertions: 122392840 | 122392840 passed | 0 failed |
+[doctest] Status: SUCCESS!
+make: warning:  Clock skew detected.  Your build may be incomplete.
+Final 5bfab97 adds only the missing <cstdio> test include. All six affected
+ARM tests passed again (42,933,089 assertions); the production binary hash
+remained identical. GitHub CI tests and web-contract passed for 5bfab97.
+Production UI passed. All five physical ALSA workloads obtained clean results
+after the documented rechecks below; startup waveform OFF/ON passed.
+Settings and autosave remained unchanged. Preserved 2008 user files and
+the regular launcher; installation and rollback inventories verified.
+Rollback: /roms/choochootracker-backups/pre-native-fx-values-5bfab9779f31/previous-install
+Receipt: native-fx-values-device-20261005.json
+Subjective listening remains pending user evaluation.
+
+Timing qualification: the initial SID ring/sync workload had one missed
+render deadline (106.175 ms, budget 102.208 ms). Two consecutive repeats with
+the same binary/settings and no concurrent SSH polling passed with zero misses.
+The initial balanced workload also logged one ALSA underrun with no measured
+steady-state render miss. Three consecutive instrumented balanced trials then
+passed, including their first 100 callbacks, with zero underruns, deadline
+misses or invalid samples. The causes of the initial failures were not
+reproduced; all results remain in the receipt. No engine, buffer-size or
+audio-setting changes were made to pass.

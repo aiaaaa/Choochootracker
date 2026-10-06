@@ -1,10 +1,12 @@
 #include "waveform_display.h"
-#include "monitor_display.h"
-#include "audio_monitor.h"
 #include <algorithm>
 #include <cmath>
 #include "corelib_gfx.h"
 #include "chipnomad_lib.h"
+#include "four_op_patch.h"
+#include "opl_patch.h"
+#include "opll_presets.h"
+#include "sid_patch.h"
 #include "playback_chips.h"
 #include "synth/braids_voice.h"
 #include "synth/achchid_voice.h"
@@ -12,7 +14,14 @@
 #include "synth/plaits_alt_voice.h"
 #include "synth/mme_voice.h"
 #include "synth/sintered_voice.h"
+#include "synth/four_op_voice.h"
+#include "synth/opl_voice.h"
+#include "synth/opll_voice.h"
+#include "synth/dx7_voice.h"
+#include "synth/simple_chip_voice.h"
 #include "common.h"
+#include "monitor_display.h"
+#include "audio_monitor.h"
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
@@ -99,17 +108,19 @@ static void drawAYWaveformSlice(Bitmap* bitmap, int x, int amplitude, int toneHi
     }
   } else {
     bitmap->data[lowY * charW + x] = 255;
-  }
 
-  if (hasEnvelope && !toneHigh) {
-    bitmap->data[y * charW + x] = ENVELOPE_DIM_BRIGHTNESS;
-    if (prevEnvAmplitude >= 0)
-      drawVerticalLine(bitmap, x, y, charH - 1 - prevEnvAmplitude, ENVELOPE_DIM_BRIGHTNESS);
-  }
+    if (hasEnvelope) {
+      bitmap->data[y * charW + x] = ENVELOPE_DIM_BRIGHTNESS;
+      if (prevEnvAmplitude >= 0) {
+        int prevY = charH - 1 - prevEnvAmplitude;
+        drawVerticalLine(bitmap, x, y, prevY, ENVELOPE_DIM_BRIGHTNESS);
+      }
+    }
 
-  // Keep the legacy tone edge above the dim envelope when both are enabled.
-  if (!toneHigh && prevToneHigh && prevAmplitude >= 0) {
-    drawVerticalLine(bitmap, x, lowY, charH - 1 - prevAmplitude, 255);
+    if (prevToneHigh && prevAmplitude >= 0) {
+      int prevY = charH - 1 - prevAmplitude;
+      drawVerticalLine(bitmap, x, lowY, prevY, 255);
+    }
   }
 
   if (hasNoise && toneHigh && amplitude > 0) {
@@ -192,47 +203,14 @@ static Bitmap* drawVoiceWaveform(int trackIdx) {
   return bitmap;
 }
 
-void renderTrackAudioWaveform(Bitmap* bitmap, const float* samples, int count) {
-  if (!bitmap) return;
-  gfxBitmapClear(bitmap);
-  if (!samples || count <= 0) return;
-  const int w = bitmap->widthPixels, h = bitmap->heightPixels;
-  if (w < 3 || h < 5) return;
-  const int centre = (h - 1) / 2, radius = (h - 4) / 2;
-  int previous = centre;
-  for (int x = 1; x < w - 1; ++x) {
-    int start = (x - 1) * count / (w - 2);
-    int end = std::max(start + 1, x * count / (w - 2));
-    float low = 1, high = -1;
-    for (int i = start; i < end && i < count; ++i) {
-      float value = std::isfinite(samples[i]) ? samples[i] : 0;
-      value = std::max(-1.0f, std::min(1.0f, value));
-      low = std::min(low, value);
-      high = std::max(high, value);
-    }
-    int upper = centre - (int)lroundf(high * radius);
-    int lower = centre - (int)lroundf(low * radius);
-    int middle = (upper + lower) / 2;
-    if (x > 1) { upper = std::min(upper, previous); lower = std::max(lower, previous); }
-    const uint8_t brightness = low == 0 && high == 0 ? 64 : 255;
-    for (int y = upper; y <= lower; ++y) bitmap->data[y * w + x] = brightness;
-    previous = middle;
-  }
-}
-
 static Bitmap* renderWaveform(int trackIdx) {
-  if (!chipnomadState || trackIdx < 0 || trackIdx >= chipnomadState->project.tracksCount) return nullptr;
-  if (charW != gfxGetCharWidth() || charH != gfxGetCharHeight() || !emptyBitmap)
-    waveformDisplayInit();
-  if (!waveformBitmaps[trackIdx]) return nullptr;
-  const auto& visuals = appSettings.trackVisuals[trackIdx];
-  if (visuals.mode == TrackVisualMode::audio) {
-    renderTrackAudioWaveform(waveformBitmaps[trackIdx], monitorDisplayTrackSamples(trackIdx), AUDIO_MONITOR_SAMPLES);
+  const PlaybackTrackState* track = &chipnomadGetPlaybackStatus(chipnomadState)->tracks[trackIdx];
+  if (track->note.instrument == EMPTY_VALUE_8) {
+    gfxBitmapClear(waveformBitmaps[trackIdx]);
     return waveformBitmaps[trackIdx];
   }
-  const PlaybackTrackState* track = &chipnomadGetPlaybackStatus(chipnomadState)->tracks[trackIdx];
-  if (track->note.instrument == EMPTY_VALUE_8) { gfxBitmapClear(waveformBitmaps[trackIdx]); return waveformBitmaps[trackIdx]; }
   InstrumentType type = chipnomadState->project.instruments[track->note.instrument].type;
+  // Native chips use voice monitors, never AY register inspection.
   if (type != InstrumentType::AY1 && type != InstrumentType::AY2 && type != InstrumentType::AYSample)
     return drawVoiceWaveform(trackIdx);
 
@@ -243,7 +221,7 @@ static Bitmap* renderWaveform(int trackIdx) {
     return bitmap;
   }
 
-  // Current projects use one AY chip per track, with tone on channel A.
+  // The engine owns one AY chip per track and uses channel A.
   int chipIdx = trackIdx;
   int ayChannel = 0;
 
@@ -340,7 +318,10 @@ void waveformDisplayRefresh(void) {
   voiceBlend = 1.0f - powf(0.7f, elapsedSeconds * 60.0f);
   if (voiceBlend > 1.0f) voiceBlend = 1.0f;
   for (int i = 0; i < chipnomadState->project.tracksCount; ++i) {
-    renderWaveform(i);
+    if (appSettings.trackVisuals[i].mode == TrackVisualMode::audio)
+      renderTrackAudioWaveform(waveformBitmaps[i], monitorDisplayTrackSamples(i), AUDIO_MONITOR_SAMPLES);
+    else
+      renderWaveform(i);
   }
   lastWaveformRefresh = now;
 }
@@ -567,6 +548,85 @@ void renderMMEPreview(Bitmap* bitmap, const InstrumentMME* instrument) {
   renderFloatPreview(bitmap, samples, sizeof(samples) / sizeof(samples[0]));
 }
 
+void renderFMPreview(Bitmap* bitmap, const Instrument* instrument) {
+  if (!bitmap || !instrument) { if (bitmap) gfxBitmapClear(bitmap); return; }
+  constexpr size_t frames = 768;
+  float samples[frames];
+  float stereo[frames * 2];
+  if (isFourOp(instrument->type)) {
+    FourOpVoice voice;
+    voice.init(48000.0f);
+    voice.configure(instrument->type, &instrument->chip.fourOp, 6900.0f, 1.0f);
+    voice.noteOn();
+    voice.render(stereo, frames);
+    for (size_t i = 0; i < frames; ++i) samples[i] = stereo[i * 2];
+  } else if (isOPLL(instrument->type)) {
+    OPLLVoice voice;
+    voice.init(48000.0f);
+    voice.configure(&instrument->chip.opll, 6900.0f, 1.0f);
+    voice.noteOn();
+    voice.render(samples, frames);
+    renderFloatPreview(bitmap, samples, frames);
+    return;
+  } else if (isOPL(instrument->type)) {
+    OPLVoice voice;
+    voice.init(48000.0f);
+    voice.configure(instrument->type, &instrument->chip.opl, 6900.0f, 1.0f);
+    voice.noteOn();
+    voice.render(stereo, frames);
+    for (size_t i = 0; i < frames; ++i) samples[i] = stereo[i * 2];
+  } else if (instrument->type == InstrumentType::DX7) {
+    DX7Part voice;
+    voice.init(48000.0f);
+    voice.voices[0].configure(&instrument->chip.dx7, 6900.0f, 1.0f);
+    voice.voices[0].noteOn();
+    voice.render(samples, frames);
+    renderFloatPreview(bitmap, samples, frames);
+    return;
+  } else if (instrument->type == InstrumentType::SID) {
+    const auto& sid = instrument->chip.sid;
+    const float pulse = sid.value[sidPulse] / 4095.0f;
+    uint32_t noise = 0x1aceu;
+    for (size_t i = 0; i < frames; ++i) {
+      const float phase = float(i % 96) / 96.0f;
+      const float triangle = 1.0f - 4.0f * std::abs(phase - 0.5f);
+      const float saw = phase * 2.0f - 1.0f;
+      const float square = phase < pulse ? 1.0f : -1.0f;
+      noise = noise * 1103515245u + 12345u;
+      const float random = float((noise >> 16) & 0x7fff) / 16384.0f - 1.0f;
+      switch (sid.value[sidWave]) {
+        case 1: samples[i] = triangle; break;
+        case 2: samples[i] = saw; break;
+        case 3: samples[i] = triangle * saw; break;
+        case 4: samples[i] = square; break;
+        case 5: samples[i] = triangle * square; break;
+        case 6: samples[i] = saw * square; break;
+        case 7: samples[i] = triangle * saw * square; break;
+        case 8: samples[i] = random; break;
+        default: samples[i] = 0.0f; break;
+      }
+    }
+    renderFloatPreview(bitmap, samples, frames);
+    return;
+  } else {
+    gfxBitmapClear(bitmap);
+    return;
+  }
+  renderFloatPreview(bitmap, samples, frames);
+}
+
+void renderSimpleChipPreview(Bitmap* bitmap, InstrumentType type,
+                             const InstrumentSimpleChip* instrument) {
+  if (!bitmap || !instrument) { if (bitmap) gfxBitmapClear(bitmap); return; }
+  float samples[768];
+  SimpleChipVoice voice;
+  voice.init(48000.0f);
+  voice.configure(type, instrument, 6900.0f, 1.0f);
+  voice.noteOn();
+  voice.render(samples, sizeof(samples) / sizeof(samples[0]));
+  renderFloatPreview(bitmap, samples, sizeof(samples) / sizeof(samples[0]));
+}
+
 void renderAYWavetablePreview(Bitmap* bitmap, uint8_t* wavetable, int isYM) {
   if (bitmap) gfxBitmapClear(bitmap);
   if (!bitmap || !wavetable) return;
@@ -591,4 +651,25 @@ void renderAYWavetableLfoPreview(Bitmap* bitmap, uint8_t* wavetable) {
   const int zeroY = bitmap->heightPixels / 2;
   for (int x = 0; x < bitmap->widthPixels; ++x) bitmap->data[zeroY * bitmap->widthPixels + x] = 64;
   renderWaveformPreview(bitmap, wavetable, 32, ayWavetableLfoPreviewLevel);
+}
+void renderTrackAudioWaveform(Bitmap* bitmap, const float* samples, int count) {
+  if (!bitmap) return;
+  gfxBitmapClear(bitmap);
+  if (!samples || count <= 0) return;
+  const int w = bitmap->widthPixels, h = bitmap->heightPixels;
+  if (w < 3 || h < 5) return;
+  const int centre = (h - 1) / 2, radius = (h - 4) / 2;
+  int previous = centre;
+  for (int x = 1; x < w - 1; ++x) {
+    int start = (x - 1) * count / (w - 2), end = std::max(start + 1, x * count / (w - 2));
+    float low = 1, high = -1;
+    for (int i = start; i < end && i < count; ++i) {
+      float value = std::isfinite(samples[i]) ? samples[i] : 0;
+      low = std::min(low, std::max(-1.0f, value)); high = std::max(high, std::min(1.0f, value));
+    }
+    int upper = centre - (int)lroundf(high * radius), lower = centre - (int)lroundf(low * radius);
+    if (x > 1) { upper = std::min(upper, previous); lower = std::max(lower, previous); }
+    for (int y = upper; y <= lower; ++y) bitmap->data[y * w + x] = low == 0 && high == 0 ? 64 : 255;
+    previous = (upper + lower) / 2;
+  }
 }

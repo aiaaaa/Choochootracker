@@ -10,12 +10,22 @@ int mockLastInputKeys;
 static int ignoreInput(int, int keys, int) { mockLastInputKeys = keys; return 1; }
 static void noOp(void) {}
 static int startAudio(int, int) { return 0; }
-AudioManager audioManager = {startAudio, noOp, noOp, nullptr, nullptr, noOp};
+int mockAudioCpuLoad;
+static int cpuLoad() { return mockAudioCpuLoad; }
+AudioManager audioManager = {startAudio, noOp, noOp, nullptr, nullptr, noOp, nullptr, nullptr, cpuLoad};
 const AppScreen screenSong = {nullptr, nullptr, noOp, noOp, ignoreInput};
 const AppScreen screenTitle = {nullptr, nullptr, noOp, noOp, ignoreInput};
 const AppScreen screenPhrase = {nullptr, nullptr, noOp, noOp, ignoreInput};
 const AppScreen screenInstrument = {nullptr, nullptr, noOp, noOp, ignoreInput};
 int cInstrument = 0;
+// Instrument screen boundaries for exercising the real native preview helper.
+int mockEnvelopePreviewCount;
+void instrumentCommonDrawEnvelopePreview(uint8_t, uint8_t, uint8_t, uint8_t, uint8_t) {
+  ++mockEnvelopePreviewCount;
+}
+int instrumentCommonDrawVoicePostCursor(int, int) { return 0; }
+int instrumentCommonDrawVoicePostField(int, int, CellState, const InstrumentVoicePostSettings*) { return 0; }
+int instrumentCommonOnEditVoicePost(int, int, CellEditAction, InstrumentVoicePostSettings*) { return 0; }
 const AppScreen screenKeyMapping = {nullptr, nullptr, noOp, noOp, ignoreInput};
 const AppScreen screenFileBrowser = {nullptr, nullptr, noOp, noOp, ignoreInput};
 const AppScreen screenColorTheme = {nullptr, nullptr, noOp, noOp, ignoreInput};

@@ -1,0 +1,295 @@
+DEVICE EVALUATION INSTALL — October 5, 2026
+
+Installed source: ff887afaaebc106cf3d7b2e2905f55c3e3f42964
+Binary SHA-256: 8099e70d9180284e6efa3e850d2302ca423be9a70d5f727fb27911655f031f6e
+Location: /roms/ports/choochootracker
+Rollback: /roms/choochootracker-backups/pre-instruments-ff887afaaebc/previous-install
+
+Host and device personal suites, offscreen bank/preset/playback UI and physical
+ALSA checks passed. User files, settings, autosave and launcher were preserved.
+Two initial dense-song checks failed timing; a controlled old/new comparison
+after filesystem sync passed. Initial results are retained; cause is unproven.
+The 23-bank evaluation song is projects/native-chip-expanded-20261005.cct.
+Full receipt: docs/instrument-device-20261005.json. Human evaluation is pending.
+The earlier no-install statements below describe the preceding local-only pass.
+
+FOLLOW-UP: BANK LIBRARY AND SOUND EXPANSION
+
+The user's follow-up authorized continued implementation. The earlier audit
+below is retained as a record of the first pass; these results supersede its
+session-only bank proposal, 15-program OPLL limit and original preset counts.
+
+DX7: instruments/banks/dx7/ is a persistent drop-in .syx library. Subfolders and
+multiple original Yamaha bank messages work. Reopening Banks rescans; each
+32-voice message remains a numbered bank rather than flattening the file. Direct
+Load Instrument remains available. Selected patches are embedded in songs/CNI;
+the entire source library is not needed by recipients. Bad checksums/formats are
+isolated and counted. Bounds: 2,048 files, 1 MiB/file, 64 MiB aggregate, 60,000
+voices, eight folder levels. No audio-thread filesystem work.
+
+OPLL/VRC7: shared scrolling Bank/Preset interface; 73 programs each, including
+15 original tones, 40 additional distinct emu2413 tone-table programs and 18
+project-authored programs. Custom tone bytes, bank/name and tuning are saved.
+Old native OPLL files remain readable. ROM rhythm-mode programs are not exposed.
+
+Genesis: 73 (24 original + 49 CC0 NeoSoundFonts WOPN programs).
+Arcade: 81 (24 original + 57 GPLv3 YMulator OPM programs).
+Sega PSG: 24; GB Pulse: 24; GB Noise: 28 original programs.
+DX7 remains 67 distinct factory sounds, plus the user's drop-in banks.
+OPL remains 697 source entries (589 normalized identities).
+Total: 1,140 native preset files, 264 more than the first pass.
+
+The new source programs are not presented as famous-game extractions. Conversion
+retains supported register parameters, including chip-specific LFO settings and
+operator order. Source-bank blanks, transposition/fixed percussion modes and
+arcade noise settings are reported rather than approximated. Two source OPM
+programs (Whistle Lead and Pizzicato) have silent carrier operators and are
+excluded. Tone-byte duplicates are removed within each OPLL engine. Full
+original source forms, revisions, hashes, licenses and conversion source ship
+alongside the collection. New sounds still require human listening acceptance.
+
+YSE clarification: four parameter programs repeated across 32 differently named
+source slots; we ship the four distinct sounds. ChooChoo DX7 Originals means 32
+parameter patches authored for this project, not a Yamaha factory collection.
+
+No device installation or public publication was performed in this follow-up.
+Validation: 477 host test cases / 98,220,226 assertions; 15 converter tests;
+real offscreen SDL bank/preset/import/playback and pixel regressions all passed.
+Rendered 360 presets across 23 bank IDs, including all 264 additions; every
+render was finite, sounding and below full scale at the tested pitches (maximum
+peak 0.252533). JavaScript syntax and rebuilt WebAssembly validation passed.
+The portable 23-section audition is .tmp/instrument-expansion/native-chip-expanded.cct.
+See .tmp/instrument-expansion/validation.json and its adjacent logs/WAVs for
+build/test/render evidence. Human listening and handheld validation remain open.
+
+--- ORIGINAL FIRST-PASS AUDIT ---
+
+Instrument revision — October 5, 2026
+
+Scope: implement the clear fixes and investigate the remaining notes, as selected
+by the user. Working branch: feature/native-chip-instruments, starting at 2cf37f2
+(same starting source as personal/r36h). No device installation or publication.
+
+IMPLEMENTED
+
+1. Bank carry-over. The shared FM browser had one process-wide bankFilter. Its
+   fallback only cleared incompatible banks when opening Preset, leaving stale
+   labels/cycling and deliberately compatible OPL banks across engine changes.
+   Instrument screen context now resets the filter to All when the engine or slot
+   changes, including going away to a non-FM engine and returning. A popup round
+   trip in the same slot preserves the user's bank choice. Cancelling a SysEx
+   import restores the prior filter.
+
+2. Engine identification. FM bank/preset titles now identify the engine, e.g.
+   AdLib / OPL2 BANKS and Genesis FM PRESETS. Sega and GB preset titles identify
+   their engine too. OPLL/VRC7 already had engine-specific program titles.
+
+3. Missing Phrase FX descriptions. Added titles, useful value ranges, live versus
+   note-trigger behavior, and value hints for all twelve native FX FBR through
+   CED. CMD gets the appropriate Sega/GB Pulse/GB Noise description. This narrowly
+   implements the user's explicit request for chooser descriptions; it does not
+   rewrite unrelated in-app help.
+
+4. Slow preset changes. Preset confirmation happens on EDIT release, while
+   appInput previously marked the project dirty only on press. If the press was
+   published first, the release's actual change could remain absent from the
+   audio-owned project until another input. Both edges now mark it for the next
+   coalesced UI/audio tick. Native voice adapters already configure from that
+   audio project. This removes an avoidable stale-patch delay; it does not promise
+   zero audio-buffer latency or identical retrigger behavior across engines.
+
+PHRASE FX EXPANSION — FINDING AND PROPOSED NEXT WORK
+
+The native FM-specific group really has only Brightness and Feedback today.
+Shared track FX (arpeggio, vibrato, pitch bends/slides, retrigger, etc.), Envelope
+FX and Modulation are additional groups. Sega has two chip-specific controls;
+GB Pulse has seven and GB Noise six. FM's optional software amp ADSR must be
+enabled for the Envelope controls to affect it.
+
+There is useful room to expand FM. Prioritize controls that create audible
+movement: LFO rate/depth and enable, operator levels/ratios, and native envelope
+attack/decay/release. OPL also offers operator waveform and vibrato/tremolo;
+Arcade offers LFO waveform/AM/PM depth; Genesis offers SSG-EG. These need actual
+audio-thread controls, range validation, persistence and modulation tests, not
+just extra menu entries. Algorithm changes are useful but can radically alter
+level/timbre and should be auditioned carefully.
+
+For simpler chips, more rows alone cannot create new oscillator waveforms.
+Short duty/pitch/noise/volume sequences saved as instrument articulations would
+offer more musical variety than dozens of near-identical static registers.
+Tables and phrase FX provide much of that movement now; a preset plus its table
+needs a deliberate loading policy so it does not overwrite a user's table.
+No new synthesis controls or preset collections were added in this fix pass.
+
+PRESET PORTABILITY
+
+Already implemented: native CNI/CCT instruments contain their complete patch
+parameters (including imported/modified patches), tuning and supported macros.
+The project does not need the original factory/user bank to reproduce those
+instruments. The sample archive change also packages loaded audio. Save the
+project after edits; recipients need a version supporting its engines/fields.
+
+The entire source preset bank is a different concern. DX7 imported bank browsing
+metadata is session-only, even though every selected/saved patch is portable.
+Saving a song should not need to include thousands of unused bank entries.
+Persistent personal bank storage would improve browsing and deserves a separate
+feature, with source files retained in the user's instrument library.
+
+PER-ENGINE ANSWERS
+
+Sega PSG: 14 current starter recipes. Native tones are fixed 50% square waves,
+plus white and periodic noise; there is no native triangle/saw/variable-duty
+oscillator selector. Several present tone recipes differ mainly in amplitude
+envelope, explaining the repetition. Better variety comes from pitch envelopes,
+arpeggios, noise-rate/mode motion and retrigger patterns. Keep the word Preset:
+it correctly describes recalled settings; Patch would also be accurate. Do not
+claim a generated patch recreates a famous game without comparing it.
+
+GB Pulse: 10 current recipes. Four native duty settings (12.5/25/50/75 percent),
+native amplitude envelope and channel-1 sweep offer more scope. 25 and 75 percent
+are complementary and not two fundamentally different solo timbres. Duty motion,
+sweeps, plucks, bass articulation and chord/arpeggio macros are better expansion
+targets. The Game Boy's separate wave channel is not implemented by GB Pulse.
+
+GB Noise: 10 current recipes. 7/15-bit width, divisor, clock shift and envelope
+can supply a substantially better percussion/FX palette: hats, snares, metallic
+hits, rattle, zaps and noise rises. The current engine uses fixed noise frequency,
+so keyboard notes do not tune it like a melodic oscillator. Programmed frequency
+motion would add more variation than only changing decay.
+
+OPLL and VRC7: each browser exposes its 15 built-in programs. This is a UI/content
+limit, not the limit of their two-operator synthesis: there is a programmable
+custom patch. Our InstrumentOPLL already stores eight native patch bytes, and
+the renderer uses those bytes, so additional custom patches are feasible.
+The normal app has no community OPLL/VRC7 bank importer or custom-bank browser.
+Procedural, constrained sound design is feasible; it should be audibly curated.
+The VRC7 and OPLL ROM palettes differ. Hardware's shared custom slot is not a
+reason to limit an offline preset library to one user sound.
+
+AdLib/OPL2: 241 compatible catalog entries: Fat Man 2-op 181, Fat Man 4-op one,
+DMXOPL3 59. The three displayed bank names do not mean all entries of all three
+banks can play in OPL2. The title fix identifies AdLib explicitly.
+
+OPL3: 697 browsable entries: the same 241 plus 456 tagged for OPL3. OPL3 supports
+the OPL2 two-operator sounds, and adds four-operator routing, extra waveforms and
+stereo capabilities. It is more capable, not automatically a better sound for
+every patch. The existing Fat Man 4-op and DMXOPL3 collections already contain
+the differentiated sounds the user is looking for. The stale bank filter could
+keep OPL3 narrowed to the same two-operator bank just heard on AdLib.
+
+Duplicate audit of the shipped manifest's normalized parameter IDs:
+  Fat Man 2-op: 181 entries / 179 unique parameter IDs.
+  Fat Man 4-op: 181 / 181.
+  DMXOPL3: 335 / 230.
+  Combined: 697 / 589 (108 aliases beyond unique IDs).
+  One parameter ID is shared between the two Fat Man banks; none between
+  DMXOPL3 and either Fat Man bank. Many DMX repetitions are percussion aliases.
+  Examples: Fat Man Finger Bass/Synth Bass 2 match; DMX Fretless Bass and its
+  explicitly named debug copy match. These are exact parameter comparisons,
+  not a claim that every distinct ID sounds perceptually different.
+Keep bank identity/aliases for now; a deduplicated All view is a useful follow-up.
+
+Genesis FM: ChooChoo Genesis is 24 project-authored parameter recipes generated
+from tools/chip_banks/four_op.py. It is a starter bank made for this feature, not
+a recovered game library or recorded sample pack. Streets of Rage, ToeJam & Earl,
+Earthworm Jim and Double Dragon are sensible reference targets for a curated
+expansion, but no verified collection covering that requested list was added.
+FM key-on register snapshots can recover static patches from VGM; evolving
+register writes, performance effects and DAC samples are separate information.
+A static FM patch alone cannot capture every recognizable sound in those games.
+
+Arcade FM: uses YM2151, which served many boards rather than one specific board.
+ChooChoo Arcade has the very same 24 base recipes as ChooChoo Genesis, played by
+the OPM core. That is why the names and timbral ideas match. Build a separate
+palette exploiting YM2151 LFO/AM/PM/DT2 and, if implemented, noise. Current native
+Arcade disables noise; current import rejects noise-bearing OPM entries. A game
+may combine YM2151 with separate sample hardware, so its whole soundtrack is not
+necessarily available as YM2151 presets. The manual now states the shared origin
+of the starter recipes plainly.
+
+DX7 bring-your-own: yes, original DX7/TX7 .syx single voices and 32-voice banks
+already open using LOAD INSTRUMENT. Put them anywhere accessible in the instrument
+browser; the default is instruments/ (on the regular handheld installation,
+/roms/ports/choochootracker/instruments/). A user subfolder is appropriate. Select
+the .syx file and choose its patch. Save chosen patches as CNI or save the song.
+There is no watched drop folder that automatically installs every bank into the
+persistent catalog. Original framed messages are required; DX7II/performance
+extensions, headerless dumps and malformed checksums are not accepted.
+
+YSE Originals: the original CC0 seed bank from yvanvds/yse-soundengine. Its 32 slots
+reduce to four unique voices after removing renamed parameter duplicates: sine,
+two-operator FM, bell and brass templates. It is not Yamaha's factory DX7 bank.
+ChooChoo DX7 Originals: 32 generated original parameter recipes authored for this
+project in tools/chip_banks/dx7_originals.py. The other included bank, OpenDX7,
+contributes 31 original musical patches; current total is 67 distinct DX7 voices.
+
+NON-DX BANK SEARCH / IMPORT READINESS
+
+Ready in app: CNI for all supported native engines; original DX7 SysEx banks.
+Offline conversion only: Genesis TFI42, Arcade VOPM .opm, OPL WOPLX and DX7 SysEx
+through tools/chip_banks/import_bank.py followed by loading the output CNI files.
+Not ready: direct runtime TFI/OPM/WOPL/WOPN/IBK/BNK collection loading, persistent
+user-bank indexing, or third-party OPLL/VRC7/tracker macro import. The answer to
+"can people dump in a large collection for each synth?" is therefore not yet.
+
+New/current leads inspected online, October 5:
+  - NeoSoundFonts/16Bit-FM-Music-Station: author-published YM2612 WOPN bank under
+    CC0, a promising Genesis expansion candidate. Requires WOPN conversion and
+    patch/audition validation; not added to the shipped catalog here.
+  - hiroaki0923/YMulator-Synth: documents an eight-preset factory set, a 64-voice
+    collection and persistent .opm import. Useful Arcade source/UX lead; the
+    exact collection data and its individual origin need inspection before use.
+  - kassersynths/DAFMExplorer: documents a 93,000+ Genesis preset dataset from
+    DrWashington/Project2612 extraction. Strong evidence that the available
+    palette is much larger than 24; dataset size is not a unique/auditioned count.
+  - little-scale/genmddj: documents an implemented VGM key-on patch extractor and
+    TFI export, making the suggested register-extraction route technically real.
+  - Wohlstand/OPL3BankEditor: supports WOPL, OP2, IBK, BNK and several other bank
+    formats, plus instrument extraction from IMF/CMF/RAD. Useful converter
+    reference and a practical source-format bridge for user-owned libraries.
+  - emu2413/Furnace document alternate OPLL-family ROM palettes and programmable
+    patches. No large, curated, drop-in OPLL/VRC7 user bank was verified here.
+
+Extraction is technically distinct from generating original patches. Capturing
+one register state avoids copying an entire song but does not by itself establish
+permission to redistribute an extracted game collection. Keep source attribution
+and provenance with any candidate bank; no legal conclusion is made by this
+technical investigation. User imports and a redistributable factory collection
+are separate workflows, as they already are in this repository.
+
+Primary references:
+https://www.smspower.org/Development/SN76489
+https://raw.githubusercontent.com/gbdev/pandocs/master/src/Audio_Registers.md
+https://www.smspower.org/maxim/Documents/YM2413ApplicationManual
+https://github.com/tildearrow/furnace/blob/master/doc/7-systems/opll.md
+https://github.com/tildearrow/furnace/blob/master/doc/7-systems/opl.md
+https://github.com/tildearrow/furnace/blob/master/doc/7-systems/ym2151.md
+https://github.com/NeoSoundFonts/16Bit-FM-Music-Station
+https://github.com/hiroaki0923/YMulator-Synth
+https://github.com/kassersynths/DAFMExplorer
+https://github.com/little-scale/genmddj/blob/master/PRESETS.md
+https://github.com/Wohlstand/OPL3BankEditor
+https://github.com/digital-sound-antiques/emu2413
+
+VALIDATION
+
+make -f Makefile.test -j4: 475 cases / 74,518,240 assertions passed.
+Production SDL UI harness (dummy video/audio): passed bank reset/preservation,
+OPL2-to-OPL3 compatible-bank reset, twelve native FX descriptions/value hints,
+all three CMD descriptions, all seven FM type selections, ten engine ADSR pixel
+checks with waveform header off/on, preview/cancel/import/load/copy/clone and
+sequenced playback. The app-event regression publishes the press before releasing
+EDIT, then proves the committed patch reaches audio on the next tick while the
+song remains playing, without another button or phrase restart.
+
+The harness now processes pending screen transitions before dispatching a test
+key and sends the real released-key mask (zero), matching production input.
+This corrects test-driver timing rather than changing production popup behavior.
+
+Web: make -f Makefile.web web-deploy passed using the existing shared EMSDK;
+regenerated web/dist JavaScript syntax and WebAssembly validation passed in Node.
+Source/documentation diff checks passed. Generated Emscripten JS retains the
+generator's whitespace. Captured AdLib bank and DX7 preset titles inspected.
+Evidence: .tmp/instrument-revision-20261005/ (build/test logs and UI captures).
+These are host checks, not a fresh handheld audio/listening validation.
+No new DSP parameters, serialized field IDs, factory patches or dependencies.

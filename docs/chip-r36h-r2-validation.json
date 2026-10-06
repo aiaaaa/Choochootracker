@@ -1,0 +1,117 @@
+{
+  "binary_build_commit": "d9dbdeefc15466827532e1e84b41def4f7f795d2",
+  "binary_sha256": "981f212bbd2e5f4e05d18624121c4759956aceb87fed72c554c06a9747f923af",
+  "arm_tests": {
+    "cases_passed": 382,
+    "assertions_passed": 74095590,
+    "opt_in_skipped": 2
+  },
+  "ui": "Type popup passed: all seven FM types selected and reopened\nADSR pixel regression passed: ten engines, header off/on, twelve edits each\nUI smoke passed; song+UI 48k/1024 us p95=28766.208 p99=28937.709 worst=29223.250 energy=779.471368",
+  "hardware": {
+    "source_commit": "d9dbdeefc15466827532e1e84b41def4f7f795d2",
+    "measurements": {
+      "bank": {
+        "driver": "alsa",
+        "format": "S16",
+        "master_gain": "0.4",
+        "rate": "48000",
+        "frames": "4906",
+        "callbacks": "685",
+        "p95_us": "23086.291",
+        "p99_us": "23436.000",
+        "worst_us": "23742.833",
+        "render_deadline_misses": "0",
+        "energy": "673.298212",
+        "peak": "0.086550",
+        "nonfinite": "0"
+      },
+      "balanced-amp": {
+        "driver": "alsa",
+        "format": "S16",
+        "master_gain": "0.4",
+        "rate": "48000",
+        "frames": "4906",
+        "callbacks": "685",
+        "p95_us": "82729.208",
+        "p99_us": "83447.875",
+        "worst_us": "85060.500",
+        "render_deadline_misses": "0",
+        "energy": "150754.744858",
+        "peak": "0.792241",
+        "nonfinite": "0"
+      }
+    },
+    "settings_and_autosave_unchanged": true,
+    "frames": 4906,
+    "route": "plughw:0,0",
+    "startup_waveform_off_on": true,
+    "subjective_listening": "pending"
+  },
+  "benchmarks": [
+    {
+      "kind": "4WAV+2chip+2FM song (8 tracks)+4 inserts+sends",
+      "rate": "48000",
+      "frames": "512",
+      "notes": "8",
+      "seconds": "30",
+      "mean_us": "7441.224",
+      "p50_us": "7702.625",
+      "p95_us": "7989.042",
+      "p99_us": "8041.833",
+      "worst_us": "8299.375",
+      "deadline_misses": "0",
+      "part_bytes": "782928",
+      "fm_amp_enabled": 0
+    },
+    {
+      "kind": "4WAV+2chip+2FM chord song (8 tracks)+4 inserts+sends",
+      "rate": "48000",
+      "frames": "512",
+      "notes": "11",
+      "seconds": "30",
+      "mean_us": "7709.263",
+      "p50_us": "7964.541",
+      "p95_us": "8283.333",
+      "p99_us": "8347.792",
+      "worst_us": "8670.958",
+      "deadline_misses": "0",
+      "part_bytes": "782928",
+      "fm_amp_enabled": 0
+    },
+    {
+      "kind": "4WAV+2chip+2FM song (8 tracks)+4 inserts+sends",
+      "rate": "48000",
+      "frames": "512",
+      "notes": "8",
+      "seconds": "30",
+      "mean_us": "7513.280",
+      "p50_us": "7740.250",
+      "p95_us": "8151.208",
+      "p99_us": "8257.667",
+      "worst_us": "9367.167",
+      "deadline_misses": "0",
+      "part_bytes": "782928",
+      "fm_amp_enabled": 1
+    },
+    {
+      "kind": "4WAV+2chip+2FM chord song (8 tracks)+4 inserts+sends",
+      "rate": "48000",
+      "frames": "512",
+      "notes": "11",
+      "seconds": "30",
+      "mean_us": "7888.301",
+      "p50_us": "7998.666",
+      "p95_us": "8583.750",
+      "p99_us": "8668.333",
+      "worst_us": "8994.125",
+      "deadline_misses": "0",
+      "part_bytes": "782928",
+      "fm_amp_enabled": 1
+    }
+  ],
+  "subjective_listening": "pending user verification of reported FM clicking",
+  "dx7_active_note_limit": 16,
+  "factory_cni": 876,
+  "distinct_dx7_presets": 67,
+  "dx7_1000_cleared_goal_met": false
+}

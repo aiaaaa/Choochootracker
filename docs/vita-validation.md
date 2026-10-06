@@ -533,3 +533,18 @@ scripts/vita.sh verify --artifact releases/vita/candidates/<printed-name>.vpk --
 Use a local combined-source ref instead if intended changes are newer than origin.
 Resolve any conflict only in the disposable candidate, review, commit and rebuild
 there. Hardware-test the printed candidate before deliberate branch/LKG promotion.
+
+## Source harmonization after PR #39 (2026-10-06)
+
+The user requested synchronization of the active forks, including Vita. This
+integration consumes personal/r36h `5c5c10a461090a5b1af1b10af4e0ef166f82187f`,
+based on upstream main `6e9eb2b79f7024027e8ff1308d131aa05c0096ed`.
+The previous Vita revision is retained at backup/vita-pre-pr39-20261006.
+Native chip instruments, simplified FX, waveform previews and upstream build
+fixes are adopted while preserving the Vita controls, touch modulation, parser,
+threading, asset-copy and TLS adaptations. The update was merged in an isolated
+candidate worktree. All 11 Vita workflow tests pass.
+
+This is requested source-branch synchronization, not last-known-good package
+promotion. Installed hardware and user data remain unchanged. Existing device
+performance and TLS limitations remain open until separately retested.

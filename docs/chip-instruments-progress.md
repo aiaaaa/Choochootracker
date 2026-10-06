@@ -1,0 +1,772 @@
+# Native chip instruments progress
+
+Baseline/rollback: c0a8c7e9ee7e177e94294ede7e6cad09c59f06c8, clean personal/r36h.
+Task worktree: ../native-chip-instruments, feature/native-chip-instruments.
+Latest user authorization (October 4): publish a feature branch on the fork; build, validate and install on the handheld preserving the device personal build. No PR. SSH 192.168.36.2 currently times out; no device changes yet.
+Baseline: make -C tracker -f Makefile.test -j4: 328 tests / 8,101,169 assertions pass.
+
+Extension map (MME followed end to end):
+- project_instruments.h/.cpp: value union, metadata table, init/free; add IDs after 16, preserve retired 14/15.
+- project_instruments_io.cpp: instrumentLoadData/instrumentSaveData dispatch; project_io.cpp CNI/CCT headers + table handling. CNI currently destructive: new factory loads must use owned temporary state.
+- chipnomad_lib.h/.cpp: per-track/chord allocated voices, updateMMEVoices before applyVoiceEvents; renderMonoVoiceTracks feeds track inserts, sends, meters.
+- playback.cpp supplies chordPitchFinal, fineOffset, note events and generic modulation. No new FX IDs needed for first slice.
+- screen_instrument.cpp: grouped menu, quick cycle, screen-kind array; instrument_mme.cpp demonstrates preset popup and page delegation.
+- copy_paste.cpp cloneInstrument is value assignment; fixed payload avoids new heap ownership.
+- Makefile.common and Makefile.test own source discovery. Test suite excludes project_io and instrument UI: add executed dedicated coverage.
+
+Plan: Stage B OPLL + VRC7 fully first, then OPL banks/browser, PSG/GB, OPN/OPM, packaging/performance.
+Audits: ymfm 81aec25 BSD-3 with OPL translation-unit closure (dormant PCM/ADPCM required to link, never exposed); emu76489 c0fa097 MIT, Sega 16-bit bit0/3 taps/reset 0x8000, noise divider still under audit; gb_apu 3d73d0d MIT including upstream MIT blip relicensing statement; selected WOPLX sources 7ae1469 each contains explicit MIT.
+The dated stage notes below are historical. Current status is the final checkpoint at the end.
+
+Stage B checkpoint: OPLL/VRC7 metadata/UI, 15+15 pinned melodic programs,
+per-track/chord native voice, 24-tap/64-phase stateful resampling, pitch/volume
+modulation, complete tone persistence, transactional v6 CNI loading and
+non-destructive queued preset audition implemented. 335 tests / 12,335,816
+assertions pass, including all programs at 44.1/48/96 kHz, block independence,
+pitch at 22.05/32/44.1/48/96 kHz, CNI/CCT reload and owned preview.
+Desktop production build with reused SDL2.framework passes. No GUI launched.
+Instrument=680, Project=313256, union=624 (OPLL payload fits existing union),
+OPLLVoice=11152 bytes; FX count stays178, max chord slots4.
+Remaining Stage B validation: actual GUI capture/input, native release/reference
+measurements, factory CNI/demo artifacts, optimized/ARM benchmarks. Stage C not
+started. No stage marked finished merely because it compiles.
+
+Stage C checkpoint in progress: OPL2/OPL3 typed patches, two/four/dual topology,
+per-track/chord contexts, stereo register routing, bank/category preset UI,
+owned queued preview, canonical C++ IR->CNI writer and WOPLX allowlist conversion.
+697 CNI records generated/reloaded; 589 normalized unique IDs; 185 four-op,
+252 dual-voice; 289 percussion source entries. Native levels/software gain;
+MIDI player volume models/velocity offsets retained but deliberately not applied.
+339 tests /30,596,794 assertions pass, including every generated CNI render.
+Seashore's native AT=1 initially silent in 250ms test; held test confirms output.
+Python parser tests 4 pass. UI syntax checked; production GUI capture remains.
+C audit/assets/pipeline: tools/chip_banks and packaging/common/instruments/chips.
+D dependencies fetched/audited but not integrated: C++ gb_apu requires explicit
+calloc cast under project's compile-C-as-C++ build; emu76489 tone-derived noise
+clocks independently at double desired shift rate, needs focused edge patch.
+
+Scope extension (user 2026-10-03): DX7 FM now explicitly included; original
+No DX7 exclusion superseded. Audit and vendor Apache-2.0 MSFA core only;
+Dexed application and JUCE excluded. Preserve this worktree and all chip work.
+Prove native DX7 isolated voices, audition, playback and full save/reopen first;
+then acquire/review/convert/deduplicate/index/categorize/package preset banks
+and implement validated local DX7 SysEx import. Benchmark before handheld
+voice-limit choice. No push/PR/handheld install. Full named addendum not yet
+visible in Downloads or conversation attachment; requested its local path.
+Stage D now implemented (not merely dependency audit): native Sega PSG and
+DMG Pulse/Noise, authored 14/10/10 presets, post ADSR, queued audition, UI and
+v6 persistence. Four focused tests passed /19,230,771 assertions (all presets
+44.1/48/96 kHz, block independence, pulse duties/noise widths, exact Sega
+fixed/derived noise clocks). Full suite/production rebuild still to run.
+
+Full DX7 addendum now read/copied to dx7-addendum.md. Acceptance additions:
+- six-op full VCED semantics, one maintained Apache MSFA scalar core, per-file
+  provenance/modification notices, no Dexed app/JUCE/MTS/new GPL dependency;
+- per-part LFO shared appropriately across chord notes, isolated tracks;
+- 64-sample buffering retains leftovers; awkward event timing tested/documented;
+- owned native patch + wrapper, transactional shared FM browser and local .syx;
+- strict 155/4096 payload formats, bounded multi-message/checksum/range validation;
+- >=64 curated starter target; investigate >=1000 cleared unique parameters,
+  source-by-source audit; don't substitute counts or call fallback huge library;
+- shared index >=10000 metadata entries; no synth allocation per catalogue row;
+- optimized 1/4/8/16 note and representative-song benchmarks, reference harness,
+  release-aware deterministic limits only from actual headroom. No device run,
+  install, push or PR automatically; unavailable hardware measurement pending.
+DX7 in-progress: pinned maintained Source/msfa at 2e182b3db85c09083ab13c8b9b00565ce7d9ff85,
+selected scalar DSP modules, namespace isolation, removed unused app includes;
+original note adapter under development. Native ID24 appended, owned VCED155,
+strict parser/serialization files started. Not yet integrated/tested/selectable.
+MSFA globals fixed at44100 for now to avoid cross-renderer rate races; review
+per-instance native host-rate alternative before accepting this policy.
+Stage D full regression:343 tests,49,827,589 assertions all pass.
+
+DX7 functional checkpoint: ID24 native DX7 FM integrated in existing hierarchy,
+owned VCED155 + fine/velocity/source/name payload (Instrument remains680bytes),
+per-track DX7Part contains4independent MSFA notes + one shared LFO/quantum clock.
+App has one dedicated preview part; queued patch copy never mutates Project.
+Events deferred next64native frame boundary, no leftover discard; fixed44100
+immutable global lookup tables -> existing FIR. Same shared OPL/FM browser now
+handles DX7 plus validated .syx local imports transactionally. Bank/preset/fine;
+no new operator editor. EDIT selection deferred to release in audition popups
+so EDIT-first thenPLAY cannot accidentally commit. Version6CNI/CCT completepatch.
+350 tests/61,684,307 assertions passed before latest index/pitch/UI-gesture tests;
+production desktop build passed. Selected MSFA scalar modules ASan/UBSan all32
+algorithms/extreme parameters passed. Additional sharedcatalog10k test, sine/fixed
+frequency/velocity/reference tests currently building/running.
+DX7 sources: OpenDX7 pinned26c9b3 has31musical+INIT(excluded); YSE pinned911ea2d
+CC0 bank32slots butonly4unique; authored32ChooChoo CC0recipes. Converter nowshared
+pipeline emits764totalCNI (697OPL+67DX7),656parameterIDs (589OPL+67DX7). All67DX7
+reload/render audible finite testpassed. 95parsedDX7entries ->67parameters; source
+aliases/fullhashes in dx7-manifest.json. Large1000goal unmet; broader review ongoing.
+Pafreak directsubmission archive fetched/reviewed, contains DX7II additional
+messages(5239bytebanks,730bytesingles); excluded rather than silentlydrop extra
+parameters. Benson228SYXarchive no included docs; mixedfactory/unknown collection
+not yetapproved. BlackWinny/mirror blanketCC0 notaccepted as authorclearance.
+Pending: UI screenshots+gesture tests, optimizedbenchmarks, audit patchmanifest
+refresh/notices/docs, canonicalcommit. Otheroriginalscope Genesis/Arcade still
+pending, asareotherfactory/demo/packaging/web/handheld validation items.
+
+DX7 validation update:353executabletests nowexist (343previous+8DX7+2catalog).
+Most recent focused9tests passed11,865,482assertions; actual764entrycatalog+10k
+synthetic index tests pass. Python10contenttests pass (allsourcehashes,31+4+32
+uniqueness, originalrecipe determinism, code-rejectingliteralparser, malformed
+SysEx and boundednonextractingZIP reader). SelectedMSFA sanitizerharness passes.
+OptimizedMacx86_64/O3 offline benchmark30saudio/configuration, rates44.1/48/96K,
+blocks128/512,notes1/4/8/16, no measured deadline misses. 48K512/16notes mean132.300us,
+p95168.574us,p99265.618us,worst381.907us; 10.667ms deadline. DX7Part13408bytes.
+Not paced realtime; CPUmodel/governor/thermals/hardwareunderruns unavailable.
+CSV/JSON .tmp/chip-audit/dx7-benchmark.*. No handheld limit finalized.
+ProductionUIharness first run reachedpages; caughtmissingproject_utils type-name
+mapping (fixed all8newtypes). Browser failure was harness screenSetup deferred
+untilappDraw (fixedharness). Rebuild inexecsession20714; rerun dummySDL next.
+MSFA filemanifest refreshed, ApacheNOTICE/patchlog/prominentfilemodification
+notices complete; nativefactorysources runtimeMIT/CC0notices added. Manual,
+buildnotes andpersonalfeaturemanifest updated actualstatus; no in-apphelp changed.
+
+Stage E functional checkpoint: added GenesisFM25 and ArcadeFM26 (DX7 remains24),
+FourOp patch/voice adapter reuses pinned ymfm OPN/OPM/SSG (unchanged files added
+and hashes recorded), shared FM browser/queue/native6 persistence/chord lifecycle.
+24 individually authored MIT recipes per family, no ROM or uncertain downloads.
+TFI42byte and VOPMtext offline converters added; bounded user-import CLI also
+handles WOPLX and DX7. VOPM PAN0/64/127 mapped nativeL/both/R; partial pan/noise
+explicitly rejected. Format inspected original VOPM Save/Load/SendPan in ignored
+vopm-OPMdrv.cpp; no code copied. Genesis DAC idle504 accounted and20Hz DC blocker.
+Native frequency tests verified44x pitch rates22.05/44.1/48/96K;4op release/kill,
+independent state, unevenbuffers, pan, nativefiles, transaction/preview pass.
+Full357 tests72,489,645 assertions pass; Python13tests pass.
+FMcatalog812 (697OPL+67DX7+48four-op),704parameter IDs. Builtins64CNI generation
+nowadded (30OPLL/VRC7+34simple), not inserted in sharedFMcatalog (own UI browsers).
+DX7 UI dummy harness passed including actual sequencer/UI; popupoverlaysfixed,
+visuallychecked .tmp/chip-audit/ui-captures/dx7-presets.png (clear names/footer).
+Latest UI timing48K1024/Osoffscreen p951400.175us,p991655.166,worst1833.765;
+not paced/hardware. Full desktop/UI/web rebuilds and audition reports pending.
+No handheld deployment/installation/run or newtoolchain performed.
+Next: audit content regeneration, implement auditiontool+smallproject/WAVreport,
+optimized all-family/mixed benchmarks, personalflag productionbuild+package,
+webdist regeneration with existing /private/tmp/choochoo-pr-emsdk, scopedcommit.
+
+
+## Final host checkpoint — October 4
+
+All ten native types implemented; DX7 end-to-end proof and content work complete.
+876 CNI files: 812 shared FM entries and 64 simple/ROM-tone entries. DX7 has
+67 distinct cleared presets; 1,000 goal unmet. Native generation reproduced
+byte-identically. 13 bank WAVs / 52 machine auditions and portable demo created.
+359 standard tests / 72,681,719 assertions pass; personal suite 371 pass,
+2 explicit opt-in skips / 72,691,756 assertions. Python content tests 13 pass.
+Desktop personal build and web deploy succeed. Final SDL dummy UI smoke passes.
+Yamaha key-off/on retrigger now clocks the off state before asserting on;
+direct register/reference tests pass. Host tool header dependencies repaired.
+
+Final 62-case host benchmark records three misses only at 32 OPL2 voices.
+DX7 48k/512/32 mean292.164µs, p99550.174µs, worst689.200µs, zero misses.
+Paced ten-minute FM-heavy song/effects plus 9,566 scans of synthetic10k catalog:
+p952903.271µs, p992938.673µs, worst4409.223µs, zero render misses; peakRSS112623616.
+All measured rows are tracked in docs/chip-{all-chip,soak}-benchmark.csv.
+Handheld voice limit remains provisional pending device measurements.
+
+Latest user authorizes installation and a fork branch, no PR. Local and remote
+personal/r36h both remain c0a8c7e, the ancestor of this feature worktree.
+SSH at saved192.168.36.2 timed out both sandboxed and unrestricted. Asked user
+whether USB SSH address changed. Existing on-device GCC9/header/dependency build
+procedure is in ../mod-lucky-validation/stage_device.py; do not reinstall SDKs.
+Next: verify desktop package, commit/publish feature branch; once SSH restored,
+inspect installed source/assets/processes and existing ARM toolchain, build and
+benchmark in an isolated /roms task directory. Merge tested feature into
+personal/r36h, preserve every user asset/settings/autosave with verified rollback,
+then install one regular launcher and validate. Do not open a PR.
+Human listening, ARM64 build/runtime/thermal soak and target voice limit remain
+unresolved. Full details and provenance exclusions: chip-instruments-report.md.
+
+
+SSH restored after user retry. Verified paired machine ID and existing GCC9,
+ARM libxmp-lite, curl headers and base/MIDI header caches. Isolated build staged
+at /roms/choochootracker-native-chips-20261004; installed app still unchanged.
+Runner builds personal PortMaster package, enabled tests, production UI smoke,
+all-family benchmark and ten-minute catalog/playback soak. Local orchestrator:
+.tmp/chip-audit/stage_device.py; record device-build.json. First GCC build exposed
+five sparse C99 tables unsupported in C++ mode. Expanded exactly to positional
+entries with zero fill; equivalence verified for all 260 entries, provenance
+patched hash updated. Build resumed. UI capture directory created explicitly.
+Device clock is November2025 (hostOctober2026); do not adjust unrelated clock.
+Use tar -m and device-generated mtimes. Governor interactive, build temp56–80°C.
+Desktop package first attempt caught notice filename LICENCE.txt (not LICENSE);
+packager corrected to require that plus Blip_Buffer.txt. Archive not published.
+
+Desktop ZIP completed: 876 CNI, required notices and CRCs pass. SHA256 bf642716879d7e18a8a14de7b94566562fe448ebf9ac6484ca5e8e6c1888bfac. Final web WASM compiles with Node; host standard suite still359pass after GCC table fix. Added developer-only native_chip_audio.cpp for 70-second real SDL/ALSA callback validation with portable demo; not part of production executable.
+
+
+Publication/device checkpoint: f768258 committed and pushed to
+origin/feature/native-chip-instruments. No PR. personal/r36h remains c0a8c7e until
+combined device validation completes. ARM64 PortMaster personal executable and
+ZIP built successfully; ldd resolves all libraries. Full enabled test suite is
+compiling on the device, then runner proceeds into UI and benchmarks/600s soak.
+Task scripts prepared (not yet executed): .tmp/chip-audit/hardware_validation.py
+(70s real ALSA demo plus isolated production startup waveformOFF/ON; releases only
+idle ES audio and restores supervisor), install_device.py prepare/install (copies
+all installed assets, validates full snapshot/rollback, preserves regularlauncher).
+Run hardware_validation only once build.exit=0. Upload it and run background,
+collect hardware-audio.exit/log before installation. Device source hash comparison
+matches production code; differences are docs, newly added validation driver/
+Makefile, vendor PATCHES note and desktop packager. Stage record hashes predate
+those updates: refresh inventory and source-commit.txt before final install.
+Local docs/build-notes.md and personal-features.json have uncommitted follow-up
+instructions/channel naming/included_commit; finish them with actual device data.
+
+
+ARM suite now PASSED: 371 tests, 72,691,756 assertions, two expected opt-in skips.
+Production ARM binary SHA256 ddd1f640c632c93d3c50095eeb2f096cf47c087c3b36727543ae11fa8a1d9976.
+Runner target typo `chip-benchmark` corrected to `benchmark-native-chips` in
+local stage script; remote continue-validation.sh resumes after passing suite.
+Old exit2 moved to build-target-typo.exit. Current build.exit belongs to ongoing
+UI +62case benchmark+600s soak. Telemetry resumed in append mode. No app installed.
+
+
+Device measurements require final tuning before install. DX7 16 notes at48k512:
+mean2061.297us, p952174.958us,p992190.708us,worst4134.083us,zero misses.
+32-note stress has misses at44.1k512 and96k128. Implemented shared16activeDX7budget
+in existing owned slots, releases/quiet held notes before fresh attacks;
+ties preserve roots across tracks before chord extensions. No other instrument
+polyphony changed; preview already disabled during playback. New functional
+stealing tests pass in full host suite360tests/72,681,766assertions.
+Baseline ARM -Os8OPL3four/dual exceeds512deadline (~10.9/11.4ms). Applying focused
+-O3 only to new native chip vendor cores and adapters (no fast-math); all other
+code keeps prior flags. New Makefile.native-chip-flags included byPortmaster and
+tests; test CLI NATIVE_CHIP_OPT_FLAGS=-O3 matches production profile.
+Benchmark --bounded retains all30DX7rawloadcases plus1/8otherfamilies andactual
+mixed/FMheavy songs (52cases), omittingoptional32-voice non-DX7overloadstress.
+Need upload/rebuild/retest and measure final policy/profile before installation.
+UI ARM successful with SDL_VIDEODRIVER=offscreen SDL_AUDIODRIVER=alsa; bothdummy
+drivers absent. UI+render48k1024 p9528289.041,p9928406.292,worst28590.042us;
+separate from audio callbacktiming. Device DX7 browser screenshot visuallyclear.
+
+
+Final tuning now staged and rebuilding via remote validate-final.sh, logs
+production-build-final.log then tests.log, benchmark-build-final.log,
+ui-build-final.log, ui-smoke.log, device-benchmark.csv, device-soak.csv.
+Previous Os sweep intentionally stopped during optional32voice overload stage;
+kept as baseline-os-device-benchmark.csv (partial). Old tests/UI logs also kept.
+Final production/codeprofile verifies -Os followedby -O3 only on selectednative
+sources. New test checks actual sequencer8four-noteDX7chords remains4logicalnotes
+pertrack but16active andunchangedproject. Host full361tests72,681,789assertionsPASS.
+Desktoppersonal andweb rebuilt afterbudgetpolicy PASS. Latest hostartifacts
+containlimit; prior desktopZIP stillprelimit and MUST regenerate beforehandoff.
+Device final benchmark now53cases:30DX7rawpoints,20otherfamilies1/8,3songs incl
+FM-heavy chord song+FX (11notes max). Soak useslatter+10kmetadata,600seconds.
+The final device tests should be373passing (prior371+2); confirmactualresult.
+Current sourcechangesuncommitted: policy,tests,focusedflags,benchmark,docs,web.
+Afterfinalchecks commit+pushfeature,fast-forwardcleanpersonal/r36h andpublish;
+then sourcehashsync,hardwareaudio70s+startup,verifyrollback/install. NoPR.
+
+
+cd25ce3 policy/optimization checkpoint pushed to feature branch. Final ARM
+production profile built successfully; now compiling full373-case enabledsuite.
+Telemetry sampler had stopped during baseline transition; restarted append at
+monotonic4585, before final benchmark/soak. No systemclock/governorchanges.
+Added previewfooter "STOP SONG TO HEAR  EDIT SELECT  OPT EXIT" when published
+PlaybackStatus.isPlaying; usesexistingthread-safeUIstatus API, no directaudio
+state read. ExtendedUIharness checks previewcannotstartduringplayback/captures
+fm-presets-during-playback. These twofiles uploaded andUNCOMMITTEDlocally.
+Production was repackaged onceforfooter, then snapshot-readfix landed: FINAL
+PortMaster-deploy must runafterUItestrebuildto relinklatestselection_popup object
+beforehardwareaudio/install. Hostdesktop/web/UI must rebuildlatestfooter too.
+
+
+October 4 reconnection checkpoint: handheld reboot interrupted final test build.
+Resumed validate-final.sh from existing objects; no installed app changes.
+Final ARM64 suite PASSED: 373 tests, 72,691,826 assertions, two opt-in skips.
+Final host suite361/72,681,789 PASS; desktop/web rebuild PASS; WASM compile PASS.
+Host UI including playback-preview guard exits0, p951455.944us,p992040.833us,
+worst2667.054us; screenshot stop-song footer visually verified.
+Device clock moved backward at reboot, so existing future file mtimes trigger
+make clock-skew warnings. Force the final production link after validation;
+verify source hashes before install. Do not change device clock.
+Remote runner now building developer UI/audio, then53-case benchmark and600ssoak.
+Telemetry restarted after reboot (monotonic values reset; segment accordingly).
+
+
+Performance checkpoint: final53-case native-only-O3 sweep completed. Individual
+chip/DX7 cases pass deadlines, but actual songs miss all512-frame deadlines:
+mixed mean16085.941us; FM-heavy17027.497us; chord17268.775us (deadline10666.667).
+Did NOT start the misleading ten-minute overloaded soak or install. Paused then
+terminated only task-owned validate-final.sh after its benchmark finished;
+baseline-native-only-o3-benchmark.csv preserves all53rows. Running isolated
+diagnostic.sh compares3-second songs with/without inserts and O3 on four
+existing audio units: chipnomad_lib.cpp, insert_fx.cpp, synth/master_effects.cpp,
+audio_monitor.cpp. Alternateobjects/binaries leave production objects untouched.
+Localhelper .tmp/chip-audit/profile_device.py; remote diagnostic-*.csv/log/exit.
+Need resolve measured overload, update targeted flags only if supported by
+comparison, rerun affected tests and full benchmark/soak before installation.
+
+
+Diagnostic results confirm existing insert-load limit: baseline3-second mixed
+with16inserts16.44ms vs7.58ms without; FM-heavy-chord17.62ms vs8.77ms.
+Isolated O3 onfourexistingaudiofiles reduced all16inserts chord to15.53ms,
+stilloverdeadline. No diagnostic object has replaced a production object.
+Benchmark now distinguishes4representativeinserts from --all-inserts16stress,
+plus --songs-only. Existing50enginepoints remain valid (productionunchanged);
+new3songpoints plusold3stress will form56-rowdeviceCSV. resume_performance.py
+awaiteddiagnostics, rebuiltbenchmarkonly, nowrunssongs/600ssoak.
+Sourcefuturemtimes afterreboot caused unnecessary recompilation. Normalized
+2730isolatedsourcefilemtimes todevice-nowminus1day afterhashaudit; contents
+unchanged. DoNOT change systemclock. Forcedfinalproductionlink stillrequired.
+
+
+User clarified modest track/insert tradeoffs are acceptable and proposed8tracks:
+4WAV +2simplechips +2FM, sprinkle effects. Explained2insertSLOTS PER TRACK,
+16availabletotal, CPUbudgetseparate; do not reduce availabletracks/slots.
+Eighttrack2insert30sruns have14/36/92deadline misses (mixed/FM/chord), so
+do not labelthoseglitch-free. Baselines4insert and16insert kept, nofx3sdiagnostic
+passes. Four-fileO3diagnosticdidnotfix16slotload; productionprofileunchanged.
+Benchmark nowoffers --four-tracks, --sample-mix (fourloopedexistingWAVs, SegaPSG,
+GBPulse, DX7,OPL3; chordvariant11notes), --no-inserts/--four-inserts/--all-inserts.
+Runtimeapplicationcodeunchanged. Finalrunner finish_performance.py buildshelper,
+measures4tracks4inserts anduser8trackmix4inserts, then600suser-mix/chord/4FXsoak.
+64rowaggregatepreserves50enginecases+9eighttrackstress/loadrows+3fourtrackrows
++2balancedrows. validation-stage.json tracksphase. Native WAV helpermissingheader
+fixed; hostbenchmarkbuildPASS; device resumed afterisolatedhelperfailure.
+soak-memory.py samplesactualsoakVmRSS/VmHWM/threads10s; telemetryresumed.
+Local .tmp/chip-audit/finish_performance.py stagesremote version; hardware script
+nowrequires70sbankdemo AND70sbalanced-benchmark.cct (generated bybenchmark),
+thenpreservedproductionstartupOFF/ON. Do not runinstallerbeforeallchecks.
+
+
+Final balanced run underway: validation-stage.json recordsstartmonotonic2082.385.
+64-caseCSV now tracked docs/chip-r36h-benchmark.csv (50enginecases0miss;
+allstress/loadrows13009missinclknownoverloads). User8track4WAV+2chip+2FM+4FX
+30s mean7445.996us,p957988.167,p998059.917,worst8646.750,0miss; DX7chordvariant
+mean7689.152,p958253.583,p998332.625,worst12142.667,1miss.
+FourtrackAY/Plaits/FM+4FX alsohadbursts; trackcountaloneisnotCPUbudget.
+Ten-minute balancedchord4FXsoak now~8minutes, RSS50444..50708KiB observed;
+final stats pending. Remote balanced-benchmark.cct exportsactualsamplemix for
+second70srealALSAcheck; runaudiohelperwithcwdtrackerforrelativeWAVpaths.
+No4-filediagnosticO3changeadopted. Productiontestresults remain373pass; source
+changeaftertestsonlyUIfooter(alreadyUIchecked), benchmarkhelper/docs/webfooter.
+Next: finishsoak; finalize_device_build.py forcesproductionlink; hardware_validation
+(two70saudiochecks +6sOFF/ONstartup, exactidleESrelease/restore); collectmetrics,
+updatefinaldocs/manual/features; commit/pushfeature, ffpersonal/r36h andpush.
+Then sync_device.py syncsourcehashes+commit; refresh_device_package.py rebuildZIP
+withfinaldocs/notices/inventory; install_device.py prepare/installverifiedrollback.
+RegeneratedesktopZIP(usingnewstage) andretrieveARMZIP. NoPR.
+
+
+FINAL VALIDATION COMPLETE October4: productionARMbinarySHA256
+1966139c400e5fc25ca93107b5d442816f5d60c84d026814bef750a6945bc247.
+ARM373tests/72,691,826assertionspass2optinskips; host361/72,681,789pass.
+64measuredcases tracked chip-r36h-benchmark.csv; overloads preserved.
+600sbalancedchord4FXsoak: p958647.042us,p999041.375,worst20440.875,28misses;
+3948synthetic10kindexscans. WarmRSS50444..50708KiB, HWM52508KiB,62.083..74.583C.
+InitialdefaultPCMhardwareprobesunderran: actualregularlauncher exports
+AUDIODEV=plughw:0,0, whiledefaultPCMwas44100Hzdmix4096buffer. CorrectedTEST
+environmentonlytomatchlauncher, noapp/settings/systemaudiochanges.
+FinalS16/48000/4906 direct-card70sbank AND70sbalanced4WAV+2chip+2FMchord4FX
+PASS:685callbackseach,0deadline misses,0loggedALSAunderruns,0nonfinite.
+Bankp9522131.959us,p9924590.416,worst27391.875; balancedp9580990.292us,
+p9981576.542,worst81818.625 (deadline102208.333us). Test-onlymastergain0.4
+leavesheadroom; no patch/usergainchanges. Direct-cardproductionstartup
+waveformOFF/ONpass; installedsettings/autosavehashespreserved; ESrestored.
+NewdeveloperfixtureS16optionalbufferandMakefileindependentaudiotargetvalidated
+onARM; neitherisproductionbinary. Reports/manual/featuresupdated.
+Next remainingdelivery: commit/publishfeature+ffpersonal; sourcehashsync; refresh
+ARMZIP; install_device.pyprepare/install(requireconfigured-audio.exit0 too);
+verifyrollback/settings/assets; desktoppackage+ARMdownload; commitinstalled
+checkpointdocs. Humanlistening/interactiveplaytest and1000DX7goalremainopen.
+
+
+DELIVERY COMPLETE — October 4, 2026 (host date).
+Installed source/application commit: 4b7bad7e2a3ed04e62cd22173b97774874c9435d.
+Both origin/feature/native-chip-instruments and origin/personal/r36h published;
+personal worktree fast-forwarded, all existing personal features retained. No PR.
+Regular install /roms/ports/choochootracker replaced only after staged full-file
+verification. Full745-file prior installation verified in rollback directory:
+/roms/choochootracker-backups/pre-native-chips-4b7bad7e2a3e/previous-install
+Original executable SHA256:
+dcbef85cccf7b30d102973fa94111ef2cfd3b969209a60f3219c022e644c1f55
+Installed executable readback SHA256:
+1966139c400e5fc25ca93107b5d442816f5d60c84d026814bef750a6945bc247
+Installed1656files;876nativeCNI verified. Kept all user assets/settings/autosave
+and regularlauncher; preserved22existingpackageconflicts includingcustomgptk,
+fonts, drum-instrumentfiles andgameinfo. audio48000/4906, persistentWaveform1,
+DepartureMono02 remainexactlyasbefore. Installed personal-build.json records
+channeldevice-personal-build, sourcehash, rollback, testreport andhumanplaytestpending.
+No automatic interactive launch; idlefrontendrestored; no testappsleft running.
+
+Release archives generated from application source4b7bad7, eachCRC/876CNI/notice
+checked andSHA256verified; neithercontainsuserdataorconnectionkeys:
+- releases/ChooChooTracker-native-chips-r36h.zip
+  12778957 bytes; SHA256 261cae73ef1833d5d37c6f9339ca46766a08a7aba455e6578fae5d9448b3a4d7
+- releases/ChooChooTracker-native-chips-macos-x86_64.zip
+  14429447 bytes; SHA256 bb652d177f03f376947522f4eb829b8c905d66fadd421c9f9b47208e4b8d18ef
+
+This final checkpoint is documentation-only after the installed4b7bad7 build;
+package/application identity deliberately remains4b7bad7. Localreceipt and
+installlogs: .tmp/chip-audit/package-receipt.json, install-prepare.log,
+install-install.log. Device installation-result.json andinstallation-plan.json
+retain detailed verification; do not publish their user-file inventories.
+No remaining automated delivery step. User listening/interactiveplaytest remains
+pending,1000clearedDX7goalunmet67distinctfallbackdelivered. 10,000wasONLYsynthetic
+browserstresstest, notbundledsounds. Total876presetfiles/812FMentries/704distinct
+FMparametersets, includingOPLsourcealiases. HeavyFX/small-bufferlimitationsare
+recordedinchip-instruments-report.md and64-case/600sCSV; configureddirect-card
+physicalaudio passed both70sfixtureswith0miss/0ALSAwarnings.
+# FM type-menu correction — 2026-10-04
+
+DELIVERED: installed application source `0146fcf523de8d919d90938bc775d4bd7b29bde9`.
+All seven FM entries are visible in the captured R36H menu; the real popup
+selection/reopen regression and the existing UI suite pass. The rebuilt personal
+binary passed a six-second offscreen startup using the regular direct ALSA route.
+Installation preserved 1,652 other files and the regular launcher unchanged.
+Verified full rollback:
+`/roms/choochootracker-backups/pre-fm-menu-fix-0146fcf523de/previous-install`.
+Installed binary SHA-256:
+`1dccb2e18eae85d817d714fb63cbea57b7565fd1d8a816135d95141cdbc74d8e`.
+Updated local release ZIPs each contain 876 presets and source `0146fcf`:
+R36H SHA-256 `da714a4563698dd2286c62e68afae564f0c724abc088455ad06b826436c5b7de`;
+Mac SHA-256 `17b21d613d195fb6a92e8b3f37a1dd1dc0852dcd4e0cb6265f1acd786bda9931`.
+Regenerated tracked WebAssembly also passes Node compilation. This final
+checkpoint is documentation-only; installed/package source remains `0146fcf`.
+Both authorized fork branches include this fix; no PR is requested.
+
+User found DX7 missing from Type → FM. The category's hard-coded child count
+was five although its array held seven entries, hiding Arcade and DX7.
+Derive the count from the array. The developer UI harness now navigates the
+actual Type popup, selects each of the seven FM instruments, and reopens each
+selection. This catches the gap left by earlier direct page initialization.
+
+On the paired R36H, the new regression failed against the old menu count and
+passed with the fix. The remaining UI audition/import/copy/clone/playback checks
+also passed (song+UI p95 27,746.834 µs, p99 27,937.292 µs, worst 28,057.458 µs;
+these include drawing and are not callback timing). Mac personal and Web builds
+completed. This menu-only change does not alter DSP, voice limits, or presets.
+
+User saved and closed the handheld app for installation. Task-local helpers/logs:
+`.tmp/fm-menu-fix/`; remote
+`/roms/choochootracker-native-chips-20261004/fm-menu-fix/`. Earlier reports below
+remain historical evidence.
+
+## Native chip fixes R2 — in progress, 2026-10-04
+
+User reports harsh attacks on every new FM engine, in both preset audition and
+single-track playback; Sega PSG phrase pitch reportedly fixed; transparent ADSR
+graph trails/overlap on Sega/GB pages. User explicitly approved optional FM amp
+ADSR with sequencer access in this round, reviewing engine-specific tone macros
+as we proceed. Preserve the installed personal feature set and existing banks.
+Do not claim clicks fixed merely by adding ADSR. No PR. Existing installation /
+fork update authorization still applies, but protect any running unsaved song.
+
+Started from clean `4b6ffa2` (installed app source `0146fcf`). R2 remains
+uncommitted and not installed. Local scratch/evidence: `.tmp/chip-fixes-r2/`.
+Implemented locally, verification in progress:
+- Clear transparent ADSR graph region before redraw.
+- Per-voice 3 ms FM onset/retrigger transition plus 1 ms volume smoothing;
+  optional amp ADSR in all seven FM types, native envelopes retained.
+- FM brightness/feedback and Sega/GB mode, noise, sweep, native GB envelope
+  settings exposed through appended modulation IDs and phrase FX. Existing IDs
+  preserved. GB native sweep/envelope parameters latch on the next note.
+- Optional Sega virtual-clock bass extension; legacy CNI defaults to enabled.
+  User phrase A-2..F-2 uses MIDI 45..41 (110..87.3 Hz). Real sequencer
+  regression reproduced G-2/F-2 collapsing to 109 Hz with extension disabled
+  and correct independent pitches when enabled, with linear and AY tables.
+  The intermediate octave-label correction was itself an arithmetic mistake.
+- CNI/CCT optional FM amp/tone persistence; native MSFA adapter tone overrides
+  require updated provenance hashes and sanitizer run before commit.
+
+Full host suite after amp-only changes: 365/366 passed; sole new round-trip
+fixture initialization error corrected. New macro build completed. Need rerun
+final host tests, real SDL graph/controls regression, onset diagnostic comparison,
+Web/Mac builds, current hardware benchmark and physical listening. SSH still times
+out; reconnect request pending. Physical FM clicks have not yet been proven fixed.
+
+Next: finish Sega actual-phrase diagnosis; validate macro ranges, persistence,
+sequencer automation and DSP continuity; update vendor provenance; UI pixel tests;
+manual/docs; host/Web/personal builds and hardware checks. Then reviewed task-only
+commit, authorized fork branches and device update with verified rollback. No PR.
+
+### R2 checkpoint before user-requested SSH/sleep detour
+
+User requested pausing tracker delivery to investigate SSH loss after sleep,
+stale SSH logo during screen blanking, and backlight staying on. R2 remains local,
+uncommitted, not installed/pushed. No tracker app was running at last successful
+SSH probe; subsequent connections timed out again.
+
+- Host full suite: 370 cases, 368 passed; only two old destination-limit tests
+  failed (12 assertions). Fixed `instrumentModDestinationMax` to extend only
+  native families with actual new destinations; final rerun still required.
+- All new real phrase macro/audio comparisons and FM persistence tests passed.
+  Exact Sega A-2/G-2/F-2 phrase: G/F collapsed at 109 Hz with native range; extension
+  passed correct pitch in both AY-period and linear projects.
+- Mac offscreen SDL integration passed: all ten engine ADSR screens, both header
+  states, twelve edits each; incremental pixels exactly match a fresh redraw.
+  Existing FM menu/browser/import/audition/playback checks also passed. Captures
+  in `.tmp/chip-fixes-r2/mac-ui/`; DX7/Sega screenshots visually checked.
+- MSFA new macro sanitizer harness built/runs with empty sanitizer log; confirm
+  exit status before final report. Native provenance hashes/PATCHES updated.
+- New source/test files staged solely to support git-ls-files source sync;
+  modifications are not all staged. Device sync failed (timeout outside sandbox)
+  before any confirmed R2 build. No R2 hardware tests or benchmark yet.
+- Onset diagnostic source now writes `smoothed-*.f32` to protect baseline files;
+  rebuilt diagnostic has not yet been run/compared. Remaining manual/web/Mac
+  production builds, hardware performance/listening, packaging/commit/install/
+  authorized fork update still required. Current 876 presets / 67 DX7 unchanged.
+
+### R2 resumed for fork publication — 2026-10-04
+
+User resumed tracker/fork work; shared sleep/USB detour remains separate under
+r36h/frontend/usb-ssh-status/sleep-fix/PROGRESS.md. No tracker architecture or
+completed chip integration was replaced. No PR requested.
+
+Final local validation passed:
+- Default suite: 370 cases / 74,085,553 assertions, no failures.
+- Personal Mod Lucky enabled: 382 cases / 74,095,590 assertions, no failures;
+  two opt-in tests skipped (fresh-process reload and live acquisition).
+- All 13 bank conversion/import tests passed; unchanged 876 native files,
+  812 FM entries / 704 parameter identities, including 67 distinct DX7 sounds.
+- MSFA ASan/UBSan harness exited0 with no diagnostics; all vendor hashes match.
+- Personal Mac production and Web builds passed; tracked Web bundle regenerated;
+  Node WebAssembly validation and JS syntax checks passed.
+- Rebuilt final SDL integration passed: all seven FM popup choices; ten ADSR
+  engines x header off/on x twelve edits exactly equal fresh redraw; existing
+  browser/import/audition/playback checks pass. Dummy drivers, no GUI left open.
+- Offline default-patch onset diagnostic compared saved baseline/current floats:
+  all seven types reduce first3ms peak sample deltas on onset and retrigger.
+  This does NOT prove all physical clicks resolved. DX7 retains quantum/FIR delay;
+  hard cut and zero release remain potentially abrupt.
+- Added --song-fm-amp benchmark option and passed a two-second host smoke with
+  4WAV+2chip+2FM/four inserts, single-note and chord variants. Host numbers are
+  NOT handheld measurements. Voice/track/insert limits remain unchanged.
+- Updated manual, report and personal feature status; no in-app help edits.
+
+Evidence: .tmp/chip-fixes-r2/{tests-final,personal-tests-final,bank-tests-final,
+mac-build-final,web-build-final,ui-test-final,sanitize-final}.log,
+onset-comparison.json and mac-ui-final/. Build source matches tests except a
+comment-only FX enum annotation and subsequent documentation.
+
+Fork publication target: feature/native-chip-instruments plus fast-forwarded
+personal/r36h, both previously at4b6ffa2. Keep main/upstream untouched.
+Hardware remains blocked by connectivity: repeated explicitly escalated SSH
+timeouts, en6 present but inactive/no IPv4 even after user reported waking it.
+Asked user to replug cable and open SSH Connection. Do not infer sleep cause from
+the timeout. No R2 device source sync, binary install or ARM package is claimed.
+Installed app remains source0146fcf with recorded rollback; preserve all assets.
+
+Next on restored SSH: sync staged/tracked source using .tmp/chip-audit/sync_device.py,
+rebuild with cached device-build.json flags (personal feature enabled); full ARM
+tests/UI; compare balanced benchmarks with/without --song-fm-amp; export the
+amp-enabled project and check actual ALSA route/buffer with current binary.
+Run guarded production startup OFF/ON, then fresh rollback/install after confirming
+no running app or unsaved song. Adapt helpers to R2 paths/current commit; do not
+reuse old install guards unchanged. Physical listening remains required.
+The separate 1000-cleared-DX7-preset requirement remains unmet.
+
+### R2 fork publication verified
+
+Published application source `5d2550e10fc8dccb240f0ee111dcd9f356310a82`
+atomically to origin/feature/native-chip-instruments and origin/personal/r36h;
+remote readback confirmed both tips. Personal worktree fast-forwarded cleanly.
+No PR, main changes, shared USB changes or handheld installation were included.
+The following checkpoint-only commit does not change application source.
+
+Complete Mac development package (CRC, 876-CNI inventory and license checks pass):
+`releases/ChooChooTracker-native-chips-r2-macos-x86_64.zip`, 14,406,090 bytes,
+SHA256 `a76453c94c9148298ae0a02b8e4d7c12a64efa6723d10bd3ed63a65a0e225aa8`.
+Its manifest identifies application source5d2550e. Local receipt:
+`.tmp/chip-fixes-r2/package-final.json`. No R2 ARM package yet; handheld still
+shows inactive USB network link. Hardware and library requirements above remain.
+
+### R2 handheld build started after reboot — 2026-10-04
+
+User reboot restored SSH, then explicitly deferred all SSH/logo debugging.
+Shared detour checkpoint records the timeout with logo still visible. Do not
+change SSH, USB or sleep configuration while finishing tracker deployment.
+
+Synced and verified committed source d9dbdeefc15466827532e1e84b41def4f7f795d2
+to the existing isolated build. Started persistent background runner:
+/roms/choochootracker-native-chips-20261004/chip-fixes-r2/build.py.
+It rebuilds personal production/package, runs full ARM tests, builds UI/audio
+validation, runs UI regression and 30s balanced benchmarks with/without FM ADSR.
+Future-dated cached outputs were invalidated after the reboot clock regression
+(1342 .o/.d files); no clocks or system configuration changed.
+
+SSH dropped again during production compilation. Last successful check showed
+two active compilers, ample RAM and12GB free on /roms. Asked user to wake/re-enable
+SSH without reboot; the build may still be running. Do not restart it blindly.
+Read stage.txt, build.exit and runner.log in the R2 directory when SSH returns.
+Installed app remains unchanged.
+
+Prepared and syntax-checked local .tmp/chip-fixes-r2 helpers:
+- device_action.py collect: retrieves bounded R2 status/test/benchmark receipts.
+- device_action.py hardware: uploads/starts hardware.py after successful build;
+  temporarily releases idle frontend audio, runs two70s direct ALSA checks
+  (bank and amp-enabled balanced chord/four-insert), six-second production
+  startup with waveform OFF/ON, restores frontend and verifies user data.
+- release_device.py + install_device.py: guarded R2 package and verified full
+  rollback install. Not run. Release expects updated tracked R2 validation JSON
+  and benchmark CSV plus committed/synced reports. device_action.py release
+  permits only report changes since the tested application build.
+
+Next: retrieve completed build status; inspect ARM tests/UI/benchmarks; perform
+hardware audio/startup checks with no user app running; update reports and fork
+branches, sync docs, package/install and verify. No R2 install is claimed yet.
+
+Reboot interrupted production, then SSH returned again. Verified every synced
+source hash and retained106 completed R2 objects;570 remained. Resume helper
+normalizes timestamps only inside the isolated build tree (source/config before
+completed objects), preserving interrupted work despite backward device clocks.
+Two newest outputs conservatively invalidated. No clock/services changes.
+Runner resumed; runner-resumed.log holds diagnostics. Do not rerun resume helper
+blindly; it checks no live build and is designed for this specific interruption.
+Queued queue-hardware.py waits up to30min for build.exit, then runs guarded
+hardware.py only if build passed. It refuses an open app, releases/restores idle
+frontend audio and preserves installed settings/autosave. Hardware checks may
+continue even if SSH disappears; do not duplicate them or reboot mid-build.
+
+Connection timed out again after the resumed build reached Plaits-Alt production
+compilation (254 production objects ready at last counted check; tests not yet
+started). Build and queued hardware tests run independently of SSH; their final
+status is unknown until logs can be retrieved. User advised to leave power on
+and avoid another immediate reboot. No installation or SSH configuration changes
+performed. Keep this checkpoint local until results/report publication.
+
+Next reboot restored SSH. Production app/package had completed, test compilation
+was interrupted. Verified all source hashes; retained337 completed test objects
+and conservatively rebuilt the two newest outputs. Forced test/benchmark binary
+relink so backward wall time cannot select the prior executable. Resumed only
+tests and subsequent stages; requeued guarded hardware validation. Task helper:
+.tmp/chip-fixes-r2/resume_tests.py (specific to this interruption; not idempotent).
+No installed app or SSH/sleep settings changed.
+
+### R2 display test recovery and next validation gate
+
+The first complete ARM personal test run passed 378 of 382 cases; four display
+cases failed (nine assertions). Investigation found the test piano object used
+the old PlaybackTrackState stride, 8848 bytes, while current code uses 8904.
+Explicitly removing and recompiling the test piano_display.o and
+waveform_display.o, then relinking, made all four cases pass (31 assertions).
+No source change or weakened assertion was needed. Receipts are in
+.tmp/chip-fixes-r2/display-retest.log and the remote display-rebuild.log.
+Production piano_display.o DWARF already reports the correct 8904-byte layout.
+The cause of the stale objects is not fully established; interrupted builds and
+backward device time make timestamp-only cache decisions unreliable.
+
+Next: audit remaining production/test objects for old shared structure layouts,
+rebuild any confirmed stale objects and relink affected executables, preserve
+the initial failure logs, and rerun the complete ARM suite, UI and benchmarks.
+Remove the runner's cache timestamp promotion before retrying; do not blindly
+reuse resume helpers. Only queue physical audio/startup checks after build.exit
+is zero. Hardware checks and R2 installation have not occurred.
+
+On the latest continuation SSH again timed out at 192.168.36.2. User asked to
+wake/enable SSH; the SSH/sleep regression remains deferred. Installed tracker,
+system clock, SSH service and USB configuration remain unchanged this round.
+
+Connection returned after the user's reset. Audited 677 production/test object
+files; 131 contained the inspected shared layouts. All inspected production
+layouts were current. Found 22 additional stale test/benchmark objects with
+PlaybackTrackState=8848, PlaybackStatus=70800 and ChipNomadState=782032 (current:
+8904, 71248 and 782928). Explicitly removed those 22 objects, preserved the first
+failure logs, removed cache timestamp promotion, and forced production/test/
+benchmark relinking. Full validation resumed and hardware checks requeued.
+Remote layout-audit.json records each object's sizes. Recovery helper:
+.tmp/chip-fixes-r2/resume_validation_device.py, invoked through device_action.py
+resume-validation; it is guarded for this specific failed run, not idempotent.
+
+### Continuation after chat disconnect — 2026-10-04
+
+Recovered the existing R2 branch and test/install checkpoint; no new PR or
+replacement branch is needed. Both normal and unrestricted collection attempts
+timed out at 192.168.36.2. The former USB interface en6 is absent, and no local
+interface currently has a 192.168.36.x address. Asked user to reconnect USB/open
+SSH Connection without rebooting if possible. No network settings changed.
+
+Latest locally collected stage remains tests, with run_tests linked and started
+but no final result. Local device-build.exit is an older failed-run receipt;
+never interpret individual cached receipts as the latest complete run. Retrieve
+fresh remote build.exit/build-result.json and hardware.exit/hardware-result.json
+before advancing. Do not rerun non-idempotent recovery or hardware helpers
+without inspecting remote state. No R2 installation occurred in this continuation.
+
+### R2 handheld machine validation complete
+
+Tested binary build source d9dbdeefc15466827532e1e84b41def4f7f795d2; SHA256
+981f212bbd2e5f4e05d18624121c4759956aceb87fed72c554c06a9747f923af. ARM personal suite: 382 cases /
+74095590 assertions passed, 2 opt-in skips. UI pixel/browser/playback
+checks passed. Four balanced benchmark rows and two 70-second physical ALSA
+checks recorded in chip-r36h-r2-validation.json / chip-r36h-r2-benchmark.csv.
+Production waveform OFF/ON startup passed; installed settings/autosave preserved.
+Subjective FM click acceptance remains pending. No limits changed.
+Next: commit/push report-only update, sync source inventory, release and install
+with .tmp/chip-fixes-r2/device_action.py after closed-app guard. SSH/sleep issue
+remains explicitly deferred; no system/USB configuration changes in R2 delivery.
+
+### R2 installed and verified — 2026-10-04
+
+Recovered completed build/hardware receipts after reboot: 382 ARM cases and
+74,095,590 assertions passed (two opt-in skips), all UI regressions passed,
+four balanced benchmarks had zero deadline misses, and both 70-second ALSA
+checks had zero render misses, logged underruns or nonfinite samples.
+Combined offscreen song+UI timing exceeds a 1,024-frame deadline; this remains
+reported. Physical validation used the preserved 4,906-frame setting.
+
+Installed release source 317a6dd448380986bcd756f961dc82705df84c8e, with tested
+binary build source d9dbdeefc15466827532e1e84b41def4f7f795d2; SHA256
+981f212bbd2e5f4e05d18624121c4759956aceb87fed72c554c06a9747f923af.
+Both fork branches were pushed to the release source before installation.
+Regular install /roms/ports/choochootracker; launcher unchanged. All 1,649
+non-replaced files were preserved and independently checked after installation.
+Full installed/rollback inventories and runtime dependencies verified.
+Rollback: /roms/choochootracker-backups/pre-chip-fixes-r2-317a6dd44838/previous-install.
+Receipt: docs/chip-r36h-r2-installation.json. Local handheld ZIP in releases/
+ChooChooTracker-native-chips-r2-r36h.zip passed SHA256 and CRC verification.
+No PR or system/USB changes. User listening/playtest, especially reported FM
+clicks, remains pending; no subjective fix is claimed from machine tests alone.
+This receipt-only commit does not change the installed application or package.
+
+### Personal and native candidate aligned; handheld updated — 2026-10-04
+
+Source d0403eca2fc9ea0ba01d323b975a72ceabe7c0f0 adopts the accepted upstream insert review
+and the preceding Personal integration. Candidate and Personal match. Native
+preset popup protection, all ten chip engines and Get Lucky remain included.
+
+The initial clean build exposed a sample-stretch ownership leak: the
+full suite and a ten-case batch exhausted RAM. Added destructor cleanup and
+disallowed shallow copying, then rebuilt all affected objects. The allocation
+regression failed before the fix (1,730,616 retained bytes) and passed after it
+(32 cycles, zero retained allocation bytes). The complete ARM suite now passes
+in one process; no cases were excluded to work around the leak.
+
+Device test summary:
+
+[doctest] run with "--help" for options
+===============================================================================
+[doctest] test cases:      485 |      485 passed | 0 failed | 2 skipped
+[doctest] assertions: 74528153 | 74528153 passed | 0 failed |
+[doctest] Status: SUCCESS!
+
+The initial physical bank run logged an underrun and two missed deadlines.
+The cause was not established. An uninterrupted comparison then gave zero
+misses for both the previous and new builds, followed by zero misses in the
+new mixed-song run. All measurements, including the first failure, are retained
+in the receipt; no audio settings or CPU limits were changed.
+
+Offscreen Insert FX, FM browser and ADSR pixel checks passed. Both final 70-second
+physical ALSA fixtures and production startup with Persistent waveform off/on
+passed at the unchanged device audio settings. Serial offscreen render+UI at
+1,024 frames still exceeds that smaller block interval; physical audio checks
+use the preserved 4,906-frame setting. This is machine validation;
+user listening/playtest remains pending.
+
+Installed binary SHA256: 58058dbf3d45acaa1a7668689b7a2c10b56c33cc17dfdff024b03d58807aad71.
+1655 non-replaced files preserved and verified; launcher unchanged.
+Rollback: /roms/choochootracker-backups/pre-personal-d0403eca2fc9/previous-install.
+See personal-device-sync-20261004.json for the complete receipt.
+
+## October 4 — upstream song archives
+
+Installed Personal application source `9caf6cf0cf307a4cda8ce856b740060f2d05bef9`, based on upstream `ccbf261e28efc192875448c5e6deb2bd78ab8c59`.
+Personal and native-chip candidate share the update. Old songs remain readable;
+saves with loaded audio use upstream sample archives. Regression caught and
+fixed missing wavetable frame layout; all ten native types preserve owned
+patches. 487 host and ARM tests passed; web, interface, direct-card playback
+and both waveform startup modes passed. Settings, songs and launcher preserved;
+rollback: `/roms/choochootracker-backups/pre-personal-9caf6cf0cf30/previous-install`. Human listening remains pending.
+See [receipt](personal-archive-device-sync-20261004.json) and [notes](personal-archive-sync-20261004.txt).

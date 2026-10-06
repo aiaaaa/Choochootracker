@@ -3,7 +3,15 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <stdarg.h>
+#include <string>
+#include <utility>
+#include <vector>
 #include "project.h"
+#include "opll_presets.h"
+#include "opl_patch.h"
+#include "four_op_patch.h"
+#include "simple_chip_presets.h"
+#include <memory>
 #include "project_io_common.h"
 #include "synth/sample_voice.h"
 #include "synth/sr_wavetable_loader.h"
@@ -11,13 +19,16 @@
 
 // Shared state
 char projectFileError[41];
-int projectFileVersion = 5;  // Default to current version
+int projectFileVersion = 6;  // Default to current version
 static char chipNames[][16] = { "AY8910" };
 
 // Peek/consume implementation - single global buffer (ChipNomad is single-threaded)
 static char lineBuffer[1024];
 static char* currentLine = NULL;
 static int isConsumed = 1;
+
+static uint16_t scanPhraseVolume(char* str);
+static uint16_t legacyPhraseVolume(uint16_t value);
 
 void resetPeekConsume(void) {
   currentLine = NULL;
@@ -478,7 +489,7 @@ static int projectLoadPhrases(FILE* file, Project* p) {
       // Instrument
       p->phrases[idx].rows[c].instrument = scanByteOrEmpty(line + 4);
       // Volume
-      p->phrases[idx].rows[c].volume = scanByteOrEmpty(line + 7);
+      p->phrases[idx].rows[c].volume = scanPhraseVolume(line + 7);
       // FX
       for (int d = 0; d < 3; d++) {
         p->phrases[idx].rows[c].fx[d][0] = scanFX(line + 10 + d * 7, p);
@@ -702,7 +713,15 @@ static int projectLoadInternal(FILE* file, Project* project) {
 
   // Detect version
   if (strlen(version) > 0) {
-    if (strncmp(version, " 5.0", 4) == 0) {
+    if (strncmp(version, " 9.0", 4) == 0) {
+      projectFileVersion = 9;
+    } else if (strncmp(version, " 8.0", 4) == 0) {
+      projectFileVersion = 8;
+    } else if (strncmp(version, " 7.0", 4) == 0) {
+      projectFileVersion = 7;
+    } else if (strncmp(version, " 6.0", 4) == 0) {
+      projectFileVersion = 6;
+    } else if (strncmp(version, " 5.0", 4) == 0) {
       projectFileVersion = 5;
     } else if (strncmp(version, " 4.0", 4) == 0) {
       projectFileVersion = 4;
@@ -1016,6 +1035,153 @@ static int pathIsAbsolute(const char* path) {
 #endif
 }
 
+static uint16_t legacyPhraseVolume(uint16_t value) {
+  if (value == EMPTY_VALUE_16 || value == EMPTY_VALUE_8) return EMPTY_VALUE_16;
+  return (std::min(value, uint16_t(15)) * PHRASE_VOLUME_MAX + 7) / 15;
+}
+
+static uint16_t scanPhraseVolume(char* str) {
+  if (str[0] == '-' && str[1] == '-') return EMPTY_VALUE_16;
+  uint8_t value;
+  if (sscanf(str, "%2hhX", &value) != 1) return EMPTY_VALUE_16;
+  if (projectFileVersion < 6)
+    return legacyPhraseVolume(value);
+  return value > PHRASE_VOLUME_MAX ? PHRASE_VOLUME_MAX : value;
+}
+
+struct CctZipEntry {
+  std::string name;
+  std::vector<uint8_t> data;
+  uint32_t crc = 0;
+  uint32_t offset = 0;
+};
+
+static uint32_t cctCrc32(const uint8_t* data, size_t length) {
+  uint32_t crc = 0xFFFFFFFFu;
+  for (size_t i = 0; i < length; ++i) {
+    crc ^= data[i];
+    for (int bit = 0; bit < 8; ++bit) crc = (crc >> 1) ^ (0xEDB88320u & -(crc & 1));
+  }
+  return ~crc;
+}
+
+static void cctPut16(FILE* file, uint16_t value) { fputc(value & 255, file); fputc(value >> 8, file); }
+static void cctPut32(FILE* file, uint32_t value) { cctPut16(file, value); cctPut16(file, value >> 16); }
+static uint16_t cctGet16(const uint8_t* p) { return (uint16_t)p[0] | ((uint16_t)p[1] << 8); }
+static uint32_t cctGet32(const uint8_t* p) { return cctGet16(p) | ((uint32_t)cctGet16(p + 2) << 16); }
+static bool cctLooksLikeZip(const std::vector<uint8_t>& data) {
+  return data.size() >= 4 && cctGet32(data.data()) == 0x04034b50;
+}
+
+static int cctWriteZip(FILE* file, std::vector<CctZipEntry>& entries) {
+  for (CctZipEntry& entry : entries) {
+    entry.offset = (uint32_t)ftell(file);
+    entry.crc = cctCrc32(entry.data.data(), entry.data.size());
+    cctPut32(file, 0x04034b50); cctPut16(file, 20); cctPut16(file, 0); cctPut16(file, 0);
+    cctPut16(file, 0); cctPut16(file, 0); cctPut32(file, entry.crc);
+    cctPut32(file, (uint32_t)entry.data.size()); cctPut32(file, (uint32_t)entry.data.size());
+    cctPut16(file, (uint16_t)entry.name.size()); cctPut16(file, 0);
+    fwrite(entry.name.data(), 1, entry.name.size(), file);
+    fwrite(entry.data.data(), 1, entry.data.size(), file);
+  }
+  uint32_t centralOffset = (uint32_t)ftell(file);
+  for (const CctZipEntry& entry : entries) {
+    cctPut32(file, 0x02014b50); cctPut16(file, 20); cctPut16(file, 20); cctPut16(file, 0); cctPut16(file, 0);
+    cctPut16(file, 0); cctPut16(file, 0); cctPut32(file, entry.crc);
+    cctPut32(file, (uint32_t)entry.data.size()); cctPut32(file, (uint32_t)entry.data.size());
+    cctPut16(file, (uint16_t)entry.name.size()); cctPut16(file, 0); cctPut16(file, 0); cctPut16(file, 0);
+    cctPut16(file, 0); cctPut32(file, 0); cctPut32(file, entry.offset);
+    fwrite(entry.name.data(), 1, entry.name.size(), file);
+  }
+  uint32_t centralSize = (uint32_t)ftell(file) - centralOffset;
+  cctPut32(file, 0x06054b50); cctPut16(file, 0); cctPut16(file, 0);
+  cctPut16(file, (uint16_t)entries.size()); cctPut16(file, (uint16_t)entries.size());
+  cctPut32(file, centralSize); cctPut32(file, centralOffset); cctPut16(file, 0);
+  return ferror(file) ? 1 : 0;
+}
+
+static int cctReadZip(const std::vector<uint8_t>& zip, const char* name, std::vector<uint8_t>* output) {
+  if (zip.size() < 22) return 1;
+  size_t start = zip.size() > 0xFFFF + 22 ? zip.size() - (0xFFFF + 22) : 0;
+  size_t eocd = zip.size();
+  for (size_t i = zip.size() - 22; i >= start; --i) {
+    if (cctGet32(&zip[i]) == 0x06054b50) { eocd = i; break; }
+    if (i == 0) break;
+  }
+  if (eocd == zip.size()) return 1;
+  uint16_t count = cctGet16(&zip[eocd + 10]);
+  uint32_t centralSize = cctGet32(&zip[eocd + 12]);
+  uint32_t centralOffset = cctGet32(&zip[eocd + 16]);
+  if ((uint64_t)centralOffset + centralSize > zip.size()) return 1;
+  size_t p = centralOffset;
+  for (uint16_t i = 0; i < count; ++i) {
+    if (p + 46 > zip.size() || cctGet32(&zip[p]) != 0x02014b50) return 1;
+    uint16_t nameLen = cctGet16(&zip[p + 28]), extraLen = cctGet16(&zip[p + 30]), commentLen = cctGet16(&zip[p + 32]);
+    uint32_t size = cctGet32(&zip[p + 24]), offset = cctGet32(&zip[p + 42]);
+    if (p + 46 + nameLen + extraLen + commentLen > zip.size()) return 1;
+    if (strlen(name) == nameLen && !memcmp(&zip[p + 46], name, nameLen)) {
+      if ((uint64_t)offset + 30 > zip.size() || cctGet32(&zip[offset]) != 0x04034b50) return 1;
+      uint16_t localNameLen = cctGet16(&zip[offset + 26]), localExtraLen = cctGet16(&zip[offset + 28]);
+      size_t dataOffset = offset + 30 + localNameLen + localExtraLen;
+      if ((uint64_t)dataOffset + size > zip.size() || cctGet16(&zip[offset + 8]) != 0) return 1;
+      output->assign(zip.begin() + dataOffset, zip.begin() + dataOffset + size);
+      return 0;
+    }
+    p += 46 + nameLen + extraLen + commentLen;
+  }
+  return 1;
+}
+
+static int cctReadFile(const char* path, std::vector<uint8_t>* data) {
+  FILE* file = fopen(path, "rb"); if (!file) return 1;
+  if (fseek(file, 0, SEEK_END) != 0) { fclose(file); return 1; }
+  long size = ftell(file); if (size < 0 || fseek(file, 0, SEEK_SET) != 0) { fclose(file); return 1; }
+  data->resize((size_t)size);
+  int ok = fread(data->data(), 1, data->size(), file) == data->size(); fclose(file); return ok ? 0 : 1;
+}
+
+static void cctAppendSampleWav(const InstrumentSample* sample, std::vector<uint8_t>* wav,
+                               uint16_t wavetableFrameSize = 0) {
+  uint32_t channels = sample->channels >= 2 ? 2 : 1;
+  uint32_t dataBytes = sample->frameCount * channels * 2;
+  wav->resize(44 + dataBytes); uint8_t* p = wav->data();
+  memcpy(p, "RIFF", 4); uint32_t riffSize = 36 + dataBytes;
+  for (int i = 0; i < 4; ++i) p[4 + i] = riffSize >> (i * 8);
+  memcpy(p + 8, "WAVEfmt ", 8); p[16] = 16; p[20] = 1; p[22] = channels;
+  uint32_t rate = sample->sampleRate, byteRate = rate * channels * 2;
+  for (int i = 0; i < 4; ++i) { p[24 + i] = rate >> (i * 8); p[28 + i] = byteRate >> (i * 8); }
+  p[32] = channels * 2; p[34] = 16; memcpy(p + 36, "data", 4);
+  for (int i = 0; i < 4; ++i) p[40 + i] = dataBytes >> (i * 8);
+  memcpy(p + 44, sample->data, dataBytes);
+  // Keep the wavetable's cycle length in the WAV itself, using the same
+  // Serum metadata understood by the normal loader. PCM alone loses it.
+  if (wavetableFrameSize) {
+    char layout[32];
+    uint32_t length = (uint32_t)snprintf(layout, sizeof(layout), "<!>%u", wavetableFrameSize);
+    size_t offset = wav->size();
+    wav->resize(offset + 8 + length + (length & 1), 0);
+    p = wav->data();
+    memcpy(p + offset, "clm ", 4);
+    for (int i = 0; i < 4; ++i) p[offset + 4 + i] = length >> (i * 8);
+    memcpy(p + offset + 8, layout, length);
+    riffSize = (uint32_t)wav->size() - 8;
+    for (int i = 0; i < 4; ++i) p[4 + i] = riffSize >> (i * 8);
+  }
+}
+
+static bool cctHasSamples(const Project* project) {
+  for (int i = 0; i < PROJECT_MAX_INSTRUMENTS; ++i) {
+    const Instrument* instrument = &project->instruments[i];
+    const InstrumentSample* samples[2] = {NULL, NULL}; int count = 0;
+    if (instrument->type == InstrumentType::Sample) samples[count++] = &instrument->chip.sample;
+    else if (instrument->type == InstrumentType::SCWF || instrument->type == InstrumentType::BYOWTBL) {
+      samples[count++] = &instrument->chip.scwf.oscillator[0]; samples[count++] = &instrument->chip.scwf.oscillator[1];
+    }
+    for (int j = 0; j < count; ++j) if (samples[j]->data && samples[j]->frameCount) return true;
+  }
+  return false;
+}
+
 static void projectLoadRelativeSamples(Project* project, const char* projectPath) {
   const char* slash = strrchr(projectPath, '/');
   const char* backslash = strrchr(projectPath, '\\');
@@ -1058,6 +1224,56 @@ static void projectLoadRelativeSamples(Project* project, const char* projectPath
 int projectLoad(Project* p, const char* path) {
   projectFileError[0] = 0;
   resetPeekConsume();  // Ensure clean state
+
+  std::vector<uint8_t> archive;
+  if (cctReadFile(path, &archive) == 0 && cctLooksLikeZip(archive)) {
+    std::vector<uint8_t> projectData;
+    if (cctReadZip(archive, "project.cct", &projectData)) {
+      snprintf(projectFileError, 40, "Invalid project archive");
+      return 1;
+    }
+    FILE* projectFile = tmpfile();
+    if (!projectFile || fwrite(projectData.data(), 1, projectData.size(), projectFile) != projectData.size()) {
+      if (projectFile) fclose(projectFile);
+      snprintf(projectFileError, 40, "Cannot read project archive");
+      return 1;
+    }
+    rewind(projectFile);
+    int result = projectLoadInternal(projectFile, p);
+    fclose(projectFile);
+    if (result) return result;
+    int sampleIndex = 0;
+    for (int i = 0; i < PROJECT_MAX_INSTRUMENTS; ++i) {
+      Instrument* instrument = &p->instruments[i];
+      InstrumentSample* samples[2] = {NULL, NULL}; int count = 0;
+      if (instrument->type == InstrumentType::Sample) samples[count++] = &instrument->chip.sample;
+      else if (instrument->type == InstrumentType::SCWF || instrument->type == InstrumentType::BYOWTBL) {
+        samples[count++] = &instrument->chip.scwf.oscillator[0]; samples[count++] = &instrument->chip.scwf.oscillator[1];
+      }
+      for (int j = 0; j < count; ++j, ++sampleIndex) {
+        char name[32]; snprintf(name, sizeof(name), "samples/%03d.wav", sampleIndex);
+        std::vector<uint8_t> wav;
+        if (cctReadZip(archive, name, &wav)) continue;
+        FILE* sampleFile = tmpfile();
+        if (!sampleFile || fwrite(wav.data(), 1, wav.size(), sampleFile) != wav.size()) {
+          if (sampleFile) fclose(sampleFile);
+          continue;
+        }
+        rewind(sampleFile);
+        char error[64];
+        if (instrument->type == InstrumentType::BYOWTBL) {
+          srWavetableLoadWavFile(sampleFile, samples[j]->path, samples[j],
+                                &instrument->chip.byowtbl.frameSize[j],
+                                &instrument->chip.byowtbl.tableFrames[j], error, sizeof(error));
+        } else {
+          sampleLoadWav16File(sampleFile, samples[j]->path, samples[j], error, sizeof(error));
+        }
+        fclose(sampleFile);
+      }
+    }
+    projectLoadRelativeSamples(p, path);
+    return 0;
+  }
 
   FILE* file = fopen(path, "rb");
   if (file == NULL) {
@@ -1181,7 +1397,7 @@ static int projectSavePhrases(FILE* file, Project* project) {
         fprintf(file, "%s %s %s %s %s %s %s %s %s\n",
           noteName(project, project->phrases[c].rows[d].note),
           byteToHexOrEmpty(project->phrases[c].rows[d].instrument),
-          byteToHexOrEmpty(project->phrases[c].rows[d].volume),
+          volumeToHexOrEmpty(project->phrases[c].rows[d].volume),
           fxNames[project->phrases[c].rows[d].fx[0][0]].name,
           byteToHex(project->phrases[c].rows[d].fx[0][1]),
           fxNames[project->phrases[c].rows[d].fx[1][0]].name,
@@ -1262,7 +1478,13 @@ static int projectSaveAYWavetables(FILE* file, Project* project) {
 }
 
 static int projectSaveInternal(FILE* file, Project* project) {
-  fprintf(file, "# ChooChooTracker Module 5.0\n\n");
+  bool nativeChips = false;
+  for (const auto& instrument : project->instruments) nativeChips |= (instrument.type==InstrumentType::SID || instrument.type==InstrumentType::DX7 || isOPLL(instrument.type) || (isOPL(instrument.type) || isFourOp(instrument.type)) || isSimpleChip(instrument.type));
+  for (const auto& phrase : project->phrases) for (const auto& row : phrase.rows) for (const auto& fx : row.fx) nativeChips |= fx[0] >= fxFBR && fx[0] < fxTotalCount;
+  for (const auto& table : project->tables) for (const auto& row : table.rows) for (const auto& fx : row.fx) nativeChips |= fx[0] >= fxFBR && fx[0] < fxTotalCount;
+  // Native formats 6-8 predate upstream's expanded phrase volume. Format 9
+  // distinguishes new 00-7F songs while retaining their native patches and FX.
+  fprintf(file, "# ChooChooTracker Module %d.0\n\n", nativeChips ? 9 : 6);
 
   fprintf(file, "- Title: %s\n", project->title);
   fprintf(file, "- Author: %s\n", project->author);
@@ -1337,6 +1559,38 @@ static int projectSaveInternal(FILE* file, Project* project) {
 int projectSave(Project* p, const char* path) {
   projectFileError[0] = 0;
 
+  if (cctHasSamples(p)) {
+    FILE* projectFile = tmpfile();
+    if (!projectFile) return 1;
+    projectSaveInternal(projectFile, p);
+    long projectSize = ftell(projectFile);
+    if (projectSize < 0 || fseek(projectFile, 0, SEEK_SET) != 0) { fclose(projectFile); return 1; }
+    CctZipEntry projectEntry; projectEntry.name = "project.cct"; projectEntry.data.resize((size_t)projectSize);
+    if (fread(projectEntry.data.data(), 1, projectEntry.data.size(), projectFile) != projectEntry.data.size()) {
+      fclose(projectFile); return 1;
+    }
+    fclose(projectFile);
+    std::vector<CctZipEntry> entries; entries.push_back(std::move(projectEntry));
+    int sampleIndex = 0;
+    for (int i = 0; i < PROJECT_MAX_INSTRUMENTS; ++i) {
+      Instrument* instrument = &p->instruments[i];
+      InstrumentSample* samples[2] = {NULL, NULL}; int count = 0;
+      if (instrument->type == InstrumentType::Sample) samples[count++] = &instrument->chip.sample;
+      else if (instrument->type == InstrumentType::SCWF || instrument->type == InstrumentType::BYOWTBL) {
+        samples[count++] = &instrument->chip.scwf.oscillator[0]; samples[count++] = &instrument->chip.scwf.oscillator[1];
+      }
+      for (int j = 0; j < count; ++j, ++sampleIndex) if (samples[j]->data && samples[j]->frameCount) {
+        CctZipEntry sample; char name[32]; snprintf(name, sizeof(name), "samples/%03d.wav", sampleIndex); sample.name = name;
+        cctAppendSampleWav(samples[j], &sample.data,
+                           instrument->type == InstrumentType::BYOWTBL ? instrument->chip.byowtbl.frameSize[j] : 0);
+        entries.push_back(std::move(sample));
+      }
+    }
+    FILE* file = fopen(path, "wb");
+    if (!file) return 1;
+    int result = cctWriteZip(file, entries); fclose(file); return result;
+  }
+
   FILE* file = fopen(path, "wb");
   if (file == NULL) return 1;
 
@@ -1357,7 +1611,11 @@ int instrumentSave(Project* project, const char* path, int instrumentIdx) {
     return 1;
   }
 
-  fprintf(file, "# ChipNomad Instrument 5.0\n\n");
+  bool nativeFormat = (project->instruments[instrumentIdx].type==InstrumentType::SID || project->instruments[instrumentIdx].type==InstrumentType::DX7 || isOPLL(project->instruments[instrumentIdx].type) || (isOPL(project->instruments[instrumentIdx].type) || isFourOp(project->instruments[instrumentIdx].type)) || isSimpleChip(project->instruments[instrumentIdx].type));
+  for (const auto& row : project->tables[instrumentIdx].rows) for (const auto& fx : row.fx) nativeFormat |= fx[0] >= fxFBR && fx[0] < fxTotalCount;
+  bool absoluteLevels=false;
+  for(const auto& row:project->tables[instrumentIdx].rows)for(const auto& fx:row.fx)absoluteLevels |= fx[0]>=fxOL1&&fx[0]<=fxFBK;
+  fprintf(file, "# ChipNomad Instrument %d.0\n\n", absoluteLevels ? 8 : nativeFormat ? 7 : 5);
   instrumentSaveData(file, 0, &project->instruments[instrumentIdx]);
   saveTable(file, 0, &project->tables[instrumentIdx]);
 
@@ -1375,7 +1633,13 @@ static int instrumentLoadInternal(FILE* file, Project* project, int instrumentId
 
   // Detect version
   if (strlen(line) > 22) {
-    if (strncmp(line + 22, " 5.0", 4) == 0) {
+    if (strncmp(line + 22, " 8.0", 4) == 0) {
+      projectFileVersion = 8;
+    } else if (strncmp(line + 22, " 7.0", 4) == 0) {
+      projectFileVersion = 7;
+    } else if (strncmp(line + 22, " 6.0", 4) == 0) {
+      projectFileVersion = 6;
+    } else if (strncmp(line + 22, " 5.0", 4) == 0) {
       projectFileVersion = 5;
     } else if (strncmp(line + 22, " 4.0", 4) == 0) {
       projectFileVersion = 4;
@@ -1430,7 +1694,21 @@ int instrumentLoad(Project* project, const char* path, int instrumentIdx) {
     return 1;
   }
 
-  int result = instrumentLoadInternal(file, project, instrumentIdx);
+  int result;
+  const char* header = peekLine(file);
+  if (header && (strncmp(header, "# ChipNomad Instrument 6.0", 25) == 0 || strncmp(header, "# ChipNomad Instrument 7.0", 25) == 0)) {
+    auto temporary = std::make_unique<Project>();
+    projectInit(temporary.get());
+    result = instrumentLoadInternal(file, temporary.get(), instrumentIdx);
+    if (!result && projectFileVersion==6 && !(temporary->instruments[instrumentIdx].type==InstrumentType::SID || temporary->instruments[instrumentIdx].type==InstrumentType::DX7 || isOPLL(temporary->instruments[instrumentIdx].type) || (isOPL(temporary->instruments[instrumentIdx].type) || isFourOp(temporary->instruments[instrumentIdx].type)) || isSimpleChip(temporary->instruments[instrumentIdx].type))) result = 1;
+    if (!result) {
+      instrumentClear(&project->instruments[instrumentIdx]);
+      project->instruments[instrumentIdx] = temporary->instruments[instrumentIdx];
+      project->tables[instrumentIdx] = temporary->tables[instrumentIdx];
+      temporary->instruments[instrumentIdx] = {}; // Ownership moved, including sample buffers.
+    }
+    projectFree(temporary.get());
+  } else result = instrumentLoadInternal(file, project, instrumentIdx);
   fclose(file);
   return result;
 }

@@ -12,6 +12,9 @@ make -j4 windows
 ```
 
 The executable and bundled files are written to `tracker/build/windows/`.
+The Windows makefile enables `_USE_MATH_DEFINES` before compiling, so the
+vendored SID core can use the CRT math constants under C++17. The Docker
+cross-build enables the same flag.
 
 The ChooChooPlayer visualizer uses the same Windows toolchain:
 
@@ -235,7 +238,6 @@ Upload that AAB to Play Console's Internal testing track. Complete the values
 and artwork in `docs/play-store-listing.md` before submission.
 
 For audio traces and the separately installed debug APK, see
-[Android audio diagnosis](android-audio-debugging.md).
 
 ## Validation
 
@@ -244,9 +246,28 @@ cd tracker
 make -f Makefile.test -j4
 ```
 
+On Windows (`OS=Windows_NT`), the test makefile enables `_USE_MATH_DEFINES`,
+matching the application build's CRT math constants for the vendored SID core.
+
 If MSYS2 reports exit code 127 after `Built: build/tests/run_tests.exe`, run
 `build/tests/run_tests.exe` directly; the executable is the authoritative test
 result in that environment.
+
+## Native chip instruments
+
+The normal builds include the native instruments and shipped preset catalog.
+Synth core sources live under `chipnomad_lib/external/`; each new dependency
+includes its license and provenance. Preset source licenses are packaged under
+`tracker/packaging/common/licenses/`. See `docs/native-chip-instruments.md`.
+
+PortMaster appends `-O3` only for native synth cores and adapters through
+`Makefile.native-chip-flags`; other platform and audio settings are unchanged.
+The native UI/audio harnesses are developer-only targets in
+`Makefile.native-chip-device` and are not included in release packages.
+
+To regenerate factory data, build `chip-factory` with `Makefile.test`, then use
+`tools/chip_banks/convert.py` and the documented expansion/SID conversion tools.
+The ordinary build uses the checked-in presets and needs no network access.
 
 ## Optional Mod Lucky personal build
 
@@ -255,6 +276,142 @@ one Settings row for preparing/playing a random module and importing its PCM
 bank. Normal builds have no dependency on libxmp or libcurl. See
 [the experiment's build and validation notes](mod-lucky.md) for the pinned
 backend, exact macOS commands, ARM prerequisites and test targets.
+
+## Personal native chip development and validation history
+
+The branch vendors ymfm (`81aec25ccbb98f4873a255f7551ac4dadac59b4a`, BSD-3-Clause),
+emu76489 (`c0fa097060e022db237163d79704025435042997`, MIT), gb_apu
+(`3d73d0df027a82d854cacd72a179c2d6a1a9703e`, MIT), and the separately licensed
+Apache-2.0 MSFA scalar component from Dexed's `Source/msfa`
+(`2e182b3db85c09083ab13c8b9b00565ce7d9ff85`). This does not add Dexed/JUCE, MTS,
+Android glue, alternate DX7 cores or their presets. Each vendor directory has
+license/provenance records and modifications documented separately. Runtime
+notices are under `tracker/packaging/common/licenses/`.
+
+The normal build is offline and includes generated `.cni` presets plus their
+catalogue and provenance manifests from `packaging/common/instruments/chips`.
+Rebuild the approved data using the canonical C++ serializer:
+
+```sh
+make -C tracker -f Makefile.test -j4 chip-factory
+python3 tools/chip_banks/convert.py --output tracker/packaging/common/instruments/chips --writer tracker/build/tests/chip_factory
+python3 -m unittest discover -s tools/chip_banks -p 'test_*.py'
+make -C tracker -f Makefile.test -j4
+```
+
+The content tool verifies pinned source hashes and records aliases separately
+from distinct parameter patches. OpenDX7 data are parsed as allowlisted literals;
+downloaded JavaScript is never executed. Unapproved collections stay outside
+shipping assets. DX7's 1,000-sound target is still unmet; the 67-sound starter
+and source-specific exclusions are recorded in the DX7 manifest/evidence files.
+
+Optimized offline DX7 measurements (not handheld or hardware underrun results):
+
+```sh
+make -C tracker -f Makefile.test -j4 benchmark-native-chips BUILD_DIR=build/chip-optimized CFLAGS='-std=c++17 -Wall -O3 -DNDEBUG -DTEST -DTEST_PORTMASTER_INPUT'
+tracker/build/chip-optimized/benchmark_native_chips 30
+```
+
+`Makefile.native-chip-ui` builds the production SDL offscreen integration harness.
+Run from `tracker/packaging/common` with `SDL_VIDEODRIVER=dummy` and
+`SDL_AUDIODRIVER=dummy`; its argument is an existing writable capture directory.
+The harness selects and reopens all seven FM types through the Instrument Type
+popup, then checks preview/cancel/load, local SysEx selection, table/insert
+isolation, and sequenced playback with UI drawing. It does not save user settings.
+Use the existing local SDL/toolchain configuration; do not install another SDK.
+See `chip-instruments-progress.md` for the current handheld installation checkpoint.
+
+Genesis/Arcade extend the same ymfm pin with its OPN/OPM/SSG translation units;
+no additional player is linked. Original MIT patch recipes are in
+`tools/chip_banks/four_op.py`. The canonical factory writer also emits 64
+OPLL/VRC7/Sega/GB `.cni` files and `builtins.tsv`. There are 876 packaged native
+instruments in total; 812 shared FM catalogue entries represent 704 distinct
+normalized FM parameter sets (aliases remain identified). Of these, DX7 has
+67 distinct voices, not 1,000. UI/preset files do not control DSP allocation.
+
+Local user conversion, separate from approved factory content:
+
+```sh
+python3 tools/chip_banks/import_bank.py my-bank.syx --output my-new-library --writer tracker/build/tests/chip_factory
+make -C tracker -f Makefile.test -j4 chip-auditions
+cd tracker
+build/tests/chip_auditions packaging/common/instruments/chips ../.tmp/chip-audit/auditions packaging/common/projects/native-chip-audition.cct
+```
+
+The audition tool generates thirteen bank WAVs, numerical peak/RMS/DC records,
+and a thirteen-section song owning its selected patches. Machine checks are not
+human listening; `docs/chip-preset-auditions.tsv` records source CNI identities.
+Large audio stays ignored under `.tmp/chip-audit/auditions/`.
+
+The optimized benchmark also measures all native families at 1/8/32 voices,
+OPL3 four-operator and dual modes, and actual mixed/FM-heavy eight-track songs
+with insert FX and sends. Run it from `tracker` so fixture paths resolve.
+`--soak` runs a paced 600-second host render while another thread repeatedly
+loads a synthetic 10,000-entry metadata index at
+`../.tmp/chip-audit/scale-catalog.tsv`. Synthetic entries are not bundled sounds.
+This measures host render deadlines, not audio-device underruns or R36H thermals.
+
+The final Yamaha adapters clock one key-off sample before reasserting key-on,
+so repeated tracker notes actually retrigger ymfm envelopes. This adds at most
+one native sample to the existing streaming FIR delay; it never drops output.
+
+
+### R36H validation of native chips
+
+Use the existing paired-device GCC 9 compiler and cached development headers,
+with the already built ARM64 Mod Lucky prefix. The source can be staged outside
+`/roms/ports` and built using `Makefile.personal`; no SDK installation is needed.
+GCC requires the documented positional-initializer compatibility patch in gb_apu.
+Set `COMMON_CFLAGS` and `MOD_LUCKY_PREFIX` to that configured target environment.
+
+```sh
+make -C tracker -j2 -f Makefile.personal PortMaster-deploy
+make -C tracker -j2 -f Makefile.test CHOOCHOO_EXPERIMENTAL_MOD_LUCKY=1
+make -C tracker -j2 -f Makefile.native-chip-device native-chip-validation CHOOCHOO_EXPERIMENTAL_MOD_LUCKY=1
+# Run the UI fixture from tracker/packaging/common with an existing output dir:
+SDL_VIDEODRIVER=offscreen SDL_AUDIODRIVER=alsa ../../build/portmaster/native-chip-ui /absolute/capture-directory
+# Run the audio fixture only with the physical audio device available:
+SDL_AUDIODRIVER=alsa tracker/build/portmaster/native-chip-audio tracker/packaging/common/projects/native-chip-audition.cct
+```
+
+The developer-only audio fixture plays the portable bank demo for 70 seconds,
+checks finite/non-silent output, and reports actual SDL callback render timing.
+It uses S16 conversion and optional `[buffer-frames]` (default 512), with test-only
+master gain 0.4 to leave headroom. On this ArkOS device use the regular launcher's
+`AUDIODEV=plughw:0,0`; plain default PCM instead hits its shared 44.1 kHz dmix.
+Use the installed 4906-frame setting for the matching hardware validation.
+It does not claim subjective listening or measure ALSA underruns directly.
+Keep the frontend’s prior state intact when temporarily releasing its audio.
+Tests must use the matching target include flags and dependency prefix too.
+Retain the existing installed audio settings; benchmark results at smaller
+buffers are measurements, not an instruction to change the user's buffer.
+
+
+PortMaster builds now append `-O3` only for the new native chip cores and their
+adapters through `Makefile.native-chip-flags`. The rest of the application keeps
+its existing flags. There is no fast-math, oversampling reduction or altered
+patch data. Device test/benchmark builds use `NATIVE_CHIP_OPT_FLAGS=-O3` to match
+that profile; normal debug tests leave this override empty. The bounded device
+sweep is `benchmark_native_chips 30 --bounded`: all 1/4/8/16/32 DX7 raw voice
+points, 1/8 for other families, and mixed/FM-heavy/FM-heavy-chord songs with FX.
+The default song scenes use two inserts (Compressor and Doubler) on one track,
+with sends on all eight tracks. `30 --songs-only --four-inserts` measures two
+compressors, one Doubler and one TAPESCAM; `--all-inserts` preserves the
+sixteen-insert overload stress. `--no-inserts` measures the same synth/send
+workload without inserts. Available slots are not a promised CPU budget.
+`30 --songs-only` isolates the representative scenes. The ten-minute `--soak`
+uses the two-insert chord scene plus concurrent 10k-index scans.
+
+`--four-tracks` leaves four of the eight song tracks empty without changing
+project capacity. `30 --songs-only --four-tracks --four-inserts` measures four
+active tracks, seven notes in the chord scene, four inserts and shared sends.
+Use `--soak --four-tracks --four-inserts` for the corresponding ten-minute run.
+
+`--sample-mix` measures the user's balanced arrangement: four WAV sample
+tracks, Sega PSG, GB Pulse, DX7 and OPL3. It loads four existing packaged drum
+WAVs through the native PCM loader and loops them to keep the playback workload
+active. The chord variant uses four DX7 notes (eleven notes total). Combine with
+`--four-inserts` for two Compressors, Doubler and TAPESCAM, plus all-track sends.
 
 ## PlayStation Vita candidates
 
