@@ -1,9 +1,28 @@
 #include "screen_instrument.h"
 #include "corelib_gfx.h"
 #include "chipnomad_lib.h"
+#include "waveform_display.h"
 
 static InstrumentFMAmp* amp() {
   return instrumentFMAmpSettings(&chipnomadState->project.instruments[cInstrument]);
+}
+
+static Bitmap* staticWaveformBitmap = nullptr;
+
+void instrumentFMRefreshStaticWaveform() {
+  const auto* envelope = amp();
+  // SID shares this redraw path but has no optional FM amp or ADSR overlay.
+  const int row = appSettings.persistentWaveform && envelope ? 15 : 16;
+  if (!staticWaveformBitmap) staticWaveformBitmap = gfxBitmapCreate(32, 3);
+  gfxClearRect(0, row, 32, 3);
+  renderFMPreview(staticWaveformBitmap, &chipnomadState->project.instruments[cInstrument]);
+  gfxSetFgColor(appSettings.colorScheme.textInfo);
+  gfxDrawBitmap(staticWaveformBitmap, 0, row);
+  if (envelope && envelope->enabled) {
+    instrumentCommonDrawEnvelopePreview(envelope->attack, envelope->decay,
+                                        envelope->sustain, envelope->release,
+                                        envelope->envelopeShape);
+  }
 }
 
 void instrumentFMAmpDrawStatic() {
@@ -14,6 +33,7 @@ void instrumentFMAmpDrawStatic() {
   gfxPrint(6, 14, "A"); gfxPrint(11, 14, "D");
   gfxPrint(16, 14, "S"); gfxPrint(21, 14, "R");
   gfxPrint(appSettings.persistentWaveform ? 25 : 27, 14, "Shape");
+  instrumentFMRefreshStaticWaveform();
 }
 
 void instrumentFMToneDrawCursor(int col) { gfxCursor(col ? 28 : 9, 10, col ? 6 : 4); }
@@ -24,6 +44,7 @@ void instrumentFMToneDrawField(int col, CellState state) {
   if(!col)gfxPrintf(9,10,"%+03d",tone->brightness);
   else if(!tone->feedback)gfxPrint(28,10,"Preset");
   else gfxPrintf(28,10,"%u",tone->feedback-1);
+  instrumentFMRefreshStaticWaveform();
 }
 int instrumentFMToneEdit(int col, CellEditAction action) {
   auto* tone=instrumentFMToneSettings(&chipnomadState->project.instruments[cInstrument]);
@@ -40,6 +61,7 @@ void instrumentFMAmpDrawCursor(int col, int row) {
 }
 
 void instrumentFMAmpDrawField(int col, int row, CellState state) {
+  instrumentFMRefreshStaticWaveform();
   if (!row) {
     gfxSetFgColor(state == CellState::focus ? appSettings.colorScheme.textValue : appSettings.colorScheme.textDefault);
     gfxClearRect(9, 12, 8, 1);

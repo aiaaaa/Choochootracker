@@ -12,6 +12,9 @@ make -j4 windows
 ```
 
 The executable and bundled files are written to `tracker/build/windows/`.
+The Windows makefile enables `_USE_MATH_DEFINES` before compiling, so the
+vendored SID core can use the CRT math constants under C++17. The Docker
+cross-build enables the same flag.
 
 The ChooChooPlayer visualizer uses the same Windows toolchain:
 
@@ -243,9 +246,28 @@ cd tracker
 make -f Makefile.test -j4
 ```
 
+On Windows (`OS=Windows_NT`), the test makefile enables `_USE_MATH_DEFINES`,
+matching the application build's CRT math constants for the vendored SID core.
+
 If MSYS2 reports exit code 127 after `Built: build/tests/run_tests.exe`, run
 `build/tests/run_tests.exe` directly; the executable is the authoritative test
 result in that environment.
+
+## Native chip instruments
+
+The normal builds include the native instruments and shipped preset catalog.
+Synth core sources live under `chipnomad_lib/external/`; each new dependency
+includes its license and provenance. Preset source licenses are packaged under
+`tracker/packaging/common/licenses/`. See `docs/native-chip-instruments.md`.
+
+PortMaster appends `-O3` only for native synth cores and adapters through
+`Makefile.native-chip-flags`; other platform and audio settings are unchanged.
+The native UI/audio harnesses are developer-only targets in
+`Makefile.native-chip-device` and are not included in release packages.
+
+To regenerate factory data, build `chip-factory` with `Makefile.test`, then use
+`tools/chip_banks/convert.py` and the documented expansion/SID conversion tools.
+The ordinary build uses the checked-in presets and needs no network access.
 
 ## Optional Mod Lucky personal build
 
@@ -255,7 +277,7 @@ bank. Normal builds have no dependency on libxmp or libcurl. See
 [the experiment's build and validation notes](mod-lucky.md) for the pinned
 backend, exact macOS commands, ARM prerequisites and test targets.
 
-## Native chip instruments (local development branch)
+## Personal native chip development and validation history
 
 The branch vendors ymfm (`81aec25ccbb98f4873a255f7551ac4dadac59b4a`, BSD-3-Clause),
 emu76489 (`c0fa097060e022db237163d79704025435042997`, MIT), gb_apu

@@ -95,11 +95,97 @@ TEST_CASE("Native macros append IDs and expose only supported controls") {
      ((g>=genericModFMOperator3&&g<=genericModFMOperator6)||(directIndex>=24&&directIndex<72));
       CHECK(bool(instrumentModDestinationAvailable(&i,dest))==(bool(d)&&!unusedOPL));
    REQUIRE(instrumentModDestinationName(i.type,dest));
-   if(d&&!unusedOPL){CHECK(instrumentFXAvailable(i.type,d->fx));CHECK(strcmp(fxNames[d->fx].name,"---"));
+   CAPTURE(type);CAPTURE(g);
+   if(d&&!unusedOPL){
+    // Live modulation retains native operator targets that were deliberately
+    // removed from the compact phrase/table FX list. Check their native
+    // metadata here; tracker exposure has a separate per-engine contract.
+    int nativeFX,op;
+    if(nativeFMModTarget(g,&nativeFX,&op)) {
+     NativeFXInfo info{};
+     REQUIRE(instrumentNativeFXInfo(&i,nativeFX,&info,op));
+     CHECK(d->fx==nativeFX);CHECK(d->range==info.maximum);
+    }
+    if(d->fx<fxOAR||d->fx>fxLEN)CHECK(instrumentFXAvailableForInstrument(&i,d->fx));
+    if(instrumentFXAvailableForInstrument(&i,d->fx))CHECK(strcmp(fxNames[d->fx].name,"---"));
     uint8_t fx;int base,range;InstrumentMotionValue encoding;
     REQUIRE(instrumentMotionDestination(&i,dest,&fx,&base,&range,&encoding));
     CHECK(fx==d->fx);CHECK(base>=0);CHECK(base<=range);
    }
   }
  }
+}
+
+TEST_CASE("OPL3 control availability follows topology changes on the actual instrument") {
+  Instrument instrument{};
+  getInstrumentFunctions(InstrumentType::OPL3).init(&instrument);
+  fillFXNames();
+  const int first = getInstrumentFunctions(instrument.type).modDestinationsCount + 1;
+  // Exercise the same cache and instrument in both directions.
+  for (auto topology : {OPLTopology::twoOperator, OPLTopology::fourOperator,
+                        OPLTopology::dualVoice, OPLTopology::twoOperator}) {
+    instrument.chip.opl.topology = topology;
+    const int count = topology == OPLTopology::twoOperator ? 2 : 4;
+    CAPTURE(int(topology));
+    CHECK(instrumentFMOperatorCount(&instrument) == count);
+    for (int op = 0; op < 6; ++op) {
+      CAPTURE(op);
+      const bool available = op < count;
+      const int level = first + genericModFMOperator1 + op;
+      CHECK(bool(instrumentModDestinationAvailable(&instrument, level)) == available);
+      CHECK(bool(instrumentFXAvailableForInstrument(&instrument, fxOL1 + op)) == available);
+      NativeFXInfo info{};
+      CHECK(instrumentNativeFXInfo(&instrument, fxOL1 + op, &info) == available);
+      for (int fx : {fxOAR, fxODR, fxORR, fxOSL, fxOMU}) {
+        const int dest = first + genericModFirstDirectFM + op * 12 + fx - fxOAR;
+        CHECK(bool(instrumentModDestinationAvailable(&instrument, dest)) == available);
+        CHECK(instrumentNativeFXInfo(&instrument, fx, &info, op) == available);
+        if (available) {
+          REQUIRE(instrumentModDestinationName(instrument.type, dest));
+          CHECK(std::strstr(instrumentModDestinationName(instrument.type, dest), "OP") != nullptr);
+        }
+      }
+    }
+  }
+}
+
+TEST_CASE("OPL3 topology operator settings and modulation survive CNI and CCT reload") {
+  auto saved = std::make_unique<Project>(), loaded = std::make_unique<Project>();
+  projectInit(saved.get());
+  projectInit(loaded.get());
+  fillFXNames();
+  REQUIRE(projectLoad(saved.get(), "packaging/common/projects/gm-midi-demo.cct") == 0);
+  auto& instrument = saved->instruments[0];
+  getInstrumentFunctions(InstrumentType::OPL3).init(&instrument);
+  const int first = getInstrumentFunctions(instrument.type).modDestinationsCount + 1;
+  for (auto topology : {OPLTopology::twoOperator, OPLTopology::fourOperator, OPLTopology::dualVoice}) {
+    CAPTURE(int(topology));
+    instrument.chip.opl.topology = topology;
+    const int count = topology == OPLTopology::twoOperator ? 2 : 4;
+    for (int op = 0; op < count; ++op) {
+      instrument.chip.opl.operators[op].attack = 7 + op;
+      instrument.chip.opl.operators[op].multiplier = 2 + op;
+      instrument.chip.opl.operators[op].level = 10 + op;
+    }
+    instrument.modulation[0].destination = first + genericModFirstDirectFM + (count - 1) * 12 + fxOMU - fxOAR;
+    instrument.modulation[0].amount = 43;
+    REQUIRE(instrumentSave(saved.get(), "build/tests/opl3-review.cni", 0) == 0);
+    REQUIRE(instrumentLoad(loaded.get(), "build/tests/opl3-review.cni", 0) == 0);
+    auto checkReload = [&] {
+      const auto& actual = loaded->instruments[0];
+      CHECK(actual.type == InstrumentType::OPL3);
+      CHECK(std::memcmp(&actual.chip.opl, &instrument.chip.opl, sizeof(InstrumentOPL)) == 0);
+      CHECK(std::memcmp(actual.modulation, instrument.modulation, sizeof(instrument.modulation)) == 0);
+      CHECK(instrumentModDestinationAvailable(&actual, actual.modulation[0].destination));
+      CHECK(bool(instrumentFXAvailableForInstrument(&actual, fxOL3)) == (count == 4));
+    };
+    checkReload();
+    REQUIRE(projectSave(saved.get(), "build/tests/opl3-review.cct") == 0);
+    REQUIRE(projectLoad(loaded.get(), "build/tests/opl3-review.cct") == 0);
+    checkReload();
+  }
+  projectFree(saved.get());
+  projectFree(loaded.get());
+  std::remove("build/tests/opl3-review.cni");
+  std::remove("build/tests/opl3-review.cct");
 }

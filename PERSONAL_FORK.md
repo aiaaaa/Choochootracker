@@ -32,7 +32,7 @@ key jazz, Settings submenus and the aChChid workflow improvements.
 
 ## Current personal source
 
-Upstream base: `8c8709182b90a492ae8b5e2fc0bb0e7516644388` (October 5 harmonization). Personal includes
+Upstream base: `6e9eb2b79f7024027e8ff1308d131aa05c0096ed` (October 6 harmonization). Personal includes
 upstream’s track-visuals/GPU integration, corrected Graphics touch mapping, sample
 editor and processing updates, sample stretching, and bounce/export improvements.
 Native chip instruments and Get Lucky remain included. New saves use upstream’s
@@ -59,7 +59,7 @@ See [the simplification notes](docs/fx-simplification-20261005.txt).
 Personal-only relative FM commands and native phrase-volume migration are
 removed. A one-time conversion updates the affected personal songs and our
 bundled native audition. Upstream legacy-format support remains. See
-[the complete audit](docs/absolute-fx-audit-20261005.txt). This source revision is installed; performance tests were skipped at the user's request.
+[the complete audit](docs/absolute-fx-audit-20261005.txt). That earlier simplification revision is installed; the October 6 source update has not been installed.
 
 ## Current installed device build
 
@@ -139,21 +139,19 @@ Personal explorations with no commitment to an upstream submission.
 | --- | --- | --- |
 | Get Lucky (I’m Feeling Lucky) | [`experimental/mod-lucky-integrated`](https://github.com/aiaaaa/Choochootracker/tree/experimental/mod-lucky-integrated) | Opt-in sample discovery; [build instructions and limits](docs/mod-lucky.md) |
 
-### Upstream candidates
+### Native instruments accepted upstream
 
-Active work that may become a future PR. Listing here does not mean it is ready
-for submission; each candidate still needs its own review and testing.
-
-| Work | Branch | Notes |
-| --- | --- | --- |
-| Native chip instruments | [`feature/native-chip-instruments`](https://github.com/aiaaaa/Choochootracker/tree/feature/native-chip-instruments) | No upstream PR; [validation report and remaining work](docs/chip-instruments-report.md) |
+[PR #39](https://github.com/paiheulevrai/Choochootracker/pull/39) is merged.
+Personal now adopts the maintained waveform previews, compact native FX grouping,
+SID preview guards and CI/Windows fixes. Earlier proposal branches and revision
+notes remain as history. See [the synchronization record](docs/personal-harmonization-20261006.txt).
 
 ### Submitted contributions
 
 Every submitted proposal stays here, whether pending, merged, closed, or
 incorporated differently. These branches retain proposal history; normal updates
 come through upstream `main`, with personal choices reconciled on `personal/r36h`.
-Status checked on October 4, 2026; follow the PR links for subsequent changes.
+Status checked on October 6, 2026; follow the PR links for subsequent changes.
 
 | Contribution | Branch | PR | Status |
 | --- | --- | --- | --- |
@@ -165,6 +163,8 @@ Status checked on October 4, 2026; follow the PR links for subsequent changes.
 | Persistent waveform | [`contribution/persistent-waveform`](https://github.com/aiaaaa/Choochootracker/tree/contribution/persistent-waveform) | [#21](https://github.com/paiheulevrai/Choochootracker/pull/21) | Merged |
 | Mixer level meters | [`contribution/mixer-level-meters`](https://github.com/aiaaaa/Choochootracker/tree/contribution/mixer-level-meters) | [#22](https://github.com/paiheulevrai/Choochootracker/pull/22) | Closed; incorporated through #23 |
 | Track insert effects | [`feature/track-insert-fx`](https://github.com/aiaaaa/Choochootracker/tree/feature/track-insert-fx) | [#31](https://github.com/paiheulevrai/Choochootracker/pull/31) | Merged |
+
+| Native chip and FM instruments | [`contribution/native-chip-instruments`](https://github.com/aiaaaa/Choochootracker/tree/contribution/native-chip-instruments) | [#39](https://github.com/paiheulevrai/Choochootracker/pull/39) | Merged |
 
 ### After an upstream merge
 

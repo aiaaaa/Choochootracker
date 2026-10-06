@@ -1,7 +1,7 @@
 {
   "upstream": "paiheulevrai/Choochootracker",
   "upstream_branch": "main",
-  "upstream_commit": "8c8709182b90a492ae8b5e2fc0bb0e7516644388",
+  "upstream_commit": "6e9eb2b79f7024027e8ff1308d131aa05c0096ed",
   "personal_branch": "personal/r36h",
   "update_policy": "Personal combines upstream main, my additions not yet incorporated upstream, and my experiments. Keep unmerged additions, including pending or declined submissions. Once incorporated upstream, replace my earlier implementation with the maintainer's merged version, including his fixes and changes; remove duplicate code and controls. Test, preserve user data, record commit, and retain rollback before installation.",
   "features": [
@@ -64,7 +64,7 @@
       "title": "Native chip instruments and preset banks, including DX7 scope extension",
       "branch": "feature/native-chip-instruments",
       "base_commit": "c0a8c7e9ee7e177e94294ede7e6cad09c59f06c8",
-      "upstream_status": "Personal feature branch; no PR",
+      "upstream_status": "Merged via PR #39; maintainer preview, FX grouping, SID and build follow-ups adopted",
       "implemented": [
         "OPLL",
         "VRC7",
@@ -78,7 +78,6 @@
         "Arcade FM"
       ],
       "pending": [
-        "human listening and interactive device playtest",
         "DX7 1000-cleared-preset goal unmet (67 distinct bundled)"
       ],
       "factory_cni": 876,
@@ -86,9 +85,9 @@
       "dx7_large_library_target": 1000,
       "dx7_large_library_target_met": false,
       "notes": "Existing personal features retained. Shared FM browser, native v6 patch ownership, strict local DX7 SysEx. Global 16-active-note DX7 budget selected from R36H measurements. Balanced 4WAV+2chip+2FM with four inserts passes direct-card audio at preserved settings; dense FM/insert and small-buffer limits are documented.",
-      "status": "R2 machine validated: host/personal ARM tests, desktop/Web, SDL UI, mixed benchmarks, physical ALSA and waveform OFF/ON startup; listening pending",
+      "status": "Merged upstream implementation adopted in personal source; device remains on its recorded installed revision",
       "fm_catalog_entries": 812,
-      "included_commit": "cd25ce3c9bae28b2b05630d352821b6a6836ee1b",
+      "included_commit": "6e9eb2b79f7024027e8ff1308d131aa05c0096ed",
       "dx7_active_note_limit": 16,
       "validation_report": "docs/chip-instruments-report.md",
       "baseline_validation": "Validated for device personal build: desktop/web, 373 ARM64 tests, 64 benchmark cases, 600-second soak, real ALSA audio and waveform OFF/ON startup",
@@ -116,7 +115,8 @@
         ],
         "validation": "Host and ARM64 personal suites, interface and ALSA checks passed; installed for user evaluation",
         "report": "docs/instrument-revision-20261005.txt"
-      }
+      },
+      "upstream_pr": "https://github.com/paiheulevrai/Choochootracker/pull/39"
     },
     {
       "id": "track-insert-fx",
@@ -156,7 +156,8 @@
       "presets": 56,
       "fm_controls": "Absolute native operator and feedback values; personal FBR translation removed",
       "sid_model": "floooh/chips 6581 approximation; no alternate model/character options",
-      "included_commit": "70d7eee5ca3878e9143821735f4ed41ae15e7ebc"
+      "included_commit": "70d7eee5ca3878e9143821735f4ed41ae15e7ebc",
+      "upstream_status": "Incorporated in merged PR #39; earlier revision retained here as history"
     },
     {
       "id": "fm-master-macros",
@@ -191,7 +192,8 @@
         "SRL",
         "SPR"
       ],
-      "included_commit": "588e0ea246d26ed9a17bd33d99699ca633e359b6"
+      "included_commit": "588e0ea246d26ed9a17bd33d99699ca633e359b6",
+      "upstream_status": "Incorporated in merged PR #39; earlier revision retained here as history"
     },
     {
       "id": "native-fx-values",
@@ -209,7 +211,8 @@
       "absolute_feedback_command": "FBK",
       "editor": "Row instrument lookup, preset defaults, native endpoint limits",
       "compatibility": "Personal songs converted once; retired FO/FFB/FBR/macros and personal volume migrations removed; upstream compatibility retained",
-      "included_commit": "f4b086d5f18100ba239b018a2abaf2dc10bb81af"
+      "included_commit": "f4b086d5f18100ba239b018a2abaf2dc10bb81af",
+      "upstream_status": "Incorporated in merged PR #39; earlier revision retained here as history"
     },
     {
       "id": "absolute-native-fx",
@@ -217,14 +220,16 @@
       "source_commit": "f4b086d5f18100ba239b018a2abaf2dc10bb81af",
       "documentation": "docs/absolute-fx-audit-20261005.txt",
       "personal_song_conversion": "eleven files converted once; personal compatibility paths removed",
-      "performance_tests": "skipped at user request"
+      "performance_tests": "skipped at user request",
+      "upstream_status": "Incorporated in merged PR #39; earlier revision retained here as history"
     },
     {
       "id": "tracker-fx-simplification",
       "status": "Installed for user evaluation",
       "documentation": "docs/fx-simplification-20261005.txt",
       "scope": "Compact tracker commands; selector removed; synthesis and live modulation unchanged",
-      "source_commit": "ee0e85c3cde127e24c138d8e58e14ead0cf5a6a2"
+      "source_commit": "ee0e85c3cde127e24c138d8e58e14ead0cf5a6a2",
+      "upstream_status": "Incorporated in merged PR #39; earlier revision retained here as history"
     }
   ],
   "personal_fixes": [
@@ -256,5 +261,11 @@
     "status": "Published, validated and installed; user evaluation pending",
     "native_song_volume": "00-7F from format 6 onward; personal legacy songs normalized once; upstream pre-6 support retained",
     "source_commit": "5bfab9779f317f4fc6580292f285d0104917e52b"
+  },
+  "harmonization_20261006": {
+    "upstream_commit": "6e9eb2b79f7024027e8ff1308d131aa05c0096ed",
+    "previous_personal_commit": "072585c07c04ac5c3fe7324f88b9b9fc6b99755f",
+    "report": "docs/personal-harmonization-20261006.txt",
+    "status": "Validated source integration; no device installation"
   }
 }
