@@ -1,0 +1,26 @@
+{
+  "installation": {
+    "source_commit": "ee0e85c3cde127e24c138d8e58e14ead0cf5a6a2",
+    "binary_sha256": "a632262a7fa337addf347d3957147ce76b75e22b12c072c1fe777a5510841578",
+    "binary_bytes": 2176976,
+    "invalidated_objects": 0,
+    "validation": "Production build, package integrity, focused FX selection and popup captures only",
+    "performance_tests": "skipped at user request",
+    "human_listening": "not performed",
+    "installed": "/roms/ports/choochootracker",
+    "rollback": "/roms/choochootracker-backups/pre-fx-simplification-ee0e85c3cde1/previous-install",
+    "preserved_files": 2011,
+    "converted_songs": 0,
+    "launcher_unchanged": true,
+    "settings_unchanged": true,
+    "installed_inventory_verified": true,
+    "rollback_inventory_verified": true
+  },
+  "focused_host_tests": "3 cases / 220 assertions passed; remaining tests skipped",
+  "device_ui": "Focused FX selection and popup captures passed\n",
+  "web": "Build, JavaScript syntax and WebAssembly validation passed",
+  "synthesis": "No synth adapter, preset, core or audio-setting changes",
+  "test_scope": "Focused checks only; no full suite, performance or listening tests",
+  "history": "Earlier audit/revision/installation records retained",
+  "user_evaluation": "User checked the installed device and accepted it for GitHub harmonization and draft PR preparation."
+}

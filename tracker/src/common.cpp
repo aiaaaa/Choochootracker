@@ -20,8 +20,8 @@ void initDefaultAppSettings(void) {
 #if defined(WEB_BUILD) || defined(VITA_BUILD)
   appSettings.audioBufferSize = 1024;
 #elif defined(ANDROID_BUILD) || defined(DESKTOP_BUILD)
-  // Keep playback status and waveform monitors responsive at 30 Hz.
-  appSettings.audioBufferSize = 1600;
+  // Keep Android input latency low while leaving enough render headroom.
+  appSettings.audioBufferSize = 256;
 #else
   appSettings.audioBufferSize = 4906;
 #endif
@@ -42,13 +42,14 @@ void initDefaultAppSettings(void) {
   appSettings.ayWavetableLfoView = 0;
   appSettings.waveformRefreshHz = 30;
   appSettings.stickLiveMode = StickLiveMode::hold;
-  for (auto& visual : appSettings.trackVisuals) visual = TrackVisualSettings{};
-  appSettings.persistentWaveform = 0;
+  for (auto& visual : appSettings.trackVisuals)
+    visual.mode = TrackVisualMode::detailed;
   appSettings.midiInputDevice = -1;
   appSettings.midiOutputDevice = -1;
   appSettings.midiInputDeviceName[0] = '\0';
   appSettings.midiOutputDeviceName[0] = '\0';
   for (int i = 0; i < MIDI_CHANNEL_COUNT; i++) appSettings.midiChannelInstrument[i] = -1;
+  appSettings.persistentWaveform = 0;
 
   // Zero out key mapping (platform-specific defaults applied later)
   memset(&appSettings.keyMapping, 0, sizeof(KeyMapping));
@@ -108,6 +109,8 @@ void initDefaultAppSettings(void) {
 #endif
   appSettings.projectPath[PATH_LENGTH] = '\0';
   appSettings.samplePath[PATH_LENGTH] = '\0';
+  appSettings.exportPath[0] = '\0'; // Empty = use the default export location
+  appSettings.exportLastFolder[0] = '\0';
   appSettings.ayWavetablePath[PATH_LENGTH] = '\0';
   appSettings.scwfPath[PATH_LENGTH] = '\0';
   appSettings.srWavetablePath[PATH_LENGTH] = '\0';
@@ -179,10 +182,9 @@ int settingsSave(void) {
   const char* stickLiveMode = appSettings.stickLiveMode == StickLiveMode::free ? "FREE" :
     appSettings.stickLiveMode == StickLiveMode::toggle ? "TOGGLE" : "HOLD";
   fprintf(file, "stickLiveMode: %s\n", stickLiveMode);
-  for (int track = 0; track < PROJECT_MAX_TRACKS; ++track) {
-    const auto& visual = appSettings.trackVisuals[track];
-    fprintf(file, "trackVisuals%d: %d\n", track + 1, (int)visual.mode);
-  }
+  fprintf(file, "persistentWaveform: %d\n", appSettings.persistentWaveform);
+  for (int track = 0; track < PROJECT_MAX_TRACKS; ++track)
+    fprintf(file, "trackVisuals%d: %d\n", track + 1, (int)appSettings.trackVisuals[track].mode);
 
   fprintf(file, "midiChannelInstrument: ");
   for (int i = 0; i < MIDI_CHANNEL_COUNT; i++) {
@@ -190,8 +192,6 @@ int settingsSave(void) {
   }
   fprintf(file, "midiInputDeviceName: %s\n", appSettings.midiInputDeviceName);
   fprintf(file, "midiOutputDeviceName: %s\n", appSettings.midiOutputDeviceName);
-
-  fprintf(file, "persistentWaveform: %d\n", appSettings.persistentWaveform);
 
   // Save key mapping codes
   fprintf(file, "keyUp: %d,%d,%d\n", appSettings.keyMapping.keyUp[0].code, appSettings.keyMapping.keyUp[1].code, appSettings.keyMapping.keyUp[2].code);
@@ -238,6 +238,8 @@ int settingsSave(void) {
   fprintf(file, "fontPath: %s\n", appSettings.fontPath);
   fprintf(file, "fontFolderPath: %s\n", appSettings.fontFolderPath);
   fprintf(file, "samplePath: %s\n", appSettings.samplePath);
+  fprintf(file, "exportPath: %s\n", appSettings.exportPath);
+  fprintf(file, "exportLastFolder: %s\n", appSettings.exportLastFolder);
   fprintf(file, "ayWavetablePath: %s\n", appSettings.ayWavetablePath);
   fprintf(file, "scwfPath: %s\n", appSettings.scwfPath);
   fprintf(file, "srWavetablePath: %s\n", appSettings.srWavetablePath);
@@ -270,18 +272,15 @@ int settingsLoad(void) {
       len--;
     }
 
-    if (strncmp(line, "trackVisuals", 11) == 0) {
-      int track, mode;
-      // Earlier versions saved per-layer flags after the mode. Preserve the
-      // mode and ignore those flags: each display now includes all its layers.
-      if (sscanf(line, "trackVisuals%d: %d", &track, &mode) == 2 &&
-          track >= 1 && track <= PROJECT_MAX_TRACKS && mode >= 0 && mode <= 1) {
-        appSettings.trackVisuals[track - 1].mode = (TrackVisualMode)mode;
-      }
-    } else if (strncmp(line, "persistentWaveform: ", 20) == 0) {
+    if (strncmp(line, "persistentWaveform: ", 20) == 0) {
       int enabled;
-      if (sscanf(line + 20, "%d", &enabled) == 1 && enabled >= 0 && enabled <= 1)
+      if (sscanf(line + 20, "%d", &enabled) == 1 && (enabled == 0 || enabled == 1))
         appSettings.persistentWaveform = (uint8_t)enabled;
+    } else if (strncmp(line, "trackVisuals", 11) == 0) {
+      int track, mode;
+      if (sscanf(line, "trackVisuals%d: %d", &track, &mode) == 2 &&
+          track >= 1 && track <= PROJECT_MAX_TRACKS && mode >= 0 && mode <= 1)
+        appSettings.trackVisuals[track - 1].mode = (TrackVisualMode)mode;
     } else if (strncmp(line, "screenWidth: ", 13) == 0) {
       sscanf(line + 13, "%d", &appSettings.screenWidth);
     } else if (strncmp(line, "screenHeight: ", 14) == 0) {
@@ -426,6 +425,12 @@ int settingsLoad(void) {
     } else if (strncmp(line, "samplePath: ", 12) == 0) {
       strncpy(appSettings.samplePath, line + 12, PATH_LENGTH);
       appSettings.samplePath[PATH_LENGTH] = 0;
+    } else if (strncmp(line, "exportPath: ", 12) == 0) {
+      strncpy(appSettings.exportPath, line + 12, PATH_LENGTH);
+      appSettings.exportPath[PATH_LENGTH] = 0;
+    } else if (strncmp(line, "exportLastFolder: ", 18) == 0) {
+      strncpy(appSettings.exportLastFolder, line + 18, FILENAME_LENGTH);
+      appSettings.exportLastFolder[FILENAME_LENGTH] = 0;
     } else if (strncmp(line, "ayWavetablePath: ", 17) == 0) {
       strncpy(appSettings.ayWavetablePath, line + 17, PATH_LENGTH);
       appSettings.ayWavetablePath[PATH_LENGTH] = 0;
@@ -451,6 +456,11 @@ int settingsLoad(void) {
 #elif defined(ANDROID_BUILD) || defined(DESKTOP_BUILD)
   // Migrate the old 10 Hz default.
   if (appSettings.audioBufferSize == 4906) appSettings.audioBufferSize = 1600;
+#ifdef ANDROID_BUILD
+  // Migrate the previous Android latency-oriented default.
+  if (appSettings.audioBufferSize == 1600) appSettings.audioBufferSize = 512;
+  if (appSettings.audioBufferSize == 512) appSettings.audioBufferSize = 256;
+#endif
 #endif
   if (appSettings.braidsBits < 0 || appSettings.braidsBits > 6) appSettings.braidsBits = 6;
   if (appSettings.braidsDrift < 0 || appSettings.braidsDrift > 4) appSettings.braidsDrift = 0;

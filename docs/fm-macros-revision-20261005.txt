@@ -1,0 +1,46 @@
+FM master macros and native SID controls — October 5, 2026
+
+FET envelope time, FTD modulator decay and FHR modulator coarse ratio are
+available on OPLL, VRC7, OPL2, OPL3, Genesis, Arcade and DX7. FDT operator
+detune spread and FLR/FLD native LFO rate/depth are available on Genesis,
+Arcade and DX7. The LFO proposal is two independently editable commands.
+
+All six FM commands are relative to the selected preset: 80 is unchanged.
+They support SLE and modulation destinations, and clamp to native limits.
+Existing native stepped selectors retain their small ranges. Help names their
+parameter resolution separately from audio bit depth. Ratios/detune/LFO rates
+remain quantized to native states; 00-FF macros do not create extra states.
+
+Changes update live registers or voice parameters, without retriggering notes.
+Yamaha zero-rate holds remain holds. Tone decay only affects modulators, so
+fully additive patches have no response. Fixed-frequency DX7 operators retain
+their frequency under FHR. LFO rate needs depth; amplitude modulation follows
+operator enables/sensitivities. Positive FLD offsets enable a disabled native
+Genesis/Arcade LFO. All values derive from the saved patch on every update.
+Preset bytes are never modified by phrase automation.
+
+SID adds SAT, SDE, SSU and SRL for native ADSR and SPR for its silent partner
+ratio. All are discrete 00-0F; SPR selects ratios 1x-16x. The existing native
+filter and voice budget remain. Sega/GB already expose the supported tone,
+duty, noise, sweep and envelope controls; no invented waveform controls added.
+
+Help now spells out preset-relative values, oscillator roles and SLE smoothing.
+Native parameter ranges are documented, including 3-bit/eight-step controls.
+
+Validation includes native phrase/voice equivalence without project mutation;
+endpoint and neutral live automation across host block sizes; audible-response
+fixtures with active decay/LFO; preservation of DX7 envelope stages; support
+matrix/defaults; CNI, CCT and archive round trips. Production UI verifies every
+new command has a title/description and value hint. Device validation adds an
+FM macro audition to the SID and balanced sample/FM physical audio workloads.
+
+Build/install results are recorded separately after validation completes.
+
+DEVICE INSTALLATION COMPLETE
+Source: 588e0ea246d26ed9a17bd33d99699ca633e359b6
+Binary SHA-256: 603753a136b477cf39dfc544d79a8dfbd0031d154dab434a19967a79732ce6fa
+Rollback: /roms/choochootracker-backups/pre-fm-macros-588e0ea246d2/previous-install
+Receipt: docs/fm-macros-device-20261005.json
+Settings, projects and the regular launcher were preserved. User listening
+remains pending; dense SID arrangements still need CPU headroom.
+Physical audio validation used the saved 48 kHz / 4906-frame buffer setting.

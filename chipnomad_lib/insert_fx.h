@@ -10,6 +10,13 @@ enum InsertModule : uint8_t {
   insertDoubler,
   insertTape,
   insertOTT,
+  insertChorus,
+  insertFlanger,
+  insertPhaser,
+  insertRotary,
+  insertSaturation,
+  insertBitcrusher,
+  insertDestruction,
   insertModuleCount
 };
 enum class InsertMapping : uint8_t { linear, exponential, bipolar, discrete };

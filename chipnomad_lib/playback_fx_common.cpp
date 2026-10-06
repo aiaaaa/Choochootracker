@@ -228,7 +228,7 @@ static void restartFX_VOL(PlaybackState* state, PlaybackTrackState* track, int t
 }
 
 static void handleFX_VOL(PlaybackState* state, PlaybackTrackState* track, int trackIdx, int chipIdx, PlaybackFXState* fx) {
-  track->note.volumeOffset += fx->acc;
+  track->note.volumeOffset += fx->acc * (PHRASE_VOLUME_MAX / 15);
 }
 
 // VSL - Volume slide
@@ -247,7 +247,7 @@ static void initFX_VSL(PlaybackState* state, PlaybackTrackState* track, int trac
 
 static void handleFX_VSL(PlaybackState* state, PlaybackTrackState* track, int trackIdx, int chipIdx, PlaybackFXState* fx) {
   fx->acc += fx->d.bend.speed;
-  track->note.volumeOffset += fx->acc >> 8;
+  track->note.volumeOffset += (fx->acc >> 8) * (PHRASE_VOLUME_MAX / 15);
 }
 
 // GRV - Track groove
@@ -351,7 +351,7 @@ static void handleFX_RET(PlaybackState* state, PlaybackTrackState* track, int tr
     restartFX(state, trackIdx);
     fx->acc += volumeOffset;
   }
-  track->note.volumeOffset += fx->acc;
+  track->note.volumeOffset += fx->acc * (PHRASE_VOLUME_MAX / 15);
 }
 
 // PVB - Pitch vibrato
@@ -404,6 +404,32 @@ void initFX(PlaybackState* state, int trackIdx, uint8_t* fx, PlaybackTableState*
     if (parameter < insertDescriptor(module).count) {
       track->inserts.values[slot][parameter] = insertClamp(module, parameter, fx[1]);
       track->inserts.valid[slot] |= 1 << parameter;
+    }
+    return;
+  }
+  if (fx[0] >= fxOAR && fx[0] <= fxLEN) {
+    if (track->note.instrument == EMPTY_VALUE_8) return;
+    const auto* instrument = &state->p->instruments[track->note.instrument];
+    if (!instrumentFXAvailableForInstrument(instrument, fx[0])) return;
+    constexpr int op = 0;
+    NativeFXInfo info{};
+    if (!instrumentDirectFMInfo(instrument, fx[0], &info, op)) return;
+    int value = clampInt(fx[1], info.minimum, info.maximum);
+    if (fx[0] >= fxOAR && fx[0] <= fxOE4) {
+      int n=fx[0]-fxOAR;
+      auto& target=track->note.nativeFM.operators[op][n];
+      if(!target)track->note.nativeFMCurrent.operators[op][n]=value+1;
+      if(target!=value+1)track->note.nativeFMRemaining.operators[op][n]=track->slewTicks;
+      target=value+1;
+      return;
+    }
+    if (fx[0] >= fxLFR) {
+      int n=fx[0]-fxLFR;
+      auto& target=track->note.nativeFM.global[n];
+      if(!target)track->note.nativeFMCurrent.global[n]=value+1;
+      if(target!=value+1)track->note.nativeFMRemaining.global[n]=track->slewTicks;
+      target=value+1;
+      return;
     }
     return;
   }

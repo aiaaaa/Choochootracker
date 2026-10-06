@@ -1,0 +1,170 @@
+Status: implemented, validated and installed. The original audit below records
+the pre-change behavior; the implementation update and device receipt describe
+the shipped result.
+
+Absolute FX coverage audit — October 5, 2026
+
+Scope: source audit of the complete FX enum, instrument destinations, FX
+handlers, native voice mappings, insert mappings and editor metadata at
+3ddcaa007290005c733e2b74e9bc6bbe8862f339. This is an audit, not a completed
+conversion. No playback code or installed device files changed for this audit.
+
+Requirement: when a control has a single native value representable in one
+byte, its tracker value should select that value directly, show the actual
+instrument/preset value, and stop at its real legal limits. Passing tests for
+the narrower previous implementation did not establish this requirement.
+
+ALL REMAINING STATIC OFFSET COMMANDS
+
+FM master macros (7): FBR, FET, FTD, FDT, FHR, FLR, FLD.
+These set an offset from a saved patch; they do not accumulate each occurrence.
+All use a nominal 00–FF command range with 80 as identity.
+
+Legacy FM operator offsets (6): FO1, FO2, FO3, FO4, FO5, FO6.
+Hidden from new selection, still readable/playable in existing songs.
+Absolute OL1–OL6 were added instead. FFB is a separate legacy encoding:
+00 means preset and 01–08 select feedback 0–7. It is not an additive offset.
+FBK is the new direct 00–07 command.
+
+Modulation offsets (20): M1A, M11, M12, M13, M14;
+M2A, M21, M22, M23, M24; M3A, M31, M32, M33, M34;
+M4A, M41, M42, M43, M44.
+These accumulate signed offsets. Amount is stored as a signed byte; P1–P4
+are unsigned bytes, with meanings/limits depending on modulation type.
+The stored parameters fit a byte, although a mapped physical value such as
+fast-LFO frequency need not equal that byte. P5 has no corresponding Mx5 FX.
+
+AY offsets (12): NOI, EPT, TNP, TNF, ENP, ENF, SFP, SFF,
+SFM, PWM, SPL, SWT. These accumulate offsets.
+SFM/PWM/SPL/SWT target byte-sized instrument fields and can have direct
+absolute controls. NOI already has NOA as its absolute counterpart (00–1F;
+FF currently bypasses the override). EPT targets a wider envelope period;
+EPL/EPH already set its low/high bytes. TNP/TNF, ENP/ENF and SFP/SFF concern
+pitch/fine offsets; TNN, ENN and SFN already set explicit notes. Their signed
+instrument tuning fields and absolute note values must not be conflated.
+
+Common offsets (4): PIT, FIN, PRD, VOL. These accumulate offsets to the note,
+period or volume. Note and volume columns already provide absolute values;
+period can exceed a byte. A signed tuning amount can be set absolutely but
+still expresses a displacement from the note, not an absolute oscillator pitch.
+
+Total: 49 static offset command IDs, including six hidden legacy FO commands.
+Separately, ARP, PVB, PBN, PSL, VSL, EVB, EBN and ESL express time-varying
+arpeggiation, vibrato, bends or slides. They are not missing static preset
+setters. Timing, routing, triggers and song-flow commands likewise do not
+represent native instrument parameter values.
+
+FM MACRO FEASIBILITY (ACTUAL PLAYBACK MAPPINGS)
+
+FLR: one saved LFO-rate field. Direct native ranges fit: Genesis 00–07,
+Arcade 00–FF, DX7 00–63. This is a clear omission in the previous conversion.
+LFO enable is a separate setting and must remain explicit.
+
+FBR: shifts all modulator output levels. OPLL/VRC7 have one modulator in
+this implementation; other algorithms can have several with different levels.
+OL commands supply exact individual output levels. There is no universal
+single saved native brightness register shared by all FM engines.
+
+FET: changes attack/decay/release across operators (plus sustain rate on
+four-op engines; all four operator envelope rates on DX7). Individual native
+rates fit in a byte, but one preset can contain many different rates.
+
+FTD: changes modulator decay rates, including sustain-rate/second decay
+where implemented. Those individual rates fit; they need separate targets
+to reproduce different preset values exactly.
+
+FDT: alternates detune offsets between operators. Individual detunes fit;
+one global spread value is not an individual saved detune value.
+
+FHR: shifts modulator frequency multipliers. Individual multipliers fit
+(OPLL/OPL/four-op 00–0F, DX7 coarse ratio 00–1F). Multiple modulators may
+have different multipliers; DX7 also has fine frequency and fixed/ratio mode.
+One macro value cannot describe the complete preset ratio configuration.
+
+FLD: changes several different LFO depth/sensitivity fields together:
+Genesis amplitude/pitch sensitivities; Arcade amplitude/pitch depths plus
+sensitivities; DX7 pitch/amplitude depth plus pitch sensitivity. Each field
+fits, but they can differ. Direct setters need separate named targets.
+
+For these multi-target macros, replacing 80 with a single native number
+would either select only one field or overwrite several different preset
+values. Exact control requires exposing the individual fields (or an explicit
+target selector); it is not solved by changing the label or clamping to FF.
+
+ABSOLUTE, BUT STILL NOT DIRECT NATIVE NUMBERING
+
+SMR: SID macro speed scales 00–FF to native 1–200. Native 01–C8 fits exactly.
+SWV: SID waveform encodes native 1–8 as 0–7.
+SPR: SID partner ratio encodes native 1–16 as 0–15.
+ARS, AEM, AAC: aChChid resonance/envelope modulation/accent scale 00–FF to
+integer 0–100. Native 00–64 fits exactly.
+These are additional candidates under the user's granularity requirement,
+despite already being absolute rather than relative.
+
+Wider or physical-unit mappings cannot represent every native value in one
+byte: SID SCP (0–4095), SCT (0–2047); filter cutoff commands in Hz; sample
+SSP speed (0–500 percent); ADC decay (200–2000); Braids/Plaits-style timbre,
+color/harmonics/morph parameters (15-bit). Their absolute byte controls are
+quantized mappings. Sample start/end similarly select normalized positions,
+not arbitrary sample-frame indices. Insert F11–F28 set saved control bytes
+absolutely; mapped dB/Hz/time values may be continuous/nonlinear and discrete
+parameters have module-specific bounds.
+
+OTHER ABSOLUTE FAMILIES REVIEWED
+
+Braids, Plaits/PlaitsAlt, PCM sample, SCWF, BYOWTBL, aChChid, DrumSynth,
+MME and Sintered parameter setters; unified voice-post envelopes and sends;
+native GB/Sega controls; native SID controls; OL1–OL6 and FBK; MIDI CC;
+track inserts. These are setters rather than additional static offset families.
+This does not imply their UI bounds/preset readouts are all complete.
+
+EDITOR COVERAGE GAP
+
+The previous preset/readout/bounds path calls instrumentNativeFXInfo, which
+only covers the new native families. Earlier absolute controls, modulation
+parameters and inserts are outside that common path. They need the same
+context-aware source-of-truth metadata for preset value, legal minimum and
+maximum, signed encoding, and physical-unit display. Nonzero minima matter.
+The existing test even asserts that FET remains relative with preset 80;
+it verifies the old narrowed design, not the user's full requirement.
+
+COMPATIBILITY AND VALIDATION IMPLICATIONS
+
+Changing existing offset meanings can change old songs. The complete solution
+must preserve old playback through versioned semantics or legacy commands,
+including tables and modulation/motion recording. It needs equivalence checks:
+setting a direct FX to the preset field must preserve the sound, and changing
+it must match editing that field, at endpoints and intervening legal values.
+Multi-target FM controls need an agreed target layout before implementation;
+inventing one shared preset value would defeat the requirement.
+
+Primary source locations:
+chipnomad_lib/project.h (entire FX enum)
+chipnomad_lib/native_chip_controls.cpp (metadata/encoded preset values)
+chipnomad_lib/fm_macros.h and synth/{opll,opl,four_op,dx7}_voice.cpp
+chipnomad_lib/playback_fx_{common,ay,modulation}.cpp
+chipnomad_lib/playback_modulation.cpp
+chipnomad_lib/project_instruments.{h,cpp}
+chipnomad_lib/chipnomad_lib.cpp (runtime absolute/scaled setters)
+chipnomad_lib/insert_fx.cpp and sid_patch.cpp
+tracker/src/screens/edit_fx.cpp
+tracker/tests/test_native_fx_values.cpp
+
+Implementation update
+---------------------
+All seven personal relative FM macros are replaced by direct native fields.
+FOP selects the note-scoped operator, with independent target values and SLE.
+Modulation binds to a fixed operator and motion recording writes FOP+parameter.
+SID SMR/SWV/SPR use native speed/waveform/ratio values. Personal legacy aliases,
+relative runtime macros and format-6-native/7/8 phrase-volume migration removed.
+Eleven affected device song files are converted once, with original backups and
+checksum verification before installation. The internal FM evaluation is rewritten
+as an absolute-control audition; it is not expected to reproduce the retired
+multi-parameter macros exactly. Embedded sample bytes remain unchanged.
+Our bundled native-chip-audition is normalized to format 9 / 00-7F volume.
+AY, upstream pre-6 volume import, StickVelocity and reserved PD identifiers stay.
+Performance, ALSA timing and stress tests are skipped by explicit user request.
+Functional suites, exact native-value equivalence and production UI checks remain.
+
+Validation complete: host and ARM functional suites, production UI, startup
+and GitHub CI passed. See absolute-fx-device-20261005.json.

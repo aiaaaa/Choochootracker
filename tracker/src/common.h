@@ -49,11 +49,8 @@ struct KeyMapping {
 };
 
 enum class StickLiveMode { hold, toggle, free };
-
 enum class TrackVisualMode : uint8_t { detailed, audio };
-struct TrackVisualSettings {
-  TrackVisualMode mode = TrackVisualMode::detailed;
-};
+struct TrackVisualSettings { TrackVisualMode mode = TrackVisualMode::detailed; };
 
 struct AppSettings {
   int screenWidth;
@@ -103,6 +100,8 @@ struct AppSettings {
   char fontPath[PATH_LENGTH + 1];
   char fontFolderPath[PATH_LENGTH + 1];
   char samplePath[PATH_LENGTH + 1];
+  char exportPath[PATH_LENGTH + 1]; // Custom export folder; empty = default
+  char exportLastFolder[FILENAME_LENGTH + 1]; // Last default-scheme export folder (for rename on save)
   char ayWavetablePath[PATH_LENGTH + 1];
   char scwfPath[PATH_LENGTH + 1];
   char srWavetablePath[PATH_LENGTH + 1];

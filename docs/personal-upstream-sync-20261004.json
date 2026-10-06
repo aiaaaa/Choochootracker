@@ -1,0 +1,57 @@
+{
+  "upstream_commit": "df173ece4658e67c8c1d06e7d85e79ac4394fb1f",
+  "personal_before": "27f8ddb",
+  "insert_files_identical_to_personal_before": {
+    "chipnomad_lib/insert_fx.cpp": "45096218590224d8b02d98e4db8b83c3e8c6e0a1e73a21f85ae00482085d8ae9",
+    "chipnomad_lib/insert_fx.h": "3c7a30334262ff09e3d2eb5d990cdab52aac322c02fe5f11c31356f1fc566cf8",
+    "tracker/src/screens/screen_insert_fx.cpp": "7ff078b513dd89e977fe9bea4d13b06f5d44967573864956ed8f556b5f00f450",
+    "tracker/src/screens/edit_fx.cpp": "18adbe1b6511becaaccec99a1ca1ee2543ce26e688e0e8de63ab71bc2f31b7dc",
+    "tracker/src/screens/selection_popup.cpp": "067f4cecccbda9e55bd26689370982cc5838e2de4fbdcba17312d34ea49e40fb",
+    "tracker/src/screens/selection_popup.h": "3329c16d6d175904eed29baf0649ec78d99f1a0b4b0c60f298aee88d97ecea29",
+    "tracker/src/screens/screen_layout.cpp": "affeb1d4c8de0d0654aed4fb632f937285e5111eb99ee34ef934df691764cbbe",
+    "tracker/src/scope_display.cpp": "bbdc82ebd749e6244cee7c4e85a897c7b0aedf400c2cd19a6e725c1f850d28fe"
+  },
+  "hardware_installation": "not performed",
+  "tests": {
+    "personal": {
+      "passed": 485,
+      "failed": 0,
+      "skipped": 2,
+      "assertions": 74528146,
+      "get_lucky_enabled": true
+    },
+    "focused": {
+      "passed": 13,
+      "failed": 0
+    },
+    "skipped": [
+      "Get Lucky fresh-process reload opt-in",
+      "Get Lucky live network acquisition opt-in"
+    ]
+  },
+  "builds": {
+    "desktop_personal": "compiled; Get Lucky enabled; recovered Makefile.desktop output-name mismatch by copying the linked chipnomad binary to the common target name",
+    "web": "rebuilt using Emscripten 6.0.10; Get Lucky disabled as on the existing Web target"
+  },
+  "ui": {
+    "backend": "SDL dummy video/audio",
+    "fm_type_popup": "all seven FM types selected and reopened",
+    "adsr_pixels": "ten engines, waveform header off/on, twelve edits each; incremental and full redraw match",
+    "song_plus_ui_us": {
+      "p95": 1513.765,
+      "p99": 1801.055,
+      "max": 2329.576
+    },
+    "visual_review": [
+      "DX7 amp controls with waveform header",
+      "FM menu showing all seven entries"
+    ]
+  },
+  "artifacts": {
+    "tracker/build/desktop/choochootracker": "8fb7deddd49326f26d614db17aed180c08676848e5ab77dbbbfc7109a917b59f",
+    "tracker/build/desktop/native-chip-ui": "a04f17c8cdb9539c3d075b96ea0e40e93ec2e867535bc274dd4629cb61113c00",
+    "web/dist/choochootracker.wasm": "9270c1680aa52c69991e77c2fb0a67ffd5ca9e59748d4165cf3b54f66ec68a0e",
+    "web/dist/choochootracker.js": "678afbbc24d3a2e2ba9d06ee8b7c9271621665e802aab66f66a71cd792e11cec",
+    "web/dist/choochootracker.data": "28ede9d69019efac7c84f634389834a8d4a35c2d6a232947fd9f8852ef1a55c7"
+  }
+}

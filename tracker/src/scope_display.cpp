@@ -39,7 +39,6 @@ void scopeDisplayDraw(void) {
       int track = instrumentTrack();
       samples = track < 0 ? nullptr : monitorDisplayTrackSamples(track);
     }
-    if (currentScreen == &screenInsertFX) samples = monitorDisplayTrackSamples(*pSongTrack);
     int w = scope->widthPixels, h = scope->heightPixels;
     float range = 0.25f;
     if (samples) for (int i = 0; i < AUDIO_MONITOR_SAMPLES; ++i) range = std::max(range, fabsf(samples[i]));

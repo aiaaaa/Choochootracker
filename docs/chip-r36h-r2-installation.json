@@ -1,0 +1,18 @@
+{
+  "source_commit": "317a6dd448380986bcd756f961dc82705df84c8e",
+  "binary_sha256": "981f212bbd2e5f4e05d18624121c4759956aceb87fed72c554c06a9747f923af",
+  "binary_bytes": 2033120,
+  "binary_build_commit": "d9dbdeefc15466827532e1e84b41def4f7f795d2",
+  "archive_sha256": "f747e9c902f0d3a1b836e19e303d031644be1542b891b528fd8ea4924d0752d2",
+  "archive_bytes": 12795085,
+  "native_presets": 876,
+  "installed": "/roms/ports/choochootracker",
+  "rollback": "/roms/choochootracker-backups/pre-chip-fixes-r2-317a6dd44838/previous-install",
+  "preserved_files": 1649,
+  "launcher_unchanged": true,
+  "installed_inventory_verified": true,
+  "rollback_inventory_verified": true,
+  "dependencies_resolved": true,
+  "host_date": "2026-10-04",
+  "human_listening": "pending"
+}

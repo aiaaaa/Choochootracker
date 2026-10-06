@@ -1,0 +1,91 @@
+{
+  "device": "R36H ARM64",
+  "compiler": "GCC 9.2.1",
+  "native_tests": {
+    "passed": 373,
+    "skipped_opt_in": 2,
+    "assertions": 72691826
+  },
+  "host_tests": {
+    "passed": 361,
+    "assertions": 72681789
+  },
+  "benchmark_cases": 64,
+  "soak": {
+    "kind": "4WAV+2chip+2FM chord song (8 tracks)+4 inserts+sends",
+    "rate": "48000",
+    "frames": "512",
+    "notes": "11",
+    "seconds": "600",
+    "mean_us": "7911.405",
+    "p50_us": "8072.459",
+    "p95_us": "8647.042",
+    "p99_us": "9041.375",
+    "worst_us": "20440.875",
+    "deadline_misses": "28",
+    "part_bytes": "782032"
+  },
+  "soak_log": "Paced host soak: 600 seconds plus warmup; 10k metadata scans=3948 maxrss_native_units=52508\nOffline render, not device callbacks; checksum -453.191088136; no hardware underrun/thermal observation\n",
+  "memory": {
+    "units": "KiB",
+    "samples": 60,
+    "rss_first": 36140,
+    "rss_last": 50708,
+    "rss_min": 36140,
+    "rss_max": 50708,
+    "hwm_max": 52508,
+    "duration_between_samples_seconds": 593.3773459910003,
+    "rss_after_60s_min": 50444,
+    "rss_after_60s_max": 50708
+  },
+  "thermal": {
+    "samples": 60,
+    "temperature_min_C": 62.083,
+    "temperature_max_C": 74.583,
+    "cpu_khz_observed": [
+      1008000,
+      1248000,
+      1512000
+    ],
+    "governor": "interactive"
+  },
+  "hardware_audio": {
+    "status": "passed",
+    "audio_device": "plughw:0,0",
+    "format": "S16",
+    "rate": 48000,
+    "frames": 4906,
+    "hardware_period_frames": 4906,
+    "hardware_buffer_frames": 9812,
+    "test_master_gain": 0.4,
+    "bank_demo_log": "driver=alsa format=S16 master_gain=0.4 rate=48000 frames=4906 callbacks=685 p95_us=22131.959 p99_us=24590.416 worst_us=27391.875 render_deadline_misses=0 energy=677.059629 peak=0.092977 nonfinite=0\n",
+    "balanced_demo_log": "driver=alsa format=S16 master_gain=0.4 rate=48000 frames=4906 callbacks=685 p95_us=80990.292 p99_us=81576.542 worst_us=81818.625 render_deadline_misses=0 energy=151215.604604 peak=0.792452 nonfinite=0\n",
+    "alsa_underrun_messages": 0,
+    "preservation": {
+      "installed_settings_and_autosave_unchanged": true,
+      "configured_frames": 4906,
+      "format": "S16",
+      "audio_device": "plughw:0,0 (matches regular launcher)",
+      "test_master_gain": 0.4,
+      "checks": [
+        "70-second bank demo",
+        "70-second balanced chord/four-insert demo",
+        "production startup with direct-card route waveform OFF/ON"
+      ],
+      "subjective_listening": "pending"
+    }
+  },
+  "subjective_listening": "pending",
+  "configured_device_audio_preserved": {
+    "sample_rate": 48000,
+    "buffer_frames": 4906
+  },
+  "small_buffer_audio": {
+    "format": "F32",
+    "frames": 512,
+    "bank_demo_log": "ALSA lib pcm.c:8432:(snd_pcm_recover) underrun occurred\nALSA lib pcm.c:8432:(snd_pcm_recover) underrun occurred\ndriver=alsa rate=48000 frames=512 callbacks=6558 p95_us=2549.750 p99_us=2708.417 worst_us=21012.250 render_deadline_misses=3 energy=4227.134218 peak=0.232443 nonfinite=0\n",
+    "balanced_demo_and_preservation": "driver=alsa rate=48000 frames=512 callbacks=6560 p95_us=8316.291 p99_us=8918.292 worst_us=11295.958 render_deadline_misses=1 energy=944085.102460 peak=1.981129 nonfinite=0\n{\n  \"installed_settings_and_autosave_unchanged\": true,\n  \"checks\": [\n    \"70-second SDL ALSA bank demo\",\n    \"70-second 4WAV+2chip+2FM chord and four-insert SDL ALSA demo\",\n    \"production executable waveform OFF/ON startup\"\n  ],\n  \"subjective_listening\": \"pending\"\n}\n",
+    "bank_alsa_underrun_messages": 2
+  },
+  "binary_sha256": "1966139c400e5fc25ca93107b5d442816f5d60c84d026814bef750a6945bc247"
+}

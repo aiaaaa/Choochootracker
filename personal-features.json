@@ -1,9 +1,9 @@
 {
   "upstream": "paiheulevrai/Choochootracker",
   "upstream_branch": "main",
-  "upstream_commit": "a02a88098a03b10518806268f039b9d9b8b2f5a9",
+  "upstream_commit": "6e9eb2b79f7024027e8ff1308d131aa05c0096ed",
   "personal_branch": "personal/r36h",
-  "update_policy": "Current upstream main plus retained personal choices and explicitly requested experiments. Test, preserve user data, record commit, and retain rollback before installation.",
+  "update_policy": "Personal combines upstream main, my additions not yet incorporated upstream, and my experiments. Keep unmerged additions, including pending or declined submissions. Once incorporated upstream, replace my earlier implementation with the maintainer's merged version, including his fixes and changes; remove duplicate code and controls. Test, preserve user data, record commit, and retain rollback before installation.",
   "features": [
     {
       "id": "fonts-theme",
@@ -11,8 +11,8 @@
       "branch": "contribution/fonts-16x24",
       "included_commit": "23934421ee30970314b700e7471e8ef951f6a4c1",
       "upstream_pr": "https://github.com/paiheulevrai/Choochootracker/pull/17",
-      "retain_if_declined": true,
-      "upstream_status": "merged directly"
+      "upstream_status": "merged directly",
+      "integration_policy": "Keep the personal feature until incorporated upstream, including if its PR is pending or declined. Then use the maintainer's implementation instead of the earlier personal code."
     },
     {
       "id": "piano",
@@ -20,8 +20,8 @@
       "branch": "contribution/piano-visualization",
       "included_commit": "ea5dd1bc039fbcaf12c4f2f748c386ace93d03a7",
       "upstream_pr": "https://github.com/paiheulevrai/Choochootracker/pull/18",
-      "retain_if_declined": true,
-      "upstream_status": "integrated via upstream PR #23; original PR closed as superseded"
+      "upstream_status": "integrated via upstream PR #23; original PR closed as superseded",
+      "integration_policy": "Keep the personal feature until incorporated upstream, including if its PR is pending or declined. Then use the maintainer's implementation instead of the earlier personal code."
     },
     {
       "id": "project-spacing",
@@ -29,8 +29,8 @@
       "branch": "contribution/project-page-spacing",
       "included_commit": "942ec81c502425dae4f8b450e263d7b3723ad169",
       "upstream_pr": "https://github.com/paiheulevrai/Choochootracker/pull/19",
-      "retain_if_declined": true,
-      "upstream_status": "merged directly"
+      "upstream_status": "merged directly",
+      "integration_policy": "Keep the personal feature until incorporated upstream, including if its PR is pending or declined. Then use the maintainer's implementation instead of the earlier personal code."
     },
     {
       "id": "track-visuals",
@@ -38,8 +38,8 @@
       "branch": "contribution/track-visuals",
       "included_commit": "557d718c4db38e467acde80d5fadccf15ed4ab1d",
       "upstream_pr": "https://github.com/paiheulevrai/Choochootracker/pull/20",
-      "retain_if_declined": true,
-      "upstream_status": "open; retained personal addition"
+      "upstream_status": "maintainer GPU integration and touch corrections adopted; native-chip display compatibility retained",
+      "integration_policy": "Keep the personal feature until incorporated upstream, including if its PR is pending or declined. Then use the maintainer's implementation instead of the earlier personal code."
     },
     {
       "id": "persistent-waveform",
@@ -47,8 +47,8 @@
       "branch": "contribution/persistent-waveform",
       "included_commit": "40d4a6e6e680e8f5f27c8a80d612ba8b641edb2a",
       "upstream_pr": "https://github.com/paiheulevrai/Choochootracker/pull/21",
-      "retain_if_declined": true,
-      "upstream_status": "merged in upstream main; personal waveform/layout coexistence retained"
+      "upstream_status": "merged in upstream main; personal waveform/layout coexistence retained",
+      "integration_policy": "Keep the personal feature until incorporated upstream, including if its PR is pending or declined. Then use the maintainer's implementation instead of the earlier personal code."
     },
     {
       "id": "mixer-meters",
@@ -56,8 +56,78 @@
       "branch": "contribution/mixer-level-meters",
       "included_commit": "d2b93935a879a6bea576c15a614e9d037f8d0a32",
       "upstream_pr": "https://github.com/paiheulevrai/Choochootracker/pull/22",
-      "retain_if_declined": true,
-      "upstream_status": "integrated via upstream PR #23; original PR closed as superseded"
+      "upstream_status": "integrated via upstream PR #23; original PR closed as superseded",
+      "integration_policy": "Keep the personal feature until incorporated upstream, including if its PR is pending or declined. Then use the maintainer's implementation instead of the earlier personal code."
+    },
+    {
+      "id": "native-chip-instruments",
+      "title": "Native chip instruments and preset banks, including DX7 scope extension",
+      "branch": "feature/native-chip-instruments",
+      "base_commit": "c0a8c7e9ee7e177e94294ede7e6cad09c59f06c8",
+      "upstream_status": "Merged via PR #39; maintainer preview, FX grouping, SID and build follow-ups adopted",
+      "implemented": [
+        "OPLL",
+        "VRC7",
+        "OPL2",
+        "OPL3",
+        "Sega PSG",
+        "GB Pulse",
+        "GB Noise",
+        "DX7 FM",
+        "Genesis FM",
+        "Arcade FM"
+      ],
+      "pending": [
+        "DX7 1000-cleared-preset goal unmet (67 distinct bundled)"
+      ],
+      "factory_cni": 876,
+      "dx7_parameter_patches": 67,
+      "dx7_large_library_target": 1000,
+      "dx7_large_library_target_met": false,
+      "notes": "Existing personal features retained. Shared FM browser, native v6 patch ownership, strict local DX7 SysEx. Global 16-active-note DX7 budget selected from R36H measurements. Balanced 4WAV+2chip+2FM with four inserts passes direct-card audio at preserved settings; dense FM/insert and small-buffer limits are documented.",
+      "status": "Merged upstream implementation adopted in personal source; device remains on its recorded installed revision",
+      "fm_catalog_entries": 812,
+      "included_commit": "6e9eb2b79f7024027e8ff1308d131aa05c0096ed",
+      "dx7_active_note_limit": 16,
+      "validation_report": "docs/chip-instruments-report.md",
+      "baseline_validation": "Validated for device personal build: desktop/web, 373 ARM64 tests, 64 benchmark cases, 600-second soak, real ALSA audio and waveform OFF/ON startup",
+      "r2_changes": [
+        "per-voice FM onset and gain smoothing",
+        "optional native FM amp ADSR and brightness/feedback",
+        "Sega low-note extension",
+        "Sega/GB phrase and modulation controls",
+        "ADSR graph redraw fix"
+      ],
+      "r2_validation_report": "docs/chip-r36h-r2-validation.json",
+      "integration_policy": "Keep the personal feature until incorporated upstream, including if its PR is pending or declined. Then use the maintainer's implementation instead of the earlier personal code.",
+      "preset_revision_20261005": {
+        "native_presets": 1140,
+        "added_presets": 264,
+        "drop_in_bank_folder": "instruments/banks/dx7/",
+        "shared_bank_browser": [
+          "OPLL",
+          "VRC7",
+          "OPL2",
+          "OPL3",
+          "Genesis FM",
+          "Arcade FM",
+          "DX7"
+        ],
+        "validation": "Host and ARM64 personal suites, interface and ALSA checks passed; installed for user evaluation",
+        "report": "docs/instrument-revision-20261005.txt"
+      },
+      "upstream_pr": "https://github.com/paiheulevrai/Choochootracker/pull/39"
+    },
+    {
+      "id": "track-insert-fx",
+      "branch": "feature/track-insert-fx",
+      "included_commit": "1f4deb64df74e267957e0608976c898bccf01e8d",
+      "status": "Merged upstream; Personal adopts the maintainer review and follow-up polish.",
+      "upstream_pr": "https://github.com/paiheulevrai/Choochootracker/pull/31",
+      "title": "Track insert effects",
+      "upstream_status": "merged via PR #31 and review PR #34",
+      "upstream_review_pr": "https://github.com/paiheulevrai/Choochootracker/pull/34",
+      "documentation": "docs/personal-insert-review-20261004.txt"
     }
   ],
   "personal_assets": [
@@ -67,14 +137,8 @@
       "upstream_pr": null
     }
   ],
-  "channel": "personal-alpha",
+  "channel": "device-personal-build",
   "experiments": [
-    {
-      "id": "track-insert-fx",
-      "branch": "feature/track-insert-fx",
-      "included_commit": "6014ec51437e5b23ec49a825c8990c2e955b0786",
-      "status": "personal Alpha testing; upstream PR pending review"
-    },
     {
       "id": "mod-lucky",
       "branch": "experimental/mod-lucky-integrated",
@@ -83,17 +147,138 @@
       "build_flag": "CHOOCHOO_EXPERIMENTAL_MOD_LUCKY=1",
       "normal_build_default": "OFF",
       "documentation": "docs/mod-lucky.md"
+    },
+    {
+      "id": "sid-fm-controls",
+      "branch": "feature/sid-fm-integration",
+      "status": "Installed for user evaluation",
+      "documentation": "docs/sid-fm-revision-20261005.txt",
+      "presets": 56,
+      "fm_controls": "Absolute native operator and feedback values; personal FBR translation removed",
+      "sid_model": "floooh/chips 6581 approximation; no alternate model/character options",
+      "included_commit": "70d7eee5ca3878e9143821735f4ed41ae15e7ebc",
+      "upstream_status": "Incorporated in merged PR #39; earlier revision retained here as history"
+    },
+    {
+      "id": "fm-master-macros",
+      "branch": "personal/r36h",
+      "status": "Replaced by absolute native controls",
+      "documentation": "docs/absolute-fx-audit-20261005.txt",
+      "fm_controls": [
+        "FOP",
+        "OAR",
+        "ODR",
+        "OSR",
+        "ORR",
+        "OSL",
+        "ODT",
+        "OMU",
+        "OFI",
+        "OFM",
+        "OE1",
+        "OE2",
+        "OE4",
+        "LFR",
+        "LAD",
+        "LPD",
+        "LAS",
+        "LPS",
+        "LEN"
+      ],
+      "sid_controls": [
+        "SAT",
+        "SDE",
+        "SSU",
+        "SRL",
+        "SPR"
+      ],
+      "included_commit": "588e0ea246d26ed9a17bd33d99699ca633e359b6",
+      "upstream_status": "Incorporated in merged PR #39; earlier revision retained here as history"
+    },
+    {
+      "id": "native-fx-values",
+      "branch": "personal/r36h",
+      "status": "Installed with complete absolute native controls",
+      "documentation": "docs/absolute-fx-audit-20261005.txt",
+      "absolute_operator_commands": [
+        "OL1",
+        "OL2",
+        "OL3",
+        "OL4",
+        "OL5",
+        "OL6"
+      ],
+      "absolute_feedback_command": "FBK",
+      "editor": "Row instrument lookup, preset defaults, native endpoint limits",
+      "compatibility": "Personal songs converted once; retired FO/FFB/FBR/macros and personal volume migrations removed; upstream compatibility retained",
+      "included_commit": "f4b086d5f18100ba239b018a2abaf2dc10bb81af",
+      "upstream_status": "Incorporated in merged PR #39; earlier revision retained here as history"
+    },
+    {
+      "id": "absolute-native-fx",
+      "status": "Installed for user evaluation",
+      "source_commit": "f4b086d5f18100ba239b018a2abaf2dc10bb81af",
+      "documentation": "docs/absolute-fx-audit-20261005.txt",
+      "personal_song_conversion": "eleven files converted once; personal compatibility paths removed",
+      "performance_tests": "skipped at user request",
+      "upstream_status": "Incorporated in merged PR #39; earlier revision retained here as history"
+    },
+    {
+      "id": "tracker-fx-simplification",
+      "status": "Installed for user evaluation",
+      "documentation": "docs/fx-simplification-20261005.txt",
+      "scope": "Compact tracker commands; selector removed; synthesis and live modulation unchanged",
+      "source_commit": "ee0e85c3cde127e24c138d8e58e14ead0cf5a6a2",
+      "upstream_status": "Incorporated in merged PR #39; earlier revision retained here as history"
     }
   ],
+  "personal_fixes": [
+    {
+      "id": "sample-stretch-lifetime",
+      "status": "Personal fix; not submitted upstream",
+      "source_commit": "d0403eca2fc9ea0ba01d323b975a72ceabe7c0f0",
+      "description": "Release owned sample-stretch processors when voices are destroyed; prevent shallow copies. Fixes memory growth during repeated exports and engine recreation."
+    },
+    {
+      "id": "embedded-wavetable-layout",
+      "status": "Frame metadata serialization incorporated upstream; Personal retains archive clm recovery",
+      "description": "Preserve Serum clm frame-size metadata in archived wavetable WAVs and restore it through the shared loader, so songs retain wavetable playback without the original WAV.",
+      "source_commit": "9caf6cf0cf307a4cda8ce856b740060f2d05bef9",
+      "upstream_commit": "7e0644e"
+    }
+  ],
+  "current_device_build": {
+    "source_commit": "ee0e85c3cde127e24c138d8e58e14ead0cf5a6a2",
+    "binary_sha256": "a632262a7fa337addf347d3957147ce76b75e22b12c072c1fe777a5510841578",
+    "validation_report": "docs/fx-simplification-device-20261005.json",
+    "human_listening": "not performed",
+    "rollback": "/roms/choochootracker-backups/pre-fx-simplification-ee0e85c3cde1/previous-install"
+  },
+  "song_storage": "Upstream CCT archives embed loaded Sample, SCWF and BYOWTBL audio. Text songs remain readable; no-sample songs stay text. Native patches remain owned by the song.",
+  "harmonization_20261005": {
+    "upstream_commit": "8c8709182b90a492ae8b5e2fc0bb0e7516644388",
+    "report": "docs/personal-harmonization-20261005.txt",
+    "status": "Published, validated and installed; user evaluation pending",
+    "native_song_volume": "00-7F from format 6 onward; personal legacy songs normalized once; upstream pre-6 support retained",
+    "source_commit": "5bfab9779f317f4fc6580292f285d0104917e52b"
+  },
+  "harmonization_20261006": {
+    "upstream_commit": "6e9eb2b79f7024027e8ff1308d131aa05c0096ed",
+    "previous_personal_commit": "072585c07c04ac5c3fe7324f88b9b9fc6b99755f",
+    "report": "docs/personal-harmonization-20261006.txt",
+    "status": "Validated source integration; no device installation"
+  },
   "ports": {
     "vita": {
       "branch": "personal/vita",
       "source_branch": "personal/r36h",
-      "source_commit": "c0a8c7e9ee7e177e94294ede7e6cad09c59f06c8",
+      "source_commit": "5c5c10a461090a5b1af1b10af4e0ef166f82187f",
       "title_id": "CCTRK0001",
       "documentation": "docs/vita.md",
       "personal_profile": "CHOOCHOO_EXPERIMENTAL_MOD_LUCKY=1",
-      "normal_profile": "CHOOCHOO_EXPERIMENTAL_MOD_LUCKY=0"
+      "normal_profile": "CHOOCHOO_EXPERIMENTAL_MOD_LUCKY=0",
+      "previous_vita_revision": "d3991a100b226ac360ed12521d3b221816fb5806",
+      "source_sync_status": "October 6 source synchronization; platform build validation pending; installed Vita unchanged"
     }
   }
 }

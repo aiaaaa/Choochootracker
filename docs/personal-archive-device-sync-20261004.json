@@ -1,0 +1,100 @@
+{
+  "date": "2026-10-04",
+  "upstream_commit": "ccbf261e28efc192875448c5e6deb2bd78ab8c59",
+  "application_source_commit": "9caf6cf0cf307a4cda8ce856b740060f2d05bef9",
+  "scope": "Upstream self-contained CCT archives; preserve BYOWTBL frame metadata; Personal and native-chip candidate sync",
+  "legacy_songs": "Remain readable. Existing files are preserved; saving a song with loaded audio uses the archive format.",
+  "archive_regression": "Ten native engines, custom DX7 patch, stereo PCM, two SCWF and two BYOWTBL oscillators, empty sample slot, missing original WAVs, legacy text, exact patch/audio preservation and identical archive resave.",
+  "initial_failures": [
+    "Regression first compile missing project_utils.h; corrected.",
+    "Upstream archive lost BYOWTBL frame layout without original WAV: four assertions failed; fixed with standard clm WAV metadata and shared wavetable loader."
+  ],
+  "host": {
+    "tests": "[doctest] run with \"--help\" for options\n===============================================================================\n[doctest] test cases:      487 |      487 passed | 0 failed | 2 skipped\n[doctest] assertions: 74528277 | 74528277 passed | 0 failed |\n[doctest] Status: SUCCESS!",
+    "ui": "Insert review UI passed: full-height page, grouped chooser, waveform off/on\nType popup passed: all seven FM types selected and reopened\nADSR pixel regression passed: ten engines, header off/on, twelve edits each\nUI smoke passed; song+UI 48k/1024 us p95=1304.781 p99=1489.838 worst=1802.006 energy=779.471366\n",
+    "web": "Emscripten 6.0.10 build passed; generated JS trailing whitespace normalized",
+    "web_sha256": {
+      "choochootracker.js": "be2382fa9d2cc169f8c2df2794ab0678971ff88f843e973c431b3835ed51a726",
+      "choochootracker.wasm": "abe12dffc60608c4f2abad25cf45634e2e5e4e958f2a427980feed17399ae343"
+    }
+  },
+  "device": {
+    "build": {
+      "source_commit": "9caf6cf0cf307a4cda8ce856b740060f2d05bef9",
+      "binary_sha256": "acc6cf5d8a4bf6b5c27a4865dbdda24ee149ba085601dd9fd5c27491a87154cd",
+      "binary_bytes": 2098800,
+      "build_method": "Verified cached source inventory; content-based dependency invalidation and forced relink after device reboot",
+      "invalidated_objects": 22
+    },
+    "tests": "===============================================================================\n[doctest] test cases:      487 |      487 passed | 0 failed | 2 skipped\n[doctest] assertions: 74528277 | 74528277 passed | 0 failed |\n[doctest] Status: SUCCESS!\nmake: warning:  Clock skew detected.  Your build may be incomplete.",
+    "ui": "Insert review UI passed: full-height page, grouped chooser, waveform off/on\nType popup passed: all seven FM types selected and reopened\nADSR pixel regression passed: ten engines, header off/on, twelve edits each\nUI smoke passed; song+UI 48k/1024 us p95=28757.459 p99=37873.500 worst=67594.041 energy=779.471368\n",
+    "hardware": {
+      "source_commit": "9caf6cf0cf307a4cda8ce856b740060f2d05bef9",
+      "measurements": {
+        "bank": {
+          "driver": "alsa",
+          "format": "S16",
+          "master_gain": "0.4",
+          "rate": "48000",
+          "frames": "4906",
+          "callbacks": "685",
+          "p95_us": "23443.875",
+          "p99_us": "24122.583",
+          "worst_us": "24504.958",
+          "render_deadline_misses": "0",
+          "energy": "673.298212",
+          "peak": "0.086550",
+          "nonfinite": "0"
+        },
+        "balanced-amp": {
+          "driver": "alsa",
+          "format": "S16",
+          "master_gain": "0.4",
+          "rate": "48000",
+          "frames": "4906",
+          "callbacks": "685",
+          "p95_us": "83484.334",
+          "p99_us": "84955.209",
+          "worst_us": "88186.584",
+          "render_deadline_misses": "0",
+          "energy": "150754.744858",
+          "peak": "0.792241",
+          "nonfinite": "0"
+        }
+      },
+      "settings_and_autosave_unchanged": true,
+      "frames": 4906,
+      "route": "plughw:0,0",
+      "startup_waveform_off_on": true,
+      "subjective_listening": "pending"
+    },
+    "installation": {
+      "source_commit": "9caf6cf0cf307a4cda8ce856b740060f2d05bef9",
+      "binary_sha256": "acc6cf5d8a4bf6b5c27a4865dbdda24ee149ba085601dd9fd5c27491a87154cd",
+      "binary_bytes": 2098800,
+      "build_method": "Verified cached source inventory; content-based dependency invalidation and forced relink after device reboot",
+      "invalidated_objects": 22,
+      "archive_sha256": "0c33677a8855feedd00942c6a82dde911acd5a3317f826f4ee85a67bb1d6eeab",
+      "archive_bytes": 12840401,
+      "archive": "/roms/choochootracker-personal-df8ebbd/validation-archive-20261004/ChooChooTracker-personal-9caf6cf-r36h.zip",
+      "native_presets": 876,
+      "installed": "/roms/ports/choochootracker",
+      "rollback": "/roms/choochootracker-backups/pre-personal-9caf6cf0cf30/previous-install",
+      "preserved_files": 1655,
+      "launcher_unchanged": true,
+      "installed_inventory_verified": true,
+      "rollback_inventory_verified": true,
+      "dependencies_resolved": true
+    }
+  },
+  "unchanged": [
+    "User songs and samples",
+    "Settings and autosave",
+    "Launcher",
+    "SSH/USB/headphone system configuration"
+  ],
+  "connection_note": "USB link was inactive after sleep; user reboot restored SSH. No network or device system changes made.",
+  "submitted_branches": "Unchanged; preserve original proposal history.",
+  "ui_timing_note": "Serial UI+render smoke at 48k/1024 exceeds the block interval on ARM; physical audio was checked separately at the preserved 4906-frame setting. This pre-existing small-buffer limitation is not claimed fixed.",
+  "human_listening": "pending"
+}

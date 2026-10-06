@@ -6,6 +6,7 @@
 #include <string.h>
 #include "screens.h"
 #include "screen_settings.h"
+#include "screen_export.h"
 #include "chipnomad_lib.h"
 #include "corelib_gfx.h"
 #include "corelib_file.h"
@@ -23,8 +24,9 @@ static AppScreen const* pendingScreen;
 static int pendingScreenInput;
 
 void drawScreenMap() {
-  if (currentScreen == &screenSelectionPopup && selectionPopupIsFullWidth()) return;
   ScreenOverlayCoordinates overlay;
+  // Native preset lists use the popup area through the footer.
+  if (currentScreen == &screenSelectionPopup) return;
   const static int smY = 15;
 
   const ColorScheme cs = appSettings.colorScheme;
@@ -39,29 +41,25 @@ void drawScreenMap() {
   if (currentScreen == &screenMixer) {
     gfxPrint(34, smY, "R");
     gfxPrint(34, smY + 2, "D");
-  } else if (currentScreen == &screenSong || currentScreen == &screenProject || currentScreen == &screenSettings || currentScreen == &screenTrackVisuals) {
+  } else if (currentScreen == &screenSong || currentScreen == &screenProject || currentScreen == &screenSettings) {
     gfxPrint(35, smY, "P");
   } else if (currentScreen == &screenPhrase || currentScreen == &screenGroove) {
     gfxPrint(37, smY, "G");
   } else if (currentScreen == &screenInstrument || currentScreen == &screenSampleSettings ||
-             currentScreen == &screenInstrumentPool) {
-    gfxPrint(38, smY + 2, "P");
+             currentScreen == &screenInstrumentPool || currentScreen == &screenModulation ||
+             currentScreen == &screenInsertFX) {
+    gfxPrint(38, smY - 1, "F");
     gfxPrint(38, smY, "M");
-  } else if (currentScreen == &screenModulation) {
     gfxPrint(38, smY + 2, "P");
   } else if (currentScreen == &screenTable || currentScreen == &screenAYWavetable) {
     gfxPrint(39, smY + 2, "W");
   }
 
   // Show Settings below Song
-  if (currentScreen == &screenSong || currentScreen == &screenProject || currentScreen == &screenSettings || currentScreen == &screenTrackVisuals) {
+  if (currentScreen == &screenSong || currentScreen == &screenProject || currentScreen == &screenSettings) {
     gfxPrint(35, smY + 2, "S");
   }
 
-  if (currentScreen == &screenInstrument || currentScreen == &screenModulation || currentScreen == &screenInsertFX) {
-    gfxPrint(38, smY - 1, "F");
-    gfxPrint(38, smY, "M");
-  }
   // Highlight current screen
   gfxSetFgColor(cs.textDefault);
   if (currentScreen == &screenMixer) {
@@ -73,7 +71,7 @@ void drawScreenMap() {
     gfxPrint(36, smY + 1, "C");
   } else if (currentScreen == &screenPhrase) {
     gfxPrint(37, smY + 1, "P");
-  } else if (currentScreen == &screenInstrument || currentScreen == &screenSampleSettings) {
+  } else if (currentScreen == &screenInstrument) {
     gfxPrint(38, smY + 1, "I");
   } else if (currentScreen == &screenInstrumentPool) {
     gfxPrint(38, smY + 2, "P");
@@ -89,7 +87,7 @@ void drawScreenMap() {
     gfxPrint(35, smY, "P");
   } else if (currentScreen == &screenGroove) {
     gfxPrint(37, smY, "G");
-  } else if (currentScreen == &screenSettings || currentScreen == &screenTrackVisuals) {
+  } else if (currentScreen == &screenSettings) {
     gfxPrint(35, smY + 2, "S");
   }
 }
@@ -295,6 +293,31 @@ static int screenTouchEnvelopeAt(int col, int row, int* targetCol) {
 
 static int screenTouchCellAt(int col, int row, int* targetCol, int* targetRow) {
   if (!touchScreenData || touchScreenData->selectMode == 1) return 0;
+  if (currentScreen == &screenTrackVisuals) {
+    int field = row >= 3 && row < 3 + PROJECT_MAX_TRACKS ? row - 3 : row == 12 ? PROJECT_MAX_TRACKS : row == 14 ? PROJECT_MAX_TRACKS + 1 : -1;
+    int column = -1;
+    if (field < 0) return 0;
+    if (field < PROJECT_MAX_TRACKS) {
+      if (col >= 4 && col < 18) column = 0;
+    } else if (field == PROJECT_MAX_TRACKS) {
+      if (col >= 0 && col < 12) column = 0;
+      else if (col >= 15 && col < 24) column = 1;
+    } else if (col >= 0 && col < 4) column = 0;
+    if (column < 0) return 0;
+    if (targetCol) *targetCol = column;
+    if (targetRow) *targetRow = field;
+    return 1;
+  }
+  if (currentScreen == &screenGraphicsSettings) {
+    const int fieldY[] = {2, 3, 4, 5};
+    const int widths[] = {16, 9, 26, 13};
+    int field = -1;
+    for (int i = 0; i < 4; ++i) if (row == fieldY[i]) field = i;
+    if (field < 0 || col < 0 || col >= widths[field]) return 0;
+    if (targetCol) *targetCol = 0;
+    if (targetRow) *targetRow = field;
+    return 1;
+  }
   if (currentScreen == &screenProject) {
     const int fieldY[] = {3, 5, 6, 7, 9, 10, 11, 12, 13, 14, 16};
     int field = -1, column = 0;
@@ -328,26 +351,12 @@ static int screenTouchCellAt(int col, int row, int* targetCol, int* targetRow) {
     if (targetRow) *targetRow = field;
     return 1;
   }
-  if (currentScreen == &screenTrackVisuals) {
-    int field = row >= 3 && row < 3 + PROJECT_MAX_TRACKS ? row - 3 : row == 12 ? PROJECT_MAX_TRACKS : row == 14 ? PROJECT_MAX_TRACKS + 1 : -1;
-    int column = -1;
+  if (currentScreen == &screenSettings) {
+    int field = row >= 2 && row <= 15 ? row - 2 : row == 18 ? 14 : -1;
     if (field < 0) return 0;
-    if (field < PROJECT_MAX_TRACKS) {
-      if (col >= 4 && col < 18) column = 0;
-    } else if (field == PROJECT_MAX_TRACKS) {
-      if (col >= 0 && col < 12) column = 0;
-      else if (col >= 15 && col < 24) column = 1;
-    } else if (col >= 0 && col < 4) column = 0;
-    if (column < 0) return 0;
-    if (targetCol) *targetCol = column;
-    if (targetRow) *targetRow = field;
-    return 1;
-  }
-  if (currentScreen == &screenGraphicsSettings) {
-    int field = row - 2;
-    const int widths[] = {9, 16, 13};
-    if (field == 3) { if (col < 23 || col >= 26) return 0; }
-    else if (field < 0 || field >= 3 || col < 0 || col >= widths[field]) return 0;
+    const int widths[] = {11, 9, 16};
+    if (field < 10 || field == 13) { if (col < 23 || col >= 33) return 0; }
+    else if (col < 0 || col >= (field == 14 ? 19 : widths[field - 10])) return 0;
     if (targetCol) *targetCol = 0;
     if (targetRow) *targetRow = field;
     return 1;
@@ -707,6 +716,36 @@ static int inputSelectMode(ScreenData* screen, int keys, int tapCount) {
       shallowClonePressed = 0;
       screenFullRedraw(screen);
       redrawn = 1;
+    } else if (keys == keyEdit && tapCount == 2 && screen->getLoopRange != NULL) {
+      // Double-tap A: bounce the selection to audio
+      LoopRange range = screen->getLoopRange();
+      if (range.enabled) {
+        ExportSelection selection = {};
+        selection.level = range.level;
+        selection.startSongRow = range.startSongRow;
+        selection.endSongRow = range.endSongRow;
+        selection.startChainRow = range.startChainRow;
+        selection.endChainRow = range.endChainRow;
+        selection.startPhraseRow = range.startPhraseRow;
+        selection.endPhraseRow = range.endPhraseRow;
+
+        if (range.level == 0) {
+          // Song selection columns are tracks
+          int startCol, startRow, endCol, endRow;
+          getSelectionBounds(screen, &startCol, &startRow, &endCol, &endRow);
+          selection.trackMask = 0;
+          for (int t = startCol; t <= endCol; t++) {
+            selection.trackMask |= (uint8_t)(1u << t);
+          }
+        } else {
+          // Chain/phrase bounce the currently viewed track
+          selection.trackMask = (uint8_t)(1u << *pSongTrack);
+        }
+
+        exportBounceBegin(selection);
+        return 1;
+      }
+      handled = 1;
     } else if (keys & keyOpt) {
       optPressed = 1;
     }

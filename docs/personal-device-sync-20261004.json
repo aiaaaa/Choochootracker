@@ -1,0 +1,111 @@
+{
+  "source_commit": "d0403eca2fc9ea0ba01d323b975a72ceabe7c0f0",
+  "upstream_commit": "df173ece4658e67c8c1d06e7d85e79ac4394fb1f",
+  "host_date": "2026-10-04",
+  "candidate_branch": "feature/native-chip-instruments",
+  "personal_branch": "personal/r36h",
+  "local_archive": "releases/ChooChooTracker-personal-d0403ec-r36h.zip",
+  "installation": {
+    "source_commit": "d0403eca2fc9ea0ba01d323b975a72ceabe7c0f0",
+    "binary_sha256": "58058dbf3d45acaa1a7668689b7a2c10b56c33cc17dfdff024b03d58807aad71",
+    "binary_bytes": 2102896,
+    "clean_build": true,
+    "build_method": "Clean df8ebbd build, then affected objects explicitly rebuilt for ownership fix",
+    "test_execution": "full suite in one process after fixing upstream stretch lifetime leak",
+    "initial_failures": "Unfixed full suite and batch 31-40 OOM; logs preserved",
+    "archive_sha256": "ef49e2daf7d063ffa5dec847b3348cbe589e71f8563c958ef3cd69d2b63c92c7",
+    "archive_bytes": 12834756,
+    "archive": "/roms/choochootracker-personal-df8ebbd/validation/ChooChooTracker-personal-d0403ec-r36h.zip",
+    "native_presets": 876,
+    "installed": "/roms/ports/choochootracker",
+    "rollback": "/roms/choochootracker-backups/pre-personal-d0403eca2fc9/previous-install",
+    "preserved_files": 1655,
+    "launcher_unchanged": true,
+    "installed_inventory_verified": true,
+    "rollback_inventory_verified": true,
+    "dependencies_resolved": true
+  },
+  "validation": {
+    "build": {
+      "source_commit": "d0403eca2fc9ea0ba01d323b975a72ceabe7c0f0",
+      "binary_sha256": "58058dbf3d45acaa1a7668689b7a2c10b56c33cc17dfdff024b03d58807aad71",
+      "binary_bytes": 2102896,
+      "clean_build": true,
+      "build_method": "Clean df8ebbd build, then affected objects explicitly rebuilt for ownership fix",
+      "test_execution": "full suite in one process after fixing upstream stretch lifetime leak",
+      "initial_failures": "Unfixed full suite and batch 31-40 OOM; logs preserved"
+    },
+    "tests": "[doctest] run with \"--help\" for options\n===============================================================================\n[doctest] test cases:      485 |      485 passed | 0 failed | 2 skipped\n[doctest] assertions: 74528153 | 74528153 passed | 0 failed |\n[doctest] Status: SUCCESS!",
+    "ui": "Insert review UI passed: full-height page, grouped chooser, waveform off/on\nType popup passed: all seven FM types selected and reopened\nADSR pixel regression passed: ten engines, header off/on, twelve edits each\nUI smoke passed; song+UI 48k/1024 us p95=28595.875 p99=28763.583 worst=29165.792 energy=779.471368\n",
+    "hardware": {
+      "source_commit": "d0403eca2fc9ea0ba01d323b975a72ceabe7c0f0",
+      "measurements": {
+        "previous-bank": {
+          "driver": "alsa",
+          "format": "S16",
+          "master_gain": "0.4",
+          "rate": "48000",
+          "frames": "4906",
+          "callbacks": "685",
+          "p95_us": "22994.125",
+          "p99_us": "23718.916",
+          "worst_us": "27071.625",
+          "render_deadline_misses": "0",
+          "energy": "673.298212",
+          "peak": "0.086550",
+          "nonfinite": "0",
+          "logged_underrun": false
+        },
+        "bank": {
+          "driver": "alsa",
+          "format": "S16",
+          "master_gain": "0.4",
+          "rate": "48000",
+          "frames": "4906",
+          "callbacks": "685",
+          "p95_us": "22794.625",
+          "p99_us": "23229.208",
+          "worst_us": "28848.458",
+          "render_deadline_misses": "0",
+          "energy": "673.298212",
+          "peak": "0.086550",
+          "nonfinite": "0",
+          "logged_underrun": false
+        },
+        "balanced-amp": {
+          "driver": "alsa",
+          "format": "S16",
+          "master_gain": "0.4",
+          "rate": "48000",
+          "frames": "4906",
+          "callbacks": "685",
+          "p95_us": "83086.208",
+          "p99_us": "84813.750",
+          "worst_us": "99348.083",
+          "render_deadline_misses": "0",
+          "energy": "150754.744858",
+          "peak": "0.792241",
+          "nonfinite": "0",
+          "logged_underrun": false
+        }
+      },
+      "settings_and_autosave_unchanged": true,
+      "frames": 4906,
+      "route": "plughw:0,0",
+      "startup_waveform_off_on": true,
+      "subjective_listening": "pending",
+      "initial_bank_run": {
+        "render_deadline_misses": 2,
+        "logged_underrun": true,
+        "worst_us": 695923.375,
+        "reason": "not established; preserved log and compared prior build under current device conditions"
+      }
+    },
+    "stretch_lifetime": "Stretch lifetime passed: 32 create/reinitialize/destroy cycles, zero retained allocation bytes\n",
+    "original_leak_bytes_per_diagnostic_cycle": 1730616,
+    "host_tests": "485 passed; 74528153 assertions; 2 opt-in skips",
+    "host_desktop_and_web": "passed",
+    "ui_timing_note": "Serial offscreen render plus UI at 1024 frames exceeds its 21.33 ms interval; this is not the audio callback measurement. Physical ALSA validation uses the unchanged 4906-frame device setting."
+  },
+  "human_listening": "pending"
+}

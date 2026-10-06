@@ -3,11 +3,14 @@
 #include "screens.h"
 #include "selection_popup.h"
 #include "utils.h"
+#include "audio_manager.h"
+#include <stdio.h>
 
 static void fullRedraw();
 static int onInput(int, int, int);
 static int moduleButtonDown;
 static int popupSlot;
+static int displayedCpuLoad = -1;
 static int columns(int) { return 2; }
 static int y(int row) { return 3 + row + (row >= 5 ? 2 : 0); }
 static int parameter(int col, int row) { return col * 4 + row % 5 - 1; }
@@ -18,9 +21,15 @@ static int valid(int col, int row) {
   return row >= 0 && row < 10 && col >= 0 && col < 2 &&
          (row % 5 == 0 || parameter(col, row) < insertDescriptor(config(row).module).count);
 }
+static void drawCpuLoad(int cpuLoad) {
+  gfxSetFgColor(appSettings.colorScheme.textTitles);
+  gfxClearRect(31, 0, 9, 1);
+  gfxPrintf(31, 0, "CPU %03d%%", cpuLoad);
+}
 static void drawStatic() {
   gfxSetFgColor(appSettings.colorScheme.textTitles);
   gfxPrintf(0, 0, "TRACK %d - INSERT FX", *pSongTrack + 1);
+  drawCpuLoad(audioManager.getCpuLoadPercent());
 }
 static void hint(int col, int row) {
   auto& c = config(row);
@@ -118,6 +127,34 @@ static void selected(int module) {
   screenSetup(&screenInsertFX, -1);
 }
 static void cancelled() { screenSetup(&screenInsertFX, -1); }
+
+static const SelectionItem dynamics[] = {
+  {"Compressor", insertCompressor, nullptr, 0, nullptr},
+  {"OTT", insertOTT, nullptr, 0, nullptr},
+};
+static const SelectionItem drive[] = {
+  {"Distortion", insertDistortion, nullptr, 0, nullptr},
+  {"Saturation", insertSaturation, nullptr, 0, nullptr},
+  {"Bitcrusher", insertBitcrusher, nullptr, 0, nullptr},
+  {"Destruction", insertDestruction, nullptr, 0, nullptr},
+};
+static const SelectionItem stereo[] = {
+  {"Doubler", insertDoubler, nullptr, 0, nullptr},
+  {"Chorus", insertChorus, nullptr, 0, nullptr},
+  {"Flanger", insertFlanger, nullptr, 0, nullptr},
+  {"Phaser", insertPhaser, nullptr, 0, nullptr},
+  {"Rotary", insertRotary, nullptr, 0, nullptr},
+};
+static const SelectionItem tape[] = {
+  {"TAPESCAM", insertTape, nullptr, 0, nullptr},
+};
+static const SelectionItem insertCategories[] = {
+  {"OFF", insertOff, nullptr, 0, nullptr},
+  {"Dynamics", -1, dynamics, (int)(sizeof(dynamics) / sizeof(dynamics[0])), nullptr},
+  {"Drive", -1, drive, (int)(sizeof(drive) / sizeof(drive[0])), nullptr},
+  {"Stereo", -1, stereo, (int)(sizeof(stereo) / sizeof(stereo[0])), nullptr},
+  {"Tape", -1, tape, (int)(sizeof(tape) / sizeof(tape[0])), nullptr},
+};
 static int onInput(int down, int keys, int taps) {
   if (data.cursorRow % 5 == 0 && data.cursorCol == 0) {
     auto input = popupEditInput(down, keys, &moduleButtonDown);
@@ -131,20 +168,14 @@ static int onInput(int down, int keys, int taps) {
       return 1;
     }
     if (input == PopupEditInput::open) {
-      static const char* labels[] = {
-          "OFF",
-          "Compressor - Dynamics - Schwung Work",
-          "Distortion - Drive - Airwindows",
-          "StereoDoubler - Stereo - Airwindows",
-          "TAPESCAM - Tape - Schwung TAPESCAM",
-          "OTT - Multiband - Rui-727"};
-      static_assert(sizeof(labels) / sizeof(labels[0]) == insertModuleCount, "Module credits");
-      static SelectionItem items[insertModuleCount];
-      for (int i = 0; i < insertModuleCount; ++i)
-        items[i] = {labels[i], i, nullptr, 0};
       popupSlot = data.cursorRow / 5;
       screenMessage(0, "");
-      selectionPopupSetup("INSERT MODULE", items, insertModuleCount, config(data.cursorRow).module,
+      char popupTitle[32];
+      snprintf(popupTitle, sizeof(popupTitle), "INSERT MODULE CPU %03d%%",
+               audioManager.getCpuLoadPercent());
+      selectionPopupSetup(popupTitle, insertCategories,
+                          (int)(sizeof(insertCategories) / sizeof(insertCategories[0])),
+                          config(data.cursorRow).module,
                           selected, cancelled, true);
       screenSetup(&screenSelectionPopup, 0);
       return 1;
@@ -170,12 +201,18 @@ static int onInput(int down, int keys, int taps) {
 static void init() {}
 static void setup(int) {
   moduleButtonDown = 0;
+  displayedCpuLoad = -1;
   if (*pSongTrack >= chipnomadState->project.tracksCount) *pSongTrack = 0;
 }
 static void draw() {
   // Releasing all buttons clears untimed app messages. Restore the selected
   // field's context here, leaving nonempty notices alone until they expire.
   if (!screenGetActiveMessage()[0]) hint(data.cursorCol, data.cursorRow);
+  int cpuLoad = audioManager.getCpuLoadPercent();
+  if (cpuLoad != displayedCpuLoad) {
+    displayedCpuLoad = cpuLoad;
+    drawCpuLoad(cpuLoad);
+  }
 }
 static ScreenPlaybackLevel level() { return ScreenPlaybackLevel::phrase; }
 const AppScreen screenInsertFX = {init, setup, fullRedraw, draw, onInput, level};
