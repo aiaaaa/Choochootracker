@@ -429,6 +429,7 @@ const InstrumentModDestination* instrumentModDestination(InstrumentType type, in
 }
 
 int instrumentFXAvailable(InstrumentType type, uint8_t fx) {
+  if(fx>=fxFOP&&fx<=fxLEN) { Instrument i{}; getInstrumentFunctions(type).init(&i); NativeFXInfo info{}; return instrumentDirectFMInfo(&i,fx,&info); }
   if(fx==fxFBK)return instrumentNativeModDestination(type,genericModFMFeedback)!=nullptr;
   if(fx>=fxOL1&&fx<=fxOL6) {
     int count=type==InstrumentType::DX7?6:(type==InstrumentType::OPL3||type==InstrumentType::GenesisFM||type==InstrumentType::ArcadeFM)?4:(type==InstrumentType::OPLL||type==InstrumentType::VRC7||type==InstrumentType::OPL2)?2:0;
@@ -441,6 +442,7 @@ int instrumentFXAvailable(InstrumentType type, uint8_t fx) {
 }
 
 int instrumentFXAvailableForInstrument(const Instrument* instrument, uint8_t fx) {
+  if(instrument && fx>=fxFOP&&fx<=fxLEN) { NativeFXInfo info{}; return instrumentDirectFMInfo(instrument,fx,&info); }
   if (!instrument || !instrumentFXAvailable(instrument->type, fx)) return 0;
   if(fx>=fxOL1&&fx<=fxOL6)return fx-fxOL1<instrumentFMOperatorCount(instrument);
   if((instrument->type==InstrumentType::OPL2||instrument->type==InstrumentType::OPL3)&&
@@ -455,6 +457,9 @@ int instrumentModDestinationAvailable(const Instrument* instrument, int destinat
   InstrumentType type = instrument ? instrument->type : InstrumentType::none;
   int generic = instrumentGenericModDestination(type, destination);
   if (instrument && isOPL(type) && instrument->chip.opl.topology==OPLTopology::twoOperator && generic>=genericModFMOperator3 && generic<=genericModFMOperator6) return 0;
+  int fx,op;
+  if(nativeFMModTarget(generic,&fx,&op)) { NativeFXInfo info{};return instrument && instrumentNativeFXInfo(instrument,fx,&info,op); }
+  if(generic==genericModFMBrightness||(generic>=genericModFMTime&&generic<=genericModFMLFODepth))return 0;
   if (generic >= genericModFMBrightness) return instrumentNativeModDestination(type,generic)!=nullptr;
   if (generic >= genericModFirstInsert) return 1;
   if (generic >= 0) {
@@ -497,6 +502,7 @@ InstrumentVoicePostSettings* instrumentVoicePostSettings(Instrument* instrument)
 }
 
 int instrumentMotionDestination(const Instrument* instrument, int destination, uint8_t* fx, int* base, int* range, InstrumentMotionValue* value) {
+  if(!instrument || !instrumentModDestinationAvailable(instrument,destination))return 0;
   const InstrumentModDestination* definition = instrumentModDestination(instrument->type, destination);
   if (!definition || definition->fx == instrumentNoFX) return 0;
   *fx = definition->fx; *range = definition->range; *value = definition->value;

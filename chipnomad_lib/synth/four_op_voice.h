@@ -15,9 +15,8 @@ class FourOpVoice {
  private:
   void tone();
   void macros();
-  int8_t macroCache_[6]{};
+  NativeFMValues directCache_{};
   uint8_t macroLevels_[6]{};
-  int8_t macroOperators_[6]{};
   int macroBrightness_=999,macroFeedback_=-1;
   void write(unsigned reg,unsigned value);void applyPatch();void pitch();void key(bool on);void native(float& l,float& r);
   ymfm::ymfm_interface opnInterface_,opmInterface_;

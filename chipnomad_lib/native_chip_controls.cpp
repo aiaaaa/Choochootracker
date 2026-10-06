@@ -1,5 +1,10 @@
 #include "project.h"
 #include "sid_patch.h"
+#include <cstdio>
+#include <cstring>
+#include <initializer_list>
+
+static const InstrumentModDestination* directModDestination(InstrumentType type,int index);
 
 int instrumentFMOperatorCount(const Instrument* i) {
   if(!i)return 0;
@@ -12,13 +17,19 @@ int instrumentFMOperatorCount(const Instrument* i) {
   }
 }
 
-bool instrumentNativeFXInfo(const Instrument* i,int fx,NativeFXInfo* out) {
+bool instrumentNativeFXInfo(const Instrument* i,int fx,NativeFXInfo* out,int op) {
   if(!i||!out)return false;
+  if(fx>=fxFOP&&fx<=fxLEN)return instrumentDirectFMInfo(i,fx,out,op);
   if(fx==fxFBK) {
     if(!instrumentFMOperatorCount(i))return false;
-    NativeFXInfo feedback{};
-    if(!instrumentNativeFXInfo(i,fxFFB,&feedback))return false;
-    *out={7,feedback.preset-1,false};return true;
+    int value=0;
+    if(i->type==InstrumentType::OPLL||i->type==InstrumentType::VRC7)value=i->chip.opll.patch[3]&7;
+    else if(i->type==InstrumentType::OPL2||i->type==InstrumentType::OPL3)value=i->chip.opl.feedback[0];
+    else if(i->type==InstrumentType::DX7)value=i->chip.dx7.voice[135];
+    else value=i->chip.fourOp.feedback;
+    const auto* tone=instrumentFMToneSettings(const_cast<Instrument*>(i));
+    if(tone->feedback)value=tone->feedback-1;
+    *out={7,value,false};return true;
   }
   if(fx>=fxOL1&&fx<=fxOL6) {
     int op=fx-fxOL1;
@@ -39,26 +50,22 @@ bool instrumentNativeFXInfo(const Instrument* i,int fx,NativeFXInfo* out) {
   for(int g=genericModFMBrightness;g<genericModTotalCount;++g) {
     const auto* d=instrumentNativeModDestination(i->type,g);
     if(!d||d->fx!=fx)continue;
-    bool relative=g==genericModFMBrightness || (g>=genericModFMOperator1&&g<=genericModFMOperator6) || (g>=genericModFMTime&&g<=genericModFMLFODepth);
     int value=instrumentNativeControlValue(i,g);
-    if(g==genericModFMFeedback) {
-      // FFB reserves zero for "preset"; explicit levels are encoded as 1..8.
-      if(!value) {
-        if(i->type==InstrumentType::OPLL||i->type==InstrumentType::VRC7)value=(i->chip.opll.patch[3]&7)+1;
-        else if(i->type==InstrumentType::OPL2||i->type==InstrumentType::OPL3)value=i->chip.opl.feedback[0]+1;
-        else if(i->type==InstrumentType::DX7)value=i->chip.dx7.voice[135]+1;
-        else value=i->chip.fourOp.feedback+1;
-      }
+    *out={d->range,value,false};
+    if(fx==fxSMR||fx==fxSWV||fx==fxSPR) {
+      out->minimum=1;
+      out->label=fx==fxSMR?"SID macro speed":fx==fxSWV?"SID waveform":"SID partner ratio";
     }
-    *out={d->range,value,relative};return true;
+    return true;
   }
   return false;
 }
 
 const InstrumentModDestination* instrumentNativeModDestination(InstrumentType t, int g) {
+  if(g==genericModFMBrightness||(g>=genericModFMTime&&g<=genericModFMLFODepth))return nullptr;
   static const InstrumentModDestination controls[] = {
     {"Brightness",fxFBR,255,InstrumentMotionValue::raw},
-    {"Feedback",fxFFB,8,InstrumentMotionValue::raw},
+    {"Feedback",fxFBK,7,InstrumentMotionValue::raw},
     {"Mode",fxCMD,3,InstrumentMotionValue::raw},
     {"Noise rate",fxCNR,3,InstrumentMotionValue::raw},
     {"Noise divisor",fxCND,7,InstrumentMotionValue::raw},
@@ -78,45 +85,25 @@ const InstrumentModDestination* instrumentNativeModDestination(InstrumentType t,
     {"Pulse width",fxSCP,255,InstrumentMotionValue::raw},
     {"SID cutoff",fxSCT,255,InstrumentMotionValue::raw},
     {"SID resonance",fxSRN,15,InstrumentMotionValue::raw},
-    {"SID waveform",fxSWV,7,InstrumentMotionValue::raw},
+    {"SID waveform",fxSWV,8,InstrumentMotionValue::raw},
     {"SID filter mode",fxSFTY,7,InstrumentMotionValue::raw},
-    {"Macro speed",fxSMR,255,InstrumentMotionValue::raw},
+    {"Macro speed",fxSMR,200,InstrumentMotionValue::raw},
     {"Ring modulation",fxSRG,1,InstrumentMotionValue::raw},
     {"Hard sync",fxSSY,1,InstrumentMotionValue::raw},
   };
   if(g>=genericModSIDPulse&&g<=genericModSIDSync)return t==InstrumentType::SID?&sid[g-genericModSIDPulse]:nullptr;
   bool fm=t==InstrumentType::OPLL||t==InstrumentType::VRC7||t==InstrumentType::OPL2||t==InstrumentType::OPL3||t==InstrumentType::GenesisFM||t==InstrumentType::ArcadeFM||t==InstrumentType::DX7;
-  static const InstrumentModDestination macros[] = {
-    {"FM envelope time",fxFET,255,InstrumentMotionValue::raw},
-    {"FM tone decay",fxFTD,255,InstrumentMotionValue::raw},
-    {"FM detune spread",fxFDT,255,InstrumentMotionValue::raw},
-    {"FM harmonic ratio",fxFHR,255,InstrumentMotionValue::raw},
-    {"FM LFO rate",fxFLR,255,InstrumentMotionValue::raw},
-    {"FM LFO depth",fxFLD,255,InstrumentMotionValue::raw},
-  };
-  if(g>=genericModFMTime&&g<=genericModFMLFODepth) {
-    bool extended=t==InstrumentType::GenesisFM||t==InstrumentType::ArcadeFM||t==InstrumentType::DX7;
-    return fm&&((g!=genericModFMDetune&&g<genericModFMLFORate)||extended)?&macros[g-genericModFMTime]:nullptr;
-  }
   static const InstrumentModDestination sidEnvelope[] = {
     {"SID attack",fxSAT,15,InstrumentMotionValue::raw},
     {"SID decay",fxSDE,15,InstrumentMotionValue::raw},
     {"SID sustain",fxSSU,15,InstrumentMotionValue::raw},
     {"SID release",fxSRL,15,InstrumentMotionValue::raw},
-    {"SID partner ratio",fxSPR,15,InstrumentMotionValue::raw},
+    {"SID partner ratio",fxSPR,16,InstrumentMotionValue::raw},
   };
+  if(g>=genericModFirstDirectFM)return directModDestination(t,g-genericModFirstDirectFM);
   if(g>=genericModSIDAttack)return t==InstrumentType::SID?&sidEnvelope[g-genericModSIDAttack]:nullptr;
-  static const InstrumentModDestination operators[] = {
-    {"Operator 1 level",fxFO1,255,InstrumentMotionValue::raw},
-    {"Operator 2 level",fxFO2,255,InstrumentMotionValue::raw},
-    {"Operator 3 level",fxFO3,255,InstrumentMotionValue::raw},
-    {"Operator 4 level",fxFO4,255,InstrumentMotionValue::raw},
-    {"Operator 5 level",fxFO5,255,InstrumentMotionValue::raw},
-    {"Operator 6 level",fxFO6,255,InstrumentMotionValue::raw},
-  };
   if(g>=genericModFMOperator1) {
-    int count=t==InstrumentType::DX7?6:(t==InstrumentType::OPLL||t==InstrumentType::VRC7||t==InstrumentType::OPL2)?2:4;
-    return fm&&g<genericModFMOperator1+count?&operators[g-genericModFMOperator1]:nullptr;
+    return fm?directModDestination(t,78+g-genericModFMOperator1):nullptr;
   }
   if(g<=genericModFMFeedback)return fm?&controls[g-genericModFMBrightness]:nullptr;
   if(g==genericModChipMode)return t==InstrumentType::SegaPSG?&segaMode:t==InstrumentType::GBPulse?&pulseMode:t==InstrumentType::GBNoise?&noiseMode:nullptr;
@@ -140,9 +127,12 @@ int instrumentNativeControlValue(const Instrument* i,int g) {
   // This access is read-only; the mutable overload also serves the UI editor.
   const auto* tone=instrumentFMToneSettings(const_cast<Instrument*>(i));
   if(tone) {
-    if(g>=genericModFMTime&&g<=genericModFMLFODepth)return 128+tone->macro[g-genericModFMTime];
-    if(g>=genericModFMOperator1&&g<=genericModFMOperator6)return 128+tone->operatorOffset[g-genericModFMOperator1];
-    return g==genericModFMBrightness?fmBrightnessToByte(tone->brightness):g==genericModFMFeedback?tone->feedback:0;
+    int fx,op;
+    if(nativeFMModTarget(g,&fx,&op)) { NativeFXInfo info{};return instrumentNativeFXInfo(i,fx,&info,op)?info.preset:0; }
+
+
+    if(g==genericModFMFeedback){NativeFXInfo info{};return instrumentNativeFXInfo(i,fxFBK,&info)?info.preset:0;}
+    return g==genericModFMBrightness?fmBrightnessToByte(tone->brightness):0;
   }
   if(i->type==InstrumentType::SID) {
     const auto* v=i->chip.sid.value;
@@ -150,16 +140,16 @@ int instrumentNativeControlValue(const Instrument* i,int g) {
       case genericModSIDPulse:return (v[sidPulse]*255+2047)/4095;
       case genericModSIDCutoff:return (v[sidCutoff]*255+1023)/2047;
       case genericModSIDResonance:return v[sidResonance];
-      case genericModSIDWave:return v[sidWave]-1;
+      case genericModSIDWave:return v[sidWave];
       case genericModSIDFilterMode:return v[sidFilterMode];
-      case genericModSIDMacroRate:return ((v[sidMacroRate]-1)*255+99)/199;
+      case genericModSIDMacroRate:return v[sidMacroRate];
       case genericModSIDRing:return v[sidRing];
       case genericModSIDSync:return v[sidSync];
       case genericModSIDAttack:return v[sidAttack];
       case genericModSIDDecay:return v[sidDecay];
       case genericModSIDSustain:return v[sidSustain];
       case genericModSIDRelease:return v[sidRelease];
-      case genericModSIDPartner:return v[sidPartnerRatio]-1;
+      case genericModSIDPartner:return v[sidPartnerRatio];
       default:return 0;
     }
   }
@@ -177,4 +167,130 @@ int instrumentNativeControlValue(const Instrument* i,int g) {
     case genericModChipEnvelopeDirection:return p.envelopeIncrease;
     default:return 0;
   }
+}
+
+const char* directFMName(int fx) {
+  static const char* names[]={"FOP","OAR","ODR","OSR","ORR","OSL","ODT","OMU","OFI","OFM","OE1","OE2","OE4","LFR","LAD","LPD","LAS","LPS","LEN"};
+  return fx>=fxFOP&&fx<=fxLEN?names[fx-fxFOP]:"";
+}
+
+bool instrumentDirectFMInfo(const Instrument* i,int fx,NativeFXInfo* out,int op) {
+  if(!i||!out||fx<fxFOP||fx>fxLEN)return false;
+  int count=instrumentFMOperatorCount(i);
+  if(!count)return false;
+  if(fx==fxFOP){*out={count,1,false,1,"FM operator target"};return true;}
+  if(fx<fxLFR&&(op<0||op>=count))return false;
+  int value=0,maximum=0;
+  const char* label=nullptr;
+  bool dx=i->type==InstrumentType::DX7;
+  bool four=i->type==InstrumentType::GenesisFM||i->type==InstrumentType::ArcadeFM;
+  bool opl=i->type==InstrumentType::OPL2||i->type==InstrumentType::OPL3;
+  if(fx>=fxLFR) {
+    if(!dx&&!four)return false;
+    if(dx) {
+      const auto* p=i->chip.dx7.voice;
+      switch(fx) {
+        case fxLFR:value=p[137];maximum=99;label="LFO rate";break;
+        case fxLAD:value=p[140];maximum=99;label="LFO amplitude depth";break;
+        case fxLPD:value=p[139];maximum=99;label="LFO pitch depth";break;
+        case fxLPS:value=p[143];maximum=7;label="LFO pitch sensitivity";break;
+        default:return false;
+      }
+    } else {
+      const auto& p=i->chip.fourOp;bool genesis=i->type==InstrumentType::GenesisFM;
+      switch(fx) {
+        case fxLFR:value=p.lfoRate;maximum=genesis?7:255;label="LFO rate";break;
+        case fxLAD:if(genesis)return false;value=p.amplitudeDepth;maximum=127;label="LFO amplitude depth";break;
+        case fxLPD:if(genesis)return false;value=p.pitchDepth;maximum=127;label="LFO pitch depth";break;
+        case fxLAS:value=p.amplitudeSensitivity;maximum=3;label="LFO amplitude sensitivity";break;
+        case fxLPS:value=p.pitchSensitivity;maximum=7;label="LFO pitch sensitivity";break;
+        case fxLEN:value=p.lfoEnabled;maximum=1;label="LFO enabled";break;
+        default:return false;
+      }
+    }
+  } else if(dx) {
+    const auto* p=i->chip.dx7.voice+(5-op)*21;
+    maximum=99;
+    switch(fx) {
+      case fxOAR:value=p[0];label="Envelope rate 1";break;
+      case fxODR:value=p[1];label="Envelope rate 2";break;
+      case fxOSR:value=p[2];label="Envelope rate 3";break;
+      case fxORR:value=p[3];label="Envelope rate 4";break;
+      case fxOSL:value=p[6];label="Envelope level 3";break;
+      case fxODT:value=p[20];maximum=14;label="Operator detune";break;
+      case fxOMU:value=p[18];maximum=31;label="Frequency coarse";break;
+      case fxOFI:value=p[19];label="Frequency fine";break;
+      case fxOFM:value=p[17];maximum=1;label="Frequency mode (0=ratio)";break;
+      case fxOE1:value=p[4];label="Envelope level 1";break;
+      case fxOE2:value=p[5];label="Envelope level 2";break;
+      case fxOE4:value=p[7];label="Envelope level 4";break;
+      default:return false;
+    }
+  } else if(four) {
+    const auto& p=i->chip.fourOp.operators[op];
+    switch(fx) {
+      case fxOAR:value=p.attack;maximum=31;label="Attack rate";break;
+      case fxODR:value=p.decay;maximum=31;label="Decay rate";break;
+      case fxOSR:value=p.sustainRate;maximum=31;label="Sustain rate";break;
+      case fxORR:value=p.release;maximum=15;label="Release rate";break;
+      case fxOSL:value=p.sustainLevel;maximum=15;label="Sustain attenuation";break;
+      case fxODT:value=p.detune;maximum=7;label="Detune (native encoding)";break;
+      case fxOMU:value=p.multiplier;maximum=15;label="Frequency multiplier";break;
+      default:return false;
+    }
+  } else if(opl) {
+    const auto& p=i->chip.opl.operators[op];maximum=15;
+    switch(fx) {
+      case fxOAR:value=p.attack;label="Attack rate";break;
+      case fxODR:value=p.decay;label="Decay rate";break;
+      case fxORR:value=p.release;label="Release rate";break;
+      case fxOSL:value=p.sustain;label="Sustain attenuation";break;
+      case fxOMU:value=p.multiplier;label="Frequency multiplier";break;
+      default:return false;
+    }
+  } else {
+    const auto* p=i->chip.opll.patch;maximum=15;
+    switch(fx) {
+      case fxOAR:value=p[4+op]>>4;label="Attack rate";break;
+      case fxODR:value=p[4+op]&15;label="Decay rate";break;
+      case fxORR:value=p[6+op]&15;label="Release rate";break;
+      case fxOSL:value=p[6+op]>>4;label="Sustain attenuation";break;
+      case fxOMU:value=p[op]&15;label="Frequency multiplier";break;
+      default:return false;
+    }
+  }
+  *out={maximum,value,false,0,label};return true;
+}
+
+
+bool nativeFMModTarget(int g,int* fx,int* op) {
+  if(g>=genericModFMOperator1&&g<=genericModFMOperator6) {*op=g-genericModFMOperator1;*fx=fxOL1+*op;return true;}
+  int n=g-genericModFirstDirectFM;
+  if(n<0||n>=78)return false;
+  *op=n<72?n/12:0;*fx=n<72?fxOAR+n%12:fxLFR+n-72;return true;
+}
+
+static const InstrumentModDestination* directModDestination(InstrumentType type,int index) {
+  struct Cache {
+    InstrumentModDestination values[int(InstrumentType::totalCount)][84]{};
+    char names[int(InstrumentType::totalCount)][84][16]{};
+    Cache() {
+      for(auto t:{InstrumentType::OPLL,InstrumentType::VRC7,InstrumentType::OPL2,InstrumentType::OPL3,InstrumentType::GenesisFM,InstrumentType::ArcadeFM,InstrumentType::DX7}) {
+        Instrument i{};getInstrumentFunctions(t).init(&i);if(t==InstrumentType::OPL3)i.chip.opl.topology=OPLTopology::fourOperator;
+        for(int n=0;n<84;++n) {
+          int op=n<72?n/12:n>=78?n-78:0;
+          int fx=n<72?fxOAR+n%12:n>=78?fxOL1+n-78:fxLFR+n-72;
+          NativeFXInfo info{};if(!instrumentNativeFXInfo(&i,fx,&info,op))continue;
+          auto* name=names[int(t)][n];
+          if(n>=78)snprintf(name,16,"OP%d Level",op+1);
+          else if(n<72)snprintf(name,16,"OP%d %s",op+1,directFMName(fx));
+          else snprintf(name,16,"%s",directFMName(fx));
+          values[int(t)][n]={name,uint8_t(fx),uint16_t(info.maximum),InstrumentMotionValue::raw};
+        }
+      }
+    }
+  };
+  static const Cache cache;
+  if(index<0||index>=84||int(type)<0||int(type)>=int(InstrumentType::totalCount))return nullptr;
+  const auto* d=&cache.values[int(type)][index];return d->name?d:nullptr;
 }

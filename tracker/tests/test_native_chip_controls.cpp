@@ -9,21 +9,31 @@
 #include <cmath>
 namespace {
 void setControl(Instrument& i,int g,int value) {
- if(auto* t=instrumentFMToneSettings(&i)){if(g==genericModFMBrightness)t->brightness=fmBrightnessFromByte(value);else if(g==genericModFMFeedback)t->feedback=value;else if(g>=genericModFMTime&&g<=genericModFMLFODepth)t->macro[g-genericModFMTime]=value-128;else t->operatorOffset[g-genericModFMOperator1]=value-128;return;}
+ if(g>=genericModFMOperator1&&g<=genericModFMOperator6) {
+  int op=g-genericModFMOperator1;
+  if(i.type==InstrumentType::DX7)i.chip.dx7.voice[(5-op)*21+16]=value;
+  else if(i.type==InstrumentType::OPLL||i.type==InstrumentType::VRC7) {
+   if(op==0)i.chip.opll.patch[2]=(i.chip.opll.patch[2]&192)|(63-value);
+   else i.chip.opll.tone.operatorLevel[op]=value+1;
+  } else if(i.type==InstrumentType::OPL2||i.type==InstrumentType::OPL3)i.chip.opl.operators[op].level=63-value;
+  else i.chip.fourOp.operators[op].level=127-value;
+  return;
+ }
+ if(auto* t=instrumentFMToneSettings(&i)){if(g==genericModFMFeedback)t->feedback=value+1;return;}
  if(i.type==InstrumentType::SID){auto* p=i.chip.sid.value;switch(g){
  case genericModSIDPulse:p[sidPulse]=(value*4095+127)/255;break;
  case genericModSIDCutoff:p[sidCutoff]=(value*2047+127)/255;break;
  case genericModSIDResonance:p[sidResonance]=value;break;
- case genericModSIDWave:p[sidWave]=value+1;break;
+ case genericModSIDWave:p[sidWave]=std::max(1,value);break;
  case genericModSIDFilterMode:p[sidFilterMode]=value;break;
- case genericModSIDMacroRate:p[sidMacroRate]=1+(value*199+127)/255;break;
+ case genericModSIDMacroRate:p[sidMacroRate]=std::max(1,value);break;
  case genericModSIDRing:p[sidRing]=value;break;
  case genericModSIDSync:p[sidSync]=value;break;
  case genericModSIDAttack:p[sidAttack]=value;break;
  case genericModSIDDecay:p[sidDecay]=value;break;
  case genericModSIDSustain:p[sidSustain]=value;break;
  case genericModSIDRelease:p[sidRelease]=value;break;
- case genericModSIDPartner:p[sidPartnerRatio]=value+1;break;}return;}
+ case genericModSIDPartner:p[sidPartnerRatio]=std::max(1,value);break;}return;}
  auto& p=i.chip.simpleChip;
  switch(g){
  case genericModChipMode:p.mode=value;break;
@@ -61,7 +71,8 @@ std::vector<float> render(InstrumentType type,int generic,int value,bool fx) {
 TEST_CASE("Native phrase macros reach the real voice without modifying saved parameters") {
  for(auto t:{InstrumentType::SID,InstrumentType::OPLL,InstrumentType::VRC7,InstrumentType::OPL2,InstrumentType::OPL3,InstrumentType::GenesisFM,InstrumentType::ArcadeFM,InstrumentType::DX7,InstrumentType::SegaPSG,InstrumentType::GBPulse,InstrumentType::GBNoise}) {
   CAPTURE(int(t));
-  for(int g=genericModFMBrightness;g<genericModTotalCount;++g)if(auto* d=instrumentNativeModDestination(t,g)) {
+  for(int g=genericModFMBrightness;g<genericModFirstDirectFM;++g)if(auto* d=instrumentNativeModDestination(t,g)) {
+   if(g==genericModFMOperator2&&(t==InstrumentType::OPLL||t==InstrumentType::VRC7))continue; // Carrier level is a channel register, not a saved tone byte.
    CAPTURE(g);int value=d->range==1?1:d->range/2;
    if(g==genericModFMBrightness)value=30;
    if(g>=genericModFMTime&&g<=genericModFMLFODepth)value=160;

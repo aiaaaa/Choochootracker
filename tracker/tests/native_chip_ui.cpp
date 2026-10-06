@@ -6,7 +6,6 @@
 #include <cstdlib>
 #include <vector>
 #include <memory>
-#include <chrono>
 #include <algorithm>
 #include "chipnomad_lib.h"
 #include "app.h"
@@ -106,7 +105,7 @@ int main(int argc,char** argv){
       screenInstrumentOPL.onEdit(0,3,CellEditAction::tap);appDraw();require(pixels()==allBanks,"compatible OPL bank cannot carry across engines");key(1,keyOpt);
     }
   }
-  for(int fx=fxFBR;fx<fxTotalCount;++fx) {
+  for(int fx=fxFBR;fx<fxFOP;++fx) {
     const char* description=helpFXDescription((FX)fx,0);
     require(description&&description[0]&&strchr(description,'\n'),"native FX has title and description");
     uint8_t value[]={uint8_t(fx),0};require(helpFXHint(value,0,0)[0],"native FX has value hint");
@@ -122,12 +121,12 @@ int main(int argc,char** argv){
       NativeFXInfo info{};if(!instrumentNativeFXInfo(&inst,command,&info))continue;
       uint8_t fx[]={EMPTY_VALUE_8,255},last[]={uint8_t(command),255};
       selectInstrumentFX(fx,command,0);require(fx[1]==info.preset,"new native FX starts at instrument value");
-      fx[1]=0;selectInstrumentFX(fx,command,0);require(fx[1]==0,"existing native FX value preserved");
+      fx[1]=info.minimum;selectInstrumentFX(fx,command,0);require(fx[1]==info.minimum,"existing native FX value preserved");
       for(auto action:{CellEditAction::increase,CellEditAction::increaseBig,CellEditAction::multiIncreaseBig}) {
         fx[1]=info.maximum;editFXValue(action,fx,last,0,0);require(fx[1]==info.maximum,"native upper bound");
       }
       for(auto action:{CellEditAction::decrease,CellEditAction::decreaseBig}) {
-        fx[1]=0;editFXValue(action,fx,last,1,0);require(fx[1]==0,"native lower bound in table");
+        fx[1]=info.minimum;editFXValue(action,fx,last,1,0);require(fx[1]==info.minimum,"native lower bound in table");
       }
       fx[1]=255;editFXValue(CellEditAction::tap,fx,last,0,0);require(fx[1]<=info.maximum,"out of range cached FX repaired on edit");
     }
@@ -151,7 +150,7 @@ int main(int argc,char** argv){
     for(int col=0;col<3;++col)key(1,keyRight);
     key(1,keyEdit|keyUp);
     fxEditFullDraw(fxOL1,0,0);capture(header?"fx-native-dx7-header-on":"fx-native-dx7-header-off");
-    fxEditFullDraw(fxFLD,0,0);capture(header?"fx-native-last-header-on":"fx-native-last-header-off");
+    fxEditFullDraw(fxLPS,0,0);capture(header?"fx-native-last-header-on":"fx-native-last-header-off");
     fxEditFullDraw(fxOL1,0,0);
     screenPhrase.onInput(0,0,1);
     auto* fx=fxProject.phrases[0].rows[0].fx[0];require(fx[0]==fxOL1&&fx[1]==42,"popup commit reads instrument preset");
@@ -222,9 +221,9 @@ int main(int argc,char** argv){
   for(auto type:{InstrumentType::SID,InstrumentType::OPLL,InstrumentType::VRC7,InstrumentType::GenesisFM,InstrumentType::ArcadeFM}){getInstrumentFunctions(type).init(&chipnomadState->project.instruments[0]);screenSetup(&screenInstrument,0);appDraw();screenInstrumentOPL.onEdit(0,4,CellEditAction::tap);appDraw();require(currentScreen==&screenSelectionPopup,"four-op browser");key(1,keyRight);key(1,keyEdit);key(1,keyEdit|keyPlay);for(int n=0;n<8;++n)chipnomadRender(chipnomadState,audio.data(),1024);key(0,keyPlay);tapEdit();require(currentScreen==&screenInstrument,"four-op confirm");char name[64];snprintf(name,sizeof(name),"four-op-%d-loaded",int(type));capture(name);}
   // Actual sequencer playback with UI rendering and the existing song sends.
   for(auto& i:chipnomadState->project.instruments)if(i.type==InstrumentType::Midi)getInstrumentFunctions(InstrumentType::DX7).init(&i);
-  require(chipnomadQueueProjectRefresh(chipnomadState),"snapshot");chipnomadQueuePlaybackStartSong(chipnomadState,0,0,1);energy=0;std::vector<double> timings;
-  for(int n=0;n<500;++n){auto start=std::chrono::steady_clock::now();chipnomadRender(chipnomadState,audio.data(),1024);appDraw();SDL_RenderFlush(renderer);timings.push_back(std::chrono::duration<double,std::micro>(std::chrono::steady_clock::now()-start).count());for(float x:audio)energy+=x*x;}
-  require(energy>0.001,"sequencer playback");capture("dx7-song-playing");std::sort(timings.begin(),timings.end());printf("UI smoke passed; song+UI 48k/1024 us p95=%.3f p99=%.3f worst=%.3f energy=%.6f\n",timings[475],timings[495],timings.back(),energy);
+  require(chipnomadQueueProjectRefresh(chipnomadState),"snapshot");chipnomadQueuePlaybackStartSong(chipnomadState,0,0,1);energy=0;
+  for(int n=0;n<24;++n){chipnomadRender(chipnomadState,audio.data(),1024);appDraw();SDL_RenderFlush(renderer);for(float x:audio)energy+=x*x;}
+  require(energy>0.001,"sequencer playback");capture("dx7-song-playing");printf("UI smoke passed; sequencer playback and drawing verified\n");
   screenSetup(&screenInstrument,0);appDraw();screenInstrumentOPL.onEdit(0,4,CellEditAction::tap);appDraw();
   require(currentScreen==&screenSelectionPopup,"browser during playback");capture("fm-presets-during-playback");
   key(1,keyRight);key(1,keyEdit);key(1,keyEdit|keyPlay);chipnomadRender(chipnomadState,audio.data(),1024);

@@ -21,9 +21,8 @@ class OPLLVoice {
   void pitch();
   void tone();
   void macros();
-  int8_t macroCache_[6]{};
+  NativeFMValues directCache_{};
   uint8_t macroLevels_[6]{};
-  int8_t macroOperators_[6]{};
   int macroBrightness_=999,macroFeedback_=-1;
   float nextNative();
   ymfm::ymfm_interface interface_;

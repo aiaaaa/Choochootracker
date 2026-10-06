@@ -31,7 +31,8 @@ TEST_CASE("Native FX limits and preset values follow the selected instrument") {
   i.chip.dx7.voice[5*21+16]=42;i.chip.dx7.voice[4*21+16]=91;
   REQUIRE(instrumentNativeFXInfo(&i,fxOL1,&info));CHECK(info.preset==42);
   REQUIRE(instrumentNativeFXInfo(&i,fxOL2,&info));CHECK(info.preset==91);
-  REQUIRE(instrumentNativeFXInfo(&i,fxFET,&info));CHECK(info.relative);CHECK(info.preset==128);
+  CHECK_FALSE(instrumentNativeFXInfo(&i,fxFET,&info));
+  REQUIRE(instrumentNativeFXInfo(&i,fxOAR,&info));CHECK_FALSE(info.relative);CHECK(info.preset==i.chip.dx7.voice[105]);
   i.chip.dx7.voice[135]=5;
   REQUIRE(instrumentNativeFXInfo(&i,fxFBK,&info));CHECK(info.maximum==7);CHECK(info.preset==5);
 }
@@ -73,16 +74,16 @@ TEST_CASE("Absolute operator FX reproduce native preset edits at endpoints and m
   }
 }
 
-TEST_CASE("Absolute and legacy operator commands survive song and instrument saves") {
+TEST_CASE("Direct native commands survive song and instrument saves") {
   fillFXNames();
   auto p=std::make_unique<Project>();projectInit(p.get());
   REQUIRE(projectLoad(p.get(),"packaging/common/projects/gm-midi-demo.cct")==0);
   getInstrumentFunctions(InstrumentType::DX7).init(&p->instruments[0]);
   p->phrases[0].rows[0].fx[0][0]=fxOL1;p->phrases[0].rows[0].fx[0][1]=42;
-  p->phrases[0].rows[0].fx[1][0]=fxFO1;p->phrases[0].rows[0].fx[1][1]=128;
+  p->phrases[0].rows[0].fx[1][0]=fxOAR;p->phrases[0].rows[0].fx[1][1]=128;
   p->phrases[0].rows[0].fx[2][0]=fxFBK;p->phrases[0].rows[0].fx[2][1]=6;
   p->tables[0].rows[0].fx[0][0]=fxOL2;p->tables[0].rows[0].fx[0][1]=63;
-  p->tables[0].rows[0].fx[1][0]=fxFFB;p->tables[0].rows[0].fx[1][1]=8;
+  p->tables[0].rows[0].fx[1][0]=fxLFR;p->tables[0].rows[0].fx[1][1]=8;
   auto dir=std::filesystem::temp_directory_path()/"cct-native-absolute-fx";
   std::filesystem::create_directories(dir);
   auto song=(dir/"values.cct").string(),inst=(dir/"values.cni").string();
@@ -90,15 +91,15 @@ TEST_CASE("Absolute and legacy operator commands survive song and instrument sav
   auto q=std::make_unique<Project>();projectInit(q.get());
   int loaded=projectLoad(q.get(),song.c_str());INFO(projectFileError);REQUIRE(loaded==0);
   CHECK(q->phrases[0].rows[0].fx[0][0]==fxOL1);CHECK(q->phrases[0].rows[0].fx[0][1]==42);
-  CHECK(q->phrases[0].rows[0].fx[1][0]==fxFO1);CHECK(q->phrases[0].rows[0].fx[1][1]==128);
+  CHECK(q->phrases[0].rows[0].fx[1][0]==fxOAR);CHECK(q->phrases[0].rows[0].fx[1][1]==128);
   CHECK(q->phrases[0].rows[0].fx[2][0]==fxFBK);CHECK(q->phrases[0].rows[0].fx[2][1]==6);
   REQUIRE(projectSave(p.get(),(dir/"values.zip").string().c_str())==0);
   REQUIRE(projectLoad(q.get(),(dir/"values.zip").string().c_str())==0);
-  CHECK(q->phrases[0].rows[0].fx[0][0]==fxOL1);CHECK(q->phrases[0].rows[0].fx[1][0]==fxFO1);
+  CHECK(q->phrases[0].rows[0].fx[0][0]==fxOL1);CHECK(q->phrases[0].rows[0].fx[1][0]==fxOAR);
   REQUIRE(instrumentSave(p.get(),inst.c_str(),0)==0);
   REQUIRE(instrumentLoad(q.get(),inst.c_str(),1)==0);
   CHECK(q->tables[1].rows[0].fx[0][0]==fxOL2);CHECK(q->tables[1].rows[0].fx[0][1]==63);
-  CHECK(q->tables[1].rows[0].fx[1][0]==fxFFB);CHECK(q->tables[1].rows[0].fx[1][1]==8);
+  CHECK(q->tables[1].rows[0].fx[1][0]==fxLFR);CHECK(q->tables[1].rows[0].fx[1][1]==8);
   projectFree(p.get());projectFree(q.get());std::filesystem::remove_all(dir);
 }
 
@@ -110,7 +111,7 @@ TEST_CASE("DX7 absolute level changes retain the running envelope stage") {
   env.keydown(false);env.getPosition(&before);env.setOutputLevel(3200);env.getPosition(&after);CHECK(before==after);
 }
 
-TEST_CASE("Native legacy songs retain volume while upstream format 6 keeps 00-7F") {
+TEST_CASE("Native songs use the same direct volume scale as upstream format 6") {
   auto p=std::make_unique<Project>();projectInit(p.get());
   REQUIRE(projectLoad(p.get(),"packaging/common/projects/gm-midi-demo.cct")==0);
   getInstrumentFunctions(InstrumentType::DX7).init(&p->instruments[0]);
@@ -127,10 +128,10 @@ TEST_CASE("Native legacy songs retain volume while upstream format 6 keeps 00-7F
     auto text=original;text[text.find("Module ")+7]=version;
     std::ofstream(path)<<text;
     REQUIRE(projectLoad(q.get(),path.string().c_str())==0);
-    CHECK(q->phrases[0].rows[0].volume==(version=='9'?15:127));
-    CHECK(q->phrases[0].rows[1].volume==(version=='9'?7:59));
+    CHECK(q->phrases[0].rows[0].volume==15);
+    CHECK(q->phrases[0].rows[1].volume==7);
     CHECK(q->phrases[0].rows[2].volume==0);
-    CHECK(q->phrases[0].rows[3].volume==(version=='9'?75:127));
+    CHECK(q->phrases[0].rows[3].volume==75);
     CHECK(q->phrases[0].rows[4].volume==EMPTY_VALUE_16);
   }
   getInstrumentFunctions(InstrumentType::AY1).init(&p->instruments[0]);

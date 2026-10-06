@@ -144,7 +144,8 @@ void fillFXNames() {
 
   for(int group=19;group<fxGroupCount;++group) {
     auto type=fxGroups[group].instType;auto* names=instrumentGroupNames[int(type)];int count=0;
-    for(int g=genericModFMBrightness;g<genericModTotalCount;++g)if(const auto* d=instrumentNativeModDestination(type,g)) {
+    for(int g=genericModFMBrightness;g<genericModFirstDirectFM;++g)if(const auto* d=instrumentNativeModDestination(type,g)) {
+      if(g==genericModFMBrightness||(g>=genericModFMTime&&g<=genericModFMLFODepth))continue;
       names[count].fx=FX(d->fx);
       const char* labels[]={"FBR","FFB","CMD","CNR","CND","CNS","CSP","CSS","CSD","CEI","CEP","CED","FO1","FO2","FO3","FO4","FO5","FO6","SCP","SCT","SRN","SWV","SFI","SMR","SRG","SSY","FET","FTD","FDT","FHR","FLR","FLD","SAT","SDE","SSU","SRL","SPR"};
       strcpy(names[count++].name,labels[g-genericModFMBrightness]);
@@ -154,15 +155,14 @@ void fillFXNames() {
         snprintf(names[count-1].name,sizeof(names[count-1].name),"OL%d",g-genericModFMOperator1+1);
       }
     }
+    for(int fx=fxFOP;fx<=fxLEN;++fx)if(instrumentFXAvailable(type,fx)) {
+      names[count].fx=FX(fx);strcpy(names[count++].name,directFMName(fx));
+    }
+    // Six columns keep the complete native FM set visible with the waveform.
+    if(instrumentFXAvailable(type,fxFOP))fxGroups[group].columns=6;
     fxGroups[group].fxList=names;fxGroups[group].count=count;
   }
 
-  // Fill FX names from all groups
-  fxNames[fxFFB].fx=fxFFB;strcpy(fxNames[fxFFB].name,"FFB");
-  for(int op=0;op<6;++op) {
-    fxNames[fxFO1+op].fx=FX(fxFO1+op);
-    snprintf(fxNames[fxFO1+op].name,sizeof(fxNames[fxFO1+op].name),"FO%d",op+1);
-  }
   for (int g = 0; g < fxGroupCount; g++) {
     for (int i = 0; i < fxGroups[g].count; i++) {
       enum FX fx = fxGroups[g].fxList[i].fx;

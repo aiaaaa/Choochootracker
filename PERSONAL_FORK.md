@@ -49,18 +49,17 @@ Native-chip preset audition and Get Lucky remain included. See
 [the insert review report](docs/personal-insert-review-20261004.txt) and
 [the preceding sync report](docs/personal-upstream-sync-20261004.txt).
 
-FM master macros now add native envelope time, tone decay, modulator ratio,
-and—where supported—detune spread and LFO rate/depth. SID adds native ADSR
-and ring/sync partner-ratio Phrase FX. Preset-relative values and native stepped
-ranges have clearer help. See [the revision notes](docs/fm-macros-revision-20261005.txt).
-These macros remain included in the current device personal build.
+The new native chips now use absolute operator envelope, frequency, detune and
+LFO commands, with `FOP` selecting the operator. Modulation bindings name a fixed
+operator. SID waveform, macro speed and partner ratio use native numbering.
+AY and upstream command semantics remain unchanged.
 
-This revision adopts upstream’s 00–7F phrase volume, expanded insert effects,
-export fixes and merged Android/CI updates. Legacy personal native songs migrate
-their phrase levels on load; the instrument tables keep their existing scale.
-It also adds instrument-aware native FX bounds, popup preset values,
-and absolute operator/feedback commands. It passed device validation; see
-[the change notes](docs/native-fx-values-20261005.txt).
+Personal-only relative FM commands and native phrase-volume migration are
+removed. A one-time conversion updates the affected personal songs and our
+bundled native audition. Upstream legacy-format support remains. See
+[the complete audit](docs/absolute-fx-audit-20261005.txt). This source revision is
+awaiting its device installation record; performance tests are skipped at the
+user's request.
 
 ## Current installed device build
 

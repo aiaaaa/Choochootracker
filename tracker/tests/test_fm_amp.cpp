@@ -90,7 +90,9 @@ TEST_CASE("Native macros append IDs and expose only supported controls") {
   for(int g=genericModFMBrightness;g<genericModTotalCount;++g) {
    int dest=getInstrumentFunctions(i.type).modDestinationsCount+1+g;
    const auto* d=instrumentNativeModDestination(i.type,g);
-   const bool unusedOPL=isOPL(i.type)&&i.chip.opl.topology==OPLTopology::twoOperator&&g>=genericModFMOperator3&&g<=genericModFMOperator6;
+   const int directIndex=g-genericModFirstDirectFM;
+   const bool unusedOPL=isOPL(i.type)&&i.chip.opl.topology==OPLTopology::twoOperator&&
+     ((g>=genericModFMOperator3&&g<=genericModFMOperator6)||(directIndex>=24&&directIndex<72));
       CHECK(bool(instrumentModDestinationAvailable(&i,dest))==(bool(d)&&!unusedOPL));
    REQUIRE(instrumentModDestinationName(i.type,dest));
    if(d&&!unusedOPL){CHECK(instrumentFXAvailable(i.type,d->fx));CHECK(strcmp(fxNames[d->fx].name,"---"));

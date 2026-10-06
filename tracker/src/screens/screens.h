@@ -179,9 +179,9 @@ int editCharacter(CellEditAction action, char* str, int idx, int maxLen);
 char charEditInput(int keys, int tapCount, char* str, int idx, int maxLen);
 
 // FX edit
-int editFX(CellEditAction action, uint8_t* fx, uint8_t* lastFX, int isTable, uint8_t instrumentIdx);
-void selectInstrumentFX(uint8_t* fx, uint8_t selected, uint8_t instrumentIdx);
-int editFXValue(CellEditAction action, uint8_t* fx, uint8_t* lastFX, int isTable, uint8_t instrumentIdx);
+int editFX(CellEditAction action, uint8_t* fx, uint8_t* lastFX, int isTable, uint8_t instrumentIdx, int op = 0);
+void selectInstrumentFX(uint8_t* fx, uint8_t selected, uint8_t instrumentIdx, int op = 0);
+int editFXValue(CellEditAction action, uint8_t* fx, uint8_t* lastFX, int isTable, uint8_t instrumentIdx, int op = 0);
 int fxEditInput(int keys, int tapCount, uint8_t* fx, uint8_t* lastFX);
 void fxEditFullDraw(uint8_t currentFX, uint8_t instrumentIdx, int isTable);
 

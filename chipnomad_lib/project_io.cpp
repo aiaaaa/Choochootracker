@@ -249,10 +249,6 @@ static uint8_t scanFX(char* str, Project* p) {
 
   if (!strcmp(buf, "---")) return EMPTY_VALUE_8;
 
-  // Legacy commands remain readable even though new choices use native levels.
-  if (buf[0] == 'F' && buf[1] == 'O' && buf[2] >= '1' && buf[2] <= '6') return fxFO1 + buf[2] - '1';
-  if (!strcmp(buf, "FFB")) return fxFFB;
-
   // Scan all FX groups
   extern FXGroup fxGroups[];
   extern int fxGroupCount;
@@ -1025,20 +1021,6 @@ static int projectLoadInternal(FILE* file, Project* project) {
     for (int table = 0; table < PROJECT_MAX_TABLES; ++table) for (int row = 0; row < 16; ++row) for (int fx = 0; fx < 4; ++fx)
       if (p.tables[table].rows[row].fx[fx][0] == fxSDT) p.tables[table].rows[row].fx[fx][1] = convert(p.tables[table].rows[row].fx[fx][1]);
   }
-  if (projectFileVersion == 6) {
-    bool legacyNative = false;
-    for (const auto& i : p.instruments)
-      legacyNative |= i.type == InstrumentType::SID || i.type == InstrumentType::DX7 ||
-        isOPLL(i.type) || isOPL(i.type) || isFourOp(i.type) || isSimpleChip(i.type);
-    for (auto& phrase : p.phrases) for (auto& row : phrase.rows)
-      if (row.volume != EMPTY_VALUE_16)
-        row.volume = legacyNative ? legacyPhraseVolume(row.volume) : std::min(row.volume, uint16_t(PHRASE_VOLUME_MAX));
-  }
-  if(projectFileVersion<7) {
-    auto migrate=[](uint8_t* fx){if(fx[0]==fxFBR)fx[1]=fmBrightnessToByte(std::min(126,int(fx[1]))-63);};
-    for(auto& phrase:p.phrases)for(auto& row:phrase.rows)for(auto& fx:row.fx)migrate(fx);
-    for(auto& table:p.tables)for(auto& row:table.rows)for(auto& fx:row.fx)migrate(fx);
-  }
   projectFree(project);
   *project = p;
   return 0;
@@ -1062,11 +1044,8 @@ static uint16_t scanPhraseVolume(char* str) {
   if (str[0] == '-' && str[1] == '-') return EMPTY_VALUE_16;
   uint8_t value;
   if (sscanf(str, "%2hhX", &value) != 1) return EMPTY_VALUE_16;
-  if (projectFileVersion < 6 || projectFileVersion == 7 || projectFileVersion == 8)
+  if (projectFileVersion < 6)
     return legacyPhraseVolume(value);
-  // Format 6 was also used by older Personal native-chip songs. Resolve that
-  // case after instruments have loaded; upstream format 6 keeps native 00-7F.
-  if (projectFileVersion == 6) return value;
   return value > PHRASE_VOLUME_MAX ? PHRASE_VOLUME_MAX : value;
 }
 
@@ -1730,8 +1709,6 @@ int instrumentLoad(Project* project, const char* path, int instrumentIdx) {
     }
     projectFree(temporary.get());
   } else result = instrumentLoadInternal(file, project, instrumentIdx);
-  if(!result&&projectFileVersion<7)for(auto& row:project->tables[instrumentIdx].rows)
-    for(auto& fx:row.fx)if(fx[0]==fxFBR)fx[1]=fmBrightnessToByte(std::min(126,int(fx[1]))-63);
   fclose(file);
   return result;
 }

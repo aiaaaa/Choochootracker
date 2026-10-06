@@ -1,6 +1,6 @@
 #include "opl_voice.h"
 #include <cstring>
-#include "../fm_macros.h"
+#include "../native_fm_values.h"
 void OPLVoice::init(float rate){rate_=rate;amp_.init(rate);opl2_.reset();opl3_.reset();configured_=false;resampler_.init(opl2_.sample_rate(3579545),rate_);kill();}
 void OPLVoice::write(unsigned reg,unsigned value){
   if(type_==InstrumentType::OPL3){if(reg&0x100)opl3_.write_address_hi(reg);else opl3_.write_address(reg);opl3_.write_data(value);}
@@ -35,15 +35,15 @@ void OPLVoice::tone(){
   macros();
   const int brightness=std::clamp(int(patch_.tone.brightness),-63,63);
   const int feedback=std::min(8,int(patch_.tone.feedback));
-  if(brightness==macroBrightness_&&feedback==macroFeedback_&&!memcmp(macroOperators_,patch_.tone.operatorOffset,6)&&!memcmp(macroLevels_,patch_.tone.operatorLevel,6))return;
+  if(brightness==macroBrightness_&&feedback==macroFeedback_&&!memcmp(macroLevels_,patch_.tone.operatorLevel,6))return;
   const int addresses[]={0,3,8,11};
   unsigned carriers;
   int count=patch_.topology==OPLTopology::twoOperator?2:4;
   if(patch_.topology==OPLTopology::fourOperator){const unsigned masks[]={8,9,10,13};carriers=masks[patch_.connection[0]|(patch_.connection[1]<<1)];}
   else carriers=(patch_.connection[0]?3:2)|(count==4?(patch_.connection[1]?12:8):0);
-  for(int op=0;op<count;++op){const auto& o=patch_.operators[op];int level=std::clamp((patch_.tone.operatorLevel[op]?64-int(patch_.tone.operatorLevel[op]):int(o.level))-int(patch_.tone.operatorOffset[op])-((carriers&(1u<<op))?0:brightness),0,63);write(0x40+addresses[op],(o.keyScale<<6)|level);}
+  for(int op=0;op<count;++op){const auto& o=patch_.operators[op];int level=std::clamp((patch_.tone.operatorLevel[op]?64-int(patch_.tone.operatorLevel[op]):int(o.level))-((carriers&(1u<<op))?0:brightness),0,63);write(0x40+addresses[op],(o.keyScale<<6)|level);}
   for(int i=0;i<(count==4?2:1);++i)write(0xc0+(i?3:0),((feedback?feedback-1:patch_.feedback[i])<<1)|patch_.connection[i]|(type_==InstrumentType::OPL3?patch_.pan[i]<<4:0));
-  macroBrightness_=brightness;macroFeedback_=feedback;memcpy(macroOperators_,patch_.tone.operatorOffset,6);memcpy(macroLevels_,patch_.tone.operatorLevel,6);
+  macroBrightness_=brightness;macroFeedback_=feedback;memcpy(macroLevels_,patch_.tone.operatorLevel,6);
 }
 void OPLVoice::pitch(){
   for(int i=0;i<(patch_.topology==OPLTopology::twoOperator?1:2);++i){
@@ -77,16 +77,15 @@ void OPLVoice::render(float* stereo,size_t frames){
 
 void OPLVoice::macros() {
   const auto& t=patch_.tone;
-  if(macroBrightness_!=999&&!memcmp(macroCache_,t.macro,6))return;
+  if(macroBrightness_!=999&&!memcmp(&directCache_,&t.direct,sizeof(directCache_)))return;
   const int addresses[]={0,3,8,11};
-  const unsigned carriers=fmOPLCarriers(patch_);
   const int count=patch_.topology==OPLTopology::twoOperator?2:4;
   for(int op=0;op<count;++op) {
-    const auto& o=patch_.operators[op];const int a=addresses[op];const bool modulator=!(carriers&(1u<<op));
-    const int ratio=modulator?fmMacroValue(o.multiplier,t.macro[fmRatio],15):o.multiplier;
+    const auto& o=patch_.operators[op];const int a=addresses[op];
+    const int ratio=nativeFMValue(t,op,fxOMU,o.multiplier);
     write(0x20+a,(o.tremolo<<7)|(o.vibrato<<6)|(o.sustained<<5)|(o.rateScale<<4)|ratio);
-    write(0x60+a,(fmMacroRate(o.attack,15,t,false)<<4)|fmMacroRate(o.decay,15,t,modulator));
-    write(0x80+a,(o.sustain<<4)|fmMacroRate(o.release,15,t,false));
+    write(0x60+a,(nativeFMValue(t,op,fxOAR,o.attack)<<4)|nativeFMValue(t,op,fxODR,o.decay));
+    write(0x80+a,(nativeFMValue(t,op,fxOSL,o.sustain)<<4)|nativeFMValue(t,op,fxORR,o.release));
   }
-  memcpy(macroCache_,t.macro,6);
+  directCache_=t.direct;
 }

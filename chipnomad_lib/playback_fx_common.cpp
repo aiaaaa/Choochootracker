@@ -407,6 +407,34 @@ void initFX(PlaybackState* state, int trackIdx, uint8_t* fx, PlaybackTableState*
     }
     return;
   }
+  if (fx[0] >= fxFOP && fx[0] <= fxLEN) {
+    if (track->note.instrument == EMPTY_VALUE_8) return;
+    const auto* instrument = &state->p->instruments[track->note.instrument];
+    int op = track->note.fx[fxFOP].isOn ? int(track->note.fx[fxFOP].fxValue) - 1 : 0;
+    NativeFXInfo info{};
+    if (!instrumentDirectFMInfo(instrument, fx[0], &info, op)) return;
+    int value = clampInt(fx[1], info.minimum, info.maximum);
+    if (fx[0] >= fxOAR && fx[0] <= fxOE4) {
+      int n=fx[0]-fxOAR;
+      auto& target=track->note.nativeFM.operators[op][n];
+      if(!target)track->note.nativeFMCurrent.operators[op][n]=value+1;
+      if(target!=value+1)track->note.nativeFMRemaining.operators[op][n]=track->slewTicks;
+      target=value+1;
+      return;
+    }
+    if (fx[0] >= fxLFR) {
+      int n=fx[0]-fxLFR;
+      auto& target=track->note.nativeFM.global[n];
+      if(!target)track->note.nativeFMCurrent.global[n]=value+1;
+      if(target!=value+1)track->note.nativeFMRemaining.global[n]=track->slewTicks;
+      target=value+1;
+      return;
+    }
+    // The selector itself is ordinary note-scoped state, processed left to right.
+    track->note.fx[fxFOP].isOn = 1;
+    track->note.fx[fxFOP].fxValue = value;
+    return;
+  }
   // STA is a spelling alias for SST, so both commands share one runtime
   // state and the most recent one wins just like two SST commands would.
   uint8_t fxIdx = fx[0] == fxSTA ? fxSST : fx[0];

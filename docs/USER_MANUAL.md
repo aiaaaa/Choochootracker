@@ -1423,16 +1423,19 @@ latch at the next note trigger; duty/width and noise frequency can change live.
 
 | Engines | FX | Control |
 |---|---|---|
-| All native FM | `FBR 00–FF` | Brightness: `00` = darkest, `80` = preset, `FF` = brightest; supports `SLE`. |
-| Native FM | `OL1`–`OL6` | Absolute operator output levels. Range depends on the engine: OPLL/VRC7 modulator and OPL `00–3F`; OPLL/VRC7 carrier `00–0F`; Genesis/Arcade `00–7F`; DX7 `00–63` (0–99). Higher means greater output. Only supported operators appear. Supports `SLE`. |
-| All native FM | `FET 00–FF` | Native operator envelope time: short / preset (`80`) / long. Changes attack, decay and release rates; Yamaha hold rates remain held. Independent of the optional amp envelope. |
-| All native FM | `FTD 00–FF` | Tone decay: short / preset (`80`) / long. Changes modulator decay stages, leaving carrier decay alone. |
-| All native FM | `FHR 00–FF` | Lower / preset (`80`) / higher modulator coarse ratios. Native steps; fixed-frequency DX7 operators are unchanged. Additive algorithms with no modulators have no effect. |
-| Genesis, Arcade, DX7 | `FDT 00–FF` | Opposing operator detune offsets around `80` (preset); `00` and `FF` spread in opposite directions. Native detune steps, not an extra chorus effect. |
-| Genesis, Arcade, DX7 | `FLR 00–FF` | Native LFO slower / preset (`80`) / faster. Genesis has eight rate settings; Arcade has 256 and DX7 has 100. Requires modulation depth to hear it. |
-| Genesis, Arcade, DX7 | `FLD 00–FF` | Native LFO depth: none / preset (`80`) / maximum. Changes pitch and amplitude depth/sensitivity together; amplitude modulation still follows the preset's operator enable/sensitivity settings. Positive offsets enable Genesis/Arcade LFOs even when the preset disabled them. |
+| Native FM | `OL1`–`OL6` | Absolute operator output levels: OPLL/VRC7 modulator and OPL `00–3F`; OPLL/VRC7 carrier `00–0F`; Genesis/Arcade `00–7F`; DX7 `00–63` (0–99). Higher means greater output. Only supported operators appear. |
+| Native FM | `FOP 01–06` | Choose the operator for subsequent operator commands; upper bound follows the engine's operator count. Defaults to OP1 on each new note or instrument. |
+| Native FM | `OAR`, `ODR`, `ORR`, `OSL` | Native attack, decay, release and sustain attenuation. OPLL/OPL `00–0F`; Genesis/Arcade attack/decay `00–1F`, release/sustain `00–0F`; DX7 rates 1/2/4 and level 3 `00–63`. |
+| Genesis/Arcade/DX7 | `OSR` | Native sustain rate (`00–1F`), or DX7 envelope rate 3 (`00–63`). |
+| Genesis/Arcade/DX7 | `ODT` | Native encoded detune: `00–07` on four-operator chips; `00–0E` on DX7. |
+| Native FM | `OMU` | Native multiplier (`00–0F`), or DX7 coarse frequency (`00–1F`). |
+| DX7 | `OFI`, `OFM`, `OE1`, `OE2`, `OE4` | Fine frequency `00–63`; mode `00` ratio / `01` fixed; envelope levels 1, 2 and 4 `00–63`. |
+| Genesis/Arcade/DX7 | `LFR` | Native LFO rate: Genesis `00–07`, Arcade `00–FF`, DX7 `00–63`. |
+| Arcade/DX7 | `LAD`, `LPD` | Separate LFO amplitude and pitch depths: Arcade `00–7F`, DX7 `00–63`. |
+| Genesis/Arcade | `LAS`, `LEN` | Native amplitude sensitivity `00–03` and LFO enable `00–01`. |
+| Genesis/Arcade/DX7 | `LPS` | Native pitch sensitivity `00–07`. |
 | SID | `SAT`, `SDE`, `SSU`, `SRL 00–0F` | Native attack, decay, sustain and release. Time values increase toward `0F`; sustain increases toward full level. |
-| SID | `SPR 00–0F` | Silent partner frequency from 1× to 16×; affects ring modulation and hard sync. |
+| SID | `SPR 01–10` | Silent partner frequency from 1× to 16×; affects ring modulation and hard sync. |
 | All native FM | `FBK 00–07` | Absolute native feedback, initialized from the instrument. |
 | All native FM with Amp env enabled; Sega/GB | `EAT`, `EDC`, `ESU`, `ERL`, `ESH 00–FF` | Attack, decay, sustain, release, shape. These do not enable a bypassed FM amp. |
 | Sega PSG | `CMD 00–02`, `CNR 00–03` | Tone / white noise / periodic noise; three fixed noise rates or tone-derived rate. |
@@ -1450,17 +1453,28 @@ Tables use their instrument context. Native value edits stop at their legal
 endpoints, including duty, noise, sweep, ADSR, feedback and operator levels.
 The values are hexadecimal: for example, DX7's maximum `63` means decimal 99.
 
-Master FM macros that adjust several underlying parameters remain relative;
-the popup labels their preset adjustment explicitly. `SCP` and `SCT` retain
-their documented byte-scaled mappings to wider SID registers. The displayed
-preset values are base settings, independent of the playing envelope or LFO.
-Legacy `FO1`–`FO6` offsets and encoded `FFB` still play and save unchanged, but
-new selections use `OL1`–`OL6` and `FBK`. Songs or instruments containing these
-new commands save as CNI format 8. Native songs save as CCT format 9 with
-upstream’s `00–7F` phrase volume. Earlier personal native songs (formats 6–8)
-migrate their old `00–0F` phrase levels on load; upstream format 6 songs keep
-their `00–7F` values. Instrument-table volume remains `00–0F`. Older builds
-cannot load these new formats, so retain the original file when sharing.
+All these FM controls use absolute native values. For example, `FOP 02`
+followed by `OAR 1F` sets operator 2 attack to 31 on Genesis/Arcade. Commands
+run from left to right and retain separate values for each operator until the
+next note or instrument resets them. The popup reads the selected operator's
+preset value. Modulation bindings specify their operator directly, independently
+of `FOP`, and clamp to the same native range. Motion recording writes the
+operator selector and parameter together; a full row reports overflow.
+
+`SCP` and `SCT` retain byte-scaled mappings to SID registers wider than 8 bits.
+`SMR 01–C8`, `SWV 01–08` and `SPR 01–10` now match the native preset numbering.
+Displayed preset values are base settings, independent of the playing envelope
+or LFO. `SLE` works on operator levels and the direct FM parameters without
+retriggering the note or changing the stored patch.
+
+The earlier personal `FBR`, `FO1`–`FO6`, `FFB`, `FET`, `FTD`, `FDT`, `FHR`,
+`FLR` and `FLD` commands are retired. Affected personal songs are converted once;
+the player no longer carries their translation or relative macro paths. Personal
+native volume migration is also removed after the affected songs are updated.
+Upstream song compatibility and AY behavior are unchanged. Native songs save
+as CCT format 9 with `00–7F` phrase volume; instrument-table volume stays `00–0F`.
+Instruments with absolute commands use CNI format 8. Retain original files when
+sharing with older builds.
 
 All native FX have descriptive titles, ranges and behavior in the phrase
 FX chooser, plus value hints. `CMD` describes tone/noise, duty or noise width
@@ -1468,25 +1482,14 @@ according to the selected instrument. These controls supplement the shared
 Track, Envelope and Modulation groups; the engine group alone is not the full
 set of available phrase effects.
 
-The six FM macro commands support `SLE` and modulation destinations. `80`
-restores the saved setting exactly. They change live voice parameters without
-retriggering the note or editing the saved preset. Native quantization remains:
-a 00–FF control does not create extra hardware states. Envelope time and tone
-decay combine; neither restarts an envelope stage that has already finished.
-These runtime values persist in phrase/table commands, not in the preset bytes.
-SID's five added controls use native discrete values and do not use `SLE`.
-
 The existing shared LP/BP/HP filters on Braids, Plaits, PCM and other supported
 engines are software processing after synthesis. aChChid instead uses its native
 303 filter path. This round adds no filter to AY or native FM; brightness changes
 FM synthesis itself. Track inserts remain available for additional processing.
 
 Native instruments save in CNI version 7 (8 when absolute commands are present),
-and native songs in CCT version 9. Older songs and instrument
-tables migrate their FBR values once on loading, preserving their native tone
-offsets; `3F` from version 6 becomes `80`. Keep this build or newer to reopen
-new saves. The stored FM preset bytes and instrument-page brightness values
-remain unchanged.
+and native songs in CCT version 9. Stored FM preset bytes and instrument-page
+tone settings remain unchanged.
 
 ### Handheld workload guidance for native chips
 
