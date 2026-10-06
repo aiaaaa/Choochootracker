@@ -1570,3 +1570,5 @@ neutral without contact, and respects the current live/motion arming mode.
 Lift all fingers on a panel before re-arming after its primary finger lifts.
 Vita touch does not edit the tracker UI. Controller navigation remains primary.
 The personal profile includes the existing Lucky NEXT / PLAY / LOAD workflow.
+The synchronized Vita source also includes the native chip and FM instruments
+and their waveform previews; handheld performance still needs device validation.

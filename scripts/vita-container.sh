@@ -28,5 +28,7 @@ make -C /src/tracker -f Makefile.test -j"${VITA_JOBS:-4}" BUILD_DIR=/out/tests \
   CHOOCHOO_EXPERIMENTAL_MOD_LUCKY=0 /out/tests/run_tests /out/tests/vita_input_test /out/tests/vita_seed_test /out/tests/vita_controls_test
 mkdir -p /out/build/tests
 ln -sfn /src/tracker/packaging /out/packaging
+# DX7 library tests resolve their source bank as ../tools from /out.
+ln -sfn /src/tools /tools
 (cd /out && ./tests/run_tests && ./tests/vita_input_test && ./tests/vita_seed_test && ./tests/vita_controls_test)
 python3 /src/scripts/vita-package.py "$profile"
