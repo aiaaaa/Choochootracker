@@ -66,7 +66,7 @@ static const char* contextualFXHint(uint8_t* fx,int table,uint8_t instrument) {
   NativeFXInfo native{};
   if(nativeInfo(instrument,fx[0],native) && native.label) {
     static char text[80];
-    if(fx[0]>=fxOAR&&fx[0]<=fxOE4)snprintf(text,sizeof(text),"OP%d %s: %02X"+1,native.label,fx[1]);
+    if(fx[0]>=fxOAR&&fx[0]<=fxOE4)snprintf(text,sizeof(text),"OP1 %s: %02X",native.label,fx[1]);
     else snprintf(text,sizeof(text),"%s: %02X",native.label,fx[1]);
     return text;
   }
