@@ -19,6 +19,11 @@ TEST_CASE("MIDI CC maps continuous engine destinations to native values") {
   projectInit(&p);
   Instrument* plaits = &p.instruments[0];
   plaits->type = InstrumentType::Plaits;
+  CHECK(instrumentCCDestinationAvailable(plaits, 1));
+  CHECK(instrumentSetCCDestination(plaits, 1, 0));
+  CHECK(plaits->volume == 0);
+  CHECK(instrumentSetCCDestination(plaits, 1, 127));
+  CHECK(plaits->volume == 255);
   CHECK(instrumentCCDestinationAvailable(plaits, 4));
   CHECK(instrumentSetCCDestination(plaits, 4, 0));
   CHECK(plaits->chip.plaits.timbre == 0);

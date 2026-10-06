@@ -556,6 +556,7 @@ int instrumentCCDestinationAvailable(const Instrument* instrument, int destinati
   if (!instrument || destination == midiCCDestinationNone) return 0;
   if (destination >= midiCCDestinationAttack && destination <= midiCCDestinationRelease)
     return instrumentVoicePostSettings(const_cast<Instrument*>(instrument)) != NULL;
+  if (destination == 1) return 1; // Volume is shared by every instrument.
   if (destination < 3) return 0;
   const InstrumentModDestination* d = instrumentModDestination(instrument->type, destination);
   if (!d || (!d->range && instrument->type != InstrumentType::AY2 &&
@@ -576,6 +577,7 @@ int instrumentCCDestinationValue(const Instrument* instrument, int destination, 
 
 int instrumentSetCCDestination(Instrument* instrument, int destination, uint8_t cc) {
   if (!instrumentCCDestinationAvailable(instrument, destination)) return 0;
+  if (destination == 1) { instrument->volume = (uint8_t)ccScale(cc, 255); return 1; }
   if (destination >= midiCCDestinationAttack && destination <= midiCCDestinationRelease) {
     InstrumentVoicePostSettings* post = instrumentVoicePostSettings(instrument);
     uint8_t value = (uint8_t)ccScale(cc, 255);

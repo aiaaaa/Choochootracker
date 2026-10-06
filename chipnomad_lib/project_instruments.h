@@ -470,6 +470,12 @@ enum MidiCCDestination : uint8_t {
   midiCCDestinationDecay = 12,
   midiCCDestinationSustain = 13,
   midiCCDestinationRelease = 14,
+  midiCCDestinationSongPlayStop = 15,
+  midiCCDestinationTrackMute = 16,
+  midiCCDestinationTrackSolo = 17,
+  midiCCDestinationTrackVolume = 18,
+  midiCCDestinationTrackReverbSend = 19,
+  midiCCDestinationTrackDelaySend = 20,
 };
 
 struct InstrumentModDestination {

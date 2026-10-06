@@ -28,6 +28,18 @@ static ScreenData data = {
 static int columnCount(int) { return 5; }
 static int xForColumn(int col) { static const int x[] = {0, 5, 10, 16, 27}; return x[col]; }
 static int widthForColumn(int col) { static const int w[] = {3, 4, 5, 10, 13}; return w[col]; }
+static int globalTrackDestination(int destination) { return destination >= midiCCDestinationTrackMute && destination <= midiCCDestinationTrackDelaySend; }
+static const char* globalDestinationName(int destination) {
+  switch (destination) {
+    case midiCCDestinationSongPlayStop: return "Song play/stop";
+    case midiCCDestinationTrackMute: return "Track mute";
+    case midiCCDestinationTrackSolo: return "Track solo";
+    case midiCCDestinationTrackVolume: return "Track volume";
+    case midiCCDestinationTrackReverbSend: return "Track reverb";
+    case midiCCDestinationTrackDelaySend: return "Track delay";
+    default: return NULL;
+  }
+}
 
 static void instrumentLabel(int instrument, char* buffer, int bufferSize) {
   if (instrument < 0 || instrument >= PROJECT_MAX_INSTRUMENTS) {
@@ -63,10 +75,13 @@ static void drawField(int col, int row, CellState state) {
     else gfxPrintf(x, y, "%03d", m.cc);
   }
   else if (col == 3) {
+    if (m.destination == midiCCDestinationSongPlayStop) { gfxPrint(x, y, "--"); return; }
+    if (globalTrackDestination(m.destination)) { gfxPrintf(x, y, "TRK %d", m.instrument + 1); return; }
     char label[11];
     instrumentLabel(m.instrument, label, sizeof(label));
     gfxPrint(x, y, label);
   }
+  else if (globalDestinationName(m.destination)) gfxPrint(x, y, globalDestinationName(m.destination));
   else if (!m.enabled || m.destination == midiCCDestinationNone) gfxPrint(x, y, "-");
   else if (m.instrument >= PROJECT_MAX_INSTRUMENTS ||
            !instrumentCCDestinationAvailable(&chipnomadState->project.instruments[m.instrument], m.destination))
@@ -76,11 +91,11 @@ static void drawField(int col, int row, CellState state) {
 
 static int nextDestination(const MidiCCMapping& m, int direction) {
   int value = m.destination;
-  for (int i = 0; i < 16; ++i) {
+  for (int i = 0; i <= midiCCDestinationTrackDelaySend; ++i) {
     value += direction;
-    if (value < 0) value = 15;
-    if (value > 15) value = 0;
-    if (value == midiCCDestinationNone ||
+    if (value < 0) value = midiCCDestinationTrackDelaySend;
+    if (value > midiCCDestinationTrackDelaySend) value = 0;
+    if (value == midiCCDestinationNone || globalDestinationName(value) ||
         (m.instrument < PROJECT_MAX_INSTRUMENTS &&
          instrumentCCDestinationAvailable(&chipnomadState->project.instruments[m.instrument], value))) return value;
   }
@@ -112,7 +127,10 @@ static int onEdit(int col, int row, CellEditAction action) {
   uint8_t newChannel = m.channel, newCC = m.cc;
   if (col == 1) newChannel = (uint8_t)((m.channel + direction + 16) % 16);
   else if (col == 2) newCC = (uint8_t)((m.cc + direction + 128) % 128);
-  else if (col == 3) m.instrument = (uint8_t)((m.instrument + direction + PROJECT_MAX_INSTRUMENTS) % PROJECT_MAX_INSTRUMENTS);
+  else if (col == 3) {
+    int count = globalTrackDestination(m.destination) ? PROJECT_MAX_TRACKS : PROJECT_MAX_INSTRUMENTS;
+    m.instrument = (uint8_t)((m.instrument + direction + count) % count);
+  }
   else if (col == 4) m.destination = (uint8_t)nextDestination(m, direction);
   else return 0;
   if ((col == 1 || col == 2) && m.enabled && duplicateCC(row, newChannel, newCC)) return 0;
