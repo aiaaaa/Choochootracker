@@ -102,3 +102,12 @@ passed with MinGW GCC 16.2 and the repository's SDL2 2.32.6 development package.
 This validates compilation and linking, not Windows playback or release packaging.
 Linux tests, web-contract, and Android passed on the preceding `5e73b36` commit;
 current-head GitHub checks must rerun after this build-configuration update.
+
+### PR #39 Windows archive-name follow-up (2026-10-06)
+
+Windows CI compiled and linked `8807037` successfully, then failed while creating
+the ZIP because the PR ref `39/merge` became part of the output path. Packaging
+now replaces ref slashes with hyphens and quotes the archive filename. The exact
+workflow packaging commands passed local ZIP creation/content checks for PR refs,
+branch refs, release tags, and the manual fallback. Application and audio code
+are unchanged; Windows CI still needs to confirm the complete package upload.
