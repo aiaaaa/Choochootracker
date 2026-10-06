@@ -176,6 +176,7 @@ int chipnomadQueueSIDPreview(ChipNomadState* state,int track,const InstrumentSID
 int chipnomadQueueOPLLPreview(ChipNomadState* state, int track, const InstrumentOPLL* patch);
 int chipnomadQueuePlaybackStopPreview(ChipNomadState* state, int trackIdx);
 int chipnomadQueuePlaybackClearTrackFX(ChipNomadState* state, int trackIdx);
+int chipnomadQueueMidiCC(ChipNomadState* state, int instrument, int destination, uint8_t value, int enabled);
 void chipnomadQueueLoopRange(ChipNomadState* state, LoopRange range);
 void chipnomadQueueClearLoopRange(ChipNomadState* state);
 const PlaybackStatus* chipnomadGetPlaybackStatus(ChipNomadState* state);

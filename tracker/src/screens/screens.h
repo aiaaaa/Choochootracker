@@ -119,6 +119,7 @@ extern const AppScreen screenColorTheme;
 extern const AppScreen screenKeyMapping;
 extern const AppScreen screenMidi;
 extern const AppScreen screenMidiChannelMap;
+extern const AppScreen screenMidiCC;
 extern const AppScreen screenQuickHelp;
 extern const AppScreen screenTitle;
 

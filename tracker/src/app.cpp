@@ -50,6 +50,9 @@ static int motionLiveLatched;
 static int quickHelpSelectHeld;
 static int quickHelpSelectAlone;
 static int audioProjectDirty;
+static MidiCCMapping midiCCApplied[PROJECT_MAX_MIDI_CC_MAPPINGS];
+static uint8_t midiCCAppliedValue[PROJECT_MAX_MIDI_CC_MAPPINGS];
+static uint8_t midiCCAppliedValid[PROJECT_MAX_MIDI_CC_MAPPINGS];
 
 // Port indices aren't saved (see common.h's AppSettings comment): this
 // resolves the saved device name back to whatever live port currently has
@@ -727,6 +730,26 @@ void appOnEvent(MainLoopEventData eventData) {
           } else if (!instrumentIsEmpty(&chipnomadState->project, intents[i].instrument)) {
             chipnomadQueuePlaybackPreviewNote(chipnomadState, *pSongTrack, intents[i].note, intents[i].instrument);
           }
+        }
+      }
+      for (int i = 0; i < PROJECT_MAX_MIDI_CC_MAPPINGS; ++i) {
+        MidiCCMapping& mapping = chipnomadState->project.midiCCMappings[i];
+        int valid = mapping.enabled && mapping.channel < 16 && mapping.cc < 128 &&
+          mapping.instrument < PROJECT_MAX_INSTRUMENTS &&
+          instrumentCCDestinationAvailable(&chipnomadState->project.instruments[mapping.instrument], mapping.destination);
+        int changed = !midiCCAppliedValid[i] || memcmp(&mapping, &midiCCApplied[i], sizeof(mapping)) != 0;
+        uint8_t value = valid ? (uint8_t)midiRouterGetCCValue(chipnomadState->midiRouter, mapping.channel, mapping.cc) : 0;
+        if (valid && (!midiCCAppliedValid[i] || changed || value != midiCCAppliedValue[i])) {
+          instrumentSetCCDestination(&chipnomadState->project.instruments[mapping.instrument],
+                                     mapping.destination, value);
+          midiCCApplied[i] = mapping;
+          midiCCAppliedValue[i] = value;
+          midiCCAppliedValid[i] = 1;
+          projectModified = 1;
+          audioProjectDirty = 1;
+          if (currentScreen) currentScreen->fullRedraw();
+        } else if (!valid && midiCCAppliedValid[i]) {
+          midiCCAppliedValid[i] = 0;
         }
       }
     }

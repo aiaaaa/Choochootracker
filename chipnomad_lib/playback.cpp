@@ -1222,6 +1222,7 @@ void playbackInit(PlaybackState* state, Project* project) {
   state->liveStickWasPlaying = 0;
   state->scaleRoot = project->scaleRoot;
   state->scalePreset = project->scalePreset;
+  memset(state->midiCC, 0, sizeof(state->midiCC));
 
   initFXHandlers();
   initAYSampleTables();

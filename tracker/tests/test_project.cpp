@@ -4,6 +4,7 @@
 #include "project_io_common.h"
 #include "project_utils.h"
 #include "import/import_vt2.h"
+#include "synth/multimode_filter.h"
 
 #include <cstring>
 #include <cstdlib>
@@ -12,6 +13,23 @@
 #include <cstdio>
 
 TEST_SUITE("project") {
+
+TEST_CASE("MIDI CC maps continuous engine destinations to native values") {
+  Project p;
+  projectInit(&p);
+  Instrument* plaits = &p.instruments[0];
+  plaits->type = InstrumentType::Plaits;
+  CHECK(instrumentCCDestinationAvailable(plaits, 4));
+  CHECK(instrumentSetCCDestination(plaits, 4, 0));
+  CHECK(plaits->chip.plaits.timbre == 0);
+  CHECK(instrumentSetCCDestination(plaits, 4, 127));
+  CHECK(plaits->chip.plaits.timbre == 32767);
+  CHECK(instrumentSetCCDestination(plaits, 7, 0));
+  CHECK(plaits->chip.plaits.filterCutoffHz == FILTER_CUTOFF_MIN_HZ);
+  CHECK(instrumentSetCCDestination(plaits, 7, 127));
+  CHECK(plaits->chip.plaits.filterCutoffHz == FILTER_CUTOFF_MAX_HZ);
+  projectFree(&p);
+}
 
 // Test fixture
 struct ProjectFixture {
@@ -42,6 +60,11 @@ TEST_CASE_FIXTURE(ProjectFixture, "projectInit default track tilt") {
   for (int i = 0; i < PROJECT_MAX_TRACKS; ++i) CHECK(p.trackTilt[i] == 0x80);
 }
 
+TEST_CASE_FIXTURE(ProjectFixture, "projectInit enables MIDI CC mapping rows") {
+  for (int i = 0; i < PROJECT_MAX_MIDI_CC_MAPPINGS; ++i)
+    CHECK(p.midiCCMappings[i].enabled == 1);
+}
+
 TEST_CASE("track tilt project settings survive save and load") {
   Project saved, loaded;
   projectInit(&saved);
@@ -63,6 +86,25 @@ TEST_CASE("track tilt project settings survive save and load") {
   CHECK(loaded.trackTilt[0] == 0x00);
   CHECK(loaded.trackTilt[7] == 0xff);
   CHECK(loaded.tiltPivotHz == 2500);
+}
+
+TEST_CASE("MIDI CC mappings survive save and load") {
+  Project saved, loaded;
+  projectInit(&saved); projectInit(&loaded);
+  saved.chipsCount = loaded.chipsCount = 1;
+  saved.tracksCount = loaded.tracksCount = 1;
+  saved.chipType = loaded.chipType = ChipType::AY;
+  std::strcpy(saved.title, "MIDI CC");
+  std::strcpy(saved.pitchTable.name, "MIDI CC");
+  saved.midiCCMappings[0] = {1, 2, 74, 3, 4};
+  const char* path = "build/tests/midi_cc_io.cct";
+  REQUIRE(projectSave(&saved, path) == 0);
+  REQUIRE(projectLoad(&loaded, path) == 0);
+  CHECK(loaded.midiCCMappings[0].enabled == 1);
+  CHECK(loaded.midiCCMappings[0].channel == 2);
+  CHECK(loaded.midiCCMappings[0].cc == 74);
+  CHECK(loaded.midiCCMappings[0].instrument == 3);
+  CHECK(loaded.midiCCMappings[0].destination == 4);
 }
 
 TEST_CASE("scale project settings survive save and load") {

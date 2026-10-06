@@ -364,7 +364,7 @@ TEST_SUITE("MIDI settings") {
 TEST_CASE_FIXTURE(StickLiveFixture, "screenMidi shows device rows and links to channel mapping") {
   screenMidi.fullRedraw();
   REQUIRE(mockScreenData != nullptr);
-  CHECK(mockScreenData->rows == 3);
+  CHECK(mockScreenData->rows == 4);
   auto* screen = mockScreenData;
 
   screen->drawField(0, 0, CellState::focus);
@@ -385,6 +385,12 @@ TEST_CASE_FIXTURE(StickLiveFixture, "screenMidi shows device rows and links to c
   CHECK(std::string(mockGfxCells[5], 15) == "Channel mapping");
   screen->onEdit(0, 2, CellEditAction::tap);
   CHECK(currentScreen == &screenMidiChannelMap);
+
+  currentScreen = &screenMidi;
+  screen->drawField(0, 3, CellState::focus);
+  CHECK(std::string(mockGfxCells[6], 15) == "MIDI CC mapping");
+  screen->onEdit(0, 3, CellEditAction::tap);
+  CHECK(currentScreen == &screenMidiCC);
 
   currentScreen = &screenMidi;
   CHECK(screenMidi.onInput(1, keyOpt, 0) == 1);

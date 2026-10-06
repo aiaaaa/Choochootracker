@@ -695,6 +695,7 @@ static bool readInsertFields(const char* line, const char* prefix, unsigned* val
 
 static int projectLoadInternal(FILE* file, Project* project) {
   char buf[128];
+  int tempLinearPitch;
   Project p;
   projectInit(&p);
   p.signedTrackSpeed = 0; // Absent from old files: retain the legacy SPD map.
@@ -837,6 +838,28 @@ static int projectLoadInternal(FILE* file, Project* project) {
   line = peekLine(file);
   if (line && sscanf(line, "- Tilt pivot: %hu", &p.tiltPivotHz) == 1) consumeLine(file);
 
+  line = peekLine(file);
+  if (line && sscanf(line, "- MIDI CC mappings: %d", &tempLinearPitch) == 1) {
+    int count = tempLinearPitch < 0 ? 0 : tempLinearPitch;
+    consumeLine(file);
+    for (int i = 0; i < count; ++i) {
+      unsigned slot, enabled, channel, cc, instrument, destination;
+      line = peekLine(file);
+      if (!line || sscanf(line, "- MIDI CC: %u,%u,%u,%u,%u,%u", &slot, &enabled, &channel,
+                          &cc, &instrument, &destination) != 6) return 1;
+      if (slot < PROJECT_MAX_MIDI_CC_MAPPINGS) {
+        MidiCCMapping& m = p.midiCCMappings[slot];
+        m.enabled = enabled != 0;
+        m.channel = channel < 16 ? channel : 0;
+        m.cc = cc < 128 ? cc : 0;
+        m.instrument = instrument < PROJECT_MAX_INSTRUMENTS ? instrument : 0;
+        m.destination = destination < 255 ? destination : 0;
+      }
+      consumeLine(file);
+    }
+    line = peekLine(file);
+  }
+
   for (int i = 0; i < PROJECT_MAX_TRACKS; i++) {
     if (p.trackReverbSend[i] > 100) p.trackReverbSend[i] = 100;
     if (p.trackDelaySend[i] > 100) p.trackDelaySend[i] = 100;
@@ -854,7 +877,6 @@ static int projectLoadInternal(FILE* file, Project* project) {
   // Try to read linear pitch (optional for backwards compatibility)
   line = peekLine(file);
   if (line == NULL) return 1;
-  int tempLinearPitch;
   if (sscanf(line, "- Linear pitch: %d", &tempLinearPitch) == 1) {
     p.linearPitch = (uint8_t)tempLinearPitch;
     consumeLine(file);
@@ -1515,6 +1537,12 @@ static int projectSaveInternal(FILE* file, Project* project) {
   fprintf(file, "- Delay: %hhu,%hhu,%hhu,%hhu,%hu\n", project->delayReturn, project->delayReverbSend,
     project->delayTicks, project->delayFeedback, project->delayFilterCutoffHz);
   fprintf(file, "- Tilt pivot: %hu\n", project->tiltPivotHz);
+  fprintf(file, "- MIDI CC mappings: %d\n", PROJECT_MAX_MIDI_CC_MAPPINGS);
+  for (int i = 0; i < PROJECT_MAX_MIDI_CC_MAPPINGS; ++i) {
+    const MidiCCMapping& m = project->midiCCMappings[i];
+    fprintf(file, "- MIDI CC: %d,%d,%d,%d,%d,%d\n", i, m.enabled, m.channel, m.cc,
+            m.instrument, m.destination);
+  }
   fprintf(file, "- Linear pitch: %d\n", project->linearPitch);
   fprintf(file, "- Signed track speed: %d\n", project->signedTrackSpeed);
   fprintf(file, "- Perceptual effects: %d\n", project->perceptualEffects);

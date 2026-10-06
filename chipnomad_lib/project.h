@@ -360,6 +360,14 @@ struct PitchTable {
   char noteNames[PROJECT_MAX_PITCHES][4];
 };
 
+struct MidiCCMapping {
+  uint8_t enabled;
+  uint8_t channel;
+  uint8_t cc;
+  uint8_t instrument;
+  uint8_t destination;
+};
+
 struct Project {
   char title[PROJECT_TITLE_LENGTH + 1];
   char author[PROJECT_TITLE_LENGTH + 1];
@@ -395,6 +403,7 @@ struct Project {
   uint8_t delayTicks;
   uint8_t delayFeedback;
   uint16_t delayFilterCutoffHz;
+  MidiCCMapping midiCCMappings[PROJECT_MAX_MIDI_CC_MAPPINGS];
 
   PitchTable pitchTable;
 
