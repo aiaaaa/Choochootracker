@@ -46,4 +46,37 @@ it. This isolated contribution builds against current upstream. Five focused cas
 passed (927 assertions): compact FX availability, single-command motion recording,
 OPLL CNI/CCT persistence, mixed native/sample archives, and DX7 folder rescanning.
 The regenerated web build also passed JavaScript syntax and WebAssembly validation.
-No new full suite, stress run or device installation is planned for this extraction.
+The extraction was checked with focused tests, without a full suite, stress run,
+or new device installation.
+
+### PR #39 MIDI lifetime follow-up (2026-10-06)
+
+Review found that the MIDI tests and standalone converter passed uninitialized
+projects into loaders that release the previous instrument data on success.
+These callers now initialize an empty project first, matching the tracker UI.
+The MIDI API documents that successful imports replace the destination and
+failed imports leave it unchanged. No audio-engine behavior changed.
+
+The five MIDI tests pass (49 assertions), including repeated replacement of a
+sample-owning project and preservation after missing, malformed, or empty MIDI
+input. The converter entry point also passed a MIDI/CCT/MIDI/CCT round trip with
+allocation scribbling enabled, linked against the cached core and test support
+objects; this was not a standalone release-package build.
+
+### PR #39 FM controls and full-suite follow-up (2026-10-06)
+
+The failing FM test still required all live modulation destinations to appear
+in tracker FX. Its assertions now distinguish native modulation metadata from
+the intentionally smaller per-engine tracker list, which retains its explicit
+availability tests. No removed tracker command was restored.
+
+Additional coverage switches one OPL3 instrument between two-operator,
+four-operator, dual-voice, and back to two-operator configurations, checking
+actual operator availability. CNI and CCT reload checks preserve each topology,
+operator settings, and modulation destinations. The existing instance-level
+availability rules passed these checks without synth or runtime changes.
+
+`make -C tracker -f Makefile.test -j4` passed locally: 501 test cases,
+112,209,328 assertions, zero failures or skipped cases. This includes the MIDI,
+native preset, and existing project/instrument persistence tests. Linux GitHub
+CI must still rerun after the branch update; local Docker was unavailable.
