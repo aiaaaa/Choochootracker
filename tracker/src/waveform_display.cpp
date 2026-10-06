@@ -6,6 +6,7 @@
 #include "four_op_patch.h"
 #include "opl_patch.h"
 #include "opll_presets.h"
+#include "sid_patch.h"
 #include "playback_chips.h"
 #include "synth/braids_voice.h"
 #include "synth/achchid_voice.h"
@@ -18,7 +19,6 @@
 #include "synth/opll_voice.h"
 #include "synth/dx7_voice.h"
 #include "synth/simple_chip_voice.h"
-#include "synth/sid_voice.h"
 #include "common.h"
 #include "monitor_display.h"
 #include "audio_monitor.h"
@@ -584,11 +584,28 @@ void renderFMPreview(Bitmap* bitmap, const Instrument* instrument) {
     renderFloatPreview(bitmap, samples, frames);
     return;
   } else if (instrument->type == InstrumentType::SID) {
-    SIDVoice voice;
-    voice.init(48000.0f);
-    voice.configure(&instrument->chip.sid, 6900.0f, 1.0f);
-    voice.noteOn();
-    voice.render(samples, frames);
+    const auto& sid = instrument->chip.sid;
+    const float pulse = sid.value[sidPulse] / 4095.0f;
+    uint32_t noise = 0x1aceu;
+    for (size_t i = 0; i < frames; ++i) {
+      const float phase = float(i % 96) / 96.0f;
+      const float triangle = 1.0f - 4.0f * std::abs(phase - 0.5f);
+      const float saw = phase * 2.0f - 1.0f;
+      const float square = phase < pulse ? 1.0f : -1.0f;
+      noise = noise * 1103515245u + 12345u;
+      const float random = float((noise >> 16) & 0x7fff) / 16384.0f - 1.0f;
+      switch (sid.value[sidWave]) {
+        case 1: samples[i] = triangle; break;
+        case 2: samples[i] = saw; break;
+        case 3: samples[i] = triangle * saw; break;
+        case 4: samples[i] = square; break;
+        case 5: samples[i] = triangle * square; break;
+        case 6: samples[i] = saw * square; break;
+        case 7: samples[i] = triangle * saw * square; break;
+        case 8: samples[i] = random; break;
+        default: samples[i] = 0.0f; break;
+      }
+    }
     renderFloatPreview(bitmap, samples, frames);
     return;
   } else {
