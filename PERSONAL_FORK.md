@@ -57,28 +57,20 @@ AY and upstream command semantics remain unchanged.
 Personal-only relative FM commands and native phrase-volume migration are
 removed. A one-time conversion updates the affected personal songs and our
 bundled native audition. Upstream legacy-format support remains. See
-[the complete audit](docs/absolute-fx-audit-20261005.txt). This source revision is
-awaiting its device installation record; performance tests are skipped at the
-user's request.
+[the complete audit](docs/absolute-fx-audit-20261005.txt). This source revision is installed; performance tests were skipped at the user's request.
 
 ## Current installed device build
 
-Source: `5bfab9779f317f4fc6580292f285d0104917e52b` (October 5 upstream harmonization and native FX revision).
-Includes upstream phrase volume 00–7F, seven new inserts, export fixes and build
-workflow fixes. Older native songs retain their loudness through load migration.
-Native FX editing uses the row instrument's preset value and legal range;
-OL1–OL6 and FBK give absolute operator levels and feedback. The last DX7
-commands and complete ranges fit with the persistent waveform off and on.
+Source: `f4b086d5f18100ba239b018a2abaf2dc10bb81af`. Absolute native FM controls, fixed-operator
+modulation, SID native numbering, and compact descriptions/preset/range readouts.
+Eleven personal/test songs were converted once; their original files are retained
+in the verified rollback. Personal compatibility translations are removed.
+AY, upstream compatibility and stock songs are unchanged.
 
-Get Lucky, all 1196 native presets, persistent DX7 banks and personal features
-remain. Host and ARM64 suites, production UI, five physical ALSA workloads and
-startup with waveform off/on passed. The receipt retains the initial SID timing
-miss and ALSA underrun, plus the clean follow-up trials. User listening remains pending.
-
-The regular launcher and 2008 existing user files were preserved, with
-verified installation and rollback inventories. See [the device receipt](docs/native-fx-values-device-20261005.json)
-for hashes, timing and rollback. The [prior FM macro receipt](docs/fm-macros-device-20261005.json)
-remains historical. This receipt update does not change the native binary.
+Host and ARM functional suites, production UI and startup checks passed. GitHub
+CI passed for this source. Performance tests were skipped at the user's request;
+startup used the ALSA null output and human listening is pending. See
+[the installation receipt](docs/absolute-fx-device-20261005.json).
 
 ## Previous installed device build (R2)
 
