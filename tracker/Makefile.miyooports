@@ -13,18 +13,33 @@ DOCKER32 = docker run --privileged --platform=linux/armhf --rm --user $$(id -u):
 # MiyooPorts build settings
 XTRA_CFLAGS = -DMIYOOPORTS_BUILD -I${SYSROOT}/usr/include -L${SYSROOT}/usr/lib
 XTRA_LIBS = -lSDL -lm
-CFLAGS = $(COMMON_CFLAGS) $(INCLUDES) $(SOURCES) $(XTRA_CFLAGS)
+JOBS ?= 4
+CFLAGS = $(filter-out -flto,$(COMMON_CFLAGS)) $(INCLUDES) $(XTRA_CFLAGS)
+object_for = $(BUILD)/obj/$(subst ../,up/,$(basename $(1))).o
+OBJECTS := $(foreach source,$(SOURCES),$(call object_for,$(source)))
+DEPS := $(OBJECTS:.o=.d)
+
+define compile_source
+$(call object_for,$(1)): $(1) Makefile.miyooports Makefile.common
+	@mkdir -p $$(dir $$@)
+	@$(CROSS_COMPILE)$(CC) $(CFLAGS) -MMD -MP -c $$< -o $$@
+endef
+
+$(foreach source,$(SOURCES),$(eval $(call compile_source,$(source))))
+-include $(DEPS)
 
 .PHONY: .MiyooPorts
-.MiyooPorts:
+.MiyooPorts: $(BUILD)/chipnomad.armhf
+
+$(BUILD)/chipnomad.armhf: $(OBJECTS)
 	mkdir -p $(BUILD)
-	$(CROSS_COMPILE)$(CC) $(CFLAGS) $(XTRA_LIBS) -o $(BUILD)/chipnomad.armhf
-	chmod +x $(BUILD)/chipnomad.armhf
+	$(CROSS_COMPILE)$(CC) $(CFLAGS) $(OBJECTS) $(XTRA_LIBS) -o $@
+	chmod +x $@
 
 .PHONY: MiyooPorts
 MiyooPorts:
 	@./check-docker.sh || exit 1
-	$(DOCKER32) monkeyx/retro_builder:arm32 make -f Makefile.miyooports .MiyooPorts CC=g++ CPU=armhf
+	$(DOCKER32) monkeyx/retro_builder:arm32 make -j$(JOBS) -f Makefile.miyooports .MiyooPorts CC=g++ CPU=armhf JOBS=$(JOBS)
 
 .PHONY: MiyooPorts-deploy
 MiyooPorts-deploy: MiyooPorts
