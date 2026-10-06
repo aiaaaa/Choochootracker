@@ -21,5 +21,6 @@
   "web": "Build, JavaScript syntax and WebAssembly validation passed",
   "synthesis": "No synth adapter, preset, core or audio-setting changes",
   "test_scope": "Focused checks only; no full suite, performance or listening tests",
-  "history": "Earlier audit/revision/installation records retained"
+  "history": "Earlier audit/revision/installation records retained",
+  "user_evaluation": "User checked the installed device and accepted it for GitHub harmonization and draft PR preparation."
 }
