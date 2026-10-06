@@ -85,7 +85,7 @@
       "dx7_large_library_target": 1000,
       "dx7_large_library_target_met": false,
       "notes": "Existing personal features retained. Shared FM browser, native v6 patch ownership, strict local DX7 SysEx. Global 16-active-note DX7 budget selected from R36H measurements. Balanced 4WAV+2chip+2FM with four inserts passes direct-card audio at preserved settings; dense FM/insert and small-buffer limits are documented.",
-      "status": "Merged upstream implementation adopted in personal source; device remains on its recorded installed revision",
+      "status": "Merged upstream implementation installed in personal build",
       "fm_catalog_entries": 812,
       "included_commit": "6e9eb2b79f7024027e8ff1308d131aa05c0096ed",
       "dx7_active_note_limit": 16,
@@ -248,11 +248,11 @@
     }
   ],
   "current_device_build": {
-    "source_commit": "ee0e85c3cde127e24c138d8e58e14ead0cf5a6a2",
-    "binary_sha256": "a632262a7fa337addf347d3957147ce76b75e22b12c072c1fe777a5510841578",
-    "validation_report": "docs/fx-simplification-device-20261005.json",
-    "human_listening": "not performed",
-    "rollback": "/roms/choochootracker-backups/pre-fx-simplification-ee0e85c3cde1/previous-install"
+    "source_commit": "df6edc1aa3548d3bf5d9b3cacdd81ba53ce214c1",
+    "binary_sha256": "97789aed20a1b939429139c31d6fa8ceddea52635169573ee3b0762340791e15",
+    "validation_report": "docs/personal-device-harmonization-20261006.json",
+    "human_listening": "pending user evaluation",
+    "rollback": "/roms/choochootracker-backups/pre-harmonization-df6edc1aa354/previous-install"
   },
   "song_storage": "Upstream CCT archives embed loaded Sample, SCWF and BYOWTBL audio. Text songs remain readable; no-sample songs stay text. Native patches remain owned by the song.",
   "harmonization_20261005": {
@@ -266,6 +266,7 @@
     "upstream_commit": "6e9eb2b79f7024027e8ff1308d131aa05c0096ed",
     "previous_personal_commit": "072585c07c04ac5c3fe7324f88b9b9fc6b99755f",
     "report": "docs/personal-harmonization-20261006.txt",
-    "status": "Validated source integration; no device installation"
+    "status": "Installed; package and focused device checks passed; user listening pending",
+    "source_commit": "df6edc1aa3548d3bf5d9b3cacdd81ba53ce214c1"
   }
 }
