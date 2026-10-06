@@ -91,3 +91,14 @@ updated source compiles successfully there. Optimized host object files before
 and after this change are byte-identical; the resampling calculation is unchanged.
 The full local suite passed again (501 cases, 112,209,328 assertions), and the
 regenerated web bundle passed JavaScript syntax and WebAssembly validation.
+
+### PR #39 Windows SID build follow-up (2026-10-06)
+
+The next Windows CI run progressed past OPLL and found the same optional CRT
+math constant in the pinned SID implementation. Native Windows and Docker
+cross-build flags now enable `_USE_MATH_DEFINES`; the vendored source and sound
+calculations remain unchanged. A complete local Windows executable cross-build
+passed with MinGW GCC 16.2 and the repository's SDL2 2.32.6 development package.
+This validates compilation and linking, not Windows playback or release packaging.
+Linux tests, web-contract, and Android passed on the preceding `5e73b36` commit;
+current-head GitHub checks must rerun after this build-configuration update.
