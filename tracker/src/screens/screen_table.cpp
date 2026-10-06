@@ -304,7 +304,7 @@ static int editCell(int col, int row, enum CellEditAction action) {
     // FX (columns 3,5,7,9)
     int fxIdx = (col - 3) / 2;
     uint8_t instrumentIdx = getTableInstrumentIdx();
-    int result = editFX(action, tableRows[row].fx[fxIdx], lastFX, 1, instrumentIdx, lookupFMOperator(&chipnomadState->project.tables[tableIdx],row,fxIdx));
+    int result = editFX(action, tableRows[row].fx[fxIdx], lastFX, 1, instrumentIdx);
     if (result == 2) {
       drawField(col + 1, row, CellState::normal);
       handled = 1;
@@ -317,7 +317,7 @@ static int editCell(int col, int row, enum CellEditAction action) {
     int fxIdx = (col - 4) / 2;
     if (tableRows[row].fx[fxIdx][0] != EMPTY_VALUE_8) {
       uint8_t instrumentIdx = getTableInstrumentIdx();
-      handled = editFXValue(action, tableRows[row].fx[fxIdx], lastFX, 1, instrumentIdx, lookupFMOperator(&chipnomadState->project.tables[tableIdx],row,fxIdx));
+      handled = editFXValue(action, tableRows[row].fx[fxIdx], lastFX, 1, instrumentIdx);
     }
   }
 
@@ -451,7 +451,7 @@ static int onInput(int isKeyDown, int keys, int tapCount) {
         if (isSingleColumnSelection(&screen)) {
           uint8_t selectedFX = tableRows[screen.cursorRow - 1].fx[fxIdx][0];
           for (int r = startRow; r <= endRow; r++) {
-            if (r > 0) selectInstrumentFX(tableRows[r - 1].fx[fxIdx],selectedFX,getTableInstrumentIdx(),lookupFMOperator(&chipnomadState->project.tables[tableIdx],r-1,fxIdx));
+            if (r > 0) selectInstrumentFX(tableRows[r - 1].fx[fxIdx],selectedFX,getTableInstrumentIdx());
           }
         }
       }

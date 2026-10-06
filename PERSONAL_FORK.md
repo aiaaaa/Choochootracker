@@ -49,10 +49,12 @@ Native-chip preset audition and Get Lucky remain included. See
 [the insert review report](docs/personal-insert-review-20261004.txt) and
 [the preceding sync report](docs/personal-upstream-sync-20261004.txt).
 
-The new native chips now use absolute operator envelope, frequency, detune and
-LFO commands, with `FOP` selecting the operator. Modulation bindings name a fixed
-operator. SID waveform, macro speed and partner ratio use native numbering.
-AY and upstream command semantics remain unchanged.
+Native tracker FX now use a compact per-engine list. OPLL/VRC7/OPL2/OPL3 keep
+operator-1 envelope and multiplier controls; Genesis/Arcade keep the multiplier
+and LFO controls; DX7 keeps operator levels and feedback. The operator selector
+is removed. Live fixed-operator modulation and synthesis remain unchanged.
+SID waveform, macro speed and partner ratio use native numbering.
+See [the simplification notes](docs/fx-simplification-20261005.txt).
 
 Personal-only relative FM commands and native phrase-volume migration are
 removed. A one-time conversion updates the affected personal songs and our

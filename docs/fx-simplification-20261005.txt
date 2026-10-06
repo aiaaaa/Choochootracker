@@ -1,0 +1,27 @@
+Tracker FX simplification — October 5, 2026
+
+User-requested follow-up to 67e76d8 / installed f4b086d. Earlier audit, build,
+installation and song-conversion notes are retained as historical records.
+
+OPLL, VRC7, OPL2, OPL3: remove FOP only; OAR/ODR/ORR/OSL/OMU remain.
+Genesis/Arcade: remove FOP and operator envelope/detune tracker commands;
+keep OMU, OL levels, feedback and existing LFO commands.
+DX7: remove FOP, OAR/ODR/OSR/ORR/OSL/ODT/OMU/OFI/OFM/OE1/OE2/OE4
+and LFO tracker commands. Keep OL1–OL6 and feedback.
+Sega PSG, GB Pulse and GB Noise: unchanged.
+
+Removed selector code, UI context searches and paired motion-recording logic.
+Removed commands are unavailable to selection and playback, without legacy
+handlers or song migration. Retained operator commands address operator 1.
+The unassigned selector number keeps unrelated saved command IDs stable.
+Native parameter metadata remains in use by live fixed-operator Modulation;
+that functionality, synth adapters, patches and audio settings are unchanged.
+Motion recording only writes representable commands; other operators and
+removed tracker destinations still modulate live without writing phrase FX.
+
+Popup titles/body match FM Feedback's original textValue/textDefault colors.
+Preset/Range remains textInfo. No empty placeholder commands are displayed.
+
+Validation scope requested by user: focused FX list/color check and build only.
+No full functional suite, performance tests, audio stress or extended playtest.
+Build and installation results pending.

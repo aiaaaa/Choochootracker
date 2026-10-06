@@ -217,8 +217,9 @@ enum FX {
   // Absolute native output levels. Earlier personal command IDs are retired.
   fxOL1, fxOL2, fxOL3, fxOL4, fxOL5, fxOL6,
   fxFBK,
-  // Direct native FM parameters; FOP selects the operator for Oxx commands.
-  fxFOP, fxOAR, fxODR, fxOSR, fxORR, fxOSL, fxODT, fxOMU, fxOFI, fxOFM, fxOE1, fxOE2, fxOE4,
+  // Direct FM parameter IDs are also used by fixed-operator modulation.
+  // Leave the removed selector ID unassigned; keep saved command IDs stable.
+  fxOAR = fxFBK + 2, fxODR, fxOSR, fxORR, fxOSL, fxODT, fxOMU, fxOFI, fxOFM, fxOE1, fxOE2, fxOE4,
   fxLFR, fxLAD, fxLPD, fxLAS, fxLPS, fxLEN,
   // Total count - must be last
   fxTotalCount

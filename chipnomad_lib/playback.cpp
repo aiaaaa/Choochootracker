@@ -69,7 +69,6 @@ static void resetInstrumentFX(PlaybackTrackState* track) {
   track->note.nativeFM = {};
   track->note.nativeFMCurrent = {};
   track->note.nativeFMRemaining = {};
-  track->note.fx[fxFOP].isOn = 0;
   for (int i = fxBMD; i <= fxPRS; i++) track->note.fx[i].isOn = 0;
   for (int i = fxRSN; i <= fxTCL; i++) track->note.fx[i].isOn = 0;
   for (int i = fxASL; i <= fxATY; ++i) track->note.fx[i].isOn = 0;

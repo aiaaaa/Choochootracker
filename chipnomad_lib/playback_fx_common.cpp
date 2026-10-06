@@ -407,10 +407,11 @@ void initFX(PlaybackState* state, int trackIdx, uint8_t* fx, PlaybackTableState*
     }
     return;
   }
-  if (fx[0] >= fxFOP && fx[0] <= fxLEN) {
+  if (fx[0] >= fxOAR && fx[0] <= fxLEN) {
     if (track->note.instrument == EMPTY_VALUE_8) return;
     const auto* instrument = &state->p->instruments[track->note.instrument];
-    int op = track->note.fx[fxFOP].isOn ? int(track->note.fx[fxFOP].fxValue) - 1 : 0;
+    if (!instrumentFXAvailableForInstrument(instrument, fx[0])) return;
+    constexpr int op = 0;
     NativeFXInfo info{};
     if (!instrumentDirectFMInfo(instrument, fx[0], &info, op)) return;
     int value = clampInt(fx[1], info.minimum, info.maximum);
@@ -430,9 +431,6 @@ void initFX(PlaybackState* state, int trackIdx, uint8_t* fx, PlaybackTableState*
       target=value+1;
       return;
     }
-    // The selector itself is ordinary note-scoped state, processed left to right.
-    track->note.fx[fxFOP].isOn = 1;
-    track->note.fx[fxFOP].fxValue = value;
     return;
   }
   // STA is a spelling alias for SST, so both commands share one runtime

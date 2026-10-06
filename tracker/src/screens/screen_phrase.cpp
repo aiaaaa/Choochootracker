@@ -284,7 +284,7 @@ static int editCell(int col, int row, CellEditAction action) {
     int fxIdx = (col - 3) / 2;
     // Get instrument number from current phrase row or traverse back
     uint8_t instrumentNum = lookupInstrument(&chipnomadState->project, *pSongRow, *pChainRow, row, *pSongTrack);
-    int result = editFX(action, phraseRows[row].fx[fxIdx], lastFX, 0, instrumentNum, lookupFMOperator(&chipnomadState->project,*pSongRow,*pChainRow,row,*pSongTrack,fxIdx));
+    int result = editFX(action, phraseRows[row].fx[fxIdx], lastFX, 0, instrumentNum);
     if (result == 2) {
       drawField(col + 1, row, CellState::normal);
       handled = 1;
@@ -297,7 +297,7 @@ static int editCell(int col, int row, CellEditAction action) {
     int fxIdx = (col - 4) / 2;
     if (phraseRows[row].fx[fxIdx][0] != EMPTY_VALUE_8) {
       uint8_t instrumentNum = lookupInstrument(&chipnomadState->project, *pSongRow, *pChainRow, row, *pSongTrack);
-      handled = editFXValue(action, phraseRows[row].fx[fxIdx], lastFX, 0, instrumentNum, lookupFMOperator(&chipnomadState->project,*pSongRow,*pChainRow,row,*pSongTrack,fxIdx));
+      handled = editFXValue(action, phraseRows[row].fx[fxIdx], lastFX, 0, instrumentNum);
     }
   }
 
@@ -487,8 +487,7 @@ static int onInput(int isKeyDown, int keys, int tapCount) {
           uint8_t selectedFX = phraseRows[screen.cursorRow].fx[fxIdx][0];
           for (int r = startRow; r <= endRow; r++) {
             selectInstrumentFX(phraseRows[r].fx[fxIdx],selectedFX,
-              lookupInstrument(&chipnomadState->project,*pSongRow,*pChainRow,r,*pSongTrack),
-              lookupFMOperator(&chipnomadState->project,*pSongRow,*pChainRow,r,*pSongTrack,fxIdx));
+              lookupInstrument(&chipnomadState->project,*pSongRow,*pChainRow,r,*pSongTrack));
           }
         }
       }

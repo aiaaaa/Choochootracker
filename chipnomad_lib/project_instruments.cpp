@@ -428,8 +428,20 @@ const InstrumentModDestination* instrumentModDestination(InstrumentType type, in
   return destination >= 0 && destination < definition->destinationCount ? &definition->destinations[destination] : NULL;
 }
 
+// Phrase/table controls are intentionally smaller than live modulation targets.
+static bool trackerDirectFMAvailable(InstrumentType type, int fx) {
+  switch(type) {
+    case InstrumentType::OPLL: case InstrumentType::VRC7:
+    case InstrumentType::OPL2: case InstrumentType::OPL3:
+      return fx==fxOAR || fx==fxODR || fx==fxORR || fx==fxOSL || fx==fxOMU;
+    case InstrumentType::GenesisFM: case InstrumentType::ArcadeFM:
+      return fx==fxOMU || (fx>=fxLFR && fx<=fxLEN);
+    default: return false;
+  }
+}
+
 int instrumentFXAvailable(InstrumentType type, uint8_t fx) {
-  if(fx>=fxFOP&&fx<=fxLEN) { Instrument i{}; getInstrumentFunctions(type).init(&i); NativeFXInfo info{}; return instrumentDirectFMInfo(&i,fx,&info); }
+  if(fx>=fxOAR&&fx<=fxLEN) { if(!trackerDirectFMAvailable(type,fx))return 0; Instrument i{}; getInstrumentFunctions(type).init(&i); NativeFXInfo info{}; return instrumentDirectFMInfo(&i,fx,&info); }
   if(fx==fxFBK)return instrumentNativeModDestination(type,genericModFMFeedback)!=nullptr;
   if(fx>=fxOL1&&fx<=fxOL6) {
     int count=type==InstrumentType::DX7?6:(type==InstrumentType::OPL3||type==InstrumentType::GenesisFM||type==InstrumentType::ArcadeFM)?4:(type==InstrumentType::OPLL||type==InstrumentType::VRC7||type==InstrumentType::OPL2)?2:0;
@@ -442,7 +454,7 @@ int instrumentFXAvailable(InstrumentType type, uint8_t fx) {
 }
 
 int instrumentFXAvailableForInstrument(const Instrument* instrument, uint8_t fx) {
-  if(instrument && fx>=fxFOP&&fx<=fxLEN) { NativeFXInfo info{}; return instrumentDirectFMInfo(instrument,fx,&info); }
+  if(instrument && fx>=fxOAR&&fx<=fxLEN) { if(!trackerDirectFMAvailable(instrument->type,fx))return 0; NativeFXInfo info{}; return instrumentDirectFMInfo(instrument,fx,&info); }
   if (!instrument || !instrumentFXAvailable(instrument->type, fx)) return 0;
   if(fx>=fxOL1&&fx<=fxOL6)return fx-fxOL1<instrumentFMOperatorCount(instrument);
   if((instrument->type==InstrumentType::OPL2||instrument->type==InstrumentType::OPL3)&&

@@ -64,10 +64,8 @@ static std::vector<float> renderNative(InstrumentType type,int fx,int op,int val
     int g=fx==fxFBK?genericModFMFeedback:genericModFirstDirectFM+(fx>=fxLFR?72+fx-fxLFR:op*12+fx-fxOAR);
     m.destination=getInstrumentFunctions(type).modDestinationsCount+1+g;
     chipnomadSetLiveStickEnabled(1);chipnomadSetLiveStickAxes(1,0,0,0);
-    // The binding carries its operator, independently of the phrase selector.
-    row.fx[0][0]=fxFOP;row.fx[0][1]=1;
     if(fx==fxFBK){row.fx[1][0]=fxFBK;row.fx[1][1]=0;}
-  } else if(command){row.fx[0][0]=fxFOP;row.fx[0][1]=op+1;row.fx[1][0]=fx;row.fx[1][1]=value;}
+  } else if(command){row.fx[0][0]=fx;row.fx[0][1]=value;}
   else setNative(i,fx,op,value);
   auto before=std::make_unique<Instrument>(i);
   chipnomadInitChips(s.get(),48000,nullptr);chipnomadReserveRenderBuffers(s.get(),480);
@@ -88,19 +86,6 @@ TEST_CASE("Native modulation bindings address fixed operators and clamp to nativ
     CHECK(renderNative(type,fxOMU,op,info.maximum,false,true)==renderNative(type,fxOMU,op,info.maximum,false));
     CHECK(renderNative(type,fxFBK,0,7,false,true)==renderNative(type,fxFBK,0,7,false));
   }
-}
-
-TEST_CASE("Operator context follows FX column order and note resets") {
-  auto p=std::make_unique<Project>();projectInit(p.get());
-  p->song[0][0]=0;p->chains[0].rows[0].phrase=0;phraseClear(&p->phrases[0]);
-  auto& rows=p->phrases[0].rows;
-  rows[0].note=45;rows[0].instrument=0;rows[0].fx[0][0]=fxFOP;rows[0].fx[0][1]=4;
-  CHECK(lookupFMOperator(p.get(),0,0,0,0,0)==0);
-  CHECK(lookupFMOperator(p.get(),0,0,0,0,1)==3);
-  CHECK(lookupFMOperator(p.get(),0,0,1,0,0)==3);
-  rows[1].note=47;CHECK(lookupFMOperator(p.get(),0,0,1,0,0)==0);
-  rows[1].fx[1][0]=fxFOP;rows[1].fx[1][1]=2;
-  CHECK(lookupFMOperator(p.get(),0,0,1,0,2)==1);
 }
 
 static std::vector<float> renderAdapter(InstrumentType type,int fx,int op,int value,bool direct) {
@@ -135,23 +120,26 @@ TEST_CASE("Direct FM voice controls render identically to editing the exact pres
   }
 }
 
-TEST_CASE("Operator selector and direct commands reach every FM engine") {
+TEST_CASE("Simplified tracker FM controls match the per-engine list") {
   for(auto type:{InstrumentType::OPLL,InstrumentType::VRC7,InstrumentType::OPL2,InstrumentType::OPL3,InstrumentType::GenesisFM,InstrumentType::ArcadeFM,InstrumentType::DX7}) {
-    CAPTURE(int(type));
-    CHECK(renderNative(type,fxOMU,1,7,true)==renderNative(type,fxOMU,1,7,false));
+    Instrument i{};getInstrumentFunctions(type).init(&i);
+    const bool opl=type==InstrumentType::OPLL||type==InstrumentType::VRC7||type==InstrumentType::OPL2||type==InstrumentType::OPL3;
+    const bool four=type==InstrumentType::GenesisFM||type==InstrumentType::ArcadeFM;
+    CHECK_FALSE(instrumentFXAvailableForInstrument(&i,fxFBK+1)); // Removed selector ID.
+    for(int fx=fxOAR;fx<=fxLEN;++fx) {
+      const bool expected=opl?(fx==fxOAR||fx==fxODR||fx==fxORR||fx==fxOSL||fx==fxOMU):
+        four?(fx==fxOMU||fx==fxLFR||fx==fxLAS||fx==fxLPS||fx==fxLEN||(type==InstrumentType::ArcadeFM&&(fx==fxLAD||fx==fxLPD))):false;
+      CAPTURE(int(type));CAPTURE(fx);
+      CHECK(bool(instrumentFXAvailableForInstrument(&i,fx))==expected);
+    }
   }
 }
 
-TEST_CASE("Native FM target latches separately per operator and resets on a new note") {
-  auto p=std::make_unique<Project>();projectInit(p.get());getInstrumentFunctions(InstrumentType::DX7).init(&p->instruments[0]);
-  auto s=std::make_unique<PlaybackState>();playbackInit(s.get(),p.get());
-  auto& t=s->tracks[0];t.note.instrument=0;
-  uint8_t select[]={fxFOP,2},attack[]={fxOAR,37},select3[]={fxFOP,3},attack3[]={fxOAR,0};
-  initFX(s.get(),0,select,nullptr,-1);initFX(s.get(),0,attack,nullptr,-1);
-  initFX(s.get(),0,select3,nullptr,-1);initFX(s.get(),0,attack3,nullptr,-1);
-  CHECK(t.note.nativeFM.operators[1][0]==38);CHECK(t.note.nativeFM.operators[2][0]==1);CHECK(t.note.nativeFM.operators[0][0]==0);
-  PhraseRow row{};row.note=45;row.instrument=EMPTY_VALUE_8;row.volume=EMPTY_VALUE_16;for(auto& fx:row.fx)fx[0]=EMPTY_VALUE_8;
-  readPhraseRowDirect(s.get(),0,&row,1);CHECK(t.note.nativeFM.operators[1][0]==0);CHECK_FALSE(t.note.fx[fxFOP].isOn);
+TEST_CASE("Retained multiplier commands address operator one") {
+  for(auto type:{InstrumentType::OPLL,InstrumentType::VRC7,InstrumentType::OPL2,InstrumentType::OPL3,InstrumentType::GenesisFM,InstrumentType::ArcadeFM}) {
+    CAPTURE(int(type));
+    CHECK(renderNative(type,fxOMU,0,7,true)==renderNative(type,fxOMU,0,7,false));
+  }
 }
 
 TEST_CASE("SID direct values use native numbering including nonzero minima") {

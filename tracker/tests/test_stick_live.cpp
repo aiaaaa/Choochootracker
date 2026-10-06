@@ -78,20 +78,17 @@ struct StickLiveFixture {
 }
 
 TEST_SUITE("Stick live") {
-TEST_CASE_FIXTURE(StickLiveFixture, "FM motion writes an atomic operator and native value pair") {
+TEST_CASE_FIXTURE(StickLiveFixture, "FM motion records one native command without a selector") {
   auto& row=chipnomadState->project.phrases[0].rows[0];
   phraseClear(&chipnomadState->project.phrases[0]);
-  REQUIRE(chipnomadMotionPushEvent({0,0,fxOAR,31,0,3}));
+  REQUIRE(chipnomadMotionPushEvent({0,0,fxOMU,7,0}));
   appOnEvent({MainLoopEvent::tick});
-  CHECK(row.fx[0][0]==fxFOP);CHECK(row.fx[0][1]==3);
-  CHECK(row.fx[1][0]==fxOAR);CHECK(row.fx[1][1]==31);
-  REQUIRE(chipnomadMotionPushEvent({0,0,fxOAR,7,0,2}));
-  appOnEvent({MainLoopEvent::tick}); // No room for another pair: preserve the first operator.
-  CHECK(row.fx[0][1]==3);CHECK(row.fx[1][1]==31);
-  REQUIRE(chipnomadMotionPushEvent({0,0,fxOAR,19,0,3}));
-  appOnEvent({MainLoopEvent::tick});CHECK(row.fx[1][1]==19);
-  REQUIRE(chipnomadMotionPushEvent({0,0,fxOAR,0,1,3}));
-  appOnEvent({MainLoopEvent::tick});CHECK(row.fx[0][0]==EMPTY_VALUE_8);CHECK(row.fx[1][0]==EMPTY_VALUE_8);
+  CHECK(row.fx[2][0]==fxOMU);CHECK(row.fx[2][1]==7);
+  CHECK(row.fx[0][0]==EMPTY_VALUE_8);CHECK(row.fx[1][0]==EMPTY_VALUE_8);
+  REQUIRE(chipnomadMotionPushEvent({0,0,fxOMU,9,0}));
+  appOnEvent({MainLoopEvent::tick});CHECK(row.fx[2][1]==9);
+  REQUIRE(chipnomadMotionPushEvent({0,0,fxOMU,0,1}));
+  appOnEvent({MainLoopEvent::tick});CHECK(row.fx[2][0]==EMPTY_VALUE_8);
 }
 
 TEST_CASE_FIXTURE(StickLiveFixture, "HOLD and TOGGLE use keyboard, gamepad and logical presses") {
