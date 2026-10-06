@@ -22,7 +22,7 @@ CFLAGS = $(filter-out -flto,$(COMMON_CFLAGS)) $(INCLUDES) \
   --sysroot=$(MIYOO_SYSROOT) -I$(MIYOO_SDL2_ROOT)/include \
   -DMIYOOPORTS_BUILD -DGAMEPAD_SUPPORT -mcpu=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard
 XTRA_LIBS = -L$(MIYOO_SDL2_ROOT)/lib -lSDL2 -Wl,--allow-shlib-undefined \
-  -static-libstdc++ -static-libgcc -ldl -lpthread -lm
+  -lstdc++fs -static-libstdc++ -static-libgcc -ldl -lpthread -lm
 
 object_for = $(BUILD)/obj/$(subst ../,up/,$(basename $(1))).o
 OBJECTS := $(foreach source,$(SOURCES),$(call object_for,$(source)))
