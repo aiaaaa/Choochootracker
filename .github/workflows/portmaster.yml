@@ -39,6 +39,10 @@ jobs:
                 make -B -j4 -f Makefile.portmaster PortMaster-deploy \
               COMMON_CFLAGS='-std=c++17 -Wall -g -Os -DTEST' CXX=g++ STRIP=strip"
           unzip -t releases/choochootracker.zip
+          # The binary alone is not a usable release: native chip and FM
+          # preset libraries are loaded from these packaged asset paths.
+          unzip -l releases/choochootracker.zip | grep -Fq 'choochootracker/instruments/chips/catalog.tsv'
+          unzip -l releases/choochootracker.zip | grep -Fq 'choochootracker/instruments/banks/dx7/README.txt'
       - uses: actions/upload-artifact@v4
         with:
           name: choochootracker-portmaster
