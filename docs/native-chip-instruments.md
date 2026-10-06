@@ -80,3 +80,14 @@ availability rules passed these checks without synth or runtime changes.
 112,209,328 assertions, zero failures or skipped cases. This includes the MIDI,
 native preset, and existing project/instrument persistence tests. Linux GitHub
 CI must still rerun after the branch update; local Docker was unavailable.
+
+### PR #39 Windows portability follow-up (2026-10-06)
+
+GitHub Linux CI and Android passed for `7602f23`. The Windows build found that
+the OPLL resampler used the nonstandard `M_PI` macro, which is unavailable in
+the Windows C++17 configuration. It now uses a local `constexpr double` with
+the same value. The failure reproduced with the MinGW cross-compiler, and the
+updated source compiles successfully there. Optimized host object files before
+and after this change are byte-identical; the resampling calculation is unchanged.
+The full local suite passed again (501 cases, 112,209,328 assertions), and the
+regenerated web bundle passed JavaScript syntax and WebAssembly validation.
