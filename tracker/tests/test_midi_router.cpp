@@ -69,7 +69,11 @@ TEST_CASE("Incoming CC values are retained independently of note preview") {
   MidiPreviewIntent intents[1];
   pushIncoming(0xB0, 3, 74, 96);
   CHECK(midiRouterTick(router, 0, intents, 1) == 0);
-  CHECK(midiRouterGetCCValue(router, 3, 74) == 96);
+  uint8_t value = 0; uint32_t valueSerial = 0;
+  CHECK(midiRouterGetCCValue(router, 3, 74, &value, &valueSerial));
+  CHECK(value == 96);
+  CHECK(valueSerial == 1);
+  CHECK_FALSE(midiRouterGetCCValue(router, 3, 75, &value, &valueSerial));
   MidiCCIntent last; uint32_t serial = 0;
   REQUIRE(midiRouterGetLastCC(router, &last, &serial));
   CHECK(last.channel == 3);
