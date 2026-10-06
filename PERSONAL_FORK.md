@@ -163,7 +163,6 @@ Status checked on October 6, 2026; follow the PR links for subsequent changes.
 | Persistent waveform | [`contribution/persistent-waveform`](https://github.com/aiaaaa/Choochootracker/tree/contribution/persistent-waveform) | [#21](https://github.com/paiheulevrai/Choochootracker/pull/21) | Merged |
 | Mixer level meters | [`contribution/mixer-level-meters`](https://github.com/aiaaaa/Choochootracker/tree/contribution/mixer-level-meters) | [#22](https://github.com/paiheulevrai/Choochootracker/pull/22) | Closed; incorporated through #23 |
 | Track insert effects | [`feature/track-insert-fx`](https://github.com/aiaaaa/Choochootracker/tree/feature/track-insert-fx) | [#31](https://github.com/paiheulevrai/Choochootracker/pull/31) | Merged |
-
 | Native chip and FM instruments | [`contribution/native-chip-instruments`](https://github.com/aiaaaa/Choochootracker/tree/contribution/native-chip-instruments) | [#39](https://github.com/paiheulevrai/Choochootracker/pull/39) | Merged |
 
 ### After an upstream merge
