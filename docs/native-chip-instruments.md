@@ -111,3 +111,26 @@ now replaces ref slashes with hyphens and quotes the archive filename. The exact
 workflow packaging commands passed local ZIP creation/content checks for PR refs,
 branch refs, release tags, and the manual fallback. Application and audio code
 are unchanged; Windows CI still needs to confirm the complete package upload.
+
+### Maintainer preview and Windows test follow-up (2026-10-06)
+
+The maintainer's waveform previews (`ec50dd1`), native FX grouping (`0dafab7`),
+and SID static preview without a DSP voice (`5a2c9f2`) are retained. Review of
+the shared preview redraw found that SID bank/preset
+fields also use it, although SID has no optional FM amp. The helper now checks
+for an amp before drawing its envelope and keeps SID's waveform at its existing
+row when the persistent waveform setting is enabled. The original null access
+was reproduced with UndefinedBehaviorSanitizer.
+
+The regular test target now includes the real preview helper, with graphics and
+envelope-overlay boundaries mocked. Its regression case covers SID and FM,
+both persistent-waveform settings, enabled/bypassed FM overlays, and preservation
+of the instrument data. `Makefile.test` also enables `_USE_MATH_DEFINES` for
+Windows, matching the application build without modifying the vendored SID core.
+
+Validation: all 502 local test cases passed, including the focused preview
+regression's 36 assertions. The full Windows test executable cross-compiled and
+linked with MinGW; it was not run on
+Windows locally. The checked-in web bundle was regenerated, and its JavaScript
+syntax and WebAssembly binary validation passed. Audio engine code and the
+simplified tracker FX list are unchanged.
