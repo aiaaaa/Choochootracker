@@ -11,6 +11,7 @@
 #include "fm_catalog.h"
 #include "utils.h"
 #include "project_utils.h"
+#include "waveform_display.h"
 #include <algorithm>
 #include <cstdio>
 #include <cstring>
@@ -30,6 +31,7 @@ std::vector<std::string> categoryNames;
 std::string folder;
 int bankFilter=0,buttonDown=0;
 int contextInstrument=-1,bankBeforeImport=0;
+Bitmap* sidWaveformBitmap=nullptr;
 InstrumentType contextType=InstrumentType::none;
 bool importing=false;
 Instrument* current(){return &chipnomadState->project.instruments[cInstrument];}
@@ -131,7 +133,7 @@ int columns(int row){if(sid()&&row>=5)return row==5?2:row==6?3:4;return row<3?in
 void drawStatic(){instrumentCommonDrawStatic();gfxSetFgColor(appSettings.colorScheme.textDefault);gfxPrint(0,6,"Bank");gfxPrint(0,7,"Preset");if(sid()){
  gfxPrint(0,9,"Wave/PW");gfxPrint(0,11,"Filter");gfxPrint(0,13,"ADSR");
  gfxSetFgColor(appSettings.colorScheme.textInfo);gfxPrint(0,10,"Tri Saw TS Pulse TP SP TSP Noise");
- gfxPrint(0,12,"Mode / Cutoff / Reso; max 4 notes");return;
+ gfxPrint(0,12,"Mode / Cutoff / Reso; max 4 notes");if(!sidWaveformBitmap)sidWaveformBitmap=gfxBitmapCreate(32,3);gfxClearRect(0,16,32,3);renderFMPreview(sidWaveformBitmap,current());gfxDrawBitmap(sidWaveformBitmap,0,16);return;
  }gfxPrint(0,9,"Fine ct");gfxPrint(0,11,"Mode");const char* mode=isOPLL(current()->type)?"2 operator":fourOp()?"4 operator":dx7()?"6 operator":current()->chip.opl.topology==OPLTopology::fourOperator?"4 operator":current()->chip.opl.topology==OPLTopology::dualVoice?"Dual voice":"2 operator";gfxPrint(9,11,mode);instrumentFMAmpDrawStatic();}
 void drawCursor(int col,int row){if(sid()&&row>=5){gfxCursor(sidX(col,row),sidY(row),row==5&&!col?5:4);return;}if(row==6){instrumentFMToneDrawCursor(col);return;}if(row>=7){instrumentFMAmpDrawCursor(col,row-7);return;}if(row<3)instrumentCommonDrawCursor(col,row);else gfxCursor(9,row==3?6:row==4?7:9,row==5?4:28);}
 void drawField(int col,int row,CellState state){
@@ -140,6 +142,7 @@ void drawField(int col,int row,CellState state){
   gfxSetFgColor(state==CellState::focus?appSettings.colorScheme.textValue:appSettings.colorScheme.textDefault);gfxClearRect(x,y,row==7?4:8,1);
   if(row==5&&!col){const char* waves[]={"Off","Tri","Saw","TS","Pulse","TP","SP","TSP","Noise"};gfxPrint(x,y,waves[v]);}
   else gfxPrintf(x,y,"%0*X",row==5||(row==6&&col==1)?3:2,v);
+  if(sidWaveformBitmap){gfxClearRect(0,16,32,3);renderFMPreview(sidWaveformBitmap,current());gfxSetFgColor(appSettings.colorScheme.textInfo);gfxDrawBitmap(sidWaveformBitmap,0,16);}
   return;
  }
 
@@ -148,6 +151,7 @@ void drawField(int col,int row,CellState state){
   gfxSetFgColor(state==CellState::focus?appSettings.colorScheme.textValue:appSettings.colorScheme.textDefault);int y=row==3?6:row==4?7:9;gfxClearRect(9,y,30,1);
   if(row==3){const char* name="All banks";for(const auto& e:catalog)if(e.bank==bankFilter){name=e.bankName.c_str();break;}gfxPrintf(9,y,"%.30s",name);}
   else if(row==4)gfxPrintf(9,y,"%.30s",presetName());else gfxPrintf(9,y,"%+04d",fineTune());
+  instrumentFMRefreshStaticWaveform();
 }
 int onEdit(int col,int row,CellEditAction action){
  if(sid()&&row>=5){
