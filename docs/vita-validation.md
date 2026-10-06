@@ -548,3 +548,11 @@ candidate worktree. All 11 Vita workflow tests pass.
 This is requested source-branch synchronization, not last-known-good package
 promotion. Installed hardware and user data remain unchanged. Existing device
 performance and TLS limitations remain open until separately retested.
+
+The first ordinary link exposed an SDK conversion failure: 2,912 bytes of
+SCE metadata did not fit in the 1,432-byte segment gap. Makefile.vita now uses
+the pinned linker script's __sce_headroom option to reserve 64 KiB before data.
+The first personal SDK test run passed 509 of 511 cases; its two DX7-library
+cases could not locate ../tools from the isolated /out working directory. The
+container now exposes the read-only source tools directory at that expected
+path. Both corrections concern build/test layout, not synth or audio behavior.

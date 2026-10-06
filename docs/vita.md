@@ -7,6 +7,11 @@ Compilation is not hardware validation; use the checklist below before promotion
 The native link retains relocation records (`-Wl,-q,-z,nocopyreloc`), matching
 VitaSDK's toolchain rules. Packaging checks code and constructor relocations;
 omitting them can produce an installable executable that crashes before `main`.
+The pinned linker script also accepts `__sce_headroom`; the Vita link reserves
+64 KiB before the data segment so `vita-elf-create` can append SCE metadata.
+Plain segment alignment left only 1,432 bytes in the expanded ordinary build,
+less than the converter needed (2,912 bytes). This changes executable layout,
+not synthesis, audio settings, or the SDK.
 
 ## Branches and updates
 

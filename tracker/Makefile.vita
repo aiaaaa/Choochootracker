@@ -17,6 +17,10 @@ endif
 # then throws "Enable multithreading" even though SDL pthreads can run.
 CFLAGS = $(COMMON_CFLAGS) -pthread $(INCLUDES) $(SDL_CFLAGS) -D_GNU_SOURCE -DVITA_BUILD -DGAMEPAD_SUPPORT -DMOBILE_LIFECYCLE -ffunction-sections -fdata-sections
 TARGET = $(BUILD)/choochootracker.elf
+# The pinned SDK linker script honors __sce_headroom before the data segment.
+# Reserve one 64 KiB segment-alignment unit for vita-elf-create's SCE metadata;
+# alignment alone can leave less space than the larger native-chip build needs.
+VITA_SCE_HEADROOM = -Wl,--defsym=__sce_headroom=0x10000
 VITA_STDIO_OBJECT ?= /deps/newlib/c99-scanf.o
 $(eval $(call mod_lucky_config_rule,$(BUILD)))
 object_for = $(BUILD)/obj/$(subst ../,up/,$(basename $(1))).o
@@ -31,7 +35,7 @@ $(foreach source,$(SOURCES),$(eval $(call compile_source,$(source))))
 .PHONY: vita
 vita: $(BUILD)/eboot.bin
 $(TARGET): $(OBJECTS) $(VITA_STDIO_OBJECT)
-	$(CXX) $(COMMON_CFLAGS) -pthread -Wl,-q,-z,nocopyreloc -Wl,-u,sceUserMainThreadStackSize -Wl,--gc-sections,-Map,$(BUILD)/link.map -o $@ $(OBJECTS) $(VITA_STDIO_OBJECT) -Wl,--start-group $(SDL_LIBS) $(MOD_LUCKY_LIBS) -Wl,--end-group
+	$(CXX) $(COMMON_CFLAGS) -pthread -Wl,-q,-z,nocopyreloc $(VITA_SCE_HEADROOM) -Wl,-u,sceUserMainThreadStackSize -Wl,--gc-sections,-Map,$(BUILD)/link.map -o $@ $(OBJECTS) $(VITA_STDIO_OBJECT) -Wl,--start-group $(SDL_LIBS) $(MOD_LUCKY_LIBS) -Wl,--end-group
 $(BUILD)/eboot.bin: $(TARGET)
 	vita-elf-create $< $(BUILD)/choochootracker.velf
 	vita-make-fself -s $(BUILD)/choochootracker.velf $@
