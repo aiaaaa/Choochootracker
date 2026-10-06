@@ -196,8 +196,8 @@
     {
       "id": "native-fx-values",
       "branch": "personal/r36h",
-      "status": "Installed for user evaluation",
-      "documentation": "docs/native-fx-values-20261005.txt",
+      "status": "Installed with complete absolute native controls",
+      "documentation": "docs/absolute-fx-audit-20261005.txt",
       "absolute_operator_commands": [
         "OL1",
         "OL2",
@@ -209,7 +209,15 @@
       "absolute_feedback_command": "FBK",
       "editor": "Row instrument lookup, preset defaults, native endpoint limits",
       "compatibility": "Personal songs converted once; retired FO/FFB/FBR/macros and personal volume migrations removed; upstream compatibility retained",
-      "included_commit": "5bfab9779f317f4fc6580292f285d0104917e52b"
+      "included_commit": "f4b086d5f18100ba239b018a2abaf2dc10bb81af"
+    },
+    {
+      "id": "absolute-native-fx",
+      "status": "Installed for user evaluation",
+      "source_commit": "f4b086d5f18100ba239b018a2abaf2dc10bb81af",
+      "documentation": "docs/absolute-fx-audit-20261005.txt",
+      "personal_song_conversion": "eleven files converted once; personal compatibility paths removed",
+      "performance_tests": "skipped at user request"
     }
   ],
   "personal_fixes": [
@@ -228,9 +236,9 @@
     }
   ],
   "current_device_build": {
-    "source_commit": "5bfab9779f317f4fc6580292f285d0104917e52b",
-    "binary_sha256": "668de6a6a89f2087060c33990aac2a96cfe655ae9d8914415e81831808183886",
-    "validation_report": "docs/native-fx-values-device-20261005.json",
+    "source_commit": "f4b086d5f18100ba239b018a2abaf2dc10bb81af",
+    "binary_sha256": "c8065cdf5c91732c86a105229951a2efcce3fa46f8df16b3b04500e78a9209fc",
+    "validation_report": "docs/absolute-fx-device-20261005.json",
     "human_listening": "pending user evaluation"
   },
   "song_storage": "Upstream CCT archives embed loaded Sample, SCWF and BYOWTBL audio. Text songs remain readable; no-sample songs stay text. Native patches remain owned by the song.",
