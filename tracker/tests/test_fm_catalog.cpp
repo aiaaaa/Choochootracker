@@ -1,6 +1,7 @@
 #include "doctest.h"
 #include "fm_catalog.h"
 #include <cstdio>
+#include <fstream>
 TEST_CASE("FM catalog supports ten thousand metadata entries transactionally") {
   FILE* f=fopen("test_fm_catalog.tsv","wb");REQUIRE(f);fputs("CCT-CHIP-CATALOG\t1\n",f);
   for(int i=0;i<10000;++i)fprintf(f,"24\t101\tScale fixture\tUnsorted\tSynthetic %05d\tsynthetic-%05d.cni\n",i,i);fclose(f);
@@ -10,5 +11,8 @@ TEST_CASE("FM catalog supports ten thousand metadata entries transactionally") {
 }
 TEST_CASE("FM bundled catalogue loads all currently packaged records") {
   std::vector<FMPresetEntry> entries;
-  REQUIRE(loadFMCatalog("packaging/common/instruments/chips/catalog.tsv",entries));CHECK(entries.size()==1120);
+  const char* path = std::ifstream("packaging/common/instruments/chips/catalog.tsv").good()
+    ? "packaging/common/instruments/chips/catalog.tsv"
+    : "../packaging/common/instruments/chips/catalog.tsv";
+  REQUIRE(loadFMCatalog(path,entries));CHECK(entries.size()==1120);
 }

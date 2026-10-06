@@ -336,7 +336,8 @@ TEST_CASE("instrument catalogue covers every family and its routable motion FX")
     for (int destination = 0; destination < definition->destinationCount; ++destination) {
       const InstrumentModDestination* metadata = instrumentModDestination(type, destination);
       REQUIRE(metadata != nullptr);
-      CHECK(std::strcmp(metadata->name, instrumentModDestinationName(type, destination)) == 0);
+      const char* expectedName = destination == midiCCDestinationNone ? "-" : instrumentModDestinationName(type, destination);
+      CHECK(std::strcmp(metadata->name, expectedName) == 0);
       if (metadata->fx != instrumentNoFX) CHECK(instrumentFXAvailable(type, metadata->fx));
     }
     for (int fx = 0; fx < definition->fxCount; ++fx)
@@ -360,7 +361,7 @@ TEST_CASE("instrument catalogue covers every family and its routable motion FX")
   CHECK(fx == fxBIA);
 
   static const char* aChChidDestinations[] = {
-    "Off", "Volume", "Pitch", "Cutoff", "Reso", "EnvMod", "Decay", "Accent", "Timbre", "Color"
+    "-", "Volume", "Pitch", "Cutoff", "Reso", "EnvMod", "Decay", "Accent", "Timbre", "Color"
   };
   const InstrumentDefinition* aChChid = getInstrumentDefinition(InstrumentType::AChChid);
   REQUIRE(aChChid->destinationCount == 10);
@@ -374,7 +375,7 @@ TEST_CASE("instrument catalogue covers every family and its routable motion FX")
   CHECK(fx == fxACL); CHECK(range == 16384);
 
   static const char* drumSynthDestinations[] = {
-    "Off", "Volume", "Pitch", "Decay", "Tone", "Sweep", "Noise", "FM", "Drive", "Cutoff", "Reso"
+    "-", "Volume", "Pitch", "Decay", "Tone", "Sweep", "Noise", "FM", "Drive", "Cutoff", "Reso"
   };
   const InstrumentDefinition* drumSynth = getInstrumentDefinition(InstrumentType::DrumSynth);
   CHECK(std::strcmp(drumSynth->uiName, "Bogie") == 0);
