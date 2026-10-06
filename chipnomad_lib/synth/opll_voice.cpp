@@ -5,6 +5,7 @@
 #include "../native_fm_values.h"
 
 void OPLLVoice::init(float sampleRate) {
+  constexpr double pi = 3.14159265358979323846264338327950288;
   const double rate = sampleRate >= 8000 ? sampleRate : 48000;
   ratio_ = double(chip_.sample_rate(3579545)) / rate;
   // Causal, 24-tap windowed-sinc low pass; retains history and fractional phase.
@@ -14,8 +15,8 @@ void OPLLVoice::init(float sampleRate) {
     double sum = 0;
     for (int tap = 0; tap < 24; ++tap) {
       const double x = tap - 11.0 + phase / 64.0;
-      const double sinc = std::abs(x) < 1e-9 ? 2 * cutoff : std::sin(2 * M_PI * cutoff * x) / (M_PI * x);
-      filter_[phase][tap] = float(sinc * (.5 + .5 * std::cos(M_PI * x / 12.0)));
+      const double sinc = std::abs(x) < 1e-9 ? 2 * cutoff : std::sin(2 * pi * cutoff * x) / (pi * x);
+      filter_[phase][tap] = float(sinc * (.5 + .5 * std::cos(pi * x / 12.0)));
       sum += filter_[phase][tap];
     }
     for (float& c : filter_[phase]) c /= sum;
