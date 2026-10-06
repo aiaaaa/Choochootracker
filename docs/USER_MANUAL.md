@@ -305,10 +305,13 @@ Key jazz also works, independently toggled with Esc, on:
   selected) - the same structure-editing shortcuts as the Phrase screen.
   This takes over Shift, so Shift+Right/Up no longer jump to Chain/Project
   while key jazz is active here - Esc to get those shortcuts back.
-- **Project**: type the file name, title and author directly on the
-  keyboard instead of using the on-screen virtual keyboard. Backspace works
-  like a normal text field; Shift types uppercase letters. The virtual
-  keyboard still opens normally when key jazz is off here.
+- **Every screen with a text field**: type directly on the keyboard
+  instead of using the on-screen virtual keyboard. This covers the Project
+  file name, title and author, the instrument name, the color theme name,
+  the pitch table name, the bounce file name, and the name dialogs (enter
+  name, create folder). Backspace works like a normal text field; Shift
+  types uppercase letters. Esc toggles it on all of these screens at once,
+  and the virtual keyboard still opens normally when key jazz is off.
 
 ## 5. Instruments
 
