@@ -28,7 +28,7 @@ jobs:
           git clone --depth 1 --branch sdl2-miyoo-f6319cf9 https://github.com/XK9274/sdl2_miyoo.git "$cache/sdl-source"
           mkdir -p "$cache/sdl/include/SDL2" "$cache/sdl/include/SDL"
           cp "$cache/sdl-source"/include/*.h "$cache/sdl/include/SDL2/"
-          ln -s ../SDL2/SDL.h "$cache/sdl/include/SDL/SDL.h"
+          cp "$cache/sdl-source"/include/*.h "$cache/sdl/include/SDL/"
           test -f "$cache/sdl/lib/libSDL2-2.0.so.0"
           test -f "$cache/sdl/lib/libneonarmmiyoo.so"
       - name: Build MiyooPorts package
