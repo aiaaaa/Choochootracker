@@ -40,10 +40,15 @@ int main(int argc,char** argv){
         uint8_t fx[]={EMPTY_VALUE_8,0};selectInstrumentFX(fx,command,0);
         require((fx[0]==command)==bool(instrumentFXAvailableForInstrument(&inst,command)),"selection follows compact list");
       }
-      screenSetup(&screenPhrase,0);appDraw();
+      *pSongTrack=0;*pSongRow=0;*pChainRow=0;
+      chipnomadState->project.song[0][0]=0;
+      chipnomadState->project.chains[0].rows[0].phrase=0;
+      auto& row=chipnomadState->project.phrases[0].rows[0];
+      row.instrument=0;row.note=45;row.fx[0][0]=type==InstrumentType::DX7?fxFBK:fxOMU;
       for(int header:{0,1}) {
-        appSettings.persistentWaveform=header;appDraw();
-        fxEditFullDraw(type==InstrumentType::DX7?fxFBK:fxOMU,0,0);
+        appSettings.persistentWaveform=header;
+        screenSetup(&screenPhrase,0);appDraw();
+        screenPhrase.onEdit(3,0,CellEditAction::increaseBig);
         char name[64];snprintf(name,sizeof(name),"compact-fx-%d-header-%d",int(type),header);capture(name);
       }
     }
