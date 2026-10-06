@@ -17,6 +17,7 @@ int instrumentCommonDrawVoicePostCursor(int col, int row);
 int instrumentCommonDrawVoicePostField(int col, int row, CellState state, const InstrumentVoicePostSettings* post);
 int instrumentCommonOnEditVoicePost(int col, int row, CellEditAction action, InstrumentVoicePostSettings* post);
 void instrumentFMAmpDrawStatic();
+void instrumentFMRefreshStaticWaveform();
 void instrumentFMAmpDrawCursor(int col, int row);
 void instrumentFMAmpDrawField(int col, int row, CellState state);
 int instrumentFMAmpEdit(int col, int row, CellEditAction action);
