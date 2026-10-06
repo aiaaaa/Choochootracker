@@ -556,3 +556,21 @@ The first personal SDK test run passed 509 of 511 cases; its two DX7-library
 cases could not locate ../tools from the isolated /out working directory. The
 container now exposes the read-only source tools directory at that expected
 path. Both corrections concern build/test layout, not synth or audio behavior.
+
+Final software validation passed at `c5717682d12665d203023a93e73e70ac55e20cfc`:
+- Ordinary and personal Vita native compile, link, ELF conversion and VPK creation.
+- 511 host cases / 112,209,468 assertions per profile, no failures or skips.
+- Vita SDL touch/lifecycle, seed-asset and NESW controls fixtures.
+- VPK checksums, complete asset inventory, LiveArea formats, relocations,
+  pthread activation, C99 scanner and Lucky dependency separation.
+- Web bundle rebuild and JavaScript/WebAssembly validation; 11 workflow tests.
+
+The later personal source revision only repairs a documentation table; the
+validated application and build sources remain unchanged. No new installation
+or hardware acceptance is claimed.
+
+Verified candidate artifacts (kept in the isolated update worktree):
+SHA256 1e3f93b9685ee5bfc92e3afc4cd00b45d2f1c66910bbcc2052751150f8e46948
+Candidate: /Users/hifi/workspace/r36h/choochootracker/vita-update-20261006-062931-16a6fc/releases/vita/candidates/c5717682d126-ordinary-7aad9797.vpk
+SHA256 65677f8a4fb9eed3b6334a73f26b245ff1c9026dacb92efbe9ccabd980311d6c
+Candidate: /Users/hifi/workspace/r36h/choochootracker/vita-update-20261006-062931-16a6fc/releases/vita/candidates/c5717682d126-personal-ac2483b1.vpk
