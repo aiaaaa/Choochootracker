@@ -141,6 +141,12 @@ struct MidiPreviewIntent {
   int stop; // 1 = stop preview (note/instrument unused), 0 = play note on instrument
 };
 
+struct MidiCCIntent {
+  uint8_t channel;
+  uint8_t cc;
+  uint8_t value;
+};
+
 // Sets the per-channel instrument mapping Auto mode input uses (-1 =
 // channel not assigned, falls back to midiRouterTick's fallbackInstrument).
 // Call once at startup and whenever it changes.
@@ -161,5 +167,7 @@ void midiRouterResetHeldNotes(MidiRouterState* router);
 // mode only needs to also decide a track index, not reach into engine
 // internals to do it.
 int midiRouterTick(MidiRouterState* router, int fallbackInstrument, MidiPreviewIntent* outIntents, int maxIntents);
+int midiRouterGetCCValue(const MidiRouterState* router, uint8_t channel, uint8_t cc);
+int midiRouterGetLastCC(const MidiRouterState* router, MidiCCIntent* out, uint32_t* serial);
 
 #endif // __CHIPNOMAD_LIB__MIDI_ROUTER_H__
