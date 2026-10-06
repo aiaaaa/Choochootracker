@@ -47,8 +47,9 @@ int main(int argc,char** argv){
       row.instrument=0;row.note=45;row.fx[0][0]=type==InstrumentType::DX7?fxFBK:fxOMU;
       for(int header:{0,1}) {
         appSettings.persistentWaveform=header;
-        screenSetup(&screenPhrase,0);appDraw();
-        screenPhrase.onEdit(3,0,CellEditAction::increaseBig);
+        screenPhrase.init();screenSetup(&screenPhrase,0);appDraw();
+        for(int column=0;column<3;++column)key(1,keyRight);
+        key(1,keyEdit|keyUp);
         char name[64];snprintf(name,sizeof(name),"compact-fx-%d-header-%d",int(type),header);capture(name);
       }
     }
