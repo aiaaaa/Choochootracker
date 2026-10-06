@@ -10,16 +10,18 @@ static InstrumentFMAmp* amp() {
 static Bitmap* staticWaveformBitmap = nullptr;
 
 void instrumentFMRefreshStaticWaveform() {
-  const int row = appSettings.persistentWaveform ? 15 : 16;
+  const auto* envelope = amp();
+  // SID shares this redraw path but has no optional FM amp or ADSR overlay.
+  const int row = appSettings.persistentWaveform && envelope ? 15 : 16;
   if (!staticWaveformBitmap) staticWaveformBitmap = gfxBitmapCreate(32, 3);
   gfxClearRect(0, row, 32, 3);
   renderFMPreview(staticWaveformBitmap, &chipnomadState->project.instruments[cInstrument]);
   gfxSetFgColor(appSettings.colorScheme.textInfo);
   gfxDrawBitmap(staticWaveformBitmap, 0, row);
-  if (amp()->enabled) {
-    instrumentCommonDrawEnvelopePreview(amp()->attack, amp()->decay,
-                                        amp()->sustain, amp()->release,
-                                        amp()->envelopeShape);
+  if (envelope && envelope->enabled) {
+    instrumentCommonDrawEnvelopePreview(envelope->attack, envelope->decay,
+                                        envelope->sustain, envelope->release,
+                                        envelope->envelopeShape);
   }
 }
 

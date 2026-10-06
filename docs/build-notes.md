@@ -246,6 +246,9 @@ cd tracker
 make -f Makefile.test -j4
 ```
 
+On Windows (`OS=Windows_NT`), the test makefile enables `_USE_MATH_DEFINES`,
+matching the application build's CRT math constants for the vendored SID core.
+
 If MSYS2 reports exit code 127 after `Built: build/tests/run_tests.exe`, run
 `build/tests/run_tests.exe` directly; the executable is the authoritative test
 result in that environment.
