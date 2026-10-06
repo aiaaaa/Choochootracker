@@ -1372,6 +1372,10 @@ listed in `docs/chip-preset-auditions.tsv`; subjective listening remains pending
 
 ### Native chip controls
 
+Native instrument waveform previews refresh when their controls are redrawn.
+FM instruments can overlay their optional Amp env curve; SID keeps its waveform
+preview without that FM-only overlay, including when browsing banks and presets.
+
 All seven FM engines offer **Bright**, **Feedback**, and **Amp env**. Bright
 ranges from -63 to +63, with zero preserving the patch; it changes modulation
 operator levels while retaining carrier levels. Its audible effect depends on
