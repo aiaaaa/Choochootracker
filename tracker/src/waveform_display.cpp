@@ -3,6 +3,10 @@
 #include <cmath>
 #include "corelib_gfx.h"
 #include "chipnomad_lib.h"
+#include "four_op_patch.h"
+#include "opl_patch.h"
+#include "opll_presets.h"
+#include "sid_patch.h"
 #include "playback_chips.h"
 #include "synth/braids_voice.h"
 #include "synth/achchid_voice.h"
@@ -10,6 +14,11 @@
 #include "synth/plaits_alt_voice.h"
 #include "synth/mme_voice.h"
 #include "synth/sintered_voice.h"
+#include "synth/four_op_voice.h"
+#include "synth/opl_voice.h"
+#include "synth/opll_voice.h"
+#include "synth/dx7_voice.h"
+#include "synth/simple_chip_voice.h"
 #include "common.h"
 #include "monitor_display.h"
 #include "audio_monitor.h"
@@ -201,7 +210,7 @@ static Bitmap* renderWaveform(int trackIdx) {
     return waveformBitmaps[trackIdx];
   }
   InstrumentType type = chipnomadState->project.instruments[track->note.instrument].type;
-  // Personal's native chips use voice monitors, never AY register inspection.
+  // Native chips use voice monitors, never AY register inspection.
   if (type != InstrumentType::AY1 && type != InstrumentType::AY2 && type != InstrumentType::AYSample)
     return drawVoiceWaveform(trackIdx);
 
@@ -534,6 +543,85 @@ void renderMMEPreview(Bitmap* bitmap, const InstrumentMME* instrument) {
   MMEVoice voice;
   voice.init(48000.0f);
   voice.configure(&preview, 6900.0f, 1.0f, 20000, 0);
+  voice.noteOn();
+  voice.render(samples, sizeof(samples) / sizeof(samples[0]));
+  renderFloatPreview(bitmap, samples, sizeof(samples) / sizeof(samples[0]));
+}
+
+void renderFMPreview(Bitmap* bitmap, const Instrument* instrument) {
+  if (!bitmap || !instrument) { if (bitmap) gfxBitmapClear(bitmap); return; }
+  constexpr size_t frames = 768;
+  float samples[frames];
+  float stereo[frames * 2];
+  if (isFourOp(instrument->type)) {
+    FourOpVoice voice;
+    voice.init(48000.0f);
+    voice.configure(instrument->type, &instrument->chip.fourOp, 6900.0f, 1.0f);
+    voice.noteOn();
+    voice.render(stereo, frames);
+    for (size_t i = 0; i < frames; ++i) samples[i] = stereo[i * 2];
+  } else if (isOPLL(instrument->type)) {
+    OPLLVoice voice;
+    voice.init(48000.0f);
+    voice.configure(&instrument->chip.opll, 6900.0f, 1.0f);
+    voice.noteOn();
+    voice.render(samples, frames);
+    renderFloatPreview(bitmap, samples, frames);
+    return;
+  } else if (isOPL(instrument->type)) {
+    OPLVoice voice;
+    voice.init(48000.0f);
+    voice.configure(instrument->type, &instrument->chip.opl, 6900.0f, 1.0f);
+    voice.noteOn();
+    voice.render(stereo, frames);
+    for (size_t i = 0; i < frames; ++i) samples[i] = stereo[i * 2];
+  } else if (instrument->type == InstrumentType::DX7) {
+    DX7Part voice;
+    voice.init(48000.0f);
+    voice.voices[0].configure(&instrument->chip.dx7, 6900.0f, 1.0f);
+    voice.voices[0].noteOn();
+    voice.render(samples, frames);
+    renderFloatPreview(bitmap, samples, frames);
+    return;
+  } else if (instrument->type == InstrumentType::SID) {
+    const auto& sid = instrument->chip.sid;
+    const float pulse = sid.value[sidPulse] / 4095.0f;
+    uint32_t noise = 0x1aceu;
+    for (size_t i = 0; i < frames; ++i) {
+      const float phase = float(i % 96) / 96.0f;
+      const float triangle = 1.0f - 4.0f * std::abs(phase - 0.5f);
+      const float saw = phase * 2.0f - 1.0f;
+      const float square = phase < pulse ? 1.0f : -1.0f;
+      noise = noise * 1103515245u + 12345u;
+      const float random = float((noise >> 16) & 0x7fff) / 16384.0f - 1.0f;
+      switch (sid.value[sidWave]) {
+        case 1: samples[i] = triangle; break;
+        case 2: samples[i] = saw; break;
+        case 3: samples[i] = triangle * saw; break;
+        case 4: samples[i] = square; break;
+        case 5: samples[i] = triangle * square; break;
+        case 6: samples[i] = saw * square; break;
+        case 7: samples[i] = triangle * saw * square; break;
+        case 8: samples[i] = random; break;
+        default: samples[i] = 0.0f; break;
+      }
+    }
+    renderFloatPreview(bitmap, samples, frames);
+    return;
+  } else {
+    gfxBitmapClear(bitmap);
+    return;
+  }
+  renderFloatPreview(bitmap, samples, frames);
+}
+
+void renderSimpleChipPreview(Bitmap* bitmap, InstrumentType type,
+                             const InstrumentSimpleChip* instrument) {
+  if (!bitmap || !instrument) { if (bitmap) gfxBitmapClear(bitmap); return; }
+  float samples[768];
+  SimpleChipVoice voice;
+  voice.init(48000.0f);
+  voice.configure(type, instrument, 6900.0f, 1.0f);
   voice.noteOn();
   voice.render(samples, sizeof(samples) / sizeof(samples[0]));
   renderFloatPreview(bitmap, samples, sizeof(samples) / sizeof(samples[0]));

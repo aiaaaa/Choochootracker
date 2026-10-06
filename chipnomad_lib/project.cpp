@@ -72,12 +72,7 @@ FXGroup fxGroups[] = {
   {"Plaits-Alt FX", NULL, 0, 7, InstrumentType::PlaitsAlt},
   {"aChChid FX", NULL, 0, 9, InstrumentType::AChChid},
   {"Bogie FX", NULL, 0, 8, InstrumentType::DrumSynth},
-  {"ADSR / Trigger FX", fxNamesEnvelope, 0, 7, InstrumentType::none},
-  {"Modulation FX", fxNamesModulation, 0, 5, InstrumentType::none},
   {"MME FX", NULL, 0, 8, InstrumentType::MME},
-  {"Sintered FX", NULL, 0, 8, InstrumentType::Sintered},
-  {"MIDI FX", NULL, 0, 4, InstrumentType::Midi},
-  {"Insert FX", fxNamesInsert, 16, 8, InstrumentType::none},
   {"OPLL FX", NULL, 0, 4, InstrumentType::OPLL},
   {"VRC7 FX", NULL, 0, 4, InstrumentType::VRC7},
   {"OPL2 FX", NULL, 0, 4, InstrumentType::OPL2},
@@ -89,6 +84,11 @@ FXGroup fxGroups[] = {
   {"GB Pulse FX", NULL, 0, 4, InstrumentType::GBPulse},
   {"GB Noise FX", NULL, 0, 4, InstrumentType::GBNoise},
   {"SID FX", NULL, 0, 4, InstrumentType::SID},
+  {"Sintered FX", NULL, 0, 8, InstrumentType::Sintered},
+  {"ADSR / Trigger FX", fxNamesEnvelope, 0, 7, InstrumentType::none},
+  {"Modulation FX", fxNamesModulation, 0, 5, InstrumentType::none},
+  {"MIDI FX", NULL, 0, 4, InstrumentType::Midi},
+  {"Insert FX", fxNamesInsert, 16, 8, InstrumentType::none},
 };
 int fxGroupCount = sizeof(fxGroups) / sizeof(FXGroup);
 
@@ -103,8 +103,8 @@ void fillFXNames() {
   // Fill counts in fxGroups array
   fxGroups[0].count = fxSequencerCount;
   fxGroups[1].count = fxTrackCount;
-  fxGroups[13].count = fxEnvelopeCount;
-  fxGroups[14].count = fxModulationCount;
+  fxGroups[26].count = fxEnvelopeCount;
+  fxGroups[27].count = fxModulationCount;
   // Instrument groups are materialized from the declarative catalogue.  The
   // editor still receives its established FXName view, without duplicating
   // family availability or labels here.
@@ -122,7 +122,7 @@ void fillFXNames() {
   {
     const InstrumentDefinition* definition = getInstrumentDefinition(InstrumentType::MME);
     FXName* names = instrumentGroupNames[(int)InstrumentType::MME];
-    fxGroups[15].fxList = names; fxGroups[15].count = definition->fxCount;
+    fxGroups[13].fxList = names; fxGroups[13].count = definition->fxCount;
     for (int i = 0; i < definition->fxCount; ++i) {
       names[i].fx = (FX)definition->fxList[i].fx;
       strcpy(names[i].name, definition->fxList[i].name);
@@ -131,10 +131,10 @@ void fillFXNames() {
   {
     const InstrumentDefinition* definition = getInstrumentDefinition(InstrumentType::Sintered);
     FXName* names = instrumentGroupNames[(int)InstrumentType::Sintered];
-    fxGroups[16].fxList = names; fxGroups[16].count = definition->fxCount;
+    fxGroups[25].fxList = names; fxGroups[25].count = definition->fxCount;
     for (int i = 0; i < definition->fxCount; ++i) { names[i].fx = (FX)definition->fxList[i].fx; strcpy(names[i].name, definition->fxList[i].name); }
   }
-  for (int group = 17; group < 18; ++group) {
+  for (int group = 28; group < 29; ++group) {
     InstrumentType type = fxGroups[group].instType;
     const InstrumentDefinition* definition = getInstrumentDefinition(type);
     FXName* names = instrumentGroupNames[(int)type];
@@ -142,7 +142,7 @@ void fillFXNames() {
     for (int i = 0; i < definition->fxCount; ++i) { names[i].fx = (FX)definition->fxList[i].fx; strcpy(names[i].name, definition->fxList[i].name); }
   }
 
-  for(int group=19;group<fxGroupCount;++group) {
+  for(int group=14;group<25;++group) {
     auto type=fxGroups[group].instType;auto* names=instrumentGroupNames[int(type)];int count=0;
     for(int g=genericModFMBrightness;g<genericModFirstDirectFM;++g)if(const auto* d=instrumentNativeModDestination(type,g)) {
       if(g==genericModFMBrightness||(g>=genericModFMTime&&g<=genericModFMLFODepth))continue;

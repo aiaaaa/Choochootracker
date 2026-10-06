@@ -48,6 +48,7 @@ static void drawField(int col, int row, CellState state) {
   gfxClearRect(9, row == 3 ? 7 : 9, 30, 1);
   if (row == 3) gfxPrintf(9, 7, "%02d %.27s", current()->chip.opll.program, opllPresetName(current()->type, current()->chip.opll.program));
   else gfxPrintf(9, 9, "%+04d", current()->chip.opll.fineTune);
+  instrumentFMRefreshStaticWaveform();
 }
 static int onEdit(int col, int row, CellEditAction action) {
   if (row == 5) return instrumentFMToneEdit(col, action);

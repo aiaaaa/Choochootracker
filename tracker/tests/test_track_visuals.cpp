@@ -200,7 +200,7 @@ TEST_CASE("Audio mini readout preserves narrow peaks and leaves padding clear") 
   CHECK(pixels[11*16+5] == 64);
 }
 
-TEST_CASE_FIXTURE(VisualFixture, "Upstream Detailed display supports personal native chip voice monitors") {
+TEST_CASE_FIXTURE(VisualFixture, "Upstream Detailed display supports native chip voice monitors") {
   const InstrumentType types[] = {InstrumentType::OPLL, InstrumentType::VRC7,
     InstrumentType::OPL2, InstrumentType::OPL3, InstrumentType::DX7,
     InstrumentType::GenesisFM, InstrumentType::ArcadeFM,

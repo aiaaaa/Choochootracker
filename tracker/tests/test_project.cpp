@@ -409,8 +409,11 @@ TEST_CASE("phrase FX groups put the active engine after Track FX") {
   CHECK(fxGroups[2].instType == InstrumentType::AY1);
   CHECK(fxGroups[11].instType == InstrumentType::AChChid);
   CHECK(fxGroups[12].instType == InstrumentType::DrumSynth);
-  CHECK(std::strcmp(fxGroups[13].name, "ADSR / Trigger FX") == 0);
-  CHECK(std::strcmp(fxGroups[14].name, "Modulation FX") == 0);
+  CHECK(fxGroups[13].instType == InstrumentType::MME);
+  CHECK(fxGroups[14].instType == InstrumentType::OPLL);
+  CHECK(fxGroups[24].instType == InstrumentType::SID);
+  CHECK(std::strcmp(fxGroups[26].name, "ADSR / Trigger FX") == 0);
+  CHECK(std::strcmp(fxGroups[27].name, "Modulation FX") == 0);
 }
 
 TEST_CASE_FIXTURE(ProjectFixture, "failed VT2 import leaves its destination unchanged") {

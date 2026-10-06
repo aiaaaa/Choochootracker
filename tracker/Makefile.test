@@ -4,6 +4,10 @@
 # Compiler settings
 CXX = c++
 CFLAGS = -std=c++17 -Wall -g -O0 -DTEST -DTEST_PORTMASTER_INPUT
+ifeq ($(OS),Windows_NT)
+# Match the Windows application build: the pinned SID core uses CRT constants.
+CFLAGS += -D_USE_MATH_DEFINES
+endif
 LDFLAGS = -lm -pthread
 include Makefile.native-chip-flags
 
@@ -61,6 +65,7 @@ CHIPNOMAD_LIB_SOURCES = $(wildcard ../chipnomad_lib/external/msfa/*.cc) ../chipn
                         $(wildcard ../chipnomad_lib/external/mutable/plaits_alt/dsp/speech/*.cc)
 
 TRACKER_SRC_SOURCES = src/fm_catalog.cpp src/app.cpp \
+                      src/screens/instrument_fm_controls.cpp \
                       src/screens/screen_insert_fx.cpp \
                       src/screens/selection_popup.cpp \
                       src/corelib/corelib_gfx_layout.cpp \

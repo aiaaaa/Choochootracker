@@ -1,0 +1,28 @@
+Personal harmonization — October 6, 2026
+
+Upstream main: 6e9eb2b79f7024027e8ff1308d131aa05c0096ed (merged PR #39).
+Previous personal source: 072585c07c04ac5c3fe7324f88b9b9fc6b99755f.
+Backup branch: backup/personal-r36h-pre-pr39-20261006.
+
+Adopted the merged native instruments and all maintainer follow-ups: waveform
+previews, safe SID redraw/static preview, native FX grouping, MIDI initialization,
+portable OPLL math constant, Windows CRT flags and current build workflows.
+Native FX groups match upstream exactly; duplicate groups from the automatic
+merge were removed. The simplified tracker FX list remains unchanged.
+
+Retained Get Lucky, sample-stretch lifetime cleanup, VT2 volume scaling,
+archived wavetable metadata recovery, personal display integration and cover.
+Earlier revisions and device receipts remain intact. This is source/branch
+synchronization only; no hardware installation or new listening test is implied.
+
+Validation:
+- Ordinary host suite: 503 cases passed, no failures.
+- Get Lucky enabled host suite: see the recorded test summary below.
+- Combined web-deploy completed; JavaScript syntax and WebAssembly validate.
+- Native instrument implementation and compact FX groups match upstream.
+- No new device installation, performance run or listening test.
+
+
+[doctest] test cases:       515 |       515 passed | 0 failed | 2 skipped
+[doctest] assertions: 112219417 | 112219417 passed | 0 failed |
+[doctest] Status: SUCCESS!
