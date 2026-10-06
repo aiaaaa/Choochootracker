@@ -29,9 +29,27 @@ static void capture(const char* name){appDraw();auto* s=SDL_CreateRGBSurfaceWith
 static void key(int down,int keys){appDraw();currentScreen->onInput(down,keys,1);appDraw();}
 static void tapEdit(){key(1,keyEdit);key(0,0);}
 int main(int argc,char** argv){
-  if(argc!=2)return 1;output=argv[1];initDefaultAppSettings();appSettings.screenWidth=640;appSettings.screenHeight=480;fontSetCurrent(fontGetDefault());require(!gfxSetup(&appSettings.screenWidth,&appSettings.screenHeight),"SDL dummy setup");
+  if(argc!=2&&argc!=3)return 1;output=argv[1];initDefaultAppSettings();appSettings.screenWidth=640;appSettings.screenHeight=480;fontSetCurrent(fontGetDefault());require(!gfxSetup(&appSettings.screenWidth,&appSettings.screenHeight),"SDL dummy setup");
   chipnomadState=chipnomadCreate();require(chipnomadState,"state");require(!projectLoad(&chipnomadState->project,"projects/gm-midi-demo.cct"),"fixture");
   chipnomadInitChips(chipnomadState,48000,nullptr);chipnomadReserveRenderBuffers(chipnomadState,1024);screensInitAll();waveformDisplayInit();monitorDisplayInit();
+  if(argc==3 && !strcmp(argv[2],"--fx-only")) {
+    for(auto type:{InstrumentType::OPLL,InstrumentType::VRC7,InstrumentType::OPL2,InstrumentType::OPL3,InstrumentType::GenesisFM,InstrumentType::ArcadeFM,InstrumentType::DX7}) {
+      auto& inst=chipnomadState->project.instruments[0];getInstrumentFunctions(type).init(&inst);
+      require(!instrumentFXAvailableForInstrument(&inst,fxFBK+1),"selector removed");
+      for(int command=fxOAR;command<=fxLEN;++command) {
+        uint8_t fx[]={EMPTY_VALUE_8,0};selectInstrumentFX(fx,command,0);
+        require((fx[0]==command)==bool(instrumentFXAvailableForInstrument(&inst,command)),"selection follows compact list");
+      }
+      screenSetup(&screenPhrase,0);appDraw();
+      for(int header:{0,1}) {
+        appSettings.persistentWaveform=header;appDraw();
+        fxEditFullDraw(type==InstrumentType::DX7?fxFBK:fxOMU,0,0);
+        char name[64];snprintf(name,sizeof(name),"compact-fx-%d-header-%d",int(type),header);capture(name);
+      }
+    }
+    printf("Focused FX selection and popup captures passed\n");
+    chipnomadDestroy(chipnomadState);SDL_Quit();return 0;
+  }
   // The accepted insert review shares popup controls with native-chip browsing.
   // Check the full-height page and category selection in both waveform modes.
   for (int header : {0, 1}) {
@@ -105,7 +123,7 @@ int main(int argc,char** argv){
       screenInstrumentOPL.onEdit(0,3,CellEditAction::tap);appDraw();require(pixels()==allBanks,"compatible OPL bank cannot carry across engines");key(1,keyOpt);
     }
   }
-  for(int fx=fxFBR;fx<fxFOP;++fx) {
+  for(int fx=fxFBR;fx<=fxFBK;++fx) {
     const char* description=helpFXDescription((FX)fx,0);
     require(description&&description[0]&&strchr(description,'\n'),"native FX has title and description");
     uint8_t value[]={uint8_t(fx),0};require(helpFXHint(value,0,0)[0],"native FX has value hint");
@@ -118,7 +136,7 @@ int main(int argc,char** argv){
   for(auto type:{InstrumentType::OPLL,InstrumentType::VRC7,InstrumentType::OPL2,InstrumentType::OPL3,InstrumentType::GenesisFM,InstrumentType::ArcadeFM,InstrumentType::DX7,InstrumentType::SegaPSG,InstrumentType::GBPulse,InstrumentType::GBNoise,InstrumentType::SID}) {
     auto& inst=chipnomadState->project.instruments[0];getInstrumentFunctions(type).init(&inst);
     for(int command=fxFBR;command<fxTotalCount;++command) {
-      NativeFXInfo info{};if(!instrumentNativeFXInfo(&inst,command,&info))continue;
+      NativeFXInfo info{};if(!instrumentFXAvailableForInstrument(&inst,command)||!instrumentNativeFXInfo(&inst,command,&info))continue;
       uint8_t fx[]={EMPTY_VALUE_8,255},last[]={uint8_t(command),255};
       selectInstrumentFX(fx,command,0);require(fx[1]==info.preset,"new native FX starts at instrument value");
       fx[1]=info.minimum;selectInstrumentFX(fx,command,0);require(fx[1]==info.minimum,"existing native FX value preserved");
@@ -150,7 +168,7 @@ int main(int argc,char** argv){
     for(int col=0;col<3;++col)key(1,keyRight);
     key(1,keyEdit|keyUp);
     fxEditFullDraw(fxOL1,0,0);capture(header?"fx-native-dx7-header-on":"fx-native-dx7-header-off");
-    fxEditFullDraw(fxLPS,0,0);capture(header?"fx-native-last-header-on":"fx-native-last-header-off");
+    fxEditFullDraw(fxFBK,0,0);capture(header?"fx-native-last-header-on":"fx-native-last-header-off");
     fxEditFullDraw(fxOL1,0,0);
     screenPhrase.onInput(0,0,1);
     auto* fx=fxProject.phrases[0].rows[0].fx[0];require(fx[0]==fxOL1&&fx[1]==42,"popup commit reads instrument preset");

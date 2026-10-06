@@ -155,11 +155,11 @@ void fillFXNames() {
         snprintf(names[count-1].name,sizeof(names[count-1].name),"OL%d",g-genericModFMOperator1+1);
       }
     }
-    for(int fx=fxFOP;fx<=fxLEN;++fx)if(instrumentFXAvailable(type,fx)) {
+    for(int fx=fxOAR;fx<=fxLEN;++fx)if(instrumentFXAvailable(type,fx)) {
       names[count].fx=FX(fx);strcpy(names[count++].name,directFMName(fx));
     }
-    // Six columns keep the complete native FM set visible with the waveform.
-    if(instrumentFXAvailable(type,fxFOP))fxGroups[group].columns=6;
+    // Keep the compact native FM lists in the existing six-column layout.
+    if(type==InstrumentType::OPLL||type==InstrumentType::VRC7||type==InstrumentType::OPL2||type==InstrumentType::OPL3||type==InstrumentType::GenesisFM||type==InstrumentType::ArcadeFM||type==InstrumentType::DX7)fxGroups[group].columns=6;
     fxGroups[group].fxList=names;fxGroups[group].count=count;
   }
 

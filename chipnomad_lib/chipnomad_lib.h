@@ -41,7 +41,6 @@ struct MotionRecordEvent {
   uint8_t fx;
   uint8_t value;
   uint8_t erase;
-  uint8_t fmOperator = 0; // 1–6 for an atomic FOP + native parameter pair.
 };
 
 // UI-facing copy of the audio state.  The callback never exposes its mutable

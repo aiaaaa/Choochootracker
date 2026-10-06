@@ -10,7 +10,6 @@ int currentIdx;        // Current FX index within group
 int expandedGroup;     // Currently expanded group (-1 = none)
 uint8_t currentInstrumentIdx;  // Current instrument index for context-aware help
 static int currentIsTable;
-static int currentOperator;
 
 // Helper to get instrument type from stored instrument index
 static InstrumentType getInstrumentType(uint8_t instrumentIdx) {
@@ -28,26 +27,17 @@ static const Instrument* getCurrentInstrument() {
     ? &chipnomadState->project.instruments[currentInstrumentIdx] : NULL;
 }
 
-static bool nativeInfo(uint8_t instrumentIdx,int fx,NativeFXInfo& info,int op) {
-  return instrumentIdx!=EMPTY_VALUE_8 && instrumentIdx<PROJECT_MAX_INSTRUMENTS && instrumentNativeFXInfo(&chipnomadState->project.instruments[instrumentIdx],fx,&info,op);
+static bool nativeInfo(uint8_t instrumentIdx,int fx,NativeFXInfo& info) {
+  return instrumentIdx!=EMPTY_VALUE_8 && instrumentIdx<PROJECT_MAX_INSTRUMENTS && instrumentFXAvailableForInstrument(&chipnomadState->project.instruments[instrumentIdx],fx) && instrumentNativeFXInfo(&chipnomadState->project.instruments[instrumentIdx],fx,&info);
 }
 
-static const char* nativeControlDescription(int fx,InstrumentType type) {
-  const bool dx=type==InstrumentType::DX7;
+static const char* nativeControlDescription(int fx) {
   switch(fx) {
-    case fxFOP:return "Chooses the operator to edit";
-    case fxOAR:return dx?"Speed of envelope stage 1":"How quickly the operator attacks";
-    case fxODR:return dx?"Speed of envelope stage 2":"How quickly the operator decays";
-    case fxOSR:return dx?"Speed of envelope stage 3":"Decay rate while the note is held";
-    case fxORR:return dx?"Speed of envelope stage 4":"Decay rate after note release";
-    case fxOSL:return dx?"Level reached in envelope stage 3":"Held-note attenuation; more=softer";
-    case fxODT:return "Native detune around base pitch";
-    case fxOMU:return dx?"Coarse ratio or fixed frequency":"Operator frequency multiplier";
-    case fxOFI:return "Fine ratio or fixed frequency";
-    case fxOFM:return "00 follows pitch; 01 fixed Hz";
-    case fxOE1:return "Level reached in envelope stage 1";
-    case fxOE2:return "Level reached in envelope stage 2";
-    case fxOE4:return "Start and release envelope level";
+    case fxOAR:return "How quickly the operator attacks";
+    case fxODR:return "How quickly the operator decays";
+    case fxORR:return "Decay rate after note release";
+    case fxOSL:return "Held-note attenuation; more=softer";
+    case fxOMU:return "Operator frequency multiplier";
     case fxLFR:return "How quickly the native LFO cycles";
     case fxLAD:return "Amount of native LFO tremolo";
     case fxLPD:return "Amount of native LFO vibrato";
@@ -60,9 +50,9 @@ static const char* nativeControlDescription(int fx,InstrumentType type) {
     default:return "";
   }
 }
-void selectInstrumentFX(uint8_t* fx,uint8_t selected,uint8_t instrumentIdx,int op) {
+void selectInstrumentFX(uint8_t* fx,uint8_t selected,uint8_t instrumentIdx) {
   NativeFXInfo info{};
-  bool native=nativeInfo(instrumentIdx,selected,info,op);
+  bool native=nativeInfo(instrumentIdx,selected,info);
   if(selected>=fxFBR&&selected<fxTotalCount&&!native)return;
   if(fx[0]==selected) {
     if(native)fx[1]=std::clamp(int(fx[1]),info.minimum,info.maximum);
@@ -74,9 +64,9 @@ void selectInstrumentFX(uint8_t* fx,uint8_t selected,uint8_t instrumentIdx,int o
 
 static const char* contextualFXHint(uint8_t* fx,int table,uint8_t instrument) {
   NativeFXInfo native{};
-  if(nativeInfo(instrument,fx[0],native,currentOperator) && native.label) {
+  if(nativeInfo(instrument,fx[0],native) && native.label) {
     static char text[80];
-    if(fx[0]>=fxOAR&&fx[0]<=fxOE4)snprintf(text,sizeof(text),"OP%d %s: %02X",currentOperator+1,native.label,fx[1]);
+    if(fx[0]>=fxOAR&&fx[0]<=fxOE4)snprintf(text,sizeof(text),"OP%d %s: %02X"+1,native.label,fx[1]);
     else snprintf(text,sizeof(text),"%s: %02X",native.label,fx[1]);
     return text;
   }
@@ -112,7 +102,7 @@ static void stepFX(uint8_t* fx, int direction, uint8_t instrumentIdx, int isTabl
   for (int candidate = (int)fx[0] + direction;
        candidate >= 0 && candidate < fxTotalCount; candidate += direction) {
     if (isFXAvailable((enum FX)candidate, instrumentIdx, isTable)) {
-      selectInstrumentFX(fx,candidate,instrumentIdx,currentOperator);
+      selectInstrumentFX(fx,candidate,instrumentIdx);
       return;
     }
   }
@@ -142,8 +132,7 @@ static const FXName* visibleFXAt(const FXGroup* group, int visibleIndex) {
 
 void fxEditFullDraw(uint8_t currentFX, uint8_t instrumentIdx, int isTable);
 
-int editFX(CellEditAction action, uint8_t* fx, uint8_t* lastValue, int isTable, uint8_t instrumentIdx,int op) {
-  currentOperator=op;
+int editFX(CellEditAction action, uint8_t* fx, uint8_t* lastValue, int isTable, uint8_t instrumentIdx) {
   int result = 0;
   action = convertMultiAction(action);
 
@@ -160,7 +149,7 @@ int editFX(CellEditAction action, uint8_t* fx, uint8_t* lastValue, int isTable, 
     // Insert last FX
     if (fx[0] == EMPTY_VALUE_8) {
       fx[1] = lastValue[1];
-      selectInstrumentFX(fx,lastValue[0],instrumentIdx,op);
+      selectInstrumentFX(fx,lastValue[0],instrumentIdx);
     }
     lastValue[0] = fx[0];
     lastValue[1] = fx[1];
@@ -182,10 +171,9 @@ int editFX(CellEditAction action, uint8_t* fx, uint8_t* lastValue, int isTable, 
   return result;
 }
 
-int editFXValue(CellEditAction action, uint8_t* fx, uint8_t* lastFX, int isTable, uint8_t instrumentIdx,int op) {
-  currentOperator=op;
+int editFXValue(CellEditAction action, uint8_t* fx, uint8_t* lastFX, int isTable, uint8_t instrumentIdx) {
   NativeFXInfo native{};
-  if(nativeInfo(instrumentIdx,fx[0],native,op)) {
+  if(nativeInfo(instrumentIdx,fx[0],native)) {
     bool multi=action==CellEditAction::multiIncrease || action==CellEditAction::multiDecrease || action==CellEditAction::multiIncreaseBig || action==CellEditAction::multiDecreaseBig;
     fx[1]=std::clamp(int(fx[1]),native.minimum,native.maximum);
     int handled=edit8noLast(action,&fx[1],native.maximum<16?1:16,native.minimum,native.maximum);
@@ -409,18 +397,17 @@ void fxEditFullDraw(uint8_t currentFX, uint8_t instrumentIdx, int isTable) {
   // Draw help for current FX at top (with instrument context)
   NativeFXInfo direct{};
   int presetRow=6;
-  if(nativeInfo(instrumentIdx,currentFX,direct,currentOperator) && direct.label) {
-    gfxSetFgColor(appSettings.colorScheme.textTitles);gfxPrint(1,1,direct.label);
-    gfxSetFgColor(appSettings.colorScheme.textInfo);
-    gfxPrint(1,2,nativeControlDescription(currentFX,instType));
+  if(nativeInfo(instrumentIdx,currentFX,direct) && direct.label) {
+    gfxSetFgColor(appSettings.colorScheme.textValue);gfxPrint(1,1,direct.label);
+    gfxSetFgColor(appSettings.colorScheme.textDefault);
+    gfxPrint(1,2,nativeControlDescription(currentFX));
     int nextRow=3;
-    if(currentFX>=fxOAR&&currentFX<=fxOE4)gfxPrintf(1,nextRow++,"Operator %d (FOP)",currentOperator+1);
-    else if(currentFX==fxFOP)gfxPrint(1,nextRow++,"Select before Oxx in this note");
+    if(currentFX>=fxOAR&&currentFX<=fxOE4)gfxPrint(1,nextRow++,"Operator 1");
     gfxPrint(1,nextRow++,"Absolute native value");
     presetRow=nextRow;
   } else drawFXHelp((enum FX)currentFX, instrumentIdx);
   NativeFXInfo info{};
-  if(nativeInfo(instrumentIdx,currentFX,info,currentOperator)) {
+  if(nativeInfo(instrumentIdx,currentFX,info)) {
     gfxSetFgColor(appSettings.colorScheme.textInfo);
     gfxPrintf(1,presetRow,"%s %02X   Range %02X-%02X",info.relative?"Preset FX":"Preset",info.preset,info.minimum,info.maximum);
   }
@@ -453,7 +440,7 @@ int fxEditInput(int keys, int tapCount, uint8_t* fx, uint8_t* lastFX) {
     FXGroup* group = getVisibleGroup(currentGroup, getCurrentInstrumentType());
     const FXName* item = group ? visibleFXAt(group, currentIdx) : NULL;
     if (item) {
-      selectInstrumentFX(fx,item->fx,currentInstrumentIdx,currentOperator);
+      selectInstrumentFX(fx,item->fx,currentInstrumentIdx);
       lastFX[0] = fx[0];
       lastFX[1] = fx[1];
     }

@@ -447,6 +447,10 @@ static void motionRecordFrame(ChipNomadState* state) {
       FX fx;
       int base, range, fmOperator=0; InstrumentMotionValue value;
       if (!motionDestinationFX(state, trackIdx, instrument, track, modulation->modulation->destination, &fx, &base, &range, &value,&fmOperator)) continue;
+      // The compact tracker command set records operator 1 only. Live
+      // modulation keeps its fixed operator and full native parameter range.
+      if (fx>=fxOAR && fx<=fxLEN &&
+          (fmOperator>1 || !instrumentFXAvailableForInstrument(instrument,fx))) continue;
       int target = -1;
       for (int i = 0; i < targetCount; ++i) if (targets[i] == fx && operators[i]==fmOperator) target = i;
       int delta = playbackModScaleToRange(modulation->outValue, range);
@@ -473,7 +477,7 @@ static void motionRecordFrame(ChipNomadState* state) {
         if(instrumentNativeFXInfo(instrument,fx,&info,std::max(0,operators[target]-1)))fxValue=clampInt(fxValue,info.minimum,info.maximum);
       }
       if (mode == 1 && motionRecordLast[trackIdx][fx][operators[target]] == fxValue) continue;
-      MotionRecordEvent event = {phrase, row, (uint8_t)fx, (uint8_t)fxValue, (uint8_t)(mode == 2),(uint8_t)operators[target]};
+      MotionRecordEvent event = {phrase, row, (uint8_t)fx, (uint8_t)fxValue, (uint8_t)(mode == 2)};
       if (!chipnomadMotionPushEvent(event)) {
         chipnomadMotionSetOverflow();
         continue;

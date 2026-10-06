@@ -1424,16 +1424,12 @@ latch at the next note trigger; duty/width and noise frequency can change live.
 | Engines | FX | Control |
 |---|---|---|
 | Native FM | `OL1`–`OL6` | Absolute operator output levels: OPLL/VRC7 modulator and OPL `00–3F`; OPLL/VRC7 carrier `00–0F`; Genesis/Arcade `00–7F`; DX7 `00–63` (0–99). Higher means greater output. Only supported operators appear. |
-| Native FM | `FOP 01–06` | Choose the operator for subsequent operator commands; upper bound follows the engine's operator count. Defaults to OP1 on each new note or instrument. |
-| Native FM | `OAR`, `ODR`, `ORR`, `OSL` | Native attack, decay, release and sustain attenuation. OPLL/OPL `00–0F`; Genesis/Arcade attack/decay `00–1F`, release/sustain `00–0F`; DX7 rates 1/2/4 and level 3 `00–63`. |
-| Genesis/Arcade/DX7 | `OSR` | Native sustain rate (`00–1F`), or DX7 envelope rate 3 (`00–63`). |
-| Genesis/Arcade/DX7 | `ODT` | Native encoded detune: `00–07` on four-operator chips; `00–0E` on DX7. |
-| Native FM | `OMU` | Native multiplier (`00–0F`), or DX7 coarse frequency (`00–1F`). |
-| DX7 | `OFI`, `OFM`, `OE1`, `OE2`, `OE4` | Fine frequency `00–63`; mode `00` ratio / `01` fixed; envelope levels 1, 2 and 4 `00–63`. |
-| Genesis/Arcade/DX7 | `LFR` | Native LFO rate: Genesis `00–07`, Arcade `00–FF`, DX7 `00–63`. |
-| Arcade/DX7 | `LAD`, `LPD` | Separate LFO amplitude and pitch depths: Arcade `00–7F`, DX7 `00–63`. |
+| OPLL/VRC7/OPL2/OPL3 | `OAR`, `ODR`, `ORR`, `OSL` | Operator 1 attack, decay, release and sustain attenuation, `00–0F`. |
+| OPLL/VRC7/OPL2/OPL3/Genesis/Arcade | `OMU 00–0F` | Operator 1 frequency multiplier. |
+| Genesis/Arcade | `LFR` | Native LFO rate: Genesis `00–07`, Arcade `00–FF`. |
+| Arcade | `LAD`, `LPD 00–7F` | Separate LFO amplitude and pitch depths. |
 | Genesis/Arcade | `LAS`, `LEN` | Native amplitude sensitivity `00–03` and LFO enable `00–01`. |
-| Genesis/Arcade/DX7 | `LPS` | Native pitch sensitivity `00–07`. |
+| Genesis/Arcade | `LPS 00–07` | Native pitch sensitivity. |
 | SID | `SAT`, `SDE`, `SSU`, `SRL 00–0F` | Native attack, decay, sustain and release. Time values increase toward `0F`; sustain increases toward full level. |
 | SID | `SPR 01–10` | Silent partner frequency from 1× to 16×; affects ring modulation and hard sync. |
 | All native FM | `FBK 00–07` | Absolute native feedback, initialized from the instrument. |
@@ -1454,13 +1450,15 @@ Tables use their instrument context. Native value edits stop at their legal
 endpoints, including duty, noise, sweep, ADSR, feedback and operator levels.
 The values are hexadecimal: for example, DX7's maximum `63` means decimal 99.
 
-All these FM controls use absolute native values. For example, `FOP 02`
-followed by `OAR 1F` sets operator 2 attack to 31 on Genesis/Arcade. Commands
-run from left to right and retain separate values for each operator until the
-next note or instrument resets them. The popup reads the selected operator's
-preset value. Modulation bindings specify their operator directly, independently
-of `FOP`, and clamp to the same native range. Motion recording writes the
-operator selector and parameter together; a full row reports overflow.
+These FM commands use absolute native values. Operator commands always target
+operator 1; `OMU 03` selects its multiplier 3. DX7's tracker-specific controls
+are operator levels and feedback. Preset/Range keeps its information color;
+titles and descriptions follow the same colors as FM Feedback.
+
+Live Modulation retains its full set of fixed-operator native destinations.
+Motion recording writes only controls represented by the compact tracker list;
+operator parameters record for operator 1 only. Other modulation destinations
+continue to work live but do not generate phrase commands.
 
 `SCP` and `SCT` retain byte-scaled mappings to SID registers wider than 8 bits.
 `SMR 01–C8`, `SWV 01–08` and `SPR 01–10` now match the native preset numbering.

@@ -19,7 +19,7 @@ int instrumentFMOperatorCount(const Instrument* i) {
 
 bool instrumentNativeFXInfo(const Instrument* i,int fx,NativeFXInfo* out,int op) {
   if(!i||!out)return false;
-  if(fx>=fxFOP&&fx<=fxLEN)return instrumentDirectFMInfo(i,fx,out,op);
+  if(fx>=fxOAR&&fx<=fxLEN)return instrumentDirectFMInfo(i,fx,out,op);
   if(fx==fxFBK) {
     if(!instrumentFMOperatorCount(i))return false;
     int value=0;
@@ -170,15 +170,14 @@ int instrumentNativeControlValue(const Instrument* i,int g) {
 }
 
 const char* directFMName(int fx) {
-  static const char* names[]={"FOP","OAR","ODR","OSR","ORR","OSL","ODT","OMU","OFI","OFM","OE1","OE2","OE4","LFR","LAD","LPD","LAS","LPS","LEN"};
-  return fx>=fxFOP&&fx<=fxLEN?names[fx-fxFOP]:"";
+  static const char* names[]={"OAR","ODR","OSR","ORR","OSL","ODT","OMU","OFI","OFM","OE1","OE2","OE4","LFR","LAD","LPD","LAS","LPS","LEN"};
+  return fx>=fxOAR&&fx<=fxLEN?names[fx-fxOAR]:"";
 }
 
 bool instrumentDirectFMInfo(const Instrument* i,int fx,NativeFXInfo* out,int op) {
-  if(!i||!out||fx<fxFOP||fx>fxLEN)return false;
+  if(!i||!out||fx<fxOAR||fx>fxLEN)return false;
   int count=instrumentFMOperatorCount(i);
   if(!count)return false;
-  if(fx==fxFOP){*out={count,1,false,1,"FM operator target"};return true;}
   if(fx<fxLFR&&(op<0||op>=count))return false;
   int value=0,maximum=0;
   const char* label=nullptr;

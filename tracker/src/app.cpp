@@ -115,22 +115,6 @@ static void refreshAndroidMidiConnections(void) {
 static int applyMotionRecordEvent(const MotionRecordEvent& event) {
   if (event.phrase >= PROJECT_MAX_PHRASES || event.row >= 16 || event.fx >= fxTotalCount) return 0;
   PhraseRow* row = &chipnomadState->project.phrases[event.phrase].rows[event.row];
-  if(event.fmOperator) {
-    // A parameter recording must carry its target atomically. Never replace an
-    // unrelated operator's command, or leave half a pair when the row is full.
-    int pair=-1;
-    for(int c=0;c<2;++c)if(row->fx[c][0]==fxFOP&&row->fx[c][1]==event.fmOperator&&row->fx[c+1][0]==event.fx)pair=c;
-    if(event.erase) {
-      if(pair<0)return 0;
-      row->fx[pair][0]=row->fx[pair+1][0]=EMPTY_VALUE_8;
-      row->fx[pair][1]=row->fx[pair+1][1]=0;return 1;
-    }
-    if(pair<0)for(int c=0;c<2;++c)if(row->fx[c][0]==EMPTY_VALUE_8&&row->fx[c+1][0]==EMPTY_VALUE_8){pair=c;break;}
-    if(pair<0){chipnomadSetMotionRecordOverflow();return 0;}
-    if(row->fx[pair][0]==fxFOP&&row->fx[pair+1][1]==event.value)return 0;
-    row->fx[pair][0]=fxFOP;row->fx[pair][1]=event.fmOperator;
-    row->fx[pair+1][0]=event.fx;row->fx[pair+1][1]=event.value;return 1;
-  }
   int column = -1;
   for (int i = 2; i >= 0; --i) if (row->fx[i][0] == event.fx) { column = i; break; }
   if (event.erase) {

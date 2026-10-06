@@ -218,6 +218,12 @@
       "documentation": "docs/absolute-fx-audit-20261005.txt",
       "personal_song_conversion": "eleven files converted once; personal compatibility paths removed",
       "performance_tests": "skipped at user request"
+    },
+    {
+      "id": "tracker-fx-simplification",
+      "status": "Implemented; build validation pending",
+      "documentation": "docs/fx-simplification-20261005.txt",
+      "scope": "Compact tracker commands; selector removed; synthesis and live modulation unchanged"
     }
   ],
   "personal_fixes": [
