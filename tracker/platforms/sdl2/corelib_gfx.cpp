@@ -436,8 +436,24 @@ static void createFontTexture(void) {
 
   int fontW = (currentResolution->charWidth + 7) / 8;  // Bytes per row
   const uint8_t* fontData = currentResolution->data;
+  int charsPerRow = 95;
+  int rows = 1;
 
-  fontTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, charW * 95, charH);
+#ifdef MIYOOPORTS_BUILD
+  // The MMIYOO renderer rejects textures wider or taller than 640x480. A
+  // single-row atlas is wider than that even for the smallest tracker font.
+  charsPerRow = 640 / charW;
+  if (charsPerRow < 1) return;
+  rows = (95 + charsPerRow - 1) / charsPerRow;
+  if (rows * charH > 480) return;
+#endif
+
+  fontTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888,
+    SDL_TEXTUREACCESS_TARGET, charW * charsPerRow, charH * rows);
+  if (!fontTexture) {
+    fprintf(stderr, "Could not create font texture: %s\n", SDL_GetError());
+    return;
+  }
   SDL_SetTextureBlendMode(fontTexture, SDL_BLENDMODE_BLEND);
   setTextureNearest(fontTexture);
 
@@ -446,8 +462,9 @@ static void createFontTexture(void) {
   SDL_RenderClear(renderer);
 
   for (int ch = 0; ch < 95; ch++) {
-    int charX = ch * charW;
-    charRects[ch] = (SDL_Rect){charX, 0, charW, charH};
+    int charX = (ch % charsPerRow) * charW;
+    int charY = (ch / charsPerRow) * charH;
+    charRects[ch] = (SDL_Rect){charX, charY, charW, charH};
 
     for (int l = 0; l < charH; l++) {
       for (int c = 0; c < fontW; c++) {
@@ -458,7 +475,7 @@ static void createFontTexture(void) {
         for (int b = 0; b < bitsToDraw; b++) {
           if (fontByte & mask) {
             SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-            SDL_RenderDrawPoint(renderer, charX + c * 8 + b, l);
+            SDL_RenderDrawPoint(renderer, charX + c * 8 + b, charY + l);
           }
           mask >>= 1;
         }
