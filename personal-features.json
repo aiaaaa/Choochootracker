@@ -154,22 +154,35 @@
       "status": "Installed for user evaluation",
       "documentation": "docs/sid-fm-revision-20261005.txt",
       "presets": 56,
-      "fm_controls": "Full-byte brightness and operator levels; stepped native feedback; legacy FBR migration",
+      "fm_controls": "Absolute native operator and feedback values; personal FBR translation removed",
       "sid_model": "floooh/chips 6581 approximation; no alternate model/character options",
       "included_commit": "70d7eee5ca3878e9143821735f4ed41ae15e7ebc"
     },
     {
       "id": "fm-master-macros",
       "branch": "personal/r36h",
-      "status": "Installed for user evaluation",
-      "documentation": "docs/fm-macros-revision-20261005.txt",
+      "status": "Replaced by absolute native controls",
+      "documentation": "docs/absolute-fx-audit-20261005.txt",
       "fm_controls": [
-        "FET",
-        "FTD",
-        "FDT",
-        "FHR",
-        "FLR",
-        "FLD"
+        "FOP",
+        "OAR",
+        "ODR",
+        "OSR",
+        "ORR",
+        "OSL",
+        "ODT",
+        "OMU",
+        "OFI",
+        "OFM",
+        "OE1",
+        "OE2",
+        "OE4",
+        "LFR",
+        "LAD",
+        "LPD",
+        "LAS",
+        "LPS",
+        "LEN"
       ],
       "sid_controls": [
         "SAT",
@@ -178,7 +191,6 @@
         "SRL",
         "SPR"
       ],
-      "preset_neutral": "80 for preset-relative FM macros; native discrete ranges retained",
       "included_commit": "588e0ea246d26ed9a17bd33d99699ca633e359b6"
     },
     {
@@ -196,7 +208,7 @@
       ],
       "absolute_feedback_command": "FBK",
       "editor": "Row instrument lookup, preset defaults, native endpoint limits",
-      "compatibility": "Legacy FO/FFB retain playback; native songs use format 9 with upstream 00-7F phrase volume; absolute CNI uses format 8",
+      "compatibility": "Personal songs converted once; retired FO/FFB/FBR/macros and personal volume migrations removed; upstream compatibility retained",
       "included_commit": "5bfab9779f317f4fc6580292f285d0104917e52b"
     }
   ],
@@ -226,7 +238,7 @@
     "upstream_commit": "8c8709182b90a492ae8b5e2fc0bb0e7516644388",
     "report": "docs/personal-harmonization-20261005.txt",
     "status": "Published, validated and installed; user evaluation pending",
-    "native_song_volume": "Formats 6 with native instruments, 7 and 8 migrate legacy 00-0F volumes; new native songs use format 9; upstream format 6 stays 00-7F",
+    "native_song_volume": "00-7F from format 6 onward; personal legacy songs normalized once; upstream pre-6 support retained",
     "source_commit": "5bfab9779f317f4fc6580292f285d0104917e52b"
   }
 }

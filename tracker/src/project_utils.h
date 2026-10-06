@@ -51,4 +51,7 @@ uint8_t lookupInstrument(Project* p, int songRow, int chainRow, int phraseRow, i
 }
 #endif
 
+int lookupFMOperator(Project* p,int songRow,int chainRow,int phraseRow,int track,int column);
+int lookupFMOperator(const Table* table,int row,int column);
+
 #endif

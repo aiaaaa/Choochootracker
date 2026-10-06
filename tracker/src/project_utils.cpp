@@ -1,3 +1,4 @@
+#include <algorithm>
 #include "project_utils.h"
 #include "pitch_table_utils.h"
 #include <string.h>
@@ -485,4 +486,29 @@ uint8_t lookupInstrument(Project* p, int songRow, int chainRow, int phraseRow, i
     pr = 15;
 
   } while (1);
+}
+
+// Resolve the note-scoped operator selector before this FX cell. Like playback,
+// a new instrument or note resets it; commands in a row run left to right.
+int lookupFMOperator(Project* p,int sr,int cr,int pr,int track,int column) {
+  for(;sr>=0;--sr,cr=15,pr=15) {
+    auto chain=p->song[sr][track];if(chain==EMPTY_VALUE_16)continue;
+    for(;cr>=0;--cr,pr=15) {
+      auto phrase=p->chains[chain].rows[cr].phrase;if(phrase==EMPTY_VALUE_16)continue;
+      for(;pr>=0;--pr) {
+        const auto& row=p->phrases[phrase].rows[pr];
+        for(int c=column-1;c>=0;--c)if(row.fx[c][0]==fxFOP)return std::clamp(int(row.fx[c][1])-1,0,5);
+        if(row.instrument!=EMPTY_VALUE_8||(row.note!=EMPTY_VALUE_8&&row.note!=NOTE_OFF))return 0;
+        column=3;
+      }
+    }
+  }
+  return 0;
+}
+
+int lookupFMOperator(const Table* table,int row,int column) {
+  for(;row>=0;--row,column=4)
+    for(int c=column-1;c>=0;--c)
+      if(table->rows[row].fx[c][0]==fxFOP)return std::clamp(int(table->rows[row].fx[c][1])-1,0,5);
+  return 0;
 }

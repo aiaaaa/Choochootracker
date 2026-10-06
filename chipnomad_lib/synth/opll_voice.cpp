@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstring>
-#include "../fm_macros.h"
+#include "../native_fm_values.h"
 
 void OPLLVoice::init(float sampleRate) {
   const double rate = sampleRate >= 8000 ? sampleRate : 48000;
@@ -42,10 +42,10 @@ void OPLLVoice::tone() {
   macros();
   const int brightness=std::clamp(int(patch_.tone.brightness),-63,63);
   const int feedback=patch_.tone.feedback?std::min(7,int(patch_.tone.feedback)-1):(patch_.patch[3]&7);
-  if(brightness!=macroBrightness_||memcmp(macroOperators_,patch_.tone.operatorOffset,6)||memcmp(macroLevels_,patch_.tone.operatorLevel,6)){
-    write(2,(patch_.patch[2]&0xc0)|std::clamp((patch_.tone.operatorLevel[0]?64-patch_.tone.operatorLevel[0]:(patch_.patch[2]&63))-brightness-int(patch_.tone.operatorOffset[0]),0,63));
-    write(0x30,std::clamp((patch_.tone.operatorLevel[1]?16-int(patch_.tone.operatorLevel[1]):0)+(-int(patch_.tone.operatorOffset[1])+2)/4,0,15));
-    memcpy(macroOperators_,patch_.tone.operatorOffset,6);memcpy(macroLevels_,patch_.tone.operatorLevel,6);macroBrightness_=brightness;
+  if(brightness!=macroBrightness_||memcmp(macroLevels_,patch_.tone.operatorLevel,6)){
+    write(2,(patch_.patch[2]&0xc0)|std::clamp((patch_.tone.operatorLevel[0]?64-patch_.tone.operatorLevel[0]:(patch_.patch[2]&63))-brightness,0,63));
+    write(0x30,std::clamp((patch_.tone.operatorLevel[1]?16-int(patch_.tone.operatorLevel[1]):0),0,15));
+    memcpy(macroLevels_,patch_.tone.operatorLevel,6);macroBrightness_=brightness;
   }
   if(feedback!=macroFeedback_){write(3,(patch_.patch[3]&0xf8)|feedback);macroFeedback_=feedback;}
 }
@@ -101,13 +101,13 @@ void OPLLVoice::render(float* output, size_t frames) {
 
 void OPLLVoice::macros() {
   const auto& t=patch_.tone;
-  if(macroBrightness_!=999&&!memcmp(macroCache_,t.macro,6))return;
+  if(macroBrightness_!=999&&!memcmp(&directCache_,&t.direct,sizeof(directCache_)))return;
   for(int op=0;op<2;++op) {
-    const bool modulator=op==0;
-    const int ratio=modulator?fmMacroValue(patch_.patch[op]&15,t.macro[fmRatio],15):(patch_.patch[op]&15);
+
+    const int ratio=nativeFMValue(t,op,fxOMU,patch_.patch[op]&15);
     write(op,(patch_.patch[op]&0xf0)|ratio);
-    write(4+op,(fmMacroRate(patch_.patch[4+op]>>4,15,t,false)<<4)|fmMacroRate(patch_.patch[4+op]&15,15,t,modulator));
-    write(6+op,(patch_.patch[6+op]&0xf0)|fmMacroRate(patch_.patch[6+op]&15,15,t,false));
+    write(4+op,(nativeFMValue(t,op,fxOAR,patch_.patch[4+op]>>4)<<4)|nativeFMValue(t,op,fxODR,patch_.patch[4+op]&15));
+    write(6+op,(nativeFMValue(t,op,fxOSL,patch_.patch[6+op]>>4)<<4)|nativeFMValue(t,op,fxORR,patch_.patch[6+op]&15));
   }
-  memcpy(macroCache_,t.macro,6);
+  directCache_=t.direct;
 }

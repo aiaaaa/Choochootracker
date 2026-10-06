@@ -301,7 +301,7 @@ class AudioCommandQueue {
   std::atomic<int> renderBufferOverflow_{0};
 };
 
-static int16_t motionRecordLast[PROJECT_MAX_TRACKS][fxTotalCount];
+static int16_t motionRecordLast[PROJECT_MAX_TRACKS][fxTotalCount][7];
 static int motionRecordLastMode = -1;
 
 static int slewEngineFX(PlaybackTrackState* track, FX fx, int target) {
@@ -329,12 +329,13 @@ static int slewEngineFX(PlaybackTrackState* track, FX fx, int target) {
 static void resetMotionRecordLast(void) {
   for (int track = 0; track < PROJECT_MAX_TRACKS; ++track)
     for (int fx = 0; fx < fxTotalCount; ++fx)
-      motionRecordLast[track][fx] = -1;
+      for(auto& v:motionRecordLast[track][fx])v=-1;
 }
 
 static int motionDestinationFX(ChipNomadState* state, int trackIdx, const Instrument* instrument, const PlaybackTrackState* track,
                                int destination, FX* fx, int* base, int* range,
-                               InstrumentMotionValue* value) {
+                               InstrumentMotionValue* value,int* fmOperator = nullptr) {
+  if(fmOperator)*fmOperator=0;
   int insert = instrumentGenericModDestination(instrument->type, destination) - genericModFirstInsert;
   if (insert >= 0 && insert < 16) {
     int slot = insert / 8, p = insert % 8;
@@ -350,6 +351,14 @@ static int motionDestinationFX(ChipNomadState* state, int trackIdx, const Instru
   uint8_t rawFX;
   if (!instrumentMotionDestination(instrument, destination, &rawFX, base, range, value)) return 0;
   *fx = (FX)rawFX;
+  int direct,op;
+  int generic=instrumentGenericModDestination(instrument->type,destination);
+  if(nativeFMModTarget(generic,&direct,&op)&&direct>=fxOAR&&direct<=fxLEN) {
+    int current=direct>=fxLFR?track->note.nativeFMCurrent.global[direct-fxLFR]:track->note.nativeFMCurrent.operators[op][direct-fxOAR];
+    if(current)*base=current-1;
+    if(fmOperator&&direct<=fxOE4)*fmOperator=op+1;
+    return 1;
+  }
   if (track->note.fx[*fx].isOn)
     *base = *value == InstrumentMotionValue::cutoff
       ? (int)instrumentFXCutoff(track->note.fx[*fx].fxValue)
@@ -387,11 +396,16 @@ static void rebaseMotionRecordRate(ChipNomadState* state) {
       PlaybackModState* modulation = &track->note.modulation[slot];
       if (!modulation->modulation || modulation->modulation->type != ModulationType::StickRate) continue;
       FX fx;
-      int base, range; InstrumentMotionValue value;
-      if (!motionDestinationFX(state, trackIdx, instrument, track, modulation->modulation->destination, &fx, &base, &range, &value)) continue;
+      int base, range, fmOperator=0; InstrumentMotionValue value;
+      if (!motionDestinationFX(state, trackIdx, instrument, track, modulation->modulation->destination, &fx, &base, &range, &value,&fmOperator)) continue;
       int delta = playbackModScaleToRange(modulation->outValue, range);
       if (range == 16384) delta /= 129;
-      if (fx >= fxF11 && fx <= fxF28) {
+      if(fx>=fxOAR&&fx<=fxLEN) {
+        NativeFXInfo info{};if(!instrumentNativeFXInfo(instrument,fx,&info,std::max(0,fmOperator-1)))continue;
+        int v=clampInt(base+delta,info.minimum,info.maximum)+1;
+        if(fmOperator)track->note.nativeFM.operators[fmOperator-1][fx-fxOAR]=track->note.nativeFMCurrent.operators[fmOperator-1][fx-fxOAR]=v;
+        else track->note.nativeFM.global[fx-fxLFR]=track->note.nativeFMCurrent.global[fx-fxLFR]=v;
+      } else if (fx >= fxF11 && fx <= fxF28) {
         int a=fx-fxF11, slot=a/8, p=a%8;
         track->inserts.values[slot][p]=insertClamp(state->audioProject.trackInserts[trackIdx][slot].module,p,base+delta);
         track->inserts.valid[slot]|=1<<p;
@@ -424,22 +438,23 @@ static void motionRecordFrame(ChipNomadState* state) {
     Instrument* instrument = &state->audioProject.instruments[track->note.instrument];
 
     FX targets[4];
-    int values[4];
+    int values[4],operators[4];
     InstrumentMotionValue valueKinds[4];
     int targetCount = 0;
     for (int slot = 0; slot < 4; ++slot) {
       PlaybackModState* modulation = &track->note.modulation[slot];
       if (!modulation->modulation || !modulationIsLiveStick(modulation->modulation->type)) continue;
       FX fx;
-      int base, range; InstrumentMotionValue value;
-      if (!motionDestinationFX(state, trackIdx, instrument, track, modulation->modulation->destination, &fx, &base, &range, &value)) continue;
+      int base, range, fmOperator=0; InstrumentMotionValue value;
+      if (!motionDestinationFX(state, trackIdx, instrument, track, modulation->modulation->destination, &fx, &base, &range, &value,&fmOperator)) continue;
       int target = -1;
-      for (int i = 0; i < targetCount; ++i) if (targets[i] == fx) target = i;
+      for (int i = 0; i < targetCount; ++i) if (targets[i] == fx && operators[i]==fmOperator) target = i;
       int delta = playbackModScaleToRange(modulation->outValue, range);
       if (range == 16384) delta = delta / 129;
       if (target < 0) {
         target = targetCount++;
         targets[target] = fx;
+        operators[target]=fmOperator;
         values[target] = base;
         valueKinds[target] = value;
       }
@@ -453,13 +468,17 @@ static void motionRecordFrame(ChipNomadState* state) {
         int a=fx-fxF11;
         fxValue=insertClamp(state->audioProject.trackInserts[trackIdx][a/8].module,a%8,values[target]);
       }
-      if (mode == 1 && motionRecordLast[trackIdx][fx] == fxValue) continue;
-      MotionRecordEvent event = {phrase, row, (uint8_t)fx, (uint8_t)fxValue, (uint8_t)(mode == 2)};
+      if(fx>=fxFBR) {
+        NativeFXInfo info{};
+        if(instrumentNativeFXInfo(instrument,fx,&info,std::max(0,operators[target]-1)))fxValue=clampInt(fxValue,info.minimum,info.maximum);
+      }
+      if (mode == 1 && motionRecordLast[trackIdx][fx][operators[target]] == fxValue) continue;
+      MotionRecordEvent event = {phrase, row, (uint8_t)fx, (uint8_t)fxValue, (uint8_t)(mode == 2),(uint8_t)operators[target]};
       if (!chipnomadMotionPushEvent(event)) {
         chipnomadMotionSetOverflow();
         continue;
       }
-      motionRecordLast[trackIdx][fx] = (int16_t)fxValue;
+      motionRecordLast[trackIdx][fx][operators[target]] = (int16_t)fxValue;
     }
   }
 }
@@ -2081,6 +2100,14 @@ void chipnomadSetBraidsSettings(ChipNomadState* state, uint8_t bits,
 }
 
 
+static bool nativeControlActive(const PlaybackTrackState* track,const Instrument* instrument,int generic) {
+  const auto* d=instrumentNativeModDestination(instrument->type,generic);
+  if(!d)return false;
+  if(track->note.fx[d->fx].isOn)return true;
+  for(const auto& mod:track->note.modulation)if(mod.modulation&&instrumentGenericModDestination(instrument->type,mod.modulation->destination)==generic)return true;
+  return false;
+}
+
 static int nativeControlValue(PlaybackTrackState* track,const Instrument* instrument,int generic) {
   const auto* d=instrumentNativeModDestination(instrument->type,generic);
   if(!d)return 0;
@@ -2095,11 +2122,34 @@ static int nativeControlValue(PlaybackTrackState* track,const Instrument* instru
 }
 
 static void configureOperatorLevels(InstrumentFMTone& tone,PlaybackTrackState* track,const Instrument* instrument) {
+  auto advance=[&](uint16_t target,uint16_t& current,uint16_t& remaining) {
+    if(!target)return;
+    if(!track->slewTicks||!remaining)current=target;
+    else { int distance=int(target)-current;int step=distance/int(remaining);
+      if(!step&&distance)step=distance<0?-1:1;
+      current+=step;--remaining;
+    }
+  };
+  for(int op=0;op<6;++op)for(int p=0;p<12;++p)
+    advance(track->note.nativeFM.operators[op][p],track->note.nativeFMCurrent.operators[op][p],track->note.nativeFMRemaining.operators[op][p]);
+  for(int p=0;p<6;++p)advance(track->note.nativeFM.global[p],track->note.nativeFMCurrent.global[p],track->note.nativeFMRemaining.global[p]);
+  tone.direct = track->note.nativeFMCurrent;
   for(int op=0;op<6;++op) {
     tone.operatorLevel[op]=0;
     auto fx=FX(fxOL1+op);NativeFXInfo info{};
     if(track->note.fx[fx].isOn&&instrumentNativeFXInfo(instrument,fx,&info))
       tone.operatorLevel[op]=clampInt(slewEngineFX(track,fx,track->note.fx[fx].fxValue),0,info.maximum)+1;
+  }
+  for(const auto& mod:track->note.modulation) {
+    if(!mod.modulation)continue;
+    int g=instrumentGenericModDestination(instrument->type,mod.modulation->destination),fx,op;
+    if(!nativeFMModTarget(g,&fx,&op))continue;
+    NativeFXInfo info{};if(!instrumentNativeFXInfo(instrument,fx,&info,op))continue;
+    uint16_t* target=fx>=fxOL1&&fx<=fxOL6?nullptr:fx>=fxLFR?&tone.direct.global[fx-fxLFR]:&tone.direct.operators[op][fx-fxOAR];
+    int base=target?(*target?*target-1:info.preset):(tone.operatorLevel[op]?tone.operatorLevel[op]-1:info.preset);
+    int amount=playbackModScaleToRange(mod.outValue,info.maximum);
+    int value=clampInt(modulationIsAdditive(mod.modulation->type)?base+amount:amount,info.minimum,info.maximum);
+    if(target)*target=value+1;else tone.operatorLevel[op]=value+1;
   }
 }
 
@@ -2136,13 +2186,7 @@ static void updateOPLLVoices(ChipNomadState* state) {
     auto configured=instrument->chip.opll;
     configureFMAmp(configured.amp,track,instrument->type);
     configureOperatorLevels(configured.tone,track,instrument);
-    configured.tone.brightness=fmBrightnessFromByte(nativeControlValue(track,instrument,genericModFMBrightness));
-    for(int op=0;op<6;++op)if(instrumentNativeModDestination(instrument->type,genericModFMOperator1+op))
-      configured.tone.operatorOffset[op]=nativeControlValue(track,instrument,genericModFMOperator1+op)-128;
-    configured.tone.feedback=nativeControlValue(track,instrument,genericModFMFeedback);
-    if(track->note.fx[fxFBK].isOn)configured.tone.feedback=clampInt(track->note.fx[fxFBK].fxValue,0,7)+1;
-    for(int macro=0;macro<6;++macro)if(instrumentNativeModDestination(instrument->type,genericModFMTime+macro))
-      configured.tone.macro[macro]=nativeControlValue(track,instrument,genericModFMTime+macro)-128;
+    if(nativeControlActive(track,instrument,genericModFMFeedback))configured.tone.feedback=nativeControlValue(track,instrument,genericModFMFeedback)+1;
     for (int v = 0; v < track->chordVoiceCount; ++v) {
       uint8_t note = track->chordPitchFinal[v];
       int cents = note == EMPTY_VALUE_8 ? 6000 :
@@ -2177,13 +2221,7 @@ static void updateOPLVoices(ChipNomadState* state) {
     auto configured=instrument->chip.opl;
     configureFMAmp(configured.amp,track,instrument->type);
     configureOperatorLevels(configured.tone,track,instrument);
-    configured.tone.brightness=fmBrightnessFromByte(nativeControlValue(track,instrument,genericModFMBrightness));
-    for(int op=0;op<6;++op)if(instrumentNativeModDestination(instrument->type,genericModFMOperator1+op))
-      configured.tone.operatorOffset[op]=nativeControlValue(track,instrument,genericModFMOperator1+op)-128;
-    configured.tone.feedback=nativeControlValue(track,instrument,genericModFMFeedback);
-    if(track->note.fx[fxFBK].isOn)configured.tone.feedback=clampInt(track->note.fx[fxFBK].fxValue,0,7)+1;
-    for(int macro=0;macro<6;++macro)if(instrumentNativeModDestination(instrument->type,genericModFMTime+macro))
-      configured.tone.macro[macro]=nativeControlValue(track,instrument,genericModFMTime+macro)-128;
+    if(nativeControlActive(track,instrument,genericModFMFeedback))configured.tone.feedback=nativeControlValue(track,instrument,genericModFMFeedback)+1;
     for (int v = 0; v < track->chordVoiceCount; ++v) {
       uint8_t note = track->chordPitchFinal[v];
       int cents = note == EMPTY_VALUE_8 ? 6000 :
@@ -2218,13 +2256,7 @@ static void updateFourOpVoices(ChipNomadState* state) {
     auto configured=instrument->chip.fourOp;
     configureFMAmp(configured.amp,track,instrument->type);
     configureOperatorLevels(configured.tone,track,instrument);
-    configured.tone.brightness=fmBrightnessFromByte(nativeControlValue(track,instrument,genericModFMBrightness));
-    for(int op=0;op<6;++op)if(instrumentNativeModDestination(instrument->type,genericModFMOperator1+op))
-      configured.tone.operatorOffset[op]=nativeControlValue(track,instrument,genericModFMOperator1+op)-128;
-    configured.tone.feedback=nativeControlValue(track,instrument,genericModFMFeedback);
-    if(track->note.fx[fxFBK].isOn)configured.tone.feedback=clampInt(track->note.fx[fxFBK].fxValue,0,7)+1;
-    for(int macro=0;macro<6;++macro)if(instrumentNativeModDestination(instrument->type,genericModFMTime+macro))
-      configured.tone.macro[macro]=nativeControlValue(track,instrument,genericModFMTime+macro)-128;
+    if(nativeControlActive(track,instrument,genericModFMFeedback))configured.tone.feedback=nativeControlValue(track,instrument,genericModFMFeedback)+1;
     for (int v = 0; v < track->chordVoiceCount; ++v) {
       uint8_t note = track->chordPitchFinal[v];
       int cents = note == EMPTY_VALUE_8 ? 6000 :
@@ -2306,13 +2338,7 @@ static void updateDX7Voices(ChipNomadState* state) {
     auto configured=instrument->chip.dx7;
     configureFMAmp(configured.amp,track,instrument->type);
     configureOperatorLevels(configured.tone,track,instrument);
-    configured.tone.brightness=fmBrightnessFromByte(nativeControlValue(track,instrument,genericModFMBrightness));
-    for(int op=0;op<6;++op)if(instrumentNativeModDestination(instrument->type,genericModFMOperator1+op))
-      configured.tone.operatorOffset[op]=nativeControlValue(track,instrument,genericModFMOperator1+op)-128;
-    configured.tone.feedback=nativeControlValue(track,instrument,genericModFMFeedback);
-    if(track->note.fx[fxFBK].isOn)configured.tone.feedback=clampInt(track->note.fx[fxFBK].fxValue,0,7)+1;
-    for(int macro=0;macro<6;++macro)if(instrumentNativeModDestination(instrument->type,genericModFMTime+macro))
-      configured.tone.macro[macro]=nativeControlValue(track,instrument,genericModFMTime+macro)-128;
+    if(nativeControlActive(track,instrument,genericModFMFeedback))configured.tone.feedback=nativeControlValue(track,instrument,genericModFMFeedback)+1;
     for (int v = 0; v < track->chordVoiceCount; ++v) {
       uint8_t note = track->chordPitchFinal[v];
       int cents = note == EMPTY_VALUE_8 ? 6000 :
@@ -2355,9 +2381,9 @@ static void updateSIDVoices(ChipNomadState* state) {
     auto* value=configured.value;
     if(changed(genericModSIDPulse))value[sidPulse]=(nativeControlValue(track,instrument,genericModSIDPulse)*4095+127)/255;
     if(changed(genericModSIDCutoff))value[sidCutoff]=(nativeControlValue(track,instrument,genericModSIDCutoff)*2047+127)/255;
-    if(changed(genericModSIDMacroRate))value[sidMacroRate]=1+(nativeControlValue(track,instrument,genericModSIDMacroRate)*199+127)/255;
+    if(changed(genericModSIDMacroRate))value[sidMacroRate]=std::max(1,nativeControlValue(track,instrument,genericModSIDMacroRate));
     value[sidResonance]=nativeControlValue(track,instrument,genericModSIDResonance);
-    value[sidWave]=nativeControlValue(track,instrument,genericModSIDWave)+1;
+    value[sidWave]=std::max(1,nativeControlValue(track,instrument,genericModSIDWave));
     value[sidFilterMode]=nativeControlValue(track,instrument,genericModSIDFilterMode);
     value[sidRing]=nativeControlValue(track,instrument,genericModSIDRing);
     value[sidSync]=nativeControlValue(track,instrument,genericModSIDSync);
@@ -2365,7 +2391,7 @@ static void updateSIDVoices(ChipNomadState* state) {
     value[sidDecay]=nativeControlValue(track,instrument,genericModSIDDecay);
     value[sidSustain]=nativeControlValue(track,instrument,genericModSIDSustain);
     value[sidRelease]=nativeControlValue(track,instrument,genericModSIDRelease);
-    value[sidPartnerRatio]=nativeControlValue(track,instrument,genericModSIDPartner)+1;
+    value[sidPartnerRatio]=std::max(1,nativeControlValue(track,instrument,genericModSIDPartner));
     for (int v = 0; v < track->chordVoiceCount; ++v) {
       uint8_t note = track->chordPitchFinal[v];
       int cents = note == EMPTY_VALUE_8 ? 6000 :

@@ -214,9 +214,12 @@ enum FX {
   fxSCP, fxSCT, fxSRN, fxSWV, fxSFTY, fxSMR, fxSRG, fxSSY,
   fxFET, fxFTD, fxFDT, fxFHR, fxFLR, fxFLD,
   fxSAT, fxSDE, fxSSU, fxSRL, fxSPR,
-  // Absolute native output levels. FO1..FO6 retain their historical offsets.
+  // Absolute native output levels. Earlier personal command IDs are retired.
   fxOL1, fxOL2, fxOL3, fxOL4, fxOL5, fxOL6,
   fxFBK,
+  // Direct native FM parameters; FOP selects the operator for Oxx commands.
+  fxFOP, fxOAR, fxODR, fxOSR, fxORR, fxOSL, fxODT, fxOMU, fxOFI, fxOFM, fxOE1, fxOE2, fxOE4,
+  fxLFR, fxLAD, fxLPD, fxLAS, fxLPS, fxLEN,
   // Total count - must be last
   fxTotalCount
 };
@@ -228,8 +231,12 @@ struct NativeFXInfo {
   int maximum;
   int preset;
   bool relative;
+  int minimum = 0;
+  const char* label = nullptr;
 };
-bool instrumentNativeFXInfo(const Instrument* instrument, int fx, NativeFXInfo* info);
+bool instrumentNativeFXInfo(const Instrument* instrument, int fx, NativeFXInfo* info, int op = 0);
+bool instrumentDirectFMInfo(const Instrument* instrument, int fx, NativeFXInfo* info, int op = 0);
+const char* directFMName(int fx);
 int instrumentFMOperatorCount(const Instrument* instrument);
 
 enum ScalePreset : uint8_t {

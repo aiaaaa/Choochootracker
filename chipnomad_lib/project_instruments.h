@@ -321,14 +321,17 @@ struct InstrumentMidi {
 struct InstrumentFMAmp : InstrumentVoicePostSettings {
   uint8_t enabled;
 };
+// Runtime overrides store native value + 1, so native zero is distinct from unset.
+struct NativeFMValues {
+  uint16_t operators[6][12];
+  uint16_t global[6];
+};
+
 struct InstrumentFMTone {
+  NativeFMValues direct;
   int8_t brightness; // Modulator output-level offset, -63..63; zero preserves preset.
   uint8_t feedback; // 0 preserves preset; 1..8 select feedback 0..7.
-  int8_t operatorOffset[6]; // Audio-thread FX offsets; zero in stored instruments.
   uint8_t operatorLevel[6]; // Runtime absolute level + 1; zero uses saved patch.
-  // Envelope time, tone decay, detune, ratio, LFO rate/depth. Runtime only;
-  // signed zero is the exact preset (FX byte 80).
-  int8_t macro[6];
 };
 
 struct InstrumentOPLL {
@@ -540,7 +543,10 @@ enum GenericModDestination {
   genericModFMLFORate, genericModFMLFODepth,
   genericModSIDAttack, genericModSIDDecay, genericModSIDSustain, genericModSIDRelease,
   genericModSIDPartner,
-  genericModTotalCount,
+  genericModFirstDirectFM,
+  genericModTotalCount = genericModFirstDirectFM + 78,
 };
+
+bool nativeFMModTarget(int generic,int* fx,int* op);
 
 #endif // __CHIPNOMAD_LIB__PROJECT_INSTRUMENTS_H__
