@@ -45,9 +45,11 @@ void waveformDisplayInit(void) {
   charW = gfxGetCharWidth();
   charH = gfxGetCharHeight();
 
+  if (emptyBitmap) gfxBitmapFree(emptyBitmap);
   emptyBitmap = gfxBitmapCreate(1, 1);
 
   for (int i = 0; i < PROJECT_MAX_TRACKS; i++) {
+    if (waveformBitmaps[i]) gfxBitmapFree(waveformBitmaps[i]);
     waveformBitmaps[i] = gfxBitmapCreate(1, 1);
   }
   memset(displayedVoiceSamples, 0, sizeof(displayedVoiceSamples));
@@ -187,21 +189,21 @@ static Bitmap* drawVoiceWaveform(int trackIdx) {
   }
 
   int envelopeY = charH - 1 - (int)(displayedVoiceEnvelopes[trackIdx] * (charH - 1));
-  if (envelopeY < 0) envelopeY = 0;
+  envelopeY = std::max(0, std::min(charH - 1, envelopeY));
   for (int x = 0; x < charW; ++x) bitmap->data[envelopeY * charW + x] = ENVELOPE_DIM_BRIGHTNESS;
   return bitmap;
 }
 
 static Bitmap* renderWaveform(int trackIdx) {
   const PlaybackTrackState* track = &chipnomadGetPlaybackStatus(chipnomadState)->tracks[trackIdx];
-
-  if (track->note.instrument != EMPTY_VALUE_8) {
-    InstrumentType type = chipnomadState->project.instruments[track->note.instrument].type;
-    if (type == InstrumentType::Braids || type == InstrumentType::AChChid || type == InstrumentType::Sample ||
-        type == InstrumentType::Plaits || type == InstrumentType::PlaitsAlt || type == InstrumentType::MME || type == InstrumentType::Sintered) {
-      return drawVoiceWaveform(trackIdx);
-    }
+  if (track->note.instrument == EMPTY_VALUE_8) {
+    gfxBitmapClear(waveformBitmaps[trackIdx]);
+    return waveformBitmaps[trackIdx];
   }
+  InstrumentType type = chipnomadState->project.instruments[track->note.instrument].type;
+  // Native chips use voice monitors, never AY register inspection.
+  if (type != InstrumentType::AY1 && type != InstrumentType::AY2 && type != InstrumentType::AYSample)
+    return drawVoiceWaveform(trackIdx);
 
   // Check if track is playing
   if (track->note.pitchFinal == EMPTY_VALUE_8) {
@@ -210,14 +212,12 @@ static Bitmap* renderWaveform(int trackIdx) {
     return bitmap;
   }
 
-  // TODO: Support other chips (FM, SID)
-  // TODO: Support AY software oscillators
-
-  // Determine which AY/YM chip and channel this track belongs to
-  int chipIdx = trackIdx / 3;
-  int ayChannel = trackIdx % 3;
+  // The engine owns one AY chip per track and uses channel A.
+  int chipIdx = trackIdx;
+  int ayChannel = 0;
 
   SoundChipAY* chip = static_cast<SoundChipAY*>(chipnomadState->chips[chipIdx]);
+  if (!chip) return emptyBitmap;
 
   // Read mixer register (reg 7)
   uint8_t mixerReg = chip->getRegister(7);
