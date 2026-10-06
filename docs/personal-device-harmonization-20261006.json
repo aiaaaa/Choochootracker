@@ -1,0 +1,28 @@
+{
+  "installation": {
+    "source_commit": "df6edc1aa3548d3bf5d9b3cacdd81ba53ce214c1",
+    "binary_sha256": "97789aed20a1b939429139c31d6fa8ceddea52635169573ee3b0762340791e15",
+    "binary_bytes": 2181072,
+    "invalidated_objects": 348,
+    "validation": "Production build, package integrity, focused FX selection and popup captures only",
+    "performance_tests": "skipped at user request",
+    "human_listening": "not performed",
+    "installed": "/roms/ports/choochootracker",
+    "rollback": "/roms/choochootracker-backups/pre-harmonization-df6edc1aa354/previous-install",
+    "preserved_files": 2012,
+    "converted_songs": 0,
+    "launcher_unchanged": true,
+    "settings_unchanged": true,
+    "installed_inventory_verified": true,
+    "rollback_inventory_verified": true
+  },
+  "host_validation": "503 ordinary test cases passed; 515 Mod Lucky cases passed, with 2 existing skips",
+  "device_validation": "Focused FX selection and popup captures passed",
+  "package_sha256": "1204a1c304a0e4ac9e6f6dbd67d3370c607c839fbe977b865b30fd9813a9b3c7",
+  "package_filename": "ChooChooTracker-R36H-personal-df6edc1aa354.zip",
+  "host_date": "2026-10-06",
+  "device_clock": "Device reported November 7, 2025; host date used for receipt",
+  "human_listening": "pending user evaluation",
+  "performance_tests": "not repeated",
+  "history": "Earlier receipts and revisions retained"
+}

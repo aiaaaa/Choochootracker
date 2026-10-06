@@ -59,9 +59,18 @@ See [the simplification notes](docs/fx-simplification-20261005.txt).
 Personal-only relative FM commands and native phrase-volume migration are
 removed. A one-time conversion updates the affected personal songs and our
 bundled native audition. Upstream legacy-format support remains. See
-[the complete audit](docs/absolute-fx-audit-20261005.txt). That earlier simplification revision is installed; the October 6 source update has not been installed.
+[the complete audit](docs/absolute-fx-audit-20261005.txt). The October 6 harmonized source is installed; the earlier simplification receipt remains as history.
 
 ## Current installed device build
+
+Source: `df6edc1aa3548d3bf5d9b3cacdd81ba53ce214c1`. October 6 upstream harmonization, native waveform previews
+and maintainer fixes, with personal additions and Mod Lucky preserved.
+Host suites, ARM production build, package integrity, runtime libraries and
+focused device FX UI checks passed. Settings, songs, assets and launcher preserved.
+Human listening remains for user evaluation. See the
+[installation receipt](docs/personal-device-harmonization-20261006.json).
+
+## Previous installed device build (FX simplification)
 
 Source: `ee0e85c3cde127e24c138d8e58e14ead0cf5a6a2`. Compact tracker FX lists and consistent description
 colors; Preset/Range retains its distinct color. Synthesis and live modulation
