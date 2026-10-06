@@ -272,13 +272,14 @@
     "vita": {
       "branch": "personal/vita",
       "source_branch": "personal/r36h",
-      "source_commit": "5c5c10a461090a5b1af1b10af4e0ef166f82187f",
+      "source_commit": "df6edc1aa3548d3bf5d9b3cacdd81ba53ce214c1",
       "title_id": "CCTRK0001",
       "documentation": "docs/vita.md",
       "personal_profile": "CHOOCHOO_EXPERIMENTAL_MOD_LUCKY=1",
       "normal_profile": "CHOOCHOO_EXPERIMENTAL_MOD_LUCKY=0",
       "previous_vita_revision": "d3991a100b226ac360ed12521d3b221816fb5806",
-      "source_sync_status": "October 6 source synchronization; platform build validation pending; installed Vita unchanged"
+      "source_sync_status": "Synchronized after PR #39; ordinary and personal Vita builds, 511 host tests per profile and package verification passed; installed device unchanged",
+      "validated_build_commit": "c5717682d12665d203023a93e73e70ac55e20cfc"
     }
   }
 }
