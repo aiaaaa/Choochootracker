@@ -35,6 +35,8 @@ static const char* supportPlatformName(void) {
   return "macOS";
 #elif defined(_WIN32)
   return "Windows";
+#elif defined(__linux__)
+  return "Linux";
 #elif defined(DESKTOP_BUILD)
   return "Desktop";
 #else
