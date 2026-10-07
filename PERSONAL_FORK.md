@@ -71,6 +71,21 @@ YSE with ChooChoo Factory Presets and keeps OpenDX7 Originals separate.
 
 ## Current installed device build
 
+Source: `aa794cbf1daaf853281904bbd62be90910d53d28`. Engine-specific collections,
+Factory Presets, separate named downloaded collections and top-level USER.
+ALL also includes USER presets and DX7 bank voices under Unsorted. YSE joins
+DX7 Factory Presets; OpenDX7 Originals remains separate. Native gain compensation
+and the rest of the personal build remain included.
+
+Validation: 516 host cases, 14 final focused cases, 66 ARM cases and production
+browser checks passed. Web rebuilt. Audio startup passed with the waveform off
+and on. The balanced audio probe had one render deadline miss and no logged
+ALSA underruns; human listening remains pending. All 32 private SYX banks,
+settings and other user files were preserved; the launcher is unchanged and
+rollback is verified. See [device validation](docs/factory-user-collections-device-20261007.json).
+
+## Previous installed device build (October 7 ZIP presets)
+
 Source: `bd1fe7166b3e524ca20b3cfacef413281b4c0518`. October 7 ZIP collections, USER folder browsing
 and measured native engine gain compensation. Production code was compiled at
 `0b4bca780ab0892d8c75e634984e76f697fd09fc`; the later source commit changes only the device test harness.

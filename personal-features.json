@@ -248,12 +248,12 @@
     }
   ],
   "current_device_build": {
-    "source_commit": "bd1fe7166b3e524ca20b3cfacef413281b4c0518",
-    "binary_build_commit": "0b4bca780ab0892d8c75e634984e76f697fd09fc",
-    "binary_sha256": "ff4dcc976538feb99aa31720705ef73fdb6d2bf2734fc0b26e0b10f7fd862e94",
-    "validation_report": "docs/preset-packs-device-20261007.json",
+    "source_commit": "aa794cbf1daaf853281904bbd62be90910d53d28",
+    "binary_build_commit": "aa794cbf1daaf853281904bbd62be90910d53d28",
+    "binary_sha256": "9dc5039827c962c40933bf308915e0cb54dcf1ce6ee3a4c05194d23ed1e366f1",
+    "validation_report": "docs/factory-user-collections-device-20261007.json",
     "human_listening": "pending user evaluation",
-    "rollback": "/roms/choochootracker-backups/pre-preset-packs-bd1fe7166b3e/previous-install"
+    "rollback": "/roms/choochootracker-backups/pre-preset-packs-aa794cbf1daa/previous-install"
   },
   "song_storage": "Upstream CCT archives embed loaded Sample, SCWF and BYOWTBL audio. Text songs remain readable; no-sample songs stay text. Native patches remain owned by the song.",
   "harmonization_20261005": {
@@ -284,7 +284,7 @@
     "device_validation_report": "docs/preset-packs-device-20261007.json"
   },
   "preset_collections_20261007": {
-    "status": "Implemented; validation in progress",
+    "status": "Installed; host and ARM tests, production browser checks and startup verified",
     "collection_selector": [
       "ALL",
       "Factory Presets / named collections",
@@ -292,6 +292,10 @@
     ],
     "all_user_category": "Unsorted includes compatible USER CNI and SYX voices, including subfolders and ZIPs",
     "engine_filtering": "Only engine-owned factory collections; OPL2 user files remain compatible with OPL3",
-    "dx7_factory": "ChooChoo + YSE; OpenDX7 Originals remains separate"
+    "dx7_factory": "ChooChoo + YSE; OpenDX7 Originals remains separate",
+    "source_commit": "aa794cbf1daaf853281904bbd62be90910d53d28",
+    "validation_report": "docs/factory-user-collections-device-20261007.json",
+    "host_validation": "516 full-suite cases and 14 final focused cases",
+    "device_validation": "66 ARM cases; all 11 engine collection/USER roots; ALL Unsorted zipped DX7 bank voices"
   }
 }
