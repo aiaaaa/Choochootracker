@@ -7,6 +7,8 @@ Personal uses the maintainer’s merged insert-effects version, including the re
 
 ## Individual work branches
 
+- **Vita — paused project.** `personal/vita` remains at its existing source baseline. Resume only on explicit request; it is excluded from this main/personal harmonization.
+
 - **[Experimental](PERSONAL_FORK.md#experimental)** — Get Lucky and other explorations I want to keep using, without implying they’re ready for upstream.
 - **[Submitted contributions](PERSONAL_FORK.md#submitted-contributions)** — work submitted as PRs, marked as pending, merged, incorporated differently, or closed. Unmerged features stay in Personal, including declined ones; features incorporated upstream use the maintainer’s version.
 - **[Upstream candidates](PERSONAL_FORK.md#upstream-candidates)** — active work that might become a future pull request.

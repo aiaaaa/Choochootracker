@@ -1,4 +1,8 @@
-# Vita device personal build
+# Vita device personal build — paused project
+
+Paused by user on October 7, 2026. No main/personal synchronization, build or
+deployment is part of the current R36H update. The instructions below are
+retained for a future explicitly requested resumption.
 
 This is a native VitaSDK/SDL2 candidate port, not a PortMaster package. Title ID
 `CCTRK0001` stays fixed across updates. No proprietary PVR files, graphics plugin,
