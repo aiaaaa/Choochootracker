@@ -9,7 +9,10 @@ code or checking a conversion.
 - Import: `tracker/src/import/import_m8s.cpp` (`projectLoadM8S`), reached from
   **Project > Load**.
 - Export: `chipnomad_lib/export/export_m8s.cpp` (`projectExportM8S`), reached
-  from the **M8S** row of the Export screen.
+  from the **M8S** row of the Export screen. That row exists in desktop builds
+  only (`DESKTOP_BUILD`): picking a template file is impractical on mobile,
+  web and handheld targets. The export code itself is compiled everywhere.
+  The import is available on every platform.
 - Shared layout constants: `chipnomad_lib/m8s_format.h`.
 - Tests: `tracker/tests/test_import_m8s.cpp`.
 
