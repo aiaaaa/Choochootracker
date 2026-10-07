@@ -125,6 +125,16 @@ static void setTextureNearest(SDL_Texture* texture) {
 
 #ifndef WEB_BUILD
 static void useCompositionTarget(void) {
+#ifdef MIYOOPORTS_BUILD
+  // The MMIYOO backend does not reliably support render-target textures.
+  // Its physical display is already the tracker's native 640x480 canvas, so
+  // render straight to the window instead of composing through an offscreen
+  // texture. This also avoids a full-screen copy for every UI frame.
+  SDL_SetRenderTarget(renderer, NULL);
+  SDL_RenderSetLogicalSize(renderer, logicalW, logicalH);
+  SDL_RenderSetViewport(renderer, NULL);
+  SDL_RenderSetScale(renderer, 1.0f, 1.0f);
+#else
   SDL_SetRenderTarget(renderer, compositionTexture);
   // A render target already has the tracker canvas's native dimensions.
   // Do not inherit the physical window's logical viewport or scale after a
@@ -133,9 +143,14 @@ static void useCompositionTarget(void) {
   SDL_RenderSetLogicalSize(renderer, 0, 0);
   SDL_RenderSetViewport(renderer, NULL);
   SDL_RenderSetScale(renderer, 1.0f, 1.0f);
+#endif
 }
 
 static int createCompositionTexture(void) {
+#ifdef MIYOOPORTS_BUILD
+  useCompositionTarget();
+  return 1;
+#else
   compositionTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888,
     SDL_TEXTUREACCESS_TARGET, logicalW, logicalH);
   if (!compositionTexture) return 0;
@@ -145,6 +160,7 @@ static int createCompositionTexture(void) {
   setTextureNearest(compositionTexture);
   useCompositionTarget();
   return 1;
+#endif
 }
 
 static void destroyCompositionTexture(void) {
@@ -823,6 +839,12 @@ void gfxUpdateScreen(void) {
 #endif
   if (isDirty) {
 #ifndef WEB_BUILD
+#ifdef MIYOOPORTS_BUILD
+    // Rendering already happened on the MMIYOO window framebuffer; copying
+    // through a texture here corrupts alpha bitmap previews on this backend.
+    SDL_RenderPresent(renderer);
+    useCompositionTarget();
+#else
     SDL_SetRenderTarget(renderer, NULL);
     setColor(bgColor);
     SDL_RenderClear(renderer);
@@ -838,6 +860,7 @@ void gfxUpdateScreen(void) {
     gfxDrawHUD();
     SDL_RenderPresent(renderer);
     useCompositionTarget();
+#endif
 #else
     gfxDrawHUD();
     SDL_RenderPresent(renderer);
