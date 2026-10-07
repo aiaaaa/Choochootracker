@@ -88,7 +88,8 @@ FXGroup fxGroups[] = {
   {"ADSR / Trigger FX", fxNamesEnvelope, 0, 7, InstrumentType::none},
   {"Modulation FX", fxNamesModulation, 0, 5, InstrumentType::none},
   {"MIDI FX", NULL, 0, 4, InstrumentType::Midi},
-  {"Insert FX", fxNamesInsert, 16, 8, InstrumentType::none},
+  {"TF1", fxNamesInsert, 8, 8, InstrumentType::none},
+  {"TF2", fxNamesInsert + 8, 8, 8, InstrumentType::none},
 };
 int fxGroupCount = sizeof(fxGroups) / sizeof(FXGroup);
 
