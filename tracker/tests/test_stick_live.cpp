@@ -309,7 +309,11 @@ TEST_CASE_FIXTURE(StickLiveFixture, "Settings row, padded value, cursor and subs
     REQUIRE(screenGraphicsSettings.setup != nullptr);
   screenSettings.fullRedraw();
   REQUIRE(mockScreenData != nullptr);
+#ifdef CHOOCHOO_EXPERIMENTAL_MOD_LUCKY
+  CHECK(mockScreenData->rows == 11);
+#else
   CHECK(mockScreenData->rows == 10);
+#endif
   auto* screen = mockScreenData;
   CHECK(screen->getColumnCount(2) == 1);
   screen->drawField(0, 2, CellState::focus);
