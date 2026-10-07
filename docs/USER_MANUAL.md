@@ -1418,6 +1418,13 @@ EDIT enters folders, ZIP collections and DX7 banks, or selects a preset.
 EDIT + PLAY auditions an individual preset. OPT goes back one level; at the
 user root it returns to the instrument. Each engine remembers its browsing
 folder during the session. Reopening the browser rescans that location.
+With Bank set to USER, **EDIT + Left/Right on Preset** steps through compatible
+user sounds. It starts from the exact file/voice selected in this session,
+continues into the next or previous bank/folder/ZIP at a boundary, and wraps
+at the ends of the USER library. Bank files follow browser order; DX7 voices
+retain their bank order. Duplicate patch names do not lose the selected bank.
+Reopening USER follows the current sound and refreshes the library for new files.
+Missing or invalid presets are skipped without changing the instrument on failure.
 
 The two preset locations are **`instruments/FACTORY/`** for included collections
 and **`instruments/USER/`** for your own files. Each engine has its own USER folder:

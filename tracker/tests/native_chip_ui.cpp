@@ -34,6 +34,46 @@ static void tapEdit(){key(1,keyEdit);key(0,0);}
 int main(int argc,char** argv){
   if(argc!=2&&argc!=3)return 1;output=argv[1];initDefaultAppSettings();appSettings.screenWidth=640;appSettings.screenHeight=480;fontSetCurrent(fontGetDefault());require(!gfxSetup(&appSettings.screenWidth,&appSettings.screenHeight),"SDL dummy setup");
   chipnomadState=chipnomadCreate();require(chipnomadState,"state");require(!projectLoad(&chipnomadState->project,"projects/gm-midi-demo.cct"),"fixture");
+  if(argc==3 && !strcmp(argv[2],"--user-step-ui-only")) {
+    screensInitAll();waveformDisplayInit();monitorDisplayInit();
+    namespace fs=std::filesystem;
+    fs::path dxRoot="instruments/USER/dx7",first=dxRoot/"A-step-test.syx",second=dxRoot/"B-step-test.zip";
+    require(!fs::exists(first)&&!fs::exists(second),"isolated step fixtures");
+    PresetZip zip;std::vector<uint8_t> bytes;std::string error;
+    require(zip.open("../../tests/fixtures/preset-packs/compressed.zip",error)&&zip.read("DX7/Test.syx",bytes,error),"synthetic bank");
+    FILE* f=fopen(first.string().c_str(),"wb");require(f,"fixture file");require(fwrite(bytes.data(),1,bytes.size(),f)==bytes.size(),"fixture write");fclose(f);
+    fs::copy_file("../../tests/fixtures/preset-packs/compressed.zip",second);
+    getInstrumentFunctions(InstrumentType::DX7).init(&chipnomadState->project.instruments[0]);screenSetup(&screenInstrument,0);appDraw();
+    instrumentPresetCycleCollection(-1);require(!strcmp(instrumentPresetCollectionName(),"USER"),"USER filter");
+    instrumentPresetOpenSounds();tapEdit();key(1,keyUp);key(1,keyUp);tapEdit(); // Back row, then last voice of A.
+    require(chipnomadState->project.instruments[0].chip.dx7.sourceProgram==31,"selected A last voice");
+    screenInstrumentOPL.cursorRow=4;key(1,keyEdit);key(1,keyEdit|keyRight);key(0,0);
+    require(chipnomadState->project.instruments[0].chip.dx7.sourceProgram==0,"A last to zipped B first despite duplicate names");
+    instrumentPresetOpenSounds();capture("user-step-dx7");key(1,keyOpt);key(1,keyOpt);
+    require(currentScreen==&screenSelectionPopup,"reopened at zipped B bank, not loose A");key(1,keyOpt);key(1,keyOpt);
+    screenInstrumentOPL.cursorRow=4;key(1,keyEdit);key(1,keyEdit|keyLeft);key(0,0);
+    require(chipnomadState->project.instruments[0].chip.dx7.sourceProgram==31,"B first to A last");
+    instrumentPresetOpenSounds();key(1,keyOpt);key(1,keyOpt);require(currentScreen==&screenInstrument,"reverse restored loose A location");
+    key(1,keyEdit);for(int n=0;n<33;++n)key(1,keyEdit|keyRight);key(0,0);
+    require(chipnomadState->project.instruments[0].chip.dx7.sourceProgram==0,"end of USER wraps to A first");
+    key(1,keyEdit);key(1,keyEdit|keyLeft);key(0,0);require(chipnomadState->project.instruments[0].chip.dx7.sourceProgram==31,"reverse wraps to B last");
+    fs::remove(first);key(1,keyEdit);key(1,keyEdit|keyRight);key(0,0);
+    require(chipnomadState->project.instruments[0].chip.dx7.sourceProgram==0,"missing A bank skipped");fs::remove(second);
+    fs::path segaRoot="instruments/USER/sega",a=segaRoot/"A-step-test",b=segaRoot/"B-step-test";
+    require(!fs::exists(a)&&!fs::exists(b),"isolated CNI folders");fs::create_directory(a);fs::create_directory(b);
+    getInstrumentFunctions(InstrumentType::SegaPSG).init(&chipnomadState->project.instruments[0]);
+    strcpy(chipnomadState->project.instruments[0].name,"DUPLICATE");
+    chipnomadState->project.instruments[0].chip.simpleChip.mode=0;require(!instrumentSave(&chipnomadState->project,(a/"One.cni").string().c_str(),0),"first CNI");
+    chipnomadState->project.instruments[0].chip.simpleChip.mode=1;require(!instrumentSave(&chipnomadState->project,(b/"Two.cni").string().c_str(),0),"second CNI");
+    screenSetup(&screenInstrument,0);appDraw();instrumentPresetCycleCollection(-1);instrumentPresetOpenSounds();tapEdit();tapEdit();
+    screenInstrumentSimpleChip.cursorRow=4;key(1,keyEdit);key(1,keyEdit|keyRight);key(0,0);
+    require(chipnomadState->project.instruments[0].chip.simpleChip.mode==1,"CNI steps across folders with identical names");capture("user-step-sega");
+    key(1,keyEdit);key(1,keyEdit|keyRight);key(0,0);require(chipnomadState->project.instruments[0].chip.simpleChip.mode==0,"CNI wraps");
+    key(1,keyEdit);key(1,keyEdit|keyLeft);key(0,0);require(chipnomadState->project.instruments[0].chip.simpleChip.mode==1,"CNI reverse wraps");
+    fs::remove(a/"One.cni");fs::remove(b/"Two.cni");fs::remove(a);fs::remove(b);
+    printf("USER stepping across SYX ZIP and CNI folders, duplicate names, wrap, focus and missing files passed; no audio tests run\n");
+    chipnomadDestroy(chipnomadState);SDL_Quit();return 0;
+  }
   if(argc==3 && !strcmp(argv[2],"--bank-cycle-ui-only")) {
     screensInitAll();waveformDisplayInit();monitorDisplayInit();
     std::vector<FMPresetEntry> factory,builtins;
