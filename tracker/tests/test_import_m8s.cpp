@@ -68,7 +68,7 @@ TEST_CASE("imports song, chain, transpose and phrase notes with the same indices
   CHECK(p.chains[3].rows[0].phrase == 7);
   CHECK((int8_t)p.chains[3].rows[0].transpose == -2);
   CHECK(p.chains[3].rows[1].phrase == EMPTY_VALUE_16);
-  CHECK(p.phrases[7].rows[0].note == 0x3C);
+  CHECK(p.phrases[7].rows[0].note == 48); // M8 60 = MIDI 60 = pitch index 48
   CHECK(p.phrases[7].rows[0].volume == 0x64);
   CHECK(p.phrases[7].rows[0].instrument == 5);
   CHECK(p.phrases[7].rows[1].note == EMPTY_VALUE_8);

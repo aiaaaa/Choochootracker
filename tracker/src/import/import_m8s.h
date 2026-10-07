@@ -10,7 +10,7 @@ extern "C" {
 // Imports a Dirtywave M8 song (.m8s) as a new project. Only the structure
 // and the notes are carried over: song rows, chains (with transpose) and
 // phrases (note, velocity, instrument number) keep the same indices as in
-// the M8 file. Every instrument used by a phrase becomes a default AY
+// the M8 file; notes keep their real pitch (M8 note value = MIDI note). Every instrument used by a phrase becomes a default AY
 // instrument carrying the M8 instrument's name - M8 instruments (FM,
 // macrosynth, sampler...) have no equivalent here, so the user is expected
 // to pick real sounds afterward. Effects, tables, grooves, mixer and the
