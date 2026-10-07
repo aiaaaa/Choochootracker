@@ -111,6 +111,7 @@ bool matchesCollection(int index){
   return false;
 }
 void select(int index){
+  if(index<0)return;
   stopPreview();Instrument patch{};
   if(index>=int(catalog.size())) {
     std::string error;size_t n=index-catalog.size();
@@ -128,12 +129,13 @@ int selected(){
   if(!importing)for(size_t i=0;i<userSounds.size();++i){const auto& e=userSounds[i];if(e.name==current()->name&&(e.voice<0||(dx7()&&e.voice==current()->chip.dx7.sourceProgram)))return int(catalog.size()+i);}
   return -1;
 }
+const char* collectionName(const FMFactoryCollection& group){return isSimpleChip(current()->type)&&group.id==0?"Factory":group.name.c_str();}
 void selectBank(int value){bankFilter=value;screenSetup(&screenInstrument,cInstrument);}
 void openBanks(){
   if(!readCatalog()){screenMessage(MESSAGE_TIME_ERROR,"Factory catalog missing");return;}
   collections=factoryCollections(catalog,current()->type);
   bankItems={{"ALL",-1,nullptr,0}};
-  for(const auto& group:collections)bankItems.push_back({group.name.c_str(),group.id,nullptr,0});
+  for(const auto& group:collections)bankItems.push_back({collectionName(group),group.id,nullptr,0});
   bankItems.push_back({"USER",-2,nullptr,0});
   char title[32];snprintf(title,sizeof(title),"%s COLLECTIONS",instrumentTypeName(current()->type));
   selectionPopupSetup(title,bankItems.data(),bankItems.size(),bankFilter,selectBank,cancel,true);screenSetup(&screenSelectionPopup,0);
@@ -154,6 +156,17 @@ void openSounds(){
 }
 void showSounds(){
   if(!readCatalog()){screenMessage(MESSAGE_TIME_ERROR,"Factory catalog missing");return;}
+  if(!importing&&isSimpleChip(current()->type)) {
+    sounds.clear();sounds.resize(1);auto& list=sounds[0];
+    for(size_t i=0;i<catalog.size();++i)if(matchesCollection(i))
+      list.push_back({catalog[i].name.c_str(),int(i),nullptr,0});
+    for(size_t i=0;i<userSounds.size();++i)
+      list.push_back({userSounds[i].name.c_str(),int(catalog.size()+i),nullptr,0});
+    if(list.empty())list.push_back({"(No compatible presets)",-1,nullptr,0});
+    char title[32];snprintf(title,sizeof(title),"%s PRESETS",instrumentTypeName(current()->type));
+    selectionPopupSetup(title,list.data(),int(list.size()),selected(),select,cancelSounds,true,preview);
+    screenSetup(&screenSelectionPopup,0);return;
+  }
   categoryNames={"All"};
   for(size_t i=0;i<catalog.size();++i){const auto& e=catalog[i];if(matchesCollection(i)&&std::find(categoryNames.begin(),categoryNames.end(),e.category)==categoryNames.end())categoryNames.push_back(e.category);}
   if(!importing&&!userSounds.empty()&&std::find(categoryNames.begin(),categoryNames.end(),"Unsorted")==categoryNames.end())categoryNames.push_back("Unsorted");
@@ -174,12 +187,12 @@ int sidField(int col,int row){
 int sidY(int row){return row==5?9:row==6?11:13;}
 int sidX(int col,int row){return 9+col*(row==7?6:10);}
 int columns(int row){if(sid()&&row>=5)return row==5?2:row==6?3:4;return row<3?instrumentCommonColumnCount(row):row==6?2:row==8?5:1;}
-void drawStatic(){instrumentCommonDrawStatic();gfxSetFgColor(appSettings.colorScheme.textDefault);gfxPrint(0,6,"Collection");gfxPrint(0,7,"Preset");if(sid()){
+void drawStatic(){instrumentCommonDrawStatic();gfxSetFgColor(appSettings.colorScheme.textDefault);gfxPrint(0,6,"Bank:");gfxPrint(0,7,"Preset");if(sid()){
  gfxPrint(0,9,"Wave/PW");gfxPrint(0,11,"Filter");gfxPrint(0,13,"ADSR");
  gfxSetFgColor(appSettings.colorScheme.textInfo);gfxPrint(0,10,"Tri Saw TS Pulse TP SP TSP Noise");
  gfxPrint(0,12,"Mode / Cutoff / Reso; max 4 notes");if(!sidWaveformBitmap)sidWaveformBitmap=gfxBitmapCreate(32,3);gfxClearRect(0,16,32,3);renderFMPreview(sidWaveformBitmap,current());gfxDrawBitmap(sidWaveformBitmap,0,16);return;
  }gfxPrint(0,9,"Fine ct");gfxPrint(0,11,"Mode");const char* mode=isOPLL(current()->type)?"2 operator":fourOp()?"4 operator":dx7()?"6 operator":current()->chip.opl.topology==OPLTopology::fourOperator?"4 operator":current()->chip.opl.topology==OPLTopology::dualVoice?"Dual voice":"2 operator";gfxPrint(9,11,mode);instrumentFMAmpDrawStatic();}
-void drawCursor(int col,int row){if(sid()&&row>=5){gfxCursor(sidX(col,row),sidY(row),row==5&&!col?5:4);return;}if(row==6){instrumentFMToneDrawCursor(col);return;}if(row>=7){instrumentFMAmpDrawCursor(col,row-7);return;}if(row<3)instrumentCommonDrawCursor(col,row);else gfxCursor(row==3?11:9,row==3?6:row==4?7:9,row==5?4:28);}
+void drawCursor(int col,int row){if(sid()&&row>=5){gfxCursor(sidX(col,row),sidY(row),row==5&&!col?5:4);return;}if(row==6){instrumentFMToneDrawCursor(col);return;}if(row>=7){instrumentFMAmpDrawCursor(col,row-7);return;}if(row<3)instrumentCommonDrawCursor(col,row);else gfxCursor(9,row==3?6:row==4?7:9,row==5?4:28);}
 void drawField(int col,int row,CellState state){
  if(sid()&&row>=5){
   int x=sidX(col,row),y=sidY(row);auto v=current()->chip.sid.value[sidField(col,row)];
@@ -192,8 +205,8 @@ void drawField(int col,int row,CellState state){
 
   if(row==6){instrumentFMToneDrawField(col,state);return;}if(row>=7){instrumentFMAmpDrawField(col,row-7,state);return;}
   if(row<3){instrumentCommonDrawField(col,row,state);return;}
-  gfxSetFgColor(state==CellState::focus?appSettings.colorScheme.textValue:appSettings.colorScheme.textDefault);int y=row==3?6:row==4?7:9;gfxClearRect(row==3?11:9,y,row==3?28:30,1);
-  if(row==3)gfxPrintf(11,y,"%.28s",instrumentPresetCollectionName());
+  gfxSetFgColor(state==CellState::focus?appSettings.colorScheme.textValue:appSettings.colorScheme.textDefault);int y=row==3?6:row==4?7:9;gfxClearRect(9,y,row==3?28:30,1);
+  if(row==3)gfxPrintf(9,y,"%.28s",instrumentPresetCollectionName());
   else if(row==4)gfxPrintf(9,y,"%.30s",presetName());else gfxPrintf(9,y,"%+04d",fineTune());
   instrumentFMRefreshStaticWaveform();
 }
@@ -236,7 +249,7 @@ ScreenData screenInstrumentOPL={
 const char* instrumentPresetCollectionName(){
   if(bankFilter==-1)return "ALL";
   if(bankFilter==-2)return "USER";
-  for(const auto& group:collections)if(group.id==bankFilter)return group.name.c_str();
+  for(const auto& group:collections)if(group.id==bankFilter)return collectionName(group);
   return "Factory Presets";
 }
 void instrumentPresetOpenCollections(){openBanks();}

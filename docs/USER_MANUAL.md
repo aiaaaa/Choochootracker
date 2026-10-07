@@ -1309,7 +1309,7 @@ pending. The separate goal of 1,000 redistribution-cleared sounds is not met.
 
 For a persistent personal library, put `.syx` files in
 **`instruments/USER/dx7/`** beside the existing instrument library. Subfolders
-are supported. Open **DX7 → Collection → USER**, then **Preset**: each bank file
+are supported. Open **DX7 → Bank → USER**, then **Preset**: each bank file
 opens into its individual voices. Reopen the browser after adding or removing
 files; no conversion or Load Instrument step is needed. A standard original
 DX7/TX7 bank contains **32 voices**. Supported sequences of bank messages
@@ -1390,21 +1390,25 @@ new collections under `licenses/chip-banks/expansion`.
 
 ### USER presets and portable ZIP collections
 
-All 11 native engines have a **Collection** selector: **ALL**, the engine's
+All 11 native engines have a **Bank** selector: **ALL**, the engine's
 **Factory Presets** and/or named included collections, and **USER**. Downloaded
 collections retain their names alongside Factory Presets. OPLL and VRC7 each
 group their compatible tone palettes into one Factory Presets list. Genesis,
 Arcade and SID keep their downloaded collections separate from their authored
-Factory Presets. Sega PSG, GB Pulse and GB Noise each have one Factory Presets set.
+Factory Presets. Sega PSG, GB Pulse and GB Noise offer **ALL**, **Factory** and **USER**.
+Their ALL and Factory preset menus are flat lists, without a category panel or
+Unsorted: ALL combines included and user presets, while Factory includes only
+bundled presets. USER retains normal folder/ZIP browsing. The Instrument page
+labels this source selector **Bank:** for every engine.
 
 **ALL → Preset** includes every applicable included collection plus compatible
-presets from that engine's USER folder. User sounds appear in both the **All**
+presets from that engine's USER folder. For engines with categorized preset menus, user sounds appear in both the **All**
 and **Unsorted** categories, including voices inside DX7 SYX banks and presets
 inside ZIPs or subfolders. USER scanning is bounded to 8,192 items, 256 visited
 folders/banks, 32 levels and 64 MiB read per scan; a message reports skipped or
 limited content. The dedicated USER browser can still open those folders directly.
 
-Choose **Collection → USER**, then **Preset** to browse your own files.
+Choose **Bank → USER**, then **Preset** to browse your own files.
 This separate view follows your folders without All or Unsorted categories.
 EDIT enters folders, ZIP collections and DX7 banks, or selects a preset.
 EDIT + PLAY auditions an individual preset. OPT goes back one level; at the
