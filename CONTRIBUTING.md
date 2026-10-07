@@ -40,7 +40,7 @@ Make sure the output volume is similar to the other instruments.
 Gain compensation may be required. There are some docs about that in /docs (measurements).
 
 There are two types of instruments:
-- VCO, which reuse our standard filter/ADSR chain (such as PCM sample, Braids, Plaits, etc... are this type)
+- VCO, which reuses our standard filter/ADSR chain (such as PCM sample, Braids, Plaits, etc.)
 - Voices, which have their own post-VCO chain (such as AY, aChChid, etc.)
 
 An engine can have different type of models, you can design a family of instruments (cf: Braids, Plaits, MME, etc.)
