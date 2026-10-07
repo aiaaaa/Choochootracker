@@ -96,7 +96,8 @@ TRACKER_SRC_SOURCES = src/fm_catalog.cpp src/app.cpp \
                       src/import/import_vt2.cpp \
                       src/import/import_vts.cpp \
                       src/import/pt3_tables.cpp \
-                      src/import/import_midi.cpp
+                      src/import/import_midi.cpp \
+                      src/import/import_m8s.cpp
 
 # Mock sources
 MOCK_SOURCES = $(wildcard tests/mocks/*.cpp)
