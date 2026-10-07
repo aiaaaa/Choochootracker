@@ -1,15 +1,25 @@
 # My R36H build
 
-Test branch `experimental/rotary-rate-popup` adds insert parameter descriptions
-to the Phrase/Table FX popup, active-only TF1/TF2 selection, continuous Rotary speed from 0.01 to 25 Hz, and
-Shift+Left/Right exits from branch pages to the MSCPIT row. It starts from the
-October 7 device personal build. Rotary's saved speed bytes now use the full
-00-FF scale; previous Slow/Fast/Hyper/Chaos settings correspond approximately
-to 8F/CB/E7/FF. Songs and private assets are not rewritten during installation.
-Installed source: `13968c857c547f2bee7c9f3d069ec7a9791426d2`.
-The [device receipt](docs/rotary-popup-device-20261007.json) records the passed
-host/device checks, preserved files and verified rollback. Human listening is
-pending. The regular ChooChooTracker launcher runs this test build.
+`personal/r36h` is the full device personal build. It includes Lucky and the
+personal additions alongside upstream main, plus the Rotary speed, contextual
+insert help, active TF1/TF2 selection and Shift navigation changes tested on
+`experimental/rotary-rate-popup`.
+
+October 7 reconciliation adopts upstream through `e8fa361`, including merged
+PR #48's preset packs, USER browser, native gain compensation and sample-stretch
+ownership fix. These use the shared upstream implementation. The separate
+`contribution/rotary-insert-workflow` branch starts from upstream main and contains
+only the Rotary/insert/navigation changes and their documentation and tests.
+
+The installed application remains the verified binary built from `13968c8`:
+its application sources and handheld build inputs are unchanged by this merge.
+Lucky stays enabled. The regular launcher, settings, songs and private banks
+remain in place. See [reconciliation record](docs/personal-rotary-harmonization-20261007.txt)
+and [device validation](docs/rotary-popup-device-20261007.json).
+
+Rotary uses the full 00-FF speed scale, from 0.01 to 25 Hz. Previous
+Slow/Fast/Hyper/Chaos settings correspond approximately to 8F/CB/E7/FF.
+Existing songs are not rewritten; human listening remains user evaluation.
 
 - **Main** mirrors the original developer’s code.
 - **Personal** is my full combined build: upstream code, my additions that haven’t

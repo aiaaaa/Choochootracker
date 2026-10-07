@@ -178,15 +178,10 @@ A code-drawn pixel piano below the eight right-side track rows lights sounding p
 
 ### Personal build Settings
 
-The October 4 source update adopts upstream’s Graphics controls and sampler/export
-features while retaining native chips and Get Lucky. Insert effects also adopts
-the maintainer’s merged review, including the grouped chooser and CPU readout.
-A Personal cleanup fix releases sample-stretch memory when voices are destroyed,
-preventing memory from accumulating across repeated exports and engine recreation.
-
-The personal handheld launcher cover carries a red diagonal GITHUB FORK stamp.
-
-In the personal R36H build, Persistent waveform and Track visuals are separate entries under Settings → Graphics. The waveform remains optional; changing it preserves each track’s visual preferences.
+The device personal build retains Get Lucky alongside upstream Settings.
+Support report is followed by Get Lucky and Quit. Persistent waveform and
+Track visuals remain separate Graphics controls. The personal launcher cover
+carries a red diagonal GITHUB FORK stamp.
 
 ### Mixer meters
 
@@ -1421,90 +1416,37 @@ presets through the normal file browser, for **1,140 packaged native presets**.
 Source revisions, hashes, full notices and original source data accompany the
 new collections under `licenses/chip-banks/expansion`.
 
-### USER presets and portable ZIP collections
+### Portable factory collections and USER presets
 
-All 11 native engines have a **Bank** selector: **ALL**, the engine's
-**Factory Presets** and/or named included collections, and **USER**. Downloaded
-collections retain their names alongside Factory Presets. OPLL and VRC7 each
-group their compatible tone palettes into one Factory Presets list. Genesis,
-Arcade and SID keep their downloaded collections separate from their authored
-Factory Presets. Sega PSG, GB Pulse and GB Noise offer **ALL**, **Factory** and **USER**.
-Their ALL and Factory preset menus are flat lists, without a category panel or
-Unsorted: ALL combines included and user presets, while Factory includes only
-bundled presets. USER retains normal folder/ZIP browsing. The Instrument page
-labels this source selector **Bank:** for every engine. Hold **EDIT + Left/Right** on
-Bank to cycle backward/forward through ALL, the engine's factory collections
-and USER, wrapping at either end. This changes only the browsing filter; the
-current instrument stays unchanged until a preset is selected. Tapping EDIT
-still opens the bank chooser.
+Native chip instruments use **Bank:** to choose ALL, an included collection or
+USER. **Preset:** chooses a sound within that selection. Hold EDIT and press
+Left or Right on either row to cycle; a short EDIT tap opens its chooser.
 
-**ALL → Preset** includes every applicable included collection plus compatible
-presets from that engine's USER folder. For engines with categorized preset menus, user sounds appear in both the **All**
-and **Unsorted** categories, including voices inside DX7 SYX banks and presets
-inside ZIPs or subfolders. USER scanning is bounded to 8,192 items, 256 visited
-folders/banks, 32 levels and 64 MiB read per scan; a message reports skipped or
-limited content. The dedicated USER browser can still open those folders directly.
+Included collections are ZIP packs under `instruments/FACTORY/`. USER files go
+under `instruments/USER/<engine>/`: `dx7`, `opll`, `vrc7`, `opl2`, `opl3`,
+`genesis`, `arcade`, `sid`, `sega`, `gb-pulse`, or `gb-noise`.
+Browse your folders directly, or put a ZIP of folders and compatible `.cni`
+presets there. DX7 also accepts supported `.syx` single voices and 32-voice
+banks, including inside ZIPs. ZIPs remain intact on disk. Direct WOPL/WOPLX loading is not supported;
+use compatible CNI presets or convert supported source formats offline first.
 
-Choose **Bank → USER**, then **Preset** to browse your own files.
-This separate view follows your folders without All or Unsorted categories.
-EDIT enters folders, ZIP collections and DX7 banks, or selects a preset.
-EDIT + PLAY auditions an individual preset. OPT goes back one level; at the
-user root it returns to the instrument. Each engine remembers its browsing
-folder during the session. Reopening the browser rescans that location.
-With Bank set to USER, **EDIT + Left/Right on Preset** steps through compatible
-user sounds. It starts from the exact file/voice selected in this session,
-continues into the next or previous bank/folder/ZIP at a boundary, and wraps
-at the ends of the USER library. Bank files follow browser order; DX7 voices
-retain their bank order. Duplicate patch names do not lose the selected bank.
-Reopening USER follows the current sound and refreshes the library for new files.
-Missing or invalid presets are skipped without changing the instrument on failure.
+USER preset cycling continues across files, folders, banks and ZIP packs in
+both directions, wrapping at the ends. Reopening the USER browser follows the
+current selection. ALL includes USER sounds under Unsorted for categorized
+engines; USER remains a separate top-level choice. Sega PSG and Game Boy use
+flat ALL/Factory lists and a hierarchical USER browser, without an Unsorted
+panel. Older DX7 files in `instruments/banks/dx7/` remain accessible in USER.
 
-The two preset locations are **`instruments/FACTORY/`** for included collections
-and **`instruments/USER/`** for your own files. Each engine has its own USER folder:
+An engine shows only its compatible included collections. Factory Presets
+combines the included OPLL/VRC7 tone sets for the selected engine; DX7 combines
+ChooChoo and YSE originals. Downloaded named collections remain separate.
+Fat Man 2-op is listed under OPL2 and Fat Man 4-op under OPL3. Compatible OPL2
+CNI files may still be used in OPL3 USER folders.
 
-| Engine | Folder | Accepted user files |
-| --- | --- | --- |
-| DX7 | `dx7/` | DX7 `.cni`, single-voice or bank `.syx`, ZIP |
-| OPLL | `opll/` | OPLL `.cni`, ZIP |
-| VRC7 | `vrc7/` | VRC7 `.cni`, ZIP |
-| AdLib / OPL2 | `opl2/` | OPL2 `.cni`, ZIP |
-| OPL3 | `opl3/` | OPL3 or compatible OPL2 `.cni`, ZIP |
-| Genesis FM | `genesis/` | Genesis `.cni`, ZIP |
-| Arcade FM | `arcade/` | Arcade `.cni`, ZIP |
-| SID | `sid/` | SID `.cni`, ZIP |
-| Sega PSG | `sega/` | Sega `.cni`, ZIP |
-| GB Pulse | `gb-pulse/` | GB Pulse `.cni`, ZIP |
-| GB Noise | `gb-noise/` | GB Noise `.cni`, ZIP |
-
-Copy files or whole folders into the matching directory. Banks still stored at
-the older `instruments/banks/<engine>/` location remain accessible under
-**Previous banks folder** in USER. Files are not moved or duplicated automatically;
-you can move them into the new USER folder when organizing your collection.
-A ZIP can contain CNI files at its root or in
-subfolders; DX7 ZIPs can also contain SysEx files. No TSV or special manifest
-is required for USER packs. Incompatible presets are hidden. ZIPs remain one
-file on disk; their contents are not permanently unpacked. Stored and Deflate
-ZIP entries are supported. Encrypted, ZIP64 and nested ZIPs are not supported.
-Limits are 32 MiB per archive, 8,192 entries, 1 MiB per entry, and 64 MiB total
-uncompressed data. Invalid files are skipped or reported without changing
-the selected instrument.
-
-The factory library in `instruments/FACTORY/` ships as 25 ZIP collections containing 1,196 CNI presets,
-with their catalog metadata and source notices. `catalog.tsv` and `builtins.tsv`
-retain the collection index; factory catalog rows may include a seventh field
-naming the ZIP containing the CNI entry. Legacy six-field loose-file catalogs
-still work, with `instruments/chips/` retained as a fallback for older installs.
-Factory categories and engine compatibility remain unchanged.
-
-Selected patches are copied into the instrument and saved with the song;
-playback does not depend on the original ZIP or bank remaining present. User
-CNI selection also loads its instrument table. Keep personal USER files with
-your songs when updating or backing up the application; they are not factory
-assets and should not be included in shared builds.
-
-WOPLX, TFI and OPM are source formats for the offline conversion tools, not
-files accepted by this USER browser. ZIP compression does not convert those
-formats into CNI.
+Native-engine output uses fixed measured gain compensation rather than
+per-preset normalization. Existing native-instrument songs can therefore play
+at a different level; review the balance of saved mixes. The calibration method
+and bounds are documented in `scripts/README_MEASURE.md`.
 
 `native-chip-audition.cct` provides a short sequential audition across the original
 thirteen factory banks. Each section uses a different owned instrument, so it works with

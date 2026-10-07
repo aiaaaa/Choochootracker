@@ -47,6 +47,8 @@ build notes. `package_desktop.py` packages an existing macOS personal build plus
 all assets/notices, preserves the framework's internal symlinks, records hashes,
 and verifies the ZIP. It does not build or install on the R36H.
 
+After the base conversion, run `python3 tools/sid_prep/package_presets.py` to
+add the 56 SID programs, giving 1,196 presets across 25 portable collections.
 
 Factory ZIP packaging: after generating loose factory CNI files, run
 `python3 tools/chip_banks/pack_collections.py tracker/packaging/common/instruments/FACTORY`.

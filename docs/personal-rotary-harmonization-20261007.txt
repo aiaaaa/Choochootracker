@@ -1,0 +1,42 @@
+October 7 personal and Rotary branch reconciliation
+
+Upstream: e8fa36196170cba51580bda446a8f88fb961dc03
+Personal branch: personal/r36h
+Integrated test branch: experimental/rotary-rate-popup (ae02a33)
+Separate contribution branch: contribution/rotary-insert-workflow
+
+Merged upstream main after PR #48. The common factory/USER browser, preset ZIP
+reader, native-engine gain compensation and stretch-processor ownership code
+match upstream exactly. No second preset browser, duplicate gain stage or
+alternative stretch implementation was introduced. Existing personal sample
+path overlap handling and VT2 volume correction remain separate fixes.
+
+Retained Lucky, personal waveform integration, private-user-bank conventions,
+personal version/launcher assets, continuous Rotary speed, active TF1/TF2
+picker/help and Shift branch navigation. The contribution branch carries only
+the new Rotary/insert/navigation work on current upstream main; it does not
+carry Lucky, personal build configuration, private banks or installation records.
+
+Adopted upstream PortMaster CI checks and AppImage working-directory fix.
+Reconciled documentation around one canonical portable preset section. Marked
+the stretch ownership fix as merged and replaced stale current-build metadata.
+Vita remains paused and untouched.
+
+The production source trees (chipnomad_lib and tracker/src), common/PortMaster
+assets and handheld production makefiles match installed source 13968c8 exactly.
+The verified installed binary can therefore remain in place with Lucky enabled;
+only branch/build documentation needs updating. The source/build identity check
+was performed against the committed installed source, not inferred from filenames.
+
+Validation:
+- Full host suite: 531 cases, 112,224,747 assertions passed.
+- Upstream stretch lifetime check: 32 cycles, zero retained allocation bytes.
+- Personal web-deploy rebuilt successfully.
+- Existing ARM personal test executable: 55 focused Lucky/insert/navigation
+  cases, 3,476,591 assertions passed. Live-network opt-in cases were not run.
+- Production offscreen Settings check passed: Support report, Lucky and Opt.
+- Previous all-module insert popup, waveform off/on and Shift-route device
+  checks remain applicable because the application source is identical.
+- Installed executable hash matches the verified personal build; Lucky is ON.
+- Contribution validation is recorded in the prepared PR description separately.
+No public PR has been created.
