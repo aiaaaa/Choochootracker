@@ -140,6 +140,17 @@
   "channel": "device-personal-build",
   "experiments": [
     {
+      "id": "rotary-rate-popup-navigation",
+      "branch": "experimental/rotary-rate-popup",
+      "status": "Test branch for device evaluation",
+      "changes": [
+        "Contextual Phrase/Table insert popup descriptions and decoded value hints",
+        "Rotary Speed 00-FF maps exponentially to 0.01-25 Hz",
+        "Shift Left/Right exits branch pages to the MSCPIT spine"
+      ],
+      "compatibility": "Existing Rotary speed bytes use the new scale; retune old Slow/Fast/Hyper/Chaos to approximately 8F/CB/E7/FF. User files are not rewritten."
+    },
+    {
       "id": "mod-lucky",
       "branch": "experimental/mod-lucky-integrated",
       "included_commit": "38de2454a5bf0de6a89874d2b2b105266bffb8d6",

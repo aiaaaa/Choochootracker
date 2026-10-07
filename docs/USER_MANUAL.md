@@ -84,6 +84,11 @@ and to choose where WAV exports are saved.
 
 - Use **[UP/DOWN/LEFT/RIGHT]** to move the cursor.
 - Hold **SELECT + [DIRECTION]** to move between screens.
+- SELECT + [LEFT/RIGHT] also exits branch pages to the neighbouring MSCPIT
+  screen, like Instrument Pool: Project/Settings (including Settings submenus)
+  lead to Mixer/Chain; Groove to Chain/Instrument; Modulation/Insert FX to
+  Phrase/Table; AY Wavetable to Instrument/Table. At the left edge, Reverb/Delay
+  return to Mixer with SELECT + LEFT. Existing vertical navigation remains.
 - Hold **OPT + [DIRECTION]** for screen-specific navigation.
 - On a value, use **EDIT + [LEFT/RIGHT]** for fine changes or **EDIT + [UP/DOWN]** for coarse changes.
 - On a Modulation **Destination**, **LEFT/RIGHT** cycles the available destinations directly; tap **EDIT** to open its grouped menu.
@@ -1145,8 +1150,14 @@ controls have an exact neutral at 80. Distortion modes are 00 Density, 01 Drive,
 20:1; detector sources 00–02 are stereo input, left, right. Detector filter 80 is
 neutral, below is low-pass, above is high-pass. No external/cross-track sidechain
 is provided. Either slot can contain any module; repeated modules are independent.
-Chorus, Flanger, Phaser and Rotary use gentle modulation defaults; Rotary speed
-switches between Slow and Fast. Bitcrusher bit depth ranges from 4 to 16 bits and
+Chorus, Flanger, Phaser and Rotary use gentle modulation defaults. Rotary Speed
+uses the full **00-FF** range: **00 = 0.01 Hz** (one rotation per 100 seconds),
+**FF = 25 Hz** (the former Chaos maximum). Exponential spacing gives finer
+control over slow LFO movement. New Rotary inserts default to **8F**, about
+0.8 Hz. This replaces the four discrete speed values; existing Rotary settings
+and F11/F21 speed automation need retuning to the new scale (old Slow/Fast/Hyper/
+Chaos correspond approximately to **8F/CB/E7/FF**). Other parameters are unchanged.
+Bitcrusher bit depth ranges from 4 to 16 bits and
 rate reduction from 1x to 32x. Destruction modes are Fold, Clip and Crush.
 Saturation and distortion include output level or mix controls for balancing them
 against the unprocessed signal.
@@ -1158,6 +1169,10 @@ master controls and mute/solo retain their existing behavior. Inserts do not
 process audio from external MIDI devices.
 
 The Insert FX chooser category adds **F11–F18** for TF1 and **F21–F28** for TF2.
+In the Phrase and Table FX popup, the description follows the selected track's
+insert slot: it shows the module, parameter name, decoded range endpoints and
+saved base value. OFF and unused parameter addresses are identified explicitly.
+While editing a value, the bottom hint shows its decoded value and units.
 Any Phrase or Table FX column can address either slot; the Phrase grid keeps its
 three columns. These absolute runtime values persist across notes, instruments,
 phrases, chains and ordinary loops. Fresh playback/hard stop resets them. Editing

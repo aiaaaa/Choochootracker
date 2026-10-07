@@ -13,6 +13,8 @@
 #include "playback_internal.h"
 #include "screen_instrument.h"
 #include "screens.h"
+#include "help.h"
+#include "corelib_gfx.h"
 
 namespace {
 std::vector<float> signal(int frames) {
@@ -61,6 +63,92 @@ void write(const char* path, const std::string& text) {
 }
 }  // namespace
 TEST_SUITE("track inserts") {
+  TEST_CASE("Rotary speed spans slow LFO rates through the existing maximum") {
+    float previous = 0;
+    for (int value = 0; value <= 255; ++value) {
+      float hz = insertMap(insertRotary, 0, value);
+      CHECK(hz > previous);
+      previous = hz;
+    }
+    CHECK(insertMap(insertRotary, 0, 0) == doctest::Approx(0.01f));
+    CHECK(insertMap(insertRotary, 0, 255) == doctest::Approx(25.f));
+    CHECK(insertMap(insertRotary, 0, insertDescriptor(insertRotary).parameters[0].initial)
+          == doctest::Approx(0.8f).epsilon(0.02));
+    // Count real left/right amplitude cycles on steady input, after the
+    // initial delay fill and bypass fade. This exercises the DSP's rate too.
+    for (int speed : {0, 143, 255}) {
+      InsertConfig config[2]{};
+      insertSelect(&config[0], insertRotary);
+      insertEdit(&config[0], 0, speed);
+      insertEdit(&config[0], 1, 255);
+      insertEdit(&config[0], 3, 255);
+      InsertAutomation automation{};
+      InsertChain chain(48000);
+      chain.sync(config, &automation);
+      uint8_t effective[2][8];
+      values(config, effective);
+      const int seconds = speed == 0 ? 105 : 4;
+      std::vector<float> audio(seconds * 48000 * 2, 0.25f);
+      chain.process(audio.data(), seconds * 48000, effective);
+      int crossings = 0;
+      int firstCrossing = 0;
+      for (int frame = 48001; frame < seconds * 48000; ++frame) {
+        float before = audio[2 * frame - 1] - audio[2 * frame - 2];
+        float now = audio[2 * frame + 1] - audio[2 * frame];
+        if (before <= 0 && now > 0) {
+          if (!crossings) firstCrossing = frame;
+          ++crossings;
+        }
+      }
+      CHECK(std::abs(crossings - (seconds - 1) * insertMap(insertRotary, 0, speed)) <= 1);
+      if (speed == 0) CHECK(firstCrossing / 48000.f == doctest::Approx(100.f).epsilon(0.001));
+    }
+  }
+
+  TEST_CASE("tracker insert popup describes every module on the selected track and slot") {
+    auto* previous = chipnomadState;
+    auto* previousScreen = currentScreen;
+    chipnomadState = chipnomadCreate();
+    screensInitAll();
+    currentScreen = &screenPhrase;
+    // A deliberately different first track catches accidental track-zero lookup.
+    insertSelect(&chipnomadState->project.trackInserts[0][0], insertDistortion);
+    *pSongTrack = 3;
+    for (int module = 0; module < insertModuleCount; ++module) {
+      for (int slot = 0; slot < 2; ++slot) {
+        insertSelect(&chipnomadState->project.trackInserts[3][slot], module);
+        const auto& descriptor = insertDescriptor(module);
+        for (int parameter = 0; parameter < 8; ++parameter) {
+          CAPTURE(module);
+          CAPTURE(slot);
+          CAPTURE(parameter);
+          auto fx = FX(fxF11 + slot * 8 + parameter);
+          std::string description = helpFXDescription(fx, EMPTY_VALUE_8);
+          CHECK(description.find(descriptor.name) != std::string::npos);
+          if (parameter < descriptor.count) {
+            CHECK(description.find(descriptor.parameters[parameter].name) != std::string::npos);
+            CHECK(description.find("absolute track control") != std::string::npos);
+          } else {
+            CHECK(description.find("no effect") != std::string::npos);
+          }
+          for (int table : {0, 1}) {
+            gfxClear();
+            fxEditFullDraw(fx, EMPTY_VALUE_8, table);
+            CHECK(std::string(mockGfxCells[1], 40).find(descriptor.name) != std::string::npos);
+          }
+        }
+      }
+    }
+    insertSelect(&chipnomadState->project.trackInserts[3][1], insertRotary);
+    uint8_t fx[] = {fxF21, 254}, last[] = {fxF21, 0};
+    editFXValue(CellEditAction::increase, fx, last, 0, EMPTY_VALUE_8);
+    CHECK(fx[1] == 255);
+    CHECK(std::string(screenGetActiveMessage()) == "Rotary Speed: 25 Hz");
+    chipnomadDestroy(chipnomadState);
+    chipnomadState = previous;
+    currentScreen = previousScreen;
+  }
+
   TEST_CASE("metadata addresses all native controls with exact neutral and discrete values") {
     CHECK(fxF11 > fxATY);
     CHECK(fxF28 < 255);
@@ -144,9 +232,11 @@ TEST_SUITE("track inserts") {
         }
         char text[32];
         insertDescribe(text, sizeof(text), insertRotary, 0, 0);
-        CHECK(std::string(text) == "Slow");
+        CHECK(std::string(text) == "0.01 Hz");
         insertDescribe(text, sizeof(text), insertRotary, 0, 1);
-        CHECK(std::string(text) == "Fast");
+        CHECK(insertMap(insertRotary, 0, 1) > 0.01f);
+        insertDescribe(text, sizeof(text), insertRotary, 0, 255);
+        CHECK(std::string(text) == "25 Hz");
         insertDescribe(text, sizeof(text), insertBitcrusher, 0, 12);
         CHECK(std::string(text) == "16 bit");
         insertDescribe(text, sizeof(text), insertBitcrusher, 1, 31);

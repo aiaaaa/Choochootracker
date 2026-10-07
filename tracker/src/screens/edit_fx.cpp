@@ -74,7 +74,9 @@ static const char* contextualFXHint(uint8_t* fx,int table,uint8_t instrument) {
   static char text[80];int a=fx[0]-fxF11;
   const auto& c=chipnomadState->project.trackInserts[*pSongTrack][a/8];
   const auto& d=insertDescriptor(c.module);
-  snprintf(text,sizeof(text),"F%d%d TF%d %s: %s",a/8+1,a%8+1,a/8+1,d.name,a%8<d.count?d.parameters[a%8].name:"Inactive");
+  char decoded[32];
+  insertDescribe(decoded,sizeof(decoded),c.module,a%8,fx[1]);
+  snprintf(text,sizeof(text),"%s %s: %s",d.name,a%8<d.count?d.parameters[a%8].name:"Unused",decoded);
   return text;
 }
 static bool isFXAvailable(enum FX fx, uint8_t instrumentIdx, int isTable) {
@@ -410,6 +412,15 @@ void fxEditFullDraw(uint8_t currentFX, uint8_t instrumentIdx, int isTable) {
   if(nativeInfo(instrumentIdx,currentFX,info)) {
     gfxSetFgColor(appSettings.colorScheme.textInfo);
     gfxPrintf(1,presetRow,"%s %02X   Range %02X-%02X",info.relative?"Preset FX":"Preset",info.preset,info.minimum,info.maximum);
+  } else if(currentFX>=fxF11 && currentFX<=fxF28) {
+    const int address=currentFX-fxF11, parameter=address%8;
+    const auto& config=chipnomadState->project.trackInserts[*pSongTrack][address/8];
+    if(parameter<insertDescriptor(config.module).count) {
+      char decoded[32];
+      insertDescribe(decoded,sizeof(decoded),config.module,parameter,config.values[parameter]);
+      gfxSetFgColor(appSettings.colorScheme.textInfo);
+      gfxPrintf(1,presetRow,"Saved %02X: %s",config.values[parameter],decoded);
+    }
   }
 
   // Draw all visible groups (headers + expanded group's FX list)
