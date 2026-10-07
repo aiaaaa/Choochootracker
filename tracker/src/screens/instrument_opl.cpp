@@ -232,9 +232,10 @@ int onInput(int down,int keys,int){
   int row=screenInstrumentOPL.cursorRow;if(row!=3&&row!=4){buttonDown=0;return 0;}
   PopupEditInput input=popupEditInput(down,keys,&buttonDown);
   if(input==PopupEditInput::cycle){
-    if(row==4&&bankFilter!=-2&&readCatalog()){
-      instrumentPresetCycle(keys==(keyEdit|keyRight)?1:-1);
-    }return 1;
+    int direction=keys==(keyEdit|keyRight)?1:-1;
+    if(row==3)instrumentPresetCycleCollection(direction);
+    else instrumentPresetCycle(direction);
+    return 1;
   }
   if(input==PopupEditInput::hold)return 1;
   if(input==PopupEditInput::open){if(row==3)openBanks();else openSounds();return 1;}return 0;
@@ -251,6 +252,15 @@ const char* instrumentPresetCollectionName(){
   if(bankFilter==-2)return "USER";
   for(const auto& group:collections)if(group.id==bankFilter)return collectionName(group);
   return "Factory Presets";
+}
+void instrumentPresetCycleCollection(int direction){
+  if(!readCatalog())return;
+  collections=factoryCollections(catalog,current()->type);
+  int count=int(collections.size())+2,index=0;
+  if(bankFilter==-2)index=count-1;
+  else for(size_t i=0;i<collections.size();++i)if(collections[i].id==bankFilter)index=int(i)+1;
+  index=(index+(direction>0?1:-1)+count)%count;
+  selectBank(index==0?-1:index==count-1?-2:collections[index-1].id);
 }
 void instrumentPresetOpenCollections(){openBanks();}
 void instrumentPresetOpenSounds(){openSounds();}

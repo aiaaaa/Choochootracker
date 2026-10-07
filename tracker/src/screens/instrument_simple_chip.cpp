@@ -49,7 +49,7 @@ int input(int down,int keys,int){
  int row=screenInstrumentSimpleChip.cursorRow;
  if(row!=3&&row!=4){buttonDown=0;return 0;}
  auto action=popupEditInput(down,keys,&buttonDown);
- if(action==PopupEditInput::cycle){if(row==4)instrumentPresetCycle(keys==(keyEdit|keyRight)?1:-1);return 1;}
+ if(action==PopupEditInput::cycle){int direction=keys==(keyEdit|keyRight)?1:-1;if(row==3)instrumentPresetCycleCollection(direction);else instrumentPresetCycle(direction);return 1;}
  if(action==PopupEditInput::hold)return 1;
  if(action==PopupEditInput::open){if(row==3)instrumentPresetOpenCollections();else open();return 1;}
  return 0;

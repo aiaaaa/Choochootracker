@@ -34,6 +34,35 @@ static void tapEdit(){key(1,keyEdit);key(0,0);}
 int main(int argc,char** argv){
   if(argc!=2&&argc!=3)return 1;output=argv[1];initDefaultAppSettings();appSettings.screenWidth=640;appSettings.screenHeight=480;fontSetCurrent(fontGetDefault());require(!gfxSetup(&appSettings.screenWidth,&appSettings.screenHeight),"SDL dummy setup");
   chipnomadState=chipnomadCreate();require(chipnomadState,"state");require(!projectLoad(&chipnomadState->project,"projects/gm-midi-demo.cct"),"fixture");
+  if(argc==3 && !strcmp(argv[2],"--bank-cycle-ui-only")) {
+    screensInitAll();waveformDisplayInit();monitorDisplayInit();
+    std::vector<FMPresetEntry> factory,builtins;
+    require(loadFMCatalog("instruments/FACTORY/catalog.tsv",factory),"catalog");
+    require(loadFMCatalog("instruments/FACTORY/builtins.tsv",builtins),"builtins");
+    factory.insert(factory.end(),builtins.begin(),builtins.end());
+    for(auto type:{InstrumentType::OPLL,InstrumentType::VRC7,InstrumentType::OPL2,InstrumentType::OPL3,InstrumentType::GenesisFM,InstrumentType::ArcadeFM,InstrumentType::DX7,InstrumentType::SID,InstrumentType::SegaPSG,InstrumentType::GBPulse,InstrumentType::GBNoise}) {
+      getInstrumentFunctions(type).init(&chipnomadState->project.instruments[0]);screenSetup(&screenInstrument,0);
+      auto& screen=(type==InstrumentType::SegaPSG||type==InstrumentType::GBPulse||type==InstrumentType::GBNoise)?screenInstrumentSimpleChip:screenInstrumentOPL;
+      screen.cursorRow=3;screen.cursorCol=0;
+      auto original=chipnomadState->project.instruments[0];int modified=projectModified;
+      std::vector<std::string> expected={"ALL"};
+      for(const auto& group:factoryCollections(factory,type))expected.push_back(&screen==&screenInstrumentSimpleChip?"Factory":group.name);
+      expected.push_back("USER");
+      // Repeated directions while EDIT stays held, including wraparound.
+      key(1,keyEdit);
+      for(size_t n=1;n<=expected.size();++n){key(1,keyEdit|keyRight);require(expected[n%expected.size()]==instrumentPresetCollectionName(),"forward bank order");}
+      key(0,0);require(currentScreen==&screenInstrument,"release after cycling does not open popup");
+      key(1,keyEdit);
+      for(size_t n=1;n<=expected.size();++n){key(1,keyEdit|keyLeft);require(expected[(expected.size()-n)%expected.size()]==instrumentPresetCollectionName(),"reverse bank order");}
+      key(0,0);require(currentScreen==&screenInstrument,"reverse release stays on instrument");
+      require(!memcmp(&original,&chipnomadState->project.instruments[0],sizeof(original))&&modified==projectModified,"bank cycling changes no instrument or dirty flag");
+      key(1,keyEdit);key(1,keyEdit|keyLeft);key(0,0);
+      if(type==InstrumentType::DX7||type==InstrumentType::SegaPSG){char name[64];snprintf(name,sizeof(name),"bank-cycle-%d",int(type));capture(name);}
+      tapEdit();require(currentScreen==&screenSelectionPopup,"EDIT tap still opens chooser");key(1,keyOpt);
+    }
+    printf("Bank EDIT left/right order, wrap, release and tap passed for all 11 engines; no audio tests run\n");
+    chipnomadDestroy(chipnomadState);SDL_Quit();return 0;
+  }
   if(argc==3 && !strcmp(argv[2],"--bank-ui-only")) {
     // Structural UI checks only: no audio initialization, playback or audition.
     screensInitAll();waveformDisplayInit();monitorDisplayInit();
