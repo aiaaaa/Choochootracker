@@ -1,6 +1,7 @@
 #include "doctest.h"
 
 #include <import/import_m8s.h>
+#include <export/export_m8s.h>
 #include <chipnomad_lib.h>
 
 #include <cstdio>
@@ -97,6 +98,89 @@ TEST_CASE("rejects files that are not M8 songs") {
   REQUIRE(writeFile(path, tiny));
   CHECK(projectLoadM8S(&p, path) != 0);
   remove(path);
+  projectFree(&p);
+}
+
+
+TEST_CASE("export writes structure and notes into the template and round-trips") {
+  auto tmpl = makeM8S();
+  tmpl[0x13A3E + 5 * 215 + 50] = 0x5A;  // instrument data must survive untouched
+  tmpl[0x1A600] = 0xA5;                 // so must anything past the instruments
+  tmpl[0xAEE] = 0x30;                   // template phrase content is replaced
+  const char* tmplPath = "test_export_m8s_template.m8s";
+  const char* outPath = "test_export_m8s_out.m8s";
+  REQUIRE(writeFile(tmplPath, tmpl));
+
+  Project src;
+  projectInit(&src);
+  strcpy(src.title, "ROUNDTRIP");
+  src.tickRate = 60.0f; // 150 BPM
+  src.song[1][2] = 4;
+  src.chains[4].rows[0].phrase = 9;
+  src.chains[4].rows[0].transpose = 0xFD; // -3
+  src.phrases[9].rows[0].note = 36;       // MIDI 48
+  src.phrases[9].rows[0].volume = 100;
+  src.phrases[9].rows[0].instrument = 3;
+  src.phrases[9].rows[5].note = NOTE_OFF;
+  REQUIRE(projectExportM8S(&src, tmplPath, outPath) == 0);
+
+  FILE* f = fopen(outPath, "rb");
+  REQUIRE(f);
+  std::vector<uint8_t> out(M8S_SIZE);
+  REQUIRE(fread(out.data(), 1, out.size(), f) == out.size());
+  fclose(f);
+  CHECK(out.size() == tmpl.size());
+  CHECK(out[0x13A3E + 5 * 215 + 50] == 0x5A);
+  CHECK(out[0x1A600] == 0xA5);
+  CHECK(out[0xAEE] == 0xFF);
+  CHECK(out[0x2EE + 1 * 8 + 2] == 4);
+  CHECK(out[0x2EE] == 0xFF);
+  const uint8_t* s0 = &out[0xAEE + (9 * 16) * 9];
+  CHECK(s0[0] == 48);
+  CHECK(s0[1] == 100);
+  CHECK(s0[2] == 3);
+  CHECK(s0[3] == 0xFF);
+  CHECK(out[0xAEE + (9 * 16 + 5) * 9] == 0x80);
+
+  Project back;
+  projectInit(&back);
+  REQUIRE(projectLoadM8S(&back, outPath) == 0);
+  CHECK(strcmp(back.title, "ROUNDTRIP") == 0);
+  CHECK(back.tickRate == doctest::Approx(60.0f));
+  CHECK(back.song[1][2] == 4);
+  CHECK(back.chains[4].rows[0].phrase == 9);
+  CHECK(back.chains[4].rows[0].transpose == 0xFD);
+  CHECK(back.phrases[9].rows[0].note == 36);
+  CHECK(back.phrases[9].rows[0].volume == 100);
+  CHECK(back.phrases[9].rows[0].instrument == 3);
+  CHECK(back.phrases[9].rows[5].note == NOTE_OFF);
+
+  remove(tmplPath);
+  remove(outPath);
+  projectFree(&src);
+  projectFree(&back);
+}
+
+TEST_CASE("export refuses phrases the M8 cannot hold and bad templates") {
+  auto tmpl = makeM8S();
+  const char* tmplPath = "test_export_m8s_template2.m8s";
+  const char* outPath = "test_export_m8s_out2.m8s";
+  REQUIRE(writeFile(tmplPath, tmpl));
+
+  Project p;
+  projectInit(&p);
+  p.song[0][0] = 0;
+  p.chains[0].rows[0].phrase = 300;
+  CHECK(projectExportM8S(&p, tmplPath, outPath) != 0);
+
+  p.chains[0].rows[0].phrase = 1;
+  memcpy(tmpl.data(), "NOTM8SONG", 9);
+  REQUIRE(writeFile(tmplPath, tmpl));
+  CHECK(projectExportM8S(&p, tmplPath, outPath) != 0);
+  CHECK(projectExportM8S(&p, "does-not-exist.m8s", outPath) != 0);
+
+  remove(tmplPath);
+  remove(outPath);
   projectFree(&p);
 }
 

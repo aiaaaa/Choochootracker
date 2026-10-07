@@ -7,7 +7,7 @@
 // Common rows on the export screen:
 // 0 start row, 1 WAV (song/stems), 2 sample rate, 3 bit depth,
 // 4 folder, 5 MIDI
-#define SCR_EXPORT_ROWS (6)
+#define SCR_EXPORT_ROWS (7)
 
 // Rows on the bounce-to-sample screen:
 // 0 file name, 1 sample rate, 2 bit depth, 3-5 name prefix checkboxes,
