@@ -10,7 +10,7 @@ From the repository root:
 
 ```sh
 make -C tracker -f Makefile.test -j4 chip-factory
-python3 tools/chip_banks/convert.py --output tracker/packaging/common/instruments/chips --writer tracker/build/tests/chip_factory
+python3 tools/chip_banks/convert.py --output tracker/packaging/common/instruments/FACTORY --writer tracker/build/tests/chip_factory
 python3 -m unittest discover -s tools/chip_banks -p 'test_*.py'
 ```
 
@@ -38,5 +38,15 @@ not accepted. Conversion stages in a temporary directory and publishes a new
 user directory only after native validation. Its manifest makes no licensing
 claim about user files. Load its CNI files using the ordinary instrument loader.
 
-Native DX7 users can drop `.syx` files into `instruments/banks/dx7/`, including
-subfolders, and reopen Banks. This requires no offline converter.
+Native DX7 users can drop `.syx` files into `instruments/USER/dx7/`, including
+subfolders, then choose Bank → USER and open Preset. This requires no offline converter.
+
+After the base conversion, run `python3 tools/sid_prep/package_presets.py` to
+add the 56 SID programs, giving 1,196 presets across 25 portable collections.
+
+Factory ZIP packaging: after generating loose factory CNI files, run
+`python3 tools/chip_banks/pack_collections.py tracker/packaging/common/instruments/FACTORY`.
+The packer preserves CNI bytes, includes source notices, verifies every entry,
+then updates both catalogs and removes only the verified loose generated files.
+It can also repack existing ZIP-backed catalogs. Do not run it on personal USER
+libraries or add user-provided banks to factory packages.

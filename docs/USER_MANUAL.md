@@ -1536,3 +1536,35 @@ and FM feedback retain their useful native steps; wider byte values would not
 create more hardware states. `FBK` directly selects feedback `00–07`.
 Operator levels use the engine-specific ranges listed above. Brightness and
 master adjustments retain the full byte range.
+
+### Portable factory collections and USER presets
+
+Native chip instruments use **Bank:** to choose ALL, an included collection or
+USER. **Preset:** chooses a sound within that selection. Hold EDIT and press
+Left or Right on either row to cycle; a short EDIT tap opens its chooser.
+
+Included collections are ZIP packs under `instruments/FACTORY/`. USER files go
+under `instruments/USER/<engine>/`: `dx7`, `opll`, `vrc7`, `opl2`, `opl3`,
+`genesis`, `arcade`, `sid`, `sega`, `gb-pulse`, or `gb-noise`.
+Browse your folders directly, or put a ZIP of folders and compatible `.cni`
+presets there. DX7 also accepts supported `.syx` single voices and 32-voice
+banks, including inside ZIPs. ZIPs remain intact on disk. Direct WOPL/WOPLX loading is not supported;
+use compatible CNI presets or convert supported source formats offline first.
+
+USER preset cycling continues across files, folders, banks and ZIP packs in
+both directions, wrapping at the ends. Reopening the USER browser follows the
+current selection. ALL includes USER sounds under Unsorted for categorized
+engines; USER remains a separate top-level choice. Sega PSG and Game Boy use
+flat ALL/Factory lists and a hierarchical USER browser, without an Unsorted
+panel. Older DX7 files in `instruments/banks/dx7/` remain accessible in USER.
+
+An engine shows only its compatible included collections. Factory Presets
+combines the included OPLL/VRC7 tone sets for the selected engine; DX7 combines
+ChooChoo and YSE originals. Downloaded named collections remain separate.
+Fat Man 2-op is listed under OPL2 and Fat Man 4-op under OPL3. Compatible OPL2
+CNI files may still be used in OPL3 USER folders.
+
+Native-engine output uses fixed measured gain compensation rather than
+per-preset normalization. Existing native-instrument songs can therefore play
+at a different level; review the balance of saved mixes. The calibration method
+and bounds are documented in `scripts/README_MEASURE.md`.
