@@ -55,7 +55,6 @@ static void motionRecordFrame(ChipNomadState* state);
 static int instrumentFXCutoff(uint8_t value);
 static int slewEngineFX(PlaybackTrackState*, FX, int);
 static void updateInsertValues(ChipNomadState*);
-
 class AudioCommandQueue {
  public:
   void requestStop() { stopRequested_.store(1, std::memory_order_release); }
@@ -847,6 +846,7 @@ int chipnomadQueuePlaybackStopPreview(ChipNomadState* state, int trackIdx) {
 int chipnomadQueuePlaybackClearTrackFX(ChipNomadState* state, int trackIdx) {
   return state && state->audioCommands ? state->audioCommands->pushCommand(7, trackIdx) : 0;
 }
+
 void chipnomadQueueLoopRange(ChipNomadState* state, LoopRange range) {
   if (state && state->audioCommands) state->audioCommands->pushLoopRange(range);
 }
@@ -973,7 +973,7 @@ static void renderChipTracks(ChipNomadState* state, float* output, int frames) {
   for (int chipIdx = 0; chipIdx < state->audioProject.chipsCount; ++chipIdx) {
     if (chipIdx >= state->audioProject.tracksCount || !state->playbackState.trackEnabled[chipIdx]) continue;
     uint8_t instrumentIdx = state->playbackState.tracks[chipIdx].note.instrument;
-    if (instrumentIdx == EMPTY_VALUE_8) continue;
+    if (instrumentIdx >= PROJECT_MAX_INSTRUMENTS) continue;
     InstrumentType type = state->audioProject.instruments[instrumentIdx].type;
     if (type != InstrumentType::AY1 && type != InstrumentType::AY2 && type != InstrumentType::AYSample) continue;
     SoundChip* chip = state->chips[chipIdx];

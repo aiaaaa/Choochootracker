@@ -106,6 +106,7 @@ extern const AppScreen screenInsertFX;
 extern const AppScreen screenTable;
 extern const AppScreen screenAYWavetable;
 extern const AppScreen screenExport;
+extern const AppScreen screenBounce;
 extern const AppScreen screenManage;
 extern const AppScreen screenSettings;
 extern const AppScreen screenTrackVisuals;
@@ -119,6 +120,7 @@ extern const AppScreen screenColorTheme;
 extern const AppScreen screenKeyMapping;
 extern const AppScreen screenMidi;
 extern const AppScreen screenMidiChannelMap;
+extern const AppScreen screenMidiCC;
 extern const AppScreen screenQuickHelp;
 extern const AppScreen screenTitle;
 
@@ -192,7 +194,32 @@ void fxEditFullDraw(uint8_t currentFX, uint8_t instrumentIdx, int isTable);
 int phraseKeyJazzHandleRawKey(InputCode input, int isDown);
 int songKeyJazzHandleRawKey(InputCode input, int isDown);
 int chainKeyJazzHandleRawKey(InputCode input, int isDown);
-int projectKeyJazzHandleRawKey(InputCode input, int isDown);
+#endif
+
+// Key jazz text entry (desktop): type directly into any text field (project
+// filename/title/author, instrument name, theme name, pitch table name,
+// bounce name, enter-name and create-folder dialogs) instead of using the
+// on-screen character popup. Esc toggles it; the state is shared by all
+// these screens. Each screen with a text field exposes a getter describing
+// the field under its cursor.
+#ifdef DESKTOP_BUILD
+typedef struct {
+  ScreenData* screen;       // Screen owning the field (cursorCol is the caret)
+  int row;                  // Row of the text field
+  char* str;                // NULL when the cursor is not on a text field
+  int maxLen;
+  int popupOpen;            // The character popup is open: leave input alone
+  int marksProjectModified; // Editing the field dirties the project
+} KeyJazzTextField;
+
+int keyJazzTextHandleRawKey(InputCode input, int isDown, const AppScreen* current);
+int projectKeyJazzTextField(KeyJazzTextField* field);
+int instrumentKeyJazzTextField(KeyJazzTextField* field);
+int colorThemeKeyJazzTextField(KeyJazzTextField* field);
+int enterNameKeyJazzTextField(KeyJazzTextField* field);
+int createFolderKeyJazzTextField(KeyJazzTextField* field);
+int pitchTableKeyJazzTextField(KeyJazzTextField* field);
+int bounceKeyJazzTextField(KeyJazzTextField* field);
 #endif
 
 // Manage screen functions

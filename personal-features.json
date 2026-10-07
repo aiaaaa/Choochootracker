@@ -1,7 +1,7 @@
 {
   "upstream": "paiheulevrai/Choochootracker",
   "upstream_branch": "main",
-  "upstream_commit": "6e9eb2b79f7024027e8ff1308d131aa05c0096ed",
+  "upstream_commit": "6406a749b8b01d2c3dc1292b5986444c856e81b6",
   "personal_branch": "personal/r36h",
   "update_policy": "Personal combines upstream main, my additions not yet incorporated upstream, and my experiments. Keep unmerged additions, including pending or declined submissions. Once incorporated upstream, replace my earlier implementation with the maintainer's merged version, including his fixes and changes; remove duplicate code and controls. Test, preserve user data, record commit, and retain rollback before installation.",
   "features": [
@@ -314,5 +314,19 @@
     "source_commit": "117d476ff29fb4e5a783ed9e197962e1557417f5",
     "report": "docs/user-preset-step-device-20261007.json",
     "audio_testing": "Not run"
+  },
+  "harmonization_20261007": {
+    "upstream_commit": "6406a749b8b01d2c3dc1292b5986444c856e81b6",
+    "previous_personal_commit": "4ffd9f9",
+    "status": "Source integrated; validation in progress",
+    "report": "docs/personal-harmonization-20261007.txt"
+  },
+  "ports": {
+    "vita": {
+      "branch": "personal/vita",
+      "status": "paused",
+      "source_sync_status": "Excluded from October 7 harmonization; no code merge, build or deployment",
+      "frozen_code_commit": "256fedf"
+    }
   }
 }

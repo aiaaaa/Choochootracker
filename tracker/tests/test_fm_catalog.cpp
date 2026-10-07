@@ -1,6 +1,11 @@
 #include "doctest.h"
 #include "fm_catalog.h"
 #include <cstdio>
+#include <fstream>
+static std::string factoryPath(const char* file) {
+  std::string path = std::string("packaging/common/instruments/FACTORY/") + file;
+  return std::ifstream(path).good() ? path : "../" + path;
+}
 TEST_CASE("FM catalog supports ten thousand metadata entries transactionally") {
   FILE* f=fopen("test_fm_catalog.tsv","wb");REQUIRE(f);fputs("CCT-CHIP-CATALOG\t1\n",f);
   for(int i=0;i<10000;++i)fprintf(f,"24\t101\tScale fixture\tUnsorted\tSynthetic %05d\tsynthetic-%05d.cni\n",i,i);fclose(f);
@@ -10,13 +15,13 @@ TEST_CASE("FM catalog supports ten thousand metadata entries transactionally") {
 }
 TEST_CASE("FM bundled catalogue loads all currently packaged records") {
   std::vector<FMPresetEntry> entries;
-  REQUIRE(loadFMCatalog("packaging/common/instruments/FACTORY/catalog.tsv",entries));CHECK(entries.size()==1120);
+  REQUIRE(loadFMCatalog(factoryPath("catalog.tsv").c_str(),entries));CHECK(entries.size()==1120);
 }
 
 TEST_CASE("Factory collections keep engine ownership and downloaded names") {
   std::vector<FMPresetEntry> entries, builtins;
-  REQUIRE(loadFMCatalog("packaging/common/instruments/FACTORY/catalog.tsv",entries));
-  REQUIRE(loadFMCatalog("packaging/common/instruments/FACTORY/builtins.tsv",builtins));
+  REQUIRE(loadFMCatalog(factoryPath("catalog.tsv").c_str(),entries));
+  REQUIRE(loadFMCatalog(factoryPath("builtins.tsv").c_str(),builtins));
   entries.insert(entries.end(),builtins.begin(),builtins.end());
   for(auto type:{InstrumentType::OPLL,InstrumentType::VRC7}) {
     auto groups=factoryCollections(entries,type);

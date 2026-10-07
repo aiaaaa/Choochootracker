@@ -18,6 +18,10 @@ It follows the classic LSDj workflow and navigation system, with several sound d
 
 Install `choochootracker.zip` through PortMaster, or copy the extracted package to the console's `ports` directory. Start **ChooChooTracker** from the Ports menu.
 
+### Miyoo Mini / Mini Plus (Onion OS)
+
+Extract the MiyooPorts archive at the root of the SD card so that its `Roms/PORTS/` folders merge with Onion's existing folders. Start **ChooChooTracker** from the Ports menu after refreshing the collection. Back up the app's `projects/` folder before replacing an existing installation.
+
 ### Windows
 
 Run `choochootracker.exe` with `SDL2.dll` and `libwinpthread-1.dll` in the same directory.
@@ -317,10 +321,13 @@ Key jazz also works, independently toggled with Esc, on:
   selected) - the same structure-editing shortcuts as the Phrase screen.
   This takes over Shift, so Shift+Right/Up no longer jump to Chain/Project
   while key jazz is active here - Esc to get those shortcuts back.
-- **Project**: type the file name, title and author directly on the
-  keyboard instead of using the on-screen virtual keyboard. Backspace works
-  like a normal text field; Shift types uppercase letters. The virtual
-  keyboard still opens normally when key jazz is off here.
+- **Every screen with a text field**: type directly on the keyboard
+  instead of using the on-screen virtual keyboard. This covers the Project
+  file name, title and author, the instrument name, the color theme name,
+  the pitch table name, the bounce file name, and the name dialogs (enter
+  name, create folder). Backspace works like a normal text field; Shift
+  types uppercase letters. Esc toggles it on all of these screens at once,
+  and the virtual keyboard still opens normally when key jazz is off.
 
 ## 5. Instruments
 
@@ -738,7 +745,7 @@ Each FX has a 3-letter command and a hexadecimal value. The in-app help panel gi
 
 ### Chords
 
-`CRD XY` turns the note on its own Phrase row into a chord. `Y` selects: `0` Major, `1` Minor, `2` Dim, `3` Aug, `4` Sus2, `5` Sus4, `6` Power, `7` Maj7, `8` Min7, `9` Dom7, `A` Min7b5, `B` Dim7, `C` Add9, `D` MinAdd9, `E` Maj9, or `F` Min9. `X` selects the musical inversion: `0` is root position; three-note chords offer `1-2`, and four-note chords offer `1-3`. The command is not persistent: write it on every chorded row. Each generated note is quantized independently when Scale is active. It is available to software engines only; AY instruments ignore it and remain monophonic.
+`CRD XY` turns the note on its own Phrase row into a chord. `Y` selects: `0` Major, `1` Minor, `2` Dim, `3` Aug, `4` Sus2, `5` Sus4, `6` Power, `7` Maj7, `8` Min7, `9` Dom7, `A` Min7b5, `B` Dim7, `C` Add9, `D` MinAdd9, `E` Maj9, or `F` Min9. `X` selects one of 16 voicings: `0-3` are a rising closed inversion cycle; `4-7` add drop-2; `8-B` add drop-3; and `C-F` combine both drops. The cycle continues through an extra octave for triads and power chords, so every value is distinct; larger values become progressively wider and less conventional. For example, `CRD 4Y` is drop-2 root position and `CRD DY` is first inversion with both drops. At the bottom or top of the pitch table, voices are clamped to its range. The command is not persistent: write it on every chorded row. Each generated note is quantized independently when Scale is active. It is available to software engines only; AY instruments ignore it and remain monophonic.
 
 ### Sequencer FX
 
@@ -1037,6 +1044,11 @@ The **Folder** row on the EXPORT screen shows the active destination:
 When a named project is saved under a new name, the default export folder is renamed to match, keeping previously exported files with the project. Renaming does not apply to a custom folder, and the folder is not renamed by autosave. If a folder with the target name already exists, both folders are kept. If the tracker lost track of the folder (for example after a restart), saving a named project renames the existing `current-project` folder instead. Instruments keep working after a rename: loaded sample paths that point into the renamed folder are updated automatically.
 
 **Load** also accepts `.mid`/`.midi` files, imported as a new project: notes are grouped by MIDI channel (one channel per track, up to the track count), quantized to 4 rows per beat, and placed on a single default AY instrument - MIDI program numbers have no chiptune equivalent, so pick real instruments afterward. Only the file's first tempo is used (one global tick rate, no per-section tempo changes). The Export screen's **MIDI** row does the reverse: writes the current arrangement's notes, volume and tempo/groove as a Standard MIDI File (one MIDI track per tracker track); [MIDI Out](#midi-out) instruments and other per-row FX beyond volume and the global groove have no MIDI equivalent and are not translated.
+
+**Load** also accepts Dirtywave M8 songs (`.m8s`, firmware 2.x-4.x), imported as a new project. Only the structure and the notes come across (song rows, chains with their transpose, phrases with note, velocity and instrument number, note-offs, tempo and song name); notes keep their real pitch. M8 instruments have no equivalent here, so each instrument used by a phrase becomes a default AY instrument carrying the M8 instrument's name - pick real sounds afterward. FX, tables and all instrument parameters are ignored.
+
+On desktop, the Export screen's **M8S** row does the reverse, in a limited way: tap it and pick an existing `.m8s` as a **template** (remembered until you quit, **EDIT + OPT** forgets it). Its song, chains, phrases, tempo and title are replaced and everything else, including the M8 instruments, is kept as is. FX are not exported, and a song using phrase `FF` or above cannot be exported (the M8 has 255 phrases). The exported file has not been tested on a real M8 yet. See [M8 songs](m8s-format.md) for the details.
+
 On desktop, key jazz lets you type the filename, title and author directly on the keyboard instead of using the on-screen virtual keyboard — see [Key jazz](#key-jazz-desktop-only).
 
 ### Scale / Quantize
@@ -1058,6 +1070,7 @@ Use **Save** before changing instrument types or loading another project.
 - **Mixer** contains **Mix volume** and the per-project `250-4000 Hz` **Tilt pivot** (default `1 kHz`) used by all Mixer Tilt controls.
 - **Graphics** contains **Edit color theme**, **Load font**, **Persistent waveform**, **Track visuals**, and the active renderer (`GPU` or `Software`). Track visuals selects **Detailed** (the synth waveform and its overlays) or **Audio waveform** (the actual summed output of that track) independently for every track; audio waveform clears any prior ADSR overlay immediately when playback starts. ChipNomad fonts and themes should work.
 - **Key mapping** customises the controls.
+- **Support report** writes a small diagnostic text file with the app version, platform, audio settings and CPU load, playback/overflow state, and a compact project summary. It does not include sample data or project title/author text. On Android and Web it opens the normal export/download flow; desktop and handheld builds save `support-report.txt` in the app's writable folder.
 - **Quit ChooChooTracker** exits cleanly.
 
 ## 13. Performance and troubleshooting
@@ -1070,7 +1083,7 @@ The CPU display is a smoothed measure of audio rendering time. It does not measu
 
 On Android, audio output now prefers AAudio to avoid intermittent crackling observed with OpenSL ES on the Pixel 7a. This buffered output prioritises stable playback and can add some response latency. The tracker canvas keeps its full 4:3 layout on square and other unusual screen ratios; unused space is shown as borders rather than cropping columns. If crackling persists, report the song, phone model, Android version and whether you are using the speaker, headphones or Bluetooth.
 
-If you run into pops, crashes or slowdowns, send us the `.cct` file that triggers them.
+If you run into pops, crashes or slowdowns, use **Settings > Support report** and attach the generated `support-report.txt` to the bug report. If a specific song triggers the problem, attach that `.cct` too.
 
 ### No sound
 
@@ -1086,6 +1099,7 @@ Desktop and PortMaster. Settings > **MIDI** opens this submenu: **MIDI In** / **
 
 - **Sound preview from a MIDI keyboard**: with a MIDI In device selected, playing notes on the connected keyboard auditions an instrument on any screen, the same as the on-screen **EDIT + PLAY** shortcut on the [Instrument](#5-instruments) screen. This is preview only - it does not enter notes into the song.
 - **Channel mapping**: opens a list of the 16 MIDI channels; assign each one an instrument (`OFF` by default) so notes received on that channel preview that instrument regardless of which one is selected on the Instrument screen - e.g. channel `01` -> instrument `05`. A channel left `OFF` falls back to the currently selected instrument, the original behavior. This mapping is saved to settings.txt.
+- **MIDI CC mapping**: maps an incoming controller to an instrument parameter, including its **Volume**, or to global controls. Global rows show `TRK 1`-`TRK 8` instead of an instrument and provide track **Mute**, **Solo**, **Volume**, **Reverb send**, and **Delay send**; **Song play/stop** has no target. A new mapping ignores the CC that learned/configured it and takes effect on the next physical movement, so setting up mappings during playback cannot reset a patch to zero. Mute and solo use `0-63` = off, `64-127` = on.
 - **Driving an external MIDI device**: give a track the [MIDI Out](#midi-out) instrument type and set its Channel; triggering notes on that track sends real MIDI to the selected MIDI Out device instead of making sound in ChooChooTracker.
 
 ## 15. Credits and licensing
@@ -1639,3 +1653,10 @@ and FM feedback retain their useful native steps; wider byte values would not
 create more hardware states. `FBK` directly selects feedback `00–07`.
 Operator levels use the engine-specific ranges listed above. Brightness and
 master adjustments retain the full byte range.
+
+### Personal fork integration (October 7, 2026)
+
+This build follows upstream 1.0.15, retaining Factory/USER collections, ZIP packs
+and continuous USER preset stepping. In personal Settings, Support report is
+followed by Get Lucky and Quit. Opt returns to Song. Vita development is paused
+and is excluded from this update.

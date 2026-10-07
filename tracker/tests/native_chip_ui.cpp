@@ -34,6 +34,20 @@ static void tapEdit(){key(1,keyEdit);key(0,0);}
 int main(int argc,char** argv){
   if(argc!=2&&argc!=3)return 1;output=argv[1];initDefaultAppSettings();appSettings.screenWidth=640;appSettings.screenHeight=480;fontSetCurrent(fontGetDefault());require(!gfxSetup(&appSettings.screenWidth,&appSettings.screenHeight),"SDL dummy setup");
   chipnomadState=chipnomadCreate();require(chipnomadState,"state");require(!projectLoad(&chipnomadState->project,"projects/gm-midi-demo.cct"),"fixture");
+  if(argc==3 && !strcmp(argv[2],"--harmonization-ui-only")) {
+    screensInitAll();waveformDisplayInit();monitorDisplayInit();
+    screenSetup(&screenSettings,0);appDraw();
+    for(int n=0;n<8;++n)key(1,keyDown);
+    capture("settings-support-report");tapEdit();
+    require(currentScreen==&screenSettings,"support report stays in Settings");
+#ifdef CHOOCHOO_EXPERIMENTAL_MOD_LUCKY
+    key(1,keyDown);capture("settings-lucky");
+#endif
+    key(1,keyOpt);key(0,0);
+    require(currentScreen==&screenSong,"Opt leaves personal Settings");
+    printf("Harmonized Settings support report, Lucky row and Opt navigation passed; no audio tests run\n");
+    chipnomadDestroy(chipnomadState);SDL_Quit();return 0;
+  }
   if(argc==3 && !strcmp(argv[2],"--user-step-ui-only")) {
     screensInitAll();waveformDisplayInit();monitorDisplayInit();
     namespace fs=std::filesystem;

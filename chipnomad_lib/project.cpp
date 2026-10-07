@@ -237,6 +237,10 @@ void projectInit(Project* p) {
     instrumentClear(&p->instruments[c]);
   }
 
+  for (int c = 0; c < PROJECT_MAX_MIDI_CC_MAPPINGS; c++) {
+    p->midiCCMappings[c].enabled = 1;
+  }
+
   // Clean tables
   for (int c = 0; c < PROJECT_MAX_TABLES; c++) {
     tableClear(&p->tables[c]);

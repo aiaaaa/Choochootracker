@@ -1,0 +1,15 @@
+October 7 personal fork harmonization
+Upstream main: 6406a749b8b01d2c3dc1292b5986444c856e81b6
+Previous personal: 4ffd9f9
+
+Adopted upstream M8 import/export, MIDI CC editing, chord voicings,
+transactional project saves, support reports, Opt navigation and platform fixes.
+Preserved personal Factory/USER ZIP collections, engine filtering, bank cycling,
+continuous USER preset stepping, engine compensation, Get Lucky, font/theme
+assets, stretch-processor ownership and embedded wavetable recovery.
+Settings keeps upstream Support report (row 8), then personal Lucky (row 9),
+then Quit. Regular builds retain upstream row ordering.
+The translated measurement guide retains the native-engine calibration section.
+Vita is paused; no Vita source synchronization, build or deployment.
+
+Validation and device installation: pending; append verified results before promotion.
