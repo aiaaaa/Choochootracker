@@ -12,11 +12,15 @@ class UserPresets {
 public:
   enum class Kind { folder, zip, bank, preset };
   struct Item { std::string name, path; Kind kind; int voice = -1; bool legacy = false; };
+  struct Reference { std::string name, path, archive; int voice = -1; bool legacy = false; };
   void setup(const std::string& root, InstrumentType type, const std::string& legacyRoot = "");
   bool refresh(std::string& error);
   bool enter(size_t index, std::string& error);
   bool back(std::string& error);
   bool load(size_t index, Project* destination, int slot, std::string& error);
+  bool load(const Reference& preset, Project* destination, int slot, std::string& error);
+  // Bounded flattened view for ALL; dedicated USER navigation stays hierarchical.
+  std::vector<Reference> scan(std::string& error);
   const std::vector<Item>& items() const { return items_; }
   std::string label() const;
   bool atRoot() const { return stack_.size() <= 1; }
@@ -31,4 +35,5 @@ private:
   std::vector<Item> items_;
   PresetZip archive_;
   std::vector<InstrumentDX7> voices_;
+  size_t scanBudget_ = size_t(-1);
 };

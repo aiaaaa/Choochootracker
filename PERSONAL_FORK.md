@@ -61,6 +61,14 @@ removed. A one-time conversion updates the affected personal songs and our
 bundled native audition. Upstream legacy-format support remains. See
 [the complete audit](docs/absolute-fx-audit-20261005.txt). The October 6 harmonized source is installed; the earlier simplification receipt remains as history.
 
+## Preset collection browser update
+
+All 11 native engines use Collection: ALL, Factory Presets and/or named included
+collections, and USER. ALL also lists compatible USER sounds under Unsorted,
+including ZIP contents and DX7 bank voices. USER preserves folder navigation.
+OPLL/VRC7 tone sets become one Factory Presets list per engine. DX7 combines
+YSE with ChooChoo Factory Presets and keeps OpenDX7 Originals separate.
+
 ## Current installed device build
 
 Source: `bd1fe7166b3e524ca20b3cfacef413281b4c0518`. October 7 ZIP collections, USER folder browsing

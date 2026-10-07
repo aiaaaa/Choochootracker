@@ -80,10 +80,9 @@ void show() {
 }
 }
 
-void openUserPresetBrowser() {
-  type = chipnomadState->project.instruments[cInstrument].type;
+bool setupUserPresetLibrary(UserPresets& target, InstrumentType type) {
   const auto* subfolder = userPresetFolder(type);
-  if (!subfolder) return;
+  if (!subfolder) return false;
   std::string base = "instruments/";
   bool external = fileIsRunningFromAppImage();
 #ifdef ANDROID_BUILD
@@ -91,10 +90,17 @@ void openUserPresetBrowser() {
 #endif
   if (external) {
     char directory[1024];
-    if (fileGetDefaultDirectory(directory, sizeof(directory))) return;
+    if (fileGetDefaultDirectory(directory, sizeof(directory))) return false;
     base = std::string(directory) + "/instruments/";
   }
-  library = &libraries[type]; library->setup(base + "USER/" + subfolder, type, base + "banks/" + subfolder);
+  target.setup(base + "USER/" + subfolder, type, base + "banks/" + subfolder);
+  return true;
+}
+
+void openUserPresetBrowser() {
+  type = chipnomadState->project.instruments[cInstrument].type;
+  library = &libraries[type];
+  if(!setupUserPresetLibrary(*library,type))return;
   std::string error;
   if (!library->refresh(error)) {
     while (!library->atRoot()) library->back(error);

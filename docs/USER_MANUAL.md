@@ -1205,13 +1205,12 @@ format/loop limitations and validation status.
 ### Native OPLL and VRC7 instruments (development)
 
 The Instrument Type selector has an FM group with **OPLL / MSX** (YM2413)
-and **VRC7** (DS1001). Each now offers **73 programs** in scrolling Bank / Preset
-lists: the original 15 tones, 40 additional distinct tones from emu2413's
+and **VRC7** (DS1001). Each now offers **73 programs** in one **Factory Presets** collection: the original 15 tones, 40 additional distinct tones from emu2413's
 YM2413/VRC7/YMF281B tables, and 18 ChooChoo-authored two-operator programs.
 Exact duplicate tone bytes are omitted within each engine. The additional
 palettes use the chip's programmable tone slot; they do not expand the physical
 ROM. Program zero identifies a custom tone. EDIT + left/right selects the
-previous or next preset within the bank filter. Fine ct adjusts tuning from
+previous or next preset within the collection filter. Fine ct adjusts tuning from
 -100 to +100 cents.
 
 In the program list, EDIT + PLAY auditions the highlighted sound; release the
@@ -1229,15 +1228,17 @@ validated on the host; human listening and a new handheld check remain pending.
 
 ### AdLib / OPL2 and OPL3 (development)
 
-FM also includes AdLib / OPL2 (YM3812) and OPL3 (YMF262). Bank filters the
+FM also includes AdLib / OPL2 (YM3812) and OPL3 (YMF262). Collection filters the
 factory list; Preset opens category groups and an All view. EDIT + PLAY auditions
 before selection, EDIT selects, OPT cancels, and EDIT + left/right on Preset
 loads the previous/next matching entry. Fine ct adjusts local tuning. Mode shows
 2 operator, 4 operator, or Dual voice. OPL2 hides incompatible OPL3 patches;
-OPL3 can play the shared two-operator collection.
+The Fat Man 2-op is listed for OPL2 and The Fat Man 4-op for OPL3. DMX
+appears with its compatible subset for each engine. OPL3 USER imports still
+accept two-operator OPL2 presets.
 
-Bank and preset popup titles identify the current engine. Switching engine or
-instrument slot resets the bank filter to **All banks**, including switching
+Collection and preset popup titles identify the current engine. Switching engine or
+instrument slot resets the collection filter to **ALL**, including switching
 between the compatible AdLib and OPL3 engines. Returning from a popup within the
 same slot keeps the chosen filter. Cancelling a DX7 bank import restores the
 previous filter.
@@ -1286,10 +1287,11 @@ limits; human listening remains pending.
 
 Select **Type → FM → DX7 FM**; DX7 is the seventh entry, after Arcade / YM2151.
 DX7 FM uses a six-operator MSFA core. The existing FM page offers
-Bank, Preset and Fine ct alongside common instrument settings. Preset browsing
-uses bank/category lists. Hold EDIT+PLAY to hear the highlighted sound; releasing
+Collection, Preset and Fine ct alongside common instrument settings. Preset browsing
+uses collection/category lists. Hold EDIT+PLAY to hear the highlighted sound; releasing
 stops audition. EDIT alone commits on release; OPT cancels. Loading a sound
-copies its complete patch without changing tracker tables or track insert FX.
+copies its complete patch. Factory and SysEx selection preserve tracker tables;
+a USER `.cni` also restores its saved instrument table. Track insert FX stay unchanged.
 
 The factory catalogue currently contains **67 distinct DX7 parameter patches**:
 31 OpenDX7 original musical sounds, four unique YSE CC0 sounds (its 32 bank slots
@@ -1297,13 +1299,16 @@ repeat those four with different names), and 32 ChooChoo-authored patches.
 Here, "original" means parameter programs created for this project; it does not
 mean original Yamaha factory content. YSE is shipped as four sounds, not 32
 artificially different names.
+**Factory Presets** combines the 32 ChooChoo patches with the four YSE sounds;
+**OpenDX7 Originals** remains a separate named collection. **ALL** includes both
+and compatible USER sounds.
 Categories describe the reviewed sound-design intent. Ambiguous names remain
 Unsorted. Numerical playability checks have passed; listening acceptance is
 pending. The separate goal of 1,000 redistribution-cleared sounds is not met.
 
 For a persistent personal library, put `.syx` files in
 **`instruments/USER/dx7/`** beside the existing instrument library. Subfolders
-are supported. Open **DX7 → Bank → USER**, then **Preset**: each bank file
+are supported. Open **DX7 → Collection → USER**, then **Preset**: each bank file
 opens into its individual voices. Reopen the browser after adding or removing
 files; no conversion or Load Instrument step is needed. A standard original
 DX7/TX7 bank contains **32 voices**. Supported sequences of bank messages
@@ -1322,9 +1327,7 @@ LOAD INSTRUMENT also accepts `.syx` original DX7/TX7 single-voice and 32-voice b
 dumps, including bounded sequences of those supported messages. It checks
 framing, byte counts, seven-bit data, checksums, parameter ranges and file size
 before opening the imported bank in the same FM browser. Selecting a patch
-commits; cancel keeps the current song instrument. This direct-import shortcut
-keeps its browsing list for the session; use the bank folder above for persistent
-browsing. Save the song or a `.cni` to retain selected/edited patches. Headerless dumps,
+commits; cancel keeps the current song instrument. Use the USER folder above for persistent browsing. Save the song or a `.cni` to retain selected/edited patches. Headerless dumps,
 bad checksums, DX7II performance/extensions and other Yamaha families are
 rejected. Import never sends MIDI messages to external equipment.
 
@@ -1355,7 +1358,7 @@ platform so the same song has the same bounded note allocation. It does not
 change other instruments' polyphony. Preset audition is disabled during playback.
 The limit was selected from R36H measurements and validated in mixed playback.
 
-Genesis FM (YM2612) and Arcade FM (YM2151) now use the same FM Bank/Preset
+Genesis FM (YM2612) and Arcade FM (YM2151) now use the same FM Collection/Preset
 browser, EDIT+PLAY audition, confirm/cancel and fine-tune controls. Genesis now
 has **73 presets**: the original 24 and 49 supported melodic programs from
 NeoSoundFonts' CC0 16-Bit FM Music Station bank. Arcade has **81 presets**: the
@@ -1386,9 +1389,22 @@ new collections under `licenses/chip-banks/expansion`.
 
 ### USER presets and portable ZIP collections
 
-Choose **Bank → USER**, then **Preset** to browse your own files. Sega PSG,
-GB Pulse and GB Noise offer **USER** at the end of their Preset chooser.
-The browser follows your folders, without adding All or Unsorted categories.
+All 11 native engines have a **Collection** selector: **ALL**, the engine's
+**Factory Presets** and/or named included collections, and **USER**. Downloaded
+collections retain their names alongside Factory Presets. OPLL and VRC7 each
+group their compatible tone palettes into one Factory Presets list. Genesis,
+Arcade and SID keep their downloaded collections separate from their authored
+Factory Presets. Sega PSG, GB Pulse and GB Noise each have one Factory Presets set.
+
+**ALL → Preset** includes every applicable included collection plus compatible
+presets from that engine's USER folder. User sounds appear in both the **All**
+and **Unsorted** categories, including voices inside DX7 SYX banks and presets
+inside ZIPs or subfolders. USER scanning is bounded to 8,192 items, 256 visited
+folders/banks, 32 levels and 64 MiB read per scan; a message reports skipped or
+limited content. The dedicated USER browser can still open those folders directly.
+
+Choose **Collection → USER**, then **Preset** to browse your own files.
+This separate view follows your folders without All or Unsorted categories.
 EDIT enters folders, ZIP collections and DX7 banks, or selects a preset.
 EDIT + PLAY auditions an individual preset. OPT goes back one level; at the
 user root it returns to the instrument. Each engine remembers its browsing
@@ -1569,7 +1585,7 @@ setting was changed. The ten-minute smaller-buffer stress test still recorded
 
 ### SID instruments and Phrase FX
 
-Choose **CHIP → SID**. Bank offers **ChooChoo SID Originals** (32 authored
+Choose **CHIP → SID**. Collection offers **Factory Presets** (32 authored
 programs) and **SIDkit Effects** (24 MIT-licensed effects). Both use the same
 preset browser and save their complete selected program inside the instrument
 and song. No external bank is required when sharing the song. These are native

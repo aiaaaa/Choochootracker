@@ -6,6 +6,7 @@
 #include <memory>
 #include <sstream>
 #include <cstring>
+#include <functional>
 
 namespace fs = std::filesystem;
 namespace {
@@ -65,8 +66,14 @@ void UserPresets::setup(const std::string& root, InstrumentType type, const std:
   root_ = root; type_ = type; legacyRoot_ = legacyRoot;
 }
 bool UserPresets::bytes(const std::string& path, std::vector<uint8_t>& data, std::string& error) {
-  if (stack_.back().zip) return archive_.read(path, data, error);
-  return readPresetFile((fs::path(locationRoot()) / path).string(), data, error);
+  if(!scanBudget_){error="USER scan size limit reached";return false;}
+  bool ok=stack_.back().zip ? archive_.read(path, data, error) :
+    readPresetFile((fs::path(locationRoot()) / path).string(), data, error,std::min<size_t>(scanBudget_,1024*1024));
+  if(ok&&scanBudget_!=size_t(-1)) {
+    if(data.size()>scanBudget_){error="USER scan size limit reached";scanBudget_=0;return false;}
+    scanBudget_-=data.size();
+  }
+  return ok;
 }
 bool UserPresets::addPreset(const std::string& name, const std::string& path, std::string& error) {
   const auto ext = extension(path);
@@ -89,7 +96,15 @@ bool UserPresets::refresh(std::string& error) {
   items_.clear(); voices_.clear(); error.clear();
   if (stack_.empty()) return false;
   auto location = stack_.back();
-  if (location.zip && !archive_.open((fs::path(locationRoot()) / location.path).string(), error)) return false;
+  if (location.zip) {
+    auto path=fs::path(locationRoot())/location.path;
+    if(scanBudget_!=size_t(-1)) {
+      std::error_code ec;auto size=fs::file_size(path,ec);
+      if(ec||size>scanBudget_){error="USER scan size limit reached";scanBudget_=0;return false;}
+      scanBudget_-=size;
+    }
+    if(!archive_.open(path.string(),error))return false;
+  }
   if (location.bank) {
     std::vector<uint8_t> data;
     if (!bytes(location.zip ? location.member : location.path, data, error) ||
@@ -176,8 +191,16 @@ std::string UserPresets::label() const {
 bool UserPresets::load(size_t index, Project* destination, int slot, std::string& error) {
   if (!destination || slot < 0 || slot >= PROJECT_MAX_INSTRUMENTS || index >= items_.size() || items_[index].kind != Kind::preset) return false;
   const auto item = items_[index];
+  return load({item.name,item.path,stack_.back().zip?stack_.back().path:"",item.voice,stack_.back().legacy},destination,slot,error);
+}
+bool UserPresets::load(const Reference& item, Project* destination, int slot, std::string& error) {
+  if(!destination||slot<0||slot>=PROJECT_MAX_INSTRUMENTS)return false;
+  error.clear();
   auto staged = std::make_unique<Project>(); projectInit(staged.get());
-  std::vector<uint8_t> data; bool ok = bytes(item.path, data, error);
+  std::vector<uint8_t> data; bool ok;
+  const auto& root=item.legacy?legacyRoot_:root_;
+  if(item.archive.empty())ok=readPresetFile((fs::path(root)/item.path).string(),data,error);
+  else {PresetZip zip;ok=zip.open((fs::path(root)/item.archive).string(),error)&&zip.read(item.path,data,error);}
   if (ok && item.voice >= 0) {
     std::vector<InstrumentDX7> parsed;
     ok = importDX7SysEx(data.data(), data.size(), parsed, error) && size_t(item.voice) < parsed.size();
@@ -193,8 +216,40 @@ bool UserPresets::load(size_t index, Project* destination, int slot, std::string
     instrumentClear(&destination->instruments[slot]);
     destination->instruments[slot] = staged->instruments[0];
     destination->instruments[slot].type = type_;
-    destination->tables[slot] = staged->tables[0];
+    if(item.voice<0)destination->tables[slot] = staged->tables[0];
     staged->instruments[0] = {};
   } else if (error.empty()) error = "Invalid or incompatible user preset";
   projectFree(staged.get()); return ok;
+}
+
+std::vector<UserPresets::Reference> UserPresets::scan(std::string& error) {
+  auto saved=stack_;stack_={{"","",false,false}};
+  scanBudget_=64*1024*1024;
+  std::vector<Reference> result;
+  size_t visited=0,folders=0;bool limited=false;std::string warning;
+  std::function<void()> walk=[&] {
+    if(++folders>256){limited=true;return;}
+    std::string why;
+    if(!refresh(why)){warning=why;return;}
+    if(!why.empty())warning=why;
+    auto entries=items_;const auto location=stack_.back();
+    for(const auto& item:entries) {
+      if(++visited>8192||!scanBudget_){limited=true;break;}
+      if(item.kind==Kind::preset) {
+        result.push_back({item.name,item.path,location.zip?location.path:"",item.voice,location.legacy});
+      } else if(stack_.size()<32&&folders<256) {
+        auto next=location;
+        if(item.legacy)next={"","",false,false,true};
+        else if(item.kind==Kind::zip){next.path=item.path;next.member.clear();next.zip=true;}
+        else if(next.zip)next.member=item.path;
+        else next.path=item.path;
+        next.bank=item.kind==Kind::bank;
+        stack_.push_back(next);walk();stack_.pop_back();
+      } else limited=true;
+    }
+  };
+  walk();scanBudget_=size_t(-1);stack_=std::move(saved);
+  std::string ignored;refresh(ignored);
+  error=limited?"ALL: USER scan limit reached":warning.empty()?"":"ALL: some USER presets skipped";
+  return result;
 }

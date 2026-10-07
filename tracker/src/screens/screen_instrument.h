@@ -46,3 +46,8 @@ extern ScreenData screenInstrumentSimpleChip;
 #endif
 
 void instrumentFMImportSysEx(const char* path);
+
+const char* instrumentPresetCollectionName();
+void instrumentPresetOpenCollections();
+void instrumentPresetOpenSounds();
+void instrumentPresetCycle(int direction);

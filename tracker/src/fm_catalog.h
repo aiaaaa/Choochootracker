@@ -24,3 +24,12 @@ DX7Library scanDX7Library(const std::string& folder);
 
 // Loads either a loose CNI or an entry in the catalog's ZIP collection.
 bool loadFMPreset(const std::string& folder, const FMPresetEntry& entry, Project* project, int slot);
+
+struct FMFactoryCollection {
+  int id;
+  std::string name;
+  std::vector<int> presets; // Indices in the original catalog; no patch copies.
+};
+// Factory ownership differs from USER file compatibility: OPL3 can import an
+// OPL2 USER patch without presenting OPL2's factory collection as its own.
+std::vector<FMFactoryCollection> factoryCollections(const std::vector<FMPresetEntry>& catalog, InstrumentType type);
