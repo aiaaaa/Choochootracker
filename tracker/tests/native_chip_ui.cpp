@@ -46,6 +46,9 @@ int main(int argc,char** argv){
       require(loadFMPreset("instruments/FACTORY",*found,&chipnomadState->project,0),"factory ZIP loads on ARM");
       screenSetup(&screenInstrument,0);appDraw();
       char name[64];snprintf(name,sizeof(name),"factory-engine-%d",int(type));capture(name);
+      instrumentPresetOpenCollections();snprintf(name,sizeof(name),"collections-engine-%d",int(type));capture(name);
+      key(1,keyDown);tapEdit();instrumentPresetOpenSounds();key(1,keyRight);tapEdit();
+      require(currentScreen==&screenInstrument,"factory collection selection for every engine");
       openUserPresetBrowser();appDraw();require(currentScreen==&screenSelectionPopup,"USER popup for every engine");
       key(1,keyOpt);require(currentScreen==&screenInstrument,"empty USER back");
     }
@@ -57,7 +60,7 @@ int main(int argc,char** argv){
     fs::copy_file(fixture,oplPack);fs::copy_file(fixture,dxPack);
     getInstrumentFunctions(InstrumentType::OPL3).init(&chipnomadState->project.instruments[0]);
     screenSetup(&screenInstrument,0);appDraw();
-    screenInstrumentOPL.onEdit(0,3,CellEditAction::tap);key(1,keyDown);tapEdit(); // Bank -> USER
+    screenInstrumentOPL.onEdit(0,3,CellEditAction::tap);key(1,keyUp);tapEdit(); // Collection -> USER
     screenInstrumentOPL.onEdit(0,4,CellEditAction::tap);capture("user-root");
     tapEdit();capture("user-zip-folders");tapEdit();tapEdit();capture("user-zip-presets");
     auto before=std::make_unique<Project>(chipnomadState->project);
@@ -80,6 +83,19 @@ int main(int argc,char** argv){
     tapEdit();key(1,keyDown);tapEdit();tapEdit();capture("user-dx7-bank-voices");
     tapEdit();require(currentScreen==&screenInstrument,"zipped DX7 bank voice commit");
     require(!strcmp(chipnomadState->project.instruments[0].name,"TEST VOICE"),"synthetic DX7 bank patch");
+    // ALL flattens USER bank voices into Unsorted while USER stays a peer.
+    instrumentPresetOpenCollections();capture("dx7-collections");tapEdit();
+    require(!strcmp(instrumentPresetCollectionName(),"ALL"),"ALL collection selected");
+    instrumentPresetOpenSounds();
+    std::vector<std::string> categories={"All"};
+    for(const auto& e:factory)if(e.type==int(InstrumentType::DX7)&&std::find(categories.begin(),categories.end(),e.category)==categories.end())categories.push_back(e.category);
+    if(std::find(categories.begin(),categories.end(),"Unsorted")==categories.end())categories.push_back("Unsorted");
+    auto unsorted=std::find(categories.begin(),categories.end(),"Unsorted")-categories.begin();
+    for(int i=0;i<unsorted;++i)key(1,keyDown);
+    key(1,keyRight);key(1,keyUp);capture("dx7-all-unsorted");tapEdit();
+    require(chipnomadState->project.instruments[0].chip.dx7.sourceProgram==31,"ALL Unsorted loads last USER bank voice");
+    require(!strcmp(chipnomadState->project.instruments[0].name,"TEST VOICE"),"ALL Unsorted USER voice name");
+    printf("Engine collections, top-level USER and ALL Unsorted bank selection passed\n");
     fs::remove(oplPack);fs::remove(dxPack);
     printf("Factory ZIPs, all 11 USER roots, nested ZIP navigation, audition, selection and DX7 bank voices passed\n");
     chipnomadDestroy(chipnomadState);SDL_Quit();return 0;
@@ -255,7 +271,7 @@ int main(int argc,char** argv){
     for(int edit=0;edit<12;++edit){
       int col=edit%4;
       if(amp){instrumentFMAmpEdit(col,1,CellEditAction::increaseBig);instrumentFMAmpDrawField(col,1,CellState::normal);}
-      else{screenInstrumentSimpleChip.onEdit(col,7,CellEditAction::increaseBig);screenInstrumentSimpleChip.drawField(col,7,CellState::normal);}
+      else{screenInstrumentSimpleChip.onEdit(col,8,CellEditAction::increaseBig);screenInstrumentSimpleChip.drawField(col,8,CellState::normal);}
       appDraw();
     }
     auto incremental=pixels();currentScreen->fullRedraw();appDraw();auto clean=pixels();
@@ -281,8 +297,8 @@ int main(int argc,char** argv){
   std::filesystem::copy_file(path,libraryFile);
   getInstrumentFunctions(InstrumentType::DX7).init(&chipnomadState->project.instruments[0]);screenSetup(&screenInstrument,0);appDraw();
   screenInstrumentOPL.onEdit(0,3,CellEditAction::tap);appDraw();capture("dx7-persistent-banks");
-  // All banks, then USER; the single-voice file loads directly from USER.
-  key(1,keyDown);tapEdit();
+  // USER is the final top-level collection; the single voice loads directly.
+  key(1,keyUp);tapEdit();
   screenInstrumentOPL.onEdit(0,4,CellEditAction::tap);tapEdit();
   require(!memcmp(patch.voice,chipnomadState->project.instruments[0].chip.dx7.voice,155),"persistent bank voice exact");
   auto savedLibraryPatch=chipnomadState->project.instruments[0];

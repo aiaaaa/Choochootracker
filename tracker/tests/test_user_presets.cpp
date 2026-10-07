@@ -157,3 +157,64 @@ TEST_CASE("USER popup selects a ZIP preset and backs through folders without cha
   CHECK(currentScreen==&screenInstrument);CHECK(!memcmp(&selected,&state->project.instruments[0],sizeof(selected)));
   chipnomadDestroy(state);chipnomadState=prior;
 }
+
+TEST_CASE("ALL USER scan flattens compatible files ZIPs and DX7 bank voices without moving USER") {
+  Fixture f;PresetZip zip;std::vector<uint8_t> data;std::string error;
+  REQUIRE(zip.open(stored,error));REQUIRE(zip.read("Collection/OPL3.cni",data,error));
+  write(f.root/"My sounds"/"Loose.cni",data);
+  UserPresets b;b.setup(f.root.string(),InstrumentType::OPL3);REQUIRE(b.refresh(error));
+  REQUIRE(b.enter(find(b,"My sounds/"),error));
+  auto refs=b.scan(error);CHECK(error.empty());REQUIRE(refs.size()==3);
+  CHECK(b.label()=="My sounds");REQUIRE(b.items().size()==1);
+  auto p=std::make_unique<Project>();projectInit(p.get());
+  for(const auto& ref:refs){REQUIRE(b.load(ref,p.get(),0,error));CHECK(p->instruments[0].type==InstrumentType::OPL3);}
+  auto before=p->instruments[0];
+  fs::remove(f.root/"Collection.zip");
+  for(const auto& ref:refs)if(!ref.archive.empty()){CHECK_FALSE(b.load(ref,p.get(),0,error));CHECK(!memcmp(&before,&p->instruments[0],sizeof(before)));}
+  fs::copy_file(compressed,f.root/"Collection.zip");
+  b.setup(f.root.string(),InstrumentType::DX7);refs=b.scan(error);CHECK(error.empty());REQUIRE(refs.size()==32);
+  for(size_t n=0;n<refs.size();++n){REQUIRE(b.load(refs[n],p.get(),0,error));CHECK(p->instruments[0].chip.dx7.sourceProgram==int(n));}
+  b.setup(f.root.string(),InstrumentType::OPL2);refs=b.scan(error);REQUIRE(refs.size()==1);
+  REQUIRE(b.load(refs[0],p.get(),0,error));CHECK(p->instruments[0].type==InstrumentType::OPL2);
+  projectFree(p.get());
+}
+
+TEST_CASE("ALL USER scan stops deep folders and retains direct USER navigation") {
+  Fixture f;auto path=f.root;
+  for(int i=0;i<34;++i){path/="Nested";fs::create_directory(path);}
+  UserPresets b;std::string error;b.setup(f.root.string(),InstrumentType::OPL3);
+  auto refs=b.scan(error);CHECK(error=="ALL: USER scan limit reached");CHECK(refs.size()==2);CHECK(b.atRoot());
+  REQUIRE(b.enter(find(b,"Collection.zip"),error));CHECK(b.label()=="Collection.zip");
+}
+
+TEST_CASE("Collection UI retains top USER and ALL Unsorted loads a zipped DX7 bank voice") {
+  Fixture f;const auto original=fs::current_path();
+  fs::create_directories(f.root/"instruments/USER/dx7");
+  fs::copy_file(compressed,f.root/"instruments/USER/dx7/Pack.zip");
+  fs::copy("packaging/common/instruments/FACTORY",f.root/"instruments/FACTORY",fs::copy_options::recursive);
+  struct Restore {fs::path path;~Restore(){fs::current_path(path);}} restore{original};fs::current_path(f.root);
+  auto* prior=chipnomadState;auto* state=chipnomadCreate();chipnomadState=state;screensInitAll();cInstrument=0;
+  getInstrumentFunctions(InstrumentType::DX7).init(&state->project.instruments[0]);
+  instrumentFMSetContext(0,InstrumentType::DX7);
+  auto text=[] {screenSelectionPopup.fullRedraw();std::string s;for(auto& row:mockGfxCells)s.append(row,40);return s;};
+  auto press=[](int key){screenSelectionPopup.onInput(1,key,0);screenSelectionPopup.onInput(0,key,0);};
+  instrumentPresetOpenCollections();auto menu=text();
+  CHECK(menu.find("Factory Presets")!=std::string::npos);CHECK(menu.find("OpenDX7 Originals")!=std::string::npos);
+  CHECK(menu.find("YSE")==std::string::npos);CHECK(menu.find("USER")!=std::string::npos);
+  press(keyUp);press(keyEdit);CHECK(std::string(instrumentPresetCollectionName())=="USER");
+  instrumentPresetOpenSounds();CHECK(selectionPopupIsFullWidth());CHECK(text().find("Pack.zip")!=std::string::npos);press(keyOpt);
+  instrumentPresetOpenCollections();press(keyDown);press(keyEdit);CHECK(std::string(instrumentPresetCollectionName())=="ALL");
+  auto before=state->project.instruments[0];instrumentPresetOpenSounds();
+  for(int n=0;n<24&&text().find("> Unsorted")==std::string::npos;++n)press(keyDown);
+  CHECK(text().find("> Unsorted")!=std::string::npos);CHECK(text().find("TEST VOICE")!=std::string::npos);
+  CHECK(!memcmp(&before,&state->project.instruments[0],sizeof(before)));
+  press(keyRight);press(keyUp);press(keyEdit); // Last voice in the user bank.
+  CHECK(currentScreen==&screenInstrument);CHECK(std::string(state->project.instruments[0].name)=="TEST VOICE");
+  CHECK(state->project.instruments[0].chip.dx7.sourceProgram==31);
+  for(auto type:{InstrumentType::OPLL,InstrumentType::VRC7,InstrumentType::SegaPSG}) {
+    getInstrumentFunctions(type).init(&state->project.instruments[0]);instrumentFMSetContext(0,type);instrumentPresetOpenCollections();menu=text();
+    CHECK(menu.find("Factory Presets")!=std::string::npos);CHECK(menu.find("USER")!=std::string::npos);
+    CHECK(menu.find("OpenDX7")==std::string::npos);CHECK(menu.find("YM2413")==std::string::npos);press(keyOpt);
+  }
+  chipnomadDestroy(state);chipnomadState=prior;
+}

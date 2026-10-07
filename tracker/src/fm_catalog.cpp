@@ -99,3 +99,31 @@ bool loadFMPreset(const std::string& folder,const FMPresetEntry& entry,Project* 
   return zip.open((root/entry.archive).string(),error)&&zip.read(entry.path,bytes,error)&&
     instrumentLoadMemory(project,bytes.data(),bytes.size(),slot)==0;
 }
+
+std::vector<FMFactoryCollection> factoryCollections(const std::vector<FMPresetEntry>& catalog, InstrumentType type) {
+  std::vector<FMFactoryCollection> result;
+  for(size_t n=0;n<catalog.size();++n) {
+    const auto& e=catalog[n];
+    if(e.imported>=0||e.library)continue;
+    bool owned=e.type==int(type);
+    // Fat Man 4-op and DMX include some two-operator voices in their OPL3 sets.
+    if(type==InstrumentType::OPL3&&e.type==int(InstrumentType::OPL2))owned=e.bank==2||e.bank==3;
+    if(type==InstrumentType::OPL2&&e.bank==2)owned=false;
+    if(!owned)continue;
+    int id=e.bank;
+    if(isOPLL(type)||isSimpleChip(type)||
+       (type==InstrumentType::DX7&&(e.bank==102||e.bank==103))||
+       (type==InstrumentType::GenesisFM&&e.bank==200)||
+       (type==InstrumentType::ArcadeFM&&e.bank==201)||
+       (type==InstrumentType::SID&&e.bank==600))id=0;
+    auto it=std::find_if(result.begin(),result.end(),[&](const auto& group){return group.id==id;});
+    if(it==result.end()) {
+      result.push_back({id,id==0?"Factory Presets":e.bankName,{}});
+      it=result.end()-1;
+    }
+    it->presets.push_back(int(n));
+  }
+  std::stable_sort(result.begin(),result.end(),[](const auto& a,const auto& b){return a.id==0&&b.id!=0;});
+  if(result.size()==1)result[0].name="Factory Presets";
+  return result;
+}

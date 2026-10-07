@@ -282,5 +282,16 @@
     "report": "docs/chip-instruments-report.md",
     "source_commit": "bd1fe7166b3e524ca20b3cfacef413281b4c0518",
     "device_validation_report": "docs/preset-packs-device-20261007.json"
+  },
+  "preset_collections_20261007": {
+    "status": "Implemented; validation in progress",
+    "collection_selector": [
+      "ALL",
+      "Factory Presets / named collections",
+      "USER"
+    ],
+    "all_user_category": "Unsorted includes compatible USER CNI and SYX voices, including subfolders and ZIPs",
+    "engine_filtering": "Only engine-owned factory collections; OPL2 user files remain compatible with OPL3",
+    "dx7_factory": "ChooChoo + YSE; OpenDX7 Originals remains separate"
   }
 }
