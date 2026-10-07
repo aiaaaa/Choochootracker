@@ -40,3 +40,11 @@ Validation:
 - Installed executable hash matches the verified personal build; Lucky is ON.
 - Contribution validation is recorded in the prepared PR description separately.
 No public PR has been created.
+
+Device metadata reconciled to personal/r36h; executable unchanged. Verified 889
+protected files, including all 32 private SYX, plus settings and the regular
+launcher. Receipt: docs/personal-rotary-harmonization-device-20261007.json.
+Contribution branch passed 530 host cases (112,224,734 assertions), the 32-cycle
+stretch lifetime check, web-deploy and JavaScript syntax validation. Hardware
+feature checks use the personal integration build; no contribution-only binary
+was installed.

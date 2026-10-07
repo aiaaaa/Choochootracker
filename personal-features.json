@@ -270,7 +270,8 @@
     "validation_report": "docs/rotary-popup-device-20261007.json",
     "branch": "personal/r36h",
     "binary_reused_after_harmonization": true,
-    "reason": "Application sources, common assets and handheld production build inputs are identical to the verified installed build."
+    "reason": "Application sources, common assets and handheld production build inputs are identical to the verified installed build.",
+    "reconciled_source_commit": "e6a8e7d5aaaccdc9e87d39900ad7de49e7ea5989"
   },
   "song_storage": "Upstream CCT archives embed loaded Sample, SCWF and BYOWTBL audio. Text songs remain readable; no-sample songs stay text. Native patches remain owned by the song.",
   "harmonization_20261005": {
@@ -366,6 +367,8 @@
       "device_focused_assertions": 3476591,
       "device_settings_ui": "Support report, Lucky and Opt passed",
       "personal_web_build": "passed"
-    }
+    },
+    "device_report": "docs/personal-rotary-harmonization-device-20261007.json",
+    "contribution_commit": "90f21f45f088ad5401da5d291e49a15ce5f8ba17"
   }
 }
