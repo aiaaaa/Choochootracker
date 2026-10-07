@@ -1058,6 +1058,7 @@ Use **Save** before changing instrument types or loading another project.
 - **Mixer** contains **Mix volume** and the per-project `250-4000 Hz` **Tilt pivot** (default `1 kHz`) used by all Mixer Tilt controls.
 - **Graphics** contains **Edit color theme**, **Load font**, **Persistent waveform**, **Track visuals**, and the active renderer (`GPU` or `Software`). Track visuals selects **Detailed** (the synth waveform and its overlays) or **Audio waveform** (the actual summed output of that track) independently for every track; audio waveform clears any prior ADSR overlay immediately when playback starts. ChipNomad fonts and themes should work.
 - **Key mapping** customises the controls.
+- **Support report** writes a small diagnostic text file with the app version, platform, audio settings and CPU load, playback/overflow state, and a compact project summary. It does not include sample data or project title/author text. On Android and Web it opens the normal export/download flow; desktop and handheld builds save `support-report.txt` in the app's writable folder.
 - **Quit ChooChooTracker** exits cleanly.
 
 ## 13. Performance and troubleshooting
@@ -1070,7 +1071,7 @@ The CPU display is a smoothed measure of audio rendering time. It does not measu
 
 On Android, audio output now prefers AAudio to avoid intermittent crackling observed with OpenSL ES on the Pixel 7a. This buffered output prioritises stable playback and can add some response latency. The tracker canvas keeps its full 4:3 layout on square and other unusual screen ratios; unused space is shown as borders rather than cropping columns. If crackling persists, report the song, phone model, Android version and whether you are using the speaker, headphones or Bluetooth.
 
-If you run into pops, crashes or slowdowns, send us the `.cct` file that triggers them.
+If you run into pops, crashes or slowdowns, use **Settings > Support report** and attach the generated `support-report.txt` to the bug report. If a specific song triggers the problem, attach that `.cct` too.
 
 ### No sound
 
