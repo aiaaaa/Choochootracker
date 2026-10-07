@@ -71,6 +71,19 @@ YSE with ChooChoo Factory Presets and keeps OpenDX7 Originals separate.
 
 ## Current installed device build
 
+Source: `209b3eef3f96001d3e14761ab42163ddb1bfbe34`. Hold EDIT + Left/Right on
+Bank to cycle all available sources, with wraparound, on all 11 Bank-enabled
+engines. The loaded instrument stays unchanged. Normal EDIT tap still opens
+the chooser. Existing flat Sega/Game Boy preset browsing remains included.
+
+Only the focused UI button check was run on the handheld: order, wrap, release,
+tap and unchanged instrument/dirty state. No sound tests, as requested. Web
+rebuilt. Settings, all 32 private SYX banks and other user files are preserved;
+the regular launcher is unchanged and rollback is verified.
+See [UI update receipt](docs/bank-cycle-ui-device-20261007.json).
+
+## Previous installed device build (October 7 flat preset UI)
+
 Source: `14023d88133eec58d76be078625cd0e46d1b853c`. The Instrument page now says
 **Bank:**. Sega PSG, GB Pulse and GB Noise retain ALL, Factory and USER;
 ALL/Factory open flat preset lists, with USER sounds included in ALL.
