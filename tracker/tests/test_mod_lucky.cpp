@@ -166,9 +166,9 @@ TEST_CASE("ModLucky one Settings row edge activation and focus ownership") {
   } restore;
   chipnomadState=chipnomadCreate();projectInitAY(&chipnomadState->project);initDefaultAppSettings();testService(&s);
   currentScreen=&screenSettings;screenSettings.setup(0);screenSettings.fullRedraw();auto* data=mockScreenData;
-  REQUIRE(data);CHECK(data->rows==10);CHECK(data->getColumnCount(8)==3);
-  for(int row=0;row<10;++row)if(row!=8)CHECK(data->getColumnCount(row)==1);
-  data->cursorRow=8;data->cursorCol=0;gfxClear();screenSettings.draw();
+  REQUIRE(data);CHECK(data->rows==11);CHECK(data->getColumnCount(9)==3);
+  for(int row=0;row<11;++row)if(row!=9)CHECK(data->getColumnCount(row)==1);
+  data->cursorRow=9;data->cursorCol=0;gfxClear();screenSettings.draw();
   CHECK(std::string(mockGfxCells[17],32)=="I'm Feeling Lucky NEXT PLAY LOAD");CHECK(mockCursorX==18);
   screenSettings.onInput(0,0,0);screenSettings.onInput(1,keyEdit,1);
   for(int i=0;i<20;++i)screenSettings.onInput(1,keyEdit,1);
@@ -177,8 +177,8 @@ TEST_CASE("ModLucky one Settings row edge activation and focus ownership") {
   screenSettings.onInput(1,keyEdit,1);CHECK_FALSE(s.status().playing); // Same held press cannot PLAY.
   screenSettings.onInput(0,0,0);screenSettings.onInput(1,keyEdit,1);CHECK(s.status().playing);CHECK(calls==2);
   screenSettings.onInput(0,0,0);data->cursorCol=0;release=false;screenSettings.onInput(1,keyEdit,1);
-  screenSettings.onInput(0,0,0);screenSettings.onInput(1,keyDown,1);data->cursorRow=9;release=true;
-  REQUIRE(wait(s).canLoad());screenSettings.draw();CHECK(data->cursorRow==9);CHECK(data->cursorCol==0);CHECK_FALSE(s.status().playing);
+  screenSettings.onInput(0,0,0);screenSettings.onInput(1,keyDown,1);data->cursorRow=10;release=true;
+  REQUIRE(wait(s).canLoad());screenSettings.draw();CHECK(data->cursorRow==10);CHECK(data->cursorCol==0);CHECK_FALSE(s.status().playing);
   s.leave();screenSettings.setup(0);CHECK_FALSE(s.status().playing);CHECK(calls==4);s.leave();
 }
 TEST_CASE("ModLucky bounded retries malformed responses and staging rollback") {

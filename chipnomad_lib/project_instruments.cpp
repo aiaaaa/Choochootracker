@@ -345,7 +345,7 @@ static int freeMidiInstrument(Instrument* instrument) { freeCommon(instrument); 
 // The one source of truth for family metadata.  Values are accessed through
 // typed code below; no union member is addressed by an offset.
 #define D(n, f, r, v) {n, (uint8_t)(f), r, v}
-#define N D("Off", instrumentNoFX, 0, InstrumentMotionValue::raw)
+#define N D("-", instrumentNoFX, 0, InstrumentMotionValue::raw)
 static const InstrumentModDestination destNone[] = {N};
 static const InstrumentModDestination destAY1[] = {N, D("Volume", instrumentNoFX, 255, InstrumentMotionValue::raw), D("Pitch", instrumentNoFX, 0, InstrumentMotionValue::raw), D("Noise", instrumentNoFX, 0, InstrumentMotionValue::raw), D("EnvPrd", instrumentNoFX, 0, InstrumentMotionValue::raw)};
 static const InstrumentModDestination destAY2[] = {N, D("Volume", instrumentNoFX,255,InstrumentMotionValue::raw), D("Pitch",instrumentNoFX,0,InstrumentMotionValue::raw), D("TonePit",instrumentNoFX,0,InstrumentMotionValue::raw), D("Noise",instrumentNoFX,0,InstrumentMotionValue::raw), D("EnvPit",instrumentNoFX,0,InstrumentMotionValue::raw), D("SoftPit",instrumentNoFX,0,InstrumentMotionValue::raw), D("FMDepth",instrumentNoFX,0,InstrumentMotionValue::raw), D("PulseW",instrumentNoFX,0,InstrumentMotionValue::raw), D("PulseL",instrumentNoFX,0,InstrumentMotionValue::raw), D("WavIdx",instrumentNoFX,0,InstrumentMotionValue::raw)};
@@ -544,6 +544,156 @@ int instrumentMotionDestination(const Instrument* instrument, int destination, u
   return 1;
 }
 
+static int ccScale(uint8_t value, int maximum) {
+  return ((int)value * maximum + 63) / 127;
+}
+
+static int ccSigned(uint8_t value) {
+  return ((int)value * 255 + 63) / 127 - 128;
+}
+
+int instrumentCCDestinationAvailable(const Instrument* instrument, int destination) {
+  if (!instrument || destination == midiCCDestinationNone) return 0;
+  if (destination >= midiCCDestinationAttack && destination <= midiCCDestinationRelease)
+    return instrumentVoicePostSettings(const_cast<Instrument*>(instrument)) != NULL;
+  if (destination == 1) return 1; // Volume is shared by every instrument.
+  if (destination < 3) return 0;
+  const InstrumentModDestination* d = instrumentModDestination(instrument->type, destination);
+  if (!d || (!d->range && instrument->type != InstrumentType::AY2 &&
+             instrument->type != InstrumentType::AYSample)) return 0;
+  if (!instrumentModDestinationAvailable(instrument, destination)) return 0;
+  return strcmp(d->name, "Loop") && strncmp(d->name, "Index", 5);
+}
+
+int instrumentCCDestinationValue(const Instrument* instrument, int destination, uint8_t cc) {
+  if (!instrumentCCDestinationAvailable(instrument, destination)) return 0;
+  if (destination >= midiCCDestinationAttack && destination <= midiCCDestinationRelease) return ccScale(cc, 255);
+  const InstrumentModDestination* d = instrumentModDestination(instrument->type, destination);
+  if (d->value == InstrumentMotionValue::cutoff) return (int)filterCutoffFromControl((uint8_t)ccScale(cc, 255));
+  if (d->range == 16384) return ccScale(cc, 32767);
+  if (d->value == InstrumentMotionValue::speed) return ccScale(cc, 500);
+  return ccScale(cc, 255);
+}
+
+int instrumentSetCCDestination(Instrument* instrument, int destination, uint8_t cc) {
+  if (!instrumentCCDestinationAvailable(instrument, destination)) return 0;
+  if (destination == 1) { instrument->volume = (uint8_t)ccScale(cc, 255); return 1; }
+  if (destination >= midiCCDestinationAttack && destination <= midiCCDestinationRelease) {
+    InstrumentVoicePostSettings* post = instrumentVoicePostSettings(instrument);
+    uint8_t value = (uint8_t)ccScale(cc, 255);
+    if (destination == midiCCDestinationAttack) post->attack = value;
+    else if (destination == midiCCDestinationDecay) post->decay = value;
+    else if (destination == midiCCDestinationSustain) post->sustain = value;
+    else post->release = value;
+    return 1;
+  }
+  int value = instrumentCCDestinationValue(instrument, destination, cc);
+  switch (instrument->type) {
+    case InstrumentType::AY2:
+      if (destination == 3) instrument->chip.ay2.oscTone.fineTune = ccSigned(cc);
+      else if (destination == 4) instrument->chip.ay2.oscNoise.noisePeriod = value;
+      else if (destination == 5) instrument->chip.ay2.oscEnvelope.fineTune = ccSigned(cc);
+      else if (destination == 6) instrument->chip.ay2.oscSoftware.fineTune = ccSigned(cc);
+      else if (destination == 7) instrument->chip.ay2.oscSoftware.fmDepth = value;
+      else if (destination == 8) instrument->chip.ay2.oscSoftware.pulseWidth = value;
+      else if (destination == 9) instrument->chip.ay2.oscSoftware.pulseLow = ccScale(cc, 15);
+      else if (destination == 10) instrument->chip.ay2.oscSoftware.wavetableIndex = value;
+      else return 0;
+      break;
+    case InstrumentType::AYSample:
+      if (destination == 3) instrument->chip.aySample.pitchOffset = ccSigned(cc);
+      else if (destination == 4) instrument->chip.aySample.oscTone.fineTune = ccSigned(cc);
+      else if (destination == 5) instrument->chip.aySample.oscNoise.noisePeriod = value;
+      else return 0;
+      break;
+    case InstrumentType::Sample:
+      if (destination == 3) instrument->chip.sample.start = value;
+      else if (destination == 4) instrument->chip.sample.end = value;
+      else if (destination == 5) instrument->chip.sample.speedPercent = ccScale(cc, 500);
+      else if (destination == 7) instrument->chip.sample.filterCutoffHz = value;
+      else if (destination == 8) instrument->chip.sample.filterResonance = value;
+      else return 0;
+      break;
+    case InstrumentType::Braids:
+      if (destination == 3) instrument->chip.braids.timbre = value;
+      else if (destination == 4) instrument->chip.braids.color = value;
+      else if (destination == 5) instrument->chip.braids.filterCutoffHz = value;
+      else if (destination == 6) instrument->chip.braids.filterResonance = value;
+      else return 0;
+      break;
+    case InstrumentType::Plaits: case InstrumentType::PlaitsAlt:
+      if (destination == 3) instrument->chip.plaits.harmonics = value;
+      else if (destination == 4) instrument->chip.plaits.timbre = value;
+      else if (destination == 5) instrument->chip.plaits.morph = value;
+      else if (destination == 6) instrument->chip.plaits.auxMix = value;
+      else if (destination == 7) instrument->chip.plaits.filterCutoffHz = value;
+      else if (destination == 8) instrument->chip.plaits.filterResonance = value;
+      else return 0;
+      break;
+    case InstrumentType::SCWF:
+      if (destination == 3) instrument->chip.scwf.detune = value;
+      else if (destination == 4) instrument->chip.scwf.mix = value;
+      else if (destination == 5) instrument->chip.scwf.filterCutoffHz = value;
+      else if (destination == 6) instrument->chip.scwf.filterResonance = value;
+      else return 0;
+      break;
+    case InstrumentType::BYOWTBL:
+      if (destination == 3) instrument->chip.byowtbl.detune = value;
+      else if (destination == 4) instrument->chip.byowtbl.mix = value;
+      else if (destination == 5) instrument->chip.byowtbl.frameIndex[0] = value;
+      else if (destination == 6) instrument->chip.byowtbl.frameIndex[1] = value;
+      else if (destination == 7) instrument->chip.byowtbl.filterCutoffHz = value;
+      else if (destination == 8) instrument->chip.byowtbl.filterResonance = value;
+      else return 0;
+      break;
+    case InstrumentType::AChChid:
+      if (destination == 3) instrument->chip.achchid.cutoff = value;
+      else if (destination == 4) instrument->chip.achchid.resonance = ccScale(cc, 100);
+      else if (destination == 5) instrument->chip.achchid.envMod = ccScale(cc, 100);
+      else if (destination == 6) instrument->chip.achchid.decay = ccScale(cc, 2000);
+      else if (destination == 7) instrument->chip.achchid.accent = ccScale(cc, 100);
+      else if (destination == 8) instrument->chip.achchid.timbre = value;
+      else if (destination == 9) instrument->chip.achchid.color = value;
+      else return 0;
+      break;
+    case InstrumentType::DrumSynth:
+      if (destination == 3) instrument->chip.drumSynth.decay = value;
+      else if (destination == 4) instrument->chip.drumSynth.tone = value;
+      else if (destination == 5) instrument->chip.drumSynth.sweep = value;
+      else if (destination == 6) instrument->chip.drumSynth.noise = value;
+      else if (destination == 7) instrument->chip.drumSynth.fm = value;
+      else if (destination == 8) instrument->chip.drumSynth.drive = value;
+      else if (destination == 9) instrument->chip.drumSynth.filterCutoffHz = value;
+      else if (destination == 10) instrument->chip.drumSynth.filterResonance = value;
+      else return 0;
+      break;
+    case InstrumentType::MME:
+      if (destination == 3) instrument->chip.mme.waves = value;
+      else if (destination == 4) instrument->chip.mme.interval = value;
+      else if (destination == 5) instrument->chip.mme.amount = value;
+      else if (destination == 6) instrument->chip.mme.flow = value;
+      else if (destination == 7) instrument->chip.mme.feedback = value;
+      else if (destination == 8) instrument->chip.mme.shaper = value;
+      else if (destination == 9) instrument->chip.mme.filterCutoffHz = value;
+      else if (destination == 10) instrument->chip.mme.filterResonance = value;
+      else return 0;
+      break;
+    case InstrumentType::Sintered:
+      if (destination == 3) instrument->chip.sintered.decay = value;
+      else if (destination == 4) instrument->chip.sintered.mod = value;
+      else if (destination == 5) instrument->chip.sintered.a = value;
+      else if (destination == 6) instrument->chip.sintered.b = value;
+      else if (destination == 7) instrument->chip.sintered.motion = value;
+      else if (destination == 8) instrument->chip.sintered.c = value;
+      else if (destination == 9) instrument->chip.sintered.filterCutoffHz = value;
+      else if (destination == 10) instrument->chip.sintered.filterResonance = value;
+      else return 0;
+      break;
+    default: return 0;
+  }
+  return 1;
+}
+
 static const char* genericModName(int index) {
   static const char* names[] = {
     "RevSend", "DlySend",
@@ -571,6 +721,11 @@ int instrumentModDestinationMax(InstrumentType type) {
 }
 
 const char* instrumentModDestinationName(InstrumentType type, int destination) {
+  if (destination == midiCCDestinationNone) return "-";
+  if (destination == midiCCDestinationAttack) return "Attack";
+  if (destination == midiCCDestinationDecay) return "Decay";
+  if (destination == midiCCDestinationSustain) return "Sustain";
+  if (destination == midiCCDestinationRelease) return "Release";
   const InstrumentModDestination* definition = instrumentModDestination(type, destination);
   if (definition) return definition->name;
   return genericModName(instrumentGenericModDestination(type, destination));

@@ -461,6 +461,23 @@ enum class InstrumentMotionValue : uint8_t { raw, speed, cutoff };
 
 static constexpr uint8_t instrumentNoFX = 0xff;
 
+// Reserved destinations shared by all instruments for MIDI CC mappings.
+// 0 is the explicit "no destination" option; keep the other values below
+// the runtime MIDI CC destination table size.
+enum MidiCCDestination : uint8_t {
+  midiCCDestinationNone = 0,
+  midiCCDestinationAttack = 11,
+  midiCCDestinationDecay = 12,
+  midiCCDestinationSustain = 13,
+  midiCCDestinationRelease = 14,
+  midiCCDestinationSongPlayStop = 15,
+  midiCCDestinationTrackMute = 16,
+  midiCCDestinationTrackSolo = 17,
+  midiCCDestinationTrackVolume = 18,
+  midiCCDestinationTrackReverbSend = 19,
+  midiCCDestinationTrackDelaySend = 20,
+};
+
 struct InstrumentModDestination {
   const char* name;
   uint8_t fx;                 // FX enum value, or instrumentNoFX.
@@ -490,6 +507,9 @@ const InstrumentModDestination* instrumentModDestination(InstrumentType type, in
 int instrumentMotionDestination(const Instrument* instrument, int destination,
                                 uint8_t* fx, int* base, int* range,
                                 InstrumentMotionValue* value);
+int instrumentCCDestinationAvailable(const Instrument* instrument, int destination);
+int instrumentCCDestinationValue(const Instrument* instrument, int destination, uint8_t cc);
+int instrumentSetCCDestination(Instrument* instrument, int destination, uint8_t cc);
 int instrumentFXAvailable(InstrumentType type, uint8_t fx);
 int instrumentFXAvailableForInstrument(const Instrument* instrument, uint8_t fx);
 int instrumentModDestinationAvailable(const Instrument* instrument, int destination);

@@ -336,13 +336,20 @@ TEST_CASE_FIXTURE(StickLiveFixture, "Settings row, padded value, cursor and subs
   CHECK(mockCursorY == 4);
   CHECK(mockCursorWidth == 6);
 
+  screen->drawField(0, 8, CellState::focus);
+  CHECK(std::string(mockGfxCells[10], 14) == "Support report");
+  screen->drawCursor(0, 8);
+  CHECK(mockCursorX == 0);
+  CHECK(mockCursorY == 10);
+  CHECK(mockCursorWidth == 14);
+
   const char* labels[] = {"MIDI", "Key mapping", "Synths", "Mixer", "Graphics", "Quit ChooChooTracker"};
   const int lines[] = {5, 6, 7, 8, 9, 18};
   const int widths[] = {4, 11, 6, 5, 8, 19};
   const AppScreen* destinations[] = {&screenMidi, &screenKeyMapping, &screenSynthSettings, &screenMixerSettings, &screenGraphicsSettings};
   mockQuitTriggered = 0;
   for (int i = 0; i < 6; ++i) {
-    int row = i < 5 ? 3 + i : 9;
+    int row = i < 5 ? 3 + i : screen->rows - 1;
     screen->drawField(0, row, CellState::focus);
     CHECK(std::string(mockGfxCells[lines[i]], std::string(labels[i]).size()) == labels[i]);
     screen->drawCursor(0, row);
@@ -364,7 +371,7 @@ TEST_SUITE("MIDI settings") {
 TEST_CASE_FIXTURE(StickLiveFixture, "screenMidi shows device rows and links to channel mapping") {
   screenMidi.fullRedraw();
   REQUIRE(mockScreenData != nullptr);
-  CHECK(mockScreenData->rows == 3);
+  CHECK(mockScreenData->rows == 4);
   auto* screen = mockScreenData;
 
   screen->drawField(0, 0, CellState::focus);
@@ -385,6 +392,12 @@ TEST_CASE_FIXTURE(StickLiveFixture, "screenMidi shows device rows and links to c
   CHECK(std::string(mockGfxCells[5], 15) == "Channel mapping");
   screen->onEdit(0, 2, CellEditAction::tap);
   CHECK(currentScreen == &screenMidiChannelMap);
+
+  currentScreen = &screenMidi;
+  screen->drawField(0, 3, CellState::focus);
+  CHECK(std::string(mockGfxCells[6], 15) == "MIDI CC mapping");
+  screen->onEdit(0, 3, CellEditAction::tap);
+  CHECK(currentScreen == &screenMidiCC);
 
   currentScreen = &screenMidi;
   CHECK(screenMidi.onInput(1, keyOpt, 0) == 1);

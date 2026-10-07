@@ -128,6 +128,11 @@ struct PlaybackTrackState {
   uint8_t midiCCValue[4];
 };
 
+struct MidiCCRuntime {
+  uint8_t active;
+  uint8_t value;
+};
+
 struct PlaybackAYChipState {
   uint8_t envShape;
 };
@@ -176,6 +181,7 @@ struct PlaybackState {
   uint8_t scaleRoot;
   ScalePreset scalePreset;
   uint8_t scaleFXCommandSeen;
+  MidiCCRuntime midiCC[PROJECT_MAX_INSTRUMENTS][16];
 };
 
 // FX typedefs

@@ -10,13 +10,16 @@
 #include "experimental/mod_lucky/service.h"
 #include "audio_manager.h"
 #endif
+#include "support_report.h"
 
 #ifdef CHOOCHOO_EXPERIMENTAL_MOD_LUCKY
+static constexpr int luckyRow = 9;
+static constexpr int quitRow = 10;
 static bool luckyEditHeld, luckyFocusPending;
 static uint64_t luckyRevision;
 static unsigned luckyFrame;
 static constexpr int luckyX[] = {18, 23, 28};
-static int columnCount(int row) { return row == 8 ? 3 : 1; }
+static int columnCount(int row) { return row == luckyRow ? 3 : 1; }
 static void setup(int) {
   modLucky::service().enter(); luckyFocusPending = false;
   luckyRevision = 0;
@@ -43,6 +46,7 @@ static void luckyActivate(int column) {
   } catch (const std::exception& e) { screenMessage(MESSAGE_TIME_ERROR, "%s", e.what()); }
 }
 #else
+static constexpr int quitRow = 9;
 static int columnCount(int) { return 1; }
 static void setup(int) {}
 static void draw(void) {}
@@ -50,7 +54,7 @@ static void draw(void) {}
 static void drawStatic(void) { gfxSetFgColor(appSettings.colorScheme.textTitles); gfxPrint(0, 0, "SETTINGS"); }
 static void drawCursor(int col, int row) {
 #ifdef CHOOCHOO_EXPERIMENTAL_MOD_LUCKY
-  if (row == 8) {
+  if (row == luckyRow) {
     gfxSetCursorColor(appSettings.colorScheme.cursor);
     gfxCursor(luckyX[col], 17, 4);
     return;
@@ -59,7 +63,8 @@ static void drawCursor(int col, int row) {
   if (row < 2) gfxCursor(23, 2 + row, 3);
   else if (row == 2) gfxCursor(23, 4, 6);
   else if (row < 8) { static const int widths[] = {4, 11, 6, 5, 8}; gfxCursor(0, 2 + row, widths[row - 3]); }
-  else if (row == 9) gfxCursor(0, 18, 19);
+  else if (row == 8) gfxCursor(0, 10, 14);
+  else if (row == quitRow) gfxCursor(0, 18, 19);
 }
 static void noHeader(int, CellState) {}
 static void drawField(int col, int row, CellState state) {
@@ -70,7 +75,7 @@ static void drawField(int col, int row, CellState state) {
   else if (row == 2) { gfxPrint(0, 4, "Stick live mode"); gfxSetFgColor(state == CellState::focus ? cs.textValue : cs.textDefault); gfxPrint(23, 4, appSettings.stickLiveMode == StickLiveMode::free ? "FREE  " : appSettings.stickLiveMode == StickLiveMode::toggle ? "TOGGLE" : "HOLD  "); }
   else if (row >= 3 && row <= 7) { static const char* labels[] = {"MIDI", "Key mapping", "Synths", "Mixer", "Graphics"}; gfxSetFgColor(state == CellState::focus ? cs.textValue : cs.textDefault); gfxPrint(0, 2 + row, labels[row - 3]); }
 #ifdef CHOOCHOO_EXPERIMENTAL_MOD_LUCKY
-  else if (row == 8) {
+  else if (row == luckyRow) {
     auto lucky = modLucky::service().status();
     gfxPrint(0, 17, "I'm Feeling Lucky");
     const char* labels[] = {"NEXT", "PLAY", "LOAD"};
@@ -81,11 +86,12 @@ static void drawField(int col, int row, CellState state) {
     }
   }
 #endif
-  else if (row == 9) { gfxSetFgColor(state == CellState::focus ? cs.textValue : cs.textDefault); gfxPrint(0, 18, "Quit ChooChooTracker"); }
+  else if (row == 8) { gfxSetFgColor(state == CellState::focus ? cs.textValue : cs.textDefault); gfxPrint(0, 10, "Support report"); }
+  else if (row == quitRow) { gfxSetFgColor(state == CellState::focus ? cs.textValue : cs.textDefault); gfxPrint(0, 18, "Quit ChooChooTracker"); }
 }
 static int onEdit(int col, int row, CellEditAction action) {
 #ifdef CHOOCHOO_EXPERIMENTAL_MOD_LUCKY
-  if (row == 8) {
+  if (row == luckyRow) {
     // Logical key activation is edge-gated in onInput; touch taps use this path.
     if (action == CellEditAction::tap && !luckyEditHeld) luckyActivate(col);
     return 1;
@@ -100,11 +106,19 @@ static int onEdit(int col, int row, CellEditAction action) {
   else if (row == 5) screenSetup(&screenSynthSettings, 0);
   else if (row == 6) screenSetup(&screenMixerSettings, 0);
   else if (row == 7) screenSetup(&screenGraphicsSettings, 0);
-  else if (row == 9) { mainLoopTriggerQuit(); return 1; }
+  else if (row == 8) {
+    char path[PATH_LENGTH + 32];
+    if (supportReportSaveDefault("Settings", path, sizeof(path)) == 0)
+      screenMessage(MESSAGE_TIME, "Support report saved");
+    else
+      screenMessage(MESSAGE_TIME_ERROR, "Support report failed");
+    return 1;
+  }
+  else if (row == quitRow) { mainLoopTriggerQuit(); return 1; }
   return 0;
 }
 static ScreenData data = {
-  .rows = 10, .cursorRow = 0, .cursorCol = 0, .topRow = 0, .selectMode = -1,
+  .rows = quitRow + 1, .cursorRow = 0, .cursorCol = 0, .topRow = 0, .selectMode = -1,
   .selectStartRow = 0, .selectStartCol = 0, .selectAnchorRow = 0, .selectAnchorCol = 0,
   .playbackLevel = ScreenPlaybackLevel::none, .getColumnCount = columnCount,
   .drawStatic = drawStatic, .drawCursor = drawCursor, .drawSelection = NULL,
@@ -116,13 +130,13 @@ static int onInput(int isKeyDown, int keys, int taps) {
 #ifdef CHOOCHOO_EXPERIMENTAL_MOD_LUCKY
   const bool fresh = isKeyDown && keys == keyEdit && !luckyEditHeld;
   luckyEditHeld = (keys & keyEdit) != 0;
-  if (data.cursorRow == 8 && keys == keyEdit) {
+  if (data.cursorRow == luckyRow && keys == keyEdit) {
     if (fresh) luckyActivate(data.cursorCol);
     return 1;
   }
   if (keys & (keyUp | keyDown | keyLeft | keyRight)) luckyFocusPending = false;
 #endif
-  if (keys == (keyUp | keyShift)) { screenSetup(&screenSong, 0); return 1; }
+  if (keys == keyOpt || keys == (keyUp | keyShift)) { screenSetup(&screenSong, 0); return 1; }
   return screenInput(&data, isKeyDown, keys, taps);
 }
 #ifdef CHOOCHOO_EXPERIMENTAL_MOD_LUCKY
@@ -137,16 +151,16 @@ static void draw(void) {
     state = lucky.status();
   }
   if (state.revision != luckyRevision) {
-    if (luckyFocusPending && data.cursorRow == 8 && data.cursorCol == 0 &&
+    if (luckyFocusPending && data.cursorRow == luckyRow && data.cursorCol == 0 &&
         state.phase == modLucky::Phase::ready) data.cursorCol = 1;
     if (state.phase != modLucky::Phase::loading) luckyFocusPending = false;
     if (!state.message.empty()) screenMessage(state.phase == modLucky::Phase::failed ? MESSAGE_TIME_ERROR : MESSAGE_TIME,
                                              "%s", state.message.c_str());
     luckyRevision = state.revision;
   }
-  drawField(data.cursorCol, 8, data.cursorRow == 8 ? CellState::focus : CellState::normal);
-  if (data.cursorRow == 8) drawCursor(data.cursorCol, 8);
-  if (state.phase == modLucky::Phase::loading && data.cursorRow == 8 && data.cursorCol == 0) {
+  drawField(data.cursorCol, luckyRow, data.cursorRow == luckyRow ? CellState::focus : CellState::normal);
+  if (data.cursorRow == luckyRow) drawCursor(data.cursorCol, luckyRow);
+  if (state.phase == modLucky::Phase::loading && data.cursorRow == luckyRow && data.cursorCol == 0) {
     // Four theme-colored steps: indeterminate brightness only, never a percentage.
     const int head = (luckyFrame++ / 3) % 4;
     const unsigned background = appSettings.colorScheme.background;

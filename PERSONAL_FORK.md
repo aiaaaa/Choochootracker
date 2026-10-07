@@ -8,6 +8,9 @@
 
 Other contributors’ unmerged work is not included.
 
+Vita is a **paused project**, separate from the experiments. Its code stays at
+`256fedf`; this update does not merge, build or deploy Vita. Resume only on request.
+
 ## Earlier personal additions (history)
 
 This table records earlier additions, not the current installed implementation.
@@ -32,7 +35,13 @@ key jazz, Settings submenus and the aChChid workflow improvements.
 
 ## Current personal source
 
-Upstream base: `6e9eb2b79f7024027e8ff1308d131aa05c0096ed` (October 6 harmonization). Personal includes
+The October 7 update adds upstream M8 song import/export, MIDI CC editing, chord
+voicings, safer project saves, support reports and Opt navigation. Get Lucky
+follows Support report in personal Settings. Factory/USER ZIP collections, bank
+cycling, seamless USER stepping and calibrated native engines remain included.
+See [the integration report](docs/personal-harmonization-20261007.txt).
+
+Upstream base: `6406a749b8b01d2c3dc1292b5986444c856e81b6` (October 7 harmonization). Personal includes
 upstream’s track-visuals/GPU integration, corrected Graphics touch mapping, sample
 editor and processing updates, sample stretching, and bounce/export improvements.
 Native chip instruments and Get Lucky remain included. New saves use upstream’s
