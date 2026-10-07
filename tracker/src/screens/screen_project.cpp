@@ -446,7 +446,7 @@ int projectCommonOnEdit(int col, int row, enum CellEditAction action) {
 //
 
 static int inputScreenNavigation(int keys, int tapCount) {
-  if (keys == (keyDown | keyShift)) {
+  if (keys == keyOpt || keys == (keyDown | keyShift)) {
     screenSetup(&screenSong, 0);
     return 1;
   }
