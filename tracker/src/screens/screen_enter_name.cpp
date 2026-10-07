@@ -161,6 +161,10 @@ static int onInput(int isKeyDown, int keys, int tapCount) {
       fullRedraw();
     }
   } else {
+    if (keys == keyOpt) {
+      if (onCancelled) onCancelled();
+      return 1;
+    }
     return screenInput(&screenData, isKeyDown, keys, tapCount);
   }
   return 0;
