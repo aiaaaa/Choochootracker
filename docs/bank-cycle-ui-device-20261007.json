@@ -1,0 +1,32 @@
+{
+  "date": "2026-10-07",
+  "source_commit": "209b3eef3f96001d3e14761ab42163ddb1bfbe34",
+  "web_bundle_commit": "9f1f73f",
+  "scope": "EDIT + Left/Right cycles Bank choices on all 11 Bank-enabled engines, wrapping through ALL/factory/USER without changing the loaded instrument",
+  "device_ui_check": "Bank EDIT left/right order, wrap, release and tap passed for all 11 engines; no audio tests run",
+  "checks": [
+    "forward/reverse bank order",
+    "wraparound",
+    "release after held cycling stays on Instrument",
+    "EDIT tap still opens chooser",
+    "instrument and project dirty flag unchanged"
+  ],
+  "audio_testing": "Not run, as requested",
+  "installation": {
+    "source_commit": "209b3eef3f96001d3e14761ab42163ddb1bfbe34",
+    "binary_sha256": "fe4d303841f6ea5e62e550cec485d1b1d4e9aceea6edfd9979e7439fa76b53e7",
+    "binary_bytes": 2238424,
+    "invalidated_objects": 31,
+    "validation": "ARM production build, ZIP package integrity, focused production bank/preset UI navigation (no audio testing)",
+    "human_listening": "pending user evaluation",
+    "installed": "/roms/ports/choochootracker",
+    "rollback": "/roms/choochootracker-backups/pre-preset-packs-209b3eef3f96/previous-install",
+    "preserved_files": 853,
+    "retired_factory_files": 0,
+    "launcher_unchanged": true,
+    "settings_unchanged": true,
+    "private_syx_preserved": 32,
+    "installed_inventory_verified": true,
+    "rollback_inventory_verified": true
+  }
+}
