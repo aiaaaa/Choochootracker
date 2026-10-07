@@ -37,29 +37,31 @@ TEST_CASE("support report writes a bounded runtime summary") {
   CHECK(supportReportWrite(path.string().c_str(), "Settings") == 0);
 
   std::ifstream input(path, std::ios::binary);
-  REQUIRE(input.good());
-  std::string report((std::istreambuf_iterator<char>(input)),
-                     std::istreambuf_iterator<char>());
+  CHECK(input.good());
+  if (input.good()) {
+    std::string report((std::istreambuf_iterator<char>(input)),
+                       std::istreambuf_iterator<char>());
 
-  CHECK(report.find("ChooChooTracker support report\n") == 0);
-  CHECK(report.find(std::string("version=") + appVersion + "\n") != std::string::npos);
-  CHECK(report.find("platform=") != std::string::npos);
-  CHECK(report.find("screen=Settings\n") != std::string::npos);
-  CHECK(report.find("audio.sample_rate=48000\n") != std::string::npos);
-  CHECK(report.find("runtime.command_overflow=") != std::string::npos);
-  CHECK(report.find("runtime.render_buffer_overflow=") != std::string::npos);
-  CHECK(report.find("playback.is_playing=") != std::string::npos);
-  CHECK(report.find("project.modified=1\n") != std::string::npos);
-  CHECK(report.find("project.tracks=3\n") != std::string::npos);
-  CHECK(report.find("project.tick_rate=60.000\n") != std::string::npos);
-  CHECK(report.find("project.instrument_count=1\n") != std::string::npos);
-  CHECK(report.find("02:Braids") != std::string::npos);
-  CHECK(report.find("last_project_file_error=sample failure\n") != std::string::npos);
+    CHECK(report.find("ChooChooTracker support report\n") == 0);
+    CHECK(report.find(std::string("version=") + appVersion + "\n") != std::string::npos);
+    CHECK(report.find("platform=") != std::string::npos);
+    CHECK(report.find("screen=Settings\n") != std::string::npos);
+    CHECK(report.find("audio.sample_rate=48000\n") != std::string::npos);
+    CHECK(report.find("runtime.command_overflow=") != std::string::npos);
+    CHECK(report.find("runtime.render_buffer_overflow=") != std::string::npos);
+    CHECK(report.find("playback.is_playing=") != std::string::npos);
+    CHECK(report.find("project.modified=1\n") != std::string::npos);
+    CHECK(report.find("project.tracks=3\n") != std::string::npos);
+    CHECK(report.find("project.tick_rate=60.000\n") != std::string::npos);
+    CHECK(report.find("project.instrument_count=1\n") != std::string::npos);
+    CHECK(report.find("02:Braids") != std::string::npos);
+    CHECK(report.find("last_project_file_error=sample failure\n") != std::string::npos);
 
-  // The support report deliberately avoids project payload and user-authored
-  // title/author text.
-  CHECK(report.find("project.title=") == std::string::npos);
-  CHECK(report.find("project.author=") == std::string::npos);
+    // The support report deliberately avoids project payload and user-authored
+    // title/author text.
+    CHECK(report.find("project.title=") == std::string::npos);
+    CHECK(report.find("project.author=") == std::string::npos);
+  }
 
   chipnomadDestroy(state);
   chipnomadState = savedState;
