@@ -80,6 +80,20 @@ YSE with ChooChoo Factory Presets and keeps OpenDX7 Originals separate.
 
 ## Current installed device build
 
+Source: `c0a083ab980ea022ab0d497a19434a08fc885796`, harmonized with upstream main
+`6406a74`. Includes upstream 1.0.15 changes and the personal Factory/USER ZIP
+collections, bank cycling, continuous USER preset stepping, calibrated engines
+and Get Lucky. Vita is paused and was neither synchronized nor deployed.
+
+527 host tests and 25 focused ARM tests passed. The complete ARM package,
+web bundle, all 11 engines' Bank navigation, Sega/GB lists, USER stepping and
+Settings coexistence checks passed. No listening or calibration tests were run.
+853 existing files, settings, all 32 private SYX banks and the launcher were
+verified preserved. A complete rollback was verified before replacement.
+See [the installation receipt](docs/personal-harmonization-device-20261007.json).
+
+## Previous installed device build (USER preset stepping)
+
 Source: `117d476ff29fb4e5a783ed9e197962e1557417f5`. USER now supports EDIT +
 Left/Right preset stepping, continuing across banks, folders and ZIPs and
 wrapping at either end. The exact selected file and voice are tracked during
