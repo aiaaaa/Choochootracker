@@ -11,3 +11,21 @@ python scripts/measure_amplitude.py
 ```
 
 Les résultats sont `results/amplitude_metrics.csv`, `results/model_amplitude_summary.csv` et `results/compensation_gains.json`. Le gain proposé aligne la médiane de loudness K-pondérée BS.1770 sur PCM, puis le limite à `[-12 dB, +6 dB]` et préserve 1 dB de marge sur le 95e percentile des crêtes. Le JSON contient aussi les neuf points de compensation du Shaper pour chaque modèle MME.
+
+
+## Native chip and FM engines
+
+`build/tests/render_engine_measurements native-chips` renders the public factory
+ZIP presets for SID, OPLL/VRC7, OPL2, OPL3, Genesis, Arcade, DX7, Sega PSG,
+GB Pulse and GB Noise, plus the same PCM reference. Personal USER libraries
+are not read. Each patch is measured at MIDI 48 and 60, at 90% input gain and
+96 kHz; percussion-category patches use 250 ms. OPLL and VRC7 share the same
+programmable voice adapter and one pooled calibration. The established
+pre-mixer measurement convention and runtime routing gains are retained.
+
+Run `python scripts/measure_amplitude.py` on these WAVs to obtain the bounded
+per-engine correction. Calibration is a fixed engine gain, not automatic
+normalization or a per-preset rewrite. Repeated measurements include the
+currently compiled calibration; treat their gains as residual corrections,
+not as replacement absolute gains. Do not apply calibration twice. The
+native gain header records the measurement result and baseline.

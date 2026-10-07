@@ -9,6 +9,7 @@
 #include "opll_presets.h"
 #include "sid_patch.h"
 #include "fm_catalog.h"
+#include "user_preset_browser.h"
 #include "utils.h"
 #include "project_utils.h"
 #include "waveform_display.h"
@@ -42,30 +43,20 @@ int bankId(){return sid()?current()->chip.sid.bankId:isOPLL(current()->type)?cur
 const char* presetName(){return sid()?current()->chip.sid.presetName:isOPLL(current()->type)?current()->chip.opll.presetName:fourOp()?current()->chip.fourOp.presetName:dx7()?current()->chip.dx7.presetName:current()->chip.opl.presetName;}
 int8_t& fineTune(){return isOPLL(current()->type)?current()->chip.opll.fineTune:fourOp()?current()->chip.fourOp.fineTune:dx7()?current()->chip.dx7.fineTune:current()->chip.opl.fineTune;}
 bool compatible(const Entry& e){if(importing)return e.bank==bankFilter;return e.type==int(current()->type)||(current()->type==InstrumentType::OPL3&&e.type==int(InstrumentType::OPL2));}
-void refreshLibrary(){
-  // Rebuild only while no popup owns pointers into catalog strings.
-  std::string priorBank;
-  for(const auto& e:catalog)if(e.library&&e.bank==bankFilter){priorBank=e.bankName;break;}
-  catalog.erase(std::remove_if(catalog.begin(),catalog.end(),[](const auto& e){return e.library;}),catalog.end());
-  auto library=scanDX7Library(folder+"../banks/dx7/");
-  if(catalog.size()+library.entries.size()>65536){library.entries.resize(65536-catalog.size());library.limited=true;}
-  libraryDX7=std::move(library.patches);
-  catalog.insert(catalog.end(),library.entries.begin(),library.entries.end());
-  if(!priorBank.empty()){
-    bankFilter=0;for(const auto& e:catalog)if(e.library&&e.bankName==priorBank){bankFilter=e.bank;break;}
-  }
-  if(library.skipped||library.limited)screenMessage(MESSAGE_TIME_ERROR,"DX7: %d skipped%s",library.skipped,library.limited?", limit reached":"");
-}
 bool readCatalog(){
   if(catalogRead)return true;
-  folder="instruments/chips/";
+  std::string base="instruments/";
   bool external=fileIsRunningFromAppImage();
 #ifdef ANDROID_BUILD
   external=true;
 #endif
-  if(external){char root[1024];if(fileGetDefaultDirectory(root,sizeof(root)))return false;folder=std::string(root)+"/instruments/chips/";}
-  loadFMCatalog((folder+"catalog.tsv").c_str(),catalog);
-  catalogRead=true;refreshLibrary();return true;
+  if(external){char root[1024];if(fileGetDefaultDirectory(root,sizeof(root)))return false;base=std::string(root)+"/instruments/";}
+  folder=base+"FACTORY/";
+  if(!loadFMCatalog((folder+"catalog.tsv").c_str(),catalog)) {
+    folder=base+"chips/"; // Older installations remain readable.
+    loadFMCatalog((folder+"catalog.tsv").c_str(),catalog);
+  }
+  catalogRead=true;return true;
 }
 bool candidate(int index,Instrument& result){
   if(index<0||index>=int(catalog.size())||!compatible(catalog[index]))return false;
@@ -76,7 +67,7 @@ bool candidate(int index,Instrument& result){
     strncpy(result.name,result.chip.dx7.presetName,PROJECT_INSTRUMENT_NAME_LENGTH);return true;
   }
   auto p=std::make_unique<Project>();projectInit(p.get());
-  if(instrumentLoad(p.get(),(folder+catalog[index].path).c_str(),0)){projectFree(p.get());return false;}
+  if(!loadFMPreset(folder,catalog[index],p.get(),0)){projectFree(p.get());return false;}
   bool ok=p->instruments[0].type==InstrumentType::SID?validSID(p->instruments[0].chip.sid):isOPLL(p->instruments[0].type)?p->instruments[0].chip.opll.schema==1:isFourOp(p->instruments[0].type)?validFourOp(p->instruments[0].type,p->instruments[0].chip.fourOp):p->instruments[0].type==InstrumentType::DX7?validDX7(p->instruments[0].chip.dx7):isOPL(p->instruments[0].type)&&validOPL(p->instruments[0].type,p->instruments[0].chip.opl);
   ok=ok&&int(p->instruments[0].type)==catalog[index].type;
   if(ok){result=p->instruments[0];result.type=current()->type;
@@ -101,16 +92,15 @@ void select(int index){
 int selected(){for(size_t i=0;i<catalog.size();++i){const auto& e=catalog[i];if(e.bank==bankId()&&e.name==presetName()&&compatible(e))return i;}return -1;}
 void selectBank(int value){bankFilter=value;screenSetup(&screenInstrument,cInstrument);}
 void openBanks(){
-  bool alreadyRead=catalogRead;
   if(!readCatalog()){screenMessage(MESSAGE_TIME_ERROR,"Factory catalog missing");return;}
-  if(dx7()&&alreadyRead)refreshLibrary();
-  bankItems.clear();bankItems.push_back({"All banks",0,nullptr,0});
+  bankItems.clear();bankItems.push_back({"All banks",0,nullptr,0});bankItems.push_back({"USER",-2,nullptr,0});
   std::set<int> listed;
   for(const auto& e:catalog)if(compatible(e)&&listed.insert(e.bank).second)bankItems.push_back({e.bankName.c_str(),e.bank,nullptr,0});
   char title[32];snprintf(title,sizeof(title),"%s BANKS",instrumentTypeName(current()->type));
   selectionPopupSetup(title,bankItems.data(),bankItems.size(),bankFilter,selectBank,cancel,true);screenSetup(&screenSelectionPopup,0);
 }
 void openSounds(){
+  if(bankFilter==-2&&!importing){openUserPresetBrowser();return;}
   if(!readCatalog()){screenMessage(MESSAGE_TIME_ERROR,"Factory catalog missing");return;}
   if(!importing&&bankFilter&&std::none_of(catalog.begin(),catalog.end(),[](const auto& e){return compatible(e)&&e.bank==bankFilter;}))bankFilter=0;
   categoryNames={"All"};
@@ -149,7 +139,7 @@ void drawField(int col,int row,CellState state){
   if(row==6){instrumentFMToneDrawField(col,state);return;}if(row>=7){instrumentFMAmpDrawField(col,row-7,state);return;}
   if(row<3){instrumentCommonDrawField(col,row,state);return;}
   gfxSetFgColor(state==CellState::focus?appSettings.colorScheme.textValue:appSettings.colorScheme.textDefault);int y=row==3?6:row==4?7:9;gfxClearRect(9,y,30,1);
-  if(row==3){const char* name="All banks";for(const auto& e:catalog)if(e.bank==bankFilter){name=e.bankName.c_str();break;}gfxPrintf(9,y,"%.30s",name);}
+  if(row==3){const char* name=bankFilter==-2?"USER":"All banks";for(const auto& e:catalog)if(e.bank==bankFilter){name=e.bankName.c_str();break;}gfxPrintf(9,y,"%.30s",name);}
   else if(row==4)gfxPrintf(9,y,"%.30s",presetName());else gfxPrintf(9,y,"%+04d",fineTune());
   instrumentFMRefreshStaticWaveform();
 }
@@ -175,7 +165,7 @@ int onInput(int down,int keys,int){
   int row=screenInstrumentOPL.cursorRow;if(row!=3&&row!=4){buttonDown=0;return 0;}
   PopupEditInput input=popupEditInput(down,keys,&buttonDown);
   if(input==PopupEditInput::cycle){
-    if(row==4&&readCatalog()){
+    if(row==4&&bankFilter!=-2&&readCatalog()){
       int index=selected(),direction=keys==(keyEdit|keyRight)?1:-1;
       for(size_t tries=0;tries<catalog.size();++tries){index=(index+direction+catalog.size())%catalog.size();if(compatible(catalog[index])&&(!bankFilter||catalog[index].bank==bankFilter)){select(index);break;}}
     }return 1;

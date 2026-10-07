@@ -370,7 +370,7 @@ SHA-256 inventory. This macOS archive is not a handheld installation package.
 - Acquire further author-cleared DX7 content if the 1,000-sound goal remains
   desired. The 67-preset starter and large user-library import path are delivered.
 - Binary WOPL, OPM noise/partial-pan variants, DX7II/performance extensions,
-  runtime archives, search/favorites and operator editing are unsupported as
+  nested archives, search/favorites and operator editing are unsupported as
   described above. No claim is made that these formats are silently equivalent.
 - Heavy FM/insert combinations and smaller audio buffers can exceed the measured
   budget. Preserve the current launcher route and audio settings when comparing
@@ -378,3 +378,48 @@ SHA-256 inventory. This macOS archive is not a handheld installation package.
 - Device updates preserve user assets/settings and the regular launcher, verify a
   full rollback copy and record the installed source/binary identity. No PR or
   unrelated system configuration change is part of this delivery.
+
+
+## Factory voice gain compensation
+
+Calibration follows `scripts/README_MEASURE.md`: all 1,196 public factory presets at MIDI 48 and 60, 96 kHz and input gain 0.9, compared with the PCM sine reference. Native envelopes are retained; percussion uses 250 ms. OPLL and VRC7 share a pooled measurement. This is fixed engine compensation, not per-preset loudness matching. Existing mixer routing gains remain unchanged. User banks are excluded.
+
+| Engine | Renders | Median loudness dB | P95 peak dB | Applied gain dB |
+| --- | --- | --- | --- | --- |
+| arcade | 162 | -32.245 | -18.907 | +6.000 |
+| dx7 | 134 | -24.064 | -7.215 | +6.000 |
+| gb-noise | 56 | -39.380 | -23.121 | +6.000 |
+| gb-pulse | 48 | -40.695 | -21.342 | +6.000 |
+| genesis | 146 | -36.553 | -26.830 | +6.000 |
+| opl2 | 482 | -43.926 | -31.017 | +6.000 |
+| opl3 | 912 | -37.861 | -20.732 | +6.000 |
+| opll-vrc7 | 292 | -29.060 | -19.971 | +6.000 |
+| sega | 48 | -21.761 | -0.976 | -0.024 |
+| sid | 112 | -33.518 | -13.739 | +6.000 |
+
+Most engines reach the documented +6 dB boost cap and therefore remain below the PCM median. Sega PSG is constrained by its 95th-percentile peak. The 95th-percentile rule does not guarantee that every patch or multi-track mix stays below full scale. Patch parameters and saved instrument bytes are unchanged; playback and audition of existing native instruments use the new engine gain.
+
+The compensated rerender contains 2,394 clips including the PCM reference.
+For the 2,343 baseline clips with peaks above -120 dBFS, peak, RMS and
+K-weighted loudness changes match the applied gains within 0.003 dB. The
+remaining 51 clips are silent or below that threshold; no useful loudness
+comparison is claimed for them.
+
+## ZIP and USER browser validation
+
+The current factory inventory is 1,196 presets in 25 ZIP collections. Every
+archived CNI matches its original loose-file bytes. USER navigation supports
+real folders, ZIP subfolders, compatible CNI presets and DX7 SysEx banks;
+it does not require a catalog. Included collections live in
+`instruments/FACTORY/`; personal files live in `instruments/USER/<engine>/`.
+Previous `instruments/banks/<engine>/` folders remain accessible through
+USER without moving or duplicating their files. Regression coverage includes a whole Fat Man
+collection opened through USER, stored and deflated ZIPs, CRC failures,
+engine filtering, a synthetic 32-voice DX7 bank and the production popup's
+selection/back callbacks. The ZIP/gain change passed all 511 host test cases;
+the subsequent directory rename passed 16 targeted cases, including access
+to old and new folders together. The web bundle has been rebuilt.
+The desktop packager validates collection CRCs and catalog
+membership. Handheld browsing responsiveness and human listening of these
+changes remain to be checked; earlier device results above describe the
+previous installed build.

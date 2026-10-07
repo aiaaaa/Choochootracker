@@ -289,12 +289,12 @@ license/provenance records and modifications documented separately. Runtime
 notices are under `tracker/packaging/common/licenses/`.
 
 The normal build is offline and includes generated `.cni` presets plus their
-catalogue and provenance manifests from `packaging/common/instruments/chips`.
+catalogue and provenance manifests from `packaging/common/instruments/FACTORY`.
 Rebuild the approved data using the canonical C++ serializer:
 
 ```sh
 make -C tracker -f Makefile.test -j4 chip-factory
-python3 tools/chip_banks/convert.py --output tracker/packaging/common/instruments/chips --writer tracker/build/tests/chip_factory
+python3 tools/chip_banks/convert.py --output tracker/packaging/common/instruments/FACTORY --writer tracker/build/tests/chip_factory
 python3 -m unittest discover -s tools/chip_banks -p 'test_*.py'
 make -C tracker -f Makefile.test -j4
 ```
@@ -335,7 +335,7 @@ Local user conversion, separate from approved factory content:
 python3 tools/chip_banks/import_bank.py my-bank.syx --output my-new-library --writer tracker/build/tests/chip_factory
 make -C tracker -f Makefile.test -j4 chip-auditions
 cd tracker
-build/tests/chip_auditions packaging/common/instruments/chips ../.tmp/chip-audit/auditions packaging/common/projects/native-chip-audition.cct
+build/tests/chip_auditions packaging/common/instruments/FACTORY ../.tmp/chip-audit/auditions packaging/common/projects/native-chip-audition.cct
 ```
 
 The audition tool generates thirteen bank WAVs, numerical peak/RMS/DC records,
