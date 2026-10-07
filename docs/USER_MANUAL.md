@@ -1399,7 +1399,11 @@ Factory Presets. Sega PSG, GB Pulse and GB Noise offer **ALL**, **Factory** and 
 Their ALL and Factory preset menus are flat lists, without a category panel or
 Unsorted: ALL combines included and user presets, while Factory includes only
 bundled presets. USER retains normal folder/ZIP browsing. The Instrument page
-labels this source selector **Bank:** for every engine.
+labels this source selector **Bank:** for every engine. Hold **EDIT + Left/Right** on
+Bank to cycle backward/forward through ALL, the engine's factory collections
+and USER, wrapping at either end. This changes only the browsing filter; the
+current instrument stays unchanged until a preset is selected. Tapping EDIT
+still opens the bank chooser.
 
 **ALL → Preset** includes every applicable included collection plus compatible
 presets from that engine's USER folder. For engines with categorized preset menus, user sounds appear in both the **All**
