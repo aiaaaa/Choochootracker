@@ -198,6 +198,10 @@ static void setPage(int page) {
 }
 
 static int onInput(int isKeyDown, int keys, int tapCount) {
+  if (isKeyDown && keys == (keyLeft | keyShift) && mixerPage != 0) {
+    setPage(0);
+    return 1;
+  }
   if (isKeyDown && keys == (keyUp | keyShift)) {
     setPage(mixerPage == 2 ? 0 : 1);
     return 1;
