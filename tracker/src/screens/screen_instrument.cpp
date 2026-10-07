@@ -767,6 +767,19 @@ static ScreenPlaybackLevel getPlaybackLevel(void) {
   return ScreenPlaybackLevel::phrase;
 }
 
+#ifdef DESKTOP_BUILD
+int instrumentKeyJazzTextField(KeyJazzTextField* field) {
+  ScreenData* screen = instrumentScreen();
+  field->screen = screen;
+  field->row = 1;
+  field->popupOpen = isCharEdit;
+  field->marksProjectModified = 1;
+  field->str = NULL;
+  if (screen->cursorRow == 1) { field->str = chipnomadState->project.instruments[cInstrument].name; field->maxLen = PROJECT_INSTRUMENT_NAME_LENGTH; }
+  return 1;
+}
+#endif
+
 const AppScreen screenInstrument = {
   .init = init,
   .setup = setup,
