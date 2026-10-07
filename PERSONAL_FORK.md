@@ -8,6 +8,9 @@
 
 Other contributors’ unmerged work is not included.
 
+Vita is a **paused project**, separate from the experiments. Its code stays at
+`256fedf`; this update does not merge, build or deploy Vita. Resume only on request.
+
 ## Earlier personal additions (history)
 
 This table records earlier additions, not the current installed implementation.

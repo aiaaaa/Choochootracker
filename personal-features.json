@@ -278,8 +278,11 @@
       "personal_profile": "CHOOCHOO_EXPERIMENTAL_MOD_LUCKY=1",
       "normal_profile": "CHOOCHOO_EXPERIMENTAL_MOD_LUCKY=0",
       "previous_vita_revision": "d3991a100b226ac360ed12521d3b221816fb5806",
-      "source_sync_status": "Synchronized after PR #39; ordinary and personal Vita builds, 511 host tests per profile and package verification passed; installed device unchanged",
-      "validated_build_commit": "c5717682d12665d203023a93e73e70ac55e20cfc"
+      "source_sync_status": "Paused by user; October 7 R36H/main harmonization excluded. Existing source and installed Vita preserved.",
+      "validated_build_commit": "c5717682d12665d203023a93e73e70ac55e20cfc",
+      "status": "paused",
+      "paused_date": "2026-10-07",
+      "frozen_code_commit": "256fedf"
     }
   }
 }
