@@ -34,6 +34,41 @@ static void tapEdit(){key(1,keyEdit);key(0,0);}
 int main(int argc,char** argv){
   if(argc!=2&&argc!=3)return 1;output=argv[1];initDefaultAppSettings();appSettings.screenWidth=640;appSettings.screenHeight=480;fontSetCurrent(fontGetDefault());require(!gfxSetup(&appSettings.screenWidth,&appSettings.screenHeight),"SDL dummy setup");
   chipnomadState=chipnomadCreate();require(chipnomadState,"state");require(!projectLoad(&chipnomadState->project,"projects/gm-midi-demo.cct"),"fixture");
+  if(argc==3 && !strcmp(argv[2],"--bank-ui-only")) {
+    // Structural UI checks only: no audio initialization, playback or audition.
+    screensInitAll();waveformDisplayInit();monitorDisplayInit();
+    std::vector<FMPresetEntry> factory;
+    require(loadFMCatalog("instruments/FACTORY/builtins.tsv",factory),"simple factory catalog");
+    for(auto type:{InstrumentType::SegaPSG,InstrumentType::GBPulse,InstrumentType::GBNoise}) {
+      auto found=std::find_if(factory.begin(),factory.end(),[&](const auto& e){return e.type==int(type);});
+      require(found!=factory.end(),"simple factory entry");
+      auto path=std::filesystem::path("instruments/USER")/userPresetFolder(type)/"UI-flat-test.cni";
+      require(!std::filesystem::exists(path),"isolated user fixture");
+      require(loadFMPreset("instruments/FACTORY",*found,&chipnomadState->project,0),"factory fixture load");
+      strcpy(chipnomadState->project.instruments[0].name,"UI USER");
+      require(!instrumentSave(&chipnomadState->project,path.string().c_str(),0),"user fixture save");
+      require(loadFMPreset("instruments/FACTORY",*found,&chipnomadState->project,0),"factory fixture restore");
+      screenSetup(&screenInstrument,0);
+      char name[64];snprintf(name,sizeof(name),"bank-label-%d",int(type));capture(name);
+      instrumentPresetOpenCollections();snprintf(name,sizeof(name),"bank-options-%d",int(type));capture(name);key(1,keyOpt);
+      instrumentPresetOpenSounds();require(selectionPopupIsFullWidth(),"ALL has no category panel");
+      key(1,keyUp);snprintf(name,sizeof(name),"flat-all-%d",int(type));capture(name);tapEdit();
+      require(!strcmp(chipnomadState->project.instruments[0].name,"UI USER"),"ALL includes user preset");
+      instrumentPresetOpenCollections();key(1,keyDown);tapEdit();
+      require(!strcmp(instrumentPresetCollectionName(),"Factory"),"Factory choice retained");
+      instrumentPresetOpenSounds();require(selectionPopupIsFullWidth(),"Factory has no category panel");tapEdit();
+      require(strcmp(chipnomadState->project.instruments[0].name,"UI USER"),"Factory excludes user preset");
+      instrumentPresetOpenCollections();key(1,keyDown);tapEdit();
+      require(!strcmp(instrumentPresetCollectionName(),"USER"),"USER choice retained");
+      instrumentPresetOpenSounds();require(selectionPopupIsFullWidth(),"USER folder browser retained");tapEdit();
+      require(!strcmp(chipnomadState->project.instruments[0].name,"UI USER"),"USER selects own preset");
+      std::filesystem::remove(path);
+    }
+    getInstrumentFunctions(InstrumentType::DX7).init(&chipnomadState->project.instruments[0]);screenSetup(&screenInstrument,0);
+    capture("bank-label-dx7");instrumentPresetOpenSounds();require(!selectionPopupIsFullWidth(),"DX7 keeps category panel");key(1,keyOpt);
+    printf("Bank labels and Sega/GB ALL Factory USER navigation passed; no audio tests run\n");
+    chipnomadDestroy(chipnomadState);SDL_Quit();return 0;
+  }
   chipnomadInitChips(chipnomadState,48000,nullptr);chipnomadReserveRenderBuffers(chipnomadState,1024);screensInitAll();waveformDisplayInit();monitorDisplayInit();
   if(argc==3 && !strcmp(argv[2],"--presets-only")) {
     std::vector<FMPresetEntry> factory, builtins;

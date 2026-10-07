@@ -213,7 +213,7 @@ TEST_CASE("Collection UI retains top USER and ALL Unsorted loads a zipped DX7 ba
   CHECK(state->project.instruments[0].chip.dx7.sourceProgram==31);
   for(auto type:{InstrumentType::OPLL,InstrumentType::VRC7,InstrumentType::SegaPSG}) {
     getInstrumentFunctions(type).init(&state->project.instruments[0]);instrumentFMSetContext(0,type);instrumentPresetOpenCollections();menu=text();
-    CHECK(menu.find("Factory Presets")!=std::string::npos);CHECK(menu.find("USER")!=std::string::npos);
+    CHECK(menu.find(type==InstrumentType::SegaPSG?"Factory":"Factory Presets")!=std::string::npos);CHECK(menu.find("USER")!=std::string::npos);
     CHECK(menu.find("OpenDX7")==std::string::npos);CHECK(menu.find("YM2413")==std::string::npos);press(keyOpt);
   }
   chipnomadDestroy(state);chipnomadState=prior;
