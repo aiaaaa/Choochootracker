@@ -1,5 +1,13 @@
 # My R36H build
 
+Test branch `experimental/rotary-rate-popup` adds insert parameter descriptions
+to the Phrase/Table FX popup, continuous Rotary speed from 0.01 to 25 Hz, and
+Shift+Left/Right exits from branch pages to the MSCPIT row. It starts from the
+October 7 device personal build. Rotary's saved speed bytes now use the full
+00-FF scale; previous Slow/Fast/Hyper/Chaos settings correspond approximately
+to 8F/CB/E7/FF. Songs and private assets are not rewritten during installation.
+The device receipt records validation, installation and rollback separately.
+
 - **Main** mirrors the original developer’s code.
 - **Personal** is my full combined build: upstream code, my additions that haven’t
   been merged upstream, and my experiments. Unmerged features stay in Personal,
