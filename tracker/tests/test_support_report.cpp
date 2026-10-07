@@ -31,7 +31,7 @@ TEST_CASE("support report writes a bounded runtime summary") {
   state->project.tracksCount = 3;
   state->project.chipsCount = 1;
   state->project.tickRate = 60.0f;
-  state->project.instruments[2].type = InstrumentType::Braids;
+  state->project.instruments[2].type = InstrumentType::AY1;
   strncpy(projectFileError, "sample failure", sizeof(projectFileError) - 1);
   projectFileError[sizeof(projectFileError) - 1] = 0;
 
@@ -55,7 +55,7 @@ TEST_CASE("support report writes a bounded runtime summary") {
     CHECK(report.find("project.tracks=3\n") != std::string::npos);
     CHECK(report.find("project.tick_rate=60.000\n") != std::string::npos);
     CHECK(report.find("project.instrument_count=1\n") != std::string::npos);
-    CHECK(report.find("02:Braids") != std::string::npos);
+    CHECK(report.find("02:AY Classic") != std::string::npos);
     CHECK(report.find("last_project_file_error=sample failure\n") != std::string::npos);
 
     // The support report deliberately avoids project payload and user-authored
