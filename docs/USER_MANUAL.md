@@ -18,6 +18,10 @@ It follows the classic LSDj workflow and navigation system, with several sound d
 
 Install `choochootracker.zip` through PortMaster, or copy the extracted package to the console's `ports` directory. Start **ChooChooTracker** from the Ports menu.
 
+### Miyoo Mini / Mini Plus (Onion OS)
+
+Extract the MiyooPorts archive at the root of the SD card so that its `Roms/PORTS/` folders merge with Onion's existing folders. Start **ChooChooTracker** from the Ports menu after refreshing the collection. Back up the app's `projects/` folder before replacing an existing installation.
+
 ### Windows
 
 Run `choochootracker.exe` with `SDL2.dll` and `libwinpthread-1.dll` in the same directory.
