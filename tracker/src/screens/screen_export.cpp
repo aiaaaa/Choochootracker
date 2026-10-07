@@ -8,7 +8,9 @@
 #include "export_path.h"
 #include "export/export.h"
 #include "export/export_midi.h"
+#ifdef DESKTOP_BUILD
 #include "export/export_m8s.h"
+#endif
 #include "midi/smf_file.h"
 #include <string.h>
 
@@ -39,11 +41,13 @@ static int currentSampleRateIndex = 0;
 static int currentBitDepthIndex = 0;
 int startRow = 0;
 
-// M8S export: the .m8s used as a template for everything the tracker cannot
-// express. Remembered for the session; cleared with EDIT+OPT.
+#ifdef DESKTOP_BUILD
+// M8S export (desktop only): the .m8s used as a template for everything the
+// tracker cannot express. Remembered for the session; cleared with EDIT+OPT.
 static char m8sTemplatePath[1024] = "";
 static void m8sRunExport(void);
 static void m8sPickTemplate(void);
+#endif
 
 static ScreenData screenExportCommon = {
   .rows = SCR_EXPORT_ROWS,
@@ -171,8 +175,10 @@ int exportCommonColumnCount(int row) {
     return 1;
   } else if (row == 5) {
     return 1;
+#ifdef DESKTOP_BUILD
   } else if (row == 6) {
     return 1;
+#endif
   }
   return 0;
 }
@@ -195,7 +201,9 @@ void exportCommonDrawStatic(void) {
 
   gfxSetFgColor(cs.textValue);
   gfxPrint(0, 8, "MIDI");
+#ifdef DESKTOP_BUILD
   gfxPrint(0, 9, "M8S");
+#endif
 }
 
 void exportCommonDrawCursor(int col, int row) {
@@ -215,8 +223,10 @@ void exportCommonDrawCursor(int col, int row) {
     gfxCursor(13, 7, 26);
   } else if (row == 5) {
     gfxCursor(13, 8, 6);
+#ifdef DESKTOP_BUILD
   } else if (row == 6) {
     gfxCursor(13, 9, 26);
+#endif
   }
 }
 
@@ -254,6 +264,7 @@ void exportCommonDrawField(int col, int row, CellState state) {
     }
   } else if (row == 5) {
     gfxPrint(13, 8, "Export");
+#ifdef DESKTOP_BUILD
   } else if (row == 6) {
     gfxClearRect(13, 9, 26, 1);
     if (m8sTemplatePath[0]) {
@@ -267,6 +278,7 @@ void exportCommonDrawField(int col, int row, CellState state) {
     } else {
       gfxPrint(13, 9, "Choose template");
     }
+#endif
   }
 }
 
@@ -341,6 +353,7 @@ void generateExportPath(char* outputPath, int maxLen, const char* extension) {
   outputPath[maxLen - 1] = 0;
 }
 
+#ifdef DESKTOP_BUILD
 static void m8sTemplatePicked(const char* path) {
   strncpy(m8sTemplatePath, path, sizeof(m8sTemplatePath) - 1);
   m8sTemplatePath[sizeof(m8sTemplatePath) - 1] = 0;
@@ -380,6 +393,7 @@ static void m8sRunExport(void) {
     fullRedraw();
   }
 }
+#endif // DESKTOP_BUILD
 
 int exportCommonOnEdit(int col, int row, CellEditAction action) {
   int handled = 0;
@@ -480,6 +494,7 @@ int exportCommonOnEdit(int col, int row, CellEditAction action) {
       screenMessage(MESSAGE_TIME_ERROR, "%s", smfFileError);
     }
     handled = 1;
+#ifdef DESKTOP_BUILD
   } else if (row == 6) {
     if (currentExporter) return 1;
     if (action == CellEditAction::clear) {
@@ -491,6 +506,7 @@ int exportCommonOnEdit(int col, int row, CellEditAction action) {
       else m8sPickTemplate();
       handled = 1;
     }
+#endif
   }
 
   return handled;
