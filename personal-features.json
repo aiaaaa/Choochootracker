@@ -1,7 +1,7 @@
 {
   "upstream": "paiheulevrai/Choochootracker",
   "upstream_branch": "main",
-  "upstream_commit": "6406a749b8b01d2c3dc1292b5986444c856e81b6",
+  "upstream_commit": "e8fa36196170cba51580bda446a8f88fb961dc03",
   "personal_branch": "personal/r36h",
   "update_policy": "Personal combines upstream main, my additions not yet incorporated upstream, and my experiments. Keep unmerged additions, including pending or declined submissions. Once incorporated upstream, replace my earlier implementation with the maintainer's merged version, including his fixes and changes; remove duplicate code and controls. Test, preserve user data, record commit, and retain rollback before installation.",
   "features": [
@@ -142,7 +142,7 @@
     {
       "id": "rotary-rate-popup-navigation",
       "branch": "experimental/rotary-rate-popup",
-      "status": "Installed test branch; awaiting user evaluation",
+      "status": "Integrated into personal/r36h; contribution branch prepared separately",
       "installed_source_commit": "13968c857c547f2bee7c9f3d069ec7a9791426d2",
       "validation_report": "docs/rotary-popup-device-20261007.json",
       "changes": [
@@ -249,9 +249,10 @@
   "personal_fixes": [
     {
       "id": "sample-stretch-lifetime",
-      "status": "Personal fix; not submitted upstream",
+      "status": "Merged upstream via PR #48; maintainer implementation retained",
       "source_commit": "d0403eca2fc9ea0ba01d323b975a72ceabe7c0f0",
-      "description": "Release owned sample-stretch processors when voices are destroyed; prevent shallow copies. Fixes memory growth during repeated exports and engine recreation."
+      "description": "Release owned sample-stretch processors when voices are destroyed; prevent shallow copies. Fixes memory growth during repeated exports and engine recreation.",
+      "upstream_commit": "9b5f3e5"
     },
     {
       "id": "embedded-wavetable-layout",
@@ -262,11 +263,14 @@
     }
   ],
   "current_device_build": {
-    "source_commit": "c0a083ab980ea022ab0d497a19434a08fc885796",
-    "binary_sha256": "23d504d816a22586e7d377236259cc5446d853b7c84b1574751f133e933a32c0",
-    "rollback": "/roms/choochootracker-backups/pre-harmonization-c0a083ab980e/previous-install",
-    "binary_build_commit": "c0a083ab980ea022ab0d497a19434a08fc885796",
-    "validation_report": "docs/personal-harmonization-device-20261007.json"
+    "source_commit": "13968c857c547f2bee7c9f3d069ec7a9791426d2",
+    "binary_build_commit": "13968c857c547f2bee7c9f3d069ec7a9791426d2",
+    "binary_sha256": "7a414909728c4583e7ab7015846e3022178b12654a2396f3d136631d188de4d1",
+    "rollback": "/roms/choochootracker-backups/pre-rotary-popup-13968c857c54/previous-install",
+    "validation_report": "docs/rotary-popup-device-20261007.json",
+    "branch": "personal/r36h",
+    "binary_reused_after_harmonization": true,
+    "reason": "Application sources, common assets and handheld production build inputs are identical to the verified installed build."
   },
   "song_storage": "Upstream CCT archives embed loaded Sample, SCWF and BYOWTBL audio. Text songs remain readable; no-sample songs stay text. Native patches remain owned by the song.",
   "harmonization_20261005": {
@@ -294,7 +298,8 @@
     "host_validation": "511 full-suite tests before folder rename; 16 targeted cases after rename; web rebuilt",
     "report": "docs/chip-instruments-report.md",
     "source_commit": "bd1fe7166b3e524ca20b3cfacef413281b4c0518",
-    "device_validation_report": "docs/preset-packs-device-20261007.json"
+    "device_validation_report": "docs/preset-packs-device-20261007.json",
+    "upstream_status": "Merged via PR #48; shared preset, browser and gain implementations match upstream main"
   },
   "preset_collections_20261007": {
     "status": "Installed; host and ARM tests, production browser checks and startup verified",
@@ -343,6 +348,24 @@
       "status": "paused",
       "source_sync_status": "Excluded from October 7 harmonization; no code merge, build or deployment",
       "frozen_code_commit": "256fedf"
+    }
+  },
+  "harmonization_rotary_20261007": {
+    "upstream_commit": "e8fa36196170cba51580bda446a8f88fb961dc03",
+    "previous_personal_commit": "28ae5a6",
+    "integrated_test_branch": "experimental/rotary-rate-popup",
+    "contribution_branch": "contribution/rotary-insert-workflow",
+    "status": "Reconciled and validated; installed application binary unchanged",
+    "report": "docs/personal-rotary-harmonization-20261007.txt",
+    "validation": {
+      "host_cases": 531,
+      "host_assertions": 112224747,
+      "stretch_lifetime_cycles": 32,
+      "stretch_retained_bytes": 0,
+      "device_focused_cases": 55,
+      "device_focused_assertions": 3476591,
+      "device_settings_ui": "Support report, Lucky and Opt passed",
+      "personal_web_build": "passed"
     }
   }
 }

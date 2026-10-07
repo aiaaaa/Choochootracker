@@ -76,7 +76,7 @@ var ENVIRONMENT_IS_SHELL = !ENVIRONMENT_IS_WEB && !ENVIRONMENT_IS_NODE && !ENVIR
 
 // --pre-jses are emitted after the Module integration code, so that they can
 // refer to Module (if they choose; they can also define Module)
-// include: /var/folders/g9/899ky8t11x9g4x5pskvtwrrh0000gn/T/tmp4whhoaic.js
+// include: /var/folders/g9/899ky8t11x9g4x5pskvtwrrh0000gn/T/tmpcvvh6zx2.js
 
   if (!Module['expectedDataFileDownloads']) Module['expectedDataFileDownloads'] = 0;
   Module['expectedDataFileDownloads']++;
@@ -242,21 +242,21 @@ Module['FS_createPath']("/waveforms", "AKWF", true, true);
 
   })();
 
-// end include: /var/folders/g9/899ky8t11x9g4x5pskvtwrrh0000gn/T/tmp4whhoaic.js
-// include: /var/folders/g9/899ky8t11x9g4x5pskvtwrrh0000gn/T/tmpwejy_reu.js
+// end include: /var/folders/g9/899ky8t11x9g4x5pskvtwrrh0000gn/T/tmpcvvh6zx2.js
+// include: /var/folders/g9/899ky8t11x9g4x5pskvtwrrh0000gn/T/tmpn245htjl.js
 
     // All the pre-js content up to here must remain later on, we need to run
     // it.
     if ((typeof ENVIRONMENT_IS_WASM_WORKER != 'undefined' && ENVIRONMENT_IS_WASM_WORKER) || (typeof ENVIRONMENT_IS_PTHREAD != 'undefined' && ENVIRONMENT_IS_PTHREAD) || (typeof ENVIRONMENT_IS_AUDIO_WORKLET != 'undefined' && ENVIRONMENT_IS_AUDIO_WORKLET)) Module['preRun'] = [];
     var necessaryPreJSTasks = Module['preRun'].slice();
-  // end include: /var/folders/g9/899ky8t11x9g4x5pskvtwrrh0000gn/T/tmpwejy_reu.js
-// include: /var/folders/g9/899ky8t11x9g4x5pskvtwrrh0000gn/T/tmp9eufkbqb.js
+  // end include: /var/folders/g9/899ky8t11x9g4x5pskvtwrrh0000gn/T/tmpn245htjl.js
+// include: /var/folders/g9/899ky8t11x9g4x5pskvtwrrh0000gn/T/tmpsmnzi17s.js
 
     if (!Module['preRun']) throw 'Module.preRun should exist because file support used it; did a pre-js delete it?';
     necessaryPreJSTasks.forEach((task) => {
       if (Module['preRun'].indexOf(task) < 0) throw 'All preRun tasks that exist before user pre-js code should remain after; did you replace Module or modify Module.preRun?';
     });
-  // end include: /var/folders/g9/899ky8t11x9g4x5pskvtwrrh0000gn/T/tmp9eufkbqb.js
+  // end include: /var/folders/g9/899ky8t11x9g4x5pskvtwrrh0000gn/T/tmpsmnzi17s.js
 
 
 var programArgs = [];
