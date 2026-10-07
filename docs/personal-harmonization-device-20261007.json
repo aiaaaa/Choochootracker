@@ -1,0 +1,40 @@
+{
+  "source_commit": "c0a083ab980ea022ab0d497a19434a08fc885796",
+  "binary_sha256": "23d504d816a22586e7d377236259cc5446d853b7c84b1574751f133e933a32c0",
+  "binary_bytes": 2259048,
+  "invalidated_objects": 1,
+  "validation": "ARM personal build, ZIP integrity, focused Settings/M8/MIDI/save/report tests and production bank/preset UI navigation; no listening or calibration tests",
+  "human_listening": "pending user evaluation",
+  "installed": "/roms/ports/choochootracker",
+  "rollback": "/roms/choochootracker-backups/pre-harmonization-c0a083ab980e/previous-install",
+  "preserved_files": 853,
+  "retired_factory_files": 0,
+  "launcher_unchanged": true,
+  "settings_unchanged": true,
+  "private_syx_preserved": 32,
+  "installed_inventory_verified": true,
+  "rollback_inventory_verified": true,
+  "upstream_commit": "6406a749b8b01d2c3dc1292b5986444c856e81b6",
+  "host_tests": {
+    "cases_passed": 527,
+    "assertions_passed": 112214133
+  },
+  "arm_focused_tests": {
+    "cases_passed": 25,
+    "assertions_passed": 704
+  },
+  "web_build": "web-deploy and JavaScript syntax check passed",
+  "ui_checks": {
+    "ui": "USER stepping across SYX ZIP and CNI folders, duplicate names, wrap, focus and missing files passed; no audio tests run",
+    "bank-cycle": "Bank EDIT left/right order, wrap, release and tap passed for all 11 engines; no audio tests run",
+    "bank-flat": "Bank labels and Sega/GB ALL Factory USER navigation passed; no audio tests run",
+    "settings": "Harmonized Settings support report, Lucky row and Opt navigation passed; no audio tests run"
+  },
+  "vita": {
+    "status": "paused",
+    "code_revision": "256fedf",
+    "documentation_revision": "92cd28f",
+    "source_synchronized": false,
+    "built_or_deployed": false
+  }
+}

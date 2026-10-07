@@ -16,6 +16,18 @@ Validation:
 - Host full suite: 527 cases, 112,214,133 assertions passed.
 - Emscripten web-deploy and JavaScript syntax check passed; bundle regenerated.
 - No listening or gain-calibration tests requested or performed.
-- Device build, focused UI/regression checks and installation pending.
+- ARM focused tests: 25 cases, 704 assertions passed (102 filtered out).
+- ARM personal build, full PortMaster package and ZIP integrity passed.
+- Production UI checks: all 11 Bank cycles; Sega/GB flat lists; USER bank/ZIP/CNI
+  stepping, duplicate names, reverse/wrap, focus and missing files; Settings
+  Support report, Get Lucky and Opt navigation all passed. Captures inspected.
+- Focused ARM linker setup includes test_copy_paste.cpp for the shared selection
+  fixture; this is test-harness configuration, not an application code change.
+- Installed source: c0a083ab980ea022ab0d497a19434a08fc885796
+- Binary SHA-256: 23d504d816a22586e7d377236259cc5446d853b7c84b1574751f133e933a32c0
+- Verified preserved: 853 existing files, settings, launcher and 32 private SYX.
+- Verified rollback: /roms/choochootracker-backups/pre-harmonization-c0a083ab980e/previous-install
+- Receipt: docs/personal-harmonization-device-20261007.json
+- Physical controls/listening remain available for the user's playtest.
 - Vita code unchanged: only README, personal manifest, fork and Vita docs changed.
 

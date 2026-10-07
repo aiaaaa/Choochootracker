@@ -248,11 +248,11 @@
     }
   ],
   "current_device_build": {
-    "source_commit": "117d476ff29fb4e5a783ed9e197962e1557417f5",
-    "binary_build_commit": "117d476ff29fb4e5a783ed9e197962e1557417f5",
-    "binary_sha256": "b55d7ffd3baafb246e27ee1b7af372f27a0a672fdfdfb44fd183e1e3a4053cb0",
-    "validation_report": "docs/user-preset-step-device-20261007.json",
-    "rollback": "/roms/choochootracker-backups/pre-preset-packs-117d476ff29f/previous-install"
+    "source_commit": "c0a083ab980ea022ab0d497a19434a08fc885796",
+    "binary_sha256": "23d504d816a22586e7d377236259cc5446d853b7c84b1574751f133e933a32c0",
+    "rollback": "/roms/choochootracker-backups/pre-harmonization-c0a083ab980e/previous-install",
+    "binary_build_commit": "c0a083ab980ea022ab0d497a19434a08fc885796",
+    "validation_report": "docs/personal-harmonization-device-20261007.json"
   },
   "song_storage": "Upstream CCT archives embed loaded Sample, SCWF and BYOWTBL audio. Text songs remain readable; no-sample songs stay text. Native patches remain owned by the song.",
   "harmonization_20261005": {
@@ -318,8 +318,10 @@
   "harmonization_20261007": {
     "upstream_commit": "6406a749b8b01d2c3dc1292b5986444c856e81b6",
     "previous_personal_commit": "4ffd9f9",
-    "status": "Host suite and web build passed; handheld validation pending",
-    "report": "docs/personal-harmonization-20261007.txt"
+    "status": "Installed on R36H; host, web, ARM focused tests, UI checks, preserved-file and rollback verification passed",
+    "report": "docs/personal-harmonization-20261007.txt",
+    "source_commit": "c0a083ab980ea022ab0d497a19434a08fc885796",
+    "device_report": "docs/personal-harmonization-device-20261007.json"
   },
   "ports": {
     "vita": {
