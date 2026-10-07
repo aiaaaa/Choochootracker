@@ -71,6 +71,20 @@ YSE with ChooChoo Factory Presets and keeps OpenDX7 Originals separate.
 
 ## Current installed device build
 
+Source: `117d476ff29fb4e5a783ed9e197962e1557417f5`. USER now supports EDIT +
+Left/Right preset stepping, continuing across banks, folders and ZIPs and
+wrapping at either end. The exact selected file and voice are tracked during
+the session, so duplicate names retain their position. Reopening USER follows
+the current sound. Existing Bank cycling and flat Sega/Game Boy lists remain.
+
+Four focused host checks and the device navigation check passed, covering bank
+boundaries, CNI folders, duplicate names, wrap, browser focus and missing files.
+No sound tests were run. Web rebuilt. Settings, all 32 private SYX banks and
+other user files are preserved; the launcher and verified rollback are intact.
+See [navigation receipt](docs/user-preset-step-device-20261007.json).
+
+## Previous installed device build (October 7 Bank cycling)
+
 Source: `209b3eef3f96001d3e14761ab42163ddb1bfbe34`. Hold EDIT + Left/Right on
 Bank to cycle all available sources, with wraparound, on all 11 Bank-enabled
 engines. The loaded instrument stays unchanged. Normal EDIT tap still opens
