@@ -263,15 +263,13 @@
     }
   ],
   "current_device_build": {
-    "source_commit": "13968c857c547f2bee7c9f3d069ec7a9791426d2",
-    "binary_build_commit": "13968c857c547f2bee7c9f3d069ec7a9791426d2",
-    "binary_sha256": "7a414909728c4583e7ab7015846e3022178b12654a2396f3d136631d188de4d1",
-    "rollback": "/roms/choochootracker-backups/pre-rotary-popup-13968c857c54/previous-install",
-    "validation_report": "docs/rotary-popup-device-20261007.json",
-    "branch": "personal/r36h",
-    "binary_reused_after_harmonization": true,
-    "reason": "Application sources, common assets and handheld production build inputs are identical to the verified installed build.",
-    "reconciled_source_commit": "e6a8e7d5aaaccdc9e87d39900ad7de49e7ea5989"
+    "source_commit": "17d32f3b8a66abf53ec933be3064de452a7072f9",
+    "binary_sha256": "66af18eccaeec103ac51742a0996bb408c446b403bebccdf9ce65075887f2822",
+    "validation_report": "docs/community-presets-device-20261007.json",
+    "human_listening": "pending user evaluation",
+    "rollback": "/roms/choochootracker-backups/pre-community-17d32f3b8a66/previous-install",
+    "binary_build_commit": "17d32f3b8a66abf53ec933be3064de452a7072f9",
+    "branch": "personal/r36h"
   },
   "song_storage": "Upstream CCT archives embed loaded Sample, SCWF and BYOWTBL audio. Text songs remain readable; no-sample songs stay text. Native patches remain owned by the song.",
   "harmonization_20261005": {
@@ -372,7 +370,7 @@
     "contribution_commit": "90f21f45f088ad5401da5d291e49a15ce5f8ba17"
   },
   "user_source_formats_20261007": {
-    "status": "Implemented locally; host and corpus validation passed; not installed on handheld",
+    "status": "Installed; ARM source import, USER ZIP/save-load and production browser checks passed; listening pending",
     "formats": [
       "DX7 SYX",
       "Genesis TFI and DMP",
@@ -392,11 +390,17 @@
       "additional_ready_zip_browser_assertions": 165,
       "corpus_targeted_cases": 12,
       "corpus_targeted_assertions": 37466,
-      "web_build": "passed; regenerated local web/dist bundle"
+      "web_build": "passed; regenerated local web/dist bundle",
+      "arm": "Focused source import, owned save/load, real community ZIP libraries and production browser checks passed",
+      "arm_test_cases": 47,
+      "arm_test_assertions": 69704274,
+      "production_browser_engines": 11
     },
     "community_bundle": "ChooChoo-Community-Presets-20261007 (private Downloads bundle; not factory assets)",
     "limits": "SID-Wizard SWI, animated FM/operator macros, source-song FM LFO and unsupported tracker dependencies remain excluded",
     "scope_agreement": "User explicitly excluded SID-Wizard and advanced song-dependent FM/tracker features on 2026-10-07; proceed with supported source formats",
-    "manual": "docs/USER_MANUAL.md#portable-factory-collections-and-user-presets"
+    "manual": "docs/USER_MANUAL.md#portable-factory-collections-and-user-presets",
+    "source_commit": "17d32f3b8a66abf53ec933be3064de452a7072f9",
+    "retention_policy": "Permanent private USER assets, including SynprezFM: preserve across every device personal build; keep files and offline originals outside Git, factory assets and shared release packages; avoid byte-identical collection duplicates"
   }
 }

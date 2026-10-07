@@ -26,3 +26,11 @@ rg_log.txt
 chipnomad_log.txt
 
 .vercel
+
+# USER collections are permanent private data, retained outside source packages.
+# Only the engine-folder instructions belong in Git.
+/tracker/packaging/common/instruments/USER/**
+!/tracker/packaging/common/instruments/USER/*/
+!/tracker/packaging/common/instruments/USER/README.txt
+!/tracker/packaging/common/instruments/USER/*/README.txt
+**/ChooChoo-Community-Presets-*/

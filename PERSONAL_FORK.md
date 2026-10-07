@@ -11,11 +11,12 @@ ownership fix. These use the shared upstream implementation. The separate
 `contribution/rotary-insert-workflow` branch starts from upstream main and contains
 only the Rotary/insert/navigation changes and their documentation and tests.
 
-The installed application remains the verified binary built from `13968c8`:
-its application sources and handheld build inputs are unchanged by this merge.
-Lucky stays enabled. The regular launcher, settings, songs and private banks
-remain in place. See [reconciliation record](docs/personal-rotary-harmonization-20261007.txt)
-and [device validation](docs/rotary-popup-device-20261007.json).
+The installed application now includes community source imports from `17d32f3b8a66`.
+Lucky and the personal features stay enabled. The regular launcher, settings,
+songs and existing private banks remain intact. Supported community collections
+are private USER assets; SynprezFM was already present and was not duplicated.
+See [device validation](docs/community-presets-device-20261007.json) for the checks
+and rollback record.
 
 Rotary uses the full 00-FF speed scale, from 0.01 to 25 Hz. Previous
 Slow/Fast/Hyper/Chaos settings correspond approximately to 8F/CB/E7/FF.
@@ -100,6 +101,15 @@ OPLL/VRC7 tone sets become one Factory Presets list per engine. DX7 combines
 YSE with ChooChoo Factory Presets and keeps OpenDX7 Originals separate.
 
 ## Current installed device build
+
+Source: `17d32f3b8a66abf53ec933be3064de452a7072f9`. Community source formats load through
+the engine USER folders, including bank files and ZIPs. Host validation, focused
+ARM import/save-load tests and offscreen production browser checks passed.
+Existing settings, songs, private banks and the launcher were verified unchanged.
+The complete previous install is retained for rollback. Listening remains user
+evaluation; performance benchmarks remain skipped at the user's request.
+
+## Previous installed device build (October 7 collections)
 
 Source: `c0a083ab980ea022ab0d497a19434a08fc885796`, harmonized with upstream main
 `6406a74`. Includes upstream 1.0.15 changes and the personal Factory/USER ZIP
@@ -365,7 +375,7 @@ Prepare the pinned backend with the existing target toolchain first; see
 source attribution, test results and device status. This build selection is
 compile-time only. It does not add a runtime toggle or submenu.
 
-## Community source presets (local changes, October 7, 2026)
+## Community source presets (October 7, 2026)
 
 USER folders now import engine-compatible SYX, TFI, OPM, WOPL/OPLI/WOPLX/SBI,
 FUI, DMP and GoatTracker GTI5 INS sources directly, including bank files and ZIPs.
@@ -376,6 +386,12 @@ Host validation passed 540 cases plus the ready-library ZIP browser audit.
 Community downloads remain private assets outside this repository. SID-Wizard
 SWI and advanced tracker dependencies are explicitly outside this update's scope
 by user agreement on October 7. Compatible static FM patches and the supported
-PSG/GB/SID sequences remain included. These changes have not been installed on
-the handheld; device functional checks and user listening remain separate from
-the host checks. Performance benchmarks remain skipped at the user's request.
+PSG/GB/SID sequences remain included. These changes are installed on the handheld.
+ARM functional checks passed; user listening remains pending. Performance benchmarks remain skipped at the
+user's request.
+
+The community collections and SynprezFM are permanent private assets for every
+device personal build. Updates carry the existing USER library forward alongside
+songs and settings. Offline originals and ready packs remain outside Git; they
+are never part of factory assets or shared release packages. Identical collection
+copies are not added again.
