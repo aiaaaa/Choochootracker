@@ -547,7 +547,7 @@ void appOnEvent(MainLoopEventData eventData) {
     if (currentScreen == &screenPhrase && phraseKeyJazzHandleRawKey(eventData.data.input, 1)) break;
     if (currentScreen == &screenSong && songKeyJazzHandleRawKey(eventData.data.input, 1)) break;
     if (currentScreen == &screenChain && chainKeyJazzHandleRawKey(eventData.data.input, 1)) break;
-    if (currentScreen == &screenProject && projectKeyJazzHandleRawKey(eventData.data.input, 1)) break;
+    if (keyJazzTextHandleRawKey(eventData.data.input, 1, currentScreen)) break;
 #endif
 
     if (!rawInputActive && (isMotionRecordTrigger(eventData.data.input) ||
@@ -627,7 +627,7 @@ void appOnEvent(MainLoopEventData eventData) {
     if (currentScreen == &screenPhrase && phraseKeyJazzHandleRawKey(eventData.data.input, 0)) break;
     if (currentScreen == &screenSong && songKeyJazzHandleRawKey(eventData.data.input, 0)) break;
     if (currentScreen == &screenChain && chainKeyJazzHandleRawKey(eventData.data.input, 0)) break;
-    if (currentScreen == &screenProject && projectKeyJazzHandleRawKey(eventData.data.input, 0)) break;
+    if (keyJazzTextHandleRawKey(eventData.data.input, 0, currentScreen)) break;
 #endif
     int value = inputCodeToKey(eventData.data.input);
     int rawInputActive = inputRawCallback != NULL;
