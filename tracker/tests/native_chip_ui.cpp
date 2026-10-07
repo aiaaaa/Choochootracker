@@ -65,8 +65,10 @@ int main(int argc,char** argv){
       screenPhrase.onInput(0,0,1);
     }
     auto eventKey=[](int button,bool down) {
+      appDraw(); // Commit pending screenSetup before dispatching the next input.
       MainLoopEventData event{};event.type=down?MainLoopEvent::keyDown:MainLoopEvent::keyUp;
       event.data.input={InputDeviceType::logical,button};appOnEvent(event);
+      appDraw(); // Production screen changes are deferred until the next draw.
     };
     struct Route { const AppScreen *from,*left,*right; };
     const Route routes[]={
