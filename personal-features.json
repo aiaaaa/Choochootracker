@@ -318,7 +318,7 @@
   "harmonization_20261007": {
     "upstream_commit": "6406a749b8b01d2c3dc1292b5986444c856e81b6",
     "previous_personal_commit": "4ffd9f9",
-    "status": "Source integrated; validation in progress",
+    "status": "Host suite and web build passed; handheld validation pending",
     "report": "docs/personal-harmonization-20261007.txt"
   },
   "ports": {

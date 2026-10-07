@@ -12,4 +12,10 @@ then Quit. Regular builds retain upstream row ordering.
 The translated measurement guide retains the native-engine calibration section.
 Vita is paused; no Vita source synchronization, build or deployment.
 
-Validation and device installation: pending; append verified results before promotion.
+Validation:
+- Host full suite: 527 cases, 112,214,133 assertions passed.
+- Emscripten web-deploy and JavaScript syntax check passed; bundle regenerated.
+- No listening or gain-calibration tests requested or performed.
+- Device build, focused UI/regression checks and installation pending.
+- Vita code unchanged: only README, personal manifest, fork and Vita docs changed.
+
