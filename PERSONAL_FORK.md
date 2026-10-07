@@ -6,7 +6,10 @@ Shift+Left/Right exits from branch pages to the MSCPIT row. It starts from the
 October 7 device personal build. Rotary's saved speed bytes now use the full
 00-FF scale; previous Slow/Fast/Hyper/Chaos settings correspond approximately
 to 8F/CB/E7/FF. Songs and private assets are not rewritten during installation.
-The device receipt records validation, installation and rollback separately.
+Installed source: `797de755d7448e6ee4c8e23a643eef62ceb272ab`.
+The [device receipt](docs/rotary-popup-device-20261007.json) records the passed
+host/device checks, preserved files and verified rollback. Human listening is
+pending. The regular ChooChooTracker launcher runs this test build.
 
 - **Main** mirrors the original developer’s code.
 - **Personal** is my full combined build: upstream code, my additions that haven’t

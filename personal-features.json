@@ -142,7 +142,9 @@
     {
       "id": "rotary-rate-popup-navigation",
       "branch": "experimental/rotary-rate-popup",
-      "status": "Test branch for device evaluation",
+      "status": "Installed test branch; awaiting user evaluation",
+      "installed_source_commit": "797de755d7448e6ee4c8e23a643eef62ceb272ab",
+      "validation_report": "docs/rotary-popup-device-20261007.json",
       "changes": [
         "Contextual Phrase/Table insert popup descriptions and decoded value hints",
         "Rotary Speed 00-FF maps exponentially to 0.01-25 Hz",
