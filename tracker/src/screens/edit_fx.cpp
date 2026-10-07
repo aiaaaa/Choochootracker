@@ -27,6 +27,26 @@ static const Instrument* getCurrentInstrument() {
     ? &chipnomadState->project.instruments[currentInstrumentIdx] : NULL;
 }
 
+// Insert addresses remain stable in songs; only the picker is contextual.
+static bool insertFXAvailable(int fx) {
+  if (fx < fxF11 || fx > fxF28) return true;
+  if (!pSongTrack || *pSongTrack >= PROJECT_MAX_TRACKS) return false;
+  const int address = fx - fxF11;
+  const auto& config = chipnomadState->project.trackInserts[*pSongTrack][address / 8];
+  return address % 8 < insertDescriptor(config.module).count;
+}
+
+static uint8_t availableInsertChoice(uint8_t fx) {
+  if (insertFXAvailable(fx)) return fx;
+  // A stale command starts at the first control in its slot, or the other
+  // configured slot. Opening the picker does not change the stored command.
+  const int slot = (fx - fxF11) / 8;
+  for (int candidate : {fxF11 + slot * 8, fxF11 + (1 - slot) * 8}) {
+    if (insertFXAvailable(candidate)) return candidate;
+  }
+  return fxARP;
+}
+
 static bool nativeInfo(uint8_t instrumentIdx,int fx,NativeFXInfo& info) {
   return instrumentIdx!=EMPTY_VALUE_8 && instrumentIdx<PROJECT_MAX_INSTRUMENTS && instrumentFXAvailableForInstrument(&chipnomadState->project.instruments[instrumentIdx],fx) && instrumentNativeFXInfo(&chipnomadState->project.instruments[instrumentIdx],fx,&info);
 }
@@ -51,6 +71,7 @@ static const char* nativeControlDescription(int fx) {
   }
 }
 void selectInstrumentFX(uint8_t* fx,uint8_t selected,uint8_t instrumentIdx) {
+  if (!insertFXAvailable(selected)) return;
   NativeFXInfo info{};
   bool native=nativeInfo(instrumentIdx,selected,info);
   if(selected>=fxFBR&&selected<fxTotalCount&&!native)return;
@@ -80,6 +101,7 @@ static const char* contextualFXHint(uint8_t* fx,int table,uint8_t instrument) {
   return text;
 }
 static bool isFXAvailable(enum FX fx, uint8_t instrumentIdx, int isTable) {
+  if (!insertFXAvailable(fx)) return false;
   if(fx==fxFBR||(fx>=fxFET&&fx<=fxFLD))return false;
   if((fx>=fxFO1&&fx<=fxFO6)||fx==fxFFB)return false; // Retired personal commands.
   if (isTable && (fx == fxSCL || fx == fxCRD)) return false;
@@ -114,6 +136,7 @@ static int visibleFXCount(const FXGroup* group) {
   const Instrument* instrument = getCurrentInstrument();
   int count = 0;
   for (int i = 0; i < group->count; ++i) {
+    if (!insertFXAvailable(group->fxList[i].fx)) continue;
     if (currentIsTable && (group->fxList[i].fx == fxSCL || group->fxList[i].fx == fxCRD)) continue;
     if(group->fxList[i].fx>=fxFBR && (!instrument || !instrumentFXAvailableForInstrument(instrument,group->fxList[i].fx)))continue;
     if (!instrument || group->instType != InstrumentType::DrumSynth || instrumentFXAvailableForInstrument(instrument, group->fxList[i].fx)) ++count;
@@ -124,6 +147,7 @@ static int visibleFXCount(const FXGroup* group) {
 static const FXName* visibleFXAt(const FXGroup* group, int visibleIndex) {
   const Instrument* instrument = getCurrentInstrument();
   for (int i = 0; i < group->count; ++i) {
+    if (!insertFXAvailable(group->fxList[i].fx)) continue;
     if (currentIsTable && (group->fxList[i].fx == fxSCL || group->fxList[i].fx == fxCRD)) continue;
     if(group->fxList[i].fx>=fxFBR && (!instrument || !instrumentFXAvailableForInstrument(instrument,group->fxList[i].fx)))continue;
     if (instrument && group->instType == InstrumentType::DrumSynth && !instrumentFXAvailableForInstrument(instrument, group->fxList[i].fx)) continue;
@@ -151,7 +175,7 @@ int editFX(CellEditAction action, uint8_t* fx, uint8_t* lastValue, int isTable, 
     // Insert last FX
     if (fx[0] == EMPTY_VALUE_8) {
       fx[1] = lastValue[1];
-      selectInstrumentFX(fx,lastValue[0],instrumentIdx);
+      selectInstrumentFX(fx,availableInsertChoice(lastValue[0]),instrumentIdx);
     }
     lastValue[0] = fx[0];
     lastValue[1] = fx[1];
@@ -235,7 +259,8 @@ int getVisibleGroupCount(InstrumentType instType) {
   int count = 0;
   for (int i = 0; i < fxGroupCount; i++) {
     // Show group if it's non-instrument (InstrumentType::none) or matches current instrument type
-    if (fxGroups[i].instType == InstrumentType::none || fxGroups[i].instType == instType) {
+    if ((fxGroups[i].instType == InstrumentType::none || fxGroups[i].instType == instType) &&
+        visibleFXCount(&fxGroups[i]) > 0) {
       count++;
     }
   }
@@ -249,7 +274,8 @@ FXGroup* getVisibleGroup(int visibleIdx, InstrumentType instType) {
 
   int visibleCount = 0;
   for (int i = 0; i < fxGroupCount; i++) {
-    if (fxGroups[i].instType == InstrumentType::none || fxGroups[i].instType == instType) {
+    if ((fxGroups[i].instType == InstrumentType::none || fxGroups[i].instType == instType) &&
+        visibleFXCount(&fxGroups[i]) > 0) {
       if (visibleCount == visibleIdx) {
         return &fxGroups[i];
       }
@@ -266,7 +292,8 @@ int getActualGroupIndex(int visibleIdx, InstrumentType instType) {
 
   int visibleCount = 0;
   for (int i = 0; i < fxGroupCount; i++) {
-    if (fxGroups[i].instType == InstrumentType::none || fxGroups[i].instType == instType) {
+    if ((fxGroups[i].instType == InstrumentType::none || fxGroups[i].instType == instType) &&
+        visibleFXCount(&fxGroups[i]) > 0) {
       if (visibleCount == visibleIdx) {
         return i;
       }
@@ -306,7 +333,13 @@ int drawGroupHeader(int visibleGroupIdx, int y, int isCurrent) {
     gfxSetFgColor(appSettings.colorScheme.textTitles);
   }
 
-  gfxPrint(1, y, group->name);
+  if (group->fxList && group->fxList[0].fx >= fxF11 && group->fxList[0].fx <= fxF28) {
+    const int slot = (group->fxList[0].fx - fxF11) / 8;
+    const auto& config = chipnomadState->project.trackInserts[*pSongTrack][slot];
+    gfxPrintf(1, y, "TF%d: %s", slot + 1, insertDescriptor(config.module).name);
+  } else {
+    gfxPrint(1, y, group->name);
+  }
 
   return y + 1;  // Next line after header
 }
@@ -362,6 +395,8 @@ void fxEditFullDraw(uint8_t currentFX, uint8_t instrumentIdx, int isTable) {
     instType = chipnomadState->project.instruments[instrumentIdx].type;
   }
 
+  currentFX = availableInsertChoice(currentFX);
+
   // Get visible groups
   int visibleGroupCount = getVisibleGroupCount(instType);
 
@@ -394,6 +429,8 @@ void fxEditFullDraw(uint8_t currentFX, uint8_t instrumentIdx, int isTable) {
     currentGroup = 0;
     currentIdx = 0;
     expandedGroup = 0;
+    const FXName* first = visibleFXAt(getVisibleGroup(0, instType), 0);
+    if (first) currentFX = first->fx;
   }
 
   // Draw help for current FX at top (with instrument context)

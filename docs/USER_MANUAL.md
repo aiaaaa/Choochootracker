@@ -1168,10 +1168,14 @@ chain. Both reverb and delay sends receive its output. Shared effects, returns,
 master controls and mute/solo retain their existing behavior. Inserts do not
 process audio from external MIDI devices.
 
-The Insert FX chooser category adds **F11–F18** for TF1 and **F21–F28** for TF2.
+Insert commands use **F11–F18** for TF1 and **F21–F28** for TF2. The roll's
+FX selection and Phrase/Table popup offer only parameters used by the selected
+track's configured inserts. The popup groups them as **TF1: effect name** and
+**TF2: effect name**; OFF slots are hidden. Bypassed inserts remain editable.
 In the Phrase and Table FX popup, the description follows the selected track's
 insert slot: it shows the module, parameter name, decoded range endpoints and
-saved base value. OFF and unused parameter addresses are identified explicitly.
+saved base value. Existing song commands are preserved if a module change makes
+them unused; opening their picker starts at an available control.
 While editing a value, the bottom hint shows its decoded value and units.
 Any Phrase or Table FX column can address either slot; the Phrase grid keeps its
 three columns. These absolute runtime values persist across notes, instruments,

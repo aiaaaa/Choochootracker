@@ -56,6 +56,15 @@ int main(int argc,char** argv){
           require(strstr(help,descriptor.name),"popup names selected insert module");
           require(strstr(help,parameter<descriptor.count?descriptor.parameters[parameter].name:"no effect"),"popup describes active or unused parameter");
           fxEditFullDraw(fx,0,0);
+          uint8_t selected[]={uint8_t(fx),91},last[]={0,0};
+          fxEditInput(0,1,selected,last);
+          if(parameter<descriptor.count) require(selected[0]==fx,"active control selectable");
+          else require(selected[0]!=fx,"unused control is not selectable");
+          if(selected[0]>=fxF11&&selected[0]<=fxF28) {
+            const int a=selected[0]-fxF11;
+            require(a%8<insertDescriptor(project.trackInserts[0][a/8].module).count,"fallback is active");
+          }
+          require(selected[1]==91,"selection preserves automation value");
           if((module==insertRotary && (parameter==0||parameter==4)) ||
              (module==insertCompressor && slot==0 && parameter==5)) {
             char name[100];snprintf(name,sizeof(name),"insert-%d-slot-%d-param-%d-header-%d",module,slot,parameter,header);capture(name);
@@ -89,7 +98,7 @@ int main(int argc,char** argv){
     screenSetup(&screenMixer,0);eventKey(keyShift,true);eventKey(keyUp,true);eventKey(keyUp,false);
     require(screenMixerGetPage()==1,"reverb page entered");eventKey(keyLeft,true);eventKey(keyLeft,false);eventKey(keyShift,false);
     require(currentScreen==&screenMixer&&screenMixerGetPage()==0,"left edge returns to mixer");
-    printf("Insert popup production UI and Shift spine navigation passed: all modules, both slots, active/unused parameters, waveform off/on\n");
+    printf("Insert popup production UI and Shift spine navigation passed: all modules, both slots, active-only selection, waveform off/on\n");
     chipnomadDestroy(chipnomadState);SDL_Quit();return 0;
   }
   if(argc==3 && !strcmp(argv[2],"--harmonization-ui-only")) {
