@@ -1,3 +1,4 @@
+#include "native_chip_gain.h"
 // Uses the pinned zlib m6581 digital and filter helpers; see external/chips/NOTICE.txt.
 #define CHIPS_IMPL
 #include "sid_voice.h"
@@ -69,7 +70,7 @@ void SIDVoice::render(float* out,size_t frames){
   cyclePhase_+=985248./rate_;int cycles=int(cyclePhase_);cyclePhase_-=cycles;
   float sample=0;for(int c=0;c<cycles;++c)sample+=clock();sample/=std::max(1,cycles);
   float blocked=sample-previous_+dcPole_*dc_;previous_=sample;dc_=blocked;
-  out[i]=amp_.process(blocked);level_=std::max(std::abs(out[i]),level_*.999f);
+  out[i]=amp_.process(blocked*nativeChipGain(InstrumentType::SID));level_=std::max(std::abs(out[i]),level_*.999f);
   if(!gated_&&!chip_.voice[0].env_cur_level){if(++silent_>unsigned(rate_*.05))kill();}else silent_=0;
  }
 }
