@@ -420,6 +420,12 @@ selection/back callbacks. The ZIP/gain change passed all 511 host test cases;
 the subsequent directory rename passed 16 targeted cases, including access
 to old and new folders together. The web bundle has been rebuilt.
 The desktop packager validates collection CRCs and catalog
-membership. Handheld browsing responsiveness and human listening of these
-changes remain to be checked; earlier device results above describe the
+membership. The October 7 device personal build passed 62 selected ARM test cases,
+production USER/ZIP browsing and audition checks, and startup with the waveform
+display off/on. A 70-second ALSA check at the existing 48 kHz / 4906-frame
+setting reported zero render-deadline misses and zero non-finite samples;
+peak output was 0.481 at the fixture's 0.4 master gain. The regular launcher,
+settings and all 32 private SYX banks were preserved, and rollback was verified.
+Human listening and interactive browsing evaluation remain pending. See
+`preset-packs-device-20261007.json`; earlier device results above describe the
 previous installed build.

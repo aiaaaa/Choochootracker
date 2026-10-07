@@ -1,0 +1,56 @@
+{
+  "date": "2026-10-07",
+  "channel": "device personal build",
+  "source_commit": "bd1fe7166b3e524ca20b3cfacef413281b4c0518",
+  "binary_build_commit": "0b4bca780ab0892d8c75e634984e76f697fd09fc",
+  "binary_sha256": "ff4dcc976538feb99aa31720705ef73fdb6d2bf2734fc0b26e0b10f7fd862e94",
+  "binary_bytes": 2222032,
+  "production_content_unchanged_between_commits": true,
+  "factory_zip_packs": 25,
+  "factory_presets": 1196,
+  "engine_user_folders": 11,
+  "host_validation": {
+    "full_suite_before_folder_rename": 511,
+    "targeted_after_rename": 16,
+    "web_build": "passed"
+  },
+  "arm_tests": {
+    "cases": 62,
+    "assertions": 98943219,
+    "failed": 0
+  },
+  "device_ui": "Factory ZIP loads for all 11 engines; USER roots; nested ZIP folders; audition without song mutation; CNI selection; zipped DX7 bank voices; captures visually inspected",
+  "audio": {
+    "source_commit": "bd1fe7166b3e524ca20b3cfacef413281b4c0518",
+    "measurements": {
+      "driver": "alsa",
+      "format": "S16",
+      "master_gain": "0.4",
+      "rate": "48000",
+      "frames": "4906",
+      "callbacks": "685",
+      "p95_us": "83522.250",
+      "p99_us": "84572.250",
+      "worst_us": "96176.500",
+      "render_deadline_misses": "0",
+      "energy": "54982.316475",
+      "peak": "0.480939",
+      "nonfinite": "0"
+    },
+    "settings_and_autosave_unchanged": true,
+    "frames": 4906,
+    "route": "plughw:0,0",
+    "startup_waveform_off_on": true,
+    "subjective_listening": "pending"
+  },
+  "installed_inventory_verified": true,
+  "rollback_inventory_verified": true,
+  "rollback": "/roms/choochootracker-backups/pre-preset-packs-bd1fe7166b3e/previous-install",
+  "preserved_files": 842,
+  "private_syx_preserved": 32,
+  "launcher_unchanged": true,
+  "settings_unchanged": true,
+  "retired_verified_factory_files": 1202,
+  "human_listening": "pending user evaluation",
+  "user_library_note": "Personal content remains on the handheld; no personal bank data was added to source or packages."
+}
