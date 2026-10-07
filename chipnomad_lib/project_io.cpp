@@ -6,6 +6,10 @@
 #include <string>
 #include <utility>
 #include <vector>
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#endif
 #include "project.h"
 #include "opll_presets.h"
 #include "opl_patch.h"
@@ -1587,47 +1591,134 @@ static int projectSaveInternal(FILE* file, Project* project) {
   return 0;
 }
 
-int projectSave(Project* p, const char* path) {
-  projectFileError[0] = 0;
+static int closeProjectOutput(FILE* file, int result) {
+  if (!file) return 1;
+  if (result == 0 && fflush(file) != 0) result = 1;
+  if (ferror(file)) result = 1;
+  if (fclose(file) != 0) result = 1;
+  return result;
+}
 
+static int projectSaveDirect(Project* p, const char* path) {
   if (cctHasSamples(p)) {
     FILE* projectFile = tmpfile();
-    if (!projectFile) return 1;
-    projectSaveInternal(projectFile, p);
+    if (!projectFile) {
+      snprintf(projectFileError, 40, "Can't create temporary project");
+      return 1;
+    }
+
+    int projectResult = projectSaveInternal(projectFile, p);
+    if (projectResult != 0 || fflush(projectFile) != 0 || ferror(projectFile)) {
+      fclose(projectFile);
+      snprintf(projectFileError, 40, "Can't serialize project");
+      return 1;
+    }
+
     long projectSize = ftell(projectFile);
-    if (projectSize < 0 || fseek(projectFile, 0, SEEK_SET) != 0) { fclose(projectFile); return 1; }
-    CctZipEntry projectEntry; projectEntry.name = "project.cct"; projectEntry.data.resize((size_t)projectSize);
+    if (projectSize < 0 || fseek(projectFile, 0, SEEK_SET) != 0) {
+      fclose(projectFile);
+      snprintf(projectFileError, 40, "Can't prepare project archive");
+      return 1;
+    }
+
+    CctZipEntry projectEntry;
+    projectEntry.name = "project.cct";
+    projectEntry.data.resize((size_t)projectSize);
     if (fread(projectEntry.data.data(), 1, projectEntry.data.size(), projectFile) != projectEntry.data.size()) {
-      fclose(projectFile); return 1;
+      fclose(projectFile);
+      snprintf(projectFileError, 40, "Can't read serialized project");
+      return 1;
     }
     fclose(projectFile);
-    std::vector<CctZipEntry> entries; entries.push_back(std::move(projectEntry));
+
+    std::vector<CctZipEntry> entries;
+    entries.push_back(std::move(projectEntry));
     int sampleIndex = 0;
     for (int i = 0; i < PROJECT_MAX_INSTRUMENTS; ++i) {
       Instrument* instrument = &p->instruments[i];
-      InstrumentSample* samples[2] = {NULL, NULL}; int count = 0;
-      if (instrument->type == InstrumentType::Sample) samples[count++] = &instrument->chip.sample;
-      else if (instrument->type == InstrumentType::SCWF || instrument->type == InstrumentType::BYOWTBL) {
-        samples[count++] = &instrument->chip.scwf.oscillator[0]; samples[count++] = &instrument->chip.scwf.oscillator[1];
+      InstrumentSample* samples[2] = {NULL, NULL};
+      int count = 0;
+      if (instrument->type == InstrumentType::Sample) {
+        samples[count++] = &instrument->chip.sample;
+      } else if (instrument->type == InstrumentType::SCWF || instrument->type == InstrumentType::BYOWTBL) {
+        samples[count++] = &instrument->chip.scwf.oscillator[0];
+        samples[count++] = &instrument->chip.scwf.oscillator[1];
       }
-      for (int j = 0; j < count; ++j, ++sampleIndex) if (samples[j]->data && samples[j]->frameCount) {
-        CctZipEntry sample; char name[32]; snprintf(name, sizeof(name), "samples/%03d.wav", sampleIndex); sample.name = name;
+
+      for (int j = 0; j < count; ++j, ++sampleIndex) {
+        if (!samples[j]->data || !samples[j]->frameCount) continue;
+        CctZipEntry sample;
+        char name[32];
+        snprintf(name, sizeof(name), "samples/%03d.wav", sampleIndex);
+        sample.name = name;
         cctAppendSampleWav(samples[j], &sample.data,
                            instrument->type == InstrumentType::BYOWTBL ? instrument->chip.byowtbl.frameSize[j] : 0);
         entries.push_back(std::move(sample));
       }
     }
+
     FILE* file = fopen(path, "wb");
-    if (!file) return 1;
-    int result = cctWriteZip(file, entries); fclose(file); return result;
+    if (!file) {
+      snprintf(projectFileError, 40, "Can't open save file");
+      return 1;
+    }
+    int result = cctWriteZip(file, entries);
+    result = closeProjectOutput(file, result);
+    if (result != 0 && projectFileError[0] == 0) {
+      snprintf(projectFileError, 40, "Can't write save file");
+    }
+    return result;
   }
 
   FILE* file = fopen(path, "wb");
-  if (file == NULL) return 1;
+  if (!file) {
+    snprintf(projectFileError, 40, "Can't open save file");
+    return 1;
+  }
 
   int result = projectSaveInternal(file, p);
-  fclose(file);
+  result = closeProjectOutput(file, result);
+  if (result != 0 && projectFileError[0] == 0) {
+    snprintf(projectFileError, 40, "Can't write save file");
+  }
   return result;
+}
+
+#ifndef WEB_BUILD
+static int replaceProjectFile(const char* tempPath, const char* path) {
+#ifdef _WIN32
+  return MoveFileExA(tempPath, path, MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH) ? 0 : 1;
+#else
+  return rename(tempPath, path) == 0 ? 0 : 1;
+#endif
+}
+#endif
+
+int projectSave(Project* p, const char* path) {
+  projectFileError[0] = 0;
+
+#ifdef WEB_BUILD
+  // The browser filesystem does not provide the rename semantics used by the
+  // native transactional path. Keep the existing direct-save behavior there.
+  return projectSaveDirect(p, path);
+#else
+  // Write beside the destination first. A failed serialization or close never
+  // truncates the previous valid project/autosave.
+  std::string tempPath = std::string(path) + ".tmp";
+  int result = projectSaveDirect(p, tempPath.c_str());
+  if (result != 0) {
+    remove(tempPath.c_str());
+    return result;
+  }
+
+  if (replaceProjectFile(tempPath.c_str(), path) != 0) {
+    remove(tempPath.c_str());
+    snprintf(projectFileError, 40, "Can't replace save file");
+    return 1;
+  }
+
+  return 0;
+#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////
