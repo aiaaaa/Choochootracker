@@ -2,38 +2,11 @@
 #include <project_utils.h>
 #include "import_m8s.h"
 #include "import_common.h"
+#include <m8s_format.h>
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-// Fixed offsets of the M8 song file (firmware 2.x - 4.x layout, which all
-// share the same song/chain/phrase/instrument tables).
-#define M8S_HEADER "M8VERSION"
-#define M8S_HEADER_SIZE 14
-#define M8S_DIRECTORY_SIZE 128
-#define M8S_TEMPO_OFFSET (M8S_HEADER_SIZE + M8S_DIRECTORY_SIZE + 1)
-#define M8S_NAME_OFFSET (M8S_HEADER_SIZE + M8S_DIRECTORY_SIZE + 6)
-#define M8S_NAME_SIZE 12
-#define M8S_SONG_OFFSET 0x2EE
-#define M8S_PHRASES_OFFSET 0xAEE
-#define M8S_CHAINS_OFFSET 0x9A5E
-#define M8S_INSTRUMENTS_OFFSET 0x13A3E
-#define M8S_SONG_ROWS 256
-#define M8S_TRACKS 8
-#define M8S_PHRASES 255
-#define M8S_PHRASE_STEPS 16
-#define M8S_PHRASE_STEP_SIZE 9
-#define M8S_CHAINS 255
-#define M8S_CHAIN_STEPS 16
-#define M8S_INSTRUMENTS 128
-#define M8S_INSTRUMENT_SIZE 215
-#define M8S_INSTRUMENT_NAME_SIZE 12
-#define M8S_EMPTY 0xFF
-#define M8S_MIN_FILE_SIZE (M8S_INSTRUMENTS_OFFSET + M8S_INSTRUMENTS * M8S_INSTRUMENT_SIZE)
-#define M8S_MAX_FILE_SIZE (4 * 1024 * 1024)
-#define M8S_STEPS_PER_BEAT 4
-#define M8S_DEFAULT_GROOVE_TICKS 6 // matches the app's own default groove (see project.cpp projectInit)
 
 static void copyName(char* dest, size_t destSize, const uint8_t* src, size_t srcSize) {
   size_t len = 0;
@@ -69,8 +42,8 @@ int projectLoadM8S(Project* project, const char* path) {
     return 1;
   }
 
-  int major = data[10 + 1] & 0x0F;
-  if (memcmp(data, M8S_HEADER, strlen(M8S_HEADER)) != 0 || major < 2 || major > 4) {
+  int major = data[M8S_VERSION_MSB_OFFSET] & 0x0F;
+  if (memcmp(data, M8S_MAGIC, strlen(M8S_MAGIC)) != 0 || major < 2 || major > 4) {
     free(data);
     snprintf(projectFileError, 40, major > 4 ? "M8 version not supported" : "Not a valid M8 song");
     return 1;
@@ -83,7 +56,7 @@ int projectLoadM8S(Project* project, const char* path) {
   memcpy(&bpm, data + M8S_TEMPO_OFFSET, sizeof(bpm));
   if (!(bpm >= 30.0f && bpm <= 300.0f)) bpm = 120.0f;
   double stepSeconds = 60.0 / bpm / M8S_STEPS_PER_BEAT;
-  p.tickRate = (float)(M8S_DEFAULT_GROOVE_TICKS / stepSeconds);
+  p.tickRate = (float)(M8S_GROOVE_TICKS / stepSeconds);
 
   copyName(p.title, sizeof(p.title), data + M8S_NAME_OFFSET, M8S_NAME_SIZE);
 
@@ -121,7 +94,7 @@ int projectLoadM8S(Project* project, const char* path) {
 
       uint8_t note = step[0];
       if (note == M8S_EMPTY) continue;
-      if (note >= 0x80) {
+      if (note >= M8S_NOTE_OFF) {
         dest->note = NOTE_OFF;
         continue;
       }
