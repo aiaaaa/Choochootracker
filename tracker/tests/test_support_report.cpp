@@ -18,6 +18,7 @@ TEST_CASE("support report writes a bounded runtime summary") {
   fs::remove(path);
 
   ChipNomadState* savedState = chipnomadState;
+  AppSettings savedSettings = appSettings;
   int savedModified = projectModified;
   char savedError[sizeof(projectFileError)];
   memcpy(savedError, projectFileError, sizeof(savedError));
@@ -65,6 +66,7 @@ TEST_CASE("support report writes a bounded runtime summary") {
 
   chipnomadDestroy(state);
   chipnomadState = savedState;
+  appSettings = savedSettings;
   projectModified = savedModified;
   memcpy(projectFileError, savedError, sizeof(savedError));
   fs::remove(path);
