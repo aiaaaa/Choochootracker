@@ -113,6 +113,15 @@ static int titleLogicalSizeActive = 0;
 static SDL_Texture* titleTexture = NULL;
 static void drawTrackerLabel(const char* text, int centerX, int y, int color);
 
+static Uint32 nativeTexturePixelFormat(void) {
+#ifdef MIYOOPORTS_BUILD
+  // MMIYOO documents ARGB8888 as its only confirmed correct 32-bit format.
+  return SDL_PIXELFORMAT_ARGB8888;
+#else
+  return SDL_PIXELFORMAT_RGBA8888;
+#endif
+}
+
 static void setTextureNearest(SDL_Texture* texture) {
 #if SDL_VERSION_ATLEAST(2, 0, 12)
   if (texture) SDL_SetTextureScaleMode(texture, SDL_ScaleModeNearest);
@@ -267,7 +276,13 @@ GfxImage* gfxImageLoadBMP(const char* path) {
   if (!surface) return NULL;
   const int width = surface->w;
   const int height = surface->h;
-  SDL_Surface* rgba = SDL_ConvertSurfaceFormat(surface, SDL_PIXELFORMAT_RGBA32, 0);
+  SDL_Surface* rgba = SDL_ConvertSurfaceFormat(surface,
+#ifdef MIYOOPORTS_BUILD
+    SDL_PIXELFORMAT_ARGB8888,
+#else
+    SDL_PIXELFORMAT_RGBA32,
+#endif
+    0);
   SDL_FreeSurface(surface);
   if (!rgba) return NULL;
   uint8_t* pixels = (uint8_t*)rgba->pixels;
@@ -315,7 +330,7 @@ void gfxImageDrawCrop(const GfxImage* image, int sourceX, int sourceY,
 void gfxTitleBegin(void) {
   if (!titleLogicalSizeActive) {
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
-    titleTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888,
+    titleTexture = SDL_CreateTexture(renderer, nativeTexturePixelFormat(),
       SDL_TEXTUREACCESS_TARGET, 256, 224);
     if (!titleTexture) return;
     SDL_SetTextureBlendMode(titleTexture, SDL_BLENDMODE_NONE);
@@ -464,7 +479,7 @@ static void createFontTexture(void) {
   if (rows * charH > 480) return;
 #endif
 
-  fontTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888,
+  fontTexture = SDL_CreateTexture(renderer, nativeTexturePixelFormat(),
     SDL_TEXTUREACCESS_TARGET, charW * charsPerRow, charH * rows);
   if (!fontTexture) {
     fprintf(stderr, "Could not create font texture: %s\n", SDL_GetError());
@@ -912,18 +927,9 @@ Bitmap* gfxBitmapCreate(int widthChars, int heightChars) {
   memset(bitmap->data, 0, dataSize);
 
   // Create SDL texture for hardware-accelerated rendering
-#ifdef MIYOOPORTS_BUILD
-  // The MMIYOO driver maps RGBA8888 to its ARGB surface, but on little-endian
-  // ARM its RGBA byte layout then puts our alpha in the blue channel and turns
-  // transparent pixels opaque. ARGB8888 is the format the driver documents as
-  // correct, including its alpha layout.
-  const Uint32 bitmapPixelFormat = SDL_PIXELFORMAT_ARGB8888;
-#else
-  const Uint32 bitmapPixelFormat = SDL_PIXELFORMAT_RGBA8888;
-#endif
   SDL_Texture* texture = SDL_CreateTexture(
     renderer,
-    bitmapPixelFormat,
+    nativeTexturePixelFormat(),
     SDL_TEXTUREACCESS_STREAMING,
     bitmap->widthPixels,
     bitmap->heightPixels
