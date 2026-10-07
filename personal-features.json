@@ -248,12 +248,11 @@
     }
   ],
   "current_device_build": {
-    "source_commit": "aa794cbf1daaf853281904bbd62be90910d53d28",
-    "binary_build_commit": "aa794cbf1daaf853281904bbd62be90910d53d28",
-    "binary_sha256": "9dc5039827c962c40933bf308915e0cb54dcf1ce6ee3a4c05194d23ed1e366f1",
-    "validation_report": "docs/factory-user-collections-device-20261007.json",
-    "human_listening": "pending user evaluation",
-    "rollback": "/roms/choochootracker-backups/pre-preset-packs-aa794cbf1daa/previous-install"
+    "source_commit": "14023d88133eec58d76be078625cd0e46d1b853c",
+    "binary_build_commit": "14023d88133eec58d76be078625cd0e46d1b853c",
+    "binary_sha256": "93ea90e4df17b779defc1b4a30fb9d4df2a296dc4381164caa4e951279e4456a",
+    "validation_report": "docs/bank-flat-ui-device-20261007.json",
+    "rollback": "/roms/choochootracker-backups/pre-preset-packs-14023d88133e/previous-install"
   },
   "song_storage": "Upstream CCT archives embed loaded Sample, SCWF and BYOWTBL audio. Text songs remain readable; no-sample songs stay text. Native patches remain owned by the song.",
   "harmonization_20261005": {
@@ -297,5 +296,11 @@
     "validation_report": "docs/factory-user-collections-device-20261007.json",
     "host_validation": "516 full-suite cases and 14 final focused cases",
     "device_validation": "66 ARM cases; all 11 engine collection/USER roots; ALL Unsorted zipped DX7 bank voices"
+  },
+  "bank_flat_ui_20261007": {
+    "status": "Installed; minimal UI-only validation passed",
+    "source_commit": "14023d88133eec58d76be078625cd0e46d1b853c",
+    "report": "docs/bank-flat-ui-device-20261007.json",
+    "audio_testing": "Not run, as requested"
   }
 }
