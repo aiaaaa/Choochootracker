@@ -336,6 +336,13 @@ TEST_CASE_FIXTURE(StickLiveFixture, "Settings row, padded value, cursor and subs
   CHECK(mockCursorY == 4);
   CHECK(mockCursorWidth == 6);
 
+  screen->drawField(0, 8, CellState::focus);
+  CHECK(std::string(mockGfxCells[10], 14) == "Support report");
+  screen->drawCursor(0, 8);
+  CHECK(mockCursorX == 0);
+  CHECK(mockCursorY == 10);
+  CHECK(mockCursorWidth == 14);
+
   const char* labels[] = {"MIDI", "Key mapping", "Synths", "Mixer", "Graphics", "Quit ChooChooTracker"};
   const int lines[] = {5, 6, 7, 8, 9, 18};
   const int widths[] = {4, 11, 6, 5, 8, 19};
