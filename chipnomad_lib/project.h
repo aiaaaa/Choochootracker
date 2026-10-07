@@ -437,6 +437,7 @@ int projectSave(Project* p, const char* path);
 int instrumentSave(Project* p, const char* path, int instrumentIdx);
 // Load instrument from a file
 int instrumentLoad(Project* p, const char* path, int instrumentIdx);
+int instrumentLoadMemory(Project* p, const uint8_t* bytes, size_t size, int instrumentIdx);
 
 // Is chain empty?
 int8_t chainIsEmpty(Project* p, int chain);
