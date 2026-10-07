@@ -1,19 +1,19 @@
 {
-  "source_inventory_sha256": "5ffc3bf04ea1",
+  "source_inventory_sha256": "a026726d2129",
   "branch": "experimental/rotary-rate-popup",
-  "binary_sha256": "35fb205174025aefa8bdcc0659582c7c02a985e5bc7e73de9be90fc0b5b34e3a",
-  "binary_bytes": 2259096,
-  "invalidated_objects": 3,
+  "binary_sha256": "7a414909728c4583e7ab7015846e3022178b12654a2396f3d136631d188de4d1",
+  "binary_bytes": 2259128,
+  "invalidated_objects": 5,
   "arm_tests": {
-    "passed": 42,
-    "assertions": 3458171
+    "passed": 43,
+    "assertions": 3466553
   },
-  "production_ui": "Passed all insert modules, both slots, active/unused parameters, waveform off/on, Shift branch exits and release handling",
+  "production_ui": "Passed all insert modules, both slots, active-only selection, waveform off/on, Shift branch exits and release handling",
   "package_integrity": "passed",
   "human_listening": "pending user evaluation",
-  "source_commit": "797de755d7448e6ee4c8e23a643eef62ceb272ab",
+  "source_commit": "13968c857c547f2bee7c9f3d069ec7a9791426d2",
   "installed": "/roms/ports/choochootracker",
-  "rollback": "/roms/choochootracker-backups/pre-rotary-popup-797de755d744/previous-install",
+  "rollback": "/roms/choochootracker-backups/pre-rotary-popup-13968c857c54/previous-install",
   "preserved_files": 888,
   "private_syx_preserved": 32,
   "launcher_unchanged": true,
@@ -22,14 +22,16 @@
   "rollback_inventory_verified": true,
   "startup_waveform_off_on": true,
   "host_tests": {
-    "full_suite_passed": 530,
-    "focused_after_final_hint_fix_passed": 42
+    "full_suite_passed": 531,
+    "full_suite_assertions": 112224071,
+    "focused_final_passed": 43,
+    "focused_final_assertions": 3466553
   },
   "web_build": "passed",
   "host_date": "2026-10-07",
   "notes": [
-    "Initial device UI assertion was corrected to process deferred screen changes before checking navigation.",
-    "Final shortened inactive hint was tested against the track-sidebar width.",
-    "Existing Rotary speed bytes use the new scale; songs were not rewritten."
+    "Roll and popup show only configured insert parameters on the selected track, with named TF1/TF2 groups.",
+    "OFF groups are hidden; bypassed inserts stay editable. Existing song commands are not rewritten.",
+    "All 169 slot combinations passed traversal checks. Production device screenshots were visually reviewed."
   ]
 }
