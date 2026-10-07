@@ -115,7 +115,7 @@ void select(int index){
   stopPreview();Instrument patch{};
   if(index>=int(catalog.size())) {
     std::string error;size_t n=index-catalog.size();
-    if(n<userSounds.size()&&allLibrary.load(userSounds[n],&chipnomadState->project,cInstrument,error))projectModified=1;
+    if(n<userSounds.size()&&allLibrary.load(userSounds[n],&chipnomadState->project,cInstrument,error)){rememberUserPreset(userSounds[n]);projectModified=1;}
     else screenMessage(MESSAGE_TIME_ERROR,"User preset could not load");
     importing=false;screenSetup(&screenInstrument,cInstrument);return;
   }
@@ -265,7 +265,8 @@ void instrumentPresetCycleCollection(int direction){
 void instrumentPresetOpenCollections(){openBanks();}
 void instrumentPresetOpenSounds(){openSounds();}
 void instrumentPresetCycle(int direction){
-  if(bankFilter==-2||!readCatalog())return;
+  if(bankFilter==-2){cycleUserPreset(direction);return;}
+  if(!readCatalog())return;
   refreshSounds();
   int index=selected(),count=int(catalog.size()+userSounds.size());
   if(!count)return;

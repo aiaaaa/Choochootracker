@@ -188,10 +188,44 @@ std::string UserPresets::label() const {
   if (l.legacy && l.path.empty()) return "Previous banks folder";
   return fs::path(l.member.empty() ? l.path : l.member).filename().string();
 }
+UserPresets::Reference UserPresets::reference(size_t index) const {
+  if(stack_.empty()||index>=items_.size()||items_[index].kind!=Kind::preset)return {};
+  const auto& item=items_[index];const auto& location=stack_.back();
+  return {item.name,item.path,location.zip?location.path:"",item.voice,location.legacy};
+}
+bool UserPresets::focus(const Reference& preset,std::string& error) {
+  if(!PresetZip::safePath(preset.path)||(!preset.archive.empty()&&!PresetZip::safePath(preset.archive)))return false;
+  std::vector<Location> next={{"","",false,false}};
+  if(preset.legacy)next.push_back({"","",false,false,true});
+  auto folders=[&](const std::string& path){
+    std::string prefix;
+    for(const auto& part:fs::path(path).parent_path()) {
+      prefix+=(prefix.empty()?"":"/")+part.string();auto location=next.back();
+      if(location.zip)location.member=prefix;else location.path=prefix;
+      next.push_back(location);
+    }
+  };
+  if(!preset.archive.empty()) {
+    folders(preset.archive);auto location=next.back();
+    location.path=preset.archive;location.member.clear();location.zip=true;next.push_back(location);
+  }
+  folders(preset.path);
+  if(preset.voice>=0) {
+    auto location=next.back();location.bank=true;
+    if(location.zip)location.member=preset.path;else location.path=preset.path;
+    next.push_back(location);
+  }
+  if(next.size()>32)return false;
+  auto saved=stack_;stack_=std::move(next);
+  if(refresh(error))for(size_t i=0;i<items_.size();++i) {
+    auto r=reference(i);
+    if(r.path==preset.path&&r.archive==preset.archive&&r.voice==preset.voice&&r.legacy==preset.legacy)return true;
+  }
+  stack_=std::move(saved);std::string ignored;refresh(ignored);return false;
+}
 bool UserPresets::load(size_t index, Project* destination, int slot, std::string& error) {
   if (!destination || slot < 0 || slot >= PROJECT_MAX_INSTRUMENTS || index >= items_.size() || items_[index].kind != Kind::preset) return false;
-  const auto item = items_[index];
-  return load({item.name,item.path,stack_.back().zip?stack_.back().path:"",item.voice,stack_.back().legacy},destination,slot,error);
+  return load(reference(index),destination,slot,error);
 }
 bool UserPresets::load(const Reference& item, Project* destination, int slot, std::string& error) {
   if(!destination||slot<0||slot>=PROJECT_MAX_INSTRUMENTS)return false;

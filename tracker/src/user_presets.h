@@ -19,6 +19,8 @@ public:
   bool back(std::string& error);
   bool load(size_t index, Project* destination, int slot, std::string& error);
   bool load(const Reference& preset, Project* destination, int slot, std::string& error);
+  Reference reference(size_t index) const;
+  bool focus(const Reference& preset, std::string& error);
   // Bounded flattened view for ALL; dedicated USER navigation stays hierarchical.
   std::vector<Reference> scan(std::string& error);
   const std::vector<Item>& items() const { return items_; }

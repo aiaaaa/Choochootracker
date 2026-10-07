@@ -218,3 +218,15 @@ TEST_CASE("Collection UI retains top USER and ALL Unsorted loads a zipped DX7 ba
   }
   chipnomadDestroy(state);chipnomadState=prior;
 }
+
+TEST_CASE("USER references restore nested ZIP and bank location for seamless stepping") {
+  Fixture f;UserPresets b;std::string error;b.setup(f.root.string(),InstrumentType::DX7);
+  auto refs=b.scan(error);REQUIRE(refs.size()==32);
+  REQUIRE(b.focus(refs[31],error));CHECK(b.label()=="Test.syx");
+  REQUIRE(b.items().size()==32);CHECK(b.reference(31).voice==31);CHECK(b.reference(31).archive=="Collection.zip");
+  REQUIRE(b.back(error));CHECK(b.label()=="DX7");
+  b.setup(f.root.string(),InstrumentType::OPL3);refs=b.scan(error);REQUIRE(refs.size()==2);
+  for(const auto& ref:refs){REQUIRE(b.focus(ref,error));bool found=false;for(size_t i=0;i<b.items().size();++i)if(b.reference(i).path==ref.path)found=true;CHECK(found);}
+  const auto label=b.label();auto missing=refs.front();missing.path="Missing/absent.cni";
+  CHECK_FALSE(b.focus(missing,error));CHECK(b.label()==label);
+}
