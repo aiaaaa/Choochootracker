@@ -46,7 +46,7 @@ int main(int argc,char** argv){
       require(loadFMPreset("instruments/FACTORY",*found,&chipnomadState->project,0),"factory ZIP loads on ARM");
       screenSetup(&screenInstrument,0);appDraw();
       char name[64];snprintf(name,sizeof(name),"factory-engine-%d",int(type));capture(name);
-      openUserPresetBrowser();require(currentScreen==&screenSelectionPopup,"USER popup for every engine");
+      openUserPresetBrowser();appDraw();require(currentScreen==&screenSelectionPopup,"USER popup for every engine");
       key(1,keyOpt);require(currentScreen==&screenInstrument,"empty USER back");
     }
     namespace fs=std::filesystem;
@@ -273,10 +273,9 @@ int main(int argc,char** argv){
   std::filesystem::copy_file(path,libraryFile);
   getInstrumentFunctions(InstrumentType::DX7).init(&chipnomadState->project.instruments[0]);screenSetup(&screenInstrument,0);appDraw();
   screenInstrumentOPL.onEdit(0,3,CellEditAction::tap);appDraw();capture("dx7-persistent-banks");
-  // All, three shipped banks, then the newly discovered file.
-  for(int n=0;n<4;++n)key(1,keyDown);tapEdit();
-  screenInstrumentOPL.onEdit(0,4,CellEditAction::tap);key(1,keyRight);tapEdit();
-  require(chipnomadState->project.instruments[0].chip.dx7.bankId>=40000,"persistent bank selected");
+  // All banks, then USER; the single-voice file loads directly from USER.
+  key(1,keyDown);tapEdit();
+  screenInstrumentOPL.onEdit(0,4,CellEditAction::tap);tapEdit();
   require(!memcmp(patch.voice,chipnomadState->project.instruments[0].chip.dx7.voice,155),"persistent bank voice exact");
   auto savedLibraryPatch=chipnomadState->project.instruments[0];
   std::filesystem::remove(libraryFile);
