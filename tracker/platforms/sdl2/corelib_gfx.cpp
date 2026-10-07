@@ -912,9 +912,18 @@ Bitmap* gfxBitmapCreate(int widthChars, int heightChars) {
   memset(bitmap->data, 0, dataSize);
 
   // Create SDL texture for hardware-accelerated rendering
+#ifdef MIYOOPORTS_BUILD
+  // The MMIYOO driver maps RGBA8888 to its ARGB surface, but on little-endian
+  // ARM its RGBA byte layout then puts our alpha in the blue channel and turns
+  // transparent pixels opaque. ARGB8888 is the format the driver documents as
+  // correct, including its alpha layout.
+  const Uint32 bitmapPixelFormat = SDL_PIXELFORMAT_ARGB8888;
+#else
+  const Uint32 bitmapPixelFormat = SDL_PIXELFORMAT_RGBA8888;
+#endif
   SDL_Texture* texture = SDL_CreateTexture(
     renderer,
-    SDL_PIXELFORMAT_RGBA8888,
+    bitmapPixelFormat,
     SDL_TEXTUREACCESS_STREAMING,
     bitmap->widthPixels,
     bitmap->heightPixels
@@ -964,7 +973,12 @@ void gfxDrawBitmap(Bitmap* bitmap, int col, int row) {
     for (int y = 0; y < bitmap->heightPixels; y++) {
       for (int x = 0; x < bitmap->widthPixels; x++) {
         uint8_t alpha = bitmap->data[y * bitmap->widthPixels + x];
+#ifdef MIYOOPORTS_BUILD
+        pixelData[y * (pitch / 4) + x] = ((uint32_t)alpha << 24) |
+          ((uint32_t)fgR << 16) | ((uint32_t)fgG << 8) | fgB;
+#else
         pixelData[y * (pitch / 4) + x] = (fgR << 24) | (fgG << 16) | (fgB << 8) | alpha;
+#endif
       }
     }
 
