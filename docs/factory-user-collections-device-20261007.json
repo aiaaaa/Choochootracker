@@ -1,0 +1,71 @@
+{
+  "date": "2026-10-07",
+  "source_commit": "aa794cbf1daaf853281904bbd62be90910d53d28",
+  "web_bundle_commit": "4d39b52",
+  "scope": "Engine-owned factory collections, retained downloaded names, top-level USER and flattened USER sounds in ALL/Unsorted",
+  "host_validation": {
+    "full_suite_cases": 516,
+    "full_suite_assertions": 112213824,
+    "final_focused_cases": 14,
+    "final_focused_assertions": 4439,
+    "web_build": "passed",
+    "web_javascript_syntax": "passed"
+  },
+  "arm_validation": {
+    "cases": 66,
+    "assertions": 98943592,
+    "ui": [
+      "Engine collections, top-level USER and ALL Unsorted bank selection passed",
+      "Factory ZIPs, all 11 USER roots, nested ZIP navigation, audition, selection and DX7 bank voices passed"
+    ],
+    "captures_reviewed": [
+      "DX7 collections",
+      "DX7 ALL Unsorted user bank voices",
+      "OPLL collections",
+      "OPL3 collections",
+      "Sega PSG instrument controls"
+    ]
+  },
+  "hardware": {
+    "source_commit": "aa794cbf1daaf853281904bbd62be90910d53d28",
+    "measurements": {
+      "driver": "alsa",
+      "format": "S16",
+      "master_gain": "0.4",
+      "rate": "48000",
+      "frames": "4906",
+      "callbacks": "685",
+      "p95_us": "84071.750",
+      "p99_us": "86317.000",
+      "worst_us": "109858.000",
+      "render_deadline_misses": "1",
+      "energy": "54982.316475",
+      "peak": "0.480939",
+      "nonfinite": "0"
+    },
+    "settings_and_autosave_unchanged": true,
+    "frames": 4906,
+    "route": "plughw:0,0",
+    "startup_waveform_off_on": true,
+    "subjective_listening": "pending"
+  },
+  "hardware_note": "Startup passed with waveform off/on; no logged ALSA underruns or nonfinite samples. The 70-second balanced audio probe recorded one render deadline miss (109.858 ms against 102.208 ms). This browser update changes no synthesis code; human listening remains pending.",
+  "installation": {
+    "source_commit": "aa794cbf1daaf853281904bbd62be90910d53d28",
+    "binary_sha256": "9dc5039827c962c40933bf308915e0cb54dcf1ce6ee3a4c05194d23ed1e366f1",
+    "binary_bytes": 2234328,
+    "invalidated_objects": 43,
+    "validation": "ARM production build, ZIP package integrity, native engine/USER tests and production preset browser captures",
+    "human_listening": "pending user evaluation",
+    "installed": "/roms/ports/choochootracker",
+    "rollback": "/roms/choochootracker-backups/pre-preset-packs-aa794cbf1daa/previous-install",
+    "preserved_files": 853,
+    "retired_factory_files": 0,
+    "launcher_unchanged": true,
+    "settings_unchanged": true,
+    "private_syx_preserved": 32,
+    "installed_inventory_verified": true,
+    "rollback_inventory_verified": true
+  },
+  "private_data": "All 32 existing personal SYX banks preserved on the handheld; no personal bank contents copied into source or packages."
+}

@@ -1205,7 +1205,8 @@ format/loop limitations and validation status.
 ### Native OPLL and VRC7 instruments (development)
 
 The Instrument Type selector has an FM group with **OPLL / MSX** (YM2413)
-and **VRC7** (DS1001). Each now offers **73 programs** in one **Factory Presets** collection: the original 15 tones, 40 additional distinct tones from emu2413's
+and **VRC7** (DS1001). Each now offers **73 programs** in one **Factory Presets**
+collection: the original 15 tones, 40 additional distinct tones from emu2413's
 YM2413/VRC7/YMF281B tables, and 18 ChooChoo-authored two-operator programs.
 Exact duplicate tone bytes are omitted within each engine. The additional
 palettes use the chip's programmable tone slot; they do not expand the physical
@@ -1232,7 +1233,7 @@ FM also includes AdLib / OPL2 (YM3812) and OPL3 (YMF262). Collection filters the
 factory list; Preset opens category groups and an All view. EDIT + PLAY auditions
 before selection, EDIT selects, OPT cancels, and EDIT + left/right on Preset
 loads the previous/next matching entry. Fine ct adjusts local tuning. Mode shows
-2 operator, 4 operator, or Dual voice. OPL2 hides incompatible OPL3 patches;
+2 operator, 4 operator, or Dual voice. OPL2 hides incompatible OPL3 patches.
 The Fat Man 2-op is listed for OPL2 and The Fat Man 4-op for OPL3. DMX
 appears with its compatible subset for each engine. OPL3 USER imports still
 accept two-operator OPL2 presets.
