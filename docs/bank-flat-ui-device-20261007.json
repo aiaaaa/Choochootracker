@@ -1,0 +1,35 @@
+{
+  "date": "2026-10-07",
+  "source_commit": "14023d88133eec58d76be078625cd0e46d1b853c",
+  "web_bundle_commit": "9bd35c8",
+  "scope": "Bank labels and flat ALL/Factory lists for Sega PSG, GB Pulse and GB Noise; hierarchical USER retained",
+  "host_ui_check": {
+    "cases": 1,
+    "assertions": 26,
+    "result": "passed"
+  },
+  "device_ui_check": "Bank labels and Sega/GB ALL Factory USER navigation passed; no audio tests run",
+  "visual_review": [
+    "Bank labels on Sega and DX7",
+    "ALL Factory USER selector",
+    "Flat combined factory/user list"
+  ],
+  "audio_testing": "Not run, as requested",
+  "installation": {
+    "source_commit": "14023d88133eec58d76be078625cd0e46d1b853c",
+    "binary_sha256": "93ea90e4df17b779defc1b4a30fb9d4df2a296dc4381164caa4e951279e4456a",
+    "binary_bytes": 2238424,
+    "invalidated_objects": 5,
+    "validation": "ARM production build, ZIP package integrity, focused production bank/preset UI navigation (no audio testing)",
+    "human_listening": "pending user evaluation",
+    "installed": "/roms/ports/choochootracker",
+    "rollback": "/roms/choochootracker-backups/pre-preset-packs-14023d88133e/previous-install",
+    "preserved_files": 853,
+    "retired_factory_files": 0,
+    "launcher_unchanged": true,
+    "settings_unchanged": true,
+    "private_syx_preserved": 32,
+    "installed_inventory_verified": true,
+    "rollback_inventory_verified": true
+  }
+}

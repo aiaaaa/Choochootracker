@@ -71,6 +71,18 @@ YSE with ChooChoo Factory Presets and keeps OpenDX7 Originals separate.
 
 ## Current installed device build
 
+Source: `14023d88133eec58d76be078625cd0e46d1b853c`. The Instrument page now says
+**Bank:**. Sega PSG, GB Pulse and GB Noise retain ALL, Factory and USER;
+ALL/Factory open flat preset lists, with USER sounds included in ALL.
+USER retains folder/ZIP browsing. Other engines keep their category menus.
+
+Only focused UI navigation and visual checks were run; no sound tests, as
+requested. Web rebuilt. Settings, all 32 private SYX banks and other user files
+are preserved, the regular launcher is unchanged and rollback is verified.
+See [UI update receipt](docs/bank-flat-ui-device-20261007.json).
+
+## Previous installed device build (October 7 collections)
+
 Source: `aa794cbf1daaf853281904bbd62be90910d53d28`. Engine-specific collections,
 Factory Presets, separate named downloaded collections and top-level USER.
 ALL also includes USER presets and DX7 bank voices under Unsorted. YSE joins
