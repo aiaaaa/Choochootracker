@@ -8,6 +8,7 @@
 #include "export_path.h"
 #include "export/export.h"
 #include "export/export_midi.h"
+#include "export/export_m8s.h"
 #include "midi/smf_file.h"
 #include <string.h>
 
@@ -37,6 +38,12 @@ static int bitDepths[] = {16, 24, 32};
 static int currentSampleRateIndex = 0;
 static int currentBitDepthIndex = 0;
 int startRow = 0;
+
+// M8S export: the .m8s used as a template for everything the tracker cannot
+// express. Remembered for the session; cleared with EDIT+OPT.
+static char m8sTemplatePath[1024] = "";
+static void m8sRunExport(void);
+static void m8sPickTemplate(void);
 
 static ScreenData screenExportCommon = {
   .rows = SCR_EXPORT_ROWS,
@@ -164,6 +171,8 @@ int exportCommonColumnCount(int row) {
     return 1;
   } else if (row == 5) {
     return 1;
+  } else if (row == 6) {
+    return 1;
   }
   return 0;
 }
@@ -186,6 +195,7 @@ void exportCommonDrawStatic(void) {
 
   gfxSetFgColor(cs.textValue);
   gfxPrint(0, 8, "MIDI");
+  gfxPrint(0, 9, "M8S");
 }
 
 void exportCommonDrawCursor(int col, int row) {
@@ -205,6 +215,8 @@ void exportCommonDrawCursor(int col, int row) {
     gfxCursor(13, 7, 26);
   } else if (row == 5) {
     gfxCursor(13, 8, 6);
+  } else if (row == 6) {
+    gfxCursor(13, 9, 26);
   }
 }
 
@@ -242,6 +254,19 @@ void exportCommonDrawField(int col, int row, CellState state) {
     }
   } else if (row == 5) {
     gfxPrint(13, 8, "Export");
+  } else if (row == 6) {
+    gfxClearRect(13, 9, 26, 1);
+    if (m8sTemplatePath[0]) {
+      // Show the tail of a long template path
+      int len = strlen(m8sTemplatePath);
+      if (len > 26) {
+        gfxPrintf(13, 9, "...%.23s", m8sTemplatePath + len - 23);
+      } else {
+        gfxPrintf(13, 9, "%s", m8sTemplatePath);
+      }
+    } else {
+      gfxPrint(13, 9, "Choose template");
+    }
   }
 }
 
@@ -314,6 +339,46 @@ void generateExportPath(char* outputPath, int maxLen, const char* extension) {
 
   strncpy(outputPath, basePath, maxLen - 1);
   outputPath[maxLen - 1] = 0;
+}
+
+static void m8sTemplatePicked(const char* path) {
+  strncpy(m8sTemplatePath, path, sizeof(m8sTemplatePath) - 1);
+  m8sTemplatePath[sizeof(m8sTemplatePath) - 1] = 0;
+  screenSetup(&screenExport, 0);
+  m8sRunExport();
+}
+
+static void m8sPickCancelled(void) {
+  screenSetup(&screenExport, 0);
+}
+
+static void m8sPickTemplate(void) {
+  screenMessage(MESSAGE_TIME, "Pick an .m8s file as template");
+  fileBrowserSetup("M8 TEMPLATE", ".m8s", appSettings.projectPath, m8sTemplatePicked, m8sPickCancelled);
+  screenSetup(&screenFileBrowser, 0);
+}
+
+static void m8sRunExport(void) {
+  if (exportEnsureProjectDir() != 0) {
+    screenMessage(MESSAGE_TIME_ERROR, "Cannot create export folder");
+    return;
+  }
+  char exportPath[1024];
+  generateExportPath(exportPath, sizeof(exportPath), "m8s");
+  if (projectExportM8S(&chipnomadState->project, m8sTemplatePath, exportPath) == 0) {
+    screenMessage(MESSAGE_TIME, "Exported %s", exportPath);
+#ifdef WEB_BUILD
+    webDownloadExportFile(exportPath);
+#endif
+#ifdef ANDROID_BUILD
+    fileExportDocument(exportPath, "application/octet-stream");
+#endif
+  } else {
+    // A bad template is forgotten so the next tap asks for another one
+    m8sTemplatePath[0] = 0;
+    screenMessage(MESSAGE_TIME_ERROR, "%s", projectExportM8SError);
+    fullRedraw();
+  }
 }
 
 int exportCommonOnEdit(int col, int row, CellEditAction action) {
@@ -415,6 +480,17 @@ int exportCommonOnEdit(int col, int row, CellEditAction action) {
       screenMessage(MESSAGE_TIME_ERROR, "%s", smfFileError);
     }
     handled = 1;
+  } else if (row == 6) {
+    if (currentExporter) return 1;
+    if (action == CellEditAction::clear) {
+      m8sTemplatePath[0] = 0;
+      screenMessage(MESSAGE_TIME, "M8 template cleared");
+      handled = 1;
+    } else if (action == CellEditAction::tap || action == CellEditAction::doubleTap) {
+      if (m8sTemplatePath[0]) m8sRunExport();
+      else m8sPickTemplate();
+      handled = 1;
+    }
   }
 
   return handled;
