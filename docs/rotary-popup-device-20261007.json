@@ -1,0 +1,35 @@
+{
+  "source_inventory_sha256": "5ffc3bf04ea1",
+  "branch": "experimental/rotary-rate-popup",
+  "binary_sha256": "35fb205174025aefa8bdcc0659582c7c02a985e5bc7e73de9be90fc0b5b34e3a",
+  "binary_bytes": 2259096,
+  "invalidated_objects": 3,
+  "arm_tests": {
+    "passed": 42,
+    "assertions": 3458171
+  },
+  "production_ui": "Passed all insert modules, both slots, active/unused parameters, waveform off/on, Shift branch exits and release handling",
+  "package_integrity": "passed",
+  "human_listening": "pending user evaluation",
+  "source_commit": "797de755d7448e6ee4c8e23a643eef62ceb272ab",
+  "installed": "/roms/ports/choochootracker",
+  "rollback": "/roms/choochootracker-backups/pre-rotary-popup-797de755d744/previous-install",
+  "preserved_files": 888,
+  "private_syx_preserved": 32,
+  "launcher_unchanged": true,
+  "settings_unchanged": true,
+  "installed_inventory_verified": true,
+  "rollback_inventory_verified": true,
+  "startup_waveform_off_on": true,
+  "host_tests": {
+    "full_suite_passed": 530,
+    "focused_after_final_hint_fix_passed": 42
+  },
+  "web_build": "passed",
+  "host_date": "2026-10-07",
+  "notes": [
+    "Initial device UI assertion was corrected to process deferred screen changes before checking navigation.",
+    "Final shortened inactive hint was tested against the track-sidebar width.",
+    "Existing Rotary speed bytes use the new scale; songs were not rewritten."
+  ]
+}
