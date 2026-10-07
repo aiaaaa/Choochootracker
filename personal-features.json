@@ -147,6 +147,7 @@
       "validation_report": "docs/rotary-popup-device-20261007.json",
       "changes": [
         "Contextual Phrase/Table insert popup descriptions and decoded value hints",
+        "Active-only insert controls in roll and popup, grouped by TF1/TF2 effect",
         "Rotary Speed 00-FF maps exponentially to 0.01-25 Hz",
         "Shift Left/Right exits branch pages to the MSCPIT spine"
       ],
