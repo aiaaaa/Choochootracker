@@ -108,7 +108,9 @@ int projectLoadM8S(Project* project, const char* path) {
   }
 
   // Phrases: note, velocity, instrument, then three FX pairs (ignored).
-  // M8 note 0 is C-0, i.e. the same pitch as pitch table index 0 here.
+  // An M8 note value is a MIDI note number (0 displays as C-1), while pitch
+  // table index N is MIDI note 12+N (same rule as import_midi.cpp), so the
+  // index is the M8 value minus 12. The lowest octave (sub-audio) clamps to 0.
   uint8_t instrumentUsed[M8S_INSTRUMENTS] = {0};
   for (int ph = 0; ph < M8S_PHRASES && ph < PROJECT_MAX_PHRASES; ph++) {
     phraseClear(&p.phrases[ph]);
@@ -123,8 +125,9 @@ int projectLoadM8S(Project* project, const char* path) {
         dest->note = NOTE_OFF;
         continue;
       }
-      if (p.pitchTable.length > 0 && note >= p.pitchTable.length) note = (uint8_t)(p.pitchTable.length - 1);
-      dest->note = note;
+      int index = note >= 12 ? note - 12 : 0;
+      if (p.pitchTable.length > 0 && index >= p.pitchTable.length) index = p.pitchTable.length - 1;
+      dest->note = (uint8_t)index;
       if (step[1] != M8S_EMPTY) dest->volume = step[1] > PHRASE_VOLUME_MAX ? PHRASE_VOLUME_MAX : step[1];
       if (step[2] < M8S_INSTRUMENTS && step[2] < PROJECT_MAX_INSTRUMENTS) {
         dest->instrument = step[2];
