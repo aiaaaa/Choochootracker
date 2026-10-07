@@ -22,6 +22,7 @@
 #include "copy_paste.h"
 #include "insert_fx.h"
 #include "help.h"
+#include "help.h"
 #include "fm_catalog.h"
 #include "user_presets.h"
 #include "user_preset_browser.h"
@@ -34,6 +35,73 @@ static void tapEdit(){key(1,keyEdit);key(0,0);}
 int main(int argc,char** argv){
   if(argc!=2&&argc!=3)return 1;output=argv[1];initDefaultAppSettings();appSettings.screenWidth=640;appSettings.screenHeight=480;fontSetCurrent(fontGetDefault());require(!gfxSetup(&appSettings.screenWidth,&appSettings.screenHeight),"SDL dummy setup");
   chipnomadState=chipnomadCreate();require(chipnomadState,"state");require(!projectLoad(&chipnomadState->project,"projects/gm-midi-demo.cct"),"fixture");
+  if(argc==3 && !strcmp(argv[2],"--insert-popup-only")) {
+    screensInitAll();waveformDisplayInit();monitorDisplayInit();
+    auto& project=chipnomadState->project;
+    *pSongRow=*pChainRow=*pSongTrack=0;
+    project.song[0][0]=0;project.chains[0].rows[0].phrase=0;
+    phraseClear(&project.phrases[0]);
+    getInstrumentFunctions(InstrumentType::Braids).init(&project.instruments[0]);
+    project.phrases[0].rows[0].instrument=0;
+    for(int header:{0,1}) {
+      appSettings.persistentWaveform=header;
+      screenSetup(&screenPhrase,-1);appDraw();screenPhrase.init();
+      for(int col=0;col<3;++col)key(1,keyRight);
+      key(1,keyEdit|keyUp);
+      for(int module=0;module<insertModuleCount;++module)for(int slot=0;slot<2;++slot) {
+        insertSelect(&project.trackInserts[0][slot],module);
+        const auto& descriptor=insertDescriptor(module);
+        for(int parameter=0;parameter<8;++parameter) {
+          FX fx=FX(fxF11+slot*8+parameter);
+          const char* help=helpFXDescription(fx,0);
+          require(strstr(help,descriptor.name),"popup names selected insert module");
+          require(strstr(help,parameter<descriptor.count?descriptor.parameters[parameter].name:"no effect"),"popup describes active or unused parameter");
+          fxEditFullDraw(fx,0,0);
+          uint8_t selected[]={uint8_t(fx),91},last[]={0,0};
+          fxEditInput(0,1,selected,last);
+          if(parameter<descriptor.count) require(selected[0]==fx,"active control selectable");
+          else require(selected[0]!=fx,"unused control is not selectable");
+          if(selected[0]>=fxF11&&selected[0]<=fxF28) {
+            const int a=selected[0]-fxF11;
+            require(a%8<insertDescriptor(project.trackInserts[0][a/8].module).count,"fallback is active");
+          }
+          require(selected[1]==91,"selection preserves automation value");
+          if((module==insertRotary && (parameter==0||parameter==4)) ||
+             (module==insertCompressor && slot==0 && parameter==5)) {
+            char name[100];snprintf(name,sizeof(name),"insert-%d-slot-%d-param-%d-header-%d",module,slot,parameter,header);capture(name);
+          }
+        }
+      }
+      screenPhrase.onInput(0,0,1);
+    }
+    auto eventKey=[](int button,bool down) {
+      appDraw(); // Commit pending screenSetup before dispatching the next input.
+      MainLoopEventData event{};event.type=down?MainLoopEvent::keyDown:MainLoopEvent::keyUp;
+      event.data.input={InputDeviceType::logical,button};appOnEvent(event);
+      appDraw(); // Production screen changes are deferred until the next draw.
+    };
+    struct Route { const AppScreen *from,*left,*right; };
+    const Route routes[]={
+      {&screenProject,&screenMixer,&screenChain},{&screenSettings,&screenMixer,&screenChain},
+      {&screenSynthSettings,&screenMixer,&screenChain},{&screenMixerSettings,&screenMixer,&screenChain},
+      {&screenGraphicsSettings,&screenMixer,&screenChain},{&screenTrackVisuals,&screenMixer,&screenChain},
+      {&screenMidi,&screenMixer,&screenChain},{&screenMidiChannelMap,&screenMixer,&screenChain},
+      {&screenMidiCC,&screenMixer,&screenChain},{&screenGroove,&screenChain,&screenInstrument},
+      {&screenModulation,&screenPhrase,&screenTable},{&screenInsertFX,&screenPhrase,&screenTable},
+      {&screenAYWavetable,&screenInstrument,&screenTable},{&screenInstrumentPool,&screenPhrase,&screenTable}};
+    for(const auto& route:routes)for(int direction:{keyLeft,keyRight}) {
+      screenSetup(route.from,0);appDraw();eventKey(keyShift,true);eventKey(direction,true);
+      const auto* destination=direction==keyLeft?route.left:route.right;
+      require(currentScreen==destination,"Shift leaves branch for expected spine neighbour");
+      eventKey(direction,false);require(currentScreen==destination,"direction release does not navigate twice");
+      eventKey(keyShift,false);
+    }
+    screenSetup(&screenMixer,0);eventKey(keyShift,true);eventKey(keyUp,true);eventKey(keyUp,false);
+    require(screenMixerGetPage()==1,"reverb page entered");eventKey(keyLeft,true);eventKey(keyLeft,false);eventKey(keyShift,false);
+    require(currentScreen==&screenMixer&&screenMixerGetPage()==0,"left edge returns to mixer");
+    printf("Insert popup production UI and Shift spine navigation passed: all modules, both slots, active-only selection, waveform off/on\n");
+    chipnomadDestroy(chipnomadState);SDL_Quit();return 0;
+  }
   if(argc==3 && !strcmp(argv[2],"--user-step-ui-only")) {
     screensInitAll();waveformDisplayInit();monitorDisplayInit();
     namespace fs=std::filesystem;
