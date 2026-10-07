@@ -129,6 +129,7 @@ Find bugs or anything? Come discuss on Discord: https://discord.gg/Ut9vM6zgKU
 
 - [User manual](docs/USER_MANUAL.md)
 - [User manual PDF](docs/ChooChooTracker-User-Manual.pdf)
+- [Dirtywave M8 song import/export](docs/m8s-format.md)
 
 ## Current limits
 
