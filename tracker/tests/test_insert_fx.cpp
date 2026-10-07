@@ -124,6 +124,13 @@ TEST_SUITE("track inserts") {
           CAPTURE(parameter);
           auto fx = FX(fxF11 + slot * 8 + parameter);
           std::string description = helpFXDescription(fx, EMPTY_VALUE_8);
+          size_t lineStart = 0;
+          do {
+            size_t lineEnd = description.find('\n', lineStart);
+            if (lineEnd == std::string::npos) lineEnd = description.size();
+            CHECK(lineEnd - lineStart <= 33); // keep clear of the track sidebar
+            lineStart = lineEnd + 1;
+          } while (lineStart < description.size());
           CHECK(description.find(descriptor.name) != std::string::npos);
           if (parameter < descriptor.count) {
             CHECK(description.find(descriptor.parameters[parameter].name) != std::string::npos);

@@ -616,7 +616,7 @@ const char* helpFXDescription(enum FX fxIdx, uint8_t instrumentIdx) {
     const auto& descriptor = insertDescriptor(config.module);
     if (parameter >= descriptor.count) {
       snprintf(text, sizeof(text),
-               "F%d%d - TF%d %s\nUnused parameter %d\nThis command has no effect\nSelect a module/control on Insert FX",
+               "F%d%d - TF%d %s\nUnused parameter %d\nThis command has no effect\nChoose a control on Insert FX",
                slot + 1, parameter + 1, slot + 1, descriptor.name, parameter + 1);
     } else {
       char low[32], high[32];
