@@ -1,3 +1,4 @@
+#include "native_chip_gain.h"
 #include "simple_chip_voice.h"
 #include "../simple_chip_presets.h"
 #include <algorithm>
@@ -59,4 +60,4 @@ float SimpleChipVoice::gbSample(){
  }
  short samples[2]{};apu_read_samples(apu_,samples,2);return (samples[0]+samples[1])/65536.f;
 }
-void SimpleChipVoice::render(float* mono,size_t frames){for(size_t i=0;i<frames;++i){if(!active_){mono[i]=0;continue;}mono[i]=post_.process(type_==InstrumentType::SegaPSG?segaSample():gbSample());if(!post_.envelopeActive())kill();}}
+void SimpleChipVoice::render(float* mono,size_t frames){for(size_t i=0;i<frames;++i){if(!active_){mono[i]=0;continue;}mono[i]=post_.process(type_==InstrumentType::SegaPSG?segaSample():gbSample())*nativeChipGain(type_);if(!post_.envelopeActive())kill();}}

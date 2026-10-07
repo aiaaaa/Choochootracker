@@ -22,6 +22,9 @@
 #include "copy_paste.h"
 #include "insert_fx.h"
 #include "help.h"
+#include "fm_catalog.h"
+#include "user_presets.h"
+#include "user_preset_browser.h"
 extern SDL_Renderer* renderer;
 static const char* output;
 static void require(bool condition,const char* why){if(!condition){fprintf(stderr,"FAIL: %s\n",why);exit(2);}}
@@ -32,6 +35,47 @@ int main(int argc,char** argv){
   if(argc!=2&&argc!=3)return 1;output=argv[1];initDefaultAppSettings();appSettings.screenWidth=640;appSettings.screenHeight=480;fontSetCurrent(fontGetDefault());require(!gfxSetup(&appSettings.screenWidth,&appSettings.screenHeight),"SDL dummy setup");
   chipnomadState=chipnomadCreate();require(chipnomadState,"state");require(!projectLoad(&chipnomadState->project,"projects/gm-midi-demo.cct"),"fixture");
   chipnomadInitChips(chipnomadState,48000,nullptr);chipnomadReserveRenderBuffers(chipnomadState,1024);screensInitAll();waveformDisplayInit();monitorDisplayInit();
+  if(argc==3 && !strcmp(argv[2],"--presets-only")) {
+    std::vector<FMPresetEntry> factory, builtins;
+    require(loadFMCatalog("instruments/FACTORY/catalog.tsv",factory),"factory catalog");
+    require(loadFMCatalog("instruments/FACTORY/builtins.tsv",builtins),"builtin catalog");
+    factory.insert(factory.end(),builtins.begin(),builtins.end());
+    for(auto type:{InstrumentType::OPLL,InstrumentType::VRC7,InstrumentType::OPL2,InstrumentType::OPL3,InstrumentType::GenesisFM,InstrumentType::ArcadeFM,InstrumentType::DX7,InstrumentType::SID,InstrumentType::SegaPSG,InstrumentType::GBPulse,InstrumentType::GBNoise}) {
+      auto found=std::find_if(factory.begin(),factory.end(),[&](const auto& e){return e.type==int(type);});
+      require(found!=factory.end(),"engine factory pack");
+      require(loadFMPreset("instruments/FACTORY",*found,&chipnomadState->project,0),"factory ZIP loads on ARM");
+      screenSetup(&screenInstrument,0);appDraw();
+      char name[64];snprintf(name,sizeof(name),"factory-engine-%d",int(type));capture(name);
+      openUserPresetBrowser();require(currentScreen==&screenSelectionPopup,"USER popup for every engine");
+      key(1,keyOpt);require(currentScreen==&screenInstrument,"empty USER back");
+    }
+    namespace fs=std::filesystem;
+    const char* fixture="../../tests/fixtures/preset-packs/compressed.zip";
+    const char* oplPack="instruments/USER/opl3/UI-test.zip";
+    const char* dxPack="instruments/USER/dx7/UI-test.zip";
+    require(!fs::exists(oplPack)&&!fs::exists(dxPack),"isolated ZIP fixtures");
+    fs::copy_file(fixture,oplPack);fs::copy_file(fixture,dxPack);
+    getInstrumentFunctions(InstrumentType::OPL3).init(&chipnomadState->project.instruments[0]);
+    screenSetup(&screenInstrument,0);appDraw();
+    screenInstrumentOPL.onEdit(0,3,CellEditAction::tap);key(1,keyDown);tapEdit(); // Bank -> USER
+    screenInstrumentOPL.onEdit(0,4,CellEditAction::tap);capture("user-root");
+    tapEdit();capture("user-zip-folders");tapEdit();tapEdit();capture("user-zip-presets");
+    auto before=std::make_unique<Project>(chipnomadState->project);
+    key(1,keyEdit);key(1,keyEdit|keyPlay);
+    std::vector<float> audio(2048);double energy=0;
+    for(int n=0;n<12;++n){chipnomadRender(chipnomadState,audio.data(),1024);for(float x:audio)energy+=x*x;}
+    require(energy>1e-7,"USER ZIP audition audio");
+    require(!memcmp(before.get(),&chipnomadState->project,sizeof(Project)),"USER audition leaves song unchanged");
+    key(0,keyPlay);tapEdit();require(currentScreen==&screenInstrument,"USER ZIP commit");
+    require(!strcmp(chipnomadState->project.instruments[0].name,"Acoustic Grand"),"USER ZIP chosen patch");
+    getInstrumentFunctions(InstrumentType::DX7).init(&chipnomadState->project.instruments[0]);screenSetup(&screenInstrument,0);
+    openUserPresetBrowser();tapEdit();key(1,keyDown);tapEdit();tapEdit();capture("user-dx7-bank-voices");
+    tapEdit();require(currentScreen==&screenInstrument,"zipped DX7 bank voice commit");
+    require(!strcmp(chipnomadState->project.instruments[0].name,"TEST VOICE"),"synthetic DX7 bank patch");
+    fs::remove(oplPack);fs::remove(dxPack);
+    printf("Factory ZIPs, all 11 USER roots, nested ZIP navigation, audition, selection and DX7 bank voices passed\n");
+    chipnomadDestroy(chipnomadState);SDL_Quit();return 0;
+  }
   if(argc==3 && !strcmp(argv[2],"--fx-only")) {
     for(auto type:{InstrumentType::OPLL,InstrumentType::VRC7,InstrumentType::OPL2,InstrumentType::OPL3,InstrumentType::GenesisFM,InstrumentType::ArcadeFM,InstrumentType::DX7}) {
       auto& inst=chipnomadState->project.instruments[0];getInstrumentFunctions(type).init(&inst);
@@ -224,7 +268,7 @@ int main(int argc,char** argv){
   // Local SysEx opens the same transactional browser from another instrument.
   InstrumentDX7 patch{};initDX7Patch(&patch);char path[2048];snprintf(path,sizeof(path),"%s/original-test.syx",output);FILE* f=fopen(path,"wb");require(f,"syx fixture");uint8_t h[]={240,67,0,0,1,27};fwrite(h,1,6,f);fwrite(patch.voice,1,155,f);unsigned sum=0;for(auto b:patch.voice)sum+=b;fputc((-sum)&127,f);fputc(247,f);fclose(f);
   // A bank dropped in the persistent hierarchy appears without Load Instrument.
-  const char* libraryFile="instruments/banks/dx7/UI-test.syx";
+  const char* libraryFile="instruments/USER/dx7/UI-test.syx";
   require(!std::filesystem::exists(libraryFile),"isolated persistent library fixture");
   std::filesystem::copy_file(path,libraryFile);
   getInstrumentFunctions(InstrumentType::DX7).init(&chipnomadState->project.instruments[0]);screenSetup(&screenInstrument,0);appDraw();

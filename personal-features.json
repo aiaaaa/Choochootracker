@@ -268,5 +268,16 @@
     "report": "docs/personal-harmonization-20261006.txt",
     "status": "Installed; package and focused device checks passed; user listening pending",
     "source_commit": "df6edc1aa3548d3bf5d9b3cacdd81ba53ce214c1"
+  },
+  "preset_packs_20261007": {
+    "status": "ZIP and USER implementation validated on host; handheld installation in progress",
+    "factory_directory": "instruments/FACTORY/",
+    "user_directory": "instruments/USER/<engine>/",
+    "factory_presets": 1196,
+    "factory_zip_packs": 25,
+    "legacy_user_directory": "instruments/banks/<engine>/ remains accessible",
+    "gain_compensation": "scripts/README_MEASURE.md policy, fixed engine gains",
+    "host_validation": "511 full-suite tests before folder rename; 16 targeted cases after rename; web rebuilt",
+    "report": "docs/chip-instruments-report.md"
   }
 }

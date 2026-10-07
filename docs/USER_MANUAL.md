@@ -1256,7 +1256,7 @@ the original MIDI players' volume curves or velocity-offset policies. Source
 release-duration estimates do not cut off sustained notes. Some effects have
 slow attacks: hold Seashore rather than expecting a short click to reveal it.
 
-Factory assets live in `instruments/chips` alongside the existing instrument
+Factory assets live in `instruments/FACTORY` alongside the existing instrument
 library, with notices under `licenses/chip-banks`. Preset selection leaves the
 slot's table and track-owned inserts unchanged. Newly saved files use 7.0 and
 embed the complete tone. Factory audio is machine-tested on host and ARM64; human audition
@@ -1302,18 +1302,18 @@ Unsorted. Numerical playability checks have passed; listening acceptance is
 pending. The separate goal of 1,000 redistribution-cleared sounds is not met.
 
 For a persistent personal library, put `.syx` files in
-**`instruments/banks/dx7/`** beside the existing instrument library. Subfolders
-are supported. Open **DX7 → Bank**: each file appears as a named bank, ready for
-Preset browsing. Reopen Bank after adding or removing files; no conversion or
-Load Instrument step is needed. A standard original DX7/TX7 bank contains
-**32 voices**. A file with four bank messages appears as four numbered banks
-(128 voices total). Single-voice files are accepted too. The native application
+**`instruments/USER/dx7/`** beside the existing instrument library. Subfolders
+are supported. Open **DX7 → Bank → USER**, then **Preset**: each bank file
+opens into its individual voices. Reopen the browser after adding or removing
+files; no conversion or Load Instrument step is needed. A standard original
+DX7/TX7 bank contains **32 voices**. Supported sequences of bank messages
+open into one list of their voices. Single-voice files are accepted too. The native application
 reads this folder; the browser build reads its virtual filesystem, not arbitrary
 folders on the computer.
 
-Bad or unsupported files are skipped with an on-screen count; valid banks remain
-available. Scanning is bounded to 2,048 files, 1 MiB per file, 64 MiB total,
-60,000 voices and eight levels of nested folders. Symlinks are ignored. The
+Bad or unsupported files are skipped with an on-screen message; valid banks remain
+available. The browser reads one directory at a time, bounded to 8,192 entries,
+1 MiB per preset or SYX file and 32 navigation levels. Symlinks are ignored. The
 selected patch is owned by the instrument: removing its source bank cannot
 change the saved song. The complete browsing library stays in this folder and
 is not copied wholesale into each project.
@@ -1384,16 +1384,62 @@ presets through the normal file browser, for **1,140 packaged native presets**.
 Source revisions, hashes, full notices and original source data accompany the
 new collections under `licenses/chip-banks/expansion`.
 
-`instruments/banks/` currently provides automatic drop-in discovery only for
-DX7 `.syx` banks. The shipped banks for every engine are stored as individual
-native `.cni` files in `instruments/chips/`, grouped by `catalog.tsv` (FM) and
-`builtins.tsv` (Sega/GB inventory). Bank is a browsing group; it does not imply
-SysEx. OPL source banks use WOPLX, Genesis sources use WOPN/TFI, and Arcade
-sources use OPM. OPLL/VRC7 store eight-byte tone programs; Sega/GB store native
-register settings and envelopes. The factory converter turns these into the
-same native instrument format. Only the formats explicitly listed for the
-user importer above are supported there. Selected native patch data is stored
-inside each saved project, including custom edits.
+### USER presets and portable ZIP collections
+
+Choose **Bank → USER**, then **Preset** to browse your own files. Sega PSG,
+GB Pulse and GB Noise offer **USER** at the end of their Preset chooser.
+The browser follows your folders, without adding All or Unsorted categories.
+EDIT enters folders, ZIP collections and DX7 banks, or selects a preset.
+EDIT + PLAY auditions an individual preset. OPT goes back one level; at the
+user root it returns to the instrument. Each engine remembers its browsing
+folder during the session. Reopening the browser rescans that location.
+
+The two preset locations are **`instruments/FACTORY/`** for included collections
+and **`instruments/USER/`** for your own files. Each engine has its own USER folder:
+
+| Engine | Folder | Accepted user files |
+| --- | --- | --- |
+| DX7 | `dx7/` | DX7 `.cni`, single-voice or bank `.syx`, ZIP |
+| OPLL | `opll/` | OPLL `.cni`, ZIP |
+| VRC7 | `vrc7/` | VRC7 `.cni`, ZIP |
+| AdLib / OPL2 | `opl2/` | OPL2 `.cni`, ZIP |
+| OPL3 | `opl3/` | OPL3 or compatible OPL2 `.cni`, ZIP |
+| Genesis FM | `genesis/` | Genesis `.cni`, ZIP |
+| Arcade FM | `arcade/` | Arcade `.cni`, ZIP |
+| SID | `sid/` | SID `.cni`, ZIP |
+| Sega PSG | `sega/` | Sega `.cni`, ZIP |
+| GB Pulse | `gb-pulse/` | GB Pulse `.cni`, ZIP |
+| GB Noise | `gb-noise/` | GB Noise `.cni`, ZIP |
+
+Copy files or whole folders into the matching directory. Banks still stored at
+the older `instruments/banks/<engine>/` location remain accessible under
+**Previous banks folder** in USER. Files are not moved or duplicated automatically;
+you can move them into the new USER folder when organizing your collection.
+A ZIP can contain CNI files at its root or in
+subfolders; DX7 ZIPs can also contain SysEx files. No TSV or special manifest
+is required for USER packs. Incompatible presets are hidden. ZIPs remain one
+file on disk; their contents are not permanently unpacked. Stored and Deflate
+ZIP entries are supported. Encrypted, ZIP64 and nested ZIPs are not supported.
+Limits are 32 MiB per archive, 8,192 entries, 1 MiB per entry, and 64 MiB total
+uncompressed data. Invalid files are skipped or reported without changing
+the selected instrument.
+
+The factory library in `instruments/FACTORY/` ships as 25 ZIP collections containing 1,196 CNI presets,
+with their catalog metadata and source notices. `catalog.tsv` and `builtins.tsv`
+retain the collection index; factory catalog rows may include a seventh field
+naming the ZIP containing the CNI entry. Legacy six-field loose-file catalogs
+still work, with `instruments/chips/` retained as a fallback for older installs.
+Factory categories and engine compatibility remain unchanged.
+
+Selected patches are copied into the instrument and saved with the song;
+playback does not depend on the original ZIP or bank remaining present. User
+CNI selection also loads its instrument table. Keep personal USER files with
+your songs when updating or backing up the application; they are not factory
+assets and should not be included in shared builds.
+
+WOPLX, TFI and OPM are source formats for the offline conversion tools, not
+files accepted by this USER browser. ZIP compression does not convert those
+formats into CNI.
 
 `native-chip-audition.cct` provides a short sequential audition across the original
 thirteen factory banks. Each section uses a different owned instrument, so it works with
