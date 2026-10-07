@@ -1425,10 +1425,46 @@ Left or Right on either row to cycle; a short EDIT tap opens its chooser.
 Included collections are ZIP packs under `instruments/FACTORY/`. USER files go
 under `instruments/USER/<engine>/`: `dx7`, `opll`, `vrc7`, `opl2`, `opl3`,
 `genesis`, `arcade`, `sid`, `sega`, `gb-pulse`, or `gb-noise`.
-Browse your folders directly, or put a ZIP of folders and compatible `.cni`
-presets there. DX7 also accepts supported `.syx` single voices and 32-voice
-banks, including inside ZIPs. ZIPs remain intact on disk. Direct WOPL/WOPLX loading is not supported;
-use compatible CNI presets or convert supported source formats offline first.
+Browse folders directly or put a ZIP of compatible presets there. ZIPs remain
+intact on disk. All these folders accept compatible `.cni` files; CNI is
+ChooChoo/ChipNomad's portable instrument format, not a chip manufacturer's standard.
+The USER browser also reads the following source formats, including inside ZIPs:
+
+| USER folder | Additional formats |
+| --- | --- |
+| `dx7` | Yamaha DX7/TX7 `.syx` single voices and 32-voice banks |
+| `genesis` | `.tfi`, DefleMask `.dmp`, Furnace `.fui` |
+| `arcade` | VOPM `.opm` banks, DefleMask `.dmp`, Furnace `.fui` |
+| `opl2`, `opl3` | `.wopl`, `.opli`, `.woplx`, `.sbi`, Furnace `.fui` |
+| `opll`, `vrc7` | Furnace `.fui` custom patches and fixed ROM selections |
+| `sega`, `gb-pulse`, `gb-noise` | Furnace `.fui`, DefleMask `.dmp` |
+| `sid` | GoatTracker 2 `.ins` (GTI5), Furnace `.fui` |
+
+A bank opens into compatible voices. Unsupported files or features report a
+reason; incompatible voices in a mixed bank are excluded while their source
+numbers remain stable. Loading is transactional: a rejected preset leaves the
+current instrument unchanged. Source presets replace the instrument's tracker
+table with an empty one, except DX7 SysEx, which preserves its existing table.
+CNI restores its saved table. Loaded patches are owned by the song and continue
+to work after moving or deleting the source pack.
+
+Furnace support covers legacy single-instrument versions 29–112 and feature-based
+`FINS` versions 127–251. DefleMask support covers version 11 OPN, OPM, Sega PSG
+and Game Boy instruments. These are instrument imports, not complete tracker
+players: animated FM/operator macros, source-song FM LFO settings, samples,
+Game Boy hardware command sequences, relative SID pulse/filter macros and SID
+ring/sync dependencies are currently rejected. Constant OPLL ROM selection is
+supported; VRC7 uses its own ROM for that selection. SID-Wizard `.swi` and SID
+music files (`.sid`) are not instrument imports in this build.
+
+Supported PSG/GB/SID sequences are stored in the patch and played at 60 Hz for
+Furnace/DefleMask and 50 Hz for GoatTracker. Those files do not carry a complete
+song's playback configuration: use the original tracker when its song-specific
+tick rate, channel routing, hard-restart behavior or compatibility settings are
+required. For Sega PSG, a duty macro selects the noise voice; without one the
+import uses a tone voice. Game Boy files must be placed in the intended pulse or
+noise folder. Imported sequences currently remain embedded playback data; the
+instrument page edits base parameters, not the source tracker tables.
 
 USER preset cycling continues across files, folders, banks and ZIP packs in
 both directions, wrapping at the ends. Reopening the USER browser follows the
@@ -1544,8 +1580,10 @@ engines are software processing after synthesis. aChChid instead uses its native
 FM synthesis itself. Track inserts remain available for additional processing.
 
 Native instruments save in CNI version 7 (8 when absolute commands are present),
-and native songs in CCT version 9. Stored FM preset bytes and instrument-page
-tone settings remain unchanged.
+and native songs in CCT version 9. Instruments containing imported sequences
+use CNI version 9 and songs containing them use CCT version 10. Older builds
+cannot open those newer sequence-bearing files. Stored FM preset bytes and
+instrument-page tone settings remain unchanged.
 
 ### Handheld workload guidance for native chips
 

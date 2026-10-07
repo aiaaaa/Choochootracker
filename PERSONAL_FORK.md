@@ -364,3 +364,18 @@ Prepare the pinned backend with the existing target toolchain first; see
 [Mod Lucky](docs/mod-lucky.md) for dependency setup, desktop commands, limits,
 source attribution, test results and device status. This build selection is
 compile-time only. It does not add a runtime toggle or submenu.
+
+## Community source presets (local changes, October 7, 2026)
+
+USER folders now import engine-compatible SYX, TFI, OPM, WOPL/OPLI/WOPLX/SBI,
+FUI, DMP and GoatTracker GTI5 INS sources directly, including bank files and ZIPs.
+The [user manual](docs/USER_MANUAL.md#portable-factory-collections-and-user-presets)
+lists supported versions and exclusions. Imported sequence data stays in the
+owned patch, using CNI 9 / CCT 10 while keeping the 696-byte instrument snapshot.
+Host validation passed 540 cases plus the ready-library ZIP browser audit.
+Community downloads remain private assets outside this repository. SID-Wizard
+SWI and advanced tracker dependencies are explicitly outside this update's scope
+by user agreement on October 7. Compatible static FM patches and the supported
+PSG/GB/SID sequences remain included. These changes have not been installed on
+the handheld; device functional checks and user listening remain separate from
+the host checks. Performance benchmarks remain skipped at the user's request.

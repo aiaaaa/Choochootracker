@@ -370,5 +370,33 @@
     },
     "device_report": "docs/personal-rotary-harmonization-device-20261007.json",
     "contribution_commit": "90f21f45f088ad5401da5d291e49a15ce5f8ba17"
+  },
+  "user_source_formats_20261007": {
+    "status": "Implemented locally; host and corpus validation passed; not installed on handheld",
+    "formats": [
+      "DX7 SYX",
+      "Genesis TFI and DMP",
+      "Arcade OPM and DMP",
+      "OPL WOPL/OPLI/WOPLX/SBI",
+      "Furnace FUI compatible subsets",
+      "Sega/GB DMP",
+      "SID GoatTracker GTI5 INS"
+    ],
+    "ownership": "Imported patches and supported source sequences persist in songs; CNI 9 / CCT 10 only when source sequences are present",
+    "snapshot_bytes": 696,
+    "source_sequence_limit_bytes": 512,
+    "validation": {
+      "full_host_cases": 540,
+      "full_host_assertions": 112248986,
+      "additional_ready_zip_browser_cases": 1,
+      "additional_ready_zip_browser_assertions": 165,
+      "corpus_targeted_cases": 12,
+      "corpus_targeted_assertions": 37466,
+      "web_build": "passed; regenerated local web/dist bundle"
+    },
+    "community_bundle": "ChooChoo-Community-Presets-20261007 (private Downloads bundle; not factory assets)",
+    "limits": "SID-Wizard SWI, animated FM/operator macros, source-song FM LFO and unsupported tracker dependencies remain excluded",
+    "scope_agreement": "User explicitly excluded SID-Wizard and advanced song-dependent FM/tracker features on 2026-10-07; proceed with supported source formats",
+    "manual": "docs/USER_MANUAL.md#portable-factory-collections-and-user-presets"
   }
 }
