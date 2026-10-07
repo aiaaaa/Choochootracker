@@ -1806,16 +1806,11 @@ static int instrumentLoadInternal(FILE* file, Project* project, int instrumentId
   return 0;
 }
 
-int instrumentLoad(Project* project, const char* path, int instrumentIdx) {
+static int instrumentLoadStream(Project* project, FILE* file, int instrumentIdx) {
   projectFileError[0] = 0;
   resetPeekConsume();  // Ensure clean state
 
-  FILE* file = fopen(path, "rb");
-  if (file == NULL) {
-    snprintf(projectFileError, 40, "Can't open file");
-    return 1;
-  }
-
+  if (!file) return 1;
   int result;
   const char* header = peekLine(file);
   if (header && (strncmp(header, "# ChipNomad Instrument 6.0", 25) == 0 || strncmp(header, "# ChipNomad Instrument 7.0", 25) == 0)) {
@@ -1831,6 +1826,21 @@ int instrumentLoad(Project* project, const char* path, int instrumentIdx) {
     }
     projectFree(temporary.get());
   } else result = instrumentLoadInternal(file, project, instrumentIdx);
-  fclose(file);
   return result;
+}
+
+int instrumentLoad(Project* project, const char* path, int instrumentIdx) {
+  FILE* file = fopen(path, "rb");
+  if (!file) { snprintf(projectFileError, 40, "Can't open file"); return 1; }
+  int result = instrumentLoadStream(project, file, instrumentIdx);
+  fclose(file); return result;
+}
+
+int instrumentLoadMemory(Project* project, const uint8_t* bytes, size_t size, int instrumentIdx) {
+  if (!project || !bytes || !size || size > 1024 * 1024 || instrumentIdx < 0 || instrumentIdx >= PROJECT_MAX_INSTRUMENTS) return 1;
+  FILE* file = tmpfile();
+  if (!file) { snprintf(projectFileError, 40, "Cannot read preset buffer"); return 1; }
+  bool ok = fwrite(bytes, 1, size, file) == size && !fseek(file, 0, SEEK_SET);
+  int result = ok ? instrumentLoadStream(project, file, instrumentIdx) : 1;
+  fclose(file); return result;
 }
