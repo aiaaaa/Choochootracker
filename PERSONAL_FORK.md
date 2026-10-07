@@ -63,6 +63,23 @@ bundled native audition. Upstream legacy-format support remains. See
 
 ## Current installed device build
 
+Source: `bd1fe7166b3e524ca20b3cfacef413281b4c0518`. October 7 ZIP collections, USER folder browsing
+and measured native engine gain compensation. Production code was compiled at
+`0b4bca780ab0892d8c75e634984e76f697fd09fc`; the later source commit changes only the device test harness.
+Personal features and Mod Lucky remain included.
+
+The 62 selected ARM tests, production browser checks, package integrity and
+70-second direct-card audio check passed. Startup passed with the waveform
+display off and on. Settings, songs, fonts, themes and all 32 private SYX banks
+were preserved; the regular launcher is unchanged and rollback is verified.
+Human listening remains pending. See [device validation](docs/preset-packs-device-20261007.json).
+
+Included collections live in `instruments/FACTORY/`; new personal files go in
+`instruments/USER/<engine>/`. Existing `instruments/banks/<engine>/` files remain
+accessible through USER → Previous banks folder.
+
+## Previous installed device build (October 6 harmonization)
+
 Source: `df6edc1aa3548d3bf5d9b3cacdd81ba53ce214c1`. October 6 upstream harmonization, native waveform previews
 and maintainer fixes, with personal additions and Mod Lucky preserved.
 Host suites, ARM production build, package integrity, runtime libraries and

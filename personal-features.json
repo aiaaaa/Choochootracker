@@ -248,11 +248,12 @@
     }
   ],
   "current_device_build": {
-    "source_commit": "df6edc1aa3548d3bf5d9b3cacdd81ba53ce214c1",
-    "binary_sha256": "97789aed20a1b939429139c31d6fa8ceddea52635169573ee3b0762340791e15",
-    "validation_report": "docs/personal-device-harmonization-20261006.json",
+    "source_commit": "bd1fe7166b3e524ca20b3cfacef413281b4c0518",
+    "binary_build_commit": "0b4bca780ab0892d8c75e634984e76f697fd09fc",
+    "binary_sha256": "ff4dcc976538feb99aa31720705ef73fdb6d2bf2734fc0b26e0b10f7fd862e94",
+    "validation_report": "docs/preset-packs-device-20261007.json",
     "human_listening": "pending user evaluation",
-    "rollback": "/roms/choochootracker-backups/pre-harmonization-df6edc1aa354/previous-install"
+    "rollback": "/roms/choochootracker-backups/pre-preset-packs-bd1fe7166b3e/previous-install"
   },
   "song_storage": "Upstream CCT archives embed loaded Sample, SCWF and BYOWTBL audio. Text songs remain readable; no-sample songs stay text. Native patches remain owned by the song.",
   "harmonization_20261005": {
@@ -270,7 +271,7 @@
     "source_commit": "df6edc1aa3548d3bf5d9b3cacdd81ba53ce214c1"
   },
   "preset_packs_20261007": {
-    "status": "ZIP and USER implementation validated on host; handheld installation in progress",
+    "status": "Installed; ARM preset tests, production browser checks and direct-card audio/startup passed; user listening pending",
     "factory_directory": "instruments/FACTORY/",
     "user_directory": "instruments/USER/<engine>/",
     "factory_presets": 1196,
@@ -278,6 +279,8 @@
     "legacy_user_directory": "instruments/banks/<engine>/ remains accessible",
     "gain_compensation": "scripts/README_MEASURE.md policy, fixed engine gains",
     "host_validation": "511 full-suite tests before folder rename; 16 targeted cases after rename; web rebuilt",
-    "report": "docs/chip-instruments-report.md"
+    "report": "docs/chip-instruments-report.md",
+    "source_commit": "bd1fe7166b3e524ca20b3cfacef413281b4c0518",
+    "device_validation_report": "docs/preset-packs-device-20261007.json"
   }
 }
