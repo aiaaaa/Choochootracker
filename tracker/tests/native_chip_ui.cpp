@@ -69,7 +69,15 @@ int main(int argc,char** argv){
     key(0,keyPlay);tapEdit();require(currentScreen==&screenInstrument,"USER ZIP commit");
     require(!strcmp(chipnomadState->project.instruments[0].name,"Acoustic Grand"),"USER ZIP chosen patch");
     getInstrumentFunctions(InstrumentType::DX7).init(&chipnomadState->project.instruments[0]);screenSetup(&screenInstrument,0);
-    openUserPresetBrowser();tapEdit();key(1,keyDown);tapEdit();tapEdit();capture("user-dx7-bank-voices");
+    openUserPresetBrowser();appDraw();
+    UserPresets dxListing;std::string error;
+    dxListing.setup("instruments/USER/dx7",InstrumentType::DX7,"instruments/banks/dx7");
+    require(dxListing.refresh(error),"DX7 USER listing");
+    size_t packIndex=0;
+    while(packIndex<dxListing.items().size()&&dxListing.items()[packIndex].name!="UI-test.zip")++packIndex;
+    require(packIndex<dxListing.items().size(),"DX7 ZIP listed alongside previous banks folder");
+    for(size_t i=0;i<packIndex;++i)key(1,keyDown);
+    tapEdit();key(1,keyDown);tapEdit();tapEdit();capture("user-dx7-bank-voices");
     tapEdit();require(currentScreen==&screenInstrument,"zipped DX7 bank voice commit");
     require(!strcmp(chipnomadState->project.instruments[0].name,"TEST VOICE"),"synthetic DX7 bank patch");
     fs::remove(oplPack);fs::remove(dxPack);
