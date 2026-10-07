@@ -12,6 +12,7 @@
 #include "export_path.h"
 #include "import/import_vt2.h"
 #include "import/import_midi.h"
+#include "import/import_m8s.h"
 #include "string_utils.h"
 #include <string.h>
 #include <strings.h>
@@ -57,6 +58,9 @@ int projectLoadFromPath(const char* path) {
     } else if (strcasecmp(ext, ".mid") == 0 || strcasecmp(ext, ".midi") == 0) {
       // Import a Standard MIDI File as a new project
       loadResult = projectLoadMidi(&replacement, path);
+    } else if (strcasecmp(ext, ".m8s") == 0) {
+      // Import a Dirtywave M8 song (structure and notes only)
+      loadResult = projectLoadM8S(&replacement, path);
     } else if (strcasecmp(ext, ".cct") == 0) {
       // Load ChooChooTracker native format
       loadResult = projectLoad(&replacement, path);
@@ -130,7 +134,7 @@ static void onProjectCancelled(void) {
 }
 
 static void doLoadProject(void) {
-  fileBrowserSetup("LOAD PROJECT", ".cct,.vt2,.mid,.midi", appSettings.projectPath,
+  fileBrowserSetup("LOAD PROJECT", ".cct,.vt2,.mid,.midi,.m8s", appSettings.projectPath,
     onProjectLoaded, onProjectCancelled);
   screenSetup(&screenFileBrowser, 0);
 }
@@ -154,7 +158,7 @@ void projectOpenFromScreen(const AppScreen* returnScreen) {
 
 void projectOpenFromScreenAtPath(const AppScreen* returnScreen, const char* path) {
   projectReturnScreen = returnScreen ? returnScreen : &screenProject;
-  fileBrowserSetup("LOAD PROJECT", ".cct,.vt2,.mid,.midi", path,
+  fileBrowserSetup("LOAD PROJECT", ".cct,.vt2,.mid,.midi,.m8s", path,
     onProjectLoaded, onProjectCancelled);
   screenSetup(&screenFileBrowser, 0);
 }
