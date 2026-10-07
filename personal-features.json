@@ -143,7 +143,7 @@
       "id": "rotary-rate-popup-navigation",
       "branch": "experimental/rotary-rate-popup",
       "status": "Installed test branch; awaiting user evaluation",
-      "installed_source_commit": "797de755d7448e6ee4c8e23a643eef62ceb272ab",
+      "installed_source_commit": "13968c857c547f2bee7c9f3d069ec7a9791426d2",
       "validation_report": "docs/rotary-popup-device-20261007.json",
       "changes": [
         "Contextual Phrase/Table insert popup descriptions and decoded value hints",
