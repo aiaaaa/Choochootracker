@@ -11,11 +11,11 @@ ownership fix. These use the shared upstream implementation. The separate
 `contribution/rotary-insert-workflow` branch starts from upstream main and contains
 only the Rotary/insert/navigation changes and their documentation and tests.
 
-The installed application now includes community source imports from `17d32f3b8a66`.
+The installed application now includes community source imports and OPL cleanup from `b5bc205f24ca`.
 Lucky and the personal features stay enabled. The regular launcher, settings,
 songs and existing private banks remain intact. Supported community collections
 are private USER assets; SynprezFM was already present and was not duplicated.
-See [device validation](docs/community-presets-device-20261007.json) for the checks
+See [device validation](docs/preset-polish-device-20261007.json) for the checks
 and rollback record.
 
 Rotary uses the full 00-FF speed scale, from 0.01 to 25 Hz. Previous
@@ -102,7 +102,13 @@ YSE with ChooChoo Factory Presets and keeps OpenDX7 Originals separate.
 
 ## Current installed device build
 
-Source: `17d32f3b8a66abf53ec933be3064de452a7072f9`. Community source formats load through
+The extra library is named **Non-attributable**. Factory-source duplicates are
+excluded from its two OPL packs; Factory assets and offline originals remain.
+Unnamed empty OPL slots are hidden, and playable unnamed voices use source
+program/bank labels. Both Downloads GB folders explain the shared four examples
+and their source-controlled duty, pitch and envelopes.
+
+Source: `b5bc205f24ca6ad42acd111f7d9a067434c85f19`. Community source formats load through
 the engine USER folders, including bank files and ZIPs. Host validation, focused
 ARM import/save-load tests and offscreen production browser checks passed.
 Existing settings, songs, private banks and the launcher were verified unchanged.

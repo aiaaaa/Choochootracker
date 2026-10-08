@@ -263,12 +263,12 @@
     }
   ],
   "current_device_build": {
-    "source_commit": "17d32f3b8a66abf53ec933be3064de452a7072f9",
-    "binary_sha256": "66af18eccaeec103ac51742a0996bb408c446b403bebccdf9ce65075887f2822",
-    "validation_report": "docs/community-presets-device-20261007.json",
-    "human_listening": "pending user evaluation",
-    "rollback": "/roms/choochootracker-backups/pre-community-17d32f3b8a66/previous-install",
-    "binary_build_commit": "17d32f3b8a66abf53ec933be3064de452a7072f9",
+    "source_commit": "b5bc205f24ca6ad42acd111f7d9a067434c85f19",
+    "binary_sha256": "5b1f07a729d867aad0cc90e837dd4d438e61569afadff126eeccf7e882e8b8cd",
+    "validation_report": "docs/preset-polish-device-20261007.json",
+    "human_listening": "Initial library listening feedback recorded; final cleanup awaits user evaluation",
+    "rollback": "/roms/choochootracker-backups/pre-preset-polish-b5bc205f24ca/previous-install",
+    "binary_build_commit": "b5bc205f24ca6ad42acd111f7d9a067434c85f19",
     "branch": "personal/r36h"
   },
   "song_storage": "Upstream CCT archives embed loaded Sample, SCWF and BYOWTBL audio. Text songs remain readable; no-sample songs stay text. Native patches remain owned by the song.",
@@ -404,7 +404,7 @@
     "retention_policy": "Permanent private USER assets, including SynprezFM: preserve across every device personal build; keep files and offline originals outside Git, factory assets and shared release packages; avoid byte-identical collection duplicates"
   },
   "preset_polish_20261007": {
-    "status": "Host and curated-library validation passed; device update pending",
+    "status": "Installed; ARM import/USER and production browser checks passed; Factory assets and private library preserved",
     "collection_name": "Non-attributable",
     "factory_sources_excluded_from_extra_opl": [
       "fatman-2op.woplx",
@@ -419,6 +419,12 @@
     "host_test_assertions": 112249040,
     "focused_curated_cases": 14,
     "focused_curated_assertions": 872,
-    "performance_tests": "skipped at user request"
+    "performance_tests": "skipped at user request",
+    "source_commit": "b5bc205f24ca6ad42acd111f7d9a067434c85f19",
+    "device_report": "docs/preset-polish-device-20261007.json",
+    "arm_test_cases": 14,
+    "arm_test_assertions": 872,
+    "production_browser_engines": 11,
+    "collection_metadata_folder": "non-attributable-presets-20261007"
   }
 }
