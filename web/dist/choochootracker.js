@@ -76,7 +76,7 @@ var ENVIRONMENT_IS_SHELL = !ENVIRONMENT_IS_WEB && !ENVIRONMENT_IS_NODE && !ENVIR
 
 // --pre-jses are emitted after the Module integration code, so that they can
 // refer to Module (if they choose; they can also define Module)
-// include: /var/folders/g9/899ky8t11x9g4x5pskvtwrrh0000gn/T/tmp_kla9ra6.js
+// include: /var/folders/g9/899ky8t11x9g4x5pskvtwrrh0000gn/T/tmpqxvb8ymj.js
 
   if (!Module['expectedDataFileDownloads']) Module['expectedDataFileDownloads'] = 0;
   Module['expectedDataFileDownloads']++;
@@ -242,21 +242,21 @@ Module['FS_createPath']("/waveforms", "AKWF", true, true);
 
   })();
 
-// end include: /var/folders/g9/899ky8t11x9g4x5pskvtwrrh0000gn/T/tmp_kla9ra6.js
-// include: /var/folders/g9/899ky8t11x9g4x5pskvtwrrh0000gn/T/tmpw4mzuqmv.js
+// end include: /var/folders/g9/899ky8t11x9g4x5pskvtwrrh0000gn/T/tmpqxvb8ymj.js
+// include: /var/folders/g9/899ky8t11x9g4x5pskvtwrrh0000gn/T/tmp_s0m2eo1.js
 
     // All the pre-js content up to here must remain later on, we need to run
     // it.
     if ((typeof ENVIRONMENT_IS_WASM_WORKER != 'undefined' && ENVIRONMENT_IS_WASM_WORKER) || (typeof ENVIRONMENT_IS_PTHREAD != 'undefined' && ENVIRONMENT_IS_PTHREAD) || (typeof ENVIRONMENT_IS_AUDIO_WORKLET != 'undefined' && ENVIRONMENT_IS_AUDIO_WORKLET)) Module['preRun'] = [];
     var necessaryPreJSTasks = Module['preRun'].slice();
-  // end include: /var/folders/g9/899ky8t11x9g4x5pskvtwrrh0000gn/T/tmpw4mzuqmv.js
-// include: /var/folders/g9/899ky8t11x9g4x5pskvtwrrh0000gn/T/tmplpx2ctwd.js
+  // end include: /var/folders/g9/899ky8t11x9g4x5pskvtwrrh0000gn/T/tmp_s0m2eo1.js
+// include: /var/folders/g9/899ky8t11x9g4x5pskvtwrrh0000gn/T/tmp7wk6mn4m.js
 
     if (!Module['preRun']) throw 'Module.preRun should exist because file support used it; did a pre-js delete it?';
     necessaryPreJSTasks.forEach((task) => {
       if (Module['preRun'].indexOf(task) < 0) throw 'All preRun tasks that exist before user pre-js code should remain after; did you replace Module or modify Module.preRun?';
     });
-  // end include: /var/folders/g9/899ky8t11x9g4x5pskvtwrrh0000gn/T/tmplpx2ctwd.js
+  // end include: /var/folders/g9/899ky8t11x9g4x5pskvtwrrh0000gn/T/tmp7wk6mn4m.js
 
 
 var programArgs = [];
@@ -1122,6 +1122,8 @@ async function createWasm() {
     };
   var ___assert_fail = (condition, filename, line, func) =>
       abort(`Assertion failed: ${UTF8ToString(condition)}, at: ` + [filename ? UTF8ToString(filename) : 'unknown filename', line, func ? UTF8ToString(func) : 'unknown function']);
+
+  var ___call_sighandler = (fp, sig) => ((a1) => dynCall_vi(fp, a1))(sig);
 
   var exceptionCaught =  [];
   
@@ -4881,6 +4883,113 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
   var __abort_js = () =>
       abort('native code called abort()');
 
+  var runtimeKeepaliveCounter = 0;
+  var __emscripten_runtime_keepalive_clear = () => {
+      noExitRuntime = false;
+      runtimeKeepaliveCounter = 0;
+    };
+
+  var timers = {
+  };
+  
+  var clearTimers = () => {
+      for (var t of Object.values(timers)) {
+        clearTimeout(t.id);
+      }
+    };
+  
+  var handleException = (e) => {
+      // Certain exception types we do not treat as errors since they are used for
+      // internal control flow.
+      // 1. ExitStatus, which is thrown by exit()
+      // 2. "unwind", which is thrown by emscripten_unwind_to_js_event_loop() and others
+      //    that wish to return to JS event loop.
+      if (e instanceof ExitStatus || e == 'unwind') {
+        return EXITSTATUS;
+      }
+      checkStackCookie();
+      if (e instanceof WebAssembly.RuntimeError) {
+        if (_emscripten_stack_get_current() <= 0) {
+          err('Stack overflow detected.  You can try increasing -sSTACK_SIZE (currently set to 8388608)');
+        }
+      }
+      quit_(1, e);
+    };
+  
+  
+  var keepRuntimeAlive = () => noExitRuntime || runtimeKeepaliveCounter > 0;
+  var _proc_exit = (code) => {
+      EXITSTATUS = code;
+      if (!keepRuntimeAlive()) {
+        Module['onExit']?.(code);
+        ABORT = true;
+      }
+      quit_(code, new ExitStatus(code));
+    };
+  
+  
+  /** @param {boolean|number=} implicit */
+  var exitJS = (status, implicit) => {
+      EXITSTATUS = status;
+  
+      checkUnflushedContent();
+  
+      // if exit() was called explicitly, warn the user if the runtime isn't actually being shut down
+      if (keepRuntimeAlive() && !implicit) {
+        var msg = `program exited (with status: ${status}), but keepRuntimeAlive() is set (counter=${runtimeKeepaliveCounter}) due to an async operation, so halting execution but not exiting the runtime or preventing further async execution (you can use emscripten_force_exit, if you want to force a true shutdown)`;
+        err(msg);
+      }
+  
+      _proc_exit(status);
+    };
+  var _exit = exitJS;
+  
+  
+  var maybeExit = () => {
+      if (!keepRuntimeAlive()) {
+        try {
+          _exit(EXITSTATUS);
+        } catch (e) {
+          handleException(e);
+        }
+      }
+    };
+  var callUserCallback = (func) => {
+      if (ABORT) {
+        err('user callback triggered after runtime exited or application aborted.  Ignoring.');
+        return;
+      }
+      try {
+        return func();
+      } catch (e) {
+        handleException(e);
+      } finally {
+        maybeExit();
+      }
+    };
+  
+  
+  var _emscripten_get_now = () => performance.now();
+  var __setitimer_js = (which, timeout_ms) => {
+      // First, clear any existing timer.
+      if (timers[which]) {
+        clearTimeout(timers[which].id);
+        delete timers[which];
+      }
+  
+      // A timeout of zero simply cancels the current timeout so we have nothing
+      // more to do.
+      if (!timeout_ms) return 0;
+  
+      var id = setTimeout(() => {
+        assert(which in timers);
+        delete timers[which];
+        callUserCallback(() => __emscripten_timeout(which, _emscripten_get_now()));
+      }, timeout_ms);
+      timers[which] = { id, timeout_ms };
+      return 0;
+    };
+
   
   
   
@@ -4937,7 +5046,6 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       }
     };
 
-  var _emscripten_get_now = () => performance.now();
   
   var _emscripten_date_now = () => Date.now();
   
@@ -4973,76 +5081,6 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
     ;
   }
 
-  var handleException = (e) => {
-      // Certain exception types we do not treat as errors since they are used for
-      // internal control flow.
-      // 1. ExitStatus, which is thrown by exit()
-      // 2. "unwind", which is thrown by emscripten_unwind_to_js_event_loop() and others
-      //    that wish to return to JS event loop.
-      if (e instanceof ExitStatus || e == 'unwind') {
-        return EXITSTATUS;
-      }
-      checkStackCookie();
-      if (e instanceof WebAssembly.RuntimeError) {
-        if (_emscripten_stack_get_current() <= 0) {
-          err('Stack overflow detected.  You can try increasing -sSTACK_SIZE (currently set to 8388608)');
-        }
-      }
-      quit_(1, e);
-    };
-  
-  
-  var runtimeKeepaliveCounter = 0;
-  var keepRuntimeAlive = () => noExitRuntime || runtimeKeepaliveCounter > 0;
-  var _proc_exit = (code) => {
-      EXITSTATUS = code;
-      if (!keepRuntimeAlive()) {
-        Module['onExit']?.(code);
-        ABORT = true;
-      }
-      quit_(code, new ExitStatus(code));
-    };
-  
-  
-  /** @param {boolean|number=} implicit */
-  var exitJS = (status, implicit) => {
-      EXITSTATUS = status;
-  
-      checkUnflushedContent();
-  
-      // if exit() was called explicitly, warn the user if the runtime isn't actually being shut down
-      if (keepRuntimeAlive() && !implicit) {
-        var msg = `program exited (with status: ${status}), but keepRuntimeAlive() is set (counter=${runtimeKeepaliveCounter}) due to an async operation, so halting execution but not exiting the runtime or preventing further async execution (you can use emscripten_force_exit, if you want to force a true shutdown)`;
-        err(msg);
-      }
-  
-      _proc_exit(status);
-    };
-  var _exit = exitJS;
-  
-  
-  var maybeExit = () => {
-      if (!keepRuntimeAlive()) {
-        try {
-          _exit(EXITSTATUS);
-        } catch (e) {
-          handleException(e);
-        }
-      }
-    };
-  var callUserCallback = (func) => {
-      if (ABORT) {
-        err('user callback triggered after runtime exited or application aborted.  Ignoring.');
-        return;
-      }
-      try {
-        return func();
-      } catch (e) {
-        handleException(e);
-      } finally {
-        maybeExit();
-      }
-    };
   
   function getFullscreenElement() {
       return document.fullscreenElement
@@ -6971,10 +7009,6 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
     };
 
   
-  var __emscripten_runtime_keepalive_clear = () => {
-      noExitRuntime = false;
-      runtimeKeepaliveCounter = 0;
-    };
   
   var _emscripten_force_exit = (status) => {
       warnOnce('emscripten_force_exit cannot actually shut down the runtime, as the build does not have EXIT_RUNTIME set');
@@ -9754,6 +9788,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
 
 
 
+
   var autoResumeAudioContext = (ctx) => {
       for (var event of ['keydown', 'mousedown', 'touchstart']) {
         for (var element of [document, document.getElementById('canvas')]) {
@@ -10718,22 +10753,22 @@ function checkIncomingModuleAPI() {
   ignoredModuleProp('wasmBinary');
 }
 var ASM_CONSTS = {
-  503928: ($0) => { var str = UTF8ToString($0) + '\n\n' + 'Abort/Retry/Ignore/AlwaysIgnore? [ariA] :'; var reply = window.prompt(str, "i"); if (reply === null) { reply = "i"; } return reply.length === 1 ? reply.charCodeAt(0) : -1; },  
- 504143: () => { if (typeof(AudioContext) !== 'undefined') { return true; } else if (typeof(webkitAudioContext) !== 'undefined') { return true; } return false; },  
- 504290: () => { if ((typeof(navigator.mediaDevices) !== 'undefined') && (typeof(navigator.mediaDevices.getUserMedia) !== 'undefined')) { return true; } else if (typeof(navigator.webkitGetUserMedia) !== 'undefined') { return true; } return false; },  
- 504524: ($0) => { if(typeof(Module['SDL2']) === 'undefined') { Module['SDL2'] = {}; } var SDL2 = Module['SDL2']; if (!$0) { SDL2.audio = {}; } else { SDL2.capture = {}; } if (!SDL2.audioContext) { if (typeof(AudioContext) !== 'undefined') { SDL2.audioContext = new AudioContext(); } else if (typeof(webkitAudioContext) !== 'undefined') { SDL2.audioContext = new webkitAudioContext(); } if (SDL2.audioContext) { if ((typeof navigator.userActivation) === 'undefined') { autoResumeAudioContext(SDL2.audioContext); } } } return SDL2.audioContext === undefined ? -1 : 0; },  
- 505076: () => { var SDL2 = Module['SDL2']; return SDL2.audioContext.sampleRate; },  
- 505144: ($0, $1, $2, $3) => { var SDL2 = Module['SDL2']; var have_microphone = function(stream) { if (SDL2.capture.silenceTimer !== undefined) { clearInterval(SDL2.capture.silenceTimer); SDL2.capture.silenceTimer = undefined; SDL2.capture.silenceBuffer = undefined } SDL2.capture.mediaStreamNode = SDL2.audioContext.createMediaStreamSource(stream); SDL2.capture.scriptProcessorNode = SDL2.audioContext.createScriptProcessor($1, $0, 1); SDL2.capture.scriptProcessorNode.onaudioprocess = function(audioProcessingEvent) { if ((SDL2 === undefined) || (SDL2.capture === undefined)) { return; } audioProcessingEvent.outputBuffer.getChannelData(0).fill(0.0); SDL2.capture.currentCaptureBuffer = audioProcessingEvent.inputBuffer; dynCall('vp', $2, [$3]); }; SDL2.capture.mediaStreamNode.connect(SDL2.capture.scriptProcessorNode); SDL2.capture.scriptProcessorNode.connect(SDL2.audioContext.destination); SDL2.capture.stream = stream; }; var no_microphone = function(error) { }; SDL2.capture.silenceBuffer = SDL2.audioContext.createBuffer($0, $1, SDL2.audioContext.sampleRate); SDL2.capture.silenceBuffer.getChannelData(0).fill(0.0); var silence_callback = function() { SDL2.capture.currentCaptureBuffer = SDL2.capture.silenceBuffer; dynCall('vp', $2, [$3]); }; SDL2.capture.silenceTimer = setInterval(silence_callback, ($1 / SDL2.audioContext.sampleRate) * 1000); if ((navigator.mediaDevices !== undefined) && (navigator.mediaDevices.getUserMedia !== undefined)) { navigator.mediaDevices.getUserMedia({ audio: true, video: false }).then(have_microphone).catch(no_microphone); } else if (navigator.webkitGetUserMedia !== undefined) { navigator.webkitGetUserMedia({ audio: true, video: false }, have_microphone, no_microphone); } },  
- 506837: ($0, $1, $2, $3) => { var SDL2 = Module['SDL2']; SDL2.audio.scriptProcessorNode = SDL2.audioContext['createScriptProcessor']($1, 0, $0); SDL2.audio.scriptProcessorNode['onaudioprocess'] = function (e) { if ((SDL2 === undefined) || (SDL2.audio === undefined)) { return; } if (SDL2.audio.silenceTimer !== undefined) { clearInterval(SDL2.audio.silenceTimer); SDL2.audio.silenceTimer = undefined; SDL2.audio.silenceBuffer = undefined; } SDL2.audio.currentOutputBuffer = e['outputBuffer']; dynCall('vp', $2, [$3]); }; SDL2.audio.scriptProcessorNode['connect'](SDL2.audioContext['destination']); if (SDL2.audioContext.state === 'suspended') { SDL2.audio.silenceBuffer = SDL2.audioContext.createBuffer($0, $1, SDL2.audioContext.sampleRate); SDL2.audio.silenceBuffer.getChannelData(0).fill(0.0); var silence_callback = function() { if ((typeof navigator.userActivation) !== 'undefined') { if (navigator.userActivation.hasBeenActive) { SDL2.audioContext.resume(); } } SDL2.audio.currentOutputBuffer = SDL2.audio.silenceBuffer; dynCall('vp', $2, [$3]); SDL2.audio.currentOutputBuffer = undefined; }; SDL2.audio.silenceTimer = setInterval(silence_callback, ($1 / SDL2.audioContext.sampleRate) * 1000); } },  
- 508012: ($0, $1) => { var SDL2 = Module['SDL2']; var numChannels = SDL2.capture.currentCaptureBuffer.numberOfChannels; for (var c = 0; c < numChannels; ++c) { var channelData = SDL2.capture.currentCaptureBuffer.getChannelData(c); if (channelData.length != $1) { throw 'Web Audio capture buffer length mismatch! Destination size: ' + channelData.length + ' samples vs expected ' + $1 + ' samples!'; } if (numChannels == 1) { for (var j = 0; j < $1; ++j) { setValue($0 + (j * 4), channelData[j], 'float'); } } else { for (var j = 0; j < $1; ++j) { setValue($0 + (((j * numChannels) + c) * 4), channelData[j], 'float'); } } } },  
- 508617: ($0, $1) => { var SDL2 = Module['SDL2']; var buf = $0 >>> 2; var numChannels = SDL2.audio.currentOutputBuffer['numberOfChannels']; for (var c = 0; c < numChannels; ++c) { var channelData = SDL2.audio.currentOutputBuffer['getChannelData'](c); if (channelData.length != $1) { throw 'Web Audio output buffer length mismatch! Destination size: ' + channelData.length + ' samples vs expected ' + $1 + ' samples!'; } for (var j = 0; j < $1; ++j) { channelData[j] = HEAPF32[buf + (j*numChannels + c)]; } } },  
- 509106: ($0) => { var SDL2 = Module['SDL2']; if ($0) { if (SDL2.capture.silenceTimer !== undefined) { clearInterval(SDL2.capture.silenceTimer); } if (SDL2.capture.stream !== undefined) { var tracks = SDL2.capture.stream.getAudioTracks(); for (var i = 0; i < tracks.length; i++) { SDL2.capture.stream.removeTrack(tracks[i]); } } if (SDL2.capture.scriptProcessorNode !== undefined) { SDL2.capture.scriptProcessorNode.onaudioprocess = function(audioProcessingEvent) {}; SDL2.capture.scriptProcessorNode.disconnect(); } if (SDL2.capture.mediaStreamNode !== undefined) { SDL2.capture.mediaStreamNode.disconnect(); } SDL2.capture = undefined; } else { if (SDL2.audio.scriptProcessorNode != undefined) { SDL2.audio.scriptProcessorNode.disconnect(); } if (SDL2.audio.silenceTimer !== undefined) { clearInterval(SDL2.audio.silenceTimer); } SDL2.audio = undefined; } if ((SDL2.audioContext !== undefined) && (SDL2.audio === undefined) && (SDL2.capture === undefined)) { SDL2.audioContext.close(); SDL2.audioContext = undefined; } },  
- 510112: ($0, $1, $2) => { var w = $0; var h = $1; var pixels = $2; if (!Module['SDL2']) Module['SDL2'] = {}; var SDL2 = Module['SDL2']; if (SDL2.ctxCanvas !== Module['canvas']) { SDL2.ctx = Browser.createContext(Module['canvas'], false, true); SDL2.ctxCanvas = Module['canvas']; } if (SDL2.w !== w || SDL2.h !== h || SDL2.imageCtx !== SDL2.ctx) { SDL2.image = SDL2.ctx.createImageData(w, h); SDL2.w = w; SDL2.h = h; SDL2.imageCtx = SDL2.ctx; } var data = SDL2.image.data; var src = pixels / 4; var dst = 0; var num; if (typeof CanvasPixelArray !== 'undefined' && data instanceof CanvasPixelArray) { num = data.length; while (dst < num) { var val = HEAP32[src]; data[dst ] = val & 0xff; data[dst+1] = (val >> 8) & 0xff; data[dst+2] = (val >> 16) & 0xff; data[dst+3] = 0xff; src++; dst += 4; } } else { if (SDL2.data32Data !== data) { SDL2.data32 = new Int32Array(data.buffer); SDL2.data8 = new Uint8Array(data.buffer); SDL2.data32Data = data; } var data32 = SDL2.data32; num = data32.length; data32.set(HEAP32.subarray(src, src + num)); var data8 = SDL2.data8; var i = 3; var j = i + 4*num; if (num % 8 == 0) { while (i < j) { data8[i] = 0xff; i = i + 4 | 0; data8[i] = 0xff; i = i + 4 | 0; data8[i] = 0xff; i = i + 4 | 0; data8[i] = 0xff; i = i + 4 | 0; data8[i] = 0xff; i = i + 4 | 0; data8[i] = 0xff; i = i + 4 | 0; data8[i] = 0xff; i = i + 4 | 0; data8[i] = 0xff; i = i + 4 | 0; } } else { while (i < j) { data8[i] = 0xff; i = i + 4 | 0; } } } SDL2.ctx.putImageData(SDL2.image, 0, 0); },  
- 511578: ($0, $1, $2, $3, $4) => { var w = $0; var h = $1; var hot_x = $2; var hot_y = $3; var pixels = $4; var canvas = document.createElement("canvas"); canvas.width = w; canvas.height = h; var ctx = canvas.getContext("2d"); var image = ctx.createImageData(w, h); var data = image.data; var src = pixels / 4; var dst = 0; var num; if (typeof CanvasPixelArray !== 'undefined' && data instanceof CanvasPixelArray) { num = data.length; while (dst < num) { var val = HEAP32[src]; data[dst ] = val & 0xff; data[dst+1] = (val >> 8) & 0xff; data[dst+2] = (val >> 16) & 0xff; data[dst+3] = (val >> 24) & 0xff; src++; dst += 4; } } else { var data32 = new Int32Array(data.buffer); num = data32.length; data32.set(HEAP32.subarray(src, src + num)); } ctx.putImageData(image, 0, 0); var url = hot_x === 0 && hot_y === 0 ? "url(" + canvas.toDataURL() + "), auto" : "url(" + canvas.toDataURL() + ") " + hot_x + " " + hot_y + ", auto"; var urlBuf = _malloc(url.length + 1); stringToUTF8(url, urlBuf, url.length + 1); return urlBuf; },  
- 512566: ($0) => { if (Module['canvas']) { Module['canvas'].style['cursor'] = UTF8ToString($0); } },  
- 512649: () => { if (Module['canvas']) { Module['canvas'].style['cursor'] = 'none'; } },  
- 512718: () => { return window.innerWidth; },  
- 512748: () => { return window.innerHeight; }
+  445328: ($0) => { var str = UTF8ToString($0) + '\n\n' + 'Abort/Retry/Ignore/AlwaysIgnore? [ariA] :'; var reply = window.prompt(str, "i"); if (reply === null) { reply = "i"; } return reply.length === 1 ? reply.charCodeAt(0) : -1; },  
+ 445543: () => { if (typeof(AudioContext) !== 'undefined') { return true; } else if (typeof(webkitAudioContext) !== 'undefined') { return true; } return false; },  
+ 445690: () => { if ((typeof(navigator.mediaDevices) !== 'undefined') && (typeof(navigator.mediaDevices.getUserMedia) !== 'undefined')) { return true; } else if (typeof(navigator.webkitGetUserMedia) !== 'undefined') { return true; } return false; },  
+ 445924: ($0) => { if(typeof(Module['SDL2']) === 'undefined') { Module['SDL2'] = {}; } var SDL2 = Module['SDL2']; if (!$0) { SDL2.audio = {}; } else { SDL2.capture = {}; } if (!SDL2.audioContext) { if (typeof(AudioContext) !== 'undefined') { SDL2.audioContext = new AudioContext(); } else if (typeof(webkitAudioContext) !== 'undefined') { SDL2.audioContext = new webkitAudioContext(); } if (SDL2.audioContext) { if ((typeof navigator.userActivation) === 'undefined') { autoResumeAudioContext(SDL2.audioContext); } } } return SDL2.audioContext === undefined ? -1 : 0; },  
+ 446476: () => { var SDL2 = Module['SDL2']; return SDL2.audioContext.sampleRate; },  
+ 446544: ($0, $1, $2, $3) => { var SDL2 = Module['SDL2']; var have_microphone = function(stream) { if (SDL2.capture.silenceTimer !== undefined) { clearInterval(SDL2.capture.silenceTimer); SDL2.capture.silenceTimer = undefined; SDL2.capture.silenceBuffer = undefined } SDL2.capture.mediaStreamNode = SDL2.audioContext.createMediaStreamSource(stream); SDL2.capture.scriptProcessorNode = SDL2.audioContext.createScriptProcessor($1, $0, 1); SDL2.capture.scriptProcessorNode.onaudioprocess = function(audioProcessingEvent) { if ((SDL2 === undefined) || (SDL2.capture === undefined)) { return; } audioProcessingEvent.outputBuffer.getChannelData(0).fill(0.0); SDL2.capture.currentCaptureBuffer = audioProcessingEvent.inputBuffer; dynCall('vp', $2, [$3]); }; SDL2.capture.mediaStreamNode.connect(SDL2.capture.scriptProcessorNode); SDL2.capture.scriptProcessorNode.connect(SDL2.audioContext.destination); SDL2.capture.stream = stream; }; var no_microphone = function(error) { }; SDL2.capture.silenceBuffer = SDL2.audioContext.createBuffer($0, $1, SDL2.audioContext.sampleRate); SDL2.capture.silenceBuffer.getChannelData(0).fill(0.0); var silence_callback = function() { SDL2.capture.currentCaptureBuffer = SDL2.capture.silenceBuffer; dynCall('vp', $2, [$3]); }; SDL2.capture.silenceTimer = setInterval(silence_callback, ($1 / SDL2.audioContext.sampleRate) * 1000); if ((navigator.mediaDevices !== undefined) && (navigator.mediaDevices.getUserMedia !== undefined)) { navigator.mediaDevices.getUserMedia({ audio: true, video: false }).then(have_microphone).catch(no_microphone); } else if (navigator.webkitGetUserMedia !== undefined) { navigator.webkitGetUserMedia({ audio: true, video: false }, have_microphone, no_microphone); } },  
+ 448237: ($0, $1, $2, $3) => { var SDL2 = Module['SDL2']; SDL2.audio.scriptProcessorNode = SDL2.audioContext['createScriptProcessor']($1, 0, $0); SDL2.audio.scriptProcessorNode['onaudioprocess'] = function (e) { if ((SDL2 === undefined) || (SDL2.audio === undefined)) { return; } if (SDL2.audio.silenceTimer !== undefined) { clearInterval(SDL2.audio.silenceTimer); SDL2.audio.silenceTimer = undefined; SDL2.audio.silenceBuffer = undefined; } SDL2.audio.currentOutputBuffer = e['outputBuffer']; dynCall('vp', $2, [$3]); }; SDL2.audio.scriptProcessorNode['connect'](SDL2.audioContext['destination']); if (SDL2.audioContext.state === 'suspended') { SDL2.audio.silenceBuffer = SDL2.audioContext.createBuffer($0, $1, SDL2.audioContext.sampleRate); SDL2.audio.silenceBuffer.getChannelData(0).fill(0.0); var silence_callback = function() { if ((typeof navigator.userActivation) !== 'undefined') { if (navigator.userActivation.hasBeenActive) { SDL2.audioContext.resume(); } } SDL2.audio.currentOutputBuffer = SDL2.audio.silenceBuffer; dynCall('vp', $2, [$3]); SDL2.audio.currentOutputBuffer = undefined; }; SDL2.audio.silenceTimer = setInterval(silence_callback, ($1 / SDL2.audioContext.sampleRate) * 1000); } },  
+ 449412: ($0, $1) => { var SDL2 = Module['SDL2']; var numChannels = SDL2.capture.currentCaptureBuffer.numberOfChannels; for (var c = 0; c < numChannels; ++c) { var channelData = SDL2.capture.currentCaptureBuffer.getChannelData(c); if (channelData.length != $1) { throw 'Web Audio capture buffer length mismatch! Destination size: ' + channelData.length + ' samples vs expected ' + $1 + ' samples!'; } if (numChannels == 1) { for (var j = 0; j < $1; ++j) { setValue($0 + (j * 4), channelData[j], 'float'); } } else { for (var j = 0; j < $1; ++j) { setValue($0 + (((j * numChannels) + c) * 4), channelData[j], 'float'); } } } },  
+ 450017: ($0, $1) => { var SDL2 = Module['SDL2']; var buf = $0 >>> 2; var numChannels = SDL2.audio.currentOutputBuffer['numberOfChannels']; for (var c = 0; c < numChannels; ++c) { var channelData = SDL2.audio.currentOutputBuffer['getChannelData'](c); if (channelData.length != $1) { throw 'Web Audio output buffer length mismatch! Destination size: ' + channelData.length + ' samples vs expected ' + $1 + ' samples!'; } for (var j = 0; j < $1; ++j) { channelData[j] = HEAPF32[buf + (j*numChannels + c)]; } } },  
+ 450506: ($0) => { var SDL2 = Module['SDL2']; if ($0) { if (SDL2.capture.silenceTimer !== undefined) { clearInterval(SDL2.capture.silenceTimer); } if (SDL2.capture.stream !== undefined) { var tracks = SDL2.capture.stream.getAudioTracks(); for (var i = 0; i < tracks.length; i++) { SDL2.capture.stream.removeTrack(tracks[i]); } } if (SDL2.capture.scriptProcessorNode !== undefined) { SDL2.capture.scriptProcessorNode.onaudioprocess = function(audioProcessingEvent) {}; SDL2.capture.scriptProcessorNode.disconnect(); } if (SDL2.capture.mediaStreamNode !== undefined) { SDL2.capture.mediaStreamNode.disconnect(); } SDL2.capture = undefined; } else { if (SDL2.audio.scriptProcessorNode != undefined) { SDL2.audio.scriptProcessorNode.disconnect(); } if (SDL2.audio.silenceTimer !== undefined) { clearInterval(SDL2.audio.silenceTimer); } SDL2.audio = undefined; } if ((SDL2.audioContext !== undefined) && (SDL2.audio === undefined) && (SDL2.capture === undefined)) { SDL2.audioContext.close(); SDL2.audioContext = undefined; } },  
+ 451512: () => { return window.innerWidth; },  
+ 451542: () => { return window.innerHeight; },  
+ 451573: ($0, $1, $2) => { var w = $0; var h = $1; var pixels = $2; if (!Module['SDL2']) Module['SDL2'] = {}; var SDL2 = Module['SDL2']; if (SDL2.ctxCanvas !== Module['canvas']) { SDL2.ctx = Browser.createContext(Module['canvas'], false, true); SDL2.ctxCanvas = Module['canvas']; } if (SDL2.w !== w || SDL2.h !== h || SDL2.imageCtx !== SDL2.ctx) { SDL2.image = SDL2.ctx.createImageData(w, h); SDL2.w = w; SDL2.h = h; SDL2.imageCtx = SDL2.ctx; } var data = SDL2.image.data; var src = pixels / 4; var dst = 0; var num; if (typeof CanvasPixelArray !== 'undefined' && data instanceof CanvasPixelArray) { num = data.length; while (dst < num) { var val = HEAP32[src]; data[dst ] = val & 0xff; data[dst+1] = (val >> 8) & 0xff; data[dst+2] = (val >> 16) & 0xff; data[dst+3] = 0xff; src++; dst += 4; } } else { if (SDL2.data32Data !== data) { SDL2.data32 = new Int32Array(data.buffer); SDL2.data8 = new Uint8Array(data.buffer); SDL2.data32Data = data; } var data32 = SDL2.data32; num = data32.length; data32.set(HEAP32.subarray(src, src + num)); var data8 = SDL2.data8; var i = 3; var j = i + 4*num; if (num % 8 == 0) { while (i < j) { data8[i] = 0xff; i = i + 4 | 0; data8[i] = 0xff; i = i + 4 | 0; data8[i] = 0xff; i = i + 4 | 0; data8[i] = 0xff; i = i + 4 | 0; data8[i] = 0xff; i = i + 4 | 0; data8[i] = 0xff; i = i + 4 | 0; data8[i] = 0xff; i = i + 4 | 0; data8[i] = 0xff; i = i + 4 | 0; } } else { while (i < j) { data8[i] = 0xff; i = i + 4 | 0; } } } SDL2.ctx.putImageData(SDL2.image, 0, 0); },  
+ 453039: ($0, $1, $2, $3, $4) => { var w = $0; var h = $1; var hot_x = $2; var hot_y = $3; var pixels = $4; var canvas = document.createElement("canvas"); canvas.width = w; canvas.height = h; var ctx = canvas.getContext("2d"); var image = ctx.createImageData(w, h); var data = image.data; var src = pixels / 4; var dst = 0; var num; if (typeof CanvasPixelArray !== 'undefined' && data instanceof CanvasPixelArray) { num = data.length; while (dst < num) { var val = HEAP32[src]; data[dst ] = val & 0xff; data[dst+1] = (val >> 8) & 0xff; data[dst+2] = (val >> 16) & 0xff; data[dst+3] = (val >> 24) & 0xff; src++; dst += 4; } } else { var data32 = new Int32Array(data.buffer); num = data32.length; data32.set(HEAP32.subarray(src, src + num)); } ctx.putImageData(image, 0, 0); var url = hot_x === 0 && hot_y === 0 ? "url(" + canvas.toDataURL() + "), auto" : "url(" + canvas.toDataURL() + ") " + hot_x + " " + hot_y + ", auto"; var urlBuf = _malloc(url.length + 1); stringToUTF8(url, urlBuf, url.length + 1); return urlBuf; },  
+ 454027: ($0) => { if (Module['canvas']) { Module['canvas'].style['cursor'] = UTF8ToString($0); } },  
+ 454110: () => { if (Module['canvas']) { Module['canvas'].style['cursor'] = 'none'; } }
 };
 function webDownloadSupportReport(path) { if (window.choochooDownloadFile) { window.choochooDownloadFile(UTF8ToString(path)); } }
 function webDownloadExportFile(path) { if (window.choochooDownloadFile) window.choochooDownloadFile(UTF8ToString(path)); }
@@ -10749,6 +10784,7 @@ var _webQueueButton = Module['_webQueueButton'] = makeInvalidEarlyAccess('_webQu
 var _strerror = makeInvalidEarlyAccess('_strerror');
 var _emscripten_stack_get_end = makeInvalidEarlyAccess('_emscripten_stack_get_end');
 var _emscripten_stack_get_base = makeInvalidEarlyAccess('_emscripten_stack_get_base');
+var __emscripten_timeout = makeInvalidEarlyAccess('__emscripten_timeout');
 var _setThrew = makeInvalidEarlyAccess('_setThrew');
 var __emscripten_tempret_set = makeInvalidEarlyAccess('__emscripten_tempret_set');
 var _emscripten_stack_init = makeInvalidEarlyAccess('_emscripten_stack_init');
@@ -10761,46 +10797,38 @@ var ___cxa_increment_exception_refcount = makeInvalidEarlyAccess('___cxa_increme
 var ___get_exception_message = makeInvalidEarlyAccess('___get_exception_message');
 var ___cxa_can_catch = makeInvalidEarlyAccess('___cxa_can_catch');
 var ___cxa_get_exception_ptr = makeInvalidEarlyAccess('___cxa_get_exception_ptr');
-var dynCall_ii = makeInvalidEarlyAccess('dynCall_ii');
-var dynCall_iiii = makeInvalidEarlyAccess('dynCall_iiii');
 var dynCall_iii = makeInvalidEarlyAccess('dynCall_iii');
-var dynCall_vi = makeInvalidEarlyAccess('dynCall_vi');
+var dynCall_ii = makeInvalidEarlyAccess('dynCall_ii');
 var dynCall_vii = makeInvalidEarlyAccess('dynCall_vii');
 var dynCall_v = makeInvalidEarlyAccess('dynCall_v');
 var dynCall_viii = makeInvalidEarlyAccess('dynCall_viii');
-var dynCall_viiii = makeInvalidEarlyAccess('dynCall_viiii');
-var dynCall_i = makeInvalidEarlyAccess('dynCall_i');
-var dynCall_fif = makeInvalidEarlyAccess('dynCall_fif');
+var dynCall_vi = makeInvalidEarlyAccess('dynCall_vi');
 var dynCall_iiiiii = makeInvalidEarlyAccess('dynCall_iiiiii');
+var dynCall_viiii = makeInvalidEarlyAccess('dynCall_viiii');
+var dynCall_iiii = makeInvalidEarlyAccess('dynCall_iiii');
+var dynCall_fi = makeInvalidEarlyAccess('dynCall_fi');
 var dynCall_iiiii = makeInvalidEarlyAccess('dynCall_iiiii');
 var dynCall_viiiii = makeInvalidEarlyAccess('dynCall_viiiii');
-var dynCall_jii = makeInvalidEarlyAccess('dynCall_jii');
+var dynCall_iij = makeInvalidEarlyAccess('dynCall_iij');
 var dynCall_vif = makeInvalidEarlyAccess('dynCall_vif');
-var dynCall_viiiiiiiiiiiif = makeInvalidEarlyAccess('dynCall_viiiiiiiiiiiif');
 var dynCall_viiiff = makeInvalidEarlyAccess('dynCall_viiiff');
 var dynCall_viiff = makeInvalidEarlyAccess('dynCall_viiff');
-var dynCall_iif = makeInvalidEarlyAccess('dynCall_iif');
 var dynCall_viiiiii = makeInvalidEarlyAccess('dynCall_viiiiii');
-var dynCall_iiiiiiii = makeInvalidEarlyAccess('dynCall_iiiiiiii');
-var dynCall_fi = makeInvalidEarlyAccess('dynCall_fi');
-var dynCall_vid = makeInvalidEarlyAccess('dynCall_vid');
-var dynCall_viij = makeInvalidEarlyAccess('dynCall_viij');
-var dynCall_ji = makeInvalidEarlyAccess('dynCall_ji');
+var dynCall_i = makeInvalidEarlyAccess('dynCall_i');
 var dynCall_iiiiiiifi = makeInvalidEarlyAccess('dynCall_iiiiiiifi');
 var dynCall_iiiiiiif = makeInvalidEarlyAccess('dynCall_iiiiiiif');
-var dynCall_fifffff = makeInvalidEarlyAccess('dynCall_fifffff');
-var dynCall_fiffi = makeInvalidEarlyAccess('dynCall_fiffi');
-var dynCall_viiiiiiii = makeInvalidEarlyAccess('dynCall_viiiiiiii');
-var dynCall_viffiii = makeInvalidEarlyAccess('dynCall_viffiii');
+var dynCall_jiji = makeInvalidEarlyAccess('dynCall_jiji');
+var dynCall_ji = makeInvalidEarlyAccess('dynCall_ji');
+var dynCall_iiiiiiii = makeInvalidEarlyAccess('dynCall_iiiiiiii');
 var dynCall_iiiiiiiiii = makeInvalidEarlyAccess('dynCall_iiiiiiiiii');
 var dynCall_iiiiiiiiiiiiiiff = makeInvalidEarlyAccess('dynCall_iiiiiiiiiiiiiiff');
 var dynCall_iiiiiiiii = makeInvalidEarlyAccess('dynCall_iiiiiiiii');
 var dynCall_viiiiiii = makeInvalidEarlyAccess('dynCall_viiiiiii');
 var dynCall_viiiiiiiiiii = makeInvalidEarlyAccess('dynCall_viiiiiiiiiii');
 var dynCall_iiiiiidiiff = makeInvalidEarlyAccess('dynCall_iiiiiidiiff');
-var dynCall_jiji = makeInvalidEarlyAccess('dynCall_jiji');
 var dynCall_vffff = makeInvalidEarlyAccess('dynCall_vffff');
 var dynCall_vf = makeInvalidEarlyAccess('dynCall_vf');
+var dynCall_viiiiiiii = makeInvalidEarlyAccess('dynCall_viiiiiiii');
 var dynCall_viiiiiiiii = makeInvalidEarlyAccess('dynCall_viiiiiiiii');
 var dynCall_vff = makeInvalidEarlyAccess('dynCall_vff');
 var dynCall_vfi = makeInvalidEarlyAccess('dynCall_vfi');
@@ -10810,15 +10838,16 @@ var dynCall_vifff = makeInvalidEarlyAccess('dynCall_vifff');
 var dynCall_viffff = makeInvalidEarlyAccess('dynCall_viffff');
 var dynCall_vfff = makeInvalidEarlyAccess('dynCall_vfff');
 var dynCall_iidiiiii = makeInvalidEarlyAccess('dynCall_iidiiiii');
-var dynCall_viijii = makeInvalidEarlyAccess('dynCall_viijii');
-var dynCall_iiiiiiiiiiiii = makeInvalidEarlyAccess('dynCall_iiiiiiiiiiiii');
-var dynCall_fiii = makeInvalidEarlyAccess('dynCall_fiii');
-var dynCall_diii = makeInvalidEarlyAccess('dynCall_diii');
+var dynCall_iiij = makeInvalidEarlyAccess('dynCall_iiij');
+var dynCall_iiiij = makeInvalidEarlyAccess('dynCall_iiiij');
+var dynCall_iiiiij = makeInvalidEarlyAccess('dynCall_iiiiij');
 var dynCall_iiiiiii = makeInvalidEarlyAccess('dynCall_iiiiiii');
 var dynCall_iiiiiiiiiiii = makeInvalidEarlyAccess('dynCall_iiiiiiiiiiii');
 var dynCall_viiiiiiiiii = makeInvalidEarlyAccess('dynCall_viiiiiiiiii');
 var dynCall_viiiiiiiiiiiiiii = makeInvalidEarlyAccess('dynCall_viiiiiiiiiiiiiii');
-var dynCall_iiiiij = makeInvalidEarlyAccess('dynCall_iiiiij');
+var dynCall_fif = makeInvalidEarlyAccess('dynCall_fif');
+var dynCall_viij = makeInvalidEarlyAccess('dynCall_viij');
+var dynCall_viijii = makeInvalidEarlyAccess('dynCall_viijii');
 var dynCall_iiiiid = makeInvalidEarlyAccess('dynCall_iiiiid');
 var dynCall_iiiiijj = makeInvalidEarlyAccess('dynCall_iiiiijj');
 var dynCall_iiiiiijj = makeInvalidEarlyAccess('dynCall_iiiiiijj');
@@ -10842,6 +10871,7 @@ function assignWasmExports(wasmExports) {
   assert(typeof wasmExports['strerror'] != 'undefined', 'missing Wasm export: strerror');
   assert(typeof wasmExports['emscripten_stack_get_end'] != 'undefined', 'missing Wasm export: emscripten_stack_get_end');
   assert(typeof wasmExports['emscripten_stack_get_base'] != 'undefined', 'missing Wasm export: emscripten_stack_get_base');
+  assert(typeof wasmExports['_emscripten_timeout'] != 'undefined', 'missing Wasm export: _emscripten_timeout');
   assert(typeof wasmExports['setThrew'] != 'undefined', 'missing Wasm export: setThrew');
   assert(typeof wasmExports['_emscripten_tempret_set'] != 'undefined', 'missing Wasm export: _emscripten_tempret_set');
   assert(typeof wasmExports['emscripten_stack_init'] != 'undefined', 'missing Wasm export: emscripten_stack_init');
@@ -10854,46 +10884,38 @@ function assignWasmExports(wasmExports) {
   assert(typeof wasmExports['__get_exception_message'] != 'undefined', 'missing Wasm export: __get_exception_message');
   assert(typeof wasmExports['__cxa_can_catch'] != 'undefined', 'missing Wasm export: __cxa_can_catch');
   assert(typeof wasmExports['__cxa_get_exception_ptr'] != 'undefined', 'missing Wasm export: __cxa_get_exception_ptr');
-  assert(typeof wasmExports['dynCall_ii'] != 'undefined', 'missing Wasm export: dynCall_ii');
-  assert(typeof wasmExports['dynCall_iiii'] != 'undefined', 'missing Wasm export: dynCall_iiii');
   assert(typeof wasmExports['dynCall_iii'] != 'undefined', 'missing Wasm export: dynCall_iii');
-  assert(typeof wasmExports['dynCall_vi'] != 'undefined', 'missing Wasm export: dynCall_vi');
+  assert(typeof wasmExports['dynCall_ii'] != 'undefined', 'missing Wasm export: dynCall_ii');
   assert(typeof wasmExports['dynCall_vii'] != 'undefined', 'missing Wasm export: dynCall_vii');
   assert(typeof wasmExports['dynCall_v'] != 'undefined', 'missing Wasm export: dynCall_v');
   assert(typeof wasmExports['dynCall_viii'] != 'undefined', 'missing Wasm export: dynCall_viii');
-  assert(typeof wasmExports['dynCall_viiii'] != 'undefined', 'missing Wasm export: dynCall_viiii');
-  assert(typeof wasmExports['dynCall_i'] != 'undefined', 'missing Wasm export: dynCall_i');
-  assert(typeof wasmExports['dynCall_fif'] != 'undefined', 'missing Wasm export: dynCall_fif');
+  assert(typeof wasmExports['dynCall_vi'] != 'undefined', 'missing Wasm export: dynCall_vi');
   assert(typeof wasmExports['dynCall_iiiiii'] != 'undefined', 'missing Wasm export: dynCall_iiiiii');
+  assert(typeof wasmExports['dynCall_viiii'] != 'undefined', 'missing Wasm export: dynCall_viiii');
+  assert(typeof wasmExports['dynCall_iiii'] != 'undefined', 'missing Wasm export: dynCall_iiii');
+  assert(typeof wasmExports['dynCall_fi'] != 'undefined', 'missing Wasm export: dynCall_fi');
   assert(typeof wasmExports['dynCall_iiiii'] != 'undefined', 'missing Wasm export: dynCall_iiiii');
   assert(typeof wasmExports['dynCall_viiiii'] != 'undefined', 'missing Wasm export: dynCall_viiiii');
-  assert(typeof wasmExports['dynCall_jii'] != 'undefined', 'missing Wasm export: dynCall_jii');
+  assert(typeof wasmExports['dynCall_iij'] != 'undefined', 'missing Wasm export: dynCall_iij');
   assert(typeof wasmExports['dynCall_vif'] != 'undefined', 'missing Wasm export: dynCall_vif');
-  assert(typeof wasmExports['dynCall_viiiiiiiiiiiif'] != 'undefined', 'missing Wasm export: dynCall_viiiiiiiiiiiif');
   assert(typeof wasmExports['dynCall_viiiff'] != 'undefined', 'missing Wasm export: dynCall_viiiff');
   assert(typeof wasmExports['dynCall_viiff'] != 'undefined', 'missing Wasm export: dynCall_viiff');
-  assert(typeof wasmExports['dynCall_iif'] != 'undefined', 'missing Wasm export: dynCall_iif');
   assert(typeof wasmExports['dynCall_viiiiii'] != 'undefined', 'missing Wasm export: dynCall_viiiiii');
-  assert(typeof wasmExports['dynCall_iiiiiiii'] != 'undefined', 'missing Wasm export: dynCall_iiiiiiii');
-  assert(typeof wasmExports['dynCall_fi'] != 'undefined', 'missing Wasm export: dynCall_fi');
-  assert(typeof wasmExports['dynCall_vid'] != 'undefined', 'missing Wasm export: dynCall_vid');
-  assert(typeof wasmExports['dynCall_viij'] != 'undefined', 'missing Wasm export: dynCall_viij');
-  assert(typeof wasmExports['dynCall_ji'] != 'undefined', 'missing Wasm export: dynCall_ji');
+  assert(typeof wasmExports['dynCall_i'] != 'undefined', 'missing Wasm export: dynCall_i');
   assert(typeof wasmExports['dynCall_iiiiiiifi'] != 'undefined', 'missing Wasm export: dynCall_iiiiiiifi');
   assert(typeof wasmExports['dynCall_iiiiiiif'] != 'undefined', 'missing Wasm export: dynCall_iiiiiiif');
-  assert(typeof wasmExports['dynCall_fifffff'] != 'undefined', 'missing Wasm export: dynCall_fifffff');
-  assert(typeof wasmExports['dynCall_fiffi'] != 'undefined', 'missing Wasm export: dynCall_fiffi');
-  assert(typeof wasmExports['dynCall_viiiiiiii'] != 'undefined', 'missing Wasm export: dynCall_viiiiiiii');
-  assert(typeof wasmExports['dynCall_viffiii'] != 'undefined', 'missing Wasm export: dynCall_viffiii');
+  assert(typeof wasmExports['dynCall_jiji'] != 'undefined', 'missing Wasm export: dynCall_jiji');
+  assert(typeof wasmExports['dynCall_ji'] != 'undefined', 'missing Wasm export: dynCall_ji');
+  assert(typeof wasmExports['dynCall_iiiiiiii'] != 'undefined', 'missing Wasm export: dynCall_iiiiiiii');
   assert(typeof wasmExports['dynCall_iiiiiiiiii'] != 'undefined', 'missing Wasm export: dynCall_iiiiiiiiii');
   assert(typeof wasmExports['dynCall_iiiiiiiiiiiiiiff'] != 'undefined', 'missing Wasm export: dynCall_iiiiiiiiiiiiiiff');
   assert(typeof wasmExports['dynCall_iiiiiiiii'] != 'undefined', 'missing Wasm export: dynCall_iiiiiiiii');
   assert(typeof wasmExports['dynCall_viiiiiii'] != 'undefined', 'missing Wasm export: dynCall_viiiiiii');
   assert(typeof wasmExports['dynCall_viiiiiiiiiii'] != 'undefined', 'missing Wasm export: dynCall_viiiiiiiiiii');
   assert(typeof wasmExports['dynCall_iiiiiidiiff'] != 'undefined', 'missing Wasm export: dynCall_iiiiiidiiff');
-  assert(typeof wasmExports['dynCall_jiji'] != 'undefined', 'missing Wasm export: dynCall_jiji');
   assert(typeof wasmExports['dynCall_vffff'] != 'undefined', 'missing Wasm export: dynCall_vffff');
   assert(typeof wasmExports['dynCall_vf'] != 'undefined', 'missing Wasm export: dynCall_vf');
+  assert(typeof wasmExports['dynCall_viiiiiiii'] != 'undefined', 'missing Wasm export: dynCall_viiiiiiii');
   assert(typeof wasmExports['dynCall_viiiiiiiii'] != 'undefined', 'missing Wasm export: dynCall_viiiiiiiii');
   assert(typeof wasmExports['dynCall_vff'] != 'undefined', 'missing Wasm export: dynCall_vff');
   assert(typeof wasmExports['dynCall_vfi'] != 'undefined', 'missing Wasm export: dynCall_vfi');
@@ -10903,15 +10925,16 @@ function assignWasmExports(wasmExports) {
   assert(typeof wasmExports['dynCall_viffff'] != 'undefined', 'missing Wasm export: dynCall_viffff');
   assert(typeof wasmExports['dynCall_vfff'] != 'undefined', 'missing Wasm export: dynCall_vfff');
   assert(typeof wasmExports['dynCall_iidiiiii'] != 'undefined', 'missing Wasm export: dynCall_iidiiiii');
-  assert(typeof wasmExports['dynCall_viijii'] != 'undefined', 'missing Wasm export: dynCall_viijii');
-  assert(typeof wasmExports['dynCall_iiiiiiiiiiiii'] != 'undefined', 'missing Wasm export: dynCall_iiiiiiiiiiiii');
-  assert(typeof wasmExports['dynCall_fiii'] != 'undefined', 'missing Wasm export: dynCall_fiii');
-  assert(typeof wasmExports['dynCall_diii'] != 'undefined', 'missing Wasm export: dynCall_diii');
+  assert(typeof wasmExports['dynCall_iiij'] != 'undefined', 'missing Wasm export: dynCall_iiij');
+  assert(typeof wasmExports['dynCall_iiiij'] != 'undefined', 'missing Wasm export: dynCall_iiiij');
+  assert(typeof wasmExports['dynCall_iiiiij'] != 'undefined', 'missing Wasm export: dynCall_iiiiij');
   assert(typeof wasmExports['dynCall_iiiiiii'] != 'undefined', 'missing Wasm export: dynCall_iiiiiii');
   assert(typeof wasmExports['dynCall_iiiiiiiiiiii'] != 'undefined', 'missing Wasm export: dynCall_iiiiiiiiiiii');
   assert(typeof wasmExports['dynCall_viiiiiiiiii'] != 'undefined', 'missing Wasm export: dynCall_viiiiiiiiii');
   assert(typeof wasmExports['dynCall_viiiiiiiiiiiiiii'] != 'undefined', 'missing Wasm export: dynCall_viiiiiiiiiiiiiii');
-  assert(typeof wasmExports['dynCall_iiiiij'] != 'undefined', 'missing Wasm export: dynCall_iiiiij');
+  assert(typeof wasmExports['dynCall_fif'] != 'undefined', 'missing Wasm export: dynCall_fif');
+  assert(typeof wasmExports['dynCall_viij'] != 'undefined', 'missing Wasm export: dynCall_viij');
+  assert(typeof wasmExports['dynCall_viijii'] != 'undefined', 'missing Wasm export: dynCall_viijii');
   assert(typeof wasmExports['dynCall_iiiiid'] != 'undefined', 'missing Wasm export: dynCall_iiiiid');
   assert(typeof wasmExports['dynCall_iiiiijj'] != 'undefined', 'missing Wasm export: dynCall_iiiiijj');
   assert(typeof wasmExports['dynCall_iiiiiijj'] != 'undefined', 'missing Wasm export: dynCall_iiiiiijj');
@@ -10931,6 +10954,7 @@ function assignWasmExports(wasmExports) {
   _strerror = createExportWrapper('strerror', wasmExports['strerror'], 1);
   _emscripten_stack_get_end = wasmExports['emscripten_stack_get_end'];
   _emscripten_stack_get_base = wasmExports['emscripten_stack_get_base'];
+  __emscripten_timeout = createExportWrapper('_emscripten_timeout', wasmExports['_emscripten_timeout'], 2);
   _setThrew = createExportWrapper('setThrew', wasmExports['setThrew'], 2);
   __emscripten_tempret_set = createExportWrapper('_emscripten_tempret_set', wasmExports['_emscripten_tempret_set'], 1);
   _emscripten_stack_init = wasmExports['emscripten_stack_init'];
@@ -10943,46 +10967,38 @@ function assignWasmExports(wasmExports) {
   ___get_exception_message = createExportWrapper('__get_exception_message', wasmExports['__get_exception_message'], 3);
   ___cxa_can_catch = createExportWrapper('__cxa_can_catch', wasmExports['__cxa_can_catch'], 3);
   ___cxa_get_exception_ptr = createExportWrapper('__cxa_get_exception_ptr', wasmExports['__cxa_get_exception_ptr'], 1);
-  dynCall_ii = dynCalls['ii'] = createExportWrapper('dynCall_ii', wasmExports['dynCall_ii'], 2);
-  dynCall_iiii = dynCalls['iiii'] = createExportWrapper('dynCall_iiii', wasmExports['dynCall_iiii'], 4);
   dynCall_iii = dynCalls['iii'] = createExportWrapper('dynCall_iii', wasmExports['dynCall_iii'], 3);
-  dynCall_vi = dynCalls['vi'] = createExportWrapper('dynCall_vi', wasmExports['dynCall_vi'], 2);
+  dynCall_ii = dynCalls['ii'] = createExportWrapper('dynCall_ii', wasmExports['dynCall_ii'], 2);
   dynCall_vii = dynCalls['vii'] = createExportWrapper('dynCall_vii', wasmExports['dynCall_vii'], 3);
   dynCall_v = dynCalls['v'] = createExportWrapper('dynCall_v', wasmExports['dynCall_v'], 1);
   dynCall_viii = dynCalls['viii'] = createExportWrapper('dynCall_viii', wasmExports['dynCall_viii'], 4);
-  dynCall_viiii = dynCalls['viiii'] = createExportWrapper('dynCall_viiii', wasmExports['dynCall_viiii'], 5);
-  dynCall_i = dynCalls['i'] = createExportWrapper('dynCall_i', wasmExports['dynCall_i'], 1);
-  dynCall_fif = dynCalls['fif'] = createExportWrapper('dynCall_fif', wasmExports['dynCall_fif'], 3);
+  dynCall_vi = dynCalls['vi'] = createExportWrapper('dynCall_vi', wasmExports['dynCall_vi'], 2);
   dynCall_iiiiii = dynCalls['iiiiii'] = createExportWrapper('dynCall_iiiiii', wasmExports['dynCall_iiiiii'], 6);
+  dynCall_viiii = dynCalls['viiii'] = createExportWrapper('dynCall_viiii', wasmExports['dynCall_viiii'], 5);
+  dynCall_iiii = dynCalls['iiii'] = createExportWrapper('dynCall_iiii', wasmExports['dynCall_iiii'], 4);
+  dynCall_fi = dynCalls['fi'] = createExportWrapper('dynCall_fi', wasmExports['dynCall_fi'], 2);
   dynCall_iiiii = dynCalls['iiiii'] = createExportWrapper('dynCall_iiiii', wasmExports['dynCall_iiiii'], 5);
   dynCall_viiiii = dynCalls['viiiii'] = createExportWrapper('dynCall_viiiii', wasmExports['dynCall_viiiii'], 6);
-  dynCall_jii = dynCalls['jii'] = createExportWrapper('dynCall_jii', wasmExports['dynCall_jii'], 3);
+  dynCall_iij = dynCalls['iij'] = createExportWrapper('dynCall_iij', wasmExports['dynCall_iij'], 3);
   dynCall_vif = dynCalls['vif'] = createExportWrapper('dynCall_vif', wasmExports['dynCall_vif'], 3);
-  dynCall_viiiiiiiiiiiif = dynCalls['viiiiiiiiiiiif'] = createExportWrapper('dynCall_viiiiiiiiiiiif', wasmExports['dynCall_viiiiiiiiiiiif'], 14);
   dynCall_viiiff = dynCalls['viiiff'] = createExportWrapper('dynCall_viiiff', wasmExports['dynCall_viiiff'], 6);
   dynCall_viiff = dynCalls['viiff'] = createExportWrapper('dynCall_viiff', wasmExports['dynCall_viiff'], 5);
-  dynCall_iif = dynCalls['iif'] = createExportWrapper('dynCall_iif', wasmExports['dynCall_iif'], 3);
   dynCall_viiiiii = dynCalls['viiiiii'] = createExportWrapper('dynCall_viiiiii', wasmExports['dynCall_viiiiii'], 7);
-  dynCall_iiiiiiii = dynCalls['iiiiiiii'] = createExportWrapper('dynCall_iiiiiiii', wasmExports['dynCall_iiiiiiii'], 8);
-  dynCall_fi = dynCalls['fi'] = createExportWrapper('dynCall_fi', wasmExports['dynCall_fi'], 2);
-  dynCall_vid = dynCalls['vid'] = createExportWrapper('dynCall_vid', wasmExports['dynCall_vid'], 3);
-  dynCall_viij = dynCalls['viij'] = createExportWrapper('dynCall_viij', wasmExports['dynCall_viij'], 4);
-  dynCall_ji = dynCalls['ji'] = createExportWrapper('dynCall_ji', wasmExports['dynCall_ji'], 2);
+  dynCall_i = dynCalls['i'] = createExportWrapper('dynCall_i', wasmExports['dynCall_i'], 1);
   dynCall_iiiiiiifi = dynCalls['iiiiiiifi'] = createExportWrapper('dynCall_iiiiiiifi', wasmExports['dynCall_iiiiiiifi'], 9);
   dynCall_iiiiiiif = dynCalls['iiiiiiif'] = createExportWrapper('dynCall_iiiiiiif', wasmExports['dynCall_iiiiiiif'], 8);
-  dynCall_fifffff = dynCalls['fifffff'] = createExportWrapper('dynCall_fifffff', wasmExports['dynCall_fifffff'], 7);
-  dynCall_fiffi = dynCalls['fiffi'] = createExportWrapper('dynCall_fiffi', wasmExports['dynCall_fiffi'], 5);
-  dynCall_viiiiiiii = dynCalls['viiiiiiii'] = createExportWrapper('dynCall_viiiiiiii', wasmExports['dynCall_viiiiiiii'], 9);
-  dynCall_viffiii = dynCalls['viffiii'] = createExportWrapper('dynCall_viffiii', wasmExports['dynCall_viffiii'], 7);
+  dynCall_jiji = dynCalls['jiji'] = createExportWrapper('dynCall_jiji', wasmExports['dynCall_jiji'], 4);
+  dynCall_ji = dynCalls['ji'] = createExportWrapper('dynCall_ji', wasmExports['dynCall_ji'], 2);
+  dynCall_iiiiiiii = dynCalls['iiiiiiii'] = createExportWrapper('dynCall_iiiiiiii', wasmExports['dynCall_iiiiiiii'], 8);
   dynCall_iiiiiiiiii = dynCalls['iiiiiiiiii'] = createExportWrapper('dynCall_iiiiiiiiii', wasmExports['dynCall_iiiiiiiiii'], 10);
   dynCall_iiiiiiiiiiiiiiff = dynCalls['iiiiiiiiiiiiiiff'] = createExportWrapper('dynCall_iiiiiiiiiiiiiiff', wasmExports['dynCall_iiiiiiiiiiiiiiff'], 16);
   dynCall_iiiiiiiii = dynCalls['iiiiiiiii'] = createExportWrapper('dynCall_iiiiiiiii', wasmExports['dynCall_iiiiiiiii'], 9);
   dynCall_viiiiiii = dynCalls['viiiiiii'] = createExportWrapper('dynCall_viiiiiii', wasmExports['dynCall_viiiiiii'], 8);
   dynCall_viiiiiiiiiii = dynCalls['viiiiiiiiiii'] = createExportWrapper('dynCall_viiiiiiiiiii', wasmExports['dynCall_viiiiiiiiiii'], 12);
   dynCall_iiiiiidiiff = dynCalls['iiiiiidiiff'] = createExportWrapper('dynCall_iiiiiidiiff', wasmExports['dynCall_iiiiiidiiff'], 11);
-  dynCall_jiji = dynCalls['jiji'] = createExportWrapper('dynCall_jiji', wasmExports['dynCall_jiji'], 4);
   dynCall_vffff = dynCalls['vffff'] = createExportWrapper('dynCall_vffff', wasmExports['dynCall_vffff'], 5);
   dynCall_vf = dynCalls['vf'] = createExportWrapper('dynCall_vf', wasmExports['dynCall_vf'], 2);
+  dynCall_viiiiiiii = dynCalls['viiiiiiii'] = createExportWrapper('dynCall_viiiiiiii', wasmExports['dynCall_viiiiiiii'], 9);
   dynCall_viiiiiiiii = dynCalls['viiiiiiiii'] = createExportWrapper('dynCall_viiiiiiiii', wasmExports['dynCall_viiiiiiiii'], 10);
   dynCall_vff = dynCalls['vff'] = createExportWrapper('dynCall_vff', wasmExports['dynCall_vff'], 3);
   dynCall_vfi = dynCalls['vfi'] = createExportWrapper('dynCall_vfi', wasmExports['dynCall_vfi'], 3);
@@ -10992,15 +11008,16 @@ function assignWasmExports(wasmExports) {
   dynCall_viffff = dynCalls['viffff'] = createExportWrapper('dynCall_viffff', wasmExports['dynCall_viffff'], 6);
   dynCall_vfff = dynCalls['vfff'] = createExportWrapper('dynCall_vfff', wasmExports['dynCall_vfff'], 4);
   dynCall_iidiiiii = dynCalls['iidiiiii'] = createExportWrapper('dynCall_iidiiiii', wasmExports['dynCall_iidiiiii'], 8);
-  dynCall_viijii = dynCalls['viijii'] = createExportWrapper('dynCall_viijii', wasmExports['dynCall_viijii'], 6);
-  dynCall_iiiiiiiiiiiii = dynCalls['iiiiiiiiiiiii'] = createExportWrapper('dynCall_iiiiiiiiiiiii', wasmExports['dynCall_iiiiiiiiiiiii'], 13);
-  dynCall_fiii = dynCalls['fiii'] = createExportWrapper('dynCall_fiii', wasmExports['dynCall_fiii'], 4);
-  dynCall_diii = dynCalls['diii'] = createExportWrapper('dynCall_diii', wasmExports['dynCall_diii'], 4);
+  dynCall_iiij = dynCalls['iiij'] = createExportWrapper('dynCall_iiij', wasmExports['dynCall_iiij'], 4);
+  dynCall_iiiij = dynCalls['iiiij'] = createExportWrapper('dynCall_iiiij', wasmExports['dynCall_iiiij'], 5);
+  dynCall_iiiiij = dynCalls['iiiiij'] = createExportWrapper('dynCall_iiiiij', wasmExports['dynCall_iiiiij'], 6);
   dynCall_iiiiiii = dynCalls['iiiiiii'] = createExportWrapper('dynCall_iiiiiii', wasmExports['dynCall_iiiiiii'], 7);
   dynCall_iiiiiiiiiiii = dynCalls['iiiiiiiiiiii'] = createExportWrapper('dynCall_iiiiiiiiiiii', wasmExports['dynCall_iiiiiiiiiiii'], 12);
   dynCall_viiiiiiiiii = dynCalls['viiiiiiiiii'] = createExportWrapper('dynCall_viiiiiiiiii', wasmExports['dynCall_viiiiiiiiii'], 11);
   dynCall_viiiiiiiiiiiiiii = dynCalls['viiiiiiiiiiiiiii'] = createExportWrapper('dynCall_viiiiiiiiiiiiiii', wasmExports['dynCall_viiiiiiiiiiiiiii'], 16);
-  dynCall_iiiiij = dynCalls['iiiiij'] = createExportWrapper('dynCall_iiiiij', wasmExports['dynCall_iiiiij'], 6);
+  dynCall_fif = dynCalls['fif'] = createExportWrapper('dynCall_fif', wasmExports['dynCall_fif'], 3);
+  dynCall_viij = dynCalls['viij'] = createExportWrapper('dynCall_viij', wasmExports['dynCall_viij'], 4);
+  dynCall_viijii = dynCalls['viijii'] = createExportWrapper('dynCall_viijii', wasmExports['dynCall_viijii'], 6);
   dynCall_iiiiid = dynCalls['iiiiid'] = createExportWrapper('dynCall_iiiiid', wasmExports['dynCall_iiiiid'], 6);
   dynCall_iiiiijj = dynCalls['iiiiijj'] = createExportWrapper('dynCall_iiiiijj', wasmExports['dynCall_iiiiijj'], 7);
   dynCall_iiiiiijj = dynCalls['iiiiiijj'] = createExportWrapper('dynCall_iiiiiijj', wasmExports['dynCall_iiiiiijj'], 8);
@@ -11015,6 +11032,8 @@ function assignWasmExports(wasmExports) {
 var wasmImports = {
   /** @export */
   __assert_fail: ___assert_fail,
+  /** @export */
+  __call_sighandler: ___call_sighandler,
   /** @export */
   __cxa_begin_catch: ___cxa_begin_catch,
   /** @export */
@@ -11059,6 +11078,10 @@ var wasmImports = {
   __syscall_unlinkat: ___syscall_unlinkat,
   /** @export */
   _abort_js: __abort_js,
+  /** @export */
+  _emscripten_runtime_keepalive_clear: __emscripten_runtime_keepalive_clear,
+  /** @export */
+  _setitimer_js: __setitimer_js,
   /** @export */
   _tzset_js: __tzset_js,
   /** @export */
@@ -11530,21 +11553,9 @@ var wasmImports = {
   /** @export */
   fd_write: _fd_write,
   /** @export */
-  invoke_diii,
-  /** @export */
-  invoke_fif,
-  /** @export */
-  invoke_fifffff,
-  /** @export */
-  invoke_fiffi,
-  /** @export */
-  invoke_fiii,
-  /** @export */
   invoke_i,
   /** @export */
   invoke_ii,
-  /** @export */
-  invoke_iif,
   /** @export */
   invoke_iii,
   /** @export */
@@ -11564,19 +11575,19 @@ var wasmImports = {
   /** @export */
   invoke_iiiiiiiiiiii,
   /** @export */
-  invoke_iiiiiiiiiiiii,
+  invoke_iiiiij,
   /** @export */
-  invoke_jii,
+  invoke_iiiij,
+  /** @export */
+  invoke_iiij,
+  /** @export */
+  invoke_iij,
   /** @export */
   invoke_v,
   /** @export */
   invoke_vi,
   /** @export */
-  invoke_vid,
-  /** @export */
   invoke_vif,
-  /** @export */
-  invoke_viffiii,
   /** @export */
   invoke_vii,
   /** @export */
@@ -11590,71 +11601,27 @@ var wasmImports = {
   /** @export */
   invoke_viiiii,
   /** @export */
-  invoke_viiiiii,
-  /** @export */
   invoke_viiiiiii,
   /** @export */
-  invoke_viiiiiiiiii,
+  invoke_viiiiiiii,
   /** @export */
-  invoke_viiiiiiiiiiiif,
+  invoke_viiiiiiiiii,
   /** @export */
   invoke_viiiiiiiiiiiiiii,
   /** @export */
   llvm_eh_typeid_for: _llvm_eh_typeid_for,
+  /** @export */
+  proc_exit: _proc_exit,
   /** @export */
   webDownloadExportFile,
   /** @export */
   webDownloadSupportReport
 };
 
-function invoke_ii(index,a1) {
-  var sp = stackSave();
-  try {
-    return dynCall_ii(index,a1);
-  } catch(e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_iiii(index,a1,a2,a3) {
-  var sp = stackSave();
-  try {
-    return dynCall_iiii(index,a1,a2,a3);
-  } catch(e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
 function invoke_iii(index,a1,a2) {
   var sp = stackSave();
   try {
     return dynCall_iii(index,a1,a2);
-  } catch(e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_vi(index,a1) {
-  var sp = stackSave();
-  try {
-    dynCall_vi(index,a1);
-  } catch(e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_vii(index,a1,a2) {
-  var sp = stackSave();
-  try {
-    dynCall_vii(index,a1,a2);
   } catch(e) {
     stackRestore(sp);
     if (!(e instanceof EmscriptenEH)) throw e;
@@ -11673,10 +11640,10 @@ function invoke_v(index) {
   }
 }
 
-function invoke_viii(index,a1,a2,a3) {
+function invoke_vii(index,a1,a2) {
   var sp = stackSave();
   try {
-    dynCall_viii(index,a1,a2,a3);
+    dynCall_vii(index,a1,a2);
   } catch(e) {
     stackRestore(sp);
     if (!(e instanceof EmscriptenEH)) throw e;
@@ -11684,32 +11651,10 @@ function invoke_viii(index,a1,a2,a3) {
   }
 }
 
-function invoke_viiii(index,a1,a2,a3,a4) {
+function invoke_iiii(index,a1,a2,a3) {
   var sp = stackSave();
   try {
-    dynCall_viiii(index,a1,a2,a3,a4);
-  } catch(e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_i(index) {
-  var sp = stackSave();
-  try {
-    return dynCall_i(index);
-  } catch(e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_iiiiii(index,a1,a2,a3,a4,a5) {
-  var sp = stackSave();
-  try {
-    return dynCall_iiiiii(index,a1,a2,a3,a4,a5);
+    return dynCall_iiii(index,a1,a2,a3);
   } catch(e) {
     stackRestore(sp);
     if (!(e instanceof EmscriptenEH)) throw e;
@@ -11728,6 +11673,28 @@ function invoke_iiiii(index,a1,a2,a3,a4) {
   }
 }
 
+function invoke_ii(index,a1) {
+  var sp = stackSave();
+  try {
+    return dynCall_ii(index,a1);
+  } catch(e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_viii(index,a1,a2,a3) {
+  var sp = stackSave();
+  try {
+    dynCall_viii(index,a1,a2,a3);
+  } catch(e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
 function invoke_viiiii(index,a1,a2,a3,a4,a5) {
   var sp = stackSave();
   try {
@@ -11739,15 +11706,36 @@ function invoke_viiiii(index,a1,a2,a3,a4,a5) {
   }
 }
 
-function invoke_jii(index,a1,a2) {
+function invoke_viiii(index,a1,a2,a3,a4) {
   var sp = stackSave();
   try {
-    return dynCall_jii(index,a1,a2);
+    dynCall_viiii(index,a1,a2,a3,a4);
   } catch(e) {
     stackRestore(sp);
     if (!(e instanceof EmscriptenEH)) throw e;
     _setThrew(1, 0);
-    return 0n;
+  }
+}
+
+function invoke_iiiiii(index,a1,a2,a3,a4,a5) {
+  var sp = stackSave();
+  try {
+    return dynCall_iiiiii(index,a1,a2,a3,a4,a5);
+  } catch(e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_vi(index,a1) {
+  var sp = stackSave();
+  try {
+    dynCall_vi(index,a1);
+  } catch(e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
   }
 }
 
@@ -11755,17 +11743,6 @@ function invoke_vif(index,a1,a2) {
   var sp = stackSave();
   try {
     dynCall_vif(index,a1,a2);
-  } catch(e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_viiiiiiiiiiiif(index,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13) {
-  var sp = stackSave();
-  try {
-    dynCall_viiiiiiiiiiiif(index,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13);
   } catch(e) {
     stackRestore(sp);
     if (!(e instanceof EmscriptenEH)) throw e;
@@ -11795,43 +11772,10 @@ function invoke_viiff(index,a1,a2,a3,a4) {
   }
 }
 
-function invoke_iif(index,a1,a2) {
+function invoke_i(index) {
   var sp = stackSave();
   try {
-    return dynCall_iif(index,a1,a2);
-  } catch(e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_viiiiii(index,a1,a2,a3,a4,a5,a6) {
-  var sp = stackSave();
-  try {
-    dynCall_viiiiii(index,a1,a2,a3,a4,a5,a6);
-  } catch(e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_iiiiiiii(index,a1,a2,a3,a4,a5,a6,a7) {
-  var sp = stackSave();
-  try {
-    return dynCall_iiiiiiii(index,a1,a2,a3,a4,a5,a6,a7);
-  } catch(e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_vid(index,a1,a2) {
-  var sp = stackSave();
-  try {
-    dynCall_vid(index,a1,a2);
+    return dynCall_i(index);
   } catch(e) {
     stackRestore(sp);
     if (!(e instanceof EmscriptenEH)) throw e;
@@ -11861,10 +11805,10 @@ function invoke_iiiiiiif(index,a1,a2,a3,a4,a5,a6,a7) {
   }
 }
 
-function invoke_fif(index,a1,a2) {
+function invoke_iiij(index,a1,a2,a3) {
   var sp = stackSave();
   try {
-    return dynCall_fif(index,a1,a2);
+    return dynCall_iiij(index,a1,a2,a3);
   } catch(e) {
     stackRestore(sp);
     if (!(e instanceof EmscriptenEH)) throw e;
@@ -11872,10 +11816,10 @@ function invoke_fif(index,a1,a2) {
   }
 }
 
-function invoke_fifffff(index,a1,a2,a3,a4,a5,a6) {
+function invoke_iiiij(index,a1,a2,a3,a4) {
   var sp = stackSave();
   try {
-    return dynCall_fifffff(index,a1,a2,a3,a4,a5,a6);
+    return dynCall_iiiij(index,a1,a2,a3,a4);
   } catch(e) {
     stackRestore(sp);
     if (!(e instanceof EmscriptenEH)) throw e;
@@ -11883,21 +11827,10 @@ function invoke_fifffff(index,a1,a2,a3,a4,a5,a6) {
   }
 }
 
-function invoke_fiffi(index,a1,a2,a3,a4) {
+function invoke_iiiiij(index,a1,a2,a3,a4,a5) {
   var sp = stackSave();
   try {
-    return dynCall_fiffi(index,a1,a2,a3,a4);
-  } catch(e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_viffiii(index,a1,a2,a3,a4,a5,a6) {
-  var sp = stackSave();
-  try {
-    dynCall_viffiii(index,a1,a2,a3,a4,a5,a6);
+    return dynCall_iiiiij(index,a1,a2,a3,a4,a5);
   } catch(e) {
     stackRestore(sp);
     if (!(e instanceof EmscriptenEH)) throw e;
@@ -11916,10 +11849,10 @@ function invoke_iiiiiii(index,a1,a2,a3,a4,a5,a6) {
   }
 }
 
-function invoke_iiiiiiiiiiiii(index,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12) {
+function invoke_iij(index,a1,a2) {
   var sp = stackSave();
   try {
-    return dynCall_iiiiiiiiiiiii(index,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12);
+    return dynCall_iij(index,a1,a2);
   } catch(e) {
     stackRestore(sp);
     if (!(e instanceof EmscriptenEH)) throw e;
@@ -11927,21 +11860,10 @@ function invoke_iiiiiiiiiiiii(index,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12) {
   }
 }
 
-function invoke_fiii(index,a1,a2,a3) {
+function invoke_iiiiiiii(index,a1,a2,a3,a4,a5,a6,a7) {
   var sp = stackSave();
   try {
-    return dynCall_fiii(index,a1,a2,a3);
-  } catch(e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_diii(index,a1,a2,a3) {
-  var sp = stackSave();
-  try {
-    return dynCall_diii(index,a1,a2,a3);
+    return dynCall_iiiiiiii(index,a1,a2,a3,a4,a5,a6,a7);
   } catch(e) {
     stackRestore(sp);
     if (!(e instanceof EmscriptenEH)) throw e;
@@ -11964,6 +11886,17 @@ function invoke_iiiiiiiiiiii(index,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11) {
   var sp = stackSave();
   try {
     return dynCall_iiiiiiiiiiii(index,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11);
+  } catch(e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_viiiiiiii(index,a1,a2,a3,a4,a5,a6,a7,a8) {
+  var sp = stackSave();
+  try {
+    dynCall_viiiiiiii(index,a1,a2,a3,a4,a5,a6,a7,a8);
   } catch(e) {
     stackRestore(sp);
     if (!(e instanceof EmscriptenEH)) throw e;

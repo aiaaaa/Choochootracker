@@ -395,3 +395,13 @@ device personal build. Updates carry the existing USER library forward alongside
 songs and settings. Offline originals and ready packs remain outside Git; they
 are never part of factory assets or shared release packages. Identical collection
 copies are not added again.
+
+Listening feedback retains the small Game Boy and SID libraries as import
+examples. The four GB source instruments stay available to both pulse and noise;
+their authored duty, fixed-note and volume sequences can override base controls.
+Both private GB folders in Downloads explain this behavior. The OPL2/3 WOPL
+importer now hides unflagged empty slots and names playable unnamed voices by
+their source program/bank. The extra library is named **Non-attributable**, with
+source credits and licenses retained. FatMan 2-op, FatMan 4-op and DMXOPL3 WOPLX
+copies are excluded from its OPL USER packs because Factory already includes
+those sources. Their offline originals remain intact.

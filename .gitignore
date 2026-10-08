@@ -34,3 +34,4 @@ chipnomad_log.txt
 !/tracker/packaging/common/instruments/USER/README.txt
 !/tracker/packaging/common/instruments/USER/*/README.txt
 **/ChooChoo-Community-Presets-*/
+**/ChooChoo-Non-attributable-Presets-*/

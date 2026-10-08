@@ -1448,6 +1448,13 @@ table with an empty one, except DX7 SysEx, which preserves its existing table.
 CNI restores its saved table. Loaded patches are owned by the song and continue
 to work after moving or deleting the source pack.
 
+WOPL banks can contain unused slots without an explicit blank flag. The browser
+omits unnamed slots whose active operators are fully attenuated and have no
+attack. Unnamed playable voices remain available as `Program N [Bbank]` or
+`Drum N [Bbank]`, using the source's zero-based program and bank numbers.
+An unnamed single OPLI instrument uses its filename. Named silent patches are
+retained.
+
 Furnace support covers legacy single-instrument versions 29–112 and feature-based
 `FINS` versions 127–251. DefleMask support covers version 11 OPN, OPM, Sega PSG
 and Game Boy instruments. These are instrument imports, not complete tracker

@@ -237,8 +237,8 @@ void oplOperator(OPLOperator& o, Reader& r) {
        uint8_t(w),      uint8_t(k >> 6),       uint8_t((a >> 6) & 1),
        uint8_t(a >> 7), uint8_t((a >> 5) & 1), uint8_t((a >> 4) & 1)};
 }
-void wopl(const Bytes& b, bool single, InstrumentType target, std::vector<ExternalPreset>& out,
-          std::string& warning) {
+void wopl(const Bytes& b, bool single, InstrumentType target, const std::string& fallback,
+          std::vector<ExternalPreset>& out, std::string& warning) {
   Reader r(b);
   need(r.fixed(11) == (single ? "WOPL3-INST" : "WOPL3-BANK"), "Invalid WOPL header");
   unsigned version = r.le16();
@@ -268,7 +268,9 @@ void wopl(const Bytes& b, bool single, InstrumentType target, std::vector<Extern
   need(r.left() == count * record, "Truncated or trailing WOPL data");
   unsigned skipped = 0;
   for (size_t n = 0; n < count; ++n) {
-    auto p = init(target, r.fixed(32));
+    auto title = r.fixed(32);
+    bool unnamed = trim(title).empty();
+    auto p = init(target, title);
     auto& o = p.instrument.chip.opl;
     p.sourceIndex = int(n);
     o.noteOffset[0] = int16_t(r.be16());
@@ -300,6 +302,14 @@ void wopl(const Bytes& b, bool single, InstrumentType target, std::vector<Extern
       o.keyOffDuration = r.be16();
     }
     if (bits & 4) continue;
+    // Some older banks leave unused slots unflagged. Only hide unnamed,
+    // fully attenuated operators with no attack; keep named silent patches
+    // and unnamed playable voices, preserving their original slot numbers.
+    unsigned operators = o.topology == OPLTopology::twoOperator ? 2 : 4;
+    if (!single && unnamed &&
+        std::all_of(o.operators, o.operators + operators,
+                    [](const OPLOperator& op) { return op.attack == 0 && op.level == 63; }))
+      continue;
     if (bits & 0xb8) {
       ++skipped;
       continue;
@@ -308,6 +318,11 @@ void wopl(const Bytes& b, bool single, InstrumentType target, std::vector<Extern
       ++skipped;
       continue;
     }
+    if (unnamed)
+      name(p, single ? fallback
+                     : std::string(o.percussion ? "Drum " : "Program ") +
+                           std::to_string(o.sourceProgram) + " [B" +
+                           std::to_string(o.sourceBank) + "]");
     out.push_back(p);
   }
   if (skipped) warning = std::to_string(skipped) + " WOPL voices incompatible with this engine";
@@ -1198,7 +1213,7 @@ bool importExternalPresets(InstrumentType t, const std::string& path, const Byte
     else if (e == ".opm")
       opm(data, parsed, warning);
     else if (e == ".wopl" || e == ".opli")
-      wopl(data, e == ".opli", t, parsed, warning);
+      wopl(data, e == ".opli", t, title, parsed, warning);
     else if (e == ".woplx")
       woplx(data, t, parsed, warning);
     else if (e == ".sbi")

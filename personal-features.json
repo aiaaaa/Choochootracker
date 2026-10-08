@@ -396,11 +396,29 @@
       "arm_test_assertions": 69704274,
       "production_browser_engines": 11
     },
-    "community_bundle": "ChooChoo-Community-Presets-20261007 (private Downloads bundle; not factory assets)",
+    "community_bundle": "ChooChoo-Non-attributable-Presets-20261007 (private Downloads bundle; Factory-source copies excluded)",
     "limits": "SID-Wizard SWI, animated FM/operator macros, source-song FM LFO and unsupported tracker dependencies remain excluded",
     "scope_agreement": "User explicitly excluded SID-Wizard and advanced song-dependent FM/tracker features on 2026-10-07; proceed with supported source formats",
     "manual": "docs/USER_MANUAL.md#portable-factory-collections-and-user-presets",
     "source_commit": "17d32f3b8a66abf53ec933be3064de452a7072f9",
     "retention_policy": "Permanent private USER assets, including SynprezFM: preserve across every device personal build; keep files and offline originals outside Git, factory assets and shared release packages; avoid byte-identical collection duplicates"
+  },
+  "preset_polish_20261007": {
+    "status": "Host and curated-library validation passed; device update pending",
+    "collection_name": "Non-attributable",
+    "factory_sources_excluded_from_extra_opl": [
+      "fatman-2op.woplx",
+      "fatman-4op.woplx",
+      "dmxopl3.woplx"
+    ],
+    "offline_originals_preserved": true,
+    "wopl_cleanup": "Hide unnamed empty slots; retain named silent patches and name playable unnamed voices by source program/bank; preserve source indices",
+    "gb_examples": "Same four sources retained for pulse and noise; both Downloads instrument folders explain source-controlled duty, fixed notes and envelopes",
+    "user_listening_feedback": "Sega PSG, OPL3, Genesis, Arcade FM and DX7 praised; small SID, OPLL/VRC7 and GB sets retained as examples; OPL2 blank entries and Factory-source duplication addressed",
+    "host_test_cases": 542,
+    "host_test_assertions": 112249040,
+    "focused_curated_cases": 14,
+    "focused_curated_assertions": 872,
+    "performance_tests": "skipped at user request"
   }
 }

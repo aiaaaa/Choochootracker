@@ -300,6 +300,60 @@ TEST_CASE("External FM formats map chip register order and reject incompatible m
   CHECK(out[0].instrument.chip.fourOp.operatorMask == 5);
   roundtrip(out[0]);
 }
+TEST_CASE("External WOPL hides empty slots but retains unnamed sounds and "
+          "stable source numbers") {
+  for (unsigned version : {1, 2, 3}) {
+    CAPTURE(version);
+    Bytes bank = {
+        'W', 'O', 'P', 'L', '3', '-', 'B', 'A', 'N', 'K', 0, uint8_t(version),
+        0,   0,   1,   0,   1,   0,   0};
+    if (version >= 2) {
+      bank.resize(19 + 68);
+      bank[19 + 32] = 5;
+      bank[19 + 33] = 2;
+    }
+    size_t start = bank.size(), size = version == 3 ? 66 : 62;
+    bank.resize(start + 256 * size);
+    for (unsigned n = 0; n < 256; ++n)
+      bank[start + n * size + 39] = 4;
+    auto slot = [&](unsigned n, bool silent) {
+      auto offset = start + n * size;
+      bank[offset + 39] = 0;
+      for (unsigned op = 0; op < 4; ++op) {
+        bank[offset + 42 + op * 5 + 1] = silent ? 63 : 0;
+        bank[offset + 42 + op * 5 + 2] = silent ? 0 : 0xf0;
+      }
+      return offset;
+    };
+    slot(0, true);  // Unflagged empty bank entry.
+    slot(1, false); // Unnamed playable melodic program.
+    auto named = slot(2, true);
+    memcpy(bank.data() + named, "Named silence", 13);
+    slot(128, false); // Unnamed percussion entry.
+    std::vector<ExternalPreset> out;
+    std::string error;
+    REQUIRE(importExternalPresets(InstrumentType::OPL2, "bank.wopl", bank, out,
+                                  error));
+    REQUIRE(out.size() == 3);
+    CHECK(out[0].sourceIndex == 1);
+    CHECK(out[0].name ==
+          (version >= 2 ? "Program 1 [B261]" : "Program 1 [B0]"));
+    CHECK(out[1].sourceIndex == 2);
+    CHECK(out[1].name == "Named silence");
+    CHECK(out[2].sourceIndex == 128);
+    CHECK(out[2].name == "Drum 0 [B0]");
+    roundtrip(out[0]);
+    roundtrip(out[2]);
+    // Single instruments with no internal name use their filename.
+    Bytes single = {'W', 'O', 'P', 'L', '3', '-', 'I',
+                    'N', 'S', 'T', 0,   2,   0,   0};
+    single.insert(single.end(), bank.begin() + start + size,
+                  bank.begin() + start + size + 62);
+    REQUIRE(importExternalPresets(InstrumentType::OPL2, "Unnamed bell.opli",
+                                  single, out, error));
+    CHECK(out[0].name == "Unnamed bell");
+  }
+}
 TEST_CASE("Imported macro delays and malformed saved programs are bounded") {
   auto bytes = fuiPSG();
   bytes[29] = 2;
@@ -413,7 +467,7 @@ TEST_CASE("External ready ZIP libraries browse and load through USER") {
   const char* configured = std::getenv("CHOOCHOO_COMMUNITY_PACKS");
   if (!configured) return;
   auto root =
-      std::filesystem::path(configured) / "ChooChoo-Community-Presets-20261007/instruments/USER";
+      std::filesystem::path(configured) / "ChooChoo-Non-attributable-Presets-20261007/instruments/USER";
   if (!std::filesystem::exists(root)) return;
   for (auto type : {InstrumentType::DX7, InstrumentType::OPLL, InstrumentType::VRC7,
                     InstrumentType::OPL2, InstrumentType::OPL3, InstrumentType::GenesisFM,
