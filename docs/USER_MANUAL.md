@@ -1219,11 +1219,38 @@ With the cursor resting on **Mode**, the status bar shows a fixed description of
 Both modes share the same root, scale, **Custom** note editing and track checkboxes. Each of the eight track checkboxes decides which tracks the mode applies to. The scale engine is bypassed for non-12-note pitch tables and for Sampler instruments whose **Slice** mode is EQUAL, AUTO or LAZY (their notes select slices chromatically from C-0); MIDI input is not part of this version.
 
 - **Linear pitch** selects the pitch-table mode. **Off** is the default and the hardware-validated setting for correct AY, Braids and Plaits octave tracking.
-- **Clock source** selects between **Internal** (the project's own tempo) and **Midi Clock** (the sequencer follows an incoming MIDI clock). When **Midi Clock** is active, the **Tempo** row is greyed out and shows the tempo measured from the incoming clock instead; transport (play/stop) is driven by the sender's Start/Continue/Stop messages, so the app's own PLAY control is not needed. The clock source is saved to settings.txt and applies to all projects.
+- **Clock source** selects between **Internal** (the project's own tempo), **Midi Clock** (the sequencer follows an incoming MIDI clock) and **Ableton Link** (the sequencer follows the tempo of a Link session on the local network). When **Midi Clock** is active, the **Tempo** row is greyed out and shows the tempo measured from the incoming clock instead; transport (play/stop) is driven by the sender's Start/Continue/Stop messages, so the app's own PLAY control is not needed. When **Ableton Link** is active and connected, the **Tempo** row is likewise greyed out and shows the live session tempo. The clock source is saved to settings.txt and applies to all projects.
 - **Tempo** sets the project tempo in whole BPM (`3-500`). Internally the tracker still stores its tick rate in Hz (`tick rate = BPM x 0.4`), so existing projects load and save unchanged; a project with a fractional tempo displays it rounded and snaps to a whole BPM on the first tempo edit. Coarse adjustment steps by 5 BPM, fine adjustment by 1 BPM; clearing resets to the default 125 BPM.
 - ChooChooTracker saves projects as `.cct`. This format is not compatible with ChipNomad.
 
 Use **Save** before changing instrument types or loading another project.
+
+### Ableton Link
+
+Ableton Link lets ChooChooTracker follow the tempo of other Link-enabled apps (Ableton Live, LinkHut, etc.) running on the same local network (Wi-Fi or Ethernet). It is a receiver only: the tracker adjusts its own tempo to the session, and never pushes tempo or transport to other participants.
+
+**What is synced:**
+
+- Session tempo — the tracker follows the Link session tempo continuously (within the tracker's 3-500 BPM range).
+- Beat phase — pressing PLAY aligns playback to the session's beat grid: the song starts on the next bar (4-beat quantum).
+
+**What is not synced:**
+
+- Grooves, `SPD` and `DELAY` values are not affected — they stay relative to the followed tempo.
+- Song/chain/phrase cursor positions and mixer settings are never shared.
+
+**How to use:**
+
+1. Open the Project screen and set **Clock source** to **Ableton Link**.
+2. Move to the **[Connect]** button on the same row and press EDIT to join the session. The status message on the Tempo row shows the progress: `Wait...` while connecting, `No net` when no network is available, `No sess` when no session is found, `Conn:N` when connected (N = number of peers).
+3. Wait for `Conn:N`, then press PLAY — playback starts aligned to the next bar of the session.
+4. Press EDIT on **[Disconnect]** (or set the clock source back to Internal) to leave the session.
+
+While connected, the **Tempo** row is greyed out and shows the live session tempo; tempo edits are swallowed. While merely selected but not connected, the tempo field stays editable.
+
+**Platform availability:** PortMaster (primary target), Windows, Linux, macOS and Android are supported. The Web build and Miyoo builds do not include Link.
+
+**PortMaster note:** on PortMaster devices the audio buffer is larger (512 frames at 48 kHz), so beat alignment is best-effort within roughly 10-15 ms rather than sample-accurate. Tempo sync itself is unaffected.
 
 ## 12. Settings
 
