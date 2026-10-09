@@ -27,6 +27,7 @@
 #include "synth/four_op_voice.h"
 #include "synth/master_effects.h"
 #include "midi/midi_router.h"
+#include "link/link_client.h"
 #include <math.h>
 #include <algorithm>
 #include <atomic>
@@ -767,6 +768,7 @@ ChipNomadState* chipnomadCreate(void) {
   state->ownsProjectResources = 1;
   state->audioCommands = new AudioCommandQueue();
   state->midiRouter = midiRouterCreate();
+  state->linkClient = linkClientCreate();
   fillFXNames();
   projectInit(&state->project);
   state->audioProject = state->project;
@@ -885,6 +887,7 @@ void chipnomadDestroy(ChipNomadState* state) {
   free(state->delayBuffer);
   delete state->masterEffects;
   delete state->audioCommands;
+  linkClientDestroy(state->linkClient);
   midiRouterDestroy(state->midiRouter);
   delete state->audioMonitor;
 

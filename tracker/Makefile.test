@@ -45,6 +45,7 @@ CHIPNOMAD_LIB_SOURCES = $(wildcard ../chipnomad_lib/external/mutable/beads/*.cc)
                         $(wildcard ../chipnomad_lib/synth/*.cpp) \
                         $(wildcard ../chipnomad_lib/export/*.cpp) \
                         $(wildcard ../chipnomad_lib/midi/*.cpp) \
+                        $(wildcard ../chipnomad_lib/link/*.cpp) \
                         $(wildcard ../chipnomad_lib/external/open303/Source/DSPCode/*.cpp) \
                         $(wildcard ../chipnomad_lib/external/ayumi/*.cpp) \
                         $(wildcard ../chipnomad_lib/external/mutable/braids/*.cc) \
