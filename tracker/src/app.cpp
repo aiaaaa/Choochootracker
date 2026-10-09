@@ -463,7 +463,10 @@ void appSetup(void) {
   if (savedOutputPort >= 0 && midiRouterOpenOutput(savedOutputPort) == 0) appSettings.midiOutputDevice = savedOutputPort;
   midiRouterSetChannelInstrumentMap(chipnomadState->midiRouter, appSettings.midiChannelInstrument);
   midiRouterSetClockMode(chipnomadState->midiRouter,
-    appSettings.midiClockMode == 1 ? MidiClockMode::slave : MidiClockMode::off);
+    appSettings.clockSource == ClockSource::midiClock ? MidiClockMode::slave : MidiClockMode::off);
+  // Note: ClockSource::link is handled by the future Ableton Link client
+  // module (Phase 2+); for now, selecting Link leaves the MIDI router
+  // off and is a no-op until that module is wired in.
 
   screenSetup(&screenTitle, 0);
 }

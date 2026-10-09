@@ -80,7 +80,7 @@ void initDefaultAppSettings(void) {
   appSettings.midiOutputDevice = -1;
   appSettings.midiInputDeviceName[0] = '\0';
   appSettings.midiOutputDeviceName[0] = '\0';
-  appSettings.midiClockMode = 0;
+  appSettings.clockSource = ClockSource::internal;
   for (int i = 0; i < MIDI_CHANNEL_COUNT; i++) appSettings.midiChannelInstrument[i] = -1;
   appSettings.persistentWaveform = 0;
 #ifdef ANDROID_BUILD
@@ -237,7 +237,12 @@ int settingsSave(void) {
   }
   fprintf(file, "midiInputDeviceName: %s\n", appSettings.midiInputDeviceName);
   fprintf(file, "midiOutputDeviceName: %s\n", appSettings.midiOutputDeviceName);
-  fprintf(file, "midiClockMode: %d\n", appSettings.midiClockMode);
+  // Write the canonical `clockSource:` line for v3+; also write the
+  // legacy `midiClockMode:` alias (0/1 only, never 2) so older binaries
+  // that read the old field still load the Internal/Midi-Clock choice.
+  fprintf(file, "clockSource: %d\n", (int)appSettings.clockSource);
+  fprintf(file, "midiClockMode: %d\n",
+    appSettings.clockSource == ClockSource::midiClock ? 1 : 0);
 
   // Save key mapping codes
   fprintf(file, "keyUp: %d,%d,%d\n", appSettings.keyMapping.keyUp[0].code, appSettings.keyMapping.keyUp[1].code, appSettings.keyMapping.keyUp[2].code);
@@ -396,10 +401,21 @@ int settingsLoad(void) {
     } else if (strncmp(line, "midiOutputDeviceName: ", 22) == 0) {
       strncpy(appSettings.midiOutputDeviceName, line + 22, MIDI_DEVICE_NAME_LENGTH);
       appSettings.midiOutputDeviceName[MIDI_DEVICE_NAME_LENGTH] = 0;
+    } else if (strncmp(line, "clockSource: ", 13) == 0) {
+      // Canonical v3+ setting. Read before the legacy `midiClockMode:`
+      // alias below; if both lines exist (new binaries write both), the
+      // canonical one wins because it appears first in the file.
+      int source = 0;
+      if (sscanf(line + 13, "%d", &source) == 1 &&
+          (source == 0 || source == 1 || source == 2))
+        appSettings.clockSource = (ClockSource)source;
     } else if (strncmp(line, "midiClockMode: ", 15) == 0) {
+      // Legacy alias from v2 settings.txt: 0 -> internal, 1 -> midiClock.
+      // Only applied when the canonical `clockSource:` line was absent,
+      // so a file written by a new binary keeps its Link selection.
       int mode = 0;
       if (sscanf(line + 15, "%d", &mode) == 1 && (mode == 0 || mode == 1))
-        appSettings.midiClockMode = mode;
+        appSettings.clockSource = mode == 1 ? ClockSource::midiClock : ClockSource::internal;
     } else if (strncmp(line, "keyUp: ", 7) == 0) {
       sscanf(line + 7, "%d,%d,%d", &appSettings.keyMapping.keyUp[0].code, &appSettings.keyMapping.keyUp[1].code, &appSettings.keyMapping.keyUp[2].code);
     } else if (strncmp(line, "keyDown: ", 9) == 0) {
