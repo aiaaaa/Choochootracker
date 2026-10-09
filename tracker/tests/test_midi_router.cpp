@@ -41,7 +41,7 @@ void fakeScheduleOutput(void*, const MidiEvent* event, uint64_t) {
 
 void fakeFlushOutputQueue(void*) {}
 unsigned int fakeDroppedCount(void*) { return 42; } // fixed sentinel to verify the passthrough
-uint64_t fakeNowMicros(void*) { return 12345; }
+uint64_t fakeNowMicros(void*) { return g_fakeNowMicros; }
 int g_accessRequests;
 void fakeRequestAccess(void*) { g_accessRequests++; }
 const char* fakeStatusMessage(void*) { return "Fake MIDI ready"; }
