@@ -175,6 +175,12 @@ void chipnomadQueuePlaybackStop(ChipNomadState* state);
 // application shutdown, in addition to the automatic call on playback stop.
 void chipnomadMidiPanic(ChipNomadState* state);
 int chipnomadQueuePlaybackStartSong(ChipNomadState* state, int songRow, int chainRow, int loop);
+// Timed start (T40): playback begins on the first audio tick frame at or
+// after waitUntilMicros on the monotonic host clock (same scale as
+// midiRouterNowMicros / linkClientNowMicros). waitUntilMicros == 0 fires
+// immediately. Used by the Ableton Link quantized launch to align song
+// start to a session beat boundary.
+int chipnomadQueuePlaybackStartSongAtTime(ChipNomadState* state, int songRow, int chainRow, int loop, uint64_t waitUntilMicros);
 int chipnomadQueuePlaybackStartChain(ChipNomadState* state, int trackIdx, int songRow, int chainRow, int loop);
 int chipnomadQueuePlaybackStartPhrase(ChipNomadState* state, int trackIdx, int songRow, int chainRow, int loop);
 int chipnomadQueuePlaybackStartPhraseRow(ChipNomadState* state, int trackIdx, const PhraseRow* row);

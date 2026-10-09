@@ -71,6 +71,7 @@ class AudioCommandQueue {
             return true;
     return false;
   }
+  struct PendingStart { int songRow; int chainRow; int loop; uint64_t waitUntilMicros; };
   void requestStop() { stopRequested_.store(1, std::memory_order_release); }
 
   int takeStopRequest() { return stopRequested_.exchange(0, std::memory_order_acq_rel); }
@@ -154,6 +155,57 @@ class AudioCommandQueue {
     commandHead_.store(next, std::memory_order_release);
     return 1;
   }
+
+  // Timed song start (T40): a dedicated single-slot handoff (same
+  // pattern as the project/settings slots) because the wait time is a
+  // full 64-bit host timestamp that does not fit the command's int
+  // fields. waitUntilMicros == 0 means "fire immediately" (the caller
+  // should use pushCommand(kStartSong) for that instead, but a 0 here
+  // degrades to an immediate start too). A later request replaces an
+  // earlier pending one.
+  int pushPendingStart(int songRow, int chainRow, int loop, uint64_t waitUntilMicros) {
+    int old = pendingStartPublished_.exchange(-1, std::memory_order_acq_rel);
+    if (old >= 0) releasePublished(pendingStartSlots_, old);
+    int slot = findFree(pendingStartSlots_);
+    if (slot < 0) return 0;
+    pendingStartSlots_[slot].value.songRow = songRow;
+    pendingStartSlots_[slot].value.chainRow = chainRow;
+    pendingStartSlots_[slot].value.loop = loop;
+    pendingStartSlots_[slot].value.waitUntilMicros = waitUntilMicros;
+    pendingStartSlots_[slot].state.store(kPublished, std::memory_order_release);
+    pendingStartPublished_.store(slot, std::memory_order_release);
+    return 1;
+  }
+
+  // Audio thread: consume the newest pending timed start, if any.
+  int takePendingStart(PendingStart* out) {
+    int slot = claim(pendingStartSlots_, pendingStartPublished_);
+    if (slot < 0) return 0;
+    *out = pendingStartSlots_[slot].value;
+    pendingStartSlots_[slot].state.store(kFree, std::memory_order_release);
+    return 1;
+  }
+
+  // Audio thread only: pick up a newly published timed start (a newer
+  // request replaces the held one), then fire whichever pending start is
+  // due at this tick frame. The held copy lives in a plain member only
+  // the audio thread touches, so no re-publish race is possible.
+  void servicePendingStart(PlaybackState* playback, uint64_t dueMicros) {
+    PendingStart pending;
+    if (takePendingStart(&pending)) {
+      heldStart_ = pending;
+      heldValid_ = 1;
+    }
+    if (!heldValid_) return;
+    if (heldStart_.waitUntilMicros == 0 || dueMicros >= heldStart_.waitUntilMicros) {
+      playbackStartSong(playback, heldStart_.songRow, heldStart_.chainRow, heldStart_.loop);
+      heldValid_ = 0;
+    }
+  }
+
+  // Audio thread only: drop a held (not yet due) timed start. Called when
+  // a stop request or an explicit immediate start supersedes it.
+  void cancelPendingStart() { heldValid_ = 0; }
 
   void applySettings(PlaybackState* playback) {
     int slot = claim(settingsSlots_, settingsPublished_);
@@ -368,11 +420,16 @@ class AudioCommandQueue {
   Slot<ProjectSnapshot> projectSlots_[kSlotCount];
   Slot<Settings> settingsSlots_[kSlotCount];
   Slot<PlaybackStatus> statusSlots_[kSlotCount];
+  Slot<PendingStart> pendingStartSlots_[kSlotCount];
   Settings settingsDraft_;
   std::atomic<int> stopRequested_{0};
   std::atomic<int> projectPublished_{-1};
   std::atomic<int> settingsPublished_{-1};
   std::atomic<int> statusPublished_{-1};
+  std::atomic<int> pendingStartPublished_{-1};
+  // Audio-thread-only held timed start (see servicePendingStart).
+  PendingStart heldStart_ = {};
+  int heldValid_ = 0;
   AudioCommand commands_[kCommandCapacity] = {};
   std::atomic<unsigned int> commandHead_{0};
   std::atomic<unsigned int> commandTail_{0};
@@ -1010,6 +1067,13 @@ void chipnomadQueuePlaybackStop(ChipNomadState* state) {
 int chipnomadQueuePlaybackStartSong(ChipNomadState* state, int songRow, int chainRow, int loop) {
   return state && state->audioCommands ? state->audioCommands->pushCommand(0, songRow, chainRow, loop) : 0;
 }
+
+int chipnomadQueuePlaybackStartSongAtTime(ChipNomadState* state, int songRow, int chainRow, int loop, uint64_t waitUntilMicros) {
+  // Timed start (T40): playback begins once the audio thread observes
+  // waitUntilMicros on its monotonic clock. waitUntilMicros == 0 fires
+  // immediately (same as chipnomadQueuePlaybackStartSong).
+  return state && state->audioCommands ? state->audioCommands->pushPendingStart(songRow, chainRow, loop, waitUntilMicros) : 0;
+}
 int chipnomadQueuePlaybackStartChain(ChipNomadState* state, int trackIdx, int songRow, int chainRow, int loop) {
   return state && state->audioCommands ? state->audioCommands->pushCommand(1, trackIdx, songRow, chainRow, loop) : 0;
 }
@@ -1109,11 +1173,19 @@ static int advancePlaybackFrame(ChipNomadState* state, uint64_t dueMicros) {
   const int wasPlaying = playbackIsPlaying(&state->playbackState);
   state->audioCommands->applyProject(state);
   state->playbackState.p = &state->audioProject;
+  // Timed song start (T40): a queued start-at-time fires on the first
+  // tick frame at or after its target host time. Uses the frame's
+  // dueMicros (the wall-clock time of this tick's first sample) rather
+  // than a second now() call, so the start lands within one tick frame
+  // of the requested time and stays consistent with MIDI event
+  // scheduling. A stop request cancels a held start (stop wins).
   if (state->audioCommands->takeStopRequest()) {
+    state->audioCommands->cancelPendingStart();
     chipnomadMidiPanic(state);
     playbackStop(&state->playbackState);
     state->sidPreview->kill();state->fourOpPreview->kill();state->dx7Preview->kill();state->opllPreview->kill(); state->oplPreview->kill();state->simpleChipPreview->kill(); state->opllPreviewTrack = -1;
   }
+  state->audioCommands->servicePendingStart(&state->playbackState, dueMicros);
   for (int t = 0; t < PROJECT_MAX_TRACKS; ++t) {
     if (!state->insertChains[t]) continue;
     auto& track = state->playbackState.tracks[t];
