@@ -15,6 +15,7 @@
 #include "import/import_m8s.h"
 #include "string_utils.h"
 #include "midi/midi_router.h"
+#include "link/link_client.h"
 #include <string.h>
 #include <strings.h>
 
@@ -495,17 +496,30 @@ int projectCommonOnEdit(int col, int row, enum CellEditAction action) {
     }
     if (handled) {
       appSettings.clockSource = (ClockSource)clockSourceMirror;
-      // Only the MIDI router responds today; Link mode (2) leaves the
-      // router off - the future Link client module owns its own state.
       midiRouterSetClockMode(chipnomadState->midiRouter,
         appSettings.clockSource == ClockSource::midiClock ? MidiClockMode::slave : MidiClockMode::off);
+      // Link mode: selecting arms the client (status -> selected, no
+      // network I/O); leaving Link mode disconnects. Actual Connect is
+      // the explicit button on row 5's right side.
+      if (appSettings.clockSource == ClockSource::link) {
+        linkClientSelect(chipnomadState->linkClient);
+      } else {
+        linkClientDeselect(chipnomadState->linkClient);
+      }
     }
   } else if (row == 6) {
     // Tempo in whole BPM. Fine steps are 1 BPM, coarse 5 BPM; clear
     // restores the old default 50 Hz = 125 BPM. While slaved to MIDI clock
     // the tempo is driven by the incoming clock, so edits are swallowed
-    // (the field shows the live followed tempo).
-    if (clockSourceMirror) {
+    // (the field shows the live followed tempo). In Link mode edits are
+    // swallowed only while a session is actually being followed
+    // (connected); selected-but-not-connected keeps the field editable.
+    int linkReadOnly = 0;
+    if (clockSourceMirror == 2) {
+      uint32_t linkStatusSerial = 0;
+      linkReadOnly = linkClientGetStatus(chipnomadState->linkClient, &linkStatusSerial) == LinkStatus::connected;
+    }
+    if (clockSourceMirror == 1 || linkReadOnly) {
       handled = 1;
     } else {
       action = convertMultiAction(action);

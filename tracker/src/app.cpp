@@ -18,6 +18,7 @@
 #include "screens/screen_quick_help.h"
 #include "screens/screen_instrument.h"
 #include "midi/midi_router.h"
+#include "link/link_client.h"
 #include "midi/midi_backend_desktop.h"
 #ifdef ANDROID_BUILD
 #include "midi/midi_backend_android.h"
@@ -72,6 +73,9 @@ static uint32_t midiCCAppliedSerial[PROJECT_MAX_MIDI_CC_MAPPINGS];
 // pattern as midiCCAppliedSerial above.
 static uint32_t clockTransportAppliedSerial;
 static uint32_t clockBpmAppliedSerial;
+// Ableton Link mode: last-applied serial for the session tempo published
+// by the Link client (same exactly-once pattern as clockBpmAppliedSerial).
+static uint32_t linkBpmAppliedSerial;
 
 // Port indices aren't saved (see common.h's AppSettings comment): this
 // resolves the saved device name back to whatever live port currently has
@@ -464,9 +468,14 @@ void appSetup(void) {
   midiRouterSetChannelInstrumentMap(chipnomadState->midiRouter, appSettings.midiChannelInstrument);
   midiRouterSetClockMode(chipnomadState->midiRouter,
     appSettings.clockSource == ClockSource::midiClock ? MidiClockMode::slave : MidiClockMode::off);
-  // Note: ClockSource::link is handled by the future Ableton Link client
-  // module (Phase 2+); for now, selecting Link leaves the MIDI router
-  // off and is a no-op until that module is wired in.
+  // Ableton Link: restore the saved selection. Connect happens on demand
+  // (Project screen Connect button / entering Link mode), not at startup,
+  // so a cold launch never touches the network.
+  if (appSettings.clockSource == ClockSource::link) {
+    linkClientSelect(chipnomadState->linkClient);
+  } else {
+    linkClientDeselect(chipnomadState->linkClient);
+  }
 
   screenSetup(&screenTitle, 0);
 }
@@ -826,6 +835,26 @@ void appOnEvent(MainLoopEventData eventData) {
         // BPM -> Hz: 24 ticks/beat, so tickRate = BPM * 24 / 60 = BPM * 0.4.
         chipnomadState->project.tickRate = clockBpm * 0.4f;
         audioProjectDirty = 1;
+      }
+
+      // Ableton Link mode: follow the session tempo published by the Link
+      // client (receiver-only - we never push tempo back). Same
+      // serial-bumped exactly-once pattern as the MIDI clock block above.
+      // Poll drives the connecting -> connected/noPeers status resolution
+      // (3s discovery threshold); cheap, so run it every UI frame while
+      // Link is the selected clock source.
+      if (appSettings.clockSource == ClockSource::link) {
+        linkClientPoll(chipnomadState->linkClient);
+      }
+      if (appSettings.clockSource == ClockSource::link) {
+        uint32_t linkBpmSerial = 0;
+        const float linkBpm = linkClientGetSessionTempo(chipnomadState->linkClient, &linkBpmSerial);
+        if (linkBpm > 0.0f && linkBpmSerial != linkBpmAppliedSerial) {
+          linkBpmAppliedSerial = linkBpmSerial;
+          // BPM -> Hz: tickRate = BPM * 0.4 (24 ticks per beat).
+          chipnomadState->project.tickRate = linkBpm * 0.4f;
+          audioProjectDirty = 1;
+        }
       }
       for (int i = 0; i < PROJECT_MAX_MIDI_CC_MAPPINGS; ++i) {
         MidiCCMapping& mapping = chipnomadState->project.midiCCMappings[i];
