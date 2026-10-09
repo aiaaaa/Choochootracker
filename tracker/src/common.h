@@ -52,6 +52,18 @@ enum class StickLiveMode { hold, toggle, free };
 enum class TrackVisualMode : uint8_t { detailed, audio };
 struct TrackVisualSettings { TrackVisualMode mode = TrackVisualMode::detailed; };
 
+// Clock source for engine tempo. Generalized from the old 0/1
+// midiClockMode int to a 3-state enum: internal (project.tickRate),
+// midiClock (follow incoming MIDI Clock 0xF8 + transport), or link
+// (Ableton Link session). On file load, an old `midiClockMode:`
+// line in settings.txt is read as a backwards-compat alias: 0 ->
+// internal, 1 -> midiClock. New settings write `clockSource: 0|1|2`.
+enum class ClockSource : int {
+  internal = 0,
+  midiClock = 1,
+  link = 2,
+};
+
 struct AppSettings {
   int screenWidth;
   int screenHeight;
@@ -81,10 +93,11 @@ struct AppSettings {
   int midiOutputDevice;
   char midiInputDeviceName[MIDI_DEVICE_NAME_LENGTH + 1];
   char midiOutputDeviceName[MIDI_DEVICE_NAME_LENGTH + 1];
-  // Saved to settings.txt: 0 = Internal clock (project tempo), 1 = follow
-  // incoming MIDI clock (Project screen "Clock source" row). Applied to the
-  // router in appSetup() and changed live from the Project screen.
-  int midiClockMode;
+  // Saved to settings.txt as `clockSource: 0|1|2` (internal / midiClock
+  // / link). Applied to the router in appSetup() and changed live from
+  // the Project screen. Old `midiClockMode:` lines in settings.txt are
+  // read as a backwards-compat alias (0 -> internal, 1 -> midiClock).
+  ClockSource clockSource;
   // Saved to settings.txt: which instrument a MIDI-in note on a given
   // channel (0-15) plays during preview, e.g. channel 0 -> instrument 5.
   // -1 = channel not assigned (falls back to the currently selected

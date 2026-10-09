@@ -32,7 +32,8 @@ static int editingStringLength = 0;
 // with a fractional tempo (e.g. 59 Hz = 147.5 BPM) display rounded and snap
 // to a whole BPM on the first tempo edit; untouched projects save unchanged.
 static uint16_t bpmValue = 125;
-// Mirror of appSettings.midiClockMode for the Clock source row.
+// Mirror of appSettings.clockSource for the Clock source row.
+// 0 = Internal, 1 = Midi Clock, 2 = Ableton Link (future).
 static uint8_t clockSourceMirror = 0;
 
 // Whole-BPM range: tickRate 1-200 Hz maps to 2.5-500 BPM, so whole numbers
@@ -233,7 +234,7 @@ static void setup(int input) {
   if (bpm < BPM_MIN) bpm = BPM_MIN;
   if (bpm > BPM_MAX) bpm = BPM_MAX;
   bpmValue = (uint16_t)bpm;
-  clockSourceMirror = appSettings.midiClockMode ? 1 : 0;
+  clockSourceMirror = (uint8_t)appSettings.clockSource;
 }
 
 static void fullRedraw(void) {
@@ -323,8 +324,8 @@ void projectCommonDrawCursor(int col, int row) {
     // Linear pitch
     gfxCursor(13, 9, 3);
   } else if (row == 5) {
-    // Clock source ("Internal" / "Midi Clock")
-    gfxCursor(13, 10, 10);
+    // Clock source ("Internal" / "Midi Clock" / "Ableton Link")
+    gfxCursor(13, 10, 12);
   } else if (row == 6) {
     // Tempo ("500.0 BPM")
     gfxCursor(13, 11, 8);
@@ -362,9 +363,12 @@ void projectCommonDrawField(int col, int row, CellState state) {
     // Linear pitch
     gfxPrint(13, 9, chipnomadState->project.linearPitch ? "ON " : "OFF");
   } else if (row == 5) {
-    // Clock source
-    gfxClearRect(13, 10, 10, 1);
-    gfxPrint(13, 10, clockSourceMirror ? "Midi Clock" : "Internal");
+    // Clock source: Internal / Midi Clock / Ableton Link
+    gfxClearRect(13, 10, 27, 1);
+    gfxPrint(13, 10,
+      clockSourceMirror == 2 ? "Ableton Link" :
+      clockSourceMirror == 1 ? "Midi Clock"  :
+      "Internal");
   } else if (row == 6) {
     // Tempo in BPM (greyed while slaved to MIDI clock - it's read-only
     // there, driven by the incoming clock, so the live value is shown).
@@ -459,14 +463,17 @@ int projectCommonOnEdit(int col, int row, enum CellEditAction action) {
       reinitializePitchTable(&chipnomadState->project);
     }
   } else if (row == 5) {
-    // Clock source: Internal / Midi Clock. Persisted in settings.txt
-    // (appSettings.midiClockMode) and applied to the router live; the
-    // audio thread picks it up through the regular project refresh.
+    // Clock source: Internal / Midi Clock / Ableton Link. Persisted in
+    // settings.txt as `clockSource: 0|1|2` (the `midiClockMode:` line is
+    // also written as a backwards-compat alias for older binaries).
+    // Applied to the router live; the audio thread picks it up through
+    // the regular project refresh. Link mode (2) is a UI placeholder
+    // for now - the actual Link client module is wired up in Phase 2+.
     action = convertMultiAction(action);
     switch (action) {
       case CellEditAction::tap:
       case CellEditAction::doubleTap:
-        clockSourceMirror = clockSourceMirror ? 0 : 1;
+        clockSourceMirror = (clockSourceMirror + 1) % 3;
         handled = 1;
         break;
       case CellEditAction::clear:
@@ -475,21 +482,23 @@ int projectCommonOnEdit(int col, int row, enum CellEditAction action) {
         break;
       case CellEditAction::increase:
       case CellEditAction::increaseBig:
-        clockSourceMirror = 1;
+        clockSourceMirror = (clockSourceMirror + 1) % 3;
         handled = 1;
         break;
       case CellEditAction::decrease:
       case CellEditAction::decreaseBig:
-        clockSourceMirror = 0;
+        clockSourceMirror = (clockSourceMirror + 2) % 3;
         handled = 1;
         break;
       default:
         break;
     }
     if (handled) {
-      appSettings.midiClockMode = clockSourceMirror;
+      appSettings.clockSource = (ClockSource)clockSourceMirror;
+      // Only the MIDI router responds today; Link mode (2) leaves the
+      // router off - the future Link client module owns its own state.
       midiRouterSetClockMode(chipnomadState->midiRouter,
-        clockSourceMirror ? MidiClockMode::slave : MidiClockMode::off);
+        appSettings.clockSource == ClockSource::midiClock ? MidiClockMode::slave : MidiClockMode::off);
     }
   } else if (row == 6) {
     // Tempo in whole BPM. Fine steps are 1 BPM, coarse 5 BPM; clear

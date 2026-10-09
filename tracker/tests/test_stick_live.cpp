@@ -487,14 +487,14 @@ TEST_CASE_FIXTURE(StickLiveFixture, "MIDI device names round-trip through settin
 }
 
 TEST_CASE_FIXTURE(StickLiveFixture, "MIDI clock mode round-trips through settings save/load") {
-  appSettings.midiClockMode = 1;
+  appSettings.clockSource = ClockSource::midiClock;
   REQUIRE(settingsSave() == 0);
 
   initDefaultAppSettings();
-  CHECK(appSettings.midiClockMode == 0);
+  CHECK(appSettings.clockSource == ClockSource::internal);
 
   REQUIRE(settingsLoad() == 0);
-  CHECK(appSettings.midiClockMode == 1);
+  CHECK(appSettings.clockSource == ClockSource::midiClock);
 
   // Invalid values fall back to the default rather than being trusted.
   FILE* file = fopen(realSettingsPath.c_str(), "w");
@@ -502,7 +502,7 @@ TEST_CASE_FIXTURE(StickLiveFixture, "MIDI clock mode round-trips through setting
   fprintf(file, "midiClockMode: 7\n");
   fclose(file);
   REQUIRE(settingsLoad() == 0);
-  CHECK(appSettings.midiClockMode == 0);
+  CHECK(appSettings.clockSource == ClockSource::internal);
 }
 
 TEST_CASE_FIXTURE(StickLiveFixture, "screenMidiChannelMap cycles channel-to-instrument assignment") {
