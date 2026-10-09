@@ -1220,7 +1220,7 @@ Both modes share the same root, scale, **Custom** note editing and track checkbo
 
 - **Linear pitch** selects the pitch-table mode. **Off** is the default and the hardware-validated setting for correct AY, Braids and Plaits octave tracking.
 - **Clock source** selects between **Internal** (the project's own tempo) and **Midi Clock** (the sequencer follows an incoming MIDI clock). When **Midi Clock** is active, the **Tempo** row is greyed out and shows the tempo measured from the incoming clock instead; transport (play/stop) is driven by the sender's Start/Continue/Stop messages, so the app's own PLAY control is not needed. The clock source is saved to settings.txt and applies to all projects.
-- **Tempo** sets the project tempo in BPM (`2.5-500`, one decimal). Internally the tracker still stores its tick rate in Hz (`tick rate = BPM x 0.4`), so existing projects load and save unchanged. Coarse adjustment steps by 5 BPM, fine adjustment by 1 BPM; clearing resets to the default 125 BPM.
+- **Tempo** sets the project tempo in whole BPM (`3-500`). Internally the tracker still stores its tick rate in Hz (`tick rate = BPM x 0.4`), so existing projects load and save unchanged; a project with a fractional tempo displays it rounded and snaps to a whole BPM on the first tempo edit. Coarse adjustment steps by 5 BPM, fine adjustment by 1 BPM; clearing resets to the default 125 BPM.
 - ChooChooTracker saves projects as `.cct`. This format is not compatible with ChipNomad.
 
 Use **Save** before changing instrument types or loading another project.

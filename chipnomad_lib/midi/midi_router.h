@@ -183,7 +183,7 @@ void midiRouterSetClockMode(MidiRouterState* router, MidiClockMode mode);
 int midiRouterGetClockTransport(const MidiRouterState* router, int* running, uint32_t* serial);
 // Tempo: returns 1 once a tempo has been measured in slave mode, with *bpm
 // the smoothed tempo (24 clocks/beat) and *serial bumped whenever the
-// quantized (0.1 BPM) value changes.
+// quantized (whole BPM) value changes.
 int midiRouterGetClockBpm(const MidiRouterState* router, float* bpm, uint32_t* serial);
 
 // Polls the backend and applies the active input mode (only auto_ is

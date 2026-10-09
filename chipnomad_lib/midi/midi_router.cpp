@@ -43,9 +43,9 @@ struct MidiRouterState {
   // message bumps clockTransportSerial so the app layer applies each
   // transition exactly once. Tempo: clock intervals are clamped to
   // [4000, 300000] us (8.3-625 BPM), converted with 24 clocks/beat, EMA
-  // smoothed, and quantized to 0.1 BPM before publishing - the serial only
-  // moves when the quantized value changes, so a jittery stream doesn't
-  // churn the app layer (and the project-refresh path) every tick.
+  // smoothed, and quantized to whole BPM before publishing - the serial
+  // only moves when the quantized value changes, so a jittery stream
+  // doesn't churn the app layer (and the project-refresh path) every tick.
   int clockRunning;
   uint32_t clockTransportSerial;
   uint64_t lastClockArrival;
@@ -236,10 +236,10 @@ static void handleClockTick(MidiRouterState* router, uint64_t arrival) {
       router->clockBpmEma = router->haveClockBpm
         ? router->clockBpmEma + (bpm - router->clockBpmEma) * 0.2f
         : bpm;
-      // Quantize to 0.1 BPM before publishing so the serial only moves on
-      // a musically meaningful change. The first valid interval always
+      // Quantize to whole BPM before publishing so the serial only moves
+      // on a musically meaningful change. The first valid interval always
       // publishes (haveClockBpm is still 0 here).
-      float quantized = (float)((int)(router->clockBpmEma * 10.0f + 0.5f)) / 10.0f;
+      float quantized = (float)(int)(router->clockBpmEma + 0.5f);
       if (!router->haveClockBpm || quantized != router->clockBpm) {
         router->clockBpm = quantized;
         router->clockBpmSerial++;
