@@ -230,6 +230,25 @@ static void applyLoopRange(void) {
 }
 
 /**
+* @brief Queue a song start, aligned to the Link session when Link is the
+*        clock source and we are connected (T41). Receiver-only: this never
+*        pushes tempo or transport to peers - linkClientRequestBeatAtLaunch
+*        only aligns OUR timeline to the next quantum boundary (local
+*        requestBeatAtTime + commit of our own state). Returns 0 if no
+*        timed start was queued (caller should start immediately), 1 if a
+*        timed start was queued.
+*/
+static int queueLinkAlignedSongStart(int songRow, int chainRow, int loop) {
+  if (appSettings.clockSource != ClockSource::link) return 0;
+  uint32_t serial = 0;
+  if (linkClientGetStatus(chipnomadState->linkClient, &serial) != LinkStatus::connected) return 0;
+  const uint64_t launchTime = linkClientRequestBeatAtLaunch(chipnomadState->linkClient, 4);
+  if (launchTime == 0) return 0;
+  chipnomadQueuePlaybackStartSongAtTime(chipnomadState, songRow, chainRow, loop, launchTime);
+  return 1;
+}
+
+/**
 * @brief Handle play/stop key commands
 *
 * @param keys Pressed keys
@@ -256,7 +275,8 @@ static int inputPlayback(int keys, int tapCount) {
 
     if (playbackLevel == ScreenPlaybackLevel::song) {
       int startRow = range.enabled ? range.startSongRow : *pSongRow;
-      chipnomadQueuePlaybackStartSong(chipnomadState, startRow, 0, 1);
+      if (!queueLinkAlignedSongStart(startRow, 0, 1))
+        chipnomadQueuePlaybackStartSong(chipnomadState, startRow, 0, 1);
       applyLoopRange();
     } else if (playbackLevel == ScreenPlaybackLevel::chain) {
       int startRow = range.enabled ? range.startChainRow : *pChainRow;
@@ -281,11 +301,13 @@ static int inputPlayback(int keys, int tapCount) {
 
     if (playbackLevel == ScreenPlaybackLevel::song) {
       int startRow = range.enabled ? range.startSongRow : *pSongRow;
-      chipnomadQueuePlaybackStartSong(chipnomadState, startRow, 0, 1);
+      if (!queueLinkAlignedSongStart(startRow, 0, 1))
+        chipnomadQueuePlaybackStartSong(chipnomadState, startRow, 0, 1);
       applyLoopRange();
     } else if (playbackLevel == ScreenPlaybackLevel::chain || playbackLevel == ScreenPlaybackLevel::phrase) {
       int startChainRow = range.enabled ? range.startChainRow : *pChainRow;
-      chipnomadQueuePlaybackStartSong(chipnomadState, *pSongRow, startChainRow, 1);
+      if (!queueLinkAlignedSongStart(*pSongRow, startChainRow, 1))
+        chipnomadQueuePlaybackStartSong(chipnomadState, *pSongRow, startChainRow, 1);
       applyLoopRange();
     }
     return 1;

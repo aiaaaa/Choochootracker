@@ -6,6 +6,13 @@
 static AudioCallback* webAudioCallback = nullptr;
 static int webSampleRate, webBufferSize;
 #endif
+
+// Strong override of the weak default in link_client.cpp (T39): the
+// measured device output latency used by Link's beat-0 launch scheduler.
+// Same C++ linkage as the declaration in link_backend_internal.h.
+uint64_t outputLatencyMicros(void);
+static uint64_t measuredOutputLatencyMicros = 0;
+uint64_t outputLatencyMicros(void) { return measuredOutputLatencyMicros; }
 #ifdef ANDROID_BUILD
 #include "../android/audio_diagnostics.h"
 #include <android/log.h>
@@ -107,6 +114,13 @@ int audioSetup(AudioCallback* audioCallback, int sampleRate, int bufferSize) {
   webSampleRate = sampleRate;
   webBufferSize = bufferSize;
 #endif
+  // Measured output latency for Ableton Link scheduling (T39): the time
+  // audio spends in SDL's buffer before reaching the DAC. PortMaster
+  // buffer 512 @ 48 kHz = ~10667 us; desktop 256 @ 48 kHz = ~5333 us.
+  // AUDIOENGINE-1 caveat (documented ship exclusion on PortMaster): the
+  // true DAC latency of ArkOS/ALSA is unmeasured, so this is a lower
+  // bound on the real output latency there.
+  measuredOutputLatencyMicros = (uint64_t)((uint64_t)spec.samples * 1000000ULL / (uint64_t)spec.freq);
 #ifdef ANDROID_BUILD
   if (audioDiagnostics::enabled) {
     __android_log_print(ANDROID_LOG_INFO, "CCTAudio",

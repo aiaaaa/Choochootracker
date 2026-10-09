@@ -36,9 +36,10 @@ uint64_t linkClientNowMicros(void) {
 }
 
 // Default output latency until the platform audio setup overrides it
-// (T39). Weak in link_backend_link.cpp for the real backend; this
-// definition is the one tests and stub platforms see.
-uint64_t outputLatencyMicros(void) { return 0; }
+// (T39). Weak so corelib_audio.cpp can provide the measured device
+// latency (spec.samples * 1e6 / spec.freq) with a strong definition;
+// tests and stub platforms keep this 0 default.
+__attribute__((weak)) uint64_t outputLatencyMicros(void) { return 0; }
 
 namespace {
 
