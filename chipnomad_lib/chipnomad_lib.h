@@ -26,6 +26,7 @@ class OPLVoice;
 class SimpleChipVoice;
 class AudioCommandQueue;
 struct MidiRouterState;
+struct LinkClientState;
 class AudioMonitor;
 
 constexpr int VOICE_MONITOR_SAMPLES = 256;
@@ -123,6 +124,11 @@ struct ChipNomadState {
   // one instance per ChipNomadState, so independent engine states (e.g. one
   // per test fixture) never share bookkeeping through a hidden global.
   MidiRouterState* midiRouter;
+  // Receiver-only Ableton Link client (see link/link_client.h) - same
+  // one-instance-per-state ownership as the MIDI router. The UI polls it
+  // with serial-bumped getters; the audio thread captures session state
+  // through it at tick boundaries.
+  LinkClientState* linkClient;
   VoiceMonitor voiceMonitors[PROJECT_MAX_TRACKS];
   MasterEffects* masterEffects;
   AudioCommandQueue* audioCommands;
