@@ -6,7 +6,7 @@ Methodology for verifying Ableton Link tempo sync and beat alignment on each sup
 
 1. Start LinkHut at 110 BPM on the peer device, on the same Wi-Fi/LAN as the tracker.
 2. In ChooChooTracker: Project screen → Clock source → **Ableton Link** → **[Connect]**.
-3. Verify the Tempo row shows `Conn:1` and the blurred live tempo `110 BPM`.
+3. Verify the Link row shows `[Disconnect]` with the status alternating `connected` / `Peers: 1`, and the session tempo (110 BPM) is applied to the project.
 4. Press PLAY — playback must align to the next bar of the Link session.
 5. Change the session tempo on the peer (e.g. 110 → 128 BPM) and verify grooves, `SPD` and `DELAY` audibly follow.
 6. Load a different `.cct` project and verify the session tempo is unchanged (tempo is session-owned while connected).

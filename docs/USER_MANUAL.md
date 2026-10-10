@@ -1219,7 +1219,7 @@ With the cursor resting on **Mode**, the status bar shows a fixed description of
 Both modes share the same root, scale, **Custom** note editing and track checkboxes. Each of the eight track checkboxes decides which tracks the mode applies to. The scale engine is bypassed for non-12-note pitch tables and for Sampler instruments whose **Slice** mode is EQUAL, AUTO or LAZY (their notes select slices chromatically from C-0); MIDI input is not part of this version.
 
 - **Linear pitch** selects the pitch-table mode. **Off** is the default and the hardware-validated setting for correct AY, Braids and Plaits octave tracking.
-- **Clock source** selects between **Internal** (the project's own tempo), **Midi Clock** (the sequencer follows an incoming MIDI clock) and **Ableton Link** (the sequencer follows the tempo of a Link session on the local network). When **Midi Clock** is active, the **Tempo** row is greyed out and shows the tempo measured from the incoming clock instead; transport (play/stop) is driven by the sender's Start/Continue/Stop messages, so the app's own PLAY control is not needed. When **Ableton Link** is active and connected, the **Tempo** row is likewise greyed out and shows the live session tempo. The clock source is saved to settings.txt and applies to all projects.
+- **Clock source** selects between **Internal** (the project's own tempo), **Midi Clock** (the sequencer follows an incoming MIDI clock) and **Ableton Link** (the sequencer follows the tempo of a Link session on the local network). When **Midi Clock** is active, the **Tempo** row is greyed out and shows the tempo measured from the incoming clock instead; transport (play/stop) is driven by the sender's Start/Continue/Stop messages, so the app's own PLAY control is not needed. When **Ableton Link** is active, the row becomes the **Link** row: it holds the session connect/disconnect toggle instead of a tempo field (see below). The clock source is saved to settings.txt and applies to all projects.
 - **Tempo** sets the project tempo in whole BPM (`3-500`). Internally the tracker still stores its tick rate in Hz (`tick rate = BPM x 0.4`), so existing projects load and save unchanged; a project with a fractional tempo displays it rounded and snaps to a whole BPM on the first tempo edit. Coarse adjustment steps by 5 BPM, fine adjustment by 1 BPM; clearing resets to the default 125 BPM.
 - ChooChooTracker saves projects as `.cct`. This format is not compatible with ChipNomad.
 
@@ -1241,12 +1241,12 @@ Ableton Link lets ChooChooTracker follow the tempo of other Link-enabled apps (A
 
 **How to use:**
 
-1. Open the Project screen and set **Clock source** to **Ableton Link**.
-2. Move to the **[Connect]** button on the same row and press EDIT to join the session. The status message on the Tempo row shows the progress: `Wait...` while connecting, `No net` when no network is available, `No sess` when no session is found, `Conn:N` when connected (N = number of peers).
-3. Wait for `Conn:N`, then press PLAY — playback starts aligned to the next bar of the session.
+1. Open the Project screen and set **Clock source** to **Ableton Link**. The row below it becomes the **Link** row.
+2. Press EDIT on **[Connect]** to join the session. The status message on the right shows the progress: `Wait...` while connecting, `No net` when no network is available, `No sess` when no session is found, `Err` on an internal failure. While connected the button reads **[Disconnect]** and the status alternates between `connected` and `Peers: N` (N = number of peers) about once a second.
+3. Wait for `connected`, then press PLAY — playback starts aligned to the next bar of the session.
 4. Press EDIT on **[Disconnect]** (or set the clock source back to Internal) to leave the session.
 
-While connected, the **Tempo** row is greyed out and shows the live session tempo; tempo edits are swallowed. While merely selected but not connected, the tempo field stays editable.
+In Link mode the session owns the tempo: the row shows no BPM field, and the session tempo is applied to the project automatically (within the tracker's 3-500 BPM range).
 
 **Platform availability:** PortMaster (primary target), Windows, Linux, macOS and Android are supported. The Web build and Miyoo builds do not include Link.
 

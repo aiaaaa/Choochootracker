@@ -19,6 +19,8 @@
 #include <string.h>
 #include <strings.h>
 
+#include <chrono>
+
 #ifdef WEB_BUILD
 #include <emscripten/emscripten.h>
 #endif
@@ -257,34 +259,54 @@ static LinkStatus currentLinkStatus(void) {
   return linkClientGetStatus(chipnomadState->linkClient, &statusSerialScratch);
 }
 
+// Alternating "connected" / "Peers: N" status on the Link row: the phase
+// flips roughly once a second while connected, and a status transition
+// resets it so a fresh connection always shows "connected" first.
+static LinkStatus linkStatusPhaseStatus = LinkStatus::disabled;
+static std::chrono::steady_clock::time_point linkStatusPhaseFlip = {};
+static int linkStatusShowPeers = 0;
+
+static void updateLinkStatusPhase(void) {
+  const LinkStatus status = currentLinkStatus();
+  const auto now = std::chrono::steady_clock::now();
+  if (status != linkStatusPhaseStatus) {
+    linkStatusPhaseStatus = status;
+    linkStatusPhaseFlip = now;
+    linkStatusShowPeers = 0;
+    return;
+  }
+  if (status == LinkStatus::connected &&
+      (linkStatusPhaseFlip == std::chrono::steady_clock::time_point() ||
+        std::chrono::duration<float>(now - linkStatusPhaseFlip).count() >= 1.0f)) {
+    linkStatusPhaseFlip = now;
+    linkStatusShowPeers = !linkStatusShowPeers;
+  }
+}
+
 static void draw(void) {
-  // While slaved to MIDI clock (or following a Link session) the tempo
-  // field shows the live followed tempo; fullRedraw only runs on
-  // navigation/edit, so refresh the field here every frame. The cursor
-  // overlay is redrawn by the framework after draw() (see screenDraw), so
-  // clearing the field area here is safe.
-  if (clockSourceMirror) {
-    ScreenOverlayCoordinates overlay;
+  // Row 6 is asynchronous in both clock-slave modes: MIDI clock shows the
+  // live measured tempo, Link shows the connect toggle and session status
+  // (discovery threshold, peer joins/leaves, the 1 s alternation).
+  // fullRedraw only runs on navigation/edit, so refresh the field here
+  // every frame. gfxClearRect erases the cursor underline together with
+  // the field and the framework does not redraw the cursor after draw(),
+  // so restore it whenever it rests on this row (same pattern as the
+  // song screen's live refresh).
+  if (!clockSourceMirror) return;
+  if (clockSourceMirror == 2) updateLinkStatusPhase();
+
+  ScreenData* screen = projectScreen();
+  const int focused = screen->cursorRow == 6;
+  if (clockSourceMirror == 1) {
+    // MIDI clock: live followed tempo in the info color, as before.
     const ColorScheme cs = appSettings.colorScheme;
     gfxSetFgColor(cs.textInfo);
     gfxClearRect(13, 11, 27, 1);
     gfxPrintf(13, 11, "%u BPM", liveClockBpm());
-    // Link status message (T45) also changes asynchronously (discovery
-    // threshold, peer joins/leaves), so refresh it here every frame too.
-    if (clockSourceMirror == 2) {
-      const LinkStatus linkStatus = currentLinkStatus();
-      if (linkStatus == LinkStatus::connected) {
-        gfxPrintf(30, 11, "Conn:%d", linkClientGetPeerCount(chipnomadState->linkClient));
-      } else {
-        const char* statusStr =
-          linkStatus == LinkStatus::noNetwork  ? "No net"  :
-          linkStatus == LinkStatus::connecting ? "Wait..." :
-          linkStatus == LinkStatus::noPeers    ? "No sess" :
-          linkStatus == LinkStatus::error      ? "Err"     : "";
-        if (statusStr[0]) gfxPrint(30, 11, statusStr);
-      }
-    }
+  } else {
+    projectCommonDrawField(0, 6, focused ? CellState::focus : CellState::normal);
   }
+  if (focused) screen->drawCursor(screen->cursorCol, 6);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -303,10 +325,9 @@ int projectCommonColumnCount(int row) {
   } else if (row == 4) {
     return 1; // Linear pitch
   } else if (row == 5) {
-    // Clock source + (when Link is selected) the Connect/Disconnect button
-    return clockSourceMirror == 2 ? 2 : 1;
+    return 1; // Clock source
   } else if (row == 6) {
-    return 1; // Tempo (BPM)
+    return 1; // Tempo (BPM), or the Link connect toggle in Link mode
   }
   return 1; // Default value
 }
@@ -327,7 +348,9 @@ void projectCommonDrawStatic(void) {
 
   gfxPrint(0, 9, "Linear pitch");
   gfxPrint(0, 10, "Clock source");
-  gfxPrint(0, 11, "Tempo");
+  // Row 6 doubles as the Link connect row; the label follows the mode
+  // (a full redraw runs whenever the clock source changes).
+  gfxPrint(0, 11, clockSourceMirror == 2 ? "Link" : "Tempo");
 }
 
 void projectCommonDrawCursor(int col, int row) {
@@ -352,14 +375,15 @@ void projectCommonDrawCursor(int col, int row) {
   } else if (row == 5) {
     // Clock source ("Internal" / "Midi Clock" / "Ableton Link")
     gfxCursor(13, 10, 12);
-    // Connect/Disconnect button cell (T43/T44): a second column on row 5
-    // when Link is the selected clock source.
-    if (clockSourceMirror == 2 && col == 1) {
-      gfxCursor(26, 10, 12);
-    }
   } else if (row == 6) {
-    // Tempo ("500.0 BPM")
-    gfxCursor(13, 11, 8);
+    // Tempo ("500.0 BPM"), or in Link mode the connect toggle whose
+    // underline follows the label width.
+    if (clockSourceMirror == 2) {
+      const LinkStatus status = currentLinkStatus();
+      gfxCursor(13, 11, status == LinkStatus::connected || status == LinkStatus::connecting ? 12 : 9);
+    } else {
+      gfxCursor(13, 11, 8);
+    }
   }
 }
 
@@ -400,46 +424,44 @@ void projectCommonDrawField(int col, int row, CellState state) {
       clockSourceMirror == 2 ? "Ableton Link" :
       clockSourceMirror == 1 ? "Midi Clock"  :
       "Internal");
-    // Connect/Disconnect button (T43): rendered to the right when Link is
-    // selected. Label reflects the client status; the button is drawn in
-    // the focus color when its own cell is focused.
+  } else if (row == 6) {
+    gfxClearRect(13, 11, 27, 1);
     if (clockSourceMirror == 2) {
+      // Link mode: the row is the session connect/disconnect toggle. The
+      // session owns the tempo (app.cpp applies it to the project), so no
+      // BPM is shown or edited here.
       const LinkStatus status = currentLinkStatus();
       const char* label = (status == LinkStatus::connected) ? "[Disconnect]" :
                           (status == LinkStatus::connecting) ? "[Connecting]" :
                           "[Connect]";
-      if (state == CellState::focus && col == 1) {
-        gfxSetFgColor(appSettings.colorScheme.textInfo);
+      gfxPrint(13, 11, label);
+      // Status message on the right, in the info color. While connected,
+      // alternate between "connected" and the peer count roughly once a
+      // second (phase kept by draw()) so both the link state and the
+      // session size stay visible without widening the row.
+      gfxSetFgColor(appSettings.colorScheme.textInfo);
+      if (status == LinkStatus::connected) {
+        if (linkStatusShowPeers) {
+          gfxPrintf(26, 11, "Peers: %d", linkClientGetPeerCount(chipnomadState->linkClient));
+        } else {
+          gfxPrint(26, 11, "connected");
+        }
+      } else {
+        const char* statusStr =
+          status == LinkStatus::noNetwork  ? "No net"  :
+          status == LinkStatus::connecting ? "Wait..." :
+          status == LinkStatus::noPeers    ? "No sess" :
+          status == LinkStatus::error      ? "Err"     : "";
+        if (statusStr[0]) gfxPrint(26, 11, statusStr);
       }
-      gfxPrint(26, 10, label);
-    }
-  } else if (row == 6) {
-    // Tempo in BPM. Greyed (read-only) while slaved to MIDI clock - it's
-    // driven by the incoming clock - or while following a Link session
-    // (connected): the session tempo is applied by app.cpp. The live value
-    // is shown either way.
-    gfxClearRect(13, 11, 27, 1);
-    const LinkStatus linkStatus = currentLinkStatus();
-    const int blurred = clockSourceMirror == 1 ||
-      (clockSourceMirror == 2 && linkStatus == LinkStatus::connected);
-    if (blurred) {
-      gfxSetFgColor(state == CellState::focus ? appSettings.colorScheme.textInfo : appSettings.colorScheme.textEmpty);
+    } else if (clockSourceMirror == 1) {
+      // Slaved to MIDI clock: read-only live tempo measured from the
+      // incoming clock, shown in the info color (draw() refreshes it
+      // every frame with the same color).
+      gfxSetFgColor(appSettings.colorScheme.textInfo);
       gfxPrintf(13, 11, "%u BPM", liveClockBpm());
     } else {
       gfxPrintf(13, 11, "%u BPM", bpmValue);
-    }
-    // Link status message on the right side (T45).
-    if (clockSourceMirror == 2) {
-      if (linkStatus == LinkStatus::connected) {
-        gfxPrintf(30, 11, "Conn:%d", linkClientGetPeerCount(chipnomadState->linkClient));
-      } else {
-        const char* statusStr =
-          linkStatus == LinkStatus::noNetwork  ? "No net"  :
-          linkStatus == LinkStatus::connecting ? "Wait..." :
-          linkStatus == LinkStatus::noPeers    ? "No sess" :
-          linkStatus == LinkStatus::error      ? "Err"     : "";
-        if (statusStr[0]) gfxPrint(30, 11, statusStr);
-      }
     }
   }
 }
@@ -525,40 +547,12 @@ int projectCommonOnEdit(int col, int row, enum CellEditAction action) {
       reinitializePitchTable(&chipnomadState->project);
     }
   } else if (row == 5) {
-    // Connect/Disconnect button cell (T44): column 1 on row 5, only present
-    // when Link is the selected clock source. Tap connects (from
-    // selected/noNetwork/noPeers/error) or disconnects (from connected);
-    // taps during connecting are swallowed so the pending discovery isn't
-    // torn down mid-flight.
-    if (clockSourceMirror == 2 && col == 1) {
-      action = convertMultiAction(action);
-      if (action == CellEditAction::tap || action == CellEditAction::doubleTap) {
-        const LinkStatus status = currentLinkStatus();
-        if (status == LinkStatus::connected) {
-          linkClientDisconnect(chipnomadState->linkClient);
-          handled = 1;
-        } else if (status == LinkStatus::selected || status == LinkStatus::noNetwork ||
-                   status == LinkStatus::noPeers || status == LinkStatus::error) {
-          linkClientConnect(chipnomadState->linkClient);
-          handled = 1;
-        } else if (status == LinkStatus::connecting) {
-          handled = 1; // swallow: connection attempt already in flight
-        }
-      } else if (action == CellEditAction::clear) {
-        // Clear on the button = disconnect if connected, otherwise no-op.
-        if (currentLinkStatus() == LinkStatus::connected) {
-          linkClientDisconnect(chipnomadState->linkClient);
-        }
-        handled = 1;
-      }
-      return handled;
-    }
     // Clock source: Internal / Midi Clock / Ableton Link. Persisted in
     // settings.txt as `clockSource: 0|1|2` (the `midiClockMode:` line is
     // also written as a backwards-compat alias for older binaries).
     // Applied to the router live; the audio thread picks it up through
-    // the regular project refresh. Link mode (2) is a UI placeholder
-    // for now - the actual Link client module is wired up in Phase 2+.
+    // the regular project refresh. The connect/disconnect toggle lives
+    // on row 6 in Link mode.
     action = convertMultiAction(action);
     switch (action) {
       case CellEditAction::tap:
@@ -589,28 +583,57 @@ int projectCommonOnEdit(int col, int row, enum CellEditAction action) {
         appSettings.clockSource == ClockSource::midiClock ? MidiClockMode::slave : MidiClockMode::off);
       // Link mode: selecting arms the client (status -> selected, no
       // network I/O); leaving Link mode disconnects. Actual Connect is
-      // the explicit button on row 5's right side.
+      // the toggle on row 6.
       if (appSettings.clockSource == ClockSource::link) {
         linkClientSelect(chipnomadState->linkClient);
       } else {
         linkClientDeselect(chipnomadState->linkClient);
       }
+      // Row 6 switches between the tempo field and the Link toggle (and
+      // the row label changes with it), so redraw the whole form.
+      // Re-sync the BPM mirror from the project's tick rate first: while
+      // slaved (MIDI clock or Link) app.cpp drives tickRate, and leaving
+      // a slaved mode should display the tempo actually in effect.
+      int bpm = (int)(chipnomadState->project.tickRate * 2.5f + 0.5f);
+      if (bpm < BPM_MIN) bpm = BPM_MIN;
+      if (bpm > BPM_MAX) bpm = BPM_MAX;
+      bpmValue = (uint16_t)bpm;
+      fullRedraw();
     }
   } else if (row == 6) {
-    // Tempo in whole BPM. Fine steps are 1 BPM, coarse 5 BPM; clear
-    // restores the old default 50 Hz = 125 BPM. While slaved to MIDI clock
-    // the tempo is driven by the incoming clock, so edits are swallowed
-    // (the field shows the live followed tempo). In Link mode edits are
-    // swallowed only while a session is actually being followed
-    // (connected); selected-but-not-connected keeps the field editable.
-    int linkReadOnly = 0;
     if (clockSourceMirror == 2) {
-      uint32_t linkStatusSerial = 0;
-      linkReadOnly = linkClientGetStatus(chipnomadState->linkClient, &linkStatusSerial) == LinkStatus::connected;
-    }
-    if (clockSourceMirror == 1 || linkReadOnly) {
+      // Link mode: the row is the connect/disconnect toggle (the session
+      // owns the tempo, so there is nothing to edit here). Tap connects
+      // (from selected/noNetwork/noPeers/error) or disconnects (from
+      // connected); taps during connecting are swallowed so the pending
+      // discovery isn't torn down mid-flight.
+      action = convertMultiAction(action);
+      if (action == CellEditAction::tap || action == CellEditAction::doubleTap) {
+        const LinkStatus status = currentLinkStatus();
+        if (status == LinkStatus::connected) {
+          linkClientDisconnect(chipnomadState->linkClient);
+          handled = 1;
+        } else if (status == LinkStatus::selected || status == LinkStatus::noNetwork ||
+                   status == LinkStatus::noPeers || status == LinkStatus::error) {
+          linkClientConnect(chipnomadState->linkClient);
+          handled = 1;
+        } else if (status == LinkStatus::connecting) {
+          handled = 1; // swallow: connection attempt already in flight
+        }
+      } else if (action == CellEditAction::clear) {
+        // Clear = disconnect if connected, otherwise no-op.
+        if (currentLinkStatus() == LinkStatus::connected) {
+          linkClientDisconnect(chipnomadState->linkClient);
+        }
+        handled = 1;
+      }
+    } else if (clockSourceMirror == 1) {
+      // Slaved to MIDI clock: the tempo is driven by the incoming clock,
+      // so edits are swallowed (the field shows the live followed tempo).
       handled = 1;
     } else {
+      // Tempo in whole BPM. Fine steps are 1 BPM, coarse 5 BPM; clear
+      // restores the old default 50 Hz = 125 BPM.
       action = convertMultiAction(action);
       switch (action) {
         case CellEditAction::tap:

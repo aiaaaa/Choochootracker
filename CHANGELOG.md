@@ -2,6 +2,13 @@
 
 ## v1.0.16-alpha (October 14, 2026)
 
+- Reworked the Project screen's Ableton Link UI: selecting **Ableton Link** as
+  the clock source turns the **Tempo** row into a **Link** row holding the
+  session connect/disconnect toggle (`[Connect]` / `[Connecting]` /
+  `[Disconnect]`) with a status message (`Wait...`, `No net`, `No sess`,
+  `Err`); while connected the status alternates between `connected` and
+  `Peers: N` once a second. The session owns the tempo in Link mode, so no
+  BPM is shown or edited on the screen.
 - Added MIDI clock sync (desktop, PortMaster and Android): the Project screen
   gained a **Clock source** row switching between **Internal** and **Midi
   Clock**. With Midi Clock selected, the tracker follows an external

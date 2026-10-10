@@ -18,8 +18,8 @@ Gate document referenced by the PortMaster ship decision. Records the pass/fail 
 
 **Checklist** (run LinkHut at 110 BPM on a phone on the same Wi-Fi):
 
-- [ ] Project screen shows `Conn:1`
-- [ ] BPM row shows `110 BPM` (blurred)
+- [ ] Project screen Link row shows `connected` / `Peers: 1` (alternating)
+- [ ] Session tempo 110 BPM applied (no BPM field is shown in Link mode)
 - [ ] Grooves/SPD/DELAY audibly follow 110 BPM
 - [ ] Loading a different `.cct` doesn't change the session tempo
 - [ ] Press Play — playback aligns to the next bar (within ~10-15 ms on PortMaster)
