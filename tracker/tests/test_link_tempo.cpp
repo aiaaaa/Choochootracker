@@ -16,6 +16,7 @@ struct TempoFakeState {
   int enabled = 0;
   int peers = 0;
   double sessionTempo = 0.0;
+  int sessionIsPlaying = 0;
   int enableCalls = 0;
   int disableCalls = 0;
   int setTempoCalls = 0;  // receiver-only guard: must stay 0 forever
@@ -35,11 +36,12 @@ void tempoFakeDisable(void*, void*) { ++g_tempoFake.disableCalls; g_tempoFake.en
 int tempoFakeIsEnabled(void*, void*) { return g_tempoFake.enabled; }
 int tempoFakeNumPeers(void*, void*) { return g_tempoFake.peers; }
 
-int tempoFakeCapture(void*, void*, double* tempo, uint64_t* peers) {
+int tempoFakeCapture(void*, void*, double* tempo, uint64_t* peers, int* isPlaying) {
   ++g_tempoFake.captureCalls;
   if (!g_tempoFake.enabled) return 0;
   if (tempo) *tempo = g_tempoFake.sessionTempo;
   if (peers) *peers = (uint64_t)g_tempoFake.peers;
+  if (isPlaying) *isPlaying = g_tempoFake.sessionIsPlaying;
   return 1;
 }
 
@@ -91,8 +93,8 @@ TEST_CASE("TEMPO-2: joining adopts the session tempo") {
 
   // Audio thread publishes the session snapshot; UI poll resolves
   // connecting -> connected and adopts the tempo.
-  double tempo = 0; uint64_t peers = 0;
-  REQUIRE(linkClientCaptureAudioSessionState(state->linkClient, &tempo, &peers));
+  double tempo = 0; uint64_t peers = 0; int isPlaying = 0;
+  REQUIRE(linkClientCaptureAudioSessionState(state->linkClient, &tempo, &peers, &isPlaying));
   linkClientPoll(state->linkClient);
   CHECK(linkClientGetStatus(state->linkClient, &statusSerial) == LinkStatus::connected);
 
@@ -114,8 +116,8 @@ TEST_CASE("TEMPO-3: loading a song never pushes tempo to the session") {
 
   linkClientSelect(state->linkClient);
   linkClientConnect(state->linkClient);
-  double tempo = 0; uint64_t peers = 0;
-  REQUIRE(linkClientCaptureAudioSessionState(state->linkClient, &tempo, &peers));
+  double tempo = 0; uint64_t peers = 0; int isPlaying = 0;
+  REQUIRE(linkClientCaptureAudioSessionState(state->linkClient, &tempo, &peers, &isPlaying));
   linkClientPoll(state->linkClient);
 
   // "Load" a project with a different tick rate: the project file's
@@ -145,8 +147,8 @@ TEST_CASE("TEMPO-5: connect with no peers does not jump the tempo") {
   linkClientConnect(state->linkClient);
   // No capture succeeds (nothing enabled publishes nothing meaningful
   // until a peer exists), and poll times out into noPeers.
-  double tempo = 0; uint64_t peers = 0;
-  REQUIRE(linkClientCaptureAudioSessionState(state->linkClient, &tempo, &peers));
+  double tempo = 0; uint64_t peers = 0; int isPlaying = 0;
+  REQUIRE(linkClientCaptureAudioSessionState(state->linkClient, &tempo, &peers, &isPlaying));
   CHECK(tempo == 0.0);
   linkClientPoll(state->linkClient);
   uint32_t statusSerial = 0;

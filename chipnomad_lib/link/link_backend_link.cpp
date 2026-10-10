@@ -65,6 +65,10 @@ int linkBackendEnable(void*, void* state) {
   linkBackendAndroidAcquireMulticastLock();
 #endif
   s->hostTimeFilter.reset();
+  // Follow the session-wide transport (peers' start/stop propagate to
+  // us). Without this, Link ignores start/stop state entirely and the
+  // app can never observe session transport changes.
+  s->link.enableStartStopSync(true);
   s->link.enable(true);
   return 1;
 }
@@ -72,6 +76,7 @@ int linkBackendEnable(void*, void* state) {
 void linkBackendDisable(void*, void* state) {
   RealLinkState* s = (RealLinkState*)state;
   s->link.enable(false);
+  s->link.enableStartStopSync(false);
   s->hostTimeFilter.reset();
 #ifdef ANDROID_BUILD
   linkBackendAndroidReleaseMulticastLock();
@@ -88,42 +93,68 @@ int linkBackendNumPeers(void*, void* state) {
   return (int)s->link.numPeers();
 }
 
-int linkBackendCaptureAudioSessionState(void*, void* state, double* tempo, uint64_t* peers) {
+int linkBackendCaptureAudioSessionState(void*, void* state, double* tempo, uint64_t* peers, int* isPlaying) {
   RealLinkState* s = (RealLinkState*)state;
   if (!s->link.isEnabled()) return 0;
-  const auto sessionState = s->link.captureAudioSessionState();
+  // App-thread variant: thread-safe (mutex-guarded), so this is legal
+  // from the UI thread. The realtime-only captureAudioSessionState must
+  // only be called from the audio thread.
+  const auto sessionState = s->link.captureAppSessionState();
   if (tempo) *tempo = sessionState.tempo();
   if (peers) *peers = (uint64_t)s->link.numPeers();
+  if (isPlaying) *isPlaying = sessionState.isPlaying() ? 1 : 0;
   return 1;
 }
 
 uint64_t linkBackendRequestBeatAtLaunch(void*, void* state, double quantum) {
   RealLinkState* s = (RealLinkState*)state;
   if (!s->link.isEnabled() || s->link.numPeers() == 0) return 0;
-  // Estimate the host time of "now" on Link's clock: the HostTimeFilter
-  // maps the audio sample counter to host time, so ask it for the
-  // current counter. The audio thread feeds pairs every callback (see
-  // linkBackendOnAudioFrame); the latest sample counter is the one it
-  // last reported.
-  uint64_t hostTime = 0;
-  if (!s->hostTimeFilter.estimate(s->lastSampleCounter.load(std::memory_order_relaxed), &hostTime)) {
+
+  // Clock-scale bridge: Link's timeline lives on its platform clock
+  // (CLOCK_MONOTONIC_RAW on Linux), while the app schedules playback on
+  // steady_clock. Measure both at the same instant and define
+  //   raw = steady + skew  <=>  steady = raw - skew
+  // so targets can be converted between the two scales.
+  const auto steadyNow = std::chrono::duration_cast<std::chrono::microseconds>(
+    std::chrono::steady_clock::now().time_since_epoch());
+  const auto rawNow = s->link.clock().micros();
+  const int64_t skew = rawNow.count() - steadyNow.count();
+
+  // Estimate the host time of "now" on the app's steady_clock scale: the
+  // HostTimeFilter maps the audio sample counter to host time, so ask it
+  // for the current counter. The audio thread feeds pairs every callback
+  // (see linkBackendOnAudioFrame); the latest sample counter is the one
+  // it last reported.
+  uint64_t steadyEstimate = 0;
+  if (!s->hostTimeFilter.estimate(s->lastSampleCounter.load(std::memory_order_relaxed), &steadyEstimate)) {
     // No fit yet (callback hasn't run twice since enable): fall back to
-    // the wall clock, which Link's timeline also uses as its host-time
-    // base on every platform we ship.
-    hostTime = (uint64_t)std::chrono::duration_cast<std::chrono::microseconds>(
-      std::chrono::steady_clock::now().time_since_epoch()).count();
+    // the wall clock, which is the same steady_clock scale the filter is
+    // fed with.
+    steadyEstimate = (uint64_t)steadyNow.count();
   }
-  const auto target = std::chrono::microseconds(
-    hostTime + outputLatencyMicros() + RealLinkState::kSchedulingHeadroomMicros);
-  auto sessionState = s->link.captureAudioSessionState();
+  const uint64_t steadyTarget =
+    steadyEstimate + outputLatencyMicros() + RealLinkState::kSchedulingHeadroomMicros;
+
+  // App-thread capture/commit: thread-safe, legal from the UI thread.
+  auto sessionState = s->link.captureAppSessionState();
   // Quantized launch (LOCAL alignment): requestBeatAtTime maps beat 0 to
   // the next session phase boundary at/after the target time on THIS
   // client's timeline. With peers present it never re-maps the session's
   // beat/time relationship (no tempo push, no transport push); the
   // commit below only publishes our own timeline adjustment.
-  sessionState.requestBeatAtTime(0.0, target, quantum);
-  s->link.commitAudioSessionState(sessionState);
-  return (uint64_t)target.count();
+  const auto rawTarget = std::chrono::microseconds((int64_t)steadyTarget + skew);
+  sessionState.requestBeatAtTime(0.0, rawTarget, quantum);
+  s->link.commitAppSessionState(sessionState);
+
+  // Return the quantized beat-0 time (NOT the raw input target, which
+  // can be up to a quantum earlier than the actual boundary), converted
+  // back to the app's steady_clock scale for
+  // chipnomadQueuePlaybackStartSongAtTime. Clamp so we never schedule
+  // before the target.
+  const auto rawLaunch = sessionState.timeAtBeat(0.0, quantum);
+  int64_t steadyLaunch = rawLaunch.count() - skew;
+  if (steadyLaunch < (int64_t)steadyTarget) steadyLaunch = (int64_t)steadyTarget;
+  return (uint64_t)steadyLaunch;
 }
 
 void linkBackendOnAudioFrame(void*, void* state, uint64_t sampleCounter, uint64_t hostTimeMicros) {

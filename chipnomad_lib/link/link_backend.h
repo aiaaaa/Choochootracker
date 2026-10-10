@@ -30,14 +30,18 @@ struct LinkBackend {
   int (*isEnabled)(void* userdata, void* state);
   // Polling (UI thread, cheap).
   int (*numPeers)(void* userdata, void* state);
-  // Audio-thread entry points (realtime-safe per Link's contract).
-  // capture fills tempo/peers from the latest session state; returns 1 on
-  // success, 0 if Link is not enabled.
-  int (*captureAudioSessionState)(void* userdata, void* state, double* tempo, uint64_t* peers);
+  // Session snapshot (App/UI thread; the real backend uses Link's
+  // thread-safe captureAppSessionState, NOT the realtime-only audio
+  // variant). Fills tempo/peers/isPlaying from the latest session state;
+  // returns 1 on success, 0 if Link is not enabled. isPlaying reports the
+  // session-wide transport state (start/stop sync must be enabled for
+  // peers' transport to propagate).
+  int (*captureAudioSessionState)(void* userdata, void* state, double* tempo, uint64_t* peers, int* isPlaying);
   // Requests a local beat-0 alignment at (now + outputLatencyMicros +
   // schedulingHeadroomMicros) and returns the absolute host time in
-  // microseconds at which playback should begin, or 0 when there are no
-  // peers (immediate start). quantum is in beats (4.0 for 4/4).
+  // microseconds at which playback should begin (the quantized beat-0
+  // time on the app's steady_clock scale), or 0 when there are no peers
+  // (immediate start). quantum is in beats (4.0 for 4/4).
   uint64_t (*requestBeatAtLaunch)(void* userdata, void* state, double quantum);
   // Feeds the backend's HostTimeFilter with one (sampleCounter,
   // hostTimeMicros) pair from the audio callback entry. Stub ignores it.

@@ -73,9 +73,11 @@ static uint32_t midiCCAppliedSerial[PROJECT_MAX_MIDI_CC_MAPPINGS];
 // pattern as midiCCAppliedSerial above.
 static uint32_t clockTransportAppliedSerial;
 static uint32_t clockBpmAppliedSerial;
-// Ableton Link mode: last-applied serial for the session tempo published
-// by the Link client (same exactly-once pattern as clockBpmAppliedSerial).
+// Ableton Link mode: last-applied serials for the session tempo and
+// transport state published by the Link client (same exactly-once
+// pattern as clockBpmAppliedSerial/clockTransportAppliedSerial).
 static uint32_t linkBpmAppliedSerial;
+static uint32_t linkTransportAppliedSerial;
 
 // Port indices aren't saved (see common.h's AppSettings comment): this
 // resolves the saved device name back to whatever live port currently has
@@ -245,6 +247,7 @@ static int queueLinkAlignedSongStart(int songRow, int chainRow, int loop) {
   const uint64_t launchTime = linkClientRequestBeatAtLaunch(chipnomadState->linkClient, 4);
   if (launchTime == 0) return 0;
   chipnomadQueuePlaybackStartSongAtTime(chipnomadState, songRow, chainRow, loop, launchTime);
+  screenMessage(MESSAGE_TIME, "Link: waiting for downbeat");
   return 1;
 }
 
@@ -876,6 +879,26 @@ void appOnEvent(MainLoopEventData eventData) {
           // BPM -> Hz: tickRate = BPM * 0.4 (24 ticks per beat).
           chipnomadState->project.tickRate = linkBpm * 0.4f;
           audioProjectDirty = 1;
+        }
+      }
+      // Link transport follow (start/stop sync): the session's play
+      // state drives song playback, mirroring the MIDI clock block
+      // above. The serial bumps only on transport change, so each
+      // session start/stop is applied exactly once. A manual local stop
+      // while the session keeps playing stays stopped until the session
+      // itself stops and starts again (the serial does not move while
+      // the session state is unchanged).
+      if (appSettings.clockSource == ClockSource::link) {
+        int linkPlaying = 0; uint32_t linkTransportSerial = 0;
+        linkClientGetTransport(chipnomadState->linkClient, &linkPlaying, &linkTransportSerial);
+        if (linkTransportSerial != linkTransportAppliedSerial) {
+          linkTransportAppliedSerial = linkTransportSerial;
+          if (linkPlaying && !chipnomadGetPlaybackStatus(chipnomadState)->isPlaying) {
+            if (!queueLinkAlignedSongStart(*pSongRow, 0, 1))
+              chipnomadQueuePlaybackStartSong(chipnomadState, *pSongRow, 0, 1);
+          } else if (!linkPlaying && chipnomadGetPlaybackStatus(chipnomadState)->isPlaying) {
+            chipnomadQueuePlaybackStop(chipnomadState);
+          }
         }
       }
       for (int i = 0; i < PROJECT_MAX_MIDI_CC_MAPPINGS; ++i) {
