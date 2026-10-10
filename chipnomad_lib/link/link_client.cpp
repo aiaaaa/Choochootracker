@@ -62,10 +62,15 @@ struct LinkClientState {
   std::atomic<LinkStatus> status;
   std::atomic<uint32_t> statusSerial;
 
-  // --- Session snapshot (written by audio thread via capture, read by UI) ---
+  // --- Session snapshot (written by the UI thread via capture, read
+  // anywhere; the App-session-state variant is thread-safe) ---
   std::atomic<float> sessionTempo;
   std::atomic<uint32_t> tempoSerial;
   std::atomic<int> peerCount;
+  // Session transport (start/stop sync): 1 while the session reports
+  // playing. Serial bumps only on value change.
+  std::atomic<int> transportIsPlaying;
+  std::atomic<uint32_t> transportSerial;
 
   // --- Connect timing (UI thread) ---
   uint64_t connectStartedMicros;
@@ -81,6 +86,8 @@ struct LinkClientState {
       sessionTempo(0.0f),
       tempoSerial(0),
       peerCount(0),
+      transportIsPlaying(0),
+      transportSerial(0),
       connectStartedMicros(0),
       connectPending(0),
       backendState(nullptr) {}
@@ -120,6 +127,8 @@ void linkClientDeselect(LinkClientState* state) {
   state->sessionTempo.store(0.0f, std::memory_order_release);
   state->tempoSerial.fetch_add(1, std::memory_order_acq_rel);
   state->peerCount.store(0, std::memory_order_release);
+  state->transportIsPlaying.store(0, std::memory_order_release);
+  state->transportSerial.fetch_add(1, std::memory_order_acq_rel);
   setStatus(state, LinkStatus::disabled);
 }
 
@@ -147,6 +156,8 @@ void linkClientDisconnect(LinkClientState* state) {
   state->sessionTempo.store(0.0f, std::memory_order_release);
   state->tempoSerial.fetch_add(1, std::memory_order_acq_rel);
   state->peerCount.store(0, std::memory_order_release);
+  state->transportIsPlaying.store(0, std::memory_order_release);
+  state->transportSerial.fetch_add(1, std::memory_order_acq_rel);
   setStatus(state, LinkStatus::selected);
 }
 
@@ -164,14 +175,22 @@ float linkClientGetSessionTempo(const LinkClientState* state, uint32_t* serial) 
   return state->sessionTempo.load(std::memory_order_acquire);
 }
 
-int linkClientCaptureAudioSessionState(LinkClientState* state, double* tempo, uint64_t* peers) {
+void linkClientGetTransport(const LinkClientState* state, int* isPlaying, uint32_t* serial) {
+  if (isPlaying) *isPlaying = state->transportIsPlaying.load(std::memory_order_acquire);
+  if (serial) *serial = state->transportSerial.load(std::memory_order_acquire);
+}
+
+int linkClientCaptureAudioSessionState(LinkClientState* state, double* tempo, uint64_t* peers, int* isPlaying) {
   double capturedTempo = 0.0;
   uint64_t capturedPeers = 0;
+  int capturedIsPlaying = 0;
   if (!activeBackend()->captureAudioSessionState(activeBackend()->userdata, state->backendState,
-                                                 &capturedTempo, &capturedPeers)) {
+                                                 &capturedTempo, &capturedPeers,
+                                                 &capturedIsPlaying)) {
     // Zero the out-params so callers never see stale values on failure.
     if (tempo) *tempo = 0.0;
     if (peers) *peers = 0;
+    if (isPlaying) *isPlaying = 0;
     return 0;
   }
   // Publish the snapshot for the UI poll. Bump the tempo serial only
@@ -184,8 +203,16 @@ int linkClientCaptureAudioSessionState(LinkClientState* state, double* tempo, ui
     state->tempoSerial.fetch_add(1, std::memory_order_acq_rel);
   }
   state->peerCount.store((int)capturedPeers, std::memory_order_release);
+  // Transport: serial bumps only on change (same exactly-once pattern).
+  const int previousPlaying = state->transportIsPlaying.load(std::memory_order_relaxed);
+  const int nextPlaying = capturedIsPlaying ? 1 : 0;
+  state->transportIsPlaying.store(nextPlaying, std::memory_order_release);
+  if (nextPlaying != previousPlaying) {
+    state->transportSerial.fetch_add(1, std::memory_order_acq_rel);
+  }
   if (tempo) *tempo = capturedTempo;
   if (peers) *peers = capturedPeers;
+  if (isPlaying) *isPlaying = capturedIsPlaying;
   return 1;
 }
 
@@ -197,21 +224,55 @@ uint64_t linkClientRequestBeatAtLaunch(LinkClientState* state, int64_t quantum) 
 // --- UI-thread poll resolution (called once per UI frame from app.cpp) ---
 
 void linkClientPoll(LinkClientState* state) {
-  if (!state->connectPending) return;
-
-  const int peers = activeBackend()->numPeers(activeBackend()->userdata, state->backendState);
-  if (peers > 0) {
-    state->connectPending = 0;
-    state->peerCount.store(peers, std::memory_order_release);
-    setStatus(state, LinkStatus::connected);
+  if (state->connectPending) {
+    const int peers = activeBackend()->numPeers(activeBackend()->userdata, state->backendState);
+    if (peers > 0) {
+      state->connectPending = 0;
+      state->peerCount.store(peers, std::memory_order_release);
+      setStatus(state, LinkStatus::connected);
+      // Publish an initial session snapshot right away so tempo/transport
+      // serials are live on the same frame the UI sees "connected".
+      double tempo = 0.0;
+      uint64_t capturedPeers = 0;
+      int isPlaying = 0;
+      linkClientCaptureAudioSessionState(state, &tempo, &capturedPeers, &isPlaying);
+    } else if (linkClientNowMicros() - state->connectStartedMicros >=
+               kDiscoveryThresholdMicros) {
+      state->connectPending = 0;
+      setStatus(state, LinkStatus::noPeers);
+    }
+    // Otherwise stay in connecting until peers appear or the threshold
+    // hits.
     return;
   }
-  const uint64_t now = linkClientNowMicros();
-  if (now - state->connectStartedMicros >= kDiscoveryThresholdMicros) {
-    state->connectPending = 0;
-    setStatus(state, LinkStatus::noPeers);
+
+  const LinkStatus status = state->status.load(std::memory_order_acquire);
+  // While connected, refresh the session snapshot every frame (tempo,
+  // peers, transport) and downgrade to noPeers if the session empties,
+  // re-arming discovery so a later peer shows up as connected again.
+  if (status == LinkStatus::connected) {
+    double tempo = 0.0;
+    uint64_t peers = 0;
+    int isPlaying = 0;
+    if (linkClientCaptureAudioSessionState(state, &tempo, &peers, &isPlaying)) {
+      if (peers == 0) {
+        state->sessionTempo.store(0.0f, std::memory_order_release);
+        state->tempoSerial.fetch_add(1, std::memory_order_acq_rel);
+        state->peerCount.store(0, std::memory_order_release);
+        state->transportIsPlaying.store(0, std::memory_order_release);
+        state->transportSerial.fetch_add(1, std::memory_order_acq_rel);
+        setStatus(state, LinkStatus::noPeers);
+      }
+    }
+  } else if (status == LinkStatus::noPeers) {
+    // Watch for peers re-appearing so a later join upgrades back to
+    // connected (and the next frame's capture publishes the snapshot).
+    const int peers = activeBackend()->numPeers(activeBackend()->userdata, state->backendState);
+    if (peers > 0) {
+      state->peerCount.store(peers, std::memory_order_release);
+      setStatus(state, LinkStatus::connected);
+    }
   }
-  // Otherwise stay in connecting until peers appear or the threshold hits.
 }
 
 void linkClientNotifyAudioFrame(LinkClientState* state, uint64_t sampleCounter, uint64_t hostTimeMicros) {

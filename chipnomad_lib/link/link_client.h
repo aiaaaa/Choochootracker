@@ -15,8 +15,8 @@
 //   - ableton::Link::Client::commitAudioSessionState()
 //   - ableton::Link::startPlaying() / stopPlaying()
 // Allowed calls:
-//   - enable() / disable() / isEnabled()
-//   - captureAudioSessionState() (read-only, audio thread)
+//   - enable() / disable() / isEnabled() / enableStartStopSync()
+//   - captureAppSessionState() (read-only, thread-safe App variant)
 //   - sessionState.tempo() / beatAtTime() / phaseAtTime() / numPeers()
 //   - sessionState.requestBeatAtTime() (LOCAL alignment only — does not
 //     push to peers)
@@ -69,17 +69,28 @@ int        linkClientGetPeerCount(const LinkClientState*);  // 0 if not connecte
 float      linkClientGetSessionTempo(const LinkClientState*, uint32_t* serial);
 // 0 if not connected
 
-// Called from the audio callback at the tick boundary. Captures the
-// latest session state (tempo, peers, phase). Realtime-safe per Link's
-// contract. Returns 1 on success, 0 if Link is not enabled.
-int linkClientCaptureAudioSessionState(LinkClientState*, double* tempo, uint64_t* peers);
+// Session transport state (start/stop sync). *isPlaying is 1 while the
+// Link session reports playing, 0 otherwise; *serial bumps only when the
+// value changes, so callers comparing serials apply each transition
+// exactly once. Before the first successful capture the state is
+// "not playing" with serial 0.
+void       linkClientGetTransport(const LinkClientState*, int* isPlaying, uint32_t* serial);
 
-// Called from the audio callback right before playbackStart with peers
-// present. Captures the session state, calls
-// sessionState.requestBeatAtTime(0, hostTime + outputLatencyMicros +
-// schedulingHeadroomMicros, quantum), and returns the absolute host
-// time (microseconds) at which playback should begin. If no peers,
-// returns 0 (immediate start, per locked decision).
+// Captures the latest session state (tempo, peers, transport) and
+// publishes it for the UI poll. Uses the thread-safe App-session-state
+// variant, so it is legal from the UI thread (app.cpp calls it once per
+// UI frame while Link is enabled). Returns 1 on success, 0 if Link is
+// not enabled.
+int linkClientCaptureAudioSessionState(LinkClientState*, double* tempo, uint64_t* peers, int* isPlaying);
+
+// Called right before a song start with peers present. Captures the
+// session state, calls sessionState.requestBeatAtTime(0, target,
+// quantum) with target = now + outputLatencyMicros +
+// schedulingHeadroomMicros (skew-corrected to Link's clock), and returns
+// the absolute host time (microseconds, app steady_clock scale) at which
+// playback should begin: the quantized beat-0 time, never earlier than
+// the target. If no peers, returns 0 (immediate start, per locked
+// decision).
 //
 // NOTE: requestBeatAtTime takes THREE args (beat, hostTime, quantum) —
 // not two. The research note's shorthand "(0, quantum)" was wrong.
@@ -89,7 +100,10 @@ uint64_t linkClientRequestBeatAtLaunch(LinkClientState*, int64_t quantum);
 // Called once per UI frame (app.cpp). While a Connect is pending,
 // resolves connecting -> connected when the backend reports peers, or
 // connecting -> noPeers once the discovery threshold (3 s) has elapsed
-// since Connect. No-op in every other state.
+// since Connect. While connected, a capture runs every frame (publishing
+// tempo/peers/transport for the serial-bumped getters) and a peer count
+// dropping to 0 downgrades connected -> noPeers (re-arming discovery so
+// a later peer shows up as connected again). No-op in every other state.
 void linkClientPoll(LinkClientState*);
 
 // --- Audio-thread plumbing ---

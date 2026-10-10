@@ -17,6 +17,7 @@ struct FakeLinkState {
   int enabled = 0;
   int peers = 0;
   double sessionTempo = 0.0;
+  int sessionIsPlaying = 0;  // session transport state reported by capture
   int enableCalls = 0;
   int disableCalls = 0;
   int createCalls = 0;
@@ -62,11 +63,12 @@ int fakeIsEnabled(void*, void*) { return g_fake.enabled; }
 
 int fakeNumPeers(void*, void*) { return g_fake.peers; }
 
-int fakeCapture(void*, void*, double* tempo, uint64_t* peers) {
+int fakeCapture(void*, void*, double* tempo, uint64_t* peers, int* isPlaying) {
   ++g_fake.captureCalls;
   if (!g_fake.enabled) return 0;
   if (tempo) *tempo = g_fake.sessionTempo;
   if (peers) *peers = (uint64_t)g_fake.peers;
+  if (isPlaying) *isPlaying = g_fake.sessionIsPlaying;
   return 1;
 }
 
@@ -183,8 +185,8 @@ TEST_CASE("Disconnect disables the backend and returns to selected") {
   g_fake.peers = 2;
   g_fake.sessionTempo = 120.0;
   // Simulate the audio thread publishing a session snapshot.
-  double tempo = 0; uint64_t peers = 0;
-  REQUIRE(linkClientCaptureAudioSessionState(client, &tempo, &peers));
+  double tempo = 0; uint64_t peers = 0; int isPlaying = 0;
+  REQUIRE(linkClientCaptureAudioSessionState(client, &tempo, &peers, &isPlaying));
   CHECK(tempo == doctest::Approx(120.0));
   CHECK(peers == 2);
 
@@ -226,20 +228,20 @@ TEST_CASE("Serial-bumped getters: tempo serial only moves on value change") {
   g_fake.peers = 1;
   g_fake.sessionTempo = 110.0;
 
-  double tempo = 0; uint64_t peers = 0;
-  REQUIRE(linkClientCaptureAudioSessionState(client, &tempo, &peers));
+  double tempo = 0; uint64_t peers = 0; int isPlaying = 0;
+  REQUIRE(linkClientCaptureAudioSessionState(client, &tempo, &peers, &isPlaying));
   uint32_t serial1 = 0;
   CHECK(linkClientGetSessionTempo(client, &serial1) == doctest::Approx(110.0f));
 
   // Same tempo again: serial must NOT move.
-  REQUIRE(linkClientCaptureAudioSessionState(client, &tempo, &peers));
+  REQUIRE(linkClientCaptureAudioSessionState(client, &tempo, &peers, &isPlaying));
   uint32_t serial2 = 0;
   CHECK(linkClientGetSessionTempo(client, &serial2) == doctest::Approx(110.0f));
   CHECK(serial2 == serial1);
 
   // Changed tempo: serial moves.
   g_fake.sessionTempo = 132.0;
-  REQUIRE(linkClientCaptureAudioSessionState(client, &tempo, &peers));
+  REQUIRE(linkClientCaptureAudioSessionState(client, &tempo, &peers, &isPlaying));
   uint32_t serial3 = 0;
   CHECK(linkClientGetSessionTempo(client, &serial3) == doctest::Approx(132.0f));
   CHECK(serial3 > serial1);
@@ -252,10 +254,11 @@ TEST_CASE("Capture returns 0 when Link is not enabled") {
   linkClientSetBackend(&kFakeBackend);
   LinkClientState* client = linkClientCreate();
 
-  double tempo = 123.0; uint64_t peers = 99;
-  CHECK(linkClientCaptureAudioSessionState(client, &tempo, &peers) == 0);
+  double tempo = 123.0; uint64_t peers = 99; int isPlaying = 1;
+  CHECK(linkClientCaptureAudioSessionState(client, &tempo, &peers, &isPlaying) == 0);
   CHECK(tempo == 0.0);
   CHECK(peers == 0);
+  CHECK(isPlaying == 0);
 
   linkClientDestroy(client);
 }
@@ -357,6 +360,156 @@ TEST_CASE("Destroy while connected disables first") {
   linkClientDestroy(client);
   CHECK(g_fake.disableCalls == 1);
   CHECK(g_fake.destroyCalls == 1);
+}
+
+TEST_CASE("Transport: serial bumps only on isPlaying change") {
+  resetFake();
+  linkClientSetBackend(&kFakeBackend);
+  LinkClientState* client = linkClientCreate();
+
+  linkClientSelect(client);
+  linkClientConnect(client);
+  g_fake.peers = 1;
+  g_fake.sessionTempo = 120.0;
+
+  double tempo = 0; uint64_t peers = 0; int isPlaying = 0;
+  REQUIRE(linkClientCaptureAudioSessionState(client, &tempo, &peers, &isPlaying));
+  CHECK(isPlaying == 0);
+  uint32_t serial1 = 0;
+  linkClientGetTransport(client, &isPlaying, &serial1);
+  CHECK(isPlaying == 0);
+
+  // Same state again: serial must NOT move.
+  REQUIRE(linkClientCaptureAudioSessionState(client, &tempo, &peers, &isPlaying));
+  uint32_t serial2 = 0;
+  linkClientGetTransport(client, &isPlaying, &serial2);
+  CHECK(serial2 == serial1);
+
+  // Session starts: serial moves, value flips to 1.
+  g_fake.sessionIsPlaying = 1;
+  REQUIRE(linkClientCaptureAudioSessionState(client, &tempo, &peers, &isPlaying));
+  uint32_t serial3 = 0;
+  linkClientGetTransport(client, &isPlaying, &serial3);
+  CHECK(isPlaying == 1);
+  CHECK(serial3 > serial1);
+
+  // Still playing: serial stays.
+  REQUIRE(linkClientCaptureAudioSessionState(client, &tempo, &peers, &isPlaying));
+  uint32_t serial4 = 0;
+  linkClientGetTransport(client, &isPlaying, &serial4);
+  CHECK(serial4 == serial3);
+
+  // Session stops: serial moves again, value flips back to 0.
+  g_fake.sessionIsPlaying = 0;
+  REQUIRE(linkClientCaptureAudioSessionState(client, &tempo, &peers, &isPlaying));
+  uint32_t serial5 = 0;
+  linkClientGetTransport(client, &isPlaying, &serial5);
+  CHECK(isPlaying == 0);
+  CHECK(serial5 > serial3);
+
+  linkClientDestroy(client);
+}
+
+TEST_CASE("Transport: getTransport before any capture reports not playing") {
+  resetFake();
+  linkClientSetBackend(&kFakeBackend);
+  LinkClientState* client = linkClientCreate();
+
+  int isPlaying = 1; uint32_t serial = 7;
+  linkClientGetTransport(client, &isPlaying, &serial);
+  CHECK(isPlaying == 0);
+  CHECK(serial == 0);
+
+  linkClientDestroy(client);
+}
+
+TEST_CASE("Disconnect resets transport to not playing") {
+  resetFake();
+  linkClientSetBackend(&kFakeBackend);
+  LinkClientState* client = linkClientCreate();
+
+  linkClientSelect(client);
+  linkClientConnect(client);
+  g_fake.peers = 1;
+  g_fake.sessionIsPlaying = 1;
+  double tempo = 0; uint64_t peers = 0; int isPlaying = 0;
+  REQUIRE(linkClientCaptureAudioSessionState(client, &tempo, &peers, &isPlaying));
+  uint32_t serialBefore = 0;
+  linkClientGetTransport(client, &isPlaying, &serialBefore);
+  CHECK(isPlaying == 1);
+
+  linkClientDisconnect(client);
+  uint32_t serialAfter = 0;
+  linkClientGetTransport(client, &isPlaying, &serialAfter);
+  CHECK(isPlaying == 0);
+  CHECK(serialAfter > serialBefore);
+
+  linkClientDestroy(client);
+}
+
+TEST_CASE("Poll while connected publishes tempo and transport every frame") {
+  resetFake();
+  linkClientSetBackend(&kFakeBackend);
+  LinkClientState* client = linkClientCreate();
+
+  linkClientSelect(client);
+  linkClientConnect(client);
+  g_fake.peers = 2;
+  g_fake.sessionTempo = 128.0;
+  g_fake.sessionIsPlaying = 1;
+  linkClientPoll(client);  // connecting -> connected
+  uint32_t statusSerial = 0;
+  CHECK(linkClientGetStatus(client, &statusSerial) == LinkStatus::connected);
+
+  // Poll drives the capture: tempo and transport are published without
+  // an explicit capture call from the test.
+  g_fake.sessionTempo = 132.0;
+  g_fake.sessionIsPlaying = 0;
+  linkClientPoll(client);
+  uint32_t tempoSerial = 0;
+  CHECK(linkClientGetSessionTempo(client, &tempoSerial) == doctest::Approx(132.0f));
+  int isPlaying = 1; uint32_t transportSerial = 0;
+  linkClientGetTransport(client, &isPlaying, &transportSerial);
+  CHECK(isPlaying == 0);
+  CHECK(transportSerial > 0);
+
+  linkClientDestroy(client);
+}
+
+TEST_CASE("Poll downgrades connected to noPeers when the session empties") {
+  resetFake();
+  linkClientSetBackend(&kFakeBackend);
+  LinkClientState* client = linkClientCreate();
+
+  linkClientSelect(client);
+  linkClientConnect(client);
+  g_fake.peers = 1;
+  g_fake.sessionTempo = 120.0;
+  g_fake.sessionIsPlaying = 1;
+  linkClientPoll(client);
+  uint32_t statusSerial = 0;
+  CHECK(linkClientGetStatus(client, &statusSerial) == LinkStatus::connected);
+
+  // Last peer leaves while the session was playing: status downgrades,
+  // tempo and transport reset so a stale "playing" can't linger.
+  g_fake.peers = 0;
+  linkClientPoll(client);
+  CHECK(linkClientGetStatus(client, &statusSerial) == LinkStatus::noPeers);
+  CHECK(linkClientGetPeerCount(client) == 0);
+  uint32_t tempoSerial = 0;
+  CHECK(linkClientGetSessionTempo(client, &tempoSerial) == 0.0f);
+  int isPlaying = 1; uint32_t transportSerial = 0;
+  linkClientGetTransport(client, &isPlaying, &transportSerial);
+  CHECK(isPlaying == 0);
+  CHECK(transportSerial > 0);
+
+  // A peer reappears: poll resolves back to connected (discovery
+  // re-armed by the downgrade).
+  g_fake.peers = 1;
+  linkClientPoll(client);
+  CHECK(linkClientGetStatus(client, &statusSerial) == LinkStatus::connected);
+
+  linkClientDestroy(client);
 }
 
 }
