@@ -42,8 +42,8 @@ module playback; it is not automatically resumed.
 The only new native dependencies are **libxmp-lite 4.7.3** (MIT, statically
 linked) and the platform's **libcurl** HTTPS development/runtime library.
 Use the existing C/C++17 toolchain. SDL and the existing application dependencies
-are unchanged. `scripts/build-mod-lucky-dependency.sh` downloads the tagged
-libxmp source, verifies SHA-256
+are unchanged. `scripts/build-mod-lucky-dependency.sh` downloads the official
+libxmp release tarball (not GitHub's automatically generated tag archive), verifies SHA-256
 `b6a98797e4fb9c9a705f5d53112aa5214561857e929a644928b9e658930d9440`,
 and builds only its lite static target, with depackers and ProWizard disabled.
 No runtime Python, shell download chain, external player or helper is used.
