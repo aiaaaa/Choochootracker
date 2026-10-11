@@ -3,6 +3,8 @@
 #include "audio_manager.h"
 #include "common.h"
 #include "corelib/corelib_file.h"
+#include "corelib/corelib_mainloop.h"
+#include "monitor_display.h"
 #include "project_utils.h"
 #include "version.h"
 
@@ -107,6 +109,9 @@ int supportReportWrite(const char* path, const char* screenName) {
   fprintf(file, "audio.buffer_size=%d\n", appSettings.audioBufferSize);
   fprintf(file, "audio.cpu_load_percent=%d\n",
           audioManager.getCpuLoadPercent ? audioManager.getCpuLoadPercent() : -1);
+  fprintf(file, "ui.target_fps=%d\n", mainLoopGetTargetFps());
+  fprintf(file, "ui.frame_time_us=%d\n", mainLoopGetFrameTimeUs());
+  fprintf(file, "ui.audio_monitor_active=%d\n", monitorDisplayActive() ? 1 : 0);
 
   fprintf(file, "runtime.command_overflow=%d\n", chipnomadGetCommandOverflow(chipnomadState));
   fprintf(file, "runtime.render_buffer_overflow=%d\n", chipnomadGetRenderBufferOverflow(chipnomadState));

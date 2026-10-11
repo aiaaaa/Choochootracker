@@ -6,14 +6,27 @@
 
 static AudioMonitorSnapshot snapshot;
 static float meterPeaks[PROJECT_MAX_TRACKS][2];
+static bool active;
 
 void monitorDisplayInit(void) {
   snapshot = {};
   memset(meterPeaks, 0, sizeof(meterPeaks));
+  active = false;
 }
 
+void monitorDisplaySetActive(bool value) {
+  if (active == value) return;
+  active = value;
+  snapshot = {};
+  memset(meterPeaks, 0, sizeof(meterPeaks));
+  if (chipnomadState && chipnomadState->audioMonitor)
+    chipnomadState->audioMonitor->setEnabled(value);
+}
+
+bool monitorDisplayActive(void) { return active; }
+
 void monitorDisplayUpdate(void) {
-  if (!chipnomadState || !chipnomadState->audioMonitor) return;
+  if (!active || !chipnomadState || !chipnomadState->audioMonitor) return;
   const bool fresh = chipnomadState->audioMonitor->receive(snapshot);
   for (int t = 0; t < PROJECT_MAX_TRACKS; ++t)
     for (int c = 0; c < 2; ++c)

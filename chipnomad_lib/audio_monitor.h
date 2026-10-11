@@ -20,6 +20,8 @@ class AudioMonitor {
   AudioMonitor();
   ~AudioMonitor();
   bool reserve(int frames); // Call while audio is stopped.
+  void setEnabled(bool enabled);
+  bool enabled() const { return enabled_.load(std::memory_order_acquire); }
   void beginRender();
   void beginChunk(int frames);
   void add(int track, int sampleIndex, float value);
@@ -42,4 +44,6 @@ class AudioMonitor {
     std::atomic<int> state{0}; // free, published, owned
   } slots_[3];
   std::atomic<int> published_{-1};
+  std::atomic<bool> enabled_{true};
+  std::atomic<bool> resetRequested_{false};
 };
