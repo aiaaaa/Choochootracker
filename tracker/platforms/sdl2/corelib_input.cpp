@@ -90,8 +90,13 @@ void inputInitDefaultKeyMapping(void) {
   appSettings.keyMapping.keyRight[1] = (InputCode){InputDeviceType::gamepad, SDL_CONTROLLER_BUTTON_DPAD_RIGHT};
   appSettings.keyMapping.keyEdit[1] = (InputCode){InputDeviceType::gamepad, SDL_CONTROLLER_BUTTON_A};
   appSettings.keyMapping.keyOpt[1] = (InputCode){InputDeviceType::gamepad, SDL_CONTROLLER_BUTTON_B};
+#ifdef WEB_BUILD
+  appSettings.keyMapping.keyPlay[1] = (InputCode){InputDeviceType::gamepad, SDL_CONTROLLER_BUTTON_X};
+  appSettings.keyMapping.keyShift[1] = (InputCode){InputDeviceType::gamepad, SDL_CONTROLLER_BUTTON_Y};
+#else
   appSettings.keyMapping.keyPlay[1] = (InputCode){InputDeviceType::gamepad, SDL_CONTROLLER_BUTTON_START};
   appSettings.keyMapping.keyShift[1] = (InputCode){InputDeviceType::gamepad, SDL_CONTROLLER_BUTTON_BACK};
+#endif
   appSettings.keyMapping.keyMotionLive[1] = (InputCode){InputDeviceType::gamepad, SDL_CONTROLLER_BUTTON_LEFTSHOULDER};
   appSettings.keyMapping.keyMotionRecord[1] = (InputCode){InputDeviceType::gamepad, gamepadTriggerLeft};
   appSettings.keyMapping.keyMotionErase[1] = (InputCode){InputDeviceType::gamepad, gamepadTriggerRight};

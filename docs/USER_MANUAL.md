@@ -1691,6 +1691,11 @@ still requires a network connection; this does not add offline installation.
 Export projects before switching between a Safari tab and a Home Screen install,
 which may have separate browser storage.
 
+New browser settings use **PAD X** for Play and **PAD Y** for Shift, alongside
+keyboard Space and Shift. Saved mappings override these defaults; existing
+installations can select X/Y in Key Mapping without clearing their data.
+Native controller defaults are unchanged.
+
 After changing browser controls in Key Mapping, choose **Done**. Settings saves
 immediately request a browser-storage flush, so they do not wait for the periodic
 save timer. Custom mappings belong to that browser/Home Screen installation.

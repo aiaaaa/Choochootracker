@@ -240,9 +240,9 @@ with sync_playwright() as p:
     page.evaluate('padConnected=true');page.wait_for_timeout(150)
    page.wait_for_timeout(500);page.evaluate('padPeak=0');page.wait_for_timeout(150)
    assert page.evaluate('padPeak')==0
-   page.evaluate('pad.buttons[9]={pressed:true,touched:true,value:1}')
+   page.evaluate('pad.buttons[2]={pressed:true,touched:true,value:1}')
    page.wait_for_timeout(150)
-   page.evaluate('pad.buttons[9]={pressed:false,touched:false,value:0}')
+   page.evaluate('pad.buttons[2]={pressed:false,touched:false,value:0}')
    page.wait_for_function('padPeak>0',timeout=5000)
   page.evaluate('navigator.getGamepads=realGetGamepads;void 0;')
   print('Synthetic gamepad starts playback after wake and reconnect; physical USB remains untested',flush=True)
@@ -251,21 +251,24 @@ with sync_playwright() as p:
   mapping_context=browser.new_context()
   mapping_context.add_init_script("const interval=window.setInterval;window.setInterval=(fn,ms,...args)=>ms===10000?0:interval(fn,ms,...args);")
   page=mapping_context.new_page();page.on('pageerror',lambda e:errors.append(str(e)))
-  page.goto(url);ready(page);page.locator('#canvas').click();key('x');key('Shift+ArrowDown')
+  page.goto(url);ready(page)
+  def saved_mapping():return page.evaluate("FS.readFile('/user/settings.txt',{encoding:'utf8'}).split('\\n').filter(s=>/^key(Play|Shift)(Type)?:/.test(s))")
+  assert page.evaluate("Module.ccall('webSaveBrowserState','number',[],[])")==0
+  assert saved_mapping()==['keyPlay: 32,2,0','keyShift: 1073742049,3,0','keyPlayType: 2,3,0','keyShiftType: 2,3,0']
+  page.locator('#canvas').click();key('x');key('Shift+ArrowDown')
   for _ in range(4):key('ArrowDown')
   key('x')
   for _ in range(6):key('ArrowDown')
   key('ArrowRight')
   page.evaluate("window.pad={id:'Test pad',index:0,connected:true,mapping:'standard',timestamp:0,axes:[0,0,0,0],buttons:Array.from({length:17},()=>({pressed:false,touched:false,value:0}))};navigator.getGamepads=()=>[pad];void 0;")
-  for button in [2,3]:
+  for button in [9,8]:
    key('x')
    page.evaluate('(i)=>pad.buttons[i]={pressed:true,touched:true,value:1}',button);page.wait_for_timeout(150)
    page.evaluate('(i)=>pad.buttons[i]={pressed:false,touched:false,value:0}',button);page.wait_for_timeout(150)
-   if button==2:key('ArrowDown')
+   if button==9:key('ArrowDown')
   for _ in range(4):key('ArrowDown')
   key('x')
-  expected=['keyPlay: 32,2,0','keyShift: 1073742049,3,0','keyPlayType: 2,3,0','keyShiftType: 2,3,0']
-  def saved_mapping():return page.evaluate("FS.readFile('/user/settings.txt',{encoding:'utf8'}).split('\\n').filter(s=>/^key(Play|Shift)(Type)?:/.test(s))")
+  expected=['keyPlay: 32,6,0','keyShift: 1073742049,4,0','keyPlayType: 2,3,0','keyShiftType: 2,3,0']
   assert saved_mapping()==expected
   page.wait_for_function("""expected=>new Promise((resolve,reject)=>{
     const request=indexedDB.open('/user');request.onerror=()=>reject(request.error);
@@ -279,7 +282,7 @@ with sync_playwright() as p:
   page.evaluate('setPageHidden(true)');page.wait_for_timeout(150);page.evaluate('setPageHidden(false)')
   assert page.evaluate("Module.ccall('webSaveBrowserState','number',[],[])")==0
   assert saved_mapping()==expected
-  print('Play/Shift remaps flushed on Done and retained after reload/wake without the periodic timer',flush=True)
+  print('Fresh Play X/Shift Y defaults passed; custom Start/Back flushed on Done and retained after reload/wake without the periodic timer',flush=True)
   mapping_context.close()
   print('JavaScript errors:',errors,flush=True);assert not errors
  finally:browser.close();server.shutdown()

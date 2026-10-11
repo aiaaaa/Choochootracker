@@ -240,6 +240,11 @@ for the existing IDBFS flush before reloading. Serialization/storage errors or
 a 10-second timeout cancel the reload and leave the working project open.
 It does not clear site storage. Keep downloaded backups independently.
 
+Fresh browser settings default to **PAD X = Play** and **PAD Y = Shift**;
+keyboard Space and Shift remain available. Existing saved mappings take
+precedence, including previously saved Start/Back. To change those, set X/Y in
+Key Mapping and choose Done once. Native gamepad defaults are unchanged.
+
 Key Mapping's **Done** saves custom controls to `/user/settings.txt`. Successful
 settings saves now immediately request the existing serialized IDBFS flush,
 including mapping, theme and other settings saves. Previously Done could leave
