@@ -38,9 +38,8 @@
       font-weight: 700; cursor: pointer; }
     button:disabled { cursor: wait; opacity: .55; }
     button:focus-visible, a:focus-visible { outline: 2px solid var(--cursor); outline-offset: 3px; }
-    #file-controls, #app-controls { display: flex; flex-wrap: wrap; justify-content: center; gap: .5rem; }
-    #app-controls { margin-top: .5rem; }
-    #file-controls button, #app-controls button { padding: .42rem .7rem; font-size: .8rem; min-height: 2.25rem; }
+    #web-buttons { display: flex; flex-wrap: wrap; justify-content: center; gap: .5rem; }
+    #web-buttons button { padding: .42rem .7rem; font-size: .8rem; min-height: 2.25rem; text-transform: uppercase; }
     #touch-controls { display: none; width: min(100%, 640px); margin: .75rem auto 0;
       padding: .8rem 1rem .65rem; border: 1px solid var(--selection); border-radius: 1.2rem;
       background: var(--empty); box-shadow: inset 0 1px var(--muted);
@@ -64,6 +63,10 @@
     @media (pointer: coarse), (max-width: 700px) {
       #touch-controls { display: grid; }
     }
+    @media (max-width: 700px) {
+      #web-buttons { gap: .25rem; }
+      #web-buttons button { font-size: .6875rem; padding: .42rem .25rem; }
+    }
   </style>
 </head>
 <body>
@@ -73,20 +76,18 @@
     </div>
     <div id="browser-controls">
       <button id="start">Start tracker</button>
-      <div id="file-controls" aria-label="Project, sample and preset files">
+      <div id="web-buttons" role="group" aria-label="Project, sample, preset and app controls">
         <button id="import-project" disabled>Import .cct</button>
+        <button id="export-project" disabled>Download .cct</button>
+        <button id="restart-audio" disabled>Restart audio</button>
+        <button id="reload-app" disabled>Reload app</button>
         <button id="import-samples" disabled>Import WAVs</button>
         <button id="import-folder" disabled>Import sample folder</button>
         <button id="import-presets" disabled title="Choose an instruments or USER folder. Existing files are kept. Stored only in this browser.">Import presets</button>
-        <button id="export-project" disabled>Download .cct</button>
         <input id="project-input" type="file" accept=".cct" hidden>
         <input id="sample-input" type="file" accept=".wav,audio/wav" multiple hidden>
         <input id="sample-folder-input" type="file" accept=".wav,audio/wav" webkitdirectory multiple hidden>
         <input id="preset-folder-input" type="file" webkitdirectory multiple hidden>
-      </div>
-      <div id="app-controls" aria-label="App controls">
-        <button id="restart-audio" disabled>Restart audio</button>
-        <button id="reload-app" disabled>Reload app</button>
       </div>
       <div id="status" role="status" aria-live="polite"></div>
       <div id="audio-status" role="status" aria-live="polite"></div>
@@ -111,7 +112,7 @@
   <script>
     const status = document.querySelector('#status');
     const start = document.querySelector('#start');
-    const fileControls = document.querySelectorAll('#file-controls button, #app-controls button');
+    const fileControls = document.querySelectorAll('#web-buttons button');
     let trackerStarted = false;
     let storageSyncing = false;
     let storagePending = false;

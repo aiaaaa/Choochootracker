@@ -234,6 +234,11 @@ physical Safari and iPhone checks remain useful. Native rendering is unchanged.
 
 ## Home Screen layout and recovery
 
+Web action buttons use uppercase labels. At the iPhone 15 Pro's 393-pixel
+portrait width, 11-pixel text and compact horizontal spacing fit two rows:
+project/app actions first, sample/preset imports second. Buttons retain their
+36-pixel minimum height; narrower viewports wrap to additional rows.
+
 The viewport uses `viewport-fit=cover`; main content adds the four CSS
 `env(safe-area-inset-*)` values to its normal margins. Canvas sizing subtracts
 that vertical padding. Standalone Home Screen windows add another 15 CSS pixels

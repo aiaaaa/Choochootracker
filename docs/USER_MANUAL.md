@@ -1692,6 +1692,9 @@ still requires a network connection; this does not add offline installation.
 Export projects before switching between a Safari tab and a Home Screen install,
 which may have separate browser storage.
 
+The web action buttons use compact uppercase labels and wrap to the available
+width. Project/app actions precede the sample and preset imports.
+
 The Home Screen app respects the camera and Home indicator safe areas, with
 an extra 15 pixels above the tracker. Initial audio waits quietly for your first
 touch or key press; opening the app does not require Restart audio. Use
