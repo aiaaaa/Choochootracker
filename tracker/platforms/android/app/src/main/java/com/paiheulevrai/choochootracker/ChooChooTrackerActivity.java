@@ -639,7 +639,33 @@ public final class ChooChooTrackerActivity extends SDLActivity {
         shared.mkdirs();
         if (!shared.isDirectory()) return;
         copyMissing(privateWorkspace(), shared);
+        rewriteSettingsPaths(new File(shared, "settings.txt"), privateWorkspace().getAbsolutePath(),
+            shared.getAbsolutePath());
         prefs.edit().putBoolean(PREF_MIGRATED, true).apply();
+    }
+
+    // settings.txt stores absolute folder paths; the ones written by the private
+    // build point into the app's internal storage, which the file browser
+    // cannot list. Re-anchor them on the shared workspace.
+    private void rewriteSettingsPaths(File settings, String oldRoot, String newRoot) {
+        if (!settings.isFile()) return;
+        try {
+            java.util.List<String> lines = java.nio.file.Files.readAllLines(settings.toPath());
+            StringBuilder out = new StringBuilder();
+            for (String line : lines) {
+                int colon = line.indexOf(": ");
+                if (colon > 0 && line.substring(colon + 2).startsWith("/data/")) {
+                    String key = line.substring(0, colon);
+                    String value = line.substring(colon + 2);
+                    if (value.startsWith(oldRoot)) value = newRoot + value.substring(oldRoot.length());
+                    else if (key.equals("projectPath")) value = newRoot + "/projects";
+                    else value = "";
+                    line = key + ": " + value;
+                }
+                out.append(line).append('\n');
+            }
+            java.nio.file.Files.write(settings.toPath(), out.toString().getBytes());
+        } catch (Exception ignored) { }
     }
 
     private void copyMissing(File source, File destination) {
