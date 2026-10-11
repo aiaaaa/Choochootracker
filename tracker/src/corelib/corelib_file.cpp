@@ -301,6 +301,25 @@ FileEntry* fileListDirectory(const char* path, const char* extension, int* entry
   }
 
   closedir(dir);
+
+  // Empty folders (and some FUSE-backed ones) list nothing at all, not even
+  // ".." - make sure there is always a way back up.
+  if (strcmp(path, "/") != 0) {
+    int hasParent = 0;
+    for (int i = 0; i < count; i++) {
+      if (strcmp(entries[i].name, "..") == 0) { hasParent = 1; break; }
+    }
+    if (!hasParent) {
+      FileEntry* grown = (FileEntry*)realloc(entries, (count + 1) * sizeof(FileEntry));
+      if (grown) {
+        entries = grown;
+        memmove(entries + 1, entries, count * sizeof(FileEntry));
+        strcpy(entries[0].name, "..");
+        entries[0].isDirectory = 1;
+        count++;
+      }
+    }
+  }
 #ifdef ANDROID_BUILD
   // /storage/emulated is not listable by apps: no way back from there, so
   // user storage is the top of the tree.
