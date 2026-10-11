@@ -219,7 +219,7 @@ $env:CCT_KEY_PASSWORD = $env:CCT_KEYSTORE_PASSWORD
 Push-Location tracker\platforms\android
 & "$env:JAVA_HOME\bin\java.exe" -classpath gradle\wrapper\gradle-wrapper.jar `
   org.gradle.wrapper.GradleWrapperMain --no-daemon --console=plain `
-  assembleRelease bundleRelease -x buildNativeArm64 -x buildNativeArm32
+  assembleStoreRelease assembleDirectRelease bundleStoreRelease -x buildNativeArm64 -x buildNativeArm32
 Pop-Location
 ```
 
@@ -230,7 +230,7 @@ strictly greater `versionCode`; update `versionCode` in
 `versionName` may stay unchanged for a replacement internal build.
 
 The signed Play artifact is
-`tracker/platforms/android/app/build/outputs/bundle/release/app-release.aab`.
+`tracker/platforms/android/app/build/outputs/bundle/storeRelease/app-store-release.aab`.
 It contains `arm64-v8a` and `armeabi-v7a` native libraries plus all bundled
 content from `tracker/packaging/common`: projects, samples, instruments,
 themes, fonts, AY/SR wavetables, waveforms and title assets. Confirm it before
@@ -238,11 +238,25 @@ uploading:
 
 ```powershell
 & 'C:\Program Files\Android\Android Studio\jbr\bin\jar.exe' tf `
-  tracker\platforms\android\app\build\outputs\bundle\release\app-release.aab
+  tracker\platforms\android\app\build\outputs\bundle\storeRelease\app-store-release.aab
 ```
 
-The same Gradle command produces the signed direct-install APK; install it with
-`adb install -r <apk>`. For handoff, copy and name the files outside Gradle's
+Android has two Gradle flavors, selected by the task name:
+
+- `store` (`assembleStoreRelease`, `bundleStoreRelease`): the workspace is
+  private to the app, no storage permission. This is the Play Store build.
+- `direct` (`assembleDirectRelease`): for F-Droid and direct APK download. It
+  declares `MANAGE_EXTERNAL_STORAGE` and keeps the workspace in
+  `/sdcard/ChooChooTracker`, readable and editable with any file manager or
+  from a PC. On first launch the app opens the system "All files access"
+  screen, then restarts itself once granted; until then it runs on the private
+  workspace. Projects and samples already in the private workspace are copied
+  over once, without overwriting.
+
+The flavor only changes `src/<flavor>/` (manifest permissions and the
+`direct_storage` bool read by `ChooChooTrackerActivity`). Install the signed
+direct APK (`app/build/outputs/apk/direct/release/app-direct-release.apk`)
+with `adb install -r <apk>`. For handoff, copy and name the files outside Gradle's
 output directory, for example `releases/ChooChooTracker-1.0-code2-release.aab`.
 Upload that AAB to Play Console's Internal testing track. Complete the values
 and artwork in `docs/play-store-listing.md` before submission.

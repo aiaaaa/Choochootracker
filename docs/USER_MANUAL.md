@@ -76,8 +76,10 @@ touch controls appear automatically when no gamepad is connected: in portrait
 they sit below the tracker, with a square D-pad, A/EDIT, B/OPT, START/PLAY and
 SELECT/SHIFT controls, then a separate Live/Motion section with two modulation
 sticks and momentary REC/DEL controls. Landscape keeps the D-pad on the left
-and the action buttons on the right. Android projects and samples stay private to
-the app; use the Android file picker to import `.cct` projects and `.wav` samples,
+and the action buttons on the right. In the Play Store build, Android projects and samples stay private to
+the app; the direct APK / F-Droid build instead keeps them in `ChooChooTracker` at
+the root of the phone storage (it asks for "All files access" on first launch), where
+your file manager or PC can reach them. In both builds, use the Android file picker to import `.cct` projects and `.wav` samples,
 and to choose where WAV exports are saved.
 
 ### Navigation
@@ -1029,7 +1031,7 @@ Exports, stems and bounces are written to a per-project folder inside the app's 
 
 - **Default**: `<app folder>/samples/Exports/<project name>/`. While the project is unnamed, the folder is `current-project`.
 - On the web build the default is `/user/samples/Exports/<project name>/`.
-- On Android the samples folder is inside the app's private workspace.
+- On Android the samples folder is inside the app's workspace: private to the app in the Play Store build, `ChooChooTracker/samples` in shared storage in the direct APK / F-Droid build.
 
 The **Folder** row on the EXPORT screen shows the active destination:
 
