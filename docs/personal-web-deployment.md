@@ -205,8 +205,8 @@ where you want the library. Native USER paths and defaults are unchanged.
 
 ## Browser presentation
 
-The canvas is the first page element. Touch controls, file buttons, status, title
-and links all follow it. `web/index.html` controls that layout and its CSS palette.
+The canvas is the first page element. File buttons, status, title
+and links follow it, with the touch controller last. `web/index.html` controls that layout and its CSS palette.
 The web-only main loop forwards the actual active tracker colors when they change;
 the wrapper updates CSS variables. Theme loads, resets and direct color edits also
 save settings and request an IDBFS flush, so a tab reload does not depend on the

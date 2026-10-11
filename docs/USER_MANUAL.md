@@ -1674,7 +1674,7 @@ and is excluded from this update.
 ### Personal browser presentation
 
 The web page follows the active tracker theme and keeps its title, file controls,
-status, links and touch controls below the canvas. Theme changes are saved to
+status and links below the canvas, followed by the touch controller. Theme changes are saved to
 this browser automatically. The viewing area uses the largest integer scale in
 display pixels, including Retina pixel density. Controls can scroll below the
 viewport; narrow displays may leave space around the strictly scaled canvas.
