@@ -461,6 +461,13 @@ extern "C" EMSCRIPTEN_KEEPALIVE int webSaveProject(const char* path) {
   if (!chipnomadState || !path || !path[0]) return 1;
   return projectSave(&chipnomadState->project, path);
 }
+
+extern "C" EMSCRIPTEN_KEEPALIVE int webSaveBrowserState() {
+  if (!chipnomadState) return 1;
+  const int projectResult = projectSave(&chipnomadState->project, getAutosavePath());
+  const int settingsResult = settingsSave();
+  return projectResult ? projectResult : settingsResult;
+}
 #endif
 
 /**

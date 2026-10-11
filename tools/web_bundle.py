@@ -53,7 +53,8 @@ def inspect_bundle(directory):
           (ROOT / 'tracker/src/experimental/mod_lucky/notices/LICENSE.libxmp.txt').read_bytes(),
           'Missing or stale libxmp license')
     js = (directory / 'choochootracker.js').read_text()
-    for symbol in ('webQueueButton', 'webLoadProject', 'webSaveProject', 'IDBFS'):
+    for symbol in ('webQueueButton', 'webLoadProject', 'webSaveProject',
+                   'webSaveBrowserState', 'webSetPageHidden', 'webRestartAudio', 'IDBFS'):
         check(symbol in js, f'Missing browser integration: {symbol}')
     match = re.search(r'loadPackage\((\{"files":.*?\})\);', js)
     check(match, 'Cannot find Emscripten preload metadata; inspect SDK output')

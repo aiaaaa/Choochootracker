@@ -69,19 +69,59 @@ with sync_playwright() as p:
   page.locator('#canvas').click();key('x');page.wait_for_timeout(500)
   # Every visible surrounding element follows the viewing surface in the page.
   def geometry(page):return page.evaluate("()=>{const c=document.querySelector('#canvas'),r=c.getBoundingClientRect(),d=devicePixelRatio;return {w:r.width,h:r.height,scale:r.width*d/c.width,x:r.x*d,bottom:r.bottom,below:[...document.querySelectorAll('#browser-controls,#touch-controls')].filter(e=>getComputedStyle(e).display!=='none').every(e=>e.getBoundingClientRect().top>=r.bottom),background:getComputedStyle(document.body).backgroundColor};}")
-  g=geometry(page);assert abs(g['scale']-round(g['scale']))<.01 and g['below'],g
-  pixels=page.locator('#canvas').screenshot(scale='device')
-  blocks=page.evaluate("""async ({png,scale})=>{const img=new Image();img.src='data:image/png;base64,'+png;await img.decode();const c=document.createElement('canvas');c.width=img.width;c.height=img.height;const ctx=c.getContext('2d');ctx.drawImage(img,0,0);const d=ctx.getImageData(0,0,c.width,c.height).data;let mismatches=0,total=0;for(let y=scale*2;y<c.height-scale*2;y+=scale)for(let x=scale*2;x<c.width-scale*2;x+=scale){total++;const i=(y*c.width+x)*4;let mismatch=false;for(let dy=0;dy<scale;dy++)for(let dx=0;dx<scale;dx++){const j=((y+dy)*c.width+x+dx)*4;for(let k=0;k<3;k++)if(d[i+k]!==d[j+k])mismatch=true;}if(mismatch)mismatches++;}return {mismatches,total,width:c.width,height:c.height};}""",{'png':base64.b64encode(pixels).decode(),'scale':round(g['scale'])})
-  print('Uniform physical pixel blocks',blocks,flush=True);assert blocks['mismatches']==0,blocks
+  g=geometry(page);assert abs(g['scale']*2-round(g['scale']*2))<.01 and g['below'],g
+  def check_font_pixels(page):
+   png=page.screenshot(scale='device',full_page=True)
+   result=page.evaluate("""async png=>{
+     const img=new Image();img.src='data:image/png;base64,'+png;await img.decode();
+     const ctx=document.createElement('canvas').getContext('2d');
+     ctx.canvas.width=img.width;ctx.canvas.height=img.height;ctx.drawImage(img,0,0);
+     const r=document.querySelector('#canvas').getBoundingClientRect(),d=devicePixelRatio;
+     const scale=r.width*d/640,unit=Math.round(scale*2);
+     // SONG is four 16x24 glyphs at row 2 when the waveform is enabled.
+     const w=Math.round(64*scale),h=Math.round(24*scale);
+     const data=ctx.getImageData(Math.round(r.left*d),Math.round(r.top*d+48*scale),w,h).data;
+     const color=parseInt(getComputedStyle(document.documentElement).getPropertyValue('--title').trim().slice(1),16);
+     const ink=(x,y)=>{const i=(y*w+x)*4;return data[i]===(color>>16&255)&&data[i+1]===(color>>8&255)&&data[i+2]===(color&255);};
+     let runs=0,uneven=0;
+     for(const horizontal of [true,false])for(let a=0;a<(horizontal?h:w);a++){
+       let length=0;for(let b=0;b<=(horizontal?w:h);b++){
+         if(b<(horizontal?w:h)&&(horizontal?ink(b,a):ink(a,b)))length++;
+         else if(length){runs++;if(length%unit)uneven++;length=0;}
+       }
+     }
+     return {unit,runs,uneven};
+   }""",base64.b64encode(png).decode())
+   assert result['runs']>50 and result['uneven']==0,result
+   print('Uniform Departure Mono stroke pixels',result,flush=True)
+  check_font_pixels(page)
   print('Retina layout',g,flush=True);page.screenshot(path=str(root/'.tmp/theme-desktop.png'),full_page=True)
-  page.set_viewport_size({'width':1100,'height':700});page.wait_for_timeout(250);g=geometry(page);assert abs(g['scale']-round(g['scale']))<.01 and g['below'],g
+  page.set_viewport_size({'width':1100,'height':700});page.wait_for_timeout(250);g=geometry(page);assert abs(g['scale']*2-round(g['scale']*2))<.01 and g['below'],g
   print('Resized layout',g,flush=True)
-  for width,height,dpr in [(390,844,3),(1440,900,1),(1024,768,1.25)]:
+  for width,height,dpr in [(393,852,3),(1440,900,1),(1024,768,1.25)]:
    c=browser.new_context(viewport={'width':width,'height':height},device_scale_factor=dpr,is_mobile=dpr==3,has_touch=dpr==3)
-   t=c.new_page();t.goto(url);ready(t);g=geometry(t);assert abs(g['scale']-round(g['scale']))<.01 and g['below'],g
+   t=c.new_page();t.goto(url);ready(t);g=geometry(t);assert abs(g['scale']*2-round(g['scale']*2))<.01 and g['below'],g
    print('Layout',width,height,dpr,g,flush=True)
    if dpr==3:
     t.locator('[data-button="4"]').tap();t.wait_for_timeout(500);t.screenshot(path=str(root/'.tmp/theme-phone.png'),full_page=True)
+    assert abs(g['w']-320)<.01 and abs(g['h']-240)<.01,g
+    assert t.locator('#touch-controls').bounding_box()['y'] >= t.locator('#browser-controls').bounding_box()['y'] + t.locator('#browser-controls').bounding_box()['height']
+    assert t.evaluate("document.querySelector('#screen-area').scrollWidth===document.querySelector('#screen-area').clientWidth")
+    check_font_pixels(t)
+    # Model camera/Home-indicator insets without claiming to emulate iOS itself.
+    t.evaluate("document.documentElement.style.setProperty('--safe-top','59px');document.documentElement.style.setProperty('--safe-bottom','34px');window.dispatchEvent(new Event('resize'))")
+    t.wait_for_timeout(150)
+    assert t.locator('#canvas').bounding_box()['y']>=67
+    assert abs(geometry(t)['w']-320)<.01
+    t.screenshot(path=str(root/'.tmp/home-screen-safe-area.png'),full_page=True)
+    print('Simulated camera/Home-indicator safe-area layout passed',flush=True)
+    # An ordinary, non-doubled font must return to whole canvas scale steps.
+    t.evaluate("""()=>new Promise((resolve,reject)=>{let s=FS.readFile('/user/settings.txt',{encoding:'utf8'});s=s.replace(/^fontPath:.*$/m,'fontPath: /fonts/RobotoMono.cnfont');FS.writeFile('/user/settings.txt',s);FS.syncfs(false,e=>e?reject(e):resolve());})""")
+    t.reload();ready(t)
+    assert t.evaluate('fontPixelUnit')==1
+    assert abs(geometry(t)['scale']-1)<.01
+    print('Non-doubled font fallback passed',flush=True)
+
    c.close()
   # Exercise background save/pause/wake and gesture recovery without reloading.
   page.locator('#canvas').click()
@@ -102,5 +142,65 @@ with sync_playwright() as p:
   page.evaluate("Module.SDL2.audioContext.suspend()")
   page.locator('#canvas').click();page.wait_for_function("Module.SDL2.audioContext.state==='running'")
   print('Three background/save/wake cycles and gesture audio recovery passed',flush=True)
+  # Preserve actual song bytes across replacing the browser audio output.
+  def project_hash():
+   assert page.evaluate("Module.ccall('webSaveBrowserState','number',[],[])")==0
+   return page.evaluate("async()=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',FS.readFile('/user/autosave.cct')))).map(x=>x.toString(16).padStart(2,'0')).join('')")
+  page.wait_for_function('!audioRecovering')
+  before_restart=project_hash()
+  # Inject a running clock that has frozen, as reported in WebKit's bug tracker.
+  page.evaluate("window.frozenAudio=Module.SDL2.audioContext;const resume=frozenAudio.resume.bind(frozenAudio);Object.defineProperty(frozenAudio,'currentTime',{value:1.25,configurable:true});window.cycleResumes=0;frozenAudio.resume=()=>{cycleResumes++;delete frozenAudio.currentTime;return resume();};void 0;")
+  try:
+   page.wait_for_function("document.querySelector('#audio-status').textContent.includes('stopped responding')",timeout=7000)
+  except Exception:
+   print('Audio failure diagnostic',page.evaluate("({hidden:document.hidden,state:getAudio().state,time:getAudio().currentTime,observedTime,lastAudioProgress,lastAudioCallback,now:performance.now(),audioRecovering,audioGeneration,status:audioStatus.textContent})"),flush=True)
+   raise
+  page.locator('#canvas').click()
+  page.wait_for_function("cycleResumes>0 && Module.SDL2.audioContext.state==='running'")
+  page.wait_for_function("!document.querySelector('#audio-status').textContent",timeout=5000)
+  assert project_hash()==before_restart
+  print('Frozen-running clock recovery passed',flush=True)
+  # A resume promise that never settles must not prevent an explicit restart.
+  page.evaluate("window.stuckAudio=Module.SDL2.audioContext;stuckAudio.resume=()=>new Promise(()=>{});stuckAudio.suspend()")
+  page.locator('#canvas').click()
+  page.wait_for_function("document.querySelector('#audio-status').textContent.includes('Tap Restart audio')",timeout=5000)
+  page.locator('#restart-audio').click()
+  page.wait_for_function("Module.SDL2.audioContext!==stuckAudio && document.querySelector('#audio-status').textContent.includes('output restarted')",timeout=5000)
+  assert project_hash()==before_restart
+  print('Pending resume timeout and output restart preserved song bytes',flush=True)
+  # Restart an output whose callback node has stopped, while its clock runs.
+  page.evaluate("window.disconnectedAudio=Module.SDL2.audioContext;Module.SDL2.audio.scriptProcessorNode.disconnect()")
+  try:
+   page.wait_for_function("document.querySelector('#audio-status').textContent.includes('stopped responding')",timeout=7000)
+  except Exception:
+   print('Audio failure diagnostic',page.evaluate("({hidden:document.hidden,state:getAudio().state,time:getAudio().currentTime,observedTime,lastAudioProgress,lastAudioCallback,now:performance.now(),audioRecovering,audioGeneration,status:audioStatus.textContent})"),flush=True)
+   raise
+  page.locator('#restart-audio').click()
+  page.wait_for_function("Module.SDL2.audioContext!==disconnectedAudio && document.querySelector('#audio-status').textContent.includes('output restarted')",timeout=5000)
+  assert project_hash()==before_restart
+  print('Missing audio callback detected and output restarted',flush=True)
+  page.evaluate("window.closedAudio=Module.SDL2.audioContext;closedAudio.close()")
+  page.locator('#restart-audio').click()
+  page.wait_for_function("Module.SDL2.audioContext!==closedAudio && document.querySelector('#audio-status').textContent.includes('output restarted')",timeout=5000)
+  assert project_hash()==before_restart
+  print('Closed context restarted without losing the song',flush=True)
+
+  page.evaluate("window.afterRestartPeak=0;const node=Module.SDL2.audio.scriptProcessorNode,callback=node.onaudioprocess;node.onaudioprocess=e=>{callback(e);for(const v of e.outputBuffer.getChannelData(0))afterRestartPeak=Math.max(afterRestartPeak,Math.abs(v));};void 0;")
+  assert page.evaluate("Module.ccall('webLoadProject','number',['string'],['/projects/native-chip-audition.cct'])")==0
+  page.locator('#canvas').click();key('Space')
+  page.wait_for_function('afterRestartPeak>0',timeout=5000)
+  # Reload must wait for durable storage and cancel on a storage error.
+  page.evaluate("window.reloadMarker=1;window.realSyncfs=FS.syncfs;FS.syncfs=(populate,done)=>done(new Error('Injected storage failure'));void 0;")
+  page.locator('#reload-app').click()
+  page.wait_for_function("document.querySelector('#status').textContent.includes('Reload cancelled')")
+  assert page.evaluate('reloadMarker')==1
+  page.evaluate("FS.syncfs=realSyncfs;FS.writeFile('/user/reload-check.txt','kept')")
+  before_reload=project_hash()
+  with page.expect_navigation(wait_until='load'):
+   page.locator('#reload-app').click()
+  ready(page)
+  assert page.evaluate("FS.readFile('/user/reload-check.txt',{encoding:'utf8'})")=='kept'
+  assert project_hash()==before_reload
+  print('Reload cancels on storage failure and preserves saved song/data on success',flush=True)
   print('JavaScript errors:',errors,flush=True);assert not errors
  finally:browser.close();server.shutdown()

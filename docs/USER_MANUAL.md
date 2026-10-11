@@ -1675,14 +1675,15 @@ and is excluded from this update.
 
 The web page follows the active tracker theme and keeps its title, file controls,
 status and links below the canvas, followed by the touch controller. Theme changes are saved to
-this browser automatically. The viewing area uses the largest integer scale in
-display pixels, including Retina pixel density. Controls can scroll below the
+this browser automatically. The viewing area uses whole display pixels for font pixels, including Retina
+pixel density. Doubled bitmap fonts such as Departure Mono allow intermediate
+canvas sizes that keep the letters crisp and make the portrait view larger. Controls can scroll below the
 viewport; narrow displays may leave space around the strictly scaled canvas.
 The native tracker layout and controls are unchanged.
 
 When the browser page is hidden or the phone locks, the web build saves the
 current project/settings and stops transport. Returning and tapping a control
-resumes browser audio; press Play to continue in the same project. Keep downloaded
+attempts to resume browser audio; press Play to continue in the same project. Keep downloaded
 backups because the browser can still terminate a page or clear its storage.
 
 Safari's Share → Add to Home Screen uses the train-with-headphones icon and the
@@ -1690,3 +1691,11 @@ name ChooChoo. Home Screen launch uses a standalone window. Opening/reloading
 still requires a network connection; this does not add offline installation.
 Export projects before switching between a Safari tab and a Home Screen install,
 which may have separate browser storage.
+
+The Home Screen app respects the camera and Home indicator safe areas. Use
+**Reload app** below the tracker when there is no Safari refresh button; it saves
+and flushes this browser's storage first, and cancels if saving fails.
+**Restart audio** reopens the web audio output while keeping the current project
+and loaded samples. Select Bluetooth output in iPhone Control Center first.
+If sound stops after locking/unlocking, tap a control, then try Restart audio.
+Physical iOS recovery is still being tested; keep downloaded project backups.

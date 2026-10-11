@@ -213,15 +213,55 @@ save settings and request an IDBFS flush, so a tab reload does not depend on the
 native Quit path. This does not change native settings behavior.
 
 The backing canvas remains 640×480; automatic SDL high-DPI enlargement is
-disabled only for the web target to avoid a second scaling step. The page chooses the largest whole-number
-scale in **display pixels**, accounting for `devicePixelRatio`; for example,
-3 display pixels per source pixel on a 2× Retina display gives a 960×720 CSS
-canvas. The left edge is snapped to the same pixel grid. Controls may extend below
-the viewport rather than forcing a smaller canvas. No fractional fallback is used:
-small phone screens can leave extra space, and a viewport smaller than the 1×
-physical canvas permits horizontal scrolling. Resizing, orientation changes and
-moving between displays recompute the scale. Browser/OS compositing can still
-affect the final appearance; physical Safari and iPhone checks remain useful.
+disabled only for the web target to avoid a second scaling step. The page chooses
+the largest scale that fits in display pixels, accounting for `devicePixelRatio`.
+The web adapter checks all 95 glyph bitmaps of the active font. When every glyph
+consists of doubled 2×2 pixels (including its padding), it permits half canvas
+steps: those still give each original font pixel an integer number of display
+pixels. Departure Mono supports this; other fonts fall back to whole canvas steps.
+Changing fonts updates the scale automatically. This is not arbitrary fit-to-width
+scaling: on an iPhone 15 Pro's normal 393-pixel/3× portrait viewport, Departure Mono
+uses 320×240 CSS pixels, with each original font pixel 3×3 display pixels. That is
+50% larger than the previous 213⅓×160 view without cropping or sideways scrolling.
+
+The left edge is snapped to the display pixel grid. Controls may extend below the
+viewport. Single-pixel graphics such as waveform lines can have alternating widths
+at a half canvas step; this guarantee concerns the doubled font, not every graphic.
+The small title-screen text uses a separate reduced font. No horizontal scrolling
+or larger-view toggle is added. Resizing, orientation changes and moving between
+displays recompute the fit. Browser/OS compositing can still affect appearance;
+physical Safari and iPhone checks remain useful. Native rendering is unchanged.
+
+## Home Screen layout and recovery
+
+The viewport uses `viewport-fit=cover`; main content adds the four CSS
+`env(safe-area-inset-*)` values to its normal margins. Canvas sizing subtracts
+that vertical padding. This keeps the tracker and controls out of the camera
+and Home indicator areas in a standalone Home Screen launch.
+
+**Reload app** pauses input, saves the current project and settings, and waits
+for the existing IDBFS flush before reloading. Serialization/storage errors or
+a 10-second timeout cancel the reload and leave the working project open.
+It does not clear site storage. Keep downloaded backups independently.
+
+Browser audio recovery checks both the AudioContext clock and SDL's output
+callbacks, since a reported `running` state alone is insufficient on some Safari
+versions. Returning from the background or a user gesture can perform a bounded
+suspend/resume cycle. **Restart audio** explicitly closes/reopens only SDL's web
+output using the same callback, rate and buffer request; synth/project/sample
+state stays in memory. Reopening also gives the browser a new output context
+after a device-route change. Choose Bluetooth speakers in the iPhone's Control
+Center output picker; the app does not select hardware routes.
+The passive health check never repeatedly resumes audio, sets a wake lock, or
+adds silent media. Auto-Lock and physical output routing remain controlled by iOS.
+
+These are recovery paths, not a claim that all Safari audio interruptions are
+fixed. Physical iPhone Home Screen, Auto-Lock and Bluetooth transitions need
+retesting. Some browser failures can still require a saved reload or relaunch.
+Background save/flush is best effort if iOS immediately terminates the process.
+Relevant platform notes: [WebKit safe areas](https://webkit.org/blog/7929/designing-websites-for-iphone-x/),
+[WebKit frozen audio clocks](https://bugs.webkit.org/show_bug.cgi?id=263627), and
+[Apple Bluetooth output selection](https://support.apple.com/en-gb/guide/iphone/iph01b6ea9a3/ios).
 
 ## Browser and Home Screen icons
 
@@ -240,7 +280,7 @@ Home Screen installation: its storage may be separate from the Safari tab.
 This adds no offline cache/service worker; opening or reloading still needs the
 network. The icon does not change the browser's storage retention policy.
 See [Apple's Home Screen icon guidance](https://developer.apple.com/library/archive/documentation/AppleApplications/Reference/SafariWebContent/ConfiguringWebApplications/ConfiguringWebApplications.html).
-Physical iOS installation and the final icon background/masking require a device check.
+The user selected the flat icon. Physical Home Screen layout, audio interruption and Bluetooth behavior remain device checks.
 
 ## Later styling and website integration
 
@@ -271,6 +311,17 @@ COOP/COEP. Subpath reverse-proxy hosting and embedding remain untested; prefer a
 subdomain/link first. No iframe or website integration is implemented now.
 
 ## Validation record
+
+Font/Home Screen follow-up, 2026-10-11: a fresh Wasm build passed. Departure Mono
+uses 320×240 CSS pixels on a simulated iPhone 15 Pro viewport; 267 measured stroke
+runs were exact multiples of 3 display pixels, with none uneven. Desktop tests
+likewise passed 623 stroke runs at 7 display pixels. Roboto Mono correctly falls
+back to whole canvas steps. Simulated top/bottom safe insets keep the tracker
+clear; page items precede the controller. Fault injection covers a frozen running
+clock, a resume promise that never resolves, missing output callbacks, and failed
+storage flushes. Output restarts preserve serialized song bytes; a successful
+Reload app preserves the autosave and user files. These are Chrome checks, not a
+physical Safari/Auto-Lock/Bluetooth certification.
 
 Browser presentation/recovery follow-up, 2026-10-11: live color editing and
 loading NostromoAmberDa2 both persisted after reload. Page colors follow the

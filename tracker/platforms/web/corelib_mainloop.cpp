@@ -7,11 +7,58 @@
 #include "corelib_mainloop.h"
 #include "corelib_assets.h"
 #include "corelib_gfx.h"
+#include "corelib_font.h"
 #include "../../src/app.h"
 #include "../../src/common.h"
 #ifdef CHOOCHOO_EXPERIMENTAL_MOD_LUCKY
 #include "../../src/experimental/mod_lucky/service.h"
 #endif
+
+static int browserFontPixelUnit(const FontResolution* font) {
+  if (font->charWidth % 2 || font->charHeight % 2) return 1;
+  const int stride = (font->charWidth + 7) / 8;
+  const auto pixel = [font, stride](int glyph, int x, int y) {
+    if (x < 0 || y < 0 || x >= font->charWidth || y >= font->charHeight) return false;
+    return bool(font->data[(glyph * font->charHeight + y) * stride + x / 8] & (0x80 >> (x % 8)));
+  };
+  // Some 16x24 fonts are already doubled bitmaps. A half-step of the canvas
+  // then remains an integer step of their original font pixels. Check every
+  // glyph, including blank padding, instead of assuming this from a filename.
+  for (int phaseY = 0; phaseY < 2; ++phaseY) {
+    for (int phaseX = 0; phaseX < 2; ++phaseX) {
+      bool doubled = true;
+      for (int glyph = 0; glyph < 95 && doubled; ++glyph) {
+        for (int y = phaseY - 2; y < font->charHeight && doubled; y += 2) {
+          for (int x = phaseX - 2; x < font->charWidth && doubled; x += 2) {
+            const bool value = pixel(glyph, x, y);
+            doubled = value == pixel(glyph, x + 1, y) &&
+              value == pixel(glyph, x, y + 1) && value == pixel(glyph, x + 1, y + 1);
+          }
+        }
+      }
+      if (doubled) return 2;
+    }
+  }
+  return 1;
+}
+
+static void syncBrowserFontScale() {
+  const auto* font = fontSelectResolution(fontGetCurrent(), 640, 480);
+  if (!font || !font->data) return;
+  // Hash the small bitmap so reloading another font into reused memory also
+  // updates the wrapper, without repeating the full doubled-pixel check.
+  uint32_t hash = 2166136261u;
+  const int size = (font->charWidth + 7) / 8 * font->charHeight * 95;
+  for (int i = 0; i < size; ++i) hash = (hash ^ font->data[i]) * 16777619u;
+  static uint32_t previousHash = 0;
+  static int previousWidth = 0, previousHeight = 0;
+  if (previousWidth == font->charWidth && previousHeight == font->charHeight && previousHash == hash) return;
+  previousHash = hash;
+  previousWidth = font->charWidth;
+  previousHeight = font->charHeight;
+  EM_ASM({ if (window.choochooSetFontPixelUnit) window.choochooSetFontPixelUnit($0); },
+    browserFontPixelUnit(font));
+}
 
 static void syncBrowserTheme() {
   const auto& c = appSettings.colorScheme;
@@ -167,6 +214,7 @@ static void webLoopFrame(void* userdata) {
   if (now - context->lastDrawAt < 1000.0 / 30.0 - 1.0) return;
   context->lastDrawAt = now;
   context->draw();
+  syncBrowserFontScale();
   syncBrowserTheme();
   gfxUpdateScreen();
 }

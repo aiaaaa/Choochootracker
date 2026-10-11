@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#050c1f">
   <meta name="apple-mobile-web-app-title" content="ChooChoo">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -14,26 +14,30 @@
   <style>
     :root { color-scheme: dark; --background: #050c1f; --empty: #10284a;
       --muted: #52799b; --text: #c9bfa5; --value: #ffd665; --title: #e6b84f;
-      --play: #64d6ff; --cursor: #65d8ff; --selection: #245072; --warning: #ff6655; }
+      --play: #64d6ff; --cursor: #65d8ff; --selection: #245072; --warning: #ff6655;
+      --safe-top: env(safe-area-inset-top, 0px); --safe-right: env(safe-area-inset-right, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px); --safe-left: env(safe-area-inset-left, 0px); }
     * { box-sizing: border-box; }
     body { margin: 0; min-height: 100vh; background: var(--background);
       color: var(--text); font: 16px system-ui, sans-serif; }
-    main { padding: 8px; text-align: center; }
-    #screen-area { width: 100%; overflow-x: auto; }
+    main { padding: calc(8px + var(--safe-top)) calc(8px + var(--safe-right))
+      calc(8px + var(--safe-bottom)) calc(8px + var(--safe-left)); text-align: center; }
+    #screen-area { width: 100%; overflow: hidden; }
     #canvas { display: block; width: 640px; height: 480px; border: 0;
       background: var(--background); image-rendering: pixelated; }
     #canvas:focus { outline: none; }
     #canvas:focus-visible { outline: 1px solid var(--cursor); outline-offset: -1px; }
     #browser-controls { width: min(100%, 960px); margin: .8rem auto 0; }
     h1 { color: var(--title); font-size: .85rem; letter-spacing: .12em; margin: 1rem 0 .4rem; }
-    #status { color: var(--value); margin-top: .6rem; overflow-wrap: anywhere; }
-    #status:empty { display: none; }
+    #status, #audio-status { color: var(--value); margin-top: .6rem; overflow-wrap: anywhere; }
+    #status:empty, #audio-status:empty { display: none; }
     button { color: var(--background); background: var(--value); border: 0; padding: .55rem 1rem;
       font-weight: 700; cursor: pointer; }
     button:disabled { cursor: wait; opacity: .55; }
     button:focus-visible, a:focus-visible { outline: 2px solid var(--cursor); outline-offset: 3px; }
-    #file-controls { display: flex; flex-wrap: wrap; justify-content: center; gap: .5rem; }
-    #file-controls button { padding: .42rem .7rem; font-size: .8rem; min-height: 2.25rem; }
+    #file-controls, #app-controls { display: flex; flex-wrap: wrap; justify-content: center; gap: .5rem; }
+    #app-controls { margin-top: .5rem; }
+    #file-controls button, #app-controls button { padding: .42rem .7rem; font-size: .8rem; min-height: 2.25rem; }
     #touch-controls { display: none; width: min(100%, 640px); margin: .75rem auto 0;
       padding: .8rem 1rem .65rem; border: 1px solid var(--selection); border-radius: 1.2rem;
       background: var(--empty); box-shadow: inset 0 1px var(--muted);
@@ -77,7 +81,12 @@
         <input id="sample-folder-input" type="file" accept=".wav,audio/wav" webkitdirectory multiple hidden>
         <input id="preset-folder-input" type="file" webkitdirectory multiple hidden>
       </div>
+      <div id="app-controls" aria-label="App controls">
+        <button id="restart-audio" disabled>Restart audio</button>
+        <button id="reload-app" disabled>Reload app</button>
+      </div>
       <div id="status" role="status" aria-live="polite"></div>
+      <div id="audio-status" role="status" aria-live="polite"></div>
       <h1>CHOOCHOO TRACKER / WEB</h1>
       <div class="links"><a href="manual.html">Manual</a><a href="https://github.com/aiaaaa/Choochootracker/tree/personal/r36h">GitHub</a></div>
     </div>
@@ -99,24 +108,27 @@
   <script>
     const status = document.querySelector('#status');
     const start = document.querySelector('#start');
-    const fileControls = document.querySelectorAll('#file-controls button');
+    const fileControls = document.querySelectorAll('#file-controls button, #app-controls button');
     let trackerStarted = false;
     let storageSyncing = false;
     let storagePending = false;
     let storageCallbacks = [];
     const getFs = () => (typeof FS !== 'undefined' ? FS : (window.Module && window.Module.FS));
 
-    // Keep the 640x480 backing surface unchanged. Each source pixel occupies
-    // a whole number of display pixels, including on Retina screens.
+    // Keep the 640x480 backing surface unchanged. Doubled bitmap fonts permit
+    // half canvas steps while retaining whole display pixels per font pixel.
     const canvas = document.querySelector('#canvas');
     const screenArea = document.querySelector('#screen-area');
+    let fontPixelUnit = 1;
     const sizeCanvas = () => {
       const ratio = window.devicePixelRatio || 1;
       const availableWidth = screenArea.clientWidth;
-      const availableHeight = Math.max(1, window.innerHeight - 16);
+      const padding = getComputedStyle(document.querySelector('main'));
+      const availableHeight = Math.max(1, window.innerHeight -
+        parseFloat(padding.paddingTop) - parseFloat(padding.paddingBottom));
       const scale = Math.max(1, Math.floor(Math.min(
         availableWidth * ratio / canvas.width,
-        availableHeight * ratio / canvas.height) + 1e-6));
+        availableHeight * ratio / canvas.height) * fontPixelUnit + 1e-6)) / fontPixelUnit;
       const width = canvas.width * scale / ratio;
       canvas.style.width = width + 'px';
       canvas.style.height = canvas.height * scale / ratio + 'px';
@@ -125,8 +137,13 @@
       const offset = Math.max(0, (availableWidth - width) / 2);
       canvas.style.marginLeft = Math.max(0, Math.round((left + offset) * ratio) / ratio - left) + 'px';
     };
+    window.choochooSetFontPixelUnit = (unit) => {
+      fontPixelUnit = unit === 2 ? 2 : 1;
+      sizeCanvas();
+    };
     window.addEventListener('resize', sizeCanvas);
     new ResizeObserver(sizeCanvas).observe(screenArea);
+    new ResizeObserver(sizeCanvas).observe(document.querySelector('main'));
     const watchPixelRatio = () => {
       const query = matchMedia('(resolution: ' + (window.devicePixelRatio || 1) + 'dppx)');
       query.addEventListener('change', () => { sizeCanvas(); watchPixelRatio(); }, { once: true });
@@ -243,31 +260,133 @@
     };
     start.addEventListener('click', loadTracker);
     window.addEventListener('load', loadTracker);
-    const resumeBrowserAudio = () => {
-      if (document.hidden) return;
-      const audio = window.Module && window.Module.SDL2 && window.Module.SDL2.audioContext;
-      if (!audio || audio.state === 'running' || audio.state === 'closed') return;
-      // SDL's initial activation timer is removed after the first audio callback.
-      // Safari also needs resume() after later suspended/interrupted states.
-      audio.resume().then(() => {
-        if (audio.state === 'running' && status.textContent === 'Tap a control to resume audio.')
-          status.textContent = '';
-      }).catch(() => { status.textContent = 'Tap a control to resume audio.'; });
+    const audioStatus = document.querySelector('#audio-status');
+    const getAudio = () => window.Module && window.Module.SDL2 && window.Module.SDL2.audioContext;
+    let observedAudio, observedNode, observedTime = 0, lastAudioProgress = 0, lastAudioCallback = 0;
+    let audioRecovering = false, audioGeneration = 0, reloading = false;
+    const audioClockStalled = () => {
+      const audio = getAudio(), now = performance.now();
+      if (!audio) return false;
+      if (audio !== observedAudio || audio.currentTime !== observedTime) {
+        observedAudio = audio;
+        observedTime = audio.currentTime;
+        lastAudioProgress = now;
+      }
+      const node = window.Module.SDL2.audio && window.Module.SDL2.audio.scriptProcessorNode;
+      if (node && node !== observedNode) {
+        observedNode = node;
+        lastAudioCallback = now;
+        const callback = node.onaudioprocess;
+        node.onaudioprocess = function(event) {
+          if (observedNode === node) lastAudioCallback = performance.now();
+          callback.call(this, event);
+        };
+      }
+      return audio.state === 'running' && (now - lastAudioProgress > 2000 ||
+        (node && now - lastAudioCallback > 2000));
     };
+    const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+    const audioDeadline = (promise) => new Promise((resolve, reject) => {
+      const timer = setTimeout(() => reject(new Error('Audio operation timed out')), 1500);
+      Promise.resolve(promise).then(value => { clearTimeout(timer); resolve(value); },
+        error => { clearTimeout(timer); reject(error); });
+    });
+    const resumeBrowserAudio = async (restart = false, cycle = false) => {
+      if (document.hidden || reloading || !window.Module || !window.Module._webRestartAudio) return;
+      if (audioRecovering && !restart) return;
+      // A visible page can miss a wake event. A user gesture must also wake SDL.
+      window.Module.ccall('webSetPageHidden', null, ['number'], [0]);
+      let audio = getAudio();
+      const stalled = audioClockStalled();
+      if (!restart && (!audio || (audio.state === 'running' && !stalled && !cycle))) return;
+      const generation = ++audioGeneration;
+      audioRecovering = true;
+      try {
+        if (restart || audio.state === 'closed') {
+          // Run inside the button's user gesture. Reopen the browser output,
+          // keeping the existing tracker, instruments and project in memory.
+          // SDL otherwise calls close() again on an already closed context.
+          if (audio && audio.state === 'closed') window.Module.SDL2.audioContext = undefined;
+          if (window.Module.ccall('webRestartAudio', 'number', [], [])) throw new Error('Audio output failed');
+          audio = getAudio();
+          observedAudio = undefined;
+        } else if (cycle || stalled || audio.state === 'interrupted') {
+          // Safari can report running while its clock is frozen, or leave a
+          // resume promise pending. Bound both operations and reset first.
+          await audioDeadline(audio.suspend());
+          await delay(200);
+        }
+        if (generation !== audioGeneration || document.hidden || audio !== getAudio()) return;
+        audioClockStalled();
+        const before = audio.currentTime;
+        const started = performance.now();
+        await audioDeadline(audio.resume());
+        const node = window.Module.SDL2.audio && window.Module.SDL2.audio.scriptProcessorNode;
+        await delay(Math.max(350, node ? node.bufferSize / audio.sampleRate * 2000 + 100 : 350));
+        if (generation !== audioGeneration || document.hidden || audio !== getAudio()) return;
+        if (audio.state !== 'running' || audio.currentTime <= before || lastAudioCallback <= started)
+          throw new Error('Audio output did not recover');
+        audioStatus.textContent = restart ? 'Audio output restarted. Press Play if needed.' : '';
+      } catch (_) {
+        if (generation === audioGeneration && !document.hidden)
+          audioStatus.textContent = 'Audio is paused or unavailable. Tap Restart audio.';
+      } finally {
+        if (generation === audioGeneration) audioRecovering = false;
+      }
+    };
+    let pageWasHidden = document.hidden;
     const setPageHidden = (hidden) => {
       if (!window.Module || !window.Module._webSetPageHidden) return;
+      const wasHidden = pageWasHidden;
+      pageWasHidden = hidden;
       window.Module.ccall('webSetPageHidden', null, ['number'], [hidden ? 1 : 0]);
       if (hidden) {
+        ++audioGeneration;
+        audioRecovering = false;
         syncUserStorage();
-        const audio = window.Module.SDL2 && window.Module.SDL2.audioContext;
+        const audio = getAudio();
         if (audio && audio.state !== 'closed') audio.suspend().catch(() => {});
-      } else resumeBrowserAudio();
+      } else resumeBrowserAudio(false, wasHidden);
     };
     document.addEventListener('visibilitychange', () => setPageHidden(document.hidden));
     window.addEventListener('pagehide', () => setPageHidden(true));
     window.addEventListener('pageshow', () => { if (!document.hidden) setPageHidden(false); });
+    window.addEventListener('focus', () => { if (!document.hidden) setPageHidden(false); });
     ['pointerdown', 'touchend', 'keydown'].forEach((event) =>
-      document.addEventListener(event, resumeBrowserAudio, { capture: true, passive: true }));
+      document.addEventListener(event, () => resumeBrowserAudio(), { capture: true, passive: true }));
+    // Observe failures without continuously waking audio or preventing Auto-Lock.
+    setInterval(() => {
+      if (!document.hidden && !audioRecovering && !reloading && audioClockStalled())
+        audioStatus.textContent = 'Audio stopped responding. Tap a control or Restart audio.';
+    }, 1000);
+    document.querySelector('#restart-audio').addEventListener('click', () => resumeBrowserAudio(true));
+    document.querySelector('#reload-app').addEventListener('click', () => {
+      if (reloading) return;
+      reloading = true;
+      fileControls.forEach(button => { button.disabled = true; });
+      status.textContent = 'Saving before reload…';
+      setPageHidden(true);
+      let finished = false;
+      const fail = () => {
+        if (finished) return;
+        finished = true;
+        reloading = false;
+        fileControls.forEach(button => { button.disabled = false; });
+        setPageHidden(false);
+        status.textContent = 'Could not finish saving. Reload cancelled; download your project before trying again.';
+      };
+      const timer = setTimeout(fail, 10000);
+      try {
+        if (window.Module.ccall('webSaveBrowserState', 'number', [], [])) throw new Error('Save failed');
+        syncUserStorage(error => {
+          if (finished) return;
+          clearTimeout(timer);
+          if (error) { fail(); return; }
+          finished = true;
+          window.location.reload();
+        });
+      } catch (_) { clearTimeout(timer); fail(); }
+    });
 
     document.querySelector('#import-project').addEventListener('click', () => document.querySelector('#project-input').click());
     document.querySelector('#import-samples').addEventListener('click', () => document.querySelector('#sample-input').click());
