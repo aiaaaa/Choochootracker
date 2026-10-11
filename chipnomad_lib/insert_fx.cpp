@@ -95,7 +95,15 @@ static const InsertDescriptor descriptors[] = {
      {{"Mode", "Mode", "", 0, 2, 0, M::discrete},
       {"Amount", "Amount", "%", 0, 1, 64, M::linear},
       {"Tone", "Tone", "Hz", 500, 18000, 220, M::exponential},
-      {"Mix", "Mix", "%", 0, 1, 160, M::linear}}}};
+      {"Mix", "Mix", "%", 0, 1, 160, M::linear}}},
+    {"Parametric EQ",
+     6,
+     {{"Low G", "Low gain", "dB", -24, 24, 128, M::bipolar},
+      {"Low F", "Low frequency", "Hz", 60, 500, 84, M::exponential},
+      {"Mid G", "Mid gain", "dB", -24, 24, 128, M::bipolar},
+      {"Mid F", "Mid frequency", "Hz", 250, 5000, 118, M::exponential},
+      {"High G", "High gain", "dB", -24, 24, 128, M::bipolar},
+      {"High F", "High frequency", "Hz", 2000, 14000, 182, M::exponential}}}};
 static_assert(sizeof(descriptors) / sizeof(descriptors[0]) == insertModuleCount,
               "Stable module catalogue");
 const InsertDescriptor& insertDescriptor(int m) {
@@ -171,6 +179,16 @@ void insertDescribe(char* text, size_t size, int m, int p, int value) {
 struct InsertChain::Impl {
   static constexpr int block = 128;
   static constexpr int delaySize = 4096;
+  struct Biquad {
+    float b0 = 1, b1 = 0, b2 = 0, a1 = 0, a2 = 0;
+    float x1 = 0, x2 = 0, y1 = 0, y2 = 0;
+    void reset() { x1 = x2 = y1 = y2 = 0; }
+    float process(float x) {
+      float y = b0 * x + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2;
+      x2 = x1; x1 = x; y2 = y1; y1 = y;
+      return y;
+    }
+  };
   struct Slot {
     InsertConfig config{};
     uint8_t previous[8]{};
@@ -189,8 +207,10 @@ struct InsertChain::Impl {
     // Long LFO cycles need enough precision to accumulate sub-microradian steps.
     double phase = 0;
     float feedback[2]{}, held[2]{};
+    Biquad eq[2][3];
     int delayWrite = 0, holdCounter = 0;
     float toneCoefficient = 1;
+    bool eqNeutral = true;
   } slots[2];
   float rate;
   explicit Impl(float sr) : rate(sr) {
@@ -232,6 +252,8 @@ struct InsertChain::Impl {
     memset(s.phaserFeedback, 0, sizeof(s.phaserFeedback));
     memset(s.feedback, 0, sizeof(s.feedback));
     memset(s.held, 0, sizeof(s.held));
+    for (auto& channel : s.eq) for (auto& band : channel) band.reset();
+    s.eqNeutral = true;
     s.phase = 0;
     s.delayWrite = s.holdCounter = 0;
   }
@@ -250,6 +272,43 @@ struct InsertChain::Impl {
   }
   static float coefficient(float cutoff, float sampleRate) {
     return 1.0f - expf(-6.28318530718f * cutoff / sampleRate);
+  }
+  static void setBiquad(Biquad& b, float b0, float b1, float b2, float a0, float a1, float a2) {
+    b.b0 = b0 / a0; b.b1 = b1 / a0; b.b2 = b2 / a0;
+    b.a1 = a1 / a0; b.a2 = a2 / a0;
+  }
+  static void setEQBand(Biquad& b, int type, float gain, float frequency, float rate) {
+    const float A = powf(10.0f, gain / 40.0f);
+    const float w = 6.28318530718f * std::min(frequency, rate * 0.45f) / rate;
+    const float c = cosf(w), s = sinf(w);
+    const float alpha = type == 1 ? s / (2.0f * 0.9f)
+                                  : s * 0.5f * sqrtf((A + 1.0f / A) * 2.0f);
+    const float beta = 2.0f * sqrtf(A) * alpha;
+    if (type == 0) {
+      setBiquad(b, A * ((A + 1) - (A - 1) * c + beta),
+                2 * A * ((A - 1) - (A + 1) * c),
+                A * ((A + 1) - (A - 1) * c - beta),
+                (A + 1) + (A - 1) * c + beta,
+                -2 * ((A - 1) + (A + 1) * c),
+                (A + 1) + (A - 1) * c - beta);
+    } else if (type == 1) {
+      setBiquad(b, 1 + alpha * A, -2 * c, 1 - alpha * A,
+                1 + alpha / A, -2 * c, 1 - alpha / A);
+    } else {
+      setBiquad(b, A * ((A + 1) + (A - 1) * c + beta),
+                -2 * A * ((A - 1) + (A + 1) * c),
+                A * ((A + 1) + (A - 1) * c - beta),
+                (A + 1) - (A - 1) * c + beta,
+                2 * ((A - 1) - (A + 1) * c),
+                (A + 1) - (A - 1) * c - beta);
+    }
+  }
+  static float softClip(float x) {
+    float magnitude = fabsf(x);
+    if (magnitude <= 1.0f) return x;
+    if (magnitude >= 2.0f) return copysignf(1.5f, x);
+    magnitude -= 1.0f;
+    return copysignf(1.0f + magnitude - 0.5f * magnitude * magnitude, x);
   }
   void parameters(Slot& s, const uint8_t* v) {
     if (!s.dirty && !memcmp(v, s.previous, 8)) return;
@@ -294,6 +353,24 @@ struct InsertChain::Impl {
       case insertBitcrusher:
         s.toneCoefficient = coefficient(p[2], rate);
         break;
+      case insertParametricEQ: {
+        bool neutral = v[0] == 128 && v[2] == 128 && v[4] == 128;
+        if (neutral) {
+          if (!s.eqNeutral)
+            for (auto& channel : s.eq) for (auto& band : channel) band.reset();
+          s.eqNeutral = true;
+          break;
+        }
+        if (s.eqNeutral)
+          for (auto& channel : s.eq) for (auto& band : channel) band.reset();
+        s.eqNeutral = false;
+        for (int channel = 0; channel < 2; ++channel) {
+          setEQBand(s.eq[channel][0], 0, p[0], p[1], rate);
+          setEQBand(s.eq[channel][1], 1, p[2], p[3], rate);
+          setEQBand(s.eq[channel][2], 2, p[4], p[5], rate);
+        }
+        break;
+      }
     }
     memcpy(s.previous, v, 8);
     s.dirty = false;
@@ -470,6 +547,12 @@ struct InsertChain::Impl {
           }
           break;
         }
+        case insertParametricEQ:
+          if (!s.eqNeutral) for (int i = 0; i < n; ++i) {
+            l[i] = softClip(s.eq[0][2].process(s.eq[0][1].process(s.eq[0][0].process(l[i]))));
+            r[i] = softClip(s.eq[1][2].process(s.eq[1][1].process(s.eq[1][0].process(r[i]))));
+          }
+          break;
       }
       for (int i = 0; i < n; ++i) {
         s.wet = target > s.wet ? std::min(target, s.wet + increment)

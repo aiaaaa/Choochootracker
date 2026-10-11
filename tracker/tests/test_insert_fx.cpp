@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <cstring>
 #include <fstream>
@@ -236,7 +237,7 @@ TEST_SUITE("track inserts") {
     CHECK(fxF11 > fxATY);
     CHECK(fxF28 < 255);
     CHECK(genericModFirstInsert == 29);
-      const int counts[] = {0, 8, 4, 2, 6, 6, 5, 4, 5, 4, 4, 4, 4};
+      const int counts[] = {0, 8, 4, 2, 6, 6, 5, 4, 5, 4, 4, 4, 4, 6};
     for (int m = 0; m < insertModuleCount; ++m) {
       CHECK(insertDescriptor(m).count == counts[m]);
       InsertConfig c{};
@@ -345,6 +346,57 @@ TEST_SUITE("track inserts") {
       out = dry;
       chain.process(out.data(), 1024, v);
       CHECK(out == dry);
+    }
+  }
+  TEST_CASE("parametric EQ is neutral at zero gain, shapes bands and soft clips boosts") {
+    InsertConfig c[2]{};
+    insertSelect(&c[0], insertParametricEQ);
+    CHECK(insertMap(insertParametricEQ, 1, 0) == doctest::Approx(60.f));
+    CHECK(insertMap(insertParametricEQ, 1, 255) == doctest::Approx(500.f));
+    CHECK(insertMap(insertParametricEQ, 3, 0) == doctest::Approx(250.f));
+    CHECK(insertMap(insertParametricEQ, 5, 255) == doctest::Approx(14000.f));
+    InsertAutomation a{};
+    InsertChain chain(48000);
+    chain.sync(c, &a);
+    uint8_t v[2][8];
+    values(c, v);
+    auto dry = signal(4096), out = dry;
+    chain.process(out.data(), 4096, v);
+    CHECK(out == dry);
+
+    auto shapedPeak = [](int gainParameter, int gain, float frequency) {
+      InsertConfig config[2]{};
+      insertSelect(&config[0], insertParametricEQ);
+      insertEdit(&config[0], gainParameter, gain);
+      InsertAutomation automation{};
+      InsertChain eq(48000);
+      eq.sync(config, &automation);
+      uint8_t effective[2][8];
+      values(config, effective);
+      std::vector<float> signal(48000 * 2);
+      for (int i = 0; i < 48000; ++i)
+        signal[2 * i] = .001f * sinf(6.28318530718f * frequency * i / 48000.f);
+      eq.process(signal.data(), 48000, effective);
+      float peak = 0;
+      for (int i = 24000; i < 48000; ++i) peak = std::max(peak, fabsf(signal[2 * i]));
+      for (int i = 0; i < 48000; ++i) CHECK(signal[2 * i + 1] == 0);
+      return peak;
+    };
+    for (const auto& band : {std::array<float, 2>{0, 60}, {2, 1000}, {4, 12000}}) {
+      int gainParameter = (int)band[0];
+      CHECK(shapedPeak(gainParameter, 255, band[1]) > .003f);
+      CHECK(shapedPeak(gainParameter, 0, band[1]) < .0004f);
+    }
+
+    insertEdit(&c[0], 0, 255);
+    insertEdit(&c[0], 2, 128);
+    chain.sync(c, &a);
+    values(c, v);
+    std::vector<float> loud(4096 * 2, 4.f);
+    chain.process(loud.data(), 4096, v);
+    for (int i = 1024; i < 4096 * 2; ++i) {
+      CHECK(std::isfinite(loud[i]));
+      CHECK(fabsf(loud[i]) <= 1.5f);
     }
   }
   TEST_CASE("repeated effects are serial and each slot has independent state") {

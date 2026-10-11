@@ -1295,6 +1295,7 @@ the current screen.
 | Saturation | Drive, Tone, Level, Mix |
 | Bitcrusher | Bit depth, Rate reduction, Tone, Mix |
 | Destruction | Mode, Amount, Tone, Mix |
+| Parametric EQ | Low gain, Low frequency, Mid gain, Mid frequency, High gain, High frequency |
 
 Continuous controls use 00–FF, including valid zero and maximum FF. Bipolar
 controls have an exact neutral at 80. Distortion modes are 00 Density, 01 Drive,
@@ -1313,6 +1314,10 @@ Bitcrusher bit depth ranges from 4 to 16 bits and
 rate reduction from 1x to 32x. Destruction modes are Fold, Clip and Crush.
 Saturation and distortion include output level or mix controls for balancing them
 against the unprocessed signal.
+Parametric EQ has 24 dB boost/cut shelves at 60–500 Hz and 2–14 kHz, plus a
+fixed-Q 0.9 bell at 250 Hz–5 kHz. Its gain controls are neutral at 80; with all
+three neutral it is an exact bypass. Active EQ uses a transparent soft knee above
+full scale and reaches a maximum of 1.5 to contain extreme boosts.
 
 Track level and tilt EQ precede the inserts, so both affect the signal entering
 compression and distortion. All voices/chord notes on the track feed one insert
