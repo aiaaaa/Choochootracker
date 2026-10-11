@@ -31,7 +31,9 @@ and writes `build-info.json` with SHA, dirty status, SDK version and file hashes
 Failed compilation/packaging removes the incomplete output. Deployment requires
 a clean source tree and matching SHA/hashes. SDK downloads are cached; app bundles
 are never restored from cache. Serialized deployment and a branch-head check
-prevent queued old commits from replacing a newer production build.
+prevent queued old commits from replacing a newer production build. After upload,
+the public manifest check retries temporary HTTP errors and old manifests while
+the production alias propagates, then fails if the exact artifact is not served.
 
 Published files are `index.html`, `privacy.html`, `manual.html`, Emscripten's
 `choochootracker.html`, `.js`, `.wasm`, `.data`, and `build-info.json`. Fonts,
@@ -211,9 +213,16 @@ these deployment changes:
   pattern editing, external instrument imports and background-audio recovery were
   not tested. Mobile Chromium emulation does not establish iOS compatibility.
 
-Account credentials are required for a real Vercel deployment; configuration
-alone is not a live site. No Vercel token/project secrets were present during
-this audit. Public URL verification remains required after account setup.
+Production was first published on 2026-10-11 at
+[choochootracker-personal.vercel.app](https://choochootracker-personal.vercel.app/)
+from commit `e04f9d7`, with all three Actions secrets configured externally.
+The Linux-built hosted artifact passed the same headless Chrome playback,
+save/reload and mobile-touch checks. `/build-info.json` is the authority for the
+currently deployed commit; deployment runs link their public URL in the summary.
+The initial run's immediate public check encountered a transient 404 during alias
+propagation; bounded retry now covers that delay and stale prior manifests.
+These deployment references belong in documentation, not application source.
+Do not put credential values or project/team identifiers into this document.
 
 References: [Vercel's GitHub Actions workflow](https://vercel.com/kb/guide/how-can-i-use-github-actions-with-vercel),
 [Git deployment switches](https://vercel.com/docs/project-configuration/git-configuration),

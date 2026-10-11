@@ -81,7 +81,21 @@ jobs:
           url=$(python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); d=d.get("deployment",d); assert d["readyState"] == "READY", d; print(d.get("productionUrl") or d["url"])' "$RUNNER_TEMP/vercel-deployment.json")
           printf 'Deployment: %s\nCommit: %s\n' "$url" "$GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
           if [[ "$DEPLOY_TARGET" == production ]]; then
-            curl --fail --silent --show-error --retry 3 "$url/build-info.json" -o "$RUNNER_TEMP/deployed-build-info.json"
-            cmp web/dist/build-info.json "$RUNNER_TEMP/deployed-build-info.json"
+            # A ready deployment can precede propagation of its production alias.
+            # Retry both temporary HTTP errors and a previous deployment's manifest.
+            verified=false
+            for attempt in {1..12}; do
+              if curl --fail --silent --show-error --connect-timeout 10 --max-time 20 \
+                "$url/build-info.json?commit=$GITHUB_SHA" -o "$RUNNER_TEMP/deployed-build-info.json" \
+                && cmp -s web/dist/build-info.json "$RUNNER_TEMP/deployed-build-info.json"; then
+                verified=true
+                break
+              fi
+              sleep 5
+            done
+            if [[ "$verified" != true ]]; then
+              echo 'Public production manifest did not match the compiled artifact within the verification window.' >&2
+              exit 1
+            fi
             echo 'Verified public build-info.json matches the compiled artifact.' >> "$GITHUB_STEP_SUMMARY"
           fi
