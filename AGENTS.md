@@ -37,9 +37,11 @@
 - If web reports `clang++.exe: permission denied`, repair the execution
   permission/security block on `.tmp/emsdk/upstream/bin/clang++.exe`; do not
   install another Emscripten SDK.
-- `web-deploy` updates the checked-in `web/dist/` bundle. Regenerate and
-  commit it after WebAssembly source changes; Vercel serves that bundle
-  directly and does not build Emscripten itself.
+- On `personal/r36h`, `web/dist/` is generated and ignored. Use
+  `python3 tools/web_bundle.py build` with the existing Emscripten SDK activated.
+  Do not commit bundles or push generated files to `main`. The Web action builds
+  the exact personal commit and deploys through Vercel; see
+  `docs/personal-web-deployment.md` for setup and validation.
 - `docs/build-notes.md` is the canonical human-readable build reference; keep
   commands here synchronized with it.
 

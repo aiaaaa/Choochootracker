@@ -26,6 +26,7 @@ rg_log.txt
 chipnomad_log.txt
 
 .vercel
+/web/dist/
 
 # USER collections are permanent private data, retained outside source packages.
 # Only the engine-folder instructions belong in Git.

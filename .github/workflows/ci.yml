@@ -20,8 +20,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Check checked-in Web entry point
+      - name: Check Web source entry point
         run: |
-          cmp web/index.html web/dist/index.html
+          test -s web/manual.html
           grep -Fq '<canvas id="canvas"' web/index.html
           ! grep -Eq '^WEB_CFLAGS.*DESKTOP_BUILD' tracker/Makefile.web

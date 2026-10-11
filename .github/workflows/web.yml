@@ -1,47 +1,87 @@
 name: Web
 
 on:
-  workflow_dispatch:
   push:
-    tags:
-      - 'v*'
+    branches: ['personal/r36h']
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Build only, preview, or production
+        type: choice
+        options: [build, preview, production]
+        default: build
 
 permissions:
-  contents: write
+  contents: read
 
+# Do not cancel an in-flight production publication. Skip obsolete commits below.
 concurrency:
-  group: web-dist
-  cancel-in-progress: true
+  group: personal-web
+  cancel-in-progress: false
 
 jobs:
   web:
+    if: github.ref == 'refs/heads/personal/r36h'
     runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      DEPLOY_TARGET: ${{ github.event_name == 'push' && 'production' || inputs.target }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
       - uses: mymindstorm/setup-emsdk@v14
         with:
-          version: '6.0.6'
-      - name: Build Web bundle
-        run: |
-          em++ --version
-          make -C tracker -j2 -f Makefile.web web-deploy \
-            COMMON_CFLAGS='-std=c++17 -Wall -g -Os -DTEST'
-      - name: Commit generated Web bundle
-        run: |
-          if git diff --quiet -- web/dist; then
-            echo "web/dist is already up to date"
-            exit 0
-          fi
-          git config user.name github-actions[bot]
-          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add web/dist
-          git commit -m "build: update web bundle"
-          git fetch origin main
-          git rebase origin/main
-          git push origin HEAD:main
+          version: '6.0.10'
+          actions-cache-folder: .tmp/emsdk-cache
+      - name: Compile and validate fresh Web bundle
+        run: python3 tools/web_bundle.py build
       - uses: actions/upload-artifact@v4
-        if: always()
         with:
-          name: choochootracker-web
+          name: choochootracker-web-${{ github.sha }}
           path: web/dist/
           if-no-files-found: error
+      - uses: actions/setup-node@v4
+        if: env.DEPLOY_TARGET != 'build'
+        with:
+          node-version: '22'
+      - name: Deploy the validated bundle
+        if: env.DEPLOY_TARGET != 'build'
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          : "${VERCEL_TOKEN:?Set the VERCEL_TOKEN Actions secret}"
+          : "${VERCEL_ORG_ID:?Set the VERCEL_ORG_ID Actions secret}"
+          : "${VERCEL_PROJECT_ID:?Set the VERCEL_PROJECT_ID Actions secret}"
+          args=()
+          environment=preview
+          if [[ "$DEPLOY_TARGET" == production ]]; then
+            args+=(--prod)
+            environment=production
+          fi
+          npx --yes vercel@63.1.2 pull --yes --environment="$environment" --token="$VERCEL_TOKEN"
+          npx --yes vercel@63.1.2 build "${args[@]}" --token="$VERCEL_TOKEN"
+          python3 tools/web_bundle.py validate --require-clean --directory .vercel/output/static
+          if [[ "$DEPLOY_TARGET" == production ]]; then
+            head_sha=$(git ls-remote --exit-code origin refs/heads/personal/r36h | cut -f1)
+            if [[ "$head_sha" != "$GITHUB_SHA" ]]; then
+              echo 'A newer personal/r36h commit exists; skipping obsolete production publication.' >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+          fi
+          npx --yes vercel@63.1.2 deploy --prebuilt "${args[@]}" --yes --json --token="$VERCEL_TOKEN" \
+            --meta "githubCommitSha=$GITHUB_SHA" --meta 'githubCommitRef=personal/r36h' \
+            --meta "githubCommitRepo=${GITHUB_REPOSITORY#*/}" --meta "githubCommitOrg=${GITHUB_REPOSITORY%/*}" \
+            > "$RUNNER_TEMP/vercel-deployment.json"
+          url=$(python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); d=d.get("deployment",d); assert d["readyState"] == "READY", d; print(d.get("productionUrl") or d["url"])' "$RUNNER_TEMP/vercel-deployment.json")
+          printf 'Deployment: %s\nCommit: %s\n' "$url" "$GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+          if [[ "$DEPLOY_TARGET" == production ]]; then
+            curl --fail --silent --show-error --retry 3 "$url/build-info.json" -o "$RUNNER_TEMP/deployed-build-info.json"
+            cmp web/dist/build-info.json "$RUNNER_TEMP/deployed-build-info.json"
+            echo 'Verified public build-info.json matches the compiled artifact.' >> "$GITHUB_STEP_SUMMARY"
+          fi

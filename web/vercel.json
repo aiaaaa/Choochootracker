@@ -1,6 +1,7 @@
 {
-  "buildCommand": "echo Using prebuilt WebAssembly bundle",
+  "buildCommand": "echo 'Use the repository root and the Web GitHub Actions workflow' >&2; exit 1",
   "outputDirectory": "dist",
   "framework": null,
-  "cleanUrls": true
+  "cleanUrls": true,
+  "git": {"deploymentEnabled": false}
 }

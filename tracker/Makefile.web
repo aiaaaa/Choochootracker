@@ -35,9 +35,11 @@ web:
 	-sASSERTIONS=1 -sSTACK_SIZE=8388608 -sGL_ASSERTIONS=1
 	@cp ../web/index.html $(WEB_BUILD)/index.html
 	@cp ../web/privacy.html $(WEB_BUILD)/privacy.html
+	@cp ../web/manual.html $(WEB_BUILD)/manual.html
 
 web-deploy: web
 	@mkdir -p ../web/dist
 	@cp $(WEB_BUILD)/choochootracker.* ../web/dist/
 	@cp $(WEB_BUILD)/index.html ../web/dist/
 	@cp $(WEB_BUILD)/privacy.html ../web/dist/
+	@cp $(WEB_BUILD)/manual.html ../web/dist/

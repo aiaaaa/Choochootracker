@@ -44,14 +44,15 @@ Use `-j1` for the release build on the shared Windows/WSL workspace. See
 
 ## Web / Vercel
 
-From the repository root in MSYS2 Bash, activate the repository SDK with its
-bundled Python, then build the checked-in Vercel bundle:
+On `personal/r36h`, activate the existing Emscripten SDK, then from the
+repository root run:
 
 ```sh
-export EMSDK_PYTHON="$(pwd)/.tmp/emsdk/python/3.13.3_64bit/python.exe"
-source .tmp/emsdk/emsdk_env.sh
-make -C tracker -f Makefile.web web-deploy
+python3 tools/web_bundle.py build
+python3 -m http.server 8080 --directory web/dist
 ```
 
-Check `em++ --version` before the build. Native Windows `make` is not suitable
-for this target because the Makefile uses Unix commands.
+The Web action pins Emscripten 6.0.10 and deploys fresh output from the personal
+commit. Do not commit `web/dist`. See [deployment setup and validation](../docs/personal-web-deployment.md)
+and [Windows SDK activation](../docs/build-notes.md#web). Native Windows `make`
+is not suitable for this target because the Makefile uses Unix commands.

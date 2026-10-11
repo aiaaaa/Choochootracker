@@ -1,12 +1,17 @@
 {
-  "buildCommand": "echo Using prebuilt WebAssembly bundle",
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "python3 tools/web_bundle.py validate --require-clean",
+  "installCommand": "",
   "outputDirectory": "web/dist",
   "framework": null,
   "cleanUrls": true,
   "git": {
-    "deploymentEnabled": {
-      "main": true,
-      "*": false
+    "deploymentEnabled": false
+  },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [{"key": "Cache-Control", "value": "public, max-age=0, must-revalidate"}]
     }
-  }
+  ]
 }

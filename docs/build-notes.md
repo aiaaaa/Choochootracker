@@ -145,9 +145,13 @@ Set-Location tracker
   "EMXX=$empy $empp"
 ```
 
-The deploy target updates the checked-in browser bundle in `web/dist/`; Vercel
-serves it directly. Commit that directory after every WebAssembly source
-change. The bundled SDK requires its own Python, hence the explicit `EMXX`.
+On `personal/r36h`, run `python3 tools/web_bundle.py build` from the root
+with the SDK activated for a clean, validated deployment bundle. CI pins
+Emscripten 6.0.10 and publishes the exact artifact through Vercel. `web/dist`
+is ignored; do not commit generated binaries. The direct make command above
+is useful for compilation, but does not create the deployment manifest.
+See [personal web deployment](personal-web-deployment.md) for automation,
+account setup and local preview. The bundled Windows SDK requires its own Python.
 If Windows reports `clang++.exe: permission denied`, unblock the bundled
 compiler with `Unblock-File -LiteralPath .tmp\emsdk\upstream\bin\clang++.exe`,
 verify `clang++.exe --version`, then retry.
