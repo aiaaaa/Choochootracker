@@ -125,6 +125,7 @@ struct ChipNomadState {
   MasterEffects* masterEffects;
   AudioCommandQueue* audioCommands;
   AudioMonitor* audioMonitor;
+  int benchmarkBypassPan;
   PlaybackStatus uiPlaybackStatus;
 };
 

@@ -30,6 +30,11 @@ struct WebLoopContext {
   double lastDrawAt;
 };
 
+static int frameTimeUs;
+void mainLoopSetTargetFps(int) {}
+int mainLoopGetTargetFps(void) { return 30; }
+int mainLoopGetFrameTimeUs(void) { return frameTimeUs; }
+
 static void queueGamepadButton(WebLoopContext* context, int button, int down) {
   MainLoopEventData eventData;
   eventData.type = down ? MainLoopEvent::keyDown : MainLoopEvent::keyUp;
@@ -120,8 +125,10 @@ static void webLoopFrame(void* userdata) {
   const double now = emscripten_get_now();
   if (now - context->lastDrawAt < 1000.0 / 30.0 - 1.0) return;
   context->lastDrawAt = now;
+  const double startedAt = emscripten_get_now();
   context->draw();
   gfxUpdateScreen();
+  frameTimeUs = (int)((emscripten_get_now() - startedAt) * 1000.0);
 }
 
 void mainLoopRun(void (*draw)(void), void (*onEvent)(MainLoopEventData eventData)) {

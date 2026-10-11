@@ -612,13 +612,39 @@ static float panGain(int pan, int channel) {
   return gains[clampInt(pan, 0, 255)][channel];
 }
 
+struct TrackPanMix {
+  float leftGain = 1.0f, rightGain = 1.0f, amount = 0.0f, attenuation = 1.0f;
+  int direction = 0;
+  bool active = false;
+};
+
+static TrackPanMix makeTrackPanMix(ChipNomadState* state, int instrumentPan, int trackPan) {
+  TrackPanMix pan;
+  if (state->benchmarkBypassPan || (instrumentPan == 128 && trackPan == 128)) return pan;
+  pan.active = true;
+  pan.leftGain = panGain(instrumentPan, 0);
+  pan.rightGain = panGain(instrumentPan, 1);
+  if (trackPan < 128) {
+    pan.direction = -1;
+    pan.amount = (128 - trackPan) / 128.0f;
+  } else if (trackPan > 128) {
+    pan.direction = 1;
+    pan.amount = (trackPan - 128) / 127.0f;
+  }
+  pan.attenuation = 1.0f - pan.amount;
+  return pan;
+}
+
 static inline void mixTrackChannel(ChipNomadState* state, int trackIdx,
                                    float* mix, float* reverb, float* delay,
                                    float sample, int sampleIndex, float reverbSend,
                                    float delaySend) {
   int channel = sampleIndex & 1;
-  sample = state->trackTilt[trackIdx].process(sample, channel,
-    state->audioProject.trackTilt[trackIdx], state->audioProject.tiltPivotHz);
+  TrackTilt& tilt = state->trackTilt[trackIdx];
+  const uint8_t tiltValue = state->audioProject.trackTilt[trackIdx];
+  sample = tilt.isNeutral(tiltValue, state->audioProject.tiltPivotHz)
+    ? tilt.passThrough(sample, channel)
+    : tilt.process(sample, channel, tiltValue, state->audioProject.tiltPivotHz);
   if (state->insertActive[trackIdx]) {
     state->insertBuffer[(size_t)trackIdx * state->mixBufferSize + sampleIndex] += sample;
     return;
@@ -626,8 +652,8 @@ static inline void mixTrackChannel(ChipNomadState* state, int trackIdx,
   state->audioMonitor->add(trackIdx, sampleIndex, sample);
   float previous = *mix;
   *mix += sample;
-  *reverb += sample * reverbSend;
-  *delay += sample * delaySend;
+  if (reverbSend != 0.0f) *reverb += sample * reverbSend;
+  if (delaySend != 0.0f) *delay += sample * delaySend;
   if (fabsf(*mix) > 1.0f && fabsf(*mix) > fabsf(previous)) {
     state->trackClipping[trackIdx] = AUDIO_OVERLOAD_COOLDOWN_FRAMES;
   }
@@ -637,17 +663,17 @@ static inline void mixTrackFrame(ChipNomadState* state, int trackIdx,
                                  float* mix, float* reverb, float* delay,
                                  float left, float right, int frameIndex,
                                  float reverbSend, float delaySend,
-                                 int instrumentPan, int trackPan) {
-  left *= panGain(instrumentPan, 0);
-  right *= panGain(instrumentPan, 1);
-  if (trackPan < 128) {
-    float amount = (128 - trackPan) / 128.0f;
-    left += (right - left) * amount * 0.5f;
-    right *= 1.0f - amount;
-  } else if (trackPan > 128) {
-    float amount = (trackPan - 128) / 127.0f;
-    right += (left - right) * amount * 0.5f;
-    left *= 1.0f - amount;
+                                 const TrackPanMix& pan) {
+  if (pan.active) {
+    left *= pan.leftGain;
+    right *= pan.rightGain;
+    if (pan.direction < 0) {
+      left += (right - left) * pan.amount * 0.5f;
+      right *= pan.attenuation;
+    } else if (pan.direction > 0) {
+      right += (left - right) * pan.amount * 0.5f;
+      left *= pan.attenuation;
+    }
   }
   int sampleIndex = frameIndex * 2;
   mixTrackChannel(state, trackIdx, &mix[sampleIndex], &reverb[sampleIndex], &delay[sampleIndex],
@@ -1074,10 +1100,11 @@ static void renderChipTracks(ChipNomadState* state, float* output, int frames) {
     float delaySend = effectiveTrackSend(state, chipIdx, false);
     int instrumentPan = effectivePan(state, chipIdx, true);
     int trackPan = effectivePan(state, chipIdx, false);
+    TrackPanMix pan = makeTrackPanMix(state, instrumentPan, trackPan);
     for (int i = 0; i < frames; ++i)
       mixTrackFrame(state, chipIdx, output, state->reverbBuffer, state->delayBuffer,
                     rendered[i * 2] * gain, rendered[i * 2 + 1] * gain,
-                    i, reverbSend, delaySend, instrumentPan, trackPan);
+                    i, reverbSend, delaySend, pan);
   }
 }
 
@@ -1096,10 +1123,11 @@ static void renderMonoVoiceTracks(ChipNomadState* state, Voice* const voices[][C
       float delaySend = effectiveTrackSend(state, trackIdx, false);
       int instrumentPan = effectivePan(state, trackIdx, true);
       int trackPan = effectivePan(state, trackIdx, false);
+      TrackPanMix pan = makeTrackPanMix(state, instrumentPan, trackPan);
       for (int i = 0; i < frames; ++i) {
         float sample = rendered[i] * 0.25f * trackGain;
         mixTrackFrame(state, trackIdx, output, state->reverbBuffer, state->delayBuffer,
-                      sample, sample, i, reverbSend, delaySend, instrumentPan, trackPan);
+                      sample, sample, i, reverbSend, delaySend, pan);
       }
     }
   }
@@ -1120,10 +1148,11 @@ static void renderStereoVoiceTracks(ChipNomadState* state, Voice* const voices[]
       float delaySend = effectiveTrackSend(state, trackIdx, false);
       int instrumentPan = effectivePan(state, trackIdx, true);
       int trackPan = effectivePan(state, trackIdx, false);
+      TrackPanMix pan = makeTrackPanMix(state, instrumentPan, trackPan);
       for (int i = 0; i < frames; ++i)
         mixTrackFrame(state, trackIdx, output, state->reverbBuffer, state->delayBuffer,
                       rendered[i * 2] * gain, rendered[i * 2 + 1] * gain,
-                      i, reverbSend, delaySend, instrumentPan, trackPan);
+                      i, reverbSend, delaySend, pan);
     }
   }
 }
@@ -1162,8 +1191,8 @@ static void processTrackInserts(ChipNomadState* state, float* output, int frames
       float sample = samples[i], previous = output[i];
       state->audioMonitor->add(t, i, sample);
       output[i] += sample;
-      state->reverbBuffer[i] += sample * reverb;
-      state->delayBuffer[i] += sample * delay;
+      if (reverb != 0.0f) state->reverbBuffer[i] += sample * reverb;
+      if (delay != 0.0f) state->delayBuffer[i] += sample * delay;
       if (fabsf(output[i]) > 1.0f && fabsf(output[i]) > fabsf(previous)) state->trackClipping[t] = AUDIO_OVERLOAD_COOLDOWN_FRAMES;
     }
   }
@@ -1230,8 +1259,9 @@ int chipnomadRender(ChipNomadState* state, float* buffer, int samples) {
       float reverb=effectiveTrackSend(state,t,true),delay=effectiveTrackSend(state,t,false);
       int instrumentPan = effectivePan(state, t, true);
       int trackPan = effectivePan(state, t, false);
+      TrackPanMix pan = makeTrackPanMix(state, instrumentPan, trackPan);
       for(int i=0;i<frames;++i)
-        mixTrackFrame(state,t,output,state->reverbBuffer,state->delayBuffer,rendered[i]*gain,rendered[i]*gain,i,reverb,delay,instrumentPan,trackPan);
+        mixTrackFrame(state,t,output,state->reverbBuffer,state->delayBuffer,rendered[i]*gain,rendered[i]*gain,i,reverb,delay,pan);
     }
 
     renderStereoVoiceTracks(state,state->fourOpVoices,output,frames);
@@ -1251,11 +1281,12 @@ int chipnomadRender(ChipNomadState* state, float* buffer, int samples) {
       float delaySend = effectiveTrackSend(state, track, false);
       int instrumentPan = effectivePan(state, track, true);
       int trackPan = effectivePan(state, track, false);
+      TrackPanMix pan = makeTrackPanMix(state, instrumentPan, trackPan);
       for (int i = 0; i < frames; ++i) {
         float left = state->mixBuffer[opl ? i * 2 : i] * gain;
         float right = state->mixBuffer[opl ? i * 2 + 1 : i] * gain;
         mixTrackFrame(state, track, output, state->reverbBuffer, state->delayBuffer, left, right, i,
-                      reverbSend, delaySend, instrumentPan, trackPan);
+                      reverbSend, delaySend, pan);
       }
     }
     processTrackInserts(state, output, frames);

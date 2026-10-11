@@ -16,6 +16,19 @@
 #define FPS 60
 #endif
 
+static int requestedFps = FPS;
+static int frameTimeUs;
+
+void mainLoopSetTargetFps(int fps) {
+#if defined(PORTMASTER_BUILD) || defined(MIYOOPORTS_BUILD)
+  requestedFps = fps < 1 ? 1 : (fps > 60 ? 60 : fps);
+#else
+  (void)fps;
+#endif
+}
+int mainLoopGetTargetFps(void) { return requestedFps; }
+int mainLoopGetFrameTimeUs(void) { return frameTimeUs; }
+
 #ifdef GAMEPAD_SUPPORT
 // Gamepad support
 static SDL_GameController* gameController = NULL;
@@ -112,9 +125,9 @@ static int SDLCALL preserveRawTouchCoordinates(void*, SDL_Event* event) {
 #endif
 
 void mainLoopRun(void (*draw)(void), void (*onEvent)(MainLoopEventData eventData)) {
-  uint32_t delay = 1000 / FPS;
   uint32_t start;
   uint32_t busytime = 0;
+  uint32_t interactionUntil = 0;
   SDL_Event event;
   int menu = 0;
   MainLoopEventData eventData;
@@ -227,6 +240,7 @@ void mainLoopRun(void (*draw)(void), void (*onEvent)(MainLoopEventData eventData
     start = SDL_GetTicks();
 
     while (SDL_PollEvent(&event)) {
+      interactionUntil = SDL_GetTicks() + 250;
       // The Menu+X quit combo mirrors a physical button chord on handhelds
       // without an easy way back to a Quit menu item (PortMaster/consoles).
       // On desktop, Menu/X happen to be bound to Ctrl/S, which makes Ctrl+S
@@ -578,6 +592,13 @@ void mainLoopRun(void (*draw)(void), void (*onEvent)(MainLoopEventData eventData
     gfxUpdateScreen();
 
     busytime = SDL_GetTicks() - start;
+    frameTimeUs = (int)(busytime * 1000);
+#if defined(PORTMASTER_BUILD) || defined(MIYOOPORTS_BUILD)
+    int targetFps = SDL_GetTicks() < interactionUntil ? 60 : requestedFps;
+#else
+    int targetFps = FPS;
+#endif
+    uint32_t delay = 1000 / (uint32_t)targetFps;
     if (delay > busytime) {
       SDL_Delay(delay - busytime);
     }

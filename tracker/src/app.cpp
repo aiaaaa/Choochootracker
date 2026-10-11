@@ -53,6 +53,11 @@ static int audioProjectDirty;
 static MidiCCMapping midiCCApplied[PROJECT_MAX_MIDI_CC_MAPPINGS];
 static uint8_t midiCCAppliedValue[PROJECT_MAX_MIDI_CC_MAPPINGS];
 static uint8_t midiCCAppliedValid[PROJECT_MAX_MIDI_CC_MAPPINGS];
+
+static bool monitorNeeded(void) {
+  return (currentScreen == &screenMixer && screenMixerGetPage() == 0) ||
+    screenScopeRows(currentScreen) != 0;
+}
 static uint32_t midiCCAppliedSerial[PROJECT_MAX_MIDI_CC_MAPPINGS];
 
 // Port indices aren't saved (see common.h's AppSettings comment): this
@@ -477,6 +482,8 @@ void appCleanup(void) {
 void appDraw(void) {
   const ColorScheme cs = appSettings.colorScheme;
 
+  monitorDisplaySetActive(monitorNeeded());
+  mainLoopSetTargetFps(monitorDisplayActive() ? appSettings.waveformRefreshHz : 30);
   monitorDisplayUpdate();
   screenDraw();
 
