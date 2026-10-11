@@ -143,7 +143,7 @@ static void scaleUpdateHint(int ownsBar) {
   }
   if (issued) {
     if (!ownsBar || strcmp(issued, scaleHintOwnedText) != 0) {
-      screenMessage(2, "%s", issued);
+      screenMessage(0, "%s", issued);
       snprintf(scaleHintOwnedText, sizeof(scaleHintOwnedText), "%s",
                screenGetActiveMessage());
     }

@@ -133,9 +133,8 @@ static InstrumentSample* currentSample(void) {
 }
 
 // Contextual combo hints (session-only): while the cursor rests on a Slice
-// row cell, draw() shows a hint for that cell in the message bar. Every
-// Slice cell has one persistent hint, re-issued every frame: the mode
-// cell's hint is bound to the active slice mode (switches instantly when
+// row cell, draw() shows a persistent hint for that cell in the message bar.
+// The mode cell's hint is bound to the active slice mode (switches instantly when
 // the mode changes, disappears when the mode turns OFF), the other cells
 // show their fixed combo description. All hints pause while any other
 // message is active.
@@ -148,8 +147,8 @@ static char hintOwnedText[48];
 
 // Advance the hint for the given cell. Called from draw() when the message
 // bar is empty or holds the hint we set. ownsBar tells whether the bar
-// currently shows our hint (a persistent hint re-arms every frame; a
-// foreign message pauses everything until it expires).
+// currently shows our hint; a foreign message pauses everything until it
+// expires).
 static void settingsUpdateHint(int row, int col, int ownsBar) {
   const int changed = row != hintCursorRow || col != hintCursorCol;
   if (changed) {
@@ -182,8 +181,8 @@ static void settingsUpdateHint(int row, int col, int ownsBar) {
     issued = "Adjust slice start";
   }
   if (issued) {
-    if (!ownsBar || changed) {
-      screenMessage(2, "%s", issued);
+    if (!ownsBar || changed || strcmp(issued, hintOwnedText) != 0) {
+      screenMessage(0, "%s", issued);
       // Copy the bar text (post-truncation) so the ownership comparison
       // next frame matches exactly what is displayed.
       snprintf(hintOwnedText, sizeof(hintOwnedText), "%s",
