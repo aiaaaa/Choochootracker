@@ -301,6 +301,17 @@ FileEntry* fileListDirectory(const char* path, const char* extension, int* entry
   }
 
   closedir(dir);
+#ifdef ANDROID_BUILD
+  // /storage/emulated is not listable by apps: no way back from there, so
+  // user storage is the top of the tree.
+  if (strcmp(path, "/storage/emulated/0") == 0) {
+    int kept = 0;
+    for (int i = 0; i < count; i++) {
+      if (strcmp(entries[i].name, "..") != 0) entries[kept++] = entries[i];
+    }
+    count = kept;
+  }
+#endif
   *entryCount = count;
   return entries;
 }
