@@ -1,5 +1,18 @@
 # ChooChooTracker agent notes
 
+## Personal branch targets
+
+- `main` remains the clean upstream mirror. `personal/r36h` is the shared source
+  for both the device personal build (R36H) and the independently deployed web app.
+- Integrate upstream/main updates into personal while retaining personal
+  experiments. When upstream incorporates a feature, reconcile with its accepted
+  implementation rather than retaining duplicate implementations. Do not reset
+  personal to main or merge personal into main.
+- Keep device and browser platform differences explicit and test both affected
+  targets. A successful web deployment does not establish feature parity: record
+  features that still need a browser port. Private songs/preset banks are user
+  data, separate from source and public deployment assets.
+
 ## Builds
 
 - Windows: run from `tracker` with MSYS2 UCRT64: `make -j4 windows`.

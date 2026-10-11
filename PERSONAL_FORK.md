@@ -1,5 +1,23 @@
 # My R36H build
 
+## Two personal build targets
+
+`personal/r36h` is the common source for the **device personal build** (R36H)
+and the **personal web app**. `main` remains a clean upstream mirror. Integrate
+new upstream changes into personal while retaining the personal experiments;
+reconcile features adopted upstream instead of keeping duplicate versions.
+Check both affected targets when shared code changes. Neither target is a
+separate application codebase, and personal is not merged back into main.
+
+Browser settings, songs and imported USER presets are local to each browser/site;
+device data does not synchronize automatically. Personal assets stay private.
+Platform-specific gaps must be documented explicitly: Lucky currently needs a
+browser backend, while its existing native implementation remains in personal.
+See [web deployment](docs/personal-web-deployment.md) for the build and storage
+details.
+
+## Device history
+
 `personal/r36h` is the full device personal build. It includes Lucky and the
 personal additions alongside upstream main, plus the Rotary speed, contextual
 insert help, active TF1/TF2 selection and Shift navigation changes tested on

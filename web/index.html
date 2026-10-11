@@ -52,14 +52,16 @@
     <h1>CHOOCHOO TRACKER / WEB</h1>
     <button id="start">Start tracker</button>
     <div id="status"></div>
-    <div id="file-controls" aria-label="Project and sample files">
+    <div id="file-controls" aria-label="Project, sample and preset files">
       <button id="import-project" disabled>Import .cct</button>
       <button id="import-samples" disabled>Import WAVs</button>
       <button id="import-folder" disabled>Import sample folder</button>
+      <button id="import-presets" disabled title="Choose an instruments or USER folder. Existing files are kept. Stored only in this browser.">Import presets</button>
       <button id="export-project" disabled>Download .cct</button>
       <input id="project-input" type="file" accept=".cct" hidden>
       <input id="sample-input" type="file" accept=".wav,audio/wav" multiple hidden>
       <input id="sample-folder-input" type="file" accept=".wav,audio/wav" webkitdirectory multiple hidden>
+      <input id="preset-folder-input" type="file" webkitdirectory multiple hidden>
     </div>
     <div class="links"><a href="manual.html">Manual</a><a href="https://github.com/paiheulevrai/Choochootracker">GitHub</a></div>
     <canvas id="canvas" width="640" height="480" tabindex="0" aria-label="ChooChooTracker"></canvas>
@@ -84,6 +86,8 @@
     const fileControls = document.querySelectorAll('#file-controls button');
     let trackerStarted = false;
     let storageSyncing = false;
+    let storagePending = false;
+    let storageCallbacks = [];
     const getFs = () => (typeof FS !== 'undefined' ? FS : (window.Module && window.Module.FS));
 
     const userPath = (name) => name.split('/').filter((part) => part && part !== '.' && part !== '..').join('/');
@@ -91,15 +95,22 @@
       fs.mkdirTree('/user/projects');
       fs.mkdirTree('/user/samples');
       fs.mkdirTree('/user/exports');
+      fs.mkdirTree('/user/instruments/USER');
+      fs.mkdirTree('/user/instruments/banks');
     };
     const syncUserStorage = (done) => {
       const fs = getFs();
-      if (!fs || storageSyncing) return;
+      if (!fs) { if (done) done(new Error('Tracker is not ready.')); return; }
+      if (done) storageCallbacks.push(done);
+      if (storageSyncing) { storagePending = true; return; }
+      const callbacks = storageCallbacks;
+      storageCallbacks = [];
       storageSyncing = true;
       fs.syncfs(false, (error) => {
         storageSyncing = false;
         if (error) status.textContent = 'Could not save browser storage.';
-        if (done) done(error);
+        callbacks.forEach((callback) => callback(error));
+        if (storagePending) { storagePending = false; syncUserStorage(); }
       });
     };
     window.choochooDownloadFile = (path) => {
@@ -190,6 +201,42 @@
     };
     document.querySelector('#sample-input').addEventListener('change', importSamples);
     document.querySelector('#sample-folder-input').addEventListener('change', importSamples);
+    const presetEngines = new Set(['arcade', 'dx7', 'gb-noise', 'gb-pulse', 'genesis',
+      'opl2', 'opl3', 'opll', 'sega', 'sid', 'vrc7']);
+    const presetPath = (relative) => {
+      const parts = relative.split('/');
+      if (parts.some((part) => !part || part.startsWith('.') || part.includes('\\'))) return null;
+      if (parts[0] === 'instruments') parts.shift();
+      if (parts.length < 3 || !['USER', 'banks'].includes(parts[0]) || !presetEngines.has(parts[1])) return null;
+      return '/user/instruments/' + parts.join('/');
+    };
+    document.querySelector('#import-presets').addEventListener('click', () => document.querySelector('#preset-folder-input').click());
+    document.querySelector('#preset-folder-input').addEventListener('change', async (event) => {
+      const fs = getFs();
+      if (!fs || !event.target.files.length) return;
+      const button = document.querySelector('#import-presets');
+      button.disabled = true;
+      let imported = 0, kept = 0, ignored = 0, failed = false;
+      try {
+        for (const file of event.target.files) {
+          const path = presetPath(file.webkitRelativePath);
+          if (!path) { ignored++; continue; }
+          if (fs.analyzePath(path).exists) { kept++; continue; }
+          const bytes = new Uint8Array(await file.arrayBuffer());
+          fs.mkdirTree(path.slice(0, path.lastIndexOf('/')));
+          fs.writeFile(path, bytes);
+          imported++;
+          status.textContent = 'Importing presets: ' + imported + ' files…';
+        }
+      } catch (_) { failed = true; }
+      const error = await new Promise((resolve) => syncUserStorage(resolve));
+      status.textContent = error ? 'Presets are in memory, but browser storage failed. Keep the originals and retry.' :
+        failed ? 'Import interrupted after ' + imported + ' files. Choose the folder again to finish; existing files are kept.' :
+        !imported && !kept ? 'Choose the instruments or USER folder containing engine folders such as dx7 and genesis.' :
+        imported + ' preset files saved in this browser; ' + kept + ' existing files kept, ' + ignored + ' files skipped. Reopen Bank → USER to browse.';
+      event.target.value = '';
+      button.disabled = false;
+    });
     document.querySelector('#export-project').addEventListener('click', () => {
       const path = '/user/exports/choochootracker.cct';
       if (window.Module.ccall('webSaveProject', 'number', ['string'], [path]) !== 0) {

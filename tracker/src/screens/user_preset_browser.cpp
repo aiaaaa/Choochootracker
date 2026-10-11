@@ -107,6 +107,9 @@ bool setupUserPresetLibrary(UserPresets& target, InstrumentType type) {
     if (fileGetDefaultDirectory(directory, sizeof(directory))) return false;
     base = std::string(directory) + "/instruments/";
   }
+#ifdef WEB_BUILD
+  base = "/user/instruments/"; // Imported libraries live in persistent browser storage.
+#endif
   target.setup(base + "USER/" + subfolder, type, base + "banks/" + subfolder);
   return true;
 }

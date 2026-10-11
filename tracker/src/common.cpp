@@ -10,6 +10,9 @@ static char settingsPath[PATH_LENGTH + 32];
 static char autosavePath[PATH_LENGTH + 32];
 static char lineBuffer[1024];
 static const int kAudioSampleRate = 48000;
+#ifdef WEB_BUILD
+static const char* kWebPersonalFont = "/fonts/Pixel16x24/02_DepartureMono.cnfont";
+#endif
 
 AppSettings appSettings;
 
@@ -139,6 +142,10 @@ void initDefaultAppSettings(void) {
   appSettings.themePath[PATH_LENGTH] = '\0';
   appSettings.fontFolderPath[PATH_LENGTH] = '\0';
   appSettings.fontPath[0] = '\0';
+#ifdef WEB_BUILD
+  strncpy(appSettings.fontPath, kWebPersonalFont, PATH_LENGTH);
+  appSettings.persistentWaveform = 1;
+#endif
 }
 
 int* pSongRow;
@@ -243,6 +250,9 @@ int settingsSave(void) {
   fprintf(file, "ayWavetablePath: %s\n", appSettings.ayWavetablePath);
   fprintf(file, "scwfPath: %s\n", appSettings.scwfPath);
   fprintf(file, "srWavetablePath: %s\n", appSettings.srWavetablePath);
+#ifdef WEB_BUILD
+  fprintf(file, "webPersonalAppearance: 1\n");
+#endif
 
   fclose(file);
   return 0;
@@ -262,6 +272,9 @@ int settingsLoad(void) {
 
   FILE* file = fopen(settingsPath, "r");
   if (file == NULL) return 1;
+#ifdef WEB_BUILD
+  bool personalAppearanceApplied = false;
+#endif
 
   while (fgets(lineBuffer, sizeof(lineBuffer), file) != NULL) {
     char* line = lineBuffer;
@@ -272,6 +285,12 @@ int settingsLoad(void) {
       len--;
     }
 
+#ifdef WEB_BUILD
+    if (strcmp(line, "webPersonalAppearance: 1") == 0) {
+      personalAppearanceApplied = true;
+      continue;
+    }
+#endif
     if (strncmp(line, "persistentWaveform: ", 20) == 0) {
       int enabled;
       if (sscanf(line + 20, "%d", &enabled) == 1 && (enabled == 0 || enabled == 1))
@@ -470,6 +489,15 @@ int settingsLoad(void) {
     if (appSettings.midiChannelInstrument[i] < -1 || appSettings.midiChannelInstrument[i] >= PROJECT_MAX_INSTRUMENTS)
       appSettings.midiChannelInstrument[i] = -1;
   }
+#ifdef WEB_BUILD
+  // Apply the requested appearance once to older browser profiles. Later
+  // user choices survive deployments; controller mappings are never reset.
+  if (!personalAppearanceApplied) {
+    strncpy(appSettings.fontPath, kWebPersonalFont, PATH_LENGTH);
+    appSettings.persistentWaveform = 1;
+    settingsSave();
+  }
+#endif
   return 0;
 }
 

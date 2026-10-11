@@ -135,6 +135,12 @@ assets into tracked packaging directories to prepare a web build.
 
 ## Browser behavior and personal features
 
+The personal web defaults are Departure Mono and persistent waveform ON.
+An older browser profile receives those two appearance choices once, marked by
+`webPersonalAppearance: 1` in its settings. Existing key mappings, colors and
+other settings are preserved. After that migration, manual appearance changes
+remain saved across deployments. Native defaults are unchanged.
+
 The build retains shared personal fonts/themes, piano and mixer meters,
 waveform choices, native chip engines and factory banks, insert effects,
 rotary-rate/popup navigation, preset collection/import code and wavetable fixes.
@@ -158,7 +164,17 @@ file imports and downloads also request a sync. Browser storage can be denied,
 evicted, cleared or lost in private mode; pagehide is not a durability guarantee.
 Settings/autosave and imported projects use the existing web paths. Public
 factory assets outside `/user` are rebuilt in memory at each load. Keep downloaded
-project backups; the current wrapper has no dedicated external bank-upload UI.
+project backups. **Import presets** accepts an `instruments` folder containing
+`USER/<engine>/...` (and optionally `banks/<engine>/...`), or the `USER` folder
+itself. Files stay in this browser's `/user/instruments`, backed by IDBFS; they
+are never uploaded to Vercel or included in the public bundle. ZIP banks stay
+zipped and collection subfolders are preserved. Existing paths are kept rather
+than overwritten; choose the folder again to complete an interrupted import.
+Hidden files, unknown engine folders and FACTORY are skipped. Reopen an
+instrument's Bank → USER to refresh the list; ALL uses the same imported library.
+Keep the original library: changing browser/domain or clearing site storage
+requires reimport. Mobile folder-picker support varies; import on each browser
+where you want the library. Native USER paths and defaults are unchanged.
 
 ## Later styling and website integration
 
@@ -189,6 +205,14 @@ COOP/COEP. Subpath reverse-proxy hosting and embedding remain untested; prefer a
 subdomain/link first. No iframe or website integration is implemented now.
 
 ## Validation record
+
+Personal preset/appearance follow-up, 2026-10-11: fresh Wasm build and asset
+validation passed; 27 focused native cases / 4,406 assertions passed. An isolated
+Chromium session imported the 677-file local private library, matched every file
+hash after reload, preserved existing files on repeat import, and opened USER
+ZIP collections in the tracker. No upload requests occurred. Fresh appearance,
+one-time legacy migration, preservation of Pad X mapping and later manual
+appearance choices passed. Physical Safari/iOS import still needs user checking.
 
 Validated locally on 2026-10-11 against the personal source at `6130710` plus
 these deployment changes:
