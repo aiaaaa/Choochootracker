@@ -27,12 +27,6 @@
 #include "midi/midi_router.h"
 #include <math.h>
 #include <atomic>
-#ifndef WEB_BUILD
-#include <condition_variable>
-#include <mutex>
-#include <thread>
-#include <vector>
-#endif
 #include <new>
 #include <limits.h>
 #include <stdlib.h>
@@ -62,112 +56,6 @@ static int instrumentFXCutoff(uint8_t value);
 static int slewEngineFX(PlaybackTrackState*, FX, int);
 static void updateInsertValues(ChipNomadState*);
 
-struct RenderJob {
-  void (*render)(void*, float*, int);
-  void* voice;
-  int scratchIndex;
-};
-
-#ifndef WEB_BUILD
-class RenderWorkerPool {
- public:
-  RenderWorkerPool(int workers, int samples) : samples_(samples) {
-    if (workers < 1 || samples < 1 ||
-        (size_t)samples > SIZE_MAX / (PROJECT_MAX_TRACKS * CHORD_MAX_VOICES * sizeof(float))) return;
-    scratch_ = (float*)malloc((size_t)samples * PROJECT_MAX_TRACKS * CHORD_MAX_VOICES * sizeof(float));
-    if (!scratch_) return;
-    try {
-      for (int i = 0; i < workers; ++i) workers_.emplace_back(&RenderWorkerPool::worker, this);
-    } catch (...) {
-      stop();
-      free(scratch_); scratch_ = NULL;
-    }
-  }
-  ~RenderWorkerPool() { stop(); free(scratch_); }
-  bool ready() const { return scratch_ && !workers_.empty(); }
-  float* scratch(int index) { return scratch_ + (size_t)index * samples_; }
-  bool resize(int samples) {
-    if (samples == samples_) return true;
-    if (samples < 1 || (size_t)samples > SIZE_MAX / (PROJECT_MAX_TRACKS * CHORD_MAX_VOICES * sizeof(float))) return false;
-    float* replacement = (float*)realloc(scratch_, (size_t)samples * PROJECT_MAX_TRACKS * CHORD_MAX_VOICES * sizeof(float));
-    if (!replacement) return false;
-    scratch_ = replacement; samples_ = samples; return true;
-  }
-  void run(RenderJob* jobs, int count, int frames) {
-    if (count <= 0) return;
-    {
-      std::lock_guard<std::mutex> lock(mutex_);
-      jobs_ = jobs; count_ = count; frames_ = frames;
-      next_.store(0, std::memory_order_relaxed);
-      completed_.store(0, std::memory_order_relaxed);
-      ++generation_;
-    }
-    workReady_.notify_all();
-    execute(jobs, count, frames); // The audio callback is also a renderer.
-    std::unique_lock<std::mutex> lock(mutex_);
-    done_.wait(lock, [this, count] { return completed_.load(std::memory_order_acquire) == count; });
-  }
- private:
-  void execute(RenderJob* jobs, int count, int frames) {
-    for (;;) {
-      int index = next_.fetch_add(1, std::memory_order_relaxed);
-      if (index >= count) break;
-      RenderJob& job = jobs[index];
-      job.render(job.voice, scratch(job.scratchIndex), frames);
-      if (completed_.fetch_add(1, std::memory_order_release) + 1 == count) done_.notify_one();
-    }
-  }
-  void worker() {
-    unsigned seen = 0;
-    std::unique_lock<std::mutex> lock(mutex_);
-    while (!stopping_) {
-      workReady_.wait(lock, [this, &seen] { return stopping_ || generation_ != seen; });
-      if (stopping_) break;
-      seen = generation_;
-      RenderJob* jobs = jobs_;
-      int count = count_, frames = frames_;
-      lock.unlock(); execute(jobs, count, frames); lock.lock();
-    }
-  }
-  void stop() {
-    { std::lock_guard<std::mutex> lock(mutex_); stopping_ = true; ++generation_; }
-    workReady_.notify_all();
-    for (auto& thread : workers_) if (thread.joinable()) thread.join();
-    workers_.clear();
-  }
-  float* scratch_ = NULL;
-  int samples_ = 0, count_ = 0, frames_ = 0;
-  RenderJob* jobs_ = NULL;
-  std::vector<std::thread> workers_;
-  std::mutex mutex_;
-  std::condition_variable workReady_, done_;
-  std::atomic<int> next_{0}, completed_{0};
-  unsigned generation_ = 0;
-  bool stopping_ = false;
-};
-#endif
-
-template <typename Voice>
-static void renderJob(void* voice, float* output, int frames) {
-  static_cast<Voice*>(voice)->render(output, frames);
-}
-
-static bool renderParallel(ChipNomadState* state, RenderJob* jobs, int count, int frames) {
-#ifndef WEB_BUILD
-  if (state->renderWorkers && count > 1) { state->renderWorkers->run(jobs, count, frames); return true; }
-#else
-  (void)state; (void)jobs; (void)count; (void)frames;
-#endif
-  return false;
-}
-
-static float* renderScratch(ChipNomadState* state, int index) {
-#ifndef WEB_BUILD
-  return state->renderWorkers->scratch(index);
-#else
-  (void)state; (void)index; return NULL;
-#endif
-}
 class AudioCommandQueue {
  public:
   void requestStop() { stopRequested_.store(1, std::memory_order_release); }
@@ -262,6 +150,12 @@ class AudioCommandQueue {
         case kStartChain: playbackStartChain(playback, command.a, command.b, command.c, command.d); break;
         case kStartPhrase: playbackStartPhrase(playback, command.a, command.b, command.c, command.d); break;
         case kStartPhraseRow: playbackStartPhraseRow(playback, command.a, const_cast<PhraseRow*>(&command.row)); break;
+        case kStartPhraseRowFull:
+          // Set the bypass AFTER playbackStartPhraseRow: resetTrack inside
+          // clears the flag, so setting it first would be undone.
+          playbackStartPhraseRow(playback, command.a, const_cast<PhraseRow*>(&command.row));
+          playback->tracks[command.a].sliceBypass = 1;
+          break;
         case kQueuePhrase: playbackQueuePhrase(playback, command.a, command.b, command.c); break;
         case kStartLiveChain: playbackStartLiveChain(playback, command.a, command.b); break;
         case kQueueLiveChain: playbackQueueLiveChain(playback, command.a, command.b, command.c); break;
@@ -350,7 +244,9 @@ class AudioCommandQueue {
   template <typename T> struct Slot { T value; std::atomic<int> state{kFree}; };
   struct Settings { uint64_t trackMask = ~UINT64_C(0); LoopRange loopRange{}; uint8_t loopDirty = 0; };
   struct AudioCommand { uint8_t type; int a, b, c, d; PhraseRow row; InstrumentOPLL patch; InstrumentOPL opl; InstrumentSimpleChip simple; InstrumentDX7 dx7; InstrumentFourOp fourOp; InstrumentSID sid; };
-  enum CommandType { kStartSong, kStartChain, kStartPhrase, kStartPhraseRow, kQueuePhrase, kPreviewNote, kStopPreview, kClearTrackFX, kStartLiveChain, kQueueLiveChain, kSetScale, kChipPreview, kOPLPreview, kSimplePreview };
+  // kStartPhraseRowFull is appended after upstream's preview commands so the
+  // raw command IDs 14/15/16 used by applyCommands keep their meaning.
+  enum CommandType { kStartSong, kStartChain, kStartPhrase, kStartPhraseRow, kQueuePhrase, kPreviewNote, kStopPreview, kClearTrackFX, kStartLiveChain, kQueueLiveChain, kSetScale, kChipPreview, kOPLPreview, kSimplePreview, kStartPhraseRowFull = 17 };
   static constexpr unsigned int kSlotCount = 3;
   static constexpr unsigned int kCommandCapacity = 64;
 
@@ -716,13 +612,39 @@ static float panGain(int pan, int channel) {
   return gains[clampInt(pan, 0, 255)][channel];
 }
 
+struct TrackPanMix {
+  float leftGain = 1.0f, rightGain = 1.0f, amount = 0.0f, attenuation = 1.0f;
+  int direction = 0;
+  bool active = false;
+};
+
+static TrackPanMix makeTrackPanMix(ChipNomadState* state, int instrumentPan, int trackPan) {
+  TrackPanMix pan;
+  if (state->benchmarkBypassPan || (instrumentPan == 128 && trackPan == 128)) return pan;
+  pan.active = true;
+  pan.leftGain = panGain(instrumentPan, 0);
+  pan.rightGain = panGain(instrumentPan, 1);
+  if (trackPan < 128) {
+    pan.direction = -1;
+    pan.amount = (128 - trackPan) / 128.0f;
+  } else if (trackPan > 128) {
+    pan.direction = 1;
+    pan.amount = (trackPan - 128) / 127.0f;
+  }
+  pan.attenuation = 1.0f - pan.amount;
+  return pan;
+}
+
 static inline void mixTrackChannel(ChipNomadState* state, int trackIdx,
                                    float* mix, float* reverb, float* delay,
                                    float sample, int sampleIndex, float reverbSend,
                                    float delaySend) {
   int channel = sampleIndex & 1;
-  sample = state->trackTilt[trackIdx].process(sample, channel,
-    state->audioProject.trackTilt[trackIdx], state->audioProject.tiltPivotHz);
+  TrackTilt& tilt = state->trackTilt[trackIdx];
+  const uint8_t tiltValue = state->audioProject.trackTilt[trackIdx];
+  sample = tilt.isNeutral(tiltValue, state->audioProject.tiltPivotHz)
+    ? tilt.passThrough(sample, channel)
+    : tilt.process(sample, channel, tiltValue, state->audioProject.tiltPivotHz);
   if (state->insertActive[trackIdx]) {
     state->insertBuffer[(size_t)trackIdx * state->mixBufferSize + sampleIndex] += sample;
     return;
@@ -730,8 +652,8 @@ static inline void mixTrackChannel(ChipNomadState* state, int trackIdx,
   state->audioMonitor->add(trackIdx, sampleIndex, sample);
   float previous = *mix;
   *mix += sample;
-  *reverb += sample * reverbSend;
-  *delay += sample * delaySend;
+  if (reverbSend != 0.0f) *reverb += sample * reverbSend;
+  if (delaySend != 0.0f) *delay += sample * delaySend;
   if (fabsf(*mix) > 1.0f && fabsf(*mix) > fabsf(previous)) {
     state->trackClipping[trackIdx] = AUDIO_OVERLOAD_COOLDOWN_FRAMES;
   }
@@ -741,17 +663,17 @@ static inline void mixTrackFrame(ChipNomadState* state, int trackIdx,
                                  float* mix, float* reverb, float* delay,
                                  float left, float right, int frameIndex,
                                  float reverbSend, float delaySend,
-                                 int instrumentPan, int trackPan) {
-  left *= panGain(instrumentPan, 0);
-  right *= panGain(instrumentPan, 1);
-  if (trackPan < 128) {
-    float amount = (128 - trackPan) / 128.0f;
-    left += (right - left) * amount * 0.5f;
-    right *= 1.0f - amount;
-  } else if (trackPan > 128) {
-    float amount = (trackPan - 128) / 127.0f;
-    right += (left - right) * amount * 0.5f;
-    left *= 1.0f - amount;
+                                 const TrackPanMix& pan) {
+  if (pan.active) {
+    left *= pan.leftGain;
+    right *= pan.rightGain;
+    if (pan.direction < 0) {
+      left += (right - left) * pan.amount * 0.5f;
+      right *= pan.attenuation;
+    } else if (pan.direction > 0) {
+      right += (left - right) * pan.amount * 0.5f;
+      left *= pan.attenuation;
+    }
   }
   int sampleIndex = frameIndex * 2;
   mixTrackChannel(state, trackIdx, &mix[sampleIndex], &reverb[sampleIndex], &delay[sampleIndex],
@@ -843,8 +765,6 @@ ChipNomadState* chipnomadCreate(void) {
 void chipnomadDestroy(ChipNomadState* state) {
   if (!state) return;
 
-  chipnomadConfigureRealtimeWorkers(state, 0);
-
   // Cleanup chips
   for (int i = 0; i < PROJECT_MAX_CHIPS; i++) {
     if (state->chips[i]) {
@@ -882,6 +802,7 @@ void chipnomadDestroy(ChipNomadState* state) {
   if (state->ownsProjectResources) projectFree(&state->project);
 
   for (auto* chain : state->insertChains) delete chain;
+  delete state->masterInsertChain;
   free(state->insertBuffer);
   // Cleanup mix buffer
   free(state->mixBuffer);
@@ -914,6 +835,10 @@ void chipnomadInitChips(ChipNomadState* state, int sampleRate, ChipFactory facto
   memset(state->chips, 0, sizeof(state->chips));
   state->sampleRate = sampleRate;
   state->masterEffects->init((float)sampleRate);
+  delete state->masterInsertChain;
+  state->masterInsertChain = new(std::nothrow) InsertChain((float)sampleRate);
+  if (state->masterInsertChain)
+    state->masterInsertChain->sync(state->audioProject.masterInserts, &state->masterInsertAutomation);
   state->sidPreview->init((float)sampleRate);
   state->simpleChipPreview->init((float)sampleRate);
   state->fourOpPreview->init((float)sampleRate);
@@ -971,30 +896,7 @@ int chipnomadReserveRenderBuffers(ChipNomadState* state, int frames) {
   int requiredSize = frames * 2;
   if (!state->audioMonitor->reserve(frames)) return 1;
   if (!(requiredSize <= state->mixBufferSize || resizeMixBuffers(state, requiredSize))) return 1;
-#ifndef WEB_BUILD
-  if (state->renderWorkers && !state->renderWorkers->resize(state->mixBufferSize)) {
-    delete state->renderWorkers;
-    state->renderWorkers = NULL;
-  }
-#endif
   return 0;
-}
-
-int chipnomadConfigureRealtimeWorkers(ChipNomadState* state, int requestedWorkers) {
-  if (!state) return 0;
-#ifdef WEB_BUILD
-  (void)requestedWorkers;
-  return 0;
-#else
-  delete state->renderWorkers;
-  state->renderWorkers = NULL;
-  if (requestedWorkers < 1) return 0;
-  if (requestedWorkers > PROJECT_MAX_TRACKS - 1) requestedWorkers = PROJECT_MAX_TRACKS - 1;
-  RenderWorkerPool* pool = new(std::nothrow) RenderWorkerPool(requestedWorkers, state->mixBufferSize);
-  if (!pool || !pool->ready()) { delete pool; return 0; }
-  state->renderWorkers = pool;
-  return requestedWorkers;
-#endif
 }
 
 int chipnomadQueueTrackEnabled(ChipNomadState* state, const uint8_t enabled[PROJECT_MAX_TRACKS]) {
@@ -1028,6 +930,16 @@ int chipnomadQueuePlaybackStartPhrase(ChipNomadState* state, int trackIdx, int s
 }
 int chipnomadQueuePlaybackStartPhraseRow(ChipNomadState* state, int trackIdx, const PhraseRow* row) {
   return state && state->audioCommands && row ? state->audioCommands->pushCommand(3, trackIdx, 0, 0, 0, row) : 0;
+}
+// Full-sample one-shot preview of a LAZY sample: same as StartPhraseRow but
+// sets the track's sliceBypass flag so the voice ignores slice mapping and
+// the row's note pitch, playing the whole region at the sample's original
+// pitch and speed.
+int chipnomadQueuePlaybackStartPhraseRowFull(ChipNomadState* state, int trackIdx, const PhraseRow* row) {
+  // kStartPhraseRowFull is appended after upstream's preview commands; the
+  // numeric value must match the enum (raw IDs 14/15/16 are taken). The enum
+  // is private, so the raw literal is used, matching upstream's own pushes.
+  return state && state->audioCommands && row ? state->audioCommands->pushCommand(17, trackIdx, 0, 0, 0, row) : 0;
 }
 int chipnomadQueuePlaybackQueuePhrase(ChipNomadState* state, int trackIdx, int songRow, int chainRow) {
   return state && state->audioCommands ? state->audioCommands->pushCommand(4, trackIdx, songRow, chainRow) : 0;
@@ -1120,6 +1032,8 @@ static int advancePlaybackFrame(ChipNomadState* state, uint64_t dueMicros) {
       track.slewRemaining[fxF11 + address] = 0;
     }
   }
+  if (state->masterInsertChain)
+    state->masterInsertChain->sync(state->audioProject.masterInserts, &state->masterInsertAutomation);
   state->audioCommands->applySettings(&state->playbackState);
   state->audioCommands->applyCommands(state);
   for (int t = 0; t < PROJECT_MAX_TRACKS; ++t) {
@@ -1171,19 +1085,6 @@ static int prepareRenderChunk(ChipNomadState* state, float* output, int frames) 
 }
 
 static void renderChipTracks(ChipNomadState* state, float* output, int frames) {
-  RenderJob jobs[PROJECT_MAX_TRACKS];
-  int jobCount = 0;
-  if (state->renderWorkers) {
-    for (int chipIdx = 0; chipIdx < state->audioProject.chipsCount; ++chipIdx) {
-      if (chipIdx >= state->audioProject.tracksCount || !state->playbackState.trackEnabled[chipIdx]) continue;
-      uint8_t instrumentIdx = state->playbackState.tracks[chipIdx].note.instrument;
-      if (instrumentIdx >= PROJECT_MAX_INSTRUMENTS) continue;
-      InstrumentType type = state->audioProject.instruments[instrumentIdx].type;
-      if ((type == InstrumentType::AY1 || type == InstrumentType::AY2 || type == InstrumentType::AYSample) && state->chips[chipIdx])
-        jobs[jobCount++] = {renderJob<SoundChip>, state->chips[chipIdx], chipIdx};
-    }
-  }
-  const bool parallel = renderParallel(state, jobs, jobCount, frames);
   for (int chipIdx = 0; chipIdx < state->audioProject.chipsCount; ++chipIdx) {
     if (chipIdx >= state->audioProject.tracksCount || !state->playbackState.trackEnabled[chipIdx]) continue;
     uint8_t instrumentIdx = state->playbackState.tracks[chipIdx].note.instrument;
@@ -1192,51 +1093,41 @@ static void renderChipTracks(ChipNomadState* state, float* output, int frames) {
     if (type != InstrumentType::AY1 && type != InstrumentType::AY2 && type != InstrumentType::AYSample) continue;
     SoundChip* chip = state->chips[chipIdx];
     if (!chip) continue;
-    float* rendered = parallel ? renderScratch(state, chipIdx) : state->mixBuffer;
-    if (!parallel) chip->render(rendered, frames);
+    float* rendered = state->mixBuffer;
+    chip->render(rendered, frames);
     float gain = state->audioProject.trackVolume[chipIdx] / 100.0f * state->audioProject.instruments[instrumentIdx].volume / 255.0f;
     float reverbSend = effectiveTrackSend(state, chipIdx, true);
     float delaySend = effectiveTrackSend(state, chipIdx, false);
     int instrumentPan = effectivePan(state, chipIdx, true);
     int trackPan = effectivePan(state, chipIdx, false);
+    TrackPanMix pan = makeTrackPanMix(state, instrumentPan, trackPan);
     for (int i = 0; i < frames; ++i)
       mixTrackFrame(state, chipIdx, output, state->reverbBuffer, state->delayBuffer,
                     rendered[i * 2] * gain, rendered[i * 2 + 1] * gain,
-                    i, reverbSend, delaySend, instrumentPan, trackPan);
+                    i, reverbSend, delaySend, pan);
   }
 }
 
 template <typename Voice>
 static void renderMonoVoiceTracks(ChipNomadState* state, Voice* const voices[][CHORD_MAX_VOICES], float* output, int frames) {
-  RenderJob jobs[PROJECT_MAX_TRACKS * CHORD_MAX_VOICES];
-  int jobCount = 0;
-  if (state->renderWorkers) {
-    for (int trackIdx = 0; trackIdx < state->audioProject.tracksCount; ++trackIdx) {
-      if (!state->playbackState.trackEnabled[trackIdx]) continue;
-      for (int slot = 0; slot < state->playbackState.tracks[trackIdx].chordVoiceCount; ++slot) {
-        Voice* voice = voices[trackIdx][slot];
-        if (voice->active()) jobs[jobCount++] = {renderJob<Voice>, voice, trackIdx * CHORD_MAX_VOICES + slot};
-      }
-    }
-  }
-  const bool parallel = renderParallel(state, jobs, jobCount, frames);
   for (int trackIdx = 0; trackIdx < state->audioProject.tracksCount; ++trackIdx) {
     if (!state->playbackState.trackEnabled[trackIdx]) continue;
     for (int slot = 0; slot < state->playbackState.tracks[trackIdx].chordVoiceCount; ++slot) {
       Voice* voice = voices[trackIdx][slot];
       if (!voice->active()) continue;
-      float* rendered = parallel ? renderScratch(state, trackIdx * CHORD_MAX_VOICES + slot) : state->mixBuffer;
-      if (!parallel) voice->render(rendered, frames);
+      float* rendered = state->mixBuffer;
+      voice->render(rendered, frames);
       captureVoiceMonitor(state, trackIdx, rendered, frames, 1, voice->envelopeLevel());
       float trackGain = state->audioProject.trackVolume[trackIdx] / 100.0f;
       float reverbSend = effectiveTrackSend(state, trackIdx, true);
       float delaySend = effectiveTrackSend(state, trackIdx, false);
       int instrumentPan = effectivePan(state, trackIdx, true);
       int trackPan = effectivePan(state, trackIdx, false);
+      TrackPanMix pan = makeTrackPanMix(state, instrumentPan, trackPan);
       for (int i = 0; i < frames; ++i) {
         float sample = rendered[i] * 0.25f * trackGain;
         mixTrackFrame(state, trackIdx, output, state->reverbBuffer, state->delayBuffer,
-                      sample, sample, i, reverbSend, delaySend, instrumentPan, trackPan);
+                      sample, sample, i, reverbSend, delaySend, pan);
       }
     }
   }
@@ -1244,35 +1135,24 @@ static void renderMonoVoiceTracks(ChipNomadState* state, Voice* const voices[][C
 
 template <typename Voice>
 static void renderStereoVoiceTracks(ChipNomadState* state, Voice* const voices[][CHORD_MAX_VOICES], float* output, int frames) {
-  RenderJob jobs[PROJECT_MAX_TRACKS * CHORD_MAX_VOICES];
-  int jobCount = 0;
-  if (state->renderWorkers) {
-    for (int trackIdx = 0; trackIdx < state->audioProject.tracksCount; ++trackIdx) {
-      if (!state->playbackState.trackEnabled[trackIdx]) continue;
-      for (int slot = 0; slot < state->playbackState.tracks[trackIdx].chordVoiceCount; ++slot) {
-        Voice* voice = voices[trackIdx][slot];
-        if (voice->active()) jobs[jobCount++] = {renderJob<Voice>, voice, trackIdx * CHORD_MAX_VOICES + slot};
-      }
-    }
-  }
-  const bool parallel = renderParallel(state, jobs, jobCount, frames);
   for (int trackIdx = 0; trackIdx < state->audioProject.tracksCount; ++trackIdx) {
     if (!state->playbackState.trackEnabled[trackIdx]) continue;
     for (int slot = 0; slot < state->playbackState.tracks[trackIdx].chordVoiceCount; ++slot) {
       Voice* voice = voices[trackIdx][slot];
       if (!voice->active()) continue;
-      float* rendered = parallel ? renderScratch(state, trackIdx * CHORD_MAX_VOICES + slot) : state->mixBuffer;
-      if (!parallel) voice->render(rendered, frames);
+      float* rendered = state->mixBuffer;
+      voice->render(rendered, frames);
       captureVoiceMonitor(state, trackIdx, rendered, frames, 2, voice->envelopeLevel());
       float gain = state->audioProject.trackVolume[trackIdx] / 100.0f;
       float reverbSend = effectiveTrackSend(state, trackIdx, true);
       float delaySend = effectiveTrackSend(state, trackIdx, false);
       int instrumentPan = effectivePan(state, trackIdx, true);
       int trackPan = effectivePan(state, trackIdx, false);
+      TrackPanMix pan = makeTrackPanMix(state, instrumentPan, trackPan);
       for (int i = 0; i < frames; ++i)
         mixTrackFrame(state, trackIdx, output, state->reverbBuffer, state->delayBuffer,
                       rendered[i * 2] * gain, rendered[i * 2 + 1] * gain,
-                      i, reverbSend, delaySend, instrumentPan, trackPan);
+                      i, reverbSend, delaySend, pan);
     }
   }
 }
@@ -1311,8 +1191,8 @@ static void processTrackInserts(ChipNomadState* state, float* output, int frames
       float sample = samples[i], previous = output[i];
       state->audioMonitor->add(t, i, sample);
       output[i] += sample;
-      state->reverbBuffer[i] += sample * reverb;
-      state->delayBuffer[i] += sample * delay;
+      if (reverb != 0.0f) state->reverbBuffer[i] += sample * reverb;
+      if (delay != 0.0f) state->delayBuffer[i] += sample * delay;
       if (fabsf(output[i]) > 1.0f && fabsf(output[i]) > fabsf(previous)) state->trackClipping[t] = AUDIO_OVERLOAD_COOLDOWN_FRAMES;
     }
   }
@@ -1326,6 +1206,11 @@ static void processMasterMix(ChipNomadState* state, float* output, int frames) {
   }
   state->masterEffects->process(hasReverb ? state->reverbBuffer : NULL,
                                 hasDelay ? state->delayBuffer : NULL, output, frames, &state->audioProject);
+  if (state->masterInsertChain && state->masterInsertChain->active()) {
+    uint8_t values[2][8];
+    for (int slot = 0; slot < 2; ++slot) memcpy(values[slot], state->audioProject.masterInserts[slot].values, 8);
+    state->masterInsertChain->process(output, frames, values);
+  }
   for (int i = 0; i < frames * 2; ++i) {
     output[i] *= state->mixVolume;
     if (output[i] > 1.0f || output[i] < -1.0f) state->audioOverload = AUDIO_OVERLOAD_COOLDOWN_FRAMES;
@@ -1361,32 +1246,22 @@ int chipnomadRender(ChipNomadState* state, float* buffer, int samples) {
     renderMonoVoiceTracks(state, state->mmeVoices, output, frames);
     renderMonoVoiceTracks(state, state->sinteredVoices, output, frames);
     renderMonoVoiceTracks(state, state->opllVoices, output, frames);
-    RenderJob dx7Jobs[PROJECT_MAX_TRACKS];
-    int dx7JobCount = 0;
-    if (state->renderWorkers) {
-      for (int t = 0; t < state->audioProject.tracksCount; ++t) {
-        auto* part = state->dx7Parts[t];
-        int instrument = state->playbackState.tracks[t].note.instrument;
-        bool selected = instrument != EMPTY_VALUE_8 && state->audioProject.instruments[instrument].type == InstrumentType::DX7;
-        if (part->active() || selected) dx7Jobs[dx7JobCount++] = {renderJob<DX7Part>, part, t};
-      }
-    }
-    const bool parallelDX7 = renderParallel(state, dx7Jobs, dx7JobCount, frames);
     for(int t=0;t<state->audioProject.tracksCount;++t) {
       auto* part=state->dx7Parts[t];
       int instrument=state->playbackState.tracks[t].note.instrument;
       bool dx7Selected=instrument!=EMPTY_VALUE_8&&state->audioProject.instruments[instrument].type==InstrumentType::DX7;
       if(!part->active()&&!dx7Selected)continue;
-      float* rendered = parallelDX7 ? renderScratch(state, t) : state->mixBuffer;
-      if (!parallelDX7) part->render(rendered,frames);
+      float* rendered = state->mixBuffer;
+      part->render(rendered,frames);
       if(!state->playbackState.trackEnabled[t])continue;
       captureVoiceMonitor(state,t,rendered,frames,1,part->envelopeLevel());
       float gain=state->audioProject.trackVolume[t]/100.f*.25f;
       float reverb=effectiveTrackSend(state,t,true),delay=effectiveTrackSend(state,t,false);
       int instrumentPan = effectivePan(state, t, true);
       int trackPan = effectivePan(state, t, false);
+      TrackPanMix pan = makeTrackPanMix(state, instrumentPan, trackPan);
       for(int i=0;i<frames;++i)
-        mixTrackFrame(state,t,output,state->reverbBuffer,state->delayBuffer,rendered[i]*gain,rendered[i]*gain,i,reverb,delay,instrumentPan,trackPan);
+        mixTrackFrame(state,t,output,state->reverbBuffer,state->delayBuffer,rendered[i]*gain,rendered[i]*gain,i,reverb,delay,pan);
     }
 
     renderStereoVoiceTracks(state,state->fourOpVoices,output,frames);
@@ -1406,11 +1281,12 @@ int chipnomadRender(ChipNomadState* state, float* buffer, int samples) {
       float delaySend = effectiveTrackSend(state, track, false);
       int instrumentPan = effectivePan(state, track, true);
       int trackPan = effectivePan(state, track, false);
+      TrackPanMix pan = makeTrackPanMix(state, instrumentPan, trackPan);
       for (int i = 0; i < frames; ++i) {
         float left = state->mixBuffer[opl ? i * 2 : i] * gain;
         float right = state->mixBuffer[opl ? i * 2 + 1 : i] * gain;
         mixTrackFrame(state, track, output, state->reverbBuffer, state->delayBuffer, left, right, i,
-                      reverbSend, delaySend, instrumentPan, trackPan);
+                      reverbSend, delaySend, pan);
       }
     }
     processTrackInserts(state, output, frames);
@@ -1431,122 +1307,6 @@ int chipnomadRender(ChipNomadState* state, float* buffer, int samples) {
 static float envelopeTime(uint8_t value) {
   float normalized = value / 255.0f;
   return normalized * normalized * 5.0f;
-}
-
-enum { AUTO_MIX_BANDS = 8 };
-
-static float autoMixRender(ChipNomadState* state, int seconds, float* rms,
-                           float bandRms[AUTO_MIX_BANDS]) {
-  const int frames = 1024;
-  float buffer[frames * 2];
-  double energy = 0.0;
-  double bandEnergy[AUTO_MIX_BANDS] = {};
-  float lowPass[AUTO_MIX_BANDS - 1] = {};
-  float coefficients[AUTO_MIX_BANDS - 1];
-  for (int band = 0; band < AUTO_MIX_BANDS - 1; ++band) {
-    float cutoff = 80.0f * (1 << band);
-    coefficients[band] = 1.0f - expf(-2.0f * 3.141592653589793f * cutoff / state->sampleRate);
-  }
-  int rendered = 0;
-  float peak = 0.0f;
-  playbackStartSong(&state->playbackState, 0, 0, 0);
-  while (rendered < seconds * state->sampleRate) {
-    int count = chipnomadRender(state, buffer, frames);
-    if (count <= 0) break;
-    for (int i = 0; i < count * 2; ++i) {
-      float value = buffer[i];
-      energy += value * value;
-      if (fabsf(value) > peak) peak = fabsf(value);
-    }
-    for (int frame = 0; frame < count; ++frame) {
-      float value = (buffer[frame * 2] + buffer[frame * 2 + 1]) * 0.5f;
-      float previous = value;
-      for (int band = 0; band < AUTO_MIX_BANDS - 1; ++band) {
-        lowPass[band] += coefficients[band] * (value - lowPass[band]);
-        float filtered = lowPass[band] - (band ? lowPass[band - 1] : 0.0f);
-        bandEnergy[band] += filtered * filtered;
-        previous = lowPass[band];
-      }
-      float high = value - previous;
-      bandEnergy[AUTO_MIX_BANDS - 1] += high * high;
-    }
-    rendered += count;
-  }
-  if (rms) *rms = rendered ? sqrtf((float)(energy / (rendered * 2))) : 0.0f;
-  if (bandRms) {
-    for (int band = 0; band < AUTO_MIX_BANDS; ++band)
-      bandRms[band] = rendered ? sqrtf((float)(bandEnergy[band] / rendered)) : 0.0f;
-  }
-  return peak;
-}
-
-int chipnomadAutoMix(ChipNomadState* state, int seconds, uint8_t proposed[PROJECT_MAX_TRACKS]) {
-  if (!state || seconds < 1) return 1;
-  ChipNomadState* analysis = chipnomadCreate();
-  if (!analysis) return 1;
-  analysis->project = state->project; // Sample buffers are read-only during rendering.
-  analysis->project.reverbReturn = analysis->project.delayReturn = 0;
-  analysis->project.tracksCount = state->project.tracksCount;
-  playbackInit(&analysis->playbackState, &analysis->project);
-  chipnomadInitChips(analysis, 48000, NULL);
-
-  float rms[PROJECT_MAX_TRACKS] = {};
-  float trackBands[PROJECT_MAX_TRACKS][AUTO_MIX_BANDS] = {};
-  float sumLog = 0.0f;
-  int active = 0;
-  for (int track = 0; track < analysis->project.tracksCount; ++track) {
-    for (int i = 0; i < PROJECT_MAX_TRACKS; ++i) analysis->playbackState.trackEnabled[i] = i == track;
-    autoMixRender(analysis, seconds, &rms[track], trackBands[track]);
-    if (rms[track] > 0.0001f) { sumLog += logf(rms[track]); active++; }
-  }
-  if (!active) { chipnomadDestroy(analysis); return 1; }
-  float target = expf(sumLog / active);
-  float trackGain[PROJECT_MAX_TRACKS] = {};
-  for (int i = 0; i < analysis->project.tracksCount; ++i) {
-    if (rms[i] <= 0.0001f) continue;
-    float ratio = sqrtf(target / rms[i]); // Keep musical differences while correcting extremes.
-    ratio = fminf(2.0f, fmaxf(0.25f, ratio));
-    analysis->project.trackVolume[i] = (uint8_t)fminf(100.0f,
-      state->project.trackVolume[i] * ratio + 0.5f);
-    trackGain[i] = analysis->project.trackVolume[i] /
-      (float)state->project.trackVolume[i];
-  }
-  for (int i = 0; i < PROJECT_MAX_TRACKS; ++i) analysis->playbackState.trackEnabled[i] = 1;
-  float mixBands[AUTO_MIX_BANDS] = {};
-  autoMixRender(analysis, seconds, NULL, mixBands);
-
-  // Pink noise has comparable energy in each octave. Attenuate only tracks
-  // that materially contribute to octaves above the mix's geometric mean.
-  float sumLogBands = 0.0f;
-  int activeBands = 0;
-  for (int band = 0; band < AUTO_MIX_BANDS; ++band) {
-    if (mixBands[band] > 0.0001f) { sumLogBands += logf(mixBands[band]); activeBands++; }
-  }
-  if (activeBands) {
-    float pinkTarget = expf(sumLogBands / activeBands);
-    for (int track = 0; track < analysis->project.tracksCount; ++track) {
-      if (!trackGain[track]) continue;
-      float masking = 0.0f;
-      for (int band = 0; band < AUTO_MIX_BANDS; ++band) {
-        if (mixBands[band] <= pinkTarget) continue;
-        float contribution = trackBands[track][band] * trackGain[track] / mixBands[band];
-        masking += contribution * contribution * logf(mixBands[band] / pinkTarget);
-      }
-      float correction = fmaxf(0.85f, expf(-0.5f * masking));
-      float volume = analysis->project.trackVolume[track] * correction;
-      volume = fmaxf(state->project.trackVolume[track] * 0.25f,
-        fminf(state->project.trackVolume[track] * 2.0f, volume));
-      analysis->project.trackVolume[track] = (uint8_t)fminf(100.0f, volume + 0.5f);
-    }
-  }
-
-  float peak = autoMixRender(analysis, seconds, NULL, NULL);
-  float safety = peak > 0.89f ? 0.89f / peak : 1.0f;
-  for (int i = 0; i < state->project.tracksCount; ++i) {
-    proposed[i] = (uint8_t)(analysis->project.trackVolume[i] * safety + 0.5f);
-  }
-  chipnomadDestroy(analysis);
-  return 0;
 }
 
 static void applyVoiceEvents(ChipNomadState* state, uint64_t dueMicros) {
@@ -1707,7 +1467,12 @@ static void updateSampleVoices(ChipNomadState* state) {
     int loopMode = sample->loopMode;
     uint8_t start = sample->start;
     uint8_t end = sample->end;
-    uint8_t sliceCount = sampleNormalizeSlice(sample->slice);
+    // D3 (updated): LAZY slices now map chromatically like EQUAL/AUTO. The
+    // only exception is the one-shot full-sample preview (kStartPhraseRowFull
+    // sets sliceBypass), which plays the whole region at the sample's
+    // original pitch - the row's note is ignored entirely.
+    uint8_t sliceCount = track->sliceBypass ? 0
+      : (sampleActsAsSliced(sample) ? sampleDecodeSliceCount(sample->slice) : 0);
     uint8_t sliceIndex = 0;
     int cutoff = sample->filterCutoffHz;
     int resonance = sample->filterResonance;
@@ -1717,9 +1482,14 @@ static void updateSampleVoices(ChipNomadState* state) {
     if (sliceCount) {
       uint8_t pitch = track->chordPitchFinal[0] != EMPTY_VALUE_8 ? track->chordPitchFinal[0] : track->note.pitchFinal;
       if (pitch != EMPTY_VALUE_8) {
-        sliceIndex = pitch;
-        if (sliceIndex >= sliceCount) sliceIndex = sliceCount - 1;
+        // Notes map chromatically from C-0 and wrap around: note N selects
+        // slice N % count, so runs past the last slice cycle back to the
+        // first one instead of sticking on the last slice.
+        sliceIndex = pitch % sliceCount;
       }
+    } else if (track->sliceBypass) {
+      // Full-sample preview: no note transposition - the sample plays at
+      // its original pitch regardless of the row's note.
     } else if (track->chordPitchFinal[0] != EMPTY_VALUE_8) {
       int rootNote = project->pitchTable.octaveSize * 4;
       if (rootNote >= project->pitchTable.length) rootNote = 0;
@@ -1739,7 +1509,20 @@ static void updateSampleVoices(ChipNomadState* state) {
     if (track->note.fx[fxSCF].isOn) cutoff = instrumentFXCutoff(track->note.fx[fxSCF].fxValue);
     if (track->note.fx[fxSRS].isOn) resonance = track->note.fx[fxSRS].fxValue;
     if (track->note.fx[fxSSP].isOn) speedPercent = track->note.fx[fxSSP].fxValue * 500 / 255;
-    if (track->note.fx[fxSLP].isOn) loopMode = track->note.fx[fxSLP].fxValue;
+    // SPL playback modes: 00 forward, 01 reverse, 02 loop, 03 ping-pong.
+    uint8_t forceReverse = 0;
+    if (track->note.fx[fxSLP].isOn) {
+      uint8_t playbackMode = track->note.fx[fxSLP].fxValue;
+      forceReverse = playbackMode == 1 ? 1 : 0;
+      loopMode = playbackMode == 3 ? 2 : (playbackMode == 2 ? 1 : 0);
+    }
+    // SLI plays the numbered slice regardless of the note pitch (sliced
+    // instruments only; 00 keeps the normal note mapping).
+    int sliOverride = track->note.fx[fxSLI].isOn && sliceCount &&
+      track->note.fx[fxSLI].fxValue >= 1;
+    uint8_t sliSlice = sliOverride
+      ? (uint8_t)((track->note.fx[fxSLI].fxValue - 1) % sliceCount) : 0;
+    if (sliOverride) sliceIndex = sliSlice;
     for (int i = 0; i < 4; i++) {
       PlaybackModState* mod = &track->note.modulation[i];
       if (!mod->modulation) continue;
@@ -1790,9 +1573,10 @@ static void updateSampleVoices(ChipNomadState* state) {
       if (sliceCount) {
         uint8_t pitch = track->chordPitchFinal[slot] != EMPTY_VALUE_8 ? track->chordPitchFinal[slot] : track->note.pitchFinal;
         if (pitch != EMPTY_VALUE_8) {
-          voiceSliceIndex = pitch;
-          if (voiceSliceIndex >= sliceCount) voiceSliceIndex = sliceCount - 1;
+          // Same wrap-around mapping as the main slice index above.
+          voiceSliceIndex = pitch % sliceCount;
         }
+        if (sliOverride) voiceSliceIndex = sliSlice;
       } else if (track->chordPitchFinal[slot] != EMPTY_VALUE_8) {
         int noteCents = project->linearPitch ? project->pitchTable.values[track->chordPitchFinal[slot]]
           : track->chordPitchFinal[slot] * 100;
@@ -1804,7 +1588,7 @@ static void updateSampleVoices(ChipNomadState* state) {
       voices[slot]->configure(sample, (float)voicePitchCents, gain / track->chordVoiceCount, (float)speedPercent, start, end, (uint8_t)loopMode,
                               (uint16_t)cutoff, (uint8_t)resonance, attack, decay, sustain, release, shape,
                               sliceCount, voiceSliceIndex, sample->stretchMode, project->tickRate,
-                              sample->speedAlgorithm);
+                              sample->speedAlgorithm, forceReverse);
     }
   }
 }

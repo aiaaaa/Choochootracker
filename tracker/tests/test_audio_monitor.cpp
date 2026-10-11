@@ -62,6 +62,22 @@ TEST_CASE("Audio monitor history is independent of render chunk boundaries") {
   CHECK(split.reserve(8192));
 }
 
+TEST_CASE("Audio monitor drops telemetry while disabled and resets on resume") {
+  AudioMonitor monitor;
+  float mix[2] = {0.5f, -0.5f};
+  monitor.setEnabled(false);
+  monitor.beginRender(); monitor.beginChunk(1); monitor.add(0, 0, 1.0f);
+  monitor.finishChunk(mix, 1, 12000); monitor.publish();
+  AudioMonitorSnapshot snapshot;
+  CHECK_FALSE(monitor.receive(snapshot));
+
+  monitor.setEnabled(true);
+  monitor.beginRender(); monitor.beginChunk(1); monitor.finishChunk(mix, 1, 12000); monitor.publish();
+  REQUIRE(monitor.receive(snapshot));
+  CHECK(snapshot.peaks[0][0] == 0.0f);
+  CHECK(snapshot.mix[255] == 0.0f);
+}
+
 TEST_CASE("Audio monitor snapshots remain coherent with a concurrent producer") {
   AudioMonitor monitor;
   std::atomic<bool> done{false};

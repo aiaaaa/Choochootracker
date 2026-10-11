@@ -185,6 +185,7 @@ void projectInit(Project* p) {
   p->signedTrackSpeed = 1;
   p->perceptualEffects = 1;
   p->scaleApply = 1;
+  p->scaleMode = 0;
   p->scaleTracksMask = 0xff;
   p->scaleRoot = 0;
   p->scalePreset = scaleChromatic;
@@ -199,6 +200,7 @@ void projectInit(Project* p) {
   p->reverbTime = 180;
   p->reverbDamping = 160;
   p->reverbFilterCutoffHz = 16000;
+  p->reverbHighpassCutoffHz = 150;
   p->delayReturn = 100;
   p->delayReverbSend = 0;
   p->delayTicks = 9;

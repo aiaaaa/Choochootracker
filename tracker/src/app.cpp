@@ -53,6 +53,11 @@ static int audioProjectDirty;
 static MidiCCMapping midiCCApplied[PROJECT_MAX_MIDI_CC_MAPPINGS];
 static uint8_t midiCCAppliedValue[PROJECT_MAX_MIDI_CC_MAPPINGS];
 static uint8_t midiCCAppliedValid[PROJECT_MAX_MIDI_CC_MAPPINGS];
+
+static bool monitorNeeded(void) {
+  return (currentScreen == &screenMixer && screenMixerGetPage() == 0) ||
+    screenScopeRows(currentScreen) != 0;
+}
 static uint32_t midiCCAppliedSerial[PROJECT_MAX_MIDI_CC_MAPPINGS];
 
 // Port indices aren't saved (see common.h's AppSettings comment): this
@@ -288,12 +293,13 @@ static bool inputBranchNavigation(int keys) {
   if (keys != (keyShift | keyLeft) && keys != (keyShift | keyRight)) return false;
   int column = -1;
   if (currentScreen == &screenProject || currentScreen == &screenSettings ||
-      currentScreen == &screenSynthSettings || currentScreen == &screenMixerSettings ||
+      currentScreen == &screenControlsSettings || currentScreen == &screenAudioSettings || currentScreen == &screenSynthSettings || currentScreen == &screenMixerSettings ||
       currentScreen == &screenGraphicsSettings || currentScreen == &screenTrackVisuals ||
       currentScreen == &screenMidi || currentScreen == &screenMidiChannelMap ||
       currentScreen == &screenMidiCC) column = 1;
   else if (currentScreen == &screenGroove) column = 3;
-  else if (currentScreen == &screenModulation || currentScreen == &screenInsertFX) column = 4;
+  else if (currentScreen == &screenModulation ||
+           (currentScreen == &screenInsertFX && !screenInsertFXIsMaster())) column = 4;
   else if (currentScreen == &screenAYWavetable) column = 5;
   if (column < 0) return false;
   const AppScreen* spine[] = {&screenMixer, &screenSong, &screenChain,
@@ -307,8 +313,11 @@ static bool inputBranchNavigation(int keys) {
 }
 
 static void appInput(int isKeyDown, int keys, int tapCount) {
-  // Stop phrase row and preview
-  if (chipnomadGetPlaybackStatus(chipnomadState)->tracks[*pSongTrack].mode == PlaybackMode::phraseRow && keys == 0) {
+  // Stop phrase row and preview. While the sample settings screen is doing
+  // a LAZY full-sample playback (tap PLAY toggles it), the PLAY release
+  // must not kill the preview - the screen owns the preview's lifetime.
+  if (chipnomadGetPlaybackStatus(chipnomadState)->tracks[*pSongTrack].mode == PlaybackMode::phraseRow && keys == 0 &&
+      !sampleLazyPlaybackActive) {
     chipnomadQueuePlaybackStop(chipnomadState);
   }
   // Let screen handle input first, then try global playback if not handled
@@ -473,6 +482,8 @@ void appCleanup(void) {
 void appDraw(void) {
   const ColorScheme cs = appSettings.colorScheme;
 
+  monitorDisplaySetActive(monitorNeeded());
+  mainLoopSetTargetFps(monitorDisplayActive() ? appSettings.waveformRefreshHz : 30);
   monitorDisplayUpdate();
   screenDraw();
 
