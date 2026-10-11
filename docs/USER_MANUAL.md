@@ -1548,8 +1548,9 @@ button to the right of Fine ct. It opens a table of the patch parameters:
   "Custom".
 
 Left/Right and the usual edit keys change values; the instrument keeps playing
-as usual so you can hear changes. OPT or Left+Shift returns to the instrument
-screen. DX7 and SID have no operator editor.
+as usual so you can hear changes. The status bar describes the parameter under
+the cursor. OPT or Left+Shift returns to the instrument screen. DX7 and SID
+have no operator editor.
 
 Genesis FM (YM2612) and Arcade FM (YM2151) now use the same FM Bank/Preset
 browser, EDIT+PLAY audition, confirm/cancel and fine-tune controls. Genesis now
