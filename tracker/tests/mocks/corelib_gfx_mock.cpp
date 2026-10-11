@@ -17,7 +17,11 @@ void gfxSetCursorColor(int rgb) {}
 void gfxSetBgColor(int rgb) {}
 void gfxClear(void) { memset(mockGfxCells, ' ', sizeof(mockGfxCells)); }
 void gfxUpdateScreen(void) {}
-void gfxClearRect(int x, int y, int w, int h) {}
+void gfxClearRect(int x, int y, int w, int h) {
+  for (int row = y; row < y + h && row < 20; ++row)
+    for (int col = x; col < x + w && col < 40; ++col)
+      if (row >= 0 && col >= 0) mockGfxCells[row][col] = ' ';
+}
 void gfxCursor(int x, int y, int w) { mockCursorX = x; mockCursorY = y; mockCursorWidth = w; }
 void gfxRect(int x, int y, int w, int h) {}
 void gfxPrint(int x, int y, const char* text) {

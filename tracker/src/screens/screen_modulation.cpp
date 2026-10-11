@@ -595,7 +595,7 @@ static int onInput(int isKeyDown, int keys, int tapCount) {
   }
 
   if (keys == (keyUp | keyShift)) {
-    screenSetup(&screenInsertFX, -1);
+    screenInsertFXOpenTrack();
     return 1;
   }
   if (keys == (keyDown | keyShift)) {

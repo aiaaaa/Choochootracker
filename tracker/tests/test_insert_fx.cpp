@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <cstring>
 #include <fstream>
@@ -236,7 +237,7 @@ TEST_SUITE("track inserts") {
     CHECK(fxF11 > fxATY);
     CHECK(fxF28 < 255);
     CHECK(genericModFirstInsert == 29);
-      const int counts[] = {0, 8, 4, 2, 6, 6, 5, 4, 5, 4, 4, 4, 4};
+      const int counts[] = {0, 8, 4, 2, 6, 6, 5, 4, 5, 4, 4, 4, 4, 6};
     for (int m = 0; m < insertModuleCount; ++m) {
       CHECK(insertDescriptor(m).count == counts[m]);
       InsertConfig c{};
@@ -347,6 +348,57 @@ TEST_SUITE("track inserts") {
       CHECK(out == dry);
     }
   }
+  TEST_CASE("parametric EQ is neutral at zero gain, shapes bands and soft clips boosts") {
+    InsertConfig c[2]{};
+    insertSelect(&c[0], insertParametricEQ);
+    CHECK(insertMap(insertParametricEQ, 1, 0) == doctest::Approx(60.f));
+    CHECK(insertMap(insertParametricEQ, 1, 255) == doctest::Approx(500.f));
+    CHECK(insertMap(insertParametricEQ, 3, 0) == doctest::Approx(250.f));
+    CHECK(insertMap(insertParametricEQ, 5, 255) == doctest::Approx(14000.f));
+    InsertAutomation a{};
+    InsertChain chain(48000);
+    chain.sync(c, &a);
+    uint8_t v[2][8];
+    values(c, v);
+    auto dry = signal(4096), out = dry;
+    chain.process(out.data(), 4096, v);
+    CHECK(out == dry);
+
+    auto shapedPeak = [](int gainParameter, int gain, float frequency) {
+      InsertConfig config[2]{};
+      insertSelect(&config[0], insertParametricEQ);
+      insertEdit(&config[0], gainParameter, gain);
+      InsertAutomation automation{};
+      InsertChain eq(48000);
+      eq.sync(config, &automation);
+      uint8_t effective[2][8];
+      values(config, effective);
+      std::vector<float> signal(48000 * 2);
+      for (int i = 0; i < 48000; ++i)
+        signal[2 * i] = .001f * sinf(6.28318530718f * frequency * i / 48000.f);
+      eq.process(signal.data(), 48000, effective);
+      float peak = 0;
+      for (int i = 24000; i < 48000; ++i) peak = std::max(peak, fabsf(signal[2 * i]));
+      for (int i = 0; i < 48000; ++i) CHECK(signal[2 * i + 1] == 0);
+      return peak;
+    };
+    for (const auto& band : {std::array<float, 2>{0, 60}, {2, 1000}, {4, 12000}}) {
+      int gainParameter = (int)band[0];
+      CHECK(shapedPeak(gainParameter, 255, band[1]) > .003f);
+      CHECK(shapedPeak(gainParameter, 0, band[1]) < .0004f);
+    }
+
+    insertEdit(&c[0], 0, 255);
+    insertEdit(&c[0], 2, 128);
+    chain.sync(c, &a);
+    values(c, v);
+    std::vector<float> loud(4096 * 2, 4.f);
+    chain.process(loud.data(), 4096, v);
+    for (int i = 1024; i < 4096 * 2; ++i) {
+      CHECK(std::isfinite(loud[i]));
+      CHECK(fabsf(loud[i]) <= 1.5f);
+    }
+  }
   TEST_CASE("repeated effects are serial and each slot has independent state") {
     InsertConfig c[2]{};
     insertSelect(&c[0], insertDistortion);
@@ -442,6 +494,12 @@ TEST_SUITE("track inserts") {
         c.bypass = t % 2;
         insertEdit(&c, 0, 255);
       }
+    for (int slot = 0; slot < 2; ++slot) {
+      auto& c = p->masterInserts[slot];
+      insertSelect(&c, slot ? insertTape : insertCompressor);
+      c.bypass = slot;
+      insertEdit(&c, 0, 255);
+    }
     const char* path = "build/tests/inserts.cct";
     REQUIRE(projectSave(p.get(), path) == 0);
     auto original = read(path);
@@ -458,6 +516,13 @@ TEST_SUITE("track inserts") {
         CHECK(memcmp(a.values, b.values, 8) == 0);
         CHECK(b.selection == 0);
       }
+    for (int slot = 0; slot < 2; ++slot) {
+      auto& a = p->masterInserts[slot];
+      auto& b = loaded->masterInserts[slot];
+      CHECK(a.module == b.module);
+      CHECK(a.bypass == b.bypass);
+      CHECK(memcmp(a.values, b.values, 8) == 0);
+    }
     auto start = original.find("- Track inserts:");
     auto end = original.find("- Track volumes:");
     REQUIRE(start != std::string::npos);
@@ -468,6 +533,7 @@ TEST_SUITE("track inserts") {
     REQUIRE(projectLoad(loaded.get(), path) == 0);
     for (auto& t : loaded->trackInserts)
       for (auto& c : t) CHECK(c.module == 0);
+    for (auto& c : loaded->masterInserts) CHECK(c.module == 0);
     for (auto bad :
          {std::string("- Track inserts: 1,9,2\n"),
           std::string("- Track inserts: 1,8,2\n- Insert: 0,0,255,0,0,0,0,0,0,0,0,0\n"),
@@ -477,6 +543,14 @@ TEST_SUITE("track inserts") {
       write(path, corrupt);
       CHECK(projectLoad(loaded.get(), path) != 0);
     }
+    auto masterStart = original.find("- Master inserts:");
+    REQUIRE(masterStart != std::string::npos);
+    auto masterEnd = original.find("- Track volumes:");
+    auto corrupt = original;
+    corrupt.replace(masterStart, masterEnd - masterStart,
+                    "- Master inserts: 1,2\n- Master insert: 0,255,0,0,0,0,0,0,0,0,0\n");
+    write(path, corrupt);
+    CHECK(projectLoad(loaded.get(), path) != 0);
     write(path, original.substr(0, start) + "- Track inserts: 1,8,2\n");
     CHECK(projectLoad(loaded.get(), path) != 0);
     projectFree(p.get());
@@ -502,6 +576,22 @@ TEST_SUITE("track inserts") {
       CHECK(wet.s->reverbBuffer[i] == doctest::Approx(b[i] * .25f).epsilon(1e-6));
       CHECK(wet.s->delayBuffer[i] == doctest::Approx(b[i] * .5f).epsilon(1e-6));
     }
+  }
+  TEST_CASE("master inserts process the completed mix") {
+    Engine dry, wet;
+    insertSelect(&wet.s->project.masterInserts[0], insertDistortion);
+    dry.start();
+    wet.start();
+    float a[512], b[512];
+    REQUIRE(chipnomadRender(dry.s, a, 256) == 256);
+    REQUIRE(chipnomadRender(wet.s, b, 256) == 256);
+    InsertChain expected(48000);
+    InsertAutomation automation{};
+    expected.sync(wet.s->project.masterInserts, &automation);
+    uint8_t v[2][8];
+    values(wet.s->project.masterInserts, v);
+    expected.process(a, 256, v);
+    for (int i = 0; i < 512; ++i) CHECK(b[i] == doctest::Approx(a[i]).epsilon(1e-6));
   }
   TEST_CASE("insert MOD recomputes from bases and does not drift or change saved configuration") {
     Engine e;
@@ -827,8 +917,8 @@ TEST_CASE("insert tips return after real key release and categorized chooser sel
   chipnomadState = chipnomadCreate();
   screensInitAll();
   *pSongTrack = 0;
+  screenInsertFXOpenTrack();
   insertSelect(&chipnomadState->project.trackInserts[0][0], insertDistortion);
-  currentScreen = &screenInsertFX;
   screenInsertFX.setup(-1);
   screenInsertFX.fullRedraw();
   auto* d = mockScreenData;
@@ -861,6 +951,20 @@ TEST_CASE("insert tips return after real key release and categorized chooser sel
   SelectionItem items[] = {{"Existing", 0, nullptr, 0, nullptr}};
   selectionPopupSetup("Existing", items, 1, 0, nullptr, nullptr);
   CHECK_FALSE(selectionPopupIsFullWidth());
+  screenInsertFXOpenMaster();
+  screenInsertFX.setup(-1);
+  screenInsertFX.fullRedraw();
+  mockScreenData->drawStatic();
+  CHECK(std::string(mockGfxCells[0], 40).find("MASTER FX") != std::string::npos);
+  MainLoopEventData branch{};
+  branch.type = MainLoopEvent::keyDown;
+  branch.data.input = {InputDeviceType::logical, keyShift | keyRight};
+  appOnEvent(branch);
+  CHECK(currentScreen == &screenInsertFX);
+  screenInsertFX.onInput(1, keyShift | keyDown, 0);
+  CHECK(currentScreen == &screenInsertFX);
+  screenInsertFX.onInput(1, keyOpt, 0);
+  CHECK(currentScreen == &screenMixer);
   screenMessage(0, "");
   chipnomadDestroy(chipnomadState); chipnomadState = previous; currentScreen = previousScreen;
 }

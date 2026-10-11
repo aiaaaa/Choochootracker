@@ -4,11 +4,11 @@ Run all commands from the repository root unless stated otherwise.
 
 ## Windows
 
-Use MSYS2 UCRT64:
+Use the Windows wrapper; it keeps MSYS2's home and temporary files inside
+the checkout, avoiding permissions failures under restricted environments:
 
-```sh
-cd tracker
-make -j4 windows
+```bat
+tracker\build-windows.bat
 ```
 
 The executable and bundled files are written to `tracker/build/windows/`.

@@ -17,6 +17,8 @@ void MasterEffects::init(float sampleRate) {
   delayLine_.assign((size_t)(sampleRate_ * 8.0f) * 2, 0.0f);
   delayWrite_ = 0;
   reverbFilterState_[0] = reverbFilterState_[1] = 0.0f;
+  reverbHighpassInputState_[0] = reverbHighpassInputState_[1] = 0.0f;
+  reverbHighpassOutputState_[0] = reverbHighpassOutputState_[1] = 0.0f;
   delayFilterState_[0] = delayFilterState_[1] = 0.0f;
 }
 
@@ -29,6 +31,18 @@ float MasterEffects::lowpassCoefficient(float cutoff) const {
 float MasterEffects::lowpass(float input, float coefficient, float& state) {
   state += coefficient * (input - state);
   return state;
+}
+
+float MasterEffects::highpassCoefficient(float cutoff) const {
+  if (cutoff < 20.0f) cutoff = 20.0f;
+  if (cutoff > sampleRate_ * 0.45f) cutoff = sampleRate_ * 0.45f;
+  return expf(-6.283185307179586f * cutoff / sampleRate_);
+}
+
+float MasterEffects::highpass(float input, float coefficient, float& inputState, float& outputState) {
+  float output = coefficient * (outputState + input - inputState);
+  inputState = input;
+  return outputState = output;
 }
 
 void MasterEffects::process(float* reverbBus, float* delayBus, float* output,
@@ -64,9 +78,12 @@ void MasterEffects::process(float* reverbBus, float* delayBus, float* output,
   if (reverbBus) {
     reverbFrames_.resize(frames);
     float filterCoefficient = lowpassCoefficient(project->reverbFilterCutoffHz);
+    float highpassCoeff = highpassCoefficient(project->reverbHighpassCutoffHz);
     for (size_t i = 0; i < frames; ++i) {
-      reverbFrames_[i].l = lowpass(reverbBus[i * 2], filterCoefficient, reverbFilterState_[0]);
-      reverbFrames_[i].r = lowpass(reverbBus[i * 2 + 1], filterCoefficient, reverbFilterState_[1]);
+      float left = highpass(reverbBus[i * 2], highpassCoeff, reverbHighpassInputState_[0], reverbHighpassOutputState_[0]);
+      float right = highpass(reverbBus[i * 2 + 1], highpassCoeff, reverbHighpassInputState_[1], reverbHighpassOutputState_[1]);
+      reverbFrames_[i].l = lowpass(left, filterCoefficient, reverbFilterState_[0]);
+      reverbFrames_[i].r = lowpass(right, filterCoefficient, reverbFilterState_[1]);
     }
     reverb_.set_amount(1.0f);
     reverb_.set_input_gain(0.2f);

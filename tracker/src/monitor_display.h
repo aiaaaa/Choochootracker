@@ -2,6 +2,8 @@
 
 // UI-owned telemetry; update once before drawing the current frame.
 void monitorDisplayInit(void);
+void monitorDisplaySetActive(bool active);
+bool monitorDisplayActive(void);
 void monitorDisplayUpdate(void);
 const float* monitorDisplayTrackSamples(int track);
 const float* monitorDisplayMixSamples(void);

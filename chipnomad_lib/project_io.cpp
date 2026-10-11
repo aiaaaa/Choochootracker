@@ -23,7 +23,7 @@
 
 // Shared state
 char projectFileError[41];
-int projectFileVersion = 6;  // Default to current version
+int projectFileVersion = 7;  // Default to current version
 static char chipNames[][16] = { "AY8910" };
 
 // Peek/consume implementation - single global buffer (ChipNomad is single-threaded)
@@ -252,6 +252,11 @@ static uint8_t scanFX(char* str, Project* p) {
   buf[3] = 0;
 
   if (!strcmp(buf, "---")) return EMPTY_VALUE_8;
+
+  // Legacy file spelling of the sample playback FX (shown as SPL in the
+  // UI). The AY2 Pulse Low Level FX owns the "SPL" name in this flat
+  // namespace, so the sample FX keeps "SLP" in files and resolves here.
+  if (!strcmp(buf, "SLP")) return fxSLP;
 
   // Scan all FX groups
   extern FXGroup fxGroups[];
@@ -802,6 +807,21 @@ static int projectLoadInternal(FILE* file, Project* project) {
     }
     line = peekLine(file);
   }
+  if (line && strncmp(line, "- Master inserts: ", 18) == 0) {
+    unsigned header[2];
+    if (!readInsertFields(line, "- Master inserts: ", header, 2) ||
+        header[0] != 1 || header[1] != 2) return 1;
+    consumeLine(file);
+    for (int slot = 0; slot < 2; ++slot) {
+      unsigned fields[11];
+      if (!readInsertFields(peekLine(file), "- Master insert: ", fields, 11) ||
+          fields[0] != (unsigned)slot || fields[1] >= insertModuleCount || fields[2] > 1) return 1;
+      auto& c = p.masterInserts[slot]; c.module = fields[1]; c.bypass = fields[2];
+      for (int i = 0; i < 8; ++i) c.values[i] = insertClamp(c.module, i, fields[i + 3]);
+      consumeLine(file);
+    }
+    line = peekLine(file);
+  }
   if (line == NULL || strncmp(line, "- Track volumes: ", 17) != 0) return 1;
   if (sscanf(line + 17, "%hhu,%hhu,%hhu,%hhu,%hhu,%hhu,%hhu,%hhu",
       &p.trackVolume[0], &p.trackVolume[1], &p.trackVolume[2], &p.trackVolume[3],
@@ -841,8 +861,13 @@ static int projectLoadInternal(FILE* file, Project* project) {
     consumeLine(file);
   }
   line = peekLine(file);
-  if (line && sscanf(line, "- Reverb: %hhu,%hhu,%hhu,%hu", &p.reverbReturn, &p.reverbTime,
-                     &p.reverbDamping, &p.reverbFilterCutoffHz) == 4) consumeLine(file);
+  if (line && sscanf(line, "- Reverb: %hhu,%hhu,%hhu,%hu,%hu", &p.reverbReturn, &p.reverbTime,
+                     &p.reverbDamping, &p.reverbFilterCutoffHz, &p.reverbHighpassCutoffHz) == 5) {
+    consumeLine(file);
+  } else if (line && sscanf(line, "- Reverb: %hhu,%hhu,%hhu,%hu", &p.reverbReturn, &p.reverbTime,
+                            &p.reverbDamping, &p.reverbFilterCutoffHz) == 4) {
+    consumeLine(file);
+  }
   line = peekLine(file);
   if (line && sscanf(line, "- Delay: %hhu,%hhu,%hhu,%hhu,%hu", &p.delayReturn, &p.delayReverbSend,
                      &p.delayTicks, &p.delayFeedback, &p.delayFilterCutoffHz) == 5) {
@@ -854,6 +879,10 @@ static int projectLoadInternal(FILE* file, Project* project) {
   }
   line = peekLine(file);
   if (line && sscanf(line, "- Tilt pivot: %hu", &p.tiltPivotHz) == 1) consumeLine(file);
+  line = peekLine(file);
+  if (line && sscanf(line, "- Sample save choice: %hhu", &p.sampleSaveChoice) == 1) {
+    consumeLine(file);
+  }
 
   line = peekLine(file);
   if (line && sscanf(line, "- MIDI CC mappings: %d", &tempLinearPitch) == 1) {
@@ -887,9 +916,11 @@ static int projectLoadInternal(FILE* file, Project* project) {
   if (p.delayFeedback > 95) p.delayFeedback = 95;
   if (p.delayTicks == 0) p.delayTicks = 1;
   if (p.reverbFilterCutoffHz < 20) p.reverbFilterCutoffHz = 20;
+  if (p.reverbHighpassCutoffHz < 20) p.reverbHighpassCutoffHz = 20;
   if (p.delayFilterCutoffHz < 20) p.delayFilterCutoffHz = 20;
   if (p.tiltPivotHz < 250) p.tiltPivotHz = 250;
   if (p.tiltPivotHz > 4000) p.tiltPivotHz = 4000;
+  if (p.sampleSaveChoice > 2) p.sampleSaveChoice = 0;
 
   // Try to read linear pitch (optional for backwards compatibility)
   line = peekLine(file);
@@ -914,15 +945,25 @@ static int projectLoadInternal(FILE* file, Project* project) {
   }
   int scaleRoot, scalePreset;
   unsigned int scaleCustomMask, scaleTracksMask;
-  int scaleFields = line ? sscanf(line, "- Scale: %d,%d,%d,%u,%u", &tempLinearPitch, &scaleRoot,
-                                  &scalePreset, &scaleCustomMask, &scaleTracksMask) : 0;
+  int scaleMode = 0;
+  // Try the current 6-field layout: apply,mode,root,preset,customMask,tracksMask.
+  // Legacy lines have no mode field (4 or 5 fields), so a short parse means the
+  // values sit in the legacy positions and must be re-read that way.
+  int scaleFields = line ? sscanf(line, "- Scale: %d,%d,%d,%d,%u,%u", &tempLinearPitch, &scaleMode,
+                                  &scaleRoot, &scalePreset, &scaleCustomMask, &scaleTracksMask) : 0;
+  if (scaleFields > 0 && scaleFields < 6) {
+    scaleFields = sscanf(line, "- Scale: %d,%d,%d,%u,%u", &tempLinearPitch, &scaleRoot,
+                         &scalePreset, &scaleCustomMask, &scaleTracksMask);
+    scaleMode = 0; // legacy files predate Note Lock: default Quantizer
+  }
   if (scaleFields >= 4) {
     p.scaleApply = tempLinearPitch != 0;
+    p.scaleMode = scaleMode != 0;
     p.scaleRoot = scaleRoot >= 0 && scaleRoot < 12 ? (uint8_t)scaleRoot : 0;
     p.scalePreset = scalePreset >= 0 && scalePreset < scalePresetCount ? (ScalePreset)scalePreset : scaleChromatic;
     p.scaleCustomMask = scaleCustomMask & 0x0fff;
     if (!p.scaleCustomMask) p.scaleCustomMask = 0x0fff;
-    if (scaleFields == 5) p.scaleTracksMask = scaleTracksMask & 0xff;
+    if (scaleFields >= 5) p.scaleTracksMask = scaleTracksMask & 0xff;
     consumeLine(file);
     line = peekLine(file);
     if (line == NULL) return 1;
@@ -1059,6 +1100,25 @@ static int projectLoadInternal(FILE* file, Project* project) {
       if (p.phrases[phrase].rows[row].fx[fx][0] == fxSDT) p.phrases[phrase].rows[row].fx[fx][1] = convert(p.phrases[phrase].rows[row].fx[fx][1]);
     for (int table = 0; table < PROJECT_MAX_TABLES; ++table) for (int row = 0; row < 16; ++row) for (int fx = 0; fx < 4; ++fx)
       if (p.tables[table].rows[row].fx[fx][0] == fxSDT) p.tables[table].rows[row].fx[fx][1] = convert(p.tables[table].rows[row].fx[fx][1]);
+  }
+  if (projectFileVersion < 7) {
+    // SPL redefinition: SLP 1=loop / 2=ping-pong became SPL 01=reverse /
+    // 02=loop / 03=ping-pong. Shift the old loop values so existing songs
+    // keep their playback mode.
+    for (int phrase = 0; phrase < PROJECT_MAX_PHRASES; ++phrase)
+      for (int row = 0; row < 16; ++row)
+        for (int fx = 0; fx < 3; ++fx)
+          if (p.phrases[phrase].rows[row].fx[fx][0] == fxSLP &&
+              p.phrases[phrase].rows[row].fx[fx][1] >= 1 &&
+              p.phrases[phrase].rows[row].fx[fx][1] <= 2)
+            p.phrases[phrase].rows[row].fx[fx][1] += 1;
+    for (int table = 0; table < PROJECT_MAX_TABLES; ++table)
+      for (int row = 0; row < 16; ++row)
+        for (int fx = 0; fx < 4; ++fx)
+          if (p.tables[table].rows[row].fx[fx][0] == fxSLP &&
+              p.tables[table].rows[row].fx[fx][1] >= 1 &&
+              p.tables[table].rows[row].fx[fx][1] <= 2)
+            p.tables[table].rows[row].fx[fx][1] += 1;
   }
   projectFree(project);
   *project = p;
@@ -1343,7 +1403,6 @@ static int projectSavePitchTable(FILE* file, Project* project) {
 }
 
 static int projectSaveSong(FILE* file, Project* project) {
-  extern FXName fxNames[256];
 
   fprintf(file, "\n## Song\n\n```\n");
 
@@ -1424,8 +1483,15 @@ static int projectSaveGrooves(FILE* file, Project* project) {
   return 0;
 }
 
+// File spelling of an FX name. SPL (sample playback) keeps its legacy
+// "SLP" spelling: the AY2 Pulse Low Level FX already owns "SPL" in the
+// flat FX namespace scanFX resolves, so writing "SPL" for the sample FX
+// would hijack loads of both old and new files.
+static const char* fxSaveName(uint8_t fx) {
+  return fx == fxSLP ? "SLP" : fxNames[fx].name;
+}
+
 static int projectSavePhrases(FILE* file, Project* project) {
-  extern FXName fxNames[256];
 
   fprintf(file, "\n## Phrases\n\n");
 
@@ -1437,11 +1503,11 @@ static int projectSavePhrases(FILE* file, Project* project) {
           noteName(project, project->phrases[c].rows[d].note),
           byteToHexOrEmpty(project->phrases[c].rows[d].instrument),
           volumeToHexOrEmpty(project->phrases[c].rows[d].volume),
-          fxNames[project->phrases[c].rows[d].fx[0][0]].name,
+          fxSaveName(project->phrases[c].rows[d].fx[0][0]),
           byteToHex(project->phrases[c].rows[d].fx[0][1]),
-          fxNames[project->phrases[c].rows[d].fx[1][0]].name,
+          fxSaveName(project->phrases[c].rows[d].fx[1][0]),
           byteToHex(project->phrases[c].rows[d].fx[1][1]),
-          fxNames[project->phrases[c].rows[d].fx[2][0]].name,
+          fxSaveName(project->phrases[c].rows[d].fx[2][0]),
           byteToHex(project->phrases[c].rows[d].fx[2][1])
         );
       }
@@ -1453,7 +1519,6 @@ static int projectSavePhrases(FILE* file, Project* project) {
 }
 
 int saveTable(FILE* file, int idx, Table* table) {
-  extern FXName fxNames[256];
 
   fprintf(file, "\n### Table %X (Retrig: %s)\n\n```\n", idx, tableRetriggerModeName(table->retriggerMode));
   for (int d = 0; d < 16; d++) {
@@ -1461,10 +1526,10 @@ int saveTable(FILE* file, int idx, Table* table) {
       table->rows[d].pitchFlag ? '=' : '~',
       byteToHex(table->rows[d].pitchOffset),
       byteToHexOrEmpty(table->rows[d].volume),
-      fxNames[table->rows[d].fx[0][0]].name, byteToHex(table->rows[d].fx[0][1]),
-      fxNames[table->rows[d].fx[1][0]].name, byteToHex(table->rows[d].fx[1][1]),
-      fxNames[table->rows[d].fx[2][0]].name, byteToHex(table->rows[d].fx[2][1]),
-      fxNames[table->rows[d].fx[3][0]].name, byteToHex(table->rows[d].fx[3][1]));
+      fxSaveName(table->rows[d].fx[0][0]), byteToHex(table->rows[d].fx[0][1]),
+      fxSaveName(table->rows[d].fx[1][0]), byteToHex(table->rows[d].fx[1][1]),
+      fxSaveName(table->rows[d].fx[2][0]), byteToHex(table->rows[d].fx[2][1]),
+      fxSaveName(table->rows[d].fx[3][0]), byteToHex(table->rows[d].fx[3][1]));
   }
   fprintf(file, "```\n");
   return 0;
@@ -1525,7 +1590,12 @@ static int projectSaveInternal(FILE* file, Project* project) {
   for(const auto& i:project->instruments)sourcePrograms |= i.type==InstrumentType::SID?bool(i.chip.sid.program.format):isSimpleChip(i.type)?bool(i.chip.simpleChip.program.format):false;
   // Native formats 6-8 predate upstream's expanded phrase volume. Format 9
   // distinguishes new 00-7F songs while retaining their native patches and FX.
-  fprintf(file, "# ChooChooTracker Module %d.0\n\n", sourcePrograms ? 10 : nativeChips ? 9 : 6);
+  // Plain projects stay at 7.0: this fork's 7.0 carries the redefined SLP
+  // playback values (0=fwd/1=rev/2=loop/3=ping-pong) and the 6-field Scale
+  // line, so writing 6.0 would re-trigger the <7 SLP value migration on
+  // reload and corrupt loop modes. Upstream never wrote 7.0 files, so the
+  // number stays unambiguous. Native-chip projects use upstream's 9/10.
+  fprintf(file, "# ChooChooTracker Module %d.0\n\n", sourcePrograms ? 10 : nativeChips ? 9 : 7);
 
   fprintf(file, "- Title: %s\n", project->title);
   fprintf(file, "- Author: %s\n", project->author);
@@ -1536,6 +1606,13 @@ static int projectSaveInternal(FILE* file, Project* project) {
   for (int t = 0; t < PROJECT_MAX_TRACKS; ++t) for (int slot = 0; slot < 2; ++slot) {
     const auto& c = project->trackInserts[t][slot];
     fprintf(file, "- Insert: %d,%d,%u,%u",t,slot,c.module,c.bypass);
+    for (int i = 0; i < 8; ++i) fprintf(file, ",%u", c.values[i]);
+    fprintf(file, "\n");
+  }
+  fprintf(file, "- Master inserts: 1,2\n");
+  for (int slot = 0; slot < 2; ++slot) {
+    const auto& c = project->masterInserts[slot];
+    fprintf(file, "- Master insert: %d,%u,%u", slot, c.module, c.bypass);
     for (int i = 0; i < 8; ++i) fprintf(file, ",%u", c.values[i]);
     fprintf(file, "\n");
   }
@@ -1554,11 +1631,19 @@ static int projectSaveInternal(FILE* file, Project* project) {
   fprintf(file, "- Track tilts: %hhu,%hhu,%hhu,%hhu,%hhu,%hhu,%hhu,%hhu\n",
     project->trackTilt[0], project->trackTilt[1], project->trackTilt[2], project->trackTilt[3],
     project->trackTilt[4], project->trackTilt[5], project->trackTilt[6], project->trackTilt[7]);
-  fprintf(file, "- Reverb: %hhu,%hhu,%hhu,%hu\n", project->reverbReturn, project->reverbTime,
-    project->reverbDamping, project->reverbFilterCutoffHz);
+  fprintf(file, "- Reverb: %hhu,%hhu,%hhu,%hu,%hu\n", project->reverbReturn, project->reverbTime,
+    project->reverbDamping, project->reverbFilterCutoffHz, project->reverbHighpassCutoffHz);
   fprintf(file, "- Delay: %hhu,%hhu,%hhu,%hhu,%hu\n", project->delayReturn, project->delayReverbSend,
     project->delayTicks, project->delayFeedback, project->delayFilterCutoffHz);
   fprintf(file, "- Tilt pivot: %hu\n", project->tiltPivotHz);
+  // Optional field (Phase 4): only written when set, so older versions of
+  // the format stay byte-identical for projects without the preference.
+  // Must stay before the MIDI CC mappings block: the loader reads it right
+  // after the tilt pivot line (this fork's layout, kept from before the
+  // upstream merge).
+  if (project->sampleSaveChoice) {
+    fprintf(file, "- Sample save choice: %hhu\n", project->sampleSaveChoice);
+  }
   fprintf(file, "- MIDI CC mappings: %d\n", PROJECT_MAX_MIDI_CC_MAPPINGS);
   for (int i = 0; i < PROJECT_MAX_MIDI_CC_MAPPINGS; ++i) {
     const MidiCCMapping& m = project->midiCCMappings[i];
@@ -1568,8 +1653,8 @@ static int projectSaveInternal(FILE* file, Project* project) {
   fprintf(file, "- Linear pitch: %d\n", project->linearPitch);
   fprintf(file, "- Signed track speed: %d\n", project->signedTrackSpeed);
   fprintf(file, "- Perceptual effects: %d\n", project->perceptualEffects);
-  fprintf(file, "- Scale: %d,%d,%d,%u,%u\n", project->scaleApply, project->scaleRoot,
-          project->scalePreset, project->scaleCustomMask, project->scaleTracksMask);
+  fprintf(file, "- Scale: %d,%d,%d,%u,%u,%u\n", project->scaleApply, project->scaleMode, project->scaleRoot,
+          (unsigned)project->scalePreset, project->scaleCustomMask, project->scaleTracksMask);
   fprintf(file, "- Chip type: %s\n", chipNames[static_cast<int>(project->chipType)]);
 
   switch (project->chipType) {

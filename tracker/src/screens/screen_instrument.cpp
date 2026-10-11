@@ -439,13 +439,13 @@ void instrumentCommonDrawVoicePostStatic(int drawEnvelope) {
     gfxPrint(11, 14, "D");
     gfxPrint(16, 14, "S");
     gfxPrint(21, 14, "R");
-    gfxPrint(appSettings.persistentWaveform ? 25 : 27, 14, "Shape");
+    gfxPrint(appSettings.persistentWaveform ? 25 : 27, 14, appSettings.persistentWaveform ? "Shape" : "SHP");
   }
 }
 
 int instrumentCommonDrawVoicePostCursor(int col, int row) {
   if (row == 9) {
-    gfxCursor(col == 4 ? (appSettings.persistentWaveform ? 31 : 35) : 7 + col * 5, 14, 2);
+    gfxCursor(col == 4 ? 31 : 7 + col * 5, 14, 2);
     return 1;
   }
   if (col && row >= 4 && row <= 8) {
@@ -472,7 +472,7 @@ int instrumentCommonDrawVoicePostField(int col, int row, CellState state,
   if (row == 9) {
     const uint8_t values[] = {post->attack, post->decay, post->sustain, post->release, post->envelopeShape};
     gfxSetFgColor(state == CellState::focus ? appSettings.colorScheme.textValue : appSettings.colorScheme.textDefault);
-    gfxPrint(col == 4 ? (appSettings.persistentWaveform ? 31 : 35) : 7 + col * 5, 14, byteToHex(values[col]));
+    gfxPrint(col == 4 ? 31 : 7 + col * 5, 14, byteToHex(values[col]));
     instrumentCommonDrawEnvelopePreview(post->attack, post->decay, post->sustain, post->release, post->envelopeShape);
     return 1;
   }
