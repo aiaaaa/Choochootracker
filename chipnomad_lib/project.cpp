@@ -16,11 +16,11 @@ FXName fxNamesSequencer[] = {
   {fxRET, "RET"}, {fxDEL, "DEL"}, {fxOFF, "OFF"}, {fxKIL, "KIL"}, {fxTIC, "TIC"},
   {fxTBL, "TBL"}, {fxTBX, "TBX"}, {fxTHO, "THO"}, {fxTXH, "TXH"}, {fxGRV, "GRV"},
   {fxGGR, "GGR"}, {fxHOP, "HOP"}, {fxSNG, "SNG"}, {fxPRO, "PRO"},
-  {fxMOD, "MOD"}, {fxSPD, "SPD"}, {fxSLE, "SLE"}
+  {fxMOD, "MOD"}, {fxSPD, "SPD"}, {fxSLE, "SLE"}, {fxPAN, "PAN"}
 };
 int fxSequencerCount = sizeof(fxNamesSequencer) / sizeof(FXName);
 
-FXName fxNamesTrack[] = {{fxRSN, "RSN"}, {fxDSN, "DSN"}, {fxSCL, "SCL"}, {fxCRD, "CRD"}};
+FXName fxNamesTrack[] = {{fxRSN, "RSN"}, {fxDSN, "DSN"}, {fxSCL, "SCL"}, {fxCRD, "CRD"}, {fxTPN, "TPN"}};
 int fxTrackCount = sizeof(fxNamesTrack) / sizeof(FXName);
 
 FXName fxNamesEnvelope[] = {
@@ -185,12 +185,14 @@ void projectInit(Project* p) {
   p->signedTrackSpeed = 1;
   p->perceptualEffects = 1;
   p->scaleApply = 1;
+  p->scaleMode = 0;
   p->scaleTracksMask = 0xff;
   p->scaleRoot = 0;
   p->scalePreset = scaleChromatic;
   p->scaleCustomMask = 0x0fff;
   for (int i = 0; i < PROJECT_MAX_TRACKS; i++) {
     p->trackVolume[i] = 100;
+    p->trackPan[i] = 128;
     p->trackTilt[i] = 0x80;
   }
   p->tiltPivotHz = 1000;
@@ -198,6 +200,7 @@ void projectInit(Project* p) {
   p->reverbTime = 180;
   p->reverbDamping = 160;
   p->reverbFilterCutoffHz = 16000;
+  p->reverbHighpassCutoffHz = 150;
   p->delayReturn = 100;
   p->delayReverbSend = 0;
   p->delayTicks = 9;

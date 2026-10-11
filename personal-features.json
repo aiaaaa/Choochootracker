@@ -1,7 +1,7 @@
 {
   "upstream": "paiheulevrai/Choochootracker",
   "upstream_branch": "main",
-  "upstream_commit": "e8fa36196170cba51580bda446a8f88fb961dc03",
+  "upstream_commit": "46f76a1009f3f96b0a32de0f3307d56572a875cc",
   "personal_branch": "personal/r36h",
   "update_policy": "Personal combines upstream main, my additions not yet incorporated upstream, and my experiments. Keep unmerged additions, including pending or declined submissions. Once incorporated upstream, replace my earlier implementation with the maintainer's merged version, including his fixes and changes; remove duplicate code and controls. Test, preserve user data, record commit, and retain rollback before installation.",
   "features": [
@@ -142,7 +142,7 @@
     {
       "id": "rotary-rate-popup-navigation",
       "branch": "experimental/rotary-rate-popup",
-      "status": "Integrated into personal/r36h; contribution branch prepared separately",
+      "status": "Merged upstream via PR #51; maintainer implementation adopted in October 11 personal integration",
       "installed_source_commit": "13968c857c547f2bee7c9f3d069ec7a9791426d2",
       "validation_report": "docs/rotary-popup-device-20261007.json",
       "changes": [
@@ -426,5 +426,30 @@
     "arm_test_assertions": 872,
     "production_browser_engines": 11,
     "collection_metadata_folder": "non-attributable-presets-20261007"
+  },
+  "integration_20261011": {
+    "upstream_commit": "46f76a1009f3f96b0a32de0f3307d56572a875cc",
+    "merged_prs": [
+      38,
+      51,
+      52,
+      53,
+      54,
+      56,
+      57
+    ],
+    "targets": [
+      "R36H device personal build",
+      "personal web app"
+    ],
+    "preserved": [
+      "Mod Lucky with native and browser adapters",
+      "personal preset naming and private USER data",
+      "web appearance, safe areas, storage flush and audio recovery",
+      "web Play X / Shift Y defaults",
+      "roughdemos portable song collection",
+      "handheld saved 4906-frame buffer"
+    ],
+    "notes": "Use merged upstream implementations for Rotary/navigation and community imports; keep private library files outside Git. Source integration and validation are recorded in docs/personal-harmonization-20261011.md."
   }
 }

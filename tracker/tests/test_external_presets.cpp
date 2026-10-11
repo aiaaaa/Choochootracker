@@ -464,11 +464,10 @@ TEST_CASE("Furnace fixed notes translate source chip octaves before playback") {
 }
 
 TEST_CASE("External ready ZIP libraries browse and load through USER") {
-  const char* configured = std::getenv("CHOOCHOO_COMMUNITY_PACKS");
+  const char* configured = std::getenv("CHOOCHOO_USER_PRESETS");
   if (!configured) return;
-  auto root =
-      std::filesystem::path(configured) / "ChooChoo-Non-attributable-Presets-20261007/instruments/USER";
-  if (!std::filesystem::exists(root)) return;
+  const auto root = std::filesystem::path(configured);
+  REQUIRE(std::filesystem::is_directory(root));
   for (auto type : {InstrumentType::DX7, InstrumentType::OPLL, InstrumentType::VRC7,
                     InstrumentType::OPL2, InstrumentType::OPL3, InstrumentType::GenesisFM,
                     InstrumentType::ArcadeFM, InstrumentType::SID, InstrumentType::SegaPSG,

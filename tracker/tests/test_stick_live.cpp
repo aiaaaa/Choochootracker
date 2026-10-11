@@ -57,6 +57,10 @@ struct StickLiveFixture {
       realSettingsPath = std::string(settingsDirectory) + "/settings.txt";
     if (!realSettingsPath.empty()) std::filesystem::remove(realSettingsPath);
     initDefaultAppSettings();
+    mockAudioReconfigureResult = 0;
+    mockAudioReconfigureCalls = 0;
+    mockAudioReconfigureSize = 0;
+    mockAudioCpuLoad = 0;
     appSettings.keyMapping.keyMotionLive[0] = keyboardLive;
     appSettings.keyMapping.keyMotionLive[1] = gamepadLive;
     inputRawCallback = nullptr;
@@ -82,6 +86,8 @@ TEST_CASE_FIXTURE(StickLiveFixture, "Shift horizontal navigation exits branch sc
   const Route routes[] = {
     {&screenProject,&screenMixer,&screenChain},
     {&screenSettings,&screenMixer,&screenChain},
+    {&screenControlsSettings,&screenMixer,&screenChain},
+    {&screenAudioSettings,&screenMixer,&screenChain},
     {&screenSynthSettings,&screenMixer,&screenChain},
     {&screenMixerSettings,&screenMixer,&screenChain},
     {&screenGraphicsSettings,&screenMixer,&screenChain},
@@ -95,10 +101,13 @@ TEST_CASE_FIXTURE(StickLiveFixture, "Shift horizontal navigation exits branch sc
     {&screenAYWavetable,&screenInstrument,&screenTable},
   };
   for (const auto& route : routes) for (int direction : {keyLeft,keyRight}) {
-    currentScreen = route.from;
+    if (route.from == &screenInsertFX) screenInsertFXOpenTrack();
+    else screenSetup(route.from, 0);
+    appDraw();
     motion(keyShift,true);
     motion(direction,true);
     const auto* destination = direction == keyLeft ? route.left : route.right;
+    appDraw();
     CHECK(currentScreen == destination);
     motion(direction,false);
     CHECK(currentScreen == destination); // releasing direction while still holding Shift
@@ -328,9 +337,11 @@ TEST_CASE_FIXTURE(StickLiveFixture, "absent, older and invalid settings default 
   }
 }
 
-TEST_CASE_FIXTURE(StickLiveFixture, "Settings row, padded value, cursor and subsequent actions align") {
+TEST_CASE_FIXTURE(StickLiveFixture, "Settings menus and audio buffer control align") {
     REQUIRE(screenSettings.draw != nullptr);
     REQUIRE(screenSettings.setup != nullptr);
+    REQUIRE(screenControlsSettings.draw != nullptr);
+    REQUIRE(screenAudioSettings.draw != nullptr);
     REQUIRE(screenSynthSettings.draw != nullptr);
     REQUIRE(screenSynthSettings.setup != nullptr);
     REQUIRE(screenMixerSettings.draw != nullptr);
@@ -340,50 +351,18 @@ TEST_CASE_FIXTURE(StickLiveFixture, "Settings row, padded value, cursor and subs
   screenSettings.fullRedraw();
   REQUIRE(mockScreenData != nullptr);
 #ifdef CHOOCHOO_EXPERIMENTAL_MOD_LUCKY
-  CHECK(mockScreenData->rows == 11);
+  CHECK(mockScreenData->rows == 9);
 #else
-  CHECK(mockScreenData->rows == 10);
+  CHECK(mockScreenData->rows == 8);
 #endif
   auto* screen = mockScreenData;
-  CHECK(screen->getColumnCount(2) == 1);
-  screen->drawField(0, 2, CellState::focus);
-  CHECK(std::string(mockGfxCells[4], 15) == "Stick live mode");
-  CHECK(std::string(mockGfxCells[4] + 23, 6) == "HOLD  ");
-  REQUIRE(screen->onEdit(0, 2, CellEditAction::increase) == 1);
-  screen->drawField(0, 2, CellState::focus);
-  CHECK(std::string(mockGfxCells[4] + 23, 6) == "TOGGLE");
-  REQUIRE(screen->onEdit(0, 2, CellEditAction::increase) == 1);
-  screen->drawField(0, 2, CellState::focus);
-  CHECK(std::string(mockGfxCells[4] + 23, 6) == "FREE  ");
-  CHECK(chipnomadLiveStickIsEnabled());
-  REQUIRE(screen->onEdit(0, 2, CellEditAction::decrease) == 1);
-  input(keyboardLive, true);
-  input(keyboardLive, false);
-  screen->onEdit(0, 2, CellEditAction::tap); // unchanged mode must not clear a latch
-  CHECK(chipnomadLiveStickIsEnabled());
-  REQUIRE(screen->onEdit(0, 2, CellEditAction::decrease) == 1);
-  CHECK_FALSE(chipnomadLiveStickIsEnabled());
-  screen->drawField(0, 2, CellState::focus);
-  CHECK(std::string(mockGfxCells[4] + 23, 6) == "HOLD  ");
-  screen->drawCursor(0, 2);
-  CHECK(mockCursorX == 23);
-  CHECK(mockCursorY == 4);
-  CHECK(mockCursorWidth == 6);
-
-  screen->drawField(0, 8, CellState::focus);
-  CHECK(std::string(mockGfxCells[10], 14) == "Support report");
-  screen->drawCursor(0, 8);
-  CHECK(mockCursorX == 0);
-  CHECK(mockCursorY == 10);
-  CHECK(mockCursorWidth == 14);
-
-  const char* labels[] = {"MIDI", "Key mapping", "Synths", "Mixer", "Graphics", "Quit ChooChooTracker"};
-  const int lines[] = {5, 6, 7, 8, 9, 18};
-  const int widths[] = {4, 11, 6, 5, 8, 19};
-  const AppScreen* destinations[] = {&screenMidi, &screenKeyMapping, &screenSynthSettings, &screenMixerSettings, &screenGraphicsSettings};
+  const char* labels[] = {"Controls", "Audio", "MIDI", "Synths", "Mixer", "Graphics", "Quit ChooChooTracker"};
+  const int lines[] = {2, 3, 4, 5, 6, 7, 18};
+  const int widths[] = {8, 5, 4, 6, 5, 8, 19};
+  const AppScreen* destinations[] = {&screenControlsSettings, &screenAudioSettings, &screenMidi, &screenSynthSettings, &screenMixerSettings, &screenGraphicsSettings};
   mockQuitTriggered = 0;
-  for (int i = 0; i < 6; ++i) {
-    int row = i < 5 ? 3 + i : screen->rows - 1;
+  for (int i = 0; i < 7; ++i) {
+    int row = i < 6 ? i : screen->rows - 1;
     screen->drawField(0, row, CellState::focus);
     CHECK(std::string(mockGfxCells[lines[i]], std::string(labels[i]).size()) == labels[i]);
     screen->drawCursor(0, row);
@@ -391,12 +370,80 @@ TEST_CASE_FIXTURE(StickLiveFixture, "Settings row, padded value, cursor and subs
     CHECK(mockCursorY == lines[i]);
     CHECK(mockCursorWidth == widths[i]);
     screen->onEdit(0, row, CellEditAction::tap);
-    if (i < 5) {
+    if (i < 6) {
       CHECK(currentScreen == destinations[i]);
       CHECK_FALSE(mockQuitTriggered);
     }
   }
   CHECK(mockQuitTriggered);
+
+  screenControlsSettings.fullRedraw();
+  screen = mockScreenData;
+  CHECK(screen->rows == 4);
+  screen->drawField(0, 2, CellState::focus);
+  CHECK(std::string(mockGfxCells[4], 15) == "Stick live mode");
+  REQUIRE(screen->onEdit(0, 2, CellEditAction::increase) == 1);
+  CHECK(appSettings.stickLiveMode == StickLiveMode::toggle);
+
+  mockAudioCpuLoad = 37;
+  screenAudioSettings.fullRedraw();
+  screen = mockScreenData;
+  CHECK(screen->rows == 2);
+  screen->drawField(0, 0, CellState::focus);
+  CHECK(std::string(mockGfxCells[2], 11) == "Buffer size");
+  CHECK(std::string(mockGfxCells[2] + 23, 3) == "512");
+  appSettings.audioBufferSize = 64;
+  screen->drawField(0, 0, CellState::focus);
+  CHECK(std::string(mockGfxCells[2] + 23, 4) == "64  ");
+  appSettings.audioBufferSize = 256;
+  screen->drawField(0, 1, CellState::normal);
+  CHECK(std::string(mockGfxCells[3], 8) == "CPU load");
+  CHECK(std::string(mockGfxCells[3] + 23, 4) == "037%");
+  CHECK_FALSE(screen->isCellValid(0, 1));
+  REQUIRE(screen->onEdit(0, 0, CellEditAction::increase) == 1);
+  CHECK(mockAudioReconfigureCalls == 1);
+  CHECK(mockAudioReconfigureSize == 512);
+  CHECK(appSettings.audioBufferSize == 512);
+  REQUIRE(screen->onEdit(0, 0, CellEditAction::clear) == 1);
+  CHECK(appSettings.audioBufferSize == 32);
+  const int callsAtMinimum = mockAudioReconfigureCalls;
+  REQUIRE(screen->onEdit(0, 0, CellEditAction::decrease) == 1);
+  CHECK(mockAudioReconfigureCalls == callsAtMinimum);
+  mockAudioReconfigureResult = 1;
+  REQUIRE(screen->onEdit(0, 0, CellEditAction::increase) == 1);
+  CHECK(mockAudioReconfigureSize == 64);
+  CHECK(appSettings.audioBufferSize == 32);
+}
+
+TEST_CASE_FIXTURE(StickLiveFixture, "audio buffer settings use supported sizes") {
+  CHECK(appSettings.audioBufferSize == 512);
+  struct StoredSetting { const char* text; int expected; };
+  for (const auto& setting : {StoredSetting{"audioBufferSize: 4906\n", 4906},
+                              StoredSetting{"audioBufferSize: 1600\n", 1024},
+                              StoredSetting{"audioBufferSize: 1\n", 32},
+                              StoredSetting{"audioBufferSize: 700\n", 512}}) {
+    std::ofstream(realSettingsPath) << setting.text;
+    REQUIRE(settingsLoad() == 0);
+    CHECK(appSettings.audioBufferSize == setting.expected);
+  }
+}
+
+TEST_CASE_FIXTURE(StickLiveFixture, "personal handheld buffer can be lowered and restored") {
+  appSettings.audioBufferSize = 4906;
+  screenAudioSettings.fullRedraw();
+  REQUIRE(mockScreenData != nullptr);
+  auto* screen = mockScreenData;
+  screen->drawCursor(0, 0);
+  CHECK(mockCursorWidth == 4);
+  REQUIRE(screen->onEdit(0, 0, CellEditAction::decrease) == 1);
+  CHECK(appSettings.audioBufferSize == 1024);
+  CHECK(mockAudioReconfigureSize == 1024);
+  REQUIRE(screen->onEdit(0, 0, CellEditAction::increase) == 1);
+  CHECK(appSettings.audioBufferSize == 4906);
+  CHECK(mockAudioReconfigureSize == 4906);
+  appSettings.audioBufferSize = 512;
+  REQUIRE(settingsLoad() == 0);
+  CHECK(appSettings.audioBufferSize == 4906);
 }
 }
 

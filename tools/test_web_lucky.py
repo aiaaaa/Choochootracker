@@ -39,7 +39,7 @@ with sync_playwright() as p:
         key('x')
         page.evaluate("window.probe={callbacks:0,peak:0};const n=Module.SDL2.audio.scriptProcessorNode;const f=n.onaudioprocess;n.onaudioprocess=e=>{f(e);probe.callbacks++;for(const x of e.outputBuffer.getChannelData(0))probe.peak=Math.max(probe.peak,Math.abs(x));};void 0;")
         key('Shift+ArrowDown')
-        for _ in range(9):key('ArrowDown')
+        for _ in range(7):key('ArrowDown')
         page.screenshot(path=str(root/'.tmp/lucky-before.png'))
         key('x');page.wait_for_timeout(1800)
         assert requests==['page','module'],requests
@@ -61,7 +61,7 @@ with sync_playwright() as p:
         print('project and sample persistence passed',flush=True)
         # Leave while the random page is pending. It must not complete or play later.
         page.locator('#canvas').click();key('x');key('Shift+ArrowDown')
-        for _ in range(9):key('ArrowDown')
+        for _ in range(7):key('ArrowDown')
         scenario['mode']='delay';key('x');assert scenario['pending']
         key('z');page.wait_for_timeout(300)
         for route in scenario['pending']:

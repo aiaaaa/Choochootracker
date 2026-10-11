@@ -102,6 +102,9 @@ bool setupUserPresetLibrary(UserPresets& target, InstrumentType type) {
 #ifdef ANDROID_BUILD
   external = true;
 #endif
+#ifdef _WIN32
+  external = true;
+#endif
   if (external) {
     char directory[1024];
     if (fileGetDefaultDirectory(directory, sizeof(directory))) return false;

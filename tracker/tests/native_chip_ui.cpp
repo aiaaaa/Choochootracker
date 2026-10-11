@@ -22,6 +22,7 @@
 #include "copy_paste.h"
 #include "insert_fx.h"
 #include "help.h"
+#include "help.h"
 #include "fm_catalog.h"
 #include "user_presets.h"
 #include "user_preset_browser.h"
@@ -104,7 +105,7 @@ int main(int argc,char** argv){
   if(argc==3 && !strcmp(argv[2],"--harmonization-ui-only")) {
     screensInitAll();waveformDisplayInit();monitorDisplayInit();
     screenSetup(&screenSettings,0);appDraw();
-    for(int n=0;n<8;++n)key(1,keyDown);
+    for(int n=0;n<6;++n)key(1,keyDown);
     capture("settings-support-report");tapEdit();
     require(currentScreen==&screenSettings,"support report stays in Settings");
 #ifdef CHOOCHOO_EXPERIMENTAL_MOD_LUCKY

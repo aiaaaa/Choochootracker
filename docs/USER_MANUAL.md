@@ -66,7 +66,7 @@ ChooChooTracker works best with a gamepad that has a D-pad, 2 analogue sticks an
 | **MOTION RECORD** | L2 | W |
 | **MOTION ERASE** | R2 | E |
 
-Mappings can be changed in **Settings > Key mapping**. On PortMaster, save a
+Mappings can be changed in **Settings > Controls > Key mapping**. On PortMaster, save a
 remap with **Done**, then release the button before continuing in Settings.
 Desktop layout defaults use QWERTZ only for QWERTZ regions; Polish keyboards
 keep the standard QWERTY defaults.
@@ -104,6 +104,67 @@ and to choose where WAV exports are saved.
 - **OPT + EDIT** cuts it.
 - **SELECT + EDIT** pastes it.
 - **EDIT + [DIRECTION]** edits the selected cells together.
+
+On the Phrase screen, with a selection active, the note column can be filled
+with rhythm patterns:
+
+- **OPT + LEFT** fills the selection's note cells with a fixed 16-step pattern
+  and advances to the next pattern on every press. After the last pattern the
+  notes are erased and the cycle starts over. Patterns are aligned to absolute
+  phrase rows, so a partial selection only receives the steps that fall inside
+  it.
+- **OPT + RIGHT** fills the selection's note cells with a randomized pattern of
+  3-8 notes (7 and 8 are less likely), cycling indefinitely while **OPT** is
+  held.
+- **OPT + UP** mutates the notes already placed in the selection: every press
+  picks 1-3 of them and shifts each by a random amount within an octave
+  (small shifts are more likely than extreme ones). With **Note Lock** active
+  the shifted notes are snapped back into the scale; Sampler instruments with
+  **Slice** on stay chromatic. Nothing is erased: the 8th press restores the
+  notes the selection held when the cycle started, then the cycle starts over.
+- **OPT + UP** on a selection covering the volume column only (no note,
+  instrument or FX cells) randomizes velocities instead of mutating: the
+  first press applies the Minimal pattern (each volume shifts by up to
+  +-20), the second Medium (up to +-50), the third Random (completely
+  random values), and the fourth restores the volumes the selection held
+  when the cycle started. Releasing **OPT** resets the cycle to Minimal.
+  Rows without a volume are left untouched.
+- **OPT + DOWN** spreads the placed notes of sliced Sampler instruments in
+  the selection into a chromatic run: each instrument's first note (highest
+  in the sequencer) keeps its value and every following note of that
+  instrument rises one semitone above the previous one, turning a stack of
+  identical notes into consecutive slice triggers. Several sliced
+  instruments spread independently from their own first notes, notes on
+  instruments without slicing are left untouched, and the result is never
+  snapped to the project scale. The last note the spread writes becomes
+  the last note used in note input, so continuing the run manually picks
+  up the next slice. A selection holding only sliced
+  instruments spreads on every press; when non-sliced notes are present
+  too, the spread runs on the first press and the random arp takes over
+  those notes from the second press on.
+- **OPT + DOWN** on a selection without sliced-instrument notes is a random
+  arpeggiator for the notes already placed there. A chord is picked from
+  the CRD palette - 3-note chords for selections of 1-2 notes, 3+ note
+  chords for 3, any chord for 4 or more - with its root on a random note
+  of the project scale inside the selection's register (any chromatic
+  note when the scale is off or the track is excluded from it), and its
+  tones are quantized into the scale like playback does for CRD. Every
+  press re-spreads the chord across the placed notes: randomized,
+  lowest-to-highest, highest-to-lowest, then up-and-down; the 5th press
+  restores the original notes and the next press picks a fresh chord.
+  The chord name shows in the status bar while the arp is active, no
+  notes are added or removed, and releasing **OPT** resets the whole
+  process.
+- Every fill press erases the selection's notes before writing, and placed
+  notes carry the last used instrument; releasing **OPT** resets the cycles
+  to their first step.
+- While a selection is active and no other message is showing, the status
+  bar rotates a reminder of these combos every 2 seconds: `EDIT + DIR =
+  batch note edit`, `Double-tap EDIT: resample selection`, `OPT + LEFT =
+  pattern fill`, `OPT + RIGHT = random fill`, `OPT + UP =
+  mutate/randomize velocity` and `OPT + DOWN = random arp/slice spread`.
+  Entering or leaving selection mode restarts the rotation; any action
+  message replaces the hint until it expires.
 
 ### Playback
 
@@ -185,7 +246,7 @@ carries a red diagonal GITHUB FORK stamp.
 
 ### Mixer meters
 
-The Mixer labels its tracks with a TRK heading and numeric rows. An unlabeled one-character column before LVL shows each track’s stereo peak after level and tilt, before shared effects and master gain. The meter spans -48 to 0 dBFS and decays between updates. Its lower and middle bands use theme colors, while the top band is bright red near full scale.
+The Mixer shows adjacent **L/R** peak bars for each track after its PAN and tilt, before shared effects and master gain. The meter spans -48 to 0 dBFS and decays between updates. Its lower and middle bands use theme colors, while the top band is bright red near full scale.
 
 ## 4. Song, Chain and Phrase
 
@@ -581,13 +642,110 @@ This clean Sample engine plays mono or stereo PCM samples loaded into RAM.
 - Edits live in RAM until saved. **Project > Save** embeds the current sample audio in the song archive; the sample's own **File > Save / Save As** writes a separate WAV. Leaving without either save discards process operations (the `*` marker indicates a difference from the external WAV). Loading a different sample into the instrument also discards unsaved edits and resets the Region to the full sample (Start `00`, End `FF`).
 - **Region** sets the playback Start/End markers, also available on the Sampler instrument screen. They set normalised playback boundaries (`00-FF`); if Start is after End, the sample plays in reverse. **EDIT + [LEFT/RIGHT]** fine-adjusts the marker in steps of one (`01`) and zooms the waveform around it while **EDIT** is held; **EDIT + [UP/DOWN]** coarse-adjusts (step 16) and returns the view to the full sample. **EDIT + OPT** resets the marker to its default (Start `00`, End `FF`).
 - The waveform view zooms to a fixed window of one second of audio around the edited marker and pans to keep it visible; samples that fit inside the window stay at the full 1:1 view. The zoom is transient: it lasts while **EDIT** is held, and releasing **EDIT** returns to the full 1:1 view, as do coarse steps. Entering the screen always resets the view to the full sample.
-- **Select** sets a processing selection in absolute frames, independent of the playback Start/End markers. **EDIT + [LEFT/RIGHT]** moves a handle fifteen frames and zooms onto it while **EDIT** is held; **EDIT + [UP/DOWN]** jumps by `frameCount/64` (minimum 16) and returns to the full-sample view. **EDIT (tap)** on a handle copies the current Start or End marker position to it. **EDIT + OPT** on either handle empties the whole selection. When the selection is empty both handles show `-`; when the handles are inverted they swap automatically. The selection is session-only editor state: it is not saved with the project, and entering the screen seeds it with the playback Region span (the whole sample with the default markers).
-- **Slice** is Off, `2`, `4`, `8`, `16`, or `32` (EDIT + left/right) and is saved with the instrument. Off plays the Start/End window. A slice count divides that window evenly; phrase notes select slices chromatically from **C-0**, and notes past the last slice stay on that last slice. Sliced notes do not transpose pitch or use Scale quantization, but **CRD** keeps the selected slice and transposes its voices as a chord. Thin vertical lines mark each slice start on the waveform except the first.
+- **Select** sets a processing selection in absolute frames, independent of the playback Start/End markers. **EDIT + [LEFT/RIGHT]** moves a handle twenty frames and zooms onto it while **EDIT** is held; **EDIT + [UP/DOWN]** jumps by `frameCount/64` (minimum 16) and returns to the full-sample view. **EDIT (tap)** on a handle copies the current Start or End marker position to it. **EDIT + OPT** on either handle empties the whole selection. When the selection is empty both handles show `-`; when the handles are inverted they swap automatically. The selection is session-only editor state: it is not saved with the project, and entering the screen seeds it with the playback Region span (the whole sample with the default markers).
+- **Slice** is a single row with four value cells - **Mode**, **Count**,
+  **Slice** and **Frame** - and is saved with the instrument. Off plays the
+  Start/End window. Phrase notes select slices chromatically from **C-0**, and
+  notes past the last slice wrap around to the beginning (note N plays slice
+  `N % count`, so a run past the last slice cycles back to the first one).
+  Sliced notes do not transpose pitch or use Scale quantization, but **CRD**
+  keeps the selected slice and transposes its voices as a chord. Slice starts
+  are marked on the waveform with short two-pixel-wide lines (dark orange; the
+  current slice's line is brighter), and the slice under the cursor gets a
+  black background band on the waveform (the selection tint is not drawn over
+  the band, so it stays fully black and clearly distinct from the rest of the
+  preview).
+  - **Mode** cycles `OFF` / `EQUAL` / `AUTO` / `LAZY` (EDIT + left/right or
+    tap; EDIT + OPT turns slicing off). Switching modes initializes the slice
+    points: **EQUAL** divides the Start/End window evenly into **Count**
+    parts; **AUTO** runs a transient detection over the window and places a
+    slice on every onset it finds (up to **Count**); **LAZY** starts with one
+    slice covering the whole window. Switching to LAZY stashes the current
+    EQUAL/AUTO setting (count and bounds), and switching back to EQUAL or
+    AUTO restores it verbatim - no confirmation is asked and nothing is
+    lost. Slice and Stretch are mutually exclusive: enabling one disables
+    the other, and the Slice cells are dimmed while Stretch drives the
+    duration.
+  - **Count** shows the total number of slices (`01`..`64`). **EDIT +
+    [LEFT/RIGHT]** steps it by one (minimum 1, maximum 64), **EDIT +
+    [UP/DOWN]** cycles through the power-of-two counts `2 / 4 / 8 / 16 / 32 /
+    64` with wrap-around. Every change recalculates the division: **EQUAL**
+    re-divides the window evenly, **AUTO** re-runs detection with the new
+    target (the detection sensitivity is derived from the count - more slices
+    mean a more sensitive threshold). The box shows `-` when the mode is
+    OFF. In **LAZY** it stays bright (it counts the hand-placed slices) but
+    is display-only: the cursor skips it — moving right from **Mode** or
+    left from **Slice** lands on **Slice**, coming down from the **Select**
+    row's **END** marker lands there too, and touching the box does nothing
+    (hand-placed slices have no division to recalculate). **EDIT + OPT** and
+    a plain **EDIT** tap do nothing here: turning slicing off lives on
+    **Mode**, deleting a slice lives on **Slice**.
+  - **Slice** is the browser: it shows the 1-indexed current slice
+    (`01`..count). **EDIT + [LEFT/RIGHT]** moves between slices one at a
+    time, **EDIT + [UP/DOWN]** jumps four slices (both clamped, no
+    wrap-around); the browsed slice is indicated on the waveform by its
+    brighter marker and the black band, and the zoomed view recenters on the
+    slice start. **EDIT + OPT** deletes the current slice (it merges into
+    the previous one; the first slice cannot be deleted, and deleting the
+    last remaining slice turns slicing off - bounds survive an OFF
+    round-trip and come back when a mode is picked again). **EDIT (tap)**
+    previews the currently selected slice as a one-shot playback (works in
+    every slice mode; the preview stops when the key is released or when you
+    leave the screen). The box shows `-` when the mode is OFF.
+  - **Frame** shows the current slice's start frame in hex. **EDIT +
+    [LEFT/RIGHT]** nudges it by ten frames (zooming onto the marker while
+    **EDIT** is held), **EDIT + [UP/DOWN]** nudges by one hundred and
+    returns to the full view. A marker stays inside its own slice: it
+    cannot cross the previous or next slice start. **EDIT + OPT** deletes
+    the slice.
+  - **B** exits to the instrument screen from the Slice row like everywhere
+    else on this screen; **SHIFT + LEFT** exits from anywhere.
+  - **LAZY workflow**: with LAZY selected, tap **PLAY** to start a one-shot
+    full-sample playback - it plays once from the start and stops by
+    itself at the sample's original pitch and speed (a green two-pixel
+    marker follows the position on the waveform); tapping **PLAY** again
+    stops it early. While it plays,
+    every **EDIT** click drops a slice at the playback position, no matter
+    where the cursor is (slices closer than 50 ms to an existing one are
+    rejected with `Too close to slice`). Playing the sample again keeps
+    the existing chops and adds new ones at every tapped position, in
+    order - the **Count** box refreshes with every dropped slice and the
+    **Slice** browser follows the new one. The same browsing and editing
+    rules as the other modes apply to hand-placed slices: **EDIT +
+    direction** on **Slice** browses them, **Frame** adjusts the selected
+    start, **EDIT + OPT** deletes the current slice. The Frame cell dims
+    while the playback-drop is armed. **SHIFT + PLAY** is not intercepted
+    in LAZY: it starts phrase playback like on every other screen. LAZY
+    slices play back in the sequencer just like EQUAL and AUTO: phrase
+    notes map chromatically from **C-0** onto the hand-placed slices,
+    wrapping around past the last one.
+  - **Combo hints**: while the cursor rests on a Slice row cell and no other
+    message is showing, the status bar shows that cell's hint and keeps it
+    up while the cursor rests there. On **Mode** the hint is bound to the
+    active mode and shows only the description (the mode name is already in
+    the cell): `Divides sample in equal parts`, `Divides sample based on
+    transients`, `Press Play and add slices with EDIT` - switching modes
+    swaps the text immediately, and OFF clears the bar. On **Count** it
+    shows `Adjust the number of slices`, on **Slice**
+    `Browse slices`, on **Frame** `Adjust slice start`. Any action message
+    replaces the hint until it expires.
 - **Process** selects a destructive editing operation: **Crop**, **Normalize**, **Delete**, **Silence**, **Fade In**, **Fade Out** or **Reverse** (EDIT + left/right cycles, tap cycles forward, EDIT + OPT sets none). **GO** (same row) runs the selected operation on the current selection, or on the whole sample when the selection is empty. **Crop** keeps only the selection; **Normalize** scales the selection so its peak reaches full scale (both channels share one gain so the stereo image is preserved); **Delete** removes the selection and joins the tails (deleting the whole sample is rejected); **Silence** zeroes it; **Fade In**/**Fade Out** ramp the selection linearly from/to silence; **Reverse** plays the selection backwards (frames are swapped in place, both channels of a frame move together, length and markers are unchanged). Crop and Delete require a selection — with an empty selection they show `Select region first`. Every operation pauses audio briefly, keeps a one-level undo, and marks the sample as changed in RAM: the file on disk is not touched until the Save flows (see below), and leaving the screen discards the undo slot.
 - **UNDO** (next to GO) swaps the sample back with the state before the last operation. It is dimmed until an operation runs, toggles between the pre-op and post-op states on repeated presses, and is cleared when the screen is re-entered.
 - **File** holds the save flows. The instrument stores the full path of the WAV it was loaded from; these flows write that file or point the instrument at a new one. They never touch the instrument name.
   - The File field cycles between **Save** and **Save As** (EDIT + left/right or tap); **GO** (same row) runs the shown action.
-  - **Save** overwrites the WAV the sample was loaded from, after an `Overwrite <name>?` confirmation. It is dimmed (and skipped in navigation) until a sample with a file path is loaded. A failed write keeps the dirty marker and shows the error.
+  - **Save** overwrites the WAV the sample was loaded from. For a sample
+    without slices it asks `Overwrite <name>?` first. A sliced sample first
+    opens the **SAVE SLICES** dialog asking where the slice points belong:
+    **SAVE TO SAMPLE** writes them into the WAV as cue chunks (portable -
+    DAWs show them as markers) and keeps them in the project too,
+    **SAVE TO PROJECT** writes a plain WAV and keeps the points in the
+    project only, **CANCEL** aborts. A `Don't ask again in this project`
+    checkbox stores the picked destination with the project and skips the
+    dialog from then on (the choice is saved as `- Sample save choice:` in
+    the .cct and can only be changed by editing the project file). The
+    dialog is skipped for samples without slices. **Save** is dimmed (and
+    skipped in navigation) until a sample with a file path is loaded. A
+    failed write keeps the dirty marker and shows the error.
   - **Save As** writes the current sample to a new file: enter a file name (pre-filled with the current name without extension), then pick a folder in the browser. The sample is written as `<folder>/<name>.wav`, the instrument points at the new file, and the folder is remembered as the default sample folder. It is dimmed (and skipped in navigation) until sample data is loaded, so a freshly loaded sample can be given a file path. Paths longer than 255 characters are rejected.
   - The `*` marker before the filename means the sample in RAM differs from the file on disk (any process operation sets it, Save and Save As clear it). The marker is session-only: it is not saved with the project and resets when the screen is re-entered. If several instruments reference the same WAV file, saving one overwrites the file for all of them.
 - On the Sample instrument screen, use **EDIT + [LEFT/RIGHT]** to load the previous or next WAV in the same folder.
@@ -615,7 +773,7 @@ BYOWTBL is a dual wavetable oscillator compatible with Serum tables. Each oscill
 
 ## 6. Modulation and motion recording
 
-Each instrument can have up to 4 modulation slots.
+Each instrument can have up to 4 modulation slots. Audio instruments can target **Instrument Pan** or **Track Pan**; both use `00` for left, `80` for centre and `FF` for right.
 
 The available modulation types are:
 
@@ -743,9 +901,11 @@ Each FX has a 3-letter command and a hexadecimal value. The in-app help panel gi
 
 `SCL XY` changes the global playback scale and root without changing the notes stored in phrases. `X` selects a scale (`0` Chromatic, `1` Major, `2` Minor, through `C` Custom); `Y` selects the root (`0` C through `B` B). The command applies to phrase FX only, not tables. If several tracks issue `SCL` on the same tick, the lowest-numbered track wins.
 
+`SCL` belongs to Quantizer mode. With **Note Lock** active the command is not offered in the FX list, and any `SCL` already written into phrases is ignored while the mode is on.
+
 ### Chords
 
-`CRD XY` turns the note on its own Phrase row into a chord. `Y` selects: `0` Major, `1` Minor, `2` Dim, `3` Aug, `4` Sus2, `5` Sus4, `6` Power, `7` Maj7, `8` Min7, `9` Dom7, `A` Min7b5, `B` Dim7, `C` Add9, `D` MinAdd9, `E` Maj9, or `F` Min9. `X` selects one of 16 voicings: `0-3` are a rising closed inversion cycle; `4-7` add drop-2; `8-B` add drop-3; and `C-F` combine both drops. The cycle continues through an extra octave for triads and power chords, so every value is distinct; larger values become progressively wider and less conventional. For example, `CRD 4Y` is drop-2 root position and `CRD DY` is first inversion with both drops. At the bottom or top of the pitch table, voices are clamped to its range. The command is not persistent: write it on every chorded row. Each generated note is quantized independently when Scale is active. It is available to software engines only; AY instruments ignore it and remain monophonic.
+`CRD XY` turns the note on its own Phrase row into a chord. `Y` selects: `0` Major, `1` Minor, `2` Dim, `3` Aug, `4` Sus2, `5` Sus4, `6` Power, `7` Maj7, `8` Min7, `9` Dom7, `A` Min7b5, `B` Dim7, `C` Add9, `D` MinAdd9, `E` Maj9, or `F` Min9. `X` selects one of 16 voicings: `0-3` are a rising closed inversion cycle; `4-7` add drop-2; `8-B` add drop-3; and `C-F` combine both drops. The cycle continues through an extra octave for triads and power chords, so every value is distinct; larger values become progressively wider and less conventional. For example, `CRD 4Y` is drop-2 root position and `CRD DY` is first inversion with both drops. At the bottom or top of the pitch table, voices are clamped to its range. The command is not persistent: write it on every chorded row. Each generated note is quantized independently when Scale is active, in both Quantizer and Note Lock modes. It is available to software engines only; AY instruments ignore it and remain monophonic.
 
 ### Sequencer FX
 
@@ -761,6 +921,8 @@ Each FX has a 3-letter command and a hexadecimal value. The in-app help panel gi
 | `PRD` | signed `XX` | Accumulated relative oscillator-period offset. |
 | `VOL` | signed `XX` | Accumulated relative volume offset (`FF` is -1, not full volume). |
 | `VSL` | signed `XX` | Adds `XX` to volume on every phrase/table row. Use `00` to stop. |
+| `PAN` | `00-FF` | Absolute instrument panorama: left, centre (`80`), right. |
+| `TPN` | `00-FF` | Absolute mixer-track panorama: left, centre (`80`), right. |
 | `RET` | `XY` | Retriggers every `Y` ticks; `X` applies a volume change. `Y=0` stops retriggering. |
 | `DEL` | `XX` ticks | Delays note-on. A delay longer than the current groove step skips the note. |
 | `OFF` | `XX` ticks | Sends note-off after `XX` ticks and enters an ADSR release stage. |
@@ -912,6 +1074,8 @@ The value is interpreted as a signed `8-bit` relative change (`01` adds `1`, `FF
 
 | FX | Value | Meaning |
 |---|---|---|
+| `SPL` | `00-03` | Playback mode: `00` Forward, `01` Reverse, `02` Loop, `03` Ping-Pong |
+| `SLI` | `00-FF` | Play the numbered slice (`01` = first slice) regardless of the note; `00` keeps normal note mapping. Requires slice mode enabled on the instrument |
 | `SPT` | signed `XX` | Sample transposition in semitones |
 | `SST` | `00-FF` | Normalised playback start |
 | `STA` | `00-FF` | Alias of `SST` (normalised playback start) |
@@ -920,7 +1084,6 @@ The value is interpreted as a signed `8-bit` relative change (`01` adds `1`, `FF
 | `SCF` | `00-FF` | Exponential cutoff, `20 Hz` to `20 kHz` |
 | `SRS` | `00-FF` | Exponential filter resonance |
 | `SSP` | `00-FF` | Sample speed, mapped from `0%` to `500%` |
-| `SLP` | `00-02` | Loop mode: Off, Loop, Ping-Pong |
 
 ### AY FX shared by AY instruments
 
@@ -989,17 +1152,15 @@ Use it to balance the 8 tracks, shape each track with Tilt EQ, and send audio to
 | M | `*` mutes this track |
 | S | `*` solos this track |
 
-The mixer is track-based, not instrument-based. If a track changes instruments, its level, Tilt and sends remain attached to the track. Remember that each instrument also has its own `00-FF` volume on the Instrument screen, before the track level.
+The mixer is track-based, not instrument-based. If a track changes instruments, its level, PAN, Tilt and sends remain attached to the track. Instruments also have their own `00-FF` **Vol** and **Pan** in the top row of the Instrument screen. Instrument PAN is applied first, then track PAN. Both preserve an existing stereo image at centre; they progressively attenuate the opposite side when moved left or right.
 
-### Auto Mix
+### Master FX
 
-The Mixer contains an **AUTO MIX** button. It renders `6 seconds` offline,
-balances track loudness, then checks 8 octave bands against a pink-noise
-profile and gently lowers tracks that crowd those bands. It proposes
-conservative level changes, leaves some peak headroom and starts a temporary
-preview. **Apply** keeps the proposed levels, while **Cancel** restores the previous
-8 levels. It gives you a useful starting point, but you will probably still
-want to tweak the result.
+The **MASTER FX** entry opens a two-slot Insert FX sub-menu for the complete
+mix. Its effects run after the reverb and delay returns, before the master
+volume. Select a module, edit its parameters or bypass it exactly as for a
+track insert; press **OPT** to return to Mixer. Master FX settings are saved
+with the project and are not automated by phrase, table or modulation.
 
 ### Clouds Reverb
 
@@ -1045,15 +1206,22 @@ When a named project is saved under a new name, the default export folder is ren
 
 **Load** also accepts `.mid`/`.midi` files, imported as a new project: notes are grouped by MIDI channel (one channel per track, up to the track count), quantized to 4 rows per beat, and placed on a single default AY instrument - MIDI program numbers have no chiptune equivalent, so pick real instruments afterward. Only the file's first tempo is used (one global tick rate, no per-section tempo changes). The Export screen's **MIDI** row does the reverse: writes the current arrangement's notes, volume and tempo/groove as a Standard MIDI File (one MIDI track per tracker track); [MIDI Out](#midi-out) instruments and other per-row FX beyond volume and the global groove have no MIDI equivalent and are not translated.
 
-**Load** also accepts Dirtywave M8 songs (`.m8s`, firmware 2.x-4.x), imported as a new project. Only the structure and the notes come across (song rows, chains with their transpose, phrases with note, velocity and instrument number, note-offs, tempo and song name); notes keep their real pitch. M8 instruments have no equivalent here, so each instrument used by a phrase becomes a default AY instrument carrying the M8 instrument's name - pick real sounds afterward. FX, tables and all instrument parameters are ignored.
+**Load** also accepts Dirtywave M8 songs (`.m8s`, firmware 2.x-4.x), imported as a new project. Only the structure and the notes come across (song rows, chains with their transpose, phrases with note, velocity and instrument number, note-offs, tempo and song name); notes keep their real pitch (the M8 names octaves two higher: its `C-6` is `C-4` here). Each instrument used by a phrase is imported under the M8 instrument's name. M8 **MACROSYN** instruments become Braids instruments (the 47 shapes are the Braids models, same numbers; timbre, color, filter type, cutoff, resonance and pan are carried over, the cutoff curve being approximate). **SAMPLER** instruments become Sample instruments: the `.m8s` only stores the path of the WAV on the M8 card, so the file is searched under the folder of the `.m8s` and its parents (a copy of the card layout works) and in your current sample folder (`Samples` or `samples` both work); if it is not found the instrument keeps the M8 path and stays silent. Imported samples get +24 semitones in their Pitch setting, as the M8 plays a sample at its original pitch two octaves lower than this app does. **FMSYNTH** becomes a Genesis FM instrument (rough approximation), **WAVSYNTH** and **HYPERSYNTH** become aChChid. **MIDI OUT** becomes a MIDI Out instrument (channel, bank, program and the first four CC numbers). Other types (external) become a default AY instrument - pick real sounds afterward. FX and tables are ignored.
 
-On desktop, the Export screen's **M8S** row does the reverse, in a limited way: tap it and pick an existing `.m8s` as a **template** (remembered until you quit, **EDIT + OPT** forgets it). Its song, chains, phrases, tempo and title are replaced and everything else, including the M8 instruments, is kept as is. FX are not exported, and a song using phrase `FF` or above cannot be exported (the M8 has 255 phrases). The exported file has not been tested on a real M8 yet. See [M8 songs](m8s-format.md) for the details.
+On desktop, the Export screen's **M8S** row does the reverse, in a limited way: tap it and pick an existing `.m8s` as a **template** (remembered until you quit, **EDIT + OPT** forgets it). Its song, chains, phrases, tempo and title are replaced and everything else is kept as is, except that Braids instruments are written back as MacroSynth and Sample instruments as Sampler (path `/Samples/<file name>`: copy the WAV there on the M8 yourself), provided the template has an instrument of that type to copy the other parameters from. FX are not exported, and a song using phrase `FF` or above cannot be exported (the M8 has 255 phrases). The exported file has not been tested on a real M8 yet. See [M8 songs](m8s-format.md) for the details.
 
 On desktop, key jazz lets you type the filename, title and author directly on the keyboard instead of using the on-screen virtual keyboard — see [Key jazz](#key-jazz-desktop-only).
 
 ### Scale / Quantize
 
-The Scale screen controls the global 12-TET playback quantizer. Phrase entry remains chromatic: when enabled, notes are rounded downward immediately before reaching the sound engine, so changing root or scale reharmonizes a song without editing its phrases. Choose a root, one of the compact built-in scales, or edit the twelve notes of **Custom**. Each of the eight track checkboxes decides which tracks are quantized. Quantization is bypassed for non-12-note pitch tables and for Sampler instruments whose **Slice** is not Off; MIDI input is not part of this version.
+The Scale screen controls the global 12-TET scale engine. The **Mode** row selects between two modes:
+
+- **Quantizer** (default): phrase entry remains chromatic; when enabled, notes are rounded downward immediately before reaching the sound engine, so changing root or scale reharmonizes a song without editing its phrases.
+- **Note Lock**: notes typed into phrases are snapped to the nearest note of the scale as they are entered, so only scale notes can be written. Fresh entries and decreases snap down; `EDIT + RIGHT` / `EDIT + UP` raise the note to the next scale note above. Entry always follows the project scale on this screen: changing the root or scale immediately affects newly entered notes on the enabled tracks, while notes already stored stay untouched. `SCL` FX is unavailable in this mode and any `SCL` already written is ignored. Playback quantization of plain notes is bypassed (entry is already locked); chord quantization via `CRD` still applies.
+
+With the cursor resting on **Mode**, the status bar keeps a fixed description of the active mode visible: `Quantizes notes on playback` for **Quantizer**, `Snaps sequencer to scale` for **Note Lock**. Toggling the mode swaps the text immediately; any action message replaces it until it expires.
+
+Both modes share the same root, scale, **Custom** note editing and track checkboxes. Each of the eight track checkboxes decides which tracks the mode applies to. The scale engine is bypassed for non-12-note pitch tables and for Sampler instruments whose **Slice** mode is EQUAL, AUTO or LAZY (their notes select slices chromatically from C-0); MIDI input is not part of this version.
 
 - **Linear pitch** selects the pitch-table mode. **Off** is the default and the hardware-validated setting for correct AY, Braids and Plaits octave tracking.
 - **Tick rate** sets tracker timing and displays the corresponding BPM (`tick rate x 60 / 24`).
@@ -1063,13 +1231,12 @@ Use **Save** before changing instrument types or loading another project.
 
 ## 12. Settings
 
-- **Repeat delay / speed** tune held-button repeat.
-- **Stick live mode** selects `HOLD`, `TOGGLE`, or `FREE` for the existing mapped Stick live button.
+- **Controls** contains **Repeat delay / speed**, **Stick live mode** (`HOLD`, `TOGGLE`, or `FREE`) and **Key mapping**.
+- **Audio** contains buffer size and CPU load. The personal handheld preserves an existing 4906-frame buffer and includes it alongside the upstream 32–1024 choices; smaller buffers trade latency for less processing headroom.
 - **MIDI** opens the [MIDI](#14-midi) submenu: device selection and the MIDI In channel-to-instrument mapping.
 - **Synths** contains **AY Quality**, **Sample dithering**, and global **Braids BITS / DRFT / SIGN** settings.
 - **Mixer** contains **Mix volume** and the per-project `250-4000 Hz` **Tilt pivot** (default `1 kHz`) used by all Mixer Tilt controls.
-- **Graphics** contains **Edit color theme**, **Load font**, **Persistent waveform**, **Track visuals**, and the active renderer (`GPU` or `Software`). Track visuals selects **Detailed** (the synth waveform and its overlays) or **Audio waveform** (the actual summed output of that track) independently for every track; audio waveform clears any prior ADSR overlay immediately when playback starts. ChipNomad fonts and themes should work.
-- **Key mapping** customises the controls.
+- **Graphics** contains **Edit color theme**, **Load font**, **Persistent waveform**, **Track visuals**, **Waveform FPS**, and the active renderer (`GPU` or `Software`). **Waveform FPS** sets the refresh rate of the instrument scope and mixer visualizers from `01` to `60`. Track visuals selects **Detailed** (the synth waveform and its overlays) or **Audio waveform** (the actual summed output of that track) independently for every track; audio waveform clears any prior ADSR overlay immediately when playback starts. ChipNomad fonts and themes should work.
 - **Support report** writes a small diagnostic text file with the app version, platform, audio settings and CPU load, playback/overflow state, and a compact project summary. It does not include sample data or project title/author text. On Android and Web it opens the normal export/download flow; desktop and handheld builds save `support-report.txt` in the app's writable folder.
 - **Quit ChooChooTracker** exits cleanly.
 
@@ -1138,6 +1305,7 @@ the current screen.
 | Saturation | Drive, Tone, Level, Mix |
 | Bitcrusher | Bit depth, Rate reduction, Tone, Mix |
 | Destruction | Mode, Amount, Tone, Mix |
+| Parametric EQ | Low gain, Low frequency, Mid gain, Mid frequency, High gain, High frequency |
 
 Continuous controls use 00–FF, including valid zero and maximum FF. Bipolar
 controls have an exact neutral at 80. Distortion modes are 00 Density, 01 Drive,
@@ -1156,6 +1324,10 @@ Bitcrusher bit depth ranges from 4 to 16 bits and
 rate reduction from 1x to 32x. Destruction modes are Fold, Clip and Crush.
 Saturation and distortion include output level or mix controls for balancing them
 against the unprocessed signal.
+Parametric EQ has 24 dB boost/cut shelves at 60–500 Hz and 2–14 kHz, plus a
+fixed-Q 0.9 bell at 250 Hz–5 kHz. Its gain controls are neutral at 80; with all
+three neutral it is an exact bypass. Active EQ uses a transparent soft knee above
+full scale and reaches a maximum of 1.5 to contain extreme boosts.
 
 Track level and tilt EQ precede the inserts, so both affect the signal entering
 compression and distortion. All voices/chord notes on the track feed one insert
@@ -1200,7 +1372,8 @@ compression off, widening on. Watch existing clipping indicators when adding
 drive/gain. Slot transitions use bounded 5 ms fades via dry audio.
 
 Saves store module IDs, bypass and configured bytes in the optional versioned
-`Track inserts: 1,8,2` section. Runtime overrides and DSP histories are not saved.
+`Track inserts: 1,8,2` and `Master inserts: 1,2` sections. Runtime overrides
+and DSP histories are not saved.
 Keep backups before opening insert-enabled saves in older builds. DSP attribution,
 source revisions and adaptations are in `chipnomad_lib/external/insert_fx/SOURCES.txt`;
 full MIT notices ship in `licenses/INSERT_FX.txt`.
@@ -1390,6 +1563,26 @@ extensions, with stable slot/track tie breaking. This policy applies on every
 platform so the same song has the same bounded note allocation. It does not
 change other instruments' polyphony. Preset audition is disabled during playback.
 The limit was selected from R36H measurements and validated in mixed playback.
+
+#### FM operator editor
+
+Genesis FM, Arcade FM, OPL2, OPL3, OPLL and VRC7 instruments have an **EDIT**
+button to the right of Fine ct. It opens a table of the patch parameters:
+
+- Genesis FM / Arcade FM: algorithm, feedback, pan, AMS, PMS, operator mask and
+  LFO settings, then MUL, DT, TL, KS, AR, D1R, D2R, RR and D1L for the four
+  operators, plus SSG (Genesis) or DT2 and AM (Arcade).
+- OPL2 / OPL3: feedback, connection and pan per voice, deep vibrato and tremolo,
+  then MUL, TL, AR, DR, SL, RR, waveform, KSL, VIB, TRM, SUS and KSR per
+  operator. On OPL3 the mode (2op, 4op, dual) can be changed here.
+- OPLL / VRC7: the custom tone registers (feedback, MUL, TL, KSL, AR, DR, SL,
+  RR, waveforms, AM, VIB, EG, KSR). Editing a ROM preset turns it into
+  "Custom".
+
+Left/Right and the usual edit keys change values; the instrument keeps playing
+as usual so you can hear changes. The status bar describes the parameter under
+the cursor. OPT or Left+Shift returns to the instrument screen. DX7 and SID
+have no operator editor.
 
 Genesis FM (YM2612) and Arcade FM (YM2151) now use the same FM Collection/Preset
 browser, EDIT+PLAY audition, confirm/cancel and fine-tune controls. Genesis now

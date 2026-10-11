@@ -338,7 +338,7 @@ int instrumentCommonColumnCount(int row) {
   } else if (row == 1) {
     return 15; // Instrument name
   } else if (row == 2) {
-    return 3; // Transpose, table speed, volume
+    return 4; // Transpose, table speed, volume, pan
   }
   return 1; // Default value
 }
@@ -356,8 +356,9 @@ void instrumentCommonDrawStatic(void) {
 
   gfxPrint(0, 3, "Name");
   gfxPrint(0, 4, "Transp.");
-  gfxPrint(15, 4, "Tbl.Tic");
-  gfxPrint(28, 4, "Vol");
+  gfxPrint(14, 4, "TIC");
+  gfxPrint(28, 3, "PAN");
+  gfxPrint(28, 4, "VOL");
 }
 
 void instrumentCommonDrawCursor(int col, int row) {
@@ -378,9 +379,11 @@ void instrumentCommonDrawCursor(int col, int row) {
     gfxCursor(8, 4, 3);
   } else if (row == 2 && col == 1) {
     // Table tic speed
-    gfxCursor(23, 4, 2);
+    gfxCursor(18, 4, 2);
   } else if (row == 2 && col == 2) {
     gfxCursor(32, 4, 2);
+  } else if (row == 2 && col == 3) {
+    gfxCursor(32, 3, 2);
   }
 }
 
@@ -411,9 +414,11 @@ void instrumentCommonDrawField(int col, int row, CellState state) {
     gfxPrintf(8, 4, chipnomadState->project.instruments[cInstrument].transposeEnabled ? "On " : "Off");
   } else if (row == 2 && col == 1) {
     // Table tic speed
-    gfxPrint(23, 4, byteToHex(chipnomadState->project.instruments[cInstrument].tableSpeed));
+    gfxPrint(18, 4, byteToHex(chipnomadState->project.instruments[cInstrument].tableSpeed));
   } else if (row == 2 && col == 2) {
     gfxPrint(32, 4, byteToHex(chipnomadState->project.instruments[cInstrument].volume));
+  } else if (row == 2 && col == 3) {
+    gfxPrint(32, 3, byteToHex(chipnomadState->project.instruments[cInstrument].pan));
   }
 }
 
@@ -434,13 +439,13 @@ void instrumentCommonDrawVoicePostStatic(int drawEnvelope) {
     gfxPrint(11, 14, "D");
     gfxPrint(16, 14, "S");
     gfxPrint(21, 14, "R");
-    gfxPrint(appSettings.persistentWaveform ? 25 : 27, 14, "Shape");
+    gfxPrint(appSettings.persistentWaveform ? 25 : 27, 14, appSettings.persistentWaveform ? "Shape" : "SHP");
   }
 }
 
 int instrumentCommonDrawVoicePostCursor(int col, int row) {
   if (row == 9) {
-    gfxCursor(col == 4 ? (appSettings.persistentWaveform ? 31 : 35) : 7 + col * 5, 14, 2);
+    gfxCursor(col == 4 ? 31 : 7 + col * 5, 14, 2);
     return 1;
   }
   if (col && row >= 4 && row <= 8) {
@@ -467,7 +472,7 @@ int instrumentCommonDrawVoicePostField(int col, int row, CellState state,
   if (row == 9) {
     const uint8_t values[] = {post->attack, post->decay, post->sustain, post->release, post->envelopeShape};
     gfxSetFgColor(state == CellState::focus ? appSettings.colorScheme.textValue : appSettings.colorScheme.textDefault);
-    gfxPrint(col == 4 ? (appSettings.persistentWaveform ? 31 : 35) : 7 + col * 5, 14, byteToHex(values[col]));
+    gfxPrint(col == 4 ? 31 : 7 + col * 5, 14, byteToHex(values[col]));
     instrumentCommonDrawEnvelopePreview(post->attack, post->decay, post->sustain, post->release, post->envelopeShape);
     return 1;
   }
@@ -654,6 +659,11 @@ int instrumentCommonOnEdit(int col, int row, enum CellEditAction action) {
     handled = edit8noLast(action, &chipnomadState->project.instruments[cInstrument].tableSpeed, 16, 1, 255);
   } else if (row == 2 && col == 2) {
     handled = edit8noLast(action, &chipnomadState->project.instruments[cInstrument].volume, 16, 0, 255);
+  } else if (row == 2 && col == 3) {
+    if (action == CellEditAction::clear) {
+      chipnomadState->project.instruments[cInstrument].pan = 0x80;
+      handled = 1;
+    } else handled = edit8noLast(action, &chipnomadState->project.instruments[cInstrument].pan, 16, 0, 255);
   }
 
   if (handled) projectModified = 1;

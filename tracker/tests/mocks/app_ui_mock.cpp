@@ -10,9 +10,11 @@ int mockLastInputKeys;
 static int ignoreInput(int, int keys, int) { mockLastInputKeys = keys; return 1; }
 static void noOp(void) {}
 static int startAudio(int, int) { return 0; }
-int mockAudioCpuLoad;
+int mockAudioReconfigureResult, mockAudioReconfigureCalls, mockAudioReconfigureSize, mockAudioCpuLoad;
+static int reconfigureAudio(int, int size) { ++mockAudioReconfigureCalls; mockAudioReconfigureSize = size; return mockAudioReconfigureResult; }
 static int cpuLoad() { return mockAudioCpuLoad; }
-AudioManager audioManager = {startAudio, noOp, noOp, nullptr, nullptr, noOp, nullptr, nullptr, cpuLoad};
+AudioManager audioManager = {startAudio, reconfigureAudio, noOp, noOp, nullptr, nullptr, noOp,
+                             nullptr, nullptr, cpuLoad};
 const AppScreen screenSong = {nullptr, nullptr, noOp, noOp, ignoreInput};
 const AppScreen screenTitle = {nullptr, nullptr, noOp, noOp, ignoreInput};
 const AppScreen screenPhrase = {nullptr, nullptr, noOp, noOp, ignoreInput};
@@ -34,6 +36,7 @@ const AppScreen screenTable = {nullptr, nullptr, noOp, noOp, ignoreInput};
 const AppScreen screenInstrumentPool = {nullptr, nullptr, noOp, noOp, ignoreInput};
 const AppScreen screenModulation = {nullptr, nullptr, noOp, noOp, ignoreInput};
 const AppScreen screenMixer = {nullptr, nullptr, noOp, noOp, ignoreInput};
+int screenMixerGetPage(void) { return 0; }
 const AppScreen screenGroove = {nullptr, nullptr, noOp, noOp, ignoreInput};
 const AppScreen screenProject = {nullptr, nullptr, noOp, noOp, ignoreInput};
 const AppScreen screenAYWavetable = {nullptr, nullptr, noOp, noOp, ignoreInput};
@@ -49,6 +52,9 @@ void screensInitAll(void) {
   pChainRow = &chainRow;
 }
 void screenSetup(const AppScreen* screen, int) { currentScreen = screen; }
+void mainLoopSetTargetFps(int) {}
+int mainLoopGetTargetFps(void) { return 60; }
+int mainLoopGetFrameTimeUs(void) { return 0; }
 void screenDraw(void) {}
 static char activeMessage[42]{};
 void screenMessage(int, const char* format, ...) {

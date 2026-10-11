@@ -2,6 +2,7 @@
 #include "corelib/corelib_file.h"
 #include "corelib/corelib_gfx.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <time.h>
 #include <chipnomad_lib.h>
@@ -17,24 +18,48 @@ static const int kAudioSampleRate = 48000;
 static const char* kWebPersonalFont = "/fonts/Pixel16x24/02_DepartureMono.cnfont";
 #endif
 
+static int defaultAudioBufferSize(void) {
+#ifdef WEB_BUILD
+  return 1024;
+#elif defined(PORTMASTER_BUILD)
+  return 512;
+#elif defined(ANDROID_BUILD) || defined(DESKTOP_BUILD)
+  return 256;
+#else
+  return 512;
+#endif
+}
+
+static int normalizeAudioBufferSize(int size) {
+  static const int sizes[] = {32, 64, 128, 256, 512, 1024};
+  int closest = sizes[0];
+  long long closestDistance = llabs((long long)closest - size);
+  for (int candidate : sizes) {
+    const long long distance = llabs((long long)candidate - size);
+    if (distance < closestDistance) {
+      closest = candidate;
+      closestDistance = distance;
+    }
+  }
+  return closest;
+}
+
 AppSettings appSettings;
 
 void initDefaultAppSettings(void) {
   appSettings.screenWidth = 0; // 0 to auto-detect resolution
   appSettings.screenHeight = 0;
   appSettings.audioSampleRate = kAudioSampleRate;
-#ifdef WEB_BUILD
-  appSettings.audioBufferSize = 1024;
-#elif defined(ANDROID_BUILD) || defined(DESKTOP_BUILD)
-  // Keep Android input latency low while leaving enough render headroom.
-  appSettings.audioBufferSize = 256;
-#else
-  appSettings.audioBufferSize = 4906;
-#endif
+  appSettings.audioBufferSize = defaultAudioBufferSize();
   appSettings.aySampleDithering = 1; // Default: ON
   appSettings.doubleTapFrames = 20;
   appSettings.keyRepeatDelay = 16;
+#ifdef PORTMASTER_BUILD
+  // One navigation step per 60 Hz UI frame feels natural on a physical D-pad.
+  appSettings.keyRepeatSpeed = 1;
+#else
   appSettings.keyRepeatSpeed = 2;
+#endif
   appSettings.mixVolume = 1.0f;
   appSettings.quality = (int)ChipNomadQuality::medium;
   appSettings.braidsBits = 6;
@@ -46,7 +71,11 @@ void initDefaultAppSettings(void) {
   appSettings.pitchConflictWarning = 0;
   appSettings.quickHelpReleaseSeen = 0;
   appSettings.ayWavetableLfoView = 0;
+#ifdef PORTMASTER_BUILD
+  appSettings.waveformRefreshHz = 60;
+#else
   appSettings.waveformRefreshHz = 30;
+#endif
   appSettings.stickLiveMode = StickLiveMode::hold;
   for (auto& visual : appSettings.trackVisuals)
     visual.mode = TrackVisualMode::detailed;
@@ -156,6 +185,7 @@ int* pSongTrack;
 int* pChainRow;
 ChipNomadState* chipnomadState;
 int projectModified = 0;
+int sampleLazyPlaybackActive = 0;
 int autosaveLoadFailed = 0;
 
 int settingsSave(void) {
@@ -476,18 +506,19 @@ int settingsLoad(void) {
 
   fclose(file);
   appSettings.audioSampleRate = kAudioSampleRate;
-#ifdef WEB_BUILD
-  // Browser audio and UI share a thread. Large saved buffers batch playback
-  // updates and stall animations; 4906 is rounded up to 8192 by SDL/Web Audio.
-  appSettings.audioBufferSize = 1024;
-#elif defined(ANDROID_BUILD) || defined(DESKTOP_BUILD)
-  // Migrate the old 10 Hz default.
-  if (appSettings.audioBufferSize == 4906) appSettings.audioBufferSize = 1600;
-#ifdef ANDROID_BUILD
-  // Migrate the previous Android latency-oriented default.
-  if (appSettings.audioBufferSize == 1600) appSettings.audioBufferSize = 512;
-  if (appSettings.audioBufferSize == 512) appSettings.audioBufferSize = 256;
+  // 4,906 was the legacy platform default; other values are rounded to the
+  // nearest choice exposed by the audio settings screen.
+#if defined(PORTMASTER_BUILD) || defined(TEST_PORTMASTER_INPUT)
+  // Preserve the personal handheld's validated buffer until explicitly edited.
+  if (appSettings.audioBufferSize != 4906)
+    appSettings.audioBufferSize = normalizeAudioBufferSize(appSettings.audioBufferSize);
+#else
+  appSettings.audioBufferSize = appSettings.audioBufferSize == 4906
+    ? defaultAudioBufferSize() : normalizeAudioBufferSize(appSettings.audioBufferSize);
 #endif
+#ifdef PORTMASTER_BUILD
+  if (appSettings.keyRepeatSpeed == 2) appSettings.keyRepeatSpeed = 1;
+  if (appSettings.waveformRefreshHz == 30) appSettings.waveformRefreshHz = 60;
 #endif
   if (appSettings.braidsBits < 0 || appSettings.braidsBits > 6) appSettings.braidsBits = 6;
   if (appSettings.braidsDrift < 0 || appSettings.braidsDrift > 4) appSettings.braidsDrift = 0;

@@ -64,7 +64,7 @@ with sync_playwright() as p:
   print('Browser and Home Screen icons decoded; standalone manifest passed',flush=True)
   def key(k):page.keyboard.press(k,delay=90);page.wait_for_timeout(300)
   key('x');key('Shift+ArrowDown')
-  for _ in range(7):key('ArrowDown')
+  for _ in range(5):key('ArrowDown')
   key('x');key('x')
   page.screenshot(path=str(root/'.tmp/theme-before-edit.png'))
   before=page.evaluate("document.documentElement.style.getPropertyValue('--background')")
@@ -80,7 +80,7 @@ with sync_playwright() as p:
   print('Live edited color and reload persistence passed:',before,after,flush=True)
   # Load an actual theme using the same native settings screen.
   page.locator('#canvas').click();key('x');key('Shift+ArrowDown')
-  for _ in range(7):key('ArrowDown')
+  for _ in range(5):key('ArrowDown')
   key('x');key('x')
   for _ in range(11):key('ArrowDown')
   key('ArrowRight');key('x');page.screenshot(path=str(root/'.tmp/theme-file-picker.png'))
@@ -256,8 +256,9 @@ with sync_playwright() as p:
   assert page.evaluate("Module.ccall('webSaveBrowserState','number',[],[])")==0
   assert saved_mapping()==['keyPlay: 32,2,0','keyShift: 1073742049,3,0','keyPlayType: 2,3,0','keyShiftType: 2,3,0']
   page.locator('#canvas').click();key('x');key('Shift+ArrowDown')
-  for _ in range(4):key('ArrowDown')
-  key('x')
+  key('x') # Controls
+  for _ in range(3):key('ArrowDown')
+  key('x') # Key mapping
   for _ in range(6):key('ArrowDown')
   key('ArrowRight')
   page.evaluate("window.pad={id:'Test pad',index:0,connected:true,mapping:'standard',timestamp:0,axes:[0,0,0,0],buttons:Array.from({length:17},()=>({pressed:false,touched:false,value:0}))};navigator.getGamepads=()=>[pad];void 0;")

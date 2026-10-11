@@ -16,6 +16,7 @@ static void initCommon(Instrument* instrument) {
   instrument->tableSpeed = 1;
   instrument->transposeEnabled = 1;
   instrument->volume = 255;
+  instrument->pan = 128;
   instrument->modulation[0].type = ModulationType::ADSR;
   instrument->modulation[1].type = ModulationType::AHD;
   instrument->modulation[2].type = ModulationType::LFO;
@@ -191,6 +192,7 @@ static int initSampleInstrument(Instrument* instrument) {
   instrument->chip.sample.end = 255;
   instrument->chip.sample.speedPercent = 100;
   instrument->chip.sample.speedAlgorithm = 0;
+  instrument->chip.sample.autoSensitivity = 50;
   initVoicePostSettings(&instrument->chip.sample);
   return 0;
 }
@@ -368,7 +370,7 @@ static const InstrumentFX fxAY1[]={F(fxAYM,"AYM"),F(fxNOI,"NOI"),F(fxNOA,"NOA"),
 static const InstrumentFX fxAY2[]={F(fxAYM,"AYM"),F(fxNOI,"NOI"),F(fxNOA,"NOA"),F(fxTNN,"TNN"),F(fxTNP,"TNP"),F(fxTNF,"TNF"),F(fxTRT,"TRT"),F(fxEAU,"EAU"),F(fxENN,"ENN"),F(fxENP,"ENP"),F(fxENF,"ENF"),F(fxERT,"ERT"),F(fxSFT,"SFT"),F(fxSFN,"SFN"),F(fxSFP,"SFP"),F(fxSFF,"SFF"),F(fxSRT,"SRT"),F(fxSFM,"SFM"),F(fxPWM,"PWM"),F(fxSPL,"SPL"),F(fxSWT,"SWT")};
 static const InstrumentFX fxAYSample[]={F(fxAYM,"AYM"),F(fxNOI,"NOI"),F(fxNOA,"NOA"),F(fxTNN,"TNN"),F(fxTNP,"TNP"),F(fxTNF,"TNF"),F(fxTRT,"TRT"),F(fxSFN,"SFN"),F(fxSFP,"SFP"),F(fxSFF,"SFF"),F(fxSMS,"SMS")};
 static const InstrumentFX fxBraids[]={F(fxBMD,"BMD"),F(fxBTM,"BTM"),F(fxBCL,"BCL"),F(fxBCF,"BCF"),F(fxBRS,"BRS")};
-static const InstrumentFX fxSample[]={F(fxSPT,"SPT"),F(fxSST,"SST"),F(fxSTA,"STA"),F(fxSEN,"SEN"),F(fxSVL,"SVL"),F(fxSCF,"SCF"),F(fxSRS,"SRS"),F(fxSSP,"SSP"),F(fxSLP,"SLP")};
+static const InstrumentFX fxSample[]={F(fxSLP,"SPL"),F(fxSLI,"SLI"),F(fxSPT,"SPT"),F(fxSST,"SST"),F(fxSTA,"STA"),F(fxSEN,"SEN"),F(fxSVL,"SVL"),F(fxSCF,"SCF"),F(fxSRS,"SRS"),F(fxSSP,"SSP")};
 static const InstrumentFX fxSCWF[]={F(fxSDT,"SDT"),F(fxSMX,"SMX"),F(fxSCF2,"SCF"),F(fxSRS2,"SRS")};
 static const InstrumentFX fxBYOWTBL[]={F(fxSDT,"SDT"),F(fxSMX,"SMX"),F(fxBIA,"BIA"),F(fxBIB,"BIB"),F(fxSCF2,"SCF"),F(fxSRS2,"SRS")};
 static const InstrumentFX fxPlaits[]={F(fxPMD,"PMD"),F(fxPHA,"PHA"),F(fxPTM,"PTM"),F(fxPMO,"PMO"),F(fxPAX,"PAX"),F(fxPCF,"PCF"),F(fxPRS,"PRS")};
@@ -472,6 +474,8 @@ int instrumentModDestinationAvailable(const Instrument* instrument, int destinat
   int fx,op;
   if(nativeFMModTarget(generic,&fx,&op)) { NativeFXInfo info{};return instrument && instrumentNativeFXInfo(instrument,fx,&info,op); }
   if(generic==genericModFMBrightness||(generic>=genericModFMTime&&generic<=genericModFMLFODepth))return 0;
+  if (generic == genericModInstrumentPan || generic == genericModTrackPan)
+    return instrument && instrument->type != InstrumentType::Midi;
   if (generic >= genericModFMBrightness) return instrumentNativeModDestination(type,generic)!=nullptr;
   if (generic >= genericModFirstInsert) return 1;
   if (generic >= 0) {
@@ -515,10 +519,17 @@ InstrumentVoicePostSettings* instrumentVoicePostSettings(Instrument* instrument)
 
 int instrumentMotionDestination(const Instrument* instrument, int destination, uint8_t* fx, int* base, int* range, InstrumentMotionValue* value) {
   if(!instrument || !instrumentModDestinationAvailable(instrument,destination))return 0;
+  int generic = instrumentGenericModDestination(instrument->type, destination);
+  if (generic == genericModInstrumentPan || generic == genericModTrackPan) {
+    *fx = generic == genericModInstrumentPan ? fxPAN : fxTPN;
+    *base = generic == genericModInstrumentPan ? instrument->pan : 128;
+    *range = 255; *value = InstrumentMotionValue::raw;
+    return 1;
+  }
   const InstrumentModDestination* definition = instrumentModDestination(instrument->type, destination);
   if (!definition || definition->fx == instrumentNoFX) return 0;
   *fx = definition->fx; *range = definition->range; *value = definition->value;
-  int generic=instrumentGenericModDestination(instrument->type,destination);
+  generic=instrumentGenericModDestination(instrument->type,destination);
   if(generic>=genericModFMBrightness){*base=instrumentNativeControlValue(instrument,generic);return 1;}
   switch (instrument->type) {
     case InstrumentType::Braids:
@@ -695,6 +706,8 @@ int instrumentSetCCDestination(Instrument* instrument, int destination, uint8_t 
 }
 
 static const char* genericModName(int index) {
+  if (index == genericModInstrumentPan) return "PAN";
+  if (index == genericModTrackPan) return "Track Pan";
   static const char* names[] = {
     "RevSend", "DlySend",
     "M1 P1", "M1 P2", "M1 P3", "M1 P4",

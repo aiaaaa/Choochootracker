@@ -4,7 +4,7 @@
 #include "screens.h"
 
 // Common rows on the project screen
-#define SCR_PROJECT_ROWS (6)
+#define SCR_PROJECT_ROWS (5)
 
 int projectLoadFromPath(const char* path);
 void projectOpenFromScreen(const AppScreen* returnScreen);

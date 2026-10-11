@@ -22,6 +22,19 @@ must still be documented explicitly.
 See [web deployment](docs/personal-web-deployment.md) for the build and storage
 details.
 
+## October 11 source integration
+
+Personal now incorporates upstream `46f76a1`, including merged PRs #38, #51,
+#52, #53, #54, #56 and #57 and their follow-up fixes. This adds the FM operator
+editor, M8 instrument conversion, EQUAL/AUTO/LAZY sample slicing, phrase fill
+and Note Lock tools, stereo pan, master inserts and parametric EQ, audio
+settings, lower idle CPU use, and corrected browser touch coordinates.
+Lucky remains above Quit in the reorganized Settings menu. Existing R36H
+4906-frame audio settings are retained; smaller upstream choices are available
+under Audio. Web appearance, storage, controller defaults, recovery and the
+approved roughdemos collection remain personal additions.
+See [integration notes](docs/personal-harmonization-20261011.md).
+
 ## Device history
 
 `personal/r36h` is the full device personal build. It includes Lucky and the

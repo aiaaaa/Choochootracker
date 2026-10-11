@@ -72,3 +72,9 @@ at most 512 source bytes per instrument. It does not run downloaded player code.
 mapping, sequences, audio chunking, owned file roundtrips and USER integration.
 An optional corpus audit uses `CHOOCHOO_COMMUNITY_PACKS`; normal tests do not
 require a download or include community bank contents in source control.
+
+To exercise your own ready USER folders and ZIP banks, set
+`CHOOCHOO_USER_PRESETS` to the directory containing the eleven engine folders
+and run the `External ready ZIP libraries browse and load through USER` test.
+These optional local audits use external data; no preset packs are bundled by
+the test suite.
