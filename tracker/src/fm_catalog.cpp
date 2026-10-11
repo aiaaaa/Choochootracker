@@ -15,12 +15,16 @@
 bool loadFMCatalog(const char* path,std::vector<FMPresetEntry>& entries) {
   FILE* f=fopen(path,"rb");if(!f)return false;
   auto fail=[&]{fclose(f);return false;};
-  char line[1024];if(!fgets(line,sizeof(line),f)||strcmp(line,"CCT-CHIP-CATALOG\t1\n"))return fail();
+  char line[1024];if(!fgets(line,sizeof(line),f))return fail();
+  size_t length=strlen(line);while(length&&(line[length-1]=='\n'||line[length-1]=='\r'))line[--length]=0;
+  if(strcmp(line,"CCT-CHIP-CATALOG\t1"))return fail();
   std::vector<FMPresetEntry> parsed;
   while(fgets(line,sizeof(line),f)) {
-    if(!strchr(line,'\n')||parsed.size()>=65536)return fail();
+    char* newline=strchr(line,'\n');
+    if(!newline||parsed.size()>=65536)return fail();
+    *newline=0;if(newline>line&&newline[-1]=='\r')newline[-1]=0;
     std::vector<std::string> fields;char* start=line;
-    for(char* c=line;;++c)if(*c=='\t'||*c=='\n'){bool end=*c=='\n';*c=0;fields.emplace_back(start);start=c+1;if(end)break;}
+    for(char* c=line;;++c)if(*c=='\t'||!*c){bool end=!*c;*c=0;fields.emplace_back(start);start=c+1;if(end)break;}
     if((fields.size()!=6&&fields.size()!=7)||fields[2].empty()||fields[2].size()>63||fields[3].empty()||fields[3].size()>63||fields[4].empty()||fields[4].size()>63||fields[5].size()>200||fields[5].size()<5||fields[5].substr(fields[5].size()-4)!=".cni"||fields[5].find_first_of("/\\:")!=std::string::npos||fields[5].find("..")!=std::string::npos)return fail();
     int type=0,bank=0;char extra;
     if(sscanf(fields[0].c_str(),"%d%c",&type,&extra)!=1||(!isOPLL((InstrumentType)type)&&!isOPL((InstrumentType)type)&&!isFourOp((InstrumentType)type)&&type!=int(InstrumentType::DX7)&&type!=int(InstrumentType::SID)&&!isSimpleChip((InstrumentType)type))||sscanf(fields[1].c_str(),"%d%c",&bank,&extra)!=1||bank<1||bank>65535)return fail();
