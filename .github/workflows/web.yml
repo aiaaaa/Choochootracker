@@ -35,6 +35,10 @@ jobs:
         with:
           version: '6.0.10'
           actions-cache-folder: .tmp/emsdk-cache
+      - name: Build pinned Lucky decoder for WebAssembly
+        run: |
+          MOD_LUCKY_DEPS_DIR="$GITHUB_WORKSPACE/.tmp/mod-lucky-web" \
+            emconfigure scripts/build-mod-lucky-dependency.sh --host=wasm32-unknown-emscripten
       - name: Compile and validate fresh Web bundle
         run: python3 tools/web_bundle.py build
       - uses: actions/upload-artifact@v4
@@ -43,9 +47,10 @@ jobs:
           path: web/dist/
           if-no-files-found: error
       - uses: actions/setup-node@v4
-        if: env.DEPLOY_TARGET != 'build'
         with:
           node-version: '22'
+      - name: Check Lucky relay
+        run: node --test tools/test_lucky_relay.cjs
       - name: Deploy the validated bundle
         if: env.DEPLOY_TARGET != 'build'
         env:
@@ -67,6 +72,9 @@ jobs:
           npx --yes vercel@63.1.2 pull --yes --environment="$environment" --token="$VERCEL_TOKEN"
           npx --yes vercel@63.1.2 build "${args[@]}" --token="$VERCEL_TOKEN"
           python3 tools/web_bundle.py validate --require-clean --directory .vercel/output/static
+          test -s .vercel/output/functions/api/lucky.func/.vc-config.json
+          test -s .vercel/output/functions/api/lucky.func/api/lucky.js
+          cmp api/lucky.js .vercel/output/functions/api/lucky.func/api/lucky.js
           if [[ "$DEPLOY_TARGET" == production ]]; then
             head_sha=$(git ls-remote --exit-code origin refs/heads/personal/r36h | cut -f1)
             if [[ "$head_sha" != "$GITHUB_SHA" ]]; then

@@ -1,5 +1,7 @@
 # Emscripten/WebAssembly build for the browser and Vercel.
 PLATFORM = web
+CHOOCHOO_EXPERIMENTAL_MOD_LUCKY ?= 1
+MOD_LUCKY_PREFIX ?= ../.tmp/mod-lucky-web/prefix
 
 include Makefile.common
 
@@ -23,6 +25,9 @@ WEB_LDFLAGS = -sUSE_SDL=2 -sALLOW_MEMORY_GROWTH=1 -sINITIAL_MEMORY=256MB \
 	-sDEFAULT_TO_CXX \
 	-lidbfs.js \
 	$(WEB_PRELOAD)
+ifeq ($(CHOOCHOO_EXPERIMENTAL_MOD_LUCKY),1)
+WEB_LDFLAGS += -sFETCH=1 $(MOD_LUCKY_LIBS)
+endif
 
 SOURCES := $(filter-out platforms/sdl2/corelib_mainloop.cpp,$(SOURCES)) \
 	platforms/web/corelib_mainloop.cpp
@@ -36,6 +41,7 @@ web:
 	@cp ../web/index.html $(WEB_BUILD)/index.html
 	@cp ../web/privacy.html $(WEB_BUILD)/privacy.html
 	@cp ../web/manual.html $(WEB_BUILD)/manual.html
+	@cp src/experimental/mod_lucky/notices/LICENSE.libxmp.txt $(WEB_BUILD)/lucky-license.txt
 
 web-deploy: web
 	@mkdir -p ../web/dist
@@ -43,3 +49,4 @@ web-deploy: web
 	@cp $(WEB_BUILD)/index.html ../web/dist/
 	@cp $(WEB_BUILD)/privacy.html ../web/dist/
 	@cp $(WEB_BUILD)/manual.html ../web/dist/
+	@cp $(WEB_BUILD)/lucky-license.txt ../web/dist/

@@ -5,6 +5,9 @@
 #include <condition_variable>
 #include <mutex>
 #include <thread>
+#ifdef WEB_BUILD
+#include <emscripten/fetch.h>
+#endif
 namespace modLucky {
 enum class Phase { idle, loading, ready, importing, imported, failed };
 struct Status {
@@ -57,6 +60,21 @@ class Service {
   size_t read_=0,count_=0;
   void run();
   bool begin(Job job,int rate);
+#ifdef WEB_BUILD
+  // The browser runs downloads asynchronously and pumps bounded decoder work
+  // from Settings, keeping the existing single-threaded Wasm/audio target.
+  emscripten_fetch_t* webFetch_ = nullptr;
+  bool webDone_ = false, webTooLarge_ = false, webModule_ = false;
+  unsigned webAttempts_ = 0;
+  std::string webLastError_;
+  std::shared_ptr<Candidate> webCandidate_;
+  std::unique_ptr<Decoder> webDecoder_;
+  void webPump();
+  void webRequest(const std::string& url, bool module);
+  void webNextCandidate();
+  void webCancelFetch();
+  void webPrepare(std::shared_ptr<Candidate> candidate);
+#endif
 };
 Service& service();
 #ifdef CHOOCHOO_MOD_LUCKY_TEST

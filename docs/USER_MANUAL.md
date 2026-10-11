@@ -1226,7 +1226,11 @@ random module with an animated underline; then release EDIT and activate PLAY
 to listen. LOAD imports the exact prepared module’s embedded PCM sample bank.
 Fetching requires working internet access on the handheld; a USB SSH connection
 alone does not supply internet access.
-The ordinary build omits this experimental row entirely. See
+The ordinary native build omits this experimental row. The personal web build
+also includes Lucky: NEXT fetches through the site and archive, PLAY requires
+browser audio activation, and LOAD stores samples privately in this browser.
+Leaving Settings cancels an in-progress download. Keep downloaded project
+backups; browser storage can be cleared or evicted. See
 [the experiment notes](mod-lucky.md) for build instructions, persistence,
 format/loop limitations and validation status.
 

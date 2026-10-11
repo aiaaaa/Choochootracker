@@ -4,6 +4,9 @@ MOD_LUCKY_PREFIX ?= ../.tmp/mod-lucky/prefix
 ifeq ($(CHOOCHOO_EXPERIMENTAL_MOD_LUCKY),1)
 MOD_LUCKY_CFLAGS = -DCHOOCHOO_EXPERIMENTAL_MOD_LUCKY -I$(MOD_LUCKY_PREFIX)/include
 MOD_LUCKY_LIBS = $(MOD_LUCKY_PREFIX)/lib/libxmp-lite.a -lcurl -pthread
+ifeq ($(PLATFORM),web)
+MOD_LUCKY_LIBS = $(MOD_LUCKY_PREFIX)/lib/libxmp-lite.a
+endif
 MOD_LUCKY_DIR = src/experimental/mod_lucky
 endif
 

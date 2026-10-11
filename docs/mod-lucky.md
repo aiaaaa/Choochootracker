@@ -1,7 +1,7 @@
 # Experimental module sample discovery
 
 This personal-fork experiment is compiled only with
-`CHOOCHOO_EXPERIMENTAL_MOD_LUCKY=1`. The default is **OFF**: no Settings row,
+`CHOOCHOO_EXPERIMENTAL_MOD_LUCKY=1`. The ordinary native default is **OFF**: no Settings row,
 worker, module decoder, HTTP client or new dependency is included. It can be
 integrated into the fork normally; it is not a local-only or permanent-branch
 restriction. There is no runtime toggle or Experimental submenu.
@@ -86,7 +86,7 @@ cd build/desktop
 On other configured native desktops, use the normal platform build with
 `CHOOCHOO_EXPERIMENTAL_MOD_LUCKY=1`, `MOD_LUCKY_PREFIX` if needed, and the
 platform's libcurl headers/library available. This experiment has not been
-validated on Windows, Android or Web. Disabled builds keep their normal targets.
+validated on Windows or Android. Disabled builds keep their normal targets.
 
 For an existing ARM64 PortMaster toolchain, build the dependency for that target
 in a separate dependency directory, then add the same flag and ARM prefix to
@@ -96,6 +96,24 @@ and on the handheld. There is no insecure TLS fallback. The isolated R36H build
 and automated device checks below succeeded. Installing over the working
 handheld application requires explicit approval; the personal Alpha installation
 record below documents the user's subsequent approval and completed update.
+
+## Personal browser target
+
+`Makefile.web` enables Lucky for `personal/r36h`. Build the pinned libxmp-lite
+archive with Emscripten into `.tmp/mod-lucky-web`, then use the existing fresh
+web build script; exact commands are in [web deployment](personal-web-deployment.md).
+The browser uses asynchronous Fetch and bounded foreground decoding, with no
+libcurl, worker thread or external player. Shared module validation, preview
+mixing and sample-bank import remain the same.
+
+The fixed `/api/lucky` Vercel function obtains only the random-player HTML page;
+module bytes download directly from The Mod Archive using its CORS endpoint.
+No arbitrary relay URLs or uploads are accepted. NEXT does not start playback.
+PLAY needs normal browser user activation; background throttling may interrupt
+it. LOAD stores samples and source records under `/user/samples/mod_lucky` in
+this browser's IndexedDB-backed filesystem. Save/download your project and keep
+backups. No library or imported song is shared with another browser or visitor.
+The libxmp MIT notice is published as `/lucky-license.txt`.
 
 ## Import, tuning and persistence
 

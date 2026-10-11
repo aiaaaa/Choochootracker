@@ -145,7 +145,10 @@ Set-Location tracker
   "EMXX=$empy $empp"
 ```
 
-On `personal/r36h`, run `python3 tools/web_bundle.py build` from the root
+On `personal/r36h`, first build the pinned Lucky decoder with Emscripten into
+`.tmp/mod-lucky-web` using the commands in
+[personal web deployment](personal-web-deployment.md#local-build), then run
+`python3 tools/web_bundle.py build` from the root
 with the SDK activated for a clean, validated deployment bundle. CI pins
 Emscripten 6.0.10 and publishes the exact artifact through Vercel. `web/dist`
 is ignored; do not commit generated binaries. The direct make command above

@@ -3,19 +3,36 @@
 #include <cstring>
 #include <cstdio>
 namespace modLucky {
-Service::Service(Fetch fetch):fetch_(std::move(fetch)) { worker_=std::thread(&Service::run,this); }
+Service::Service(Fetch fetch):fetch_(std::move(fetch)) {
+#ifndef WEB_BUILD
+  worker_=std::thread(&Service::run,this);
+#endif
+}
 Service::~Service() { shutdown(); }
 void Service::enter() { std::lock_guard<std::mutex> lock(mutex_); inside_=true; }
 void Service::leave() {
+#ifdef WEB_BUILD
+  webCancelFetch();
+#endif
   std::lock_guard<std::mutex> lock(mutex_); inside_=false; active_=false;
   if(pendingBank_) { pendingBank_.reset(); working_=false; phase_=Phase::ready; }
   if(working_) { cancel_=true; ++generation_; candidate_.reset(); phase_=Phase::idle; message_.clear(); }
+#ifdef WEB_BUILD
+  // There is no worker thread to finish a cancelled browser job.
+  if(cancel_) { working_=false; job_=Job::none; webCandidate_.reset(); webDecoder_.reset(); }
+#endif
   ++revision_; cv_.notify_all();
 }
 void Service::projectChanged() {
+#ifdef WEB_BUILD
+  webCancelFetch();
+#endif
   std::lock_guard<std::mutex> lock(mutex_); active_=false;
   if(pendingBank_) { pendingBank_.reset(); working_=false; phase_=Phase::ready; message_="Project changed; import cancelled"; ++revision_; }
   if(working_) { cancel_=true; ++generation_; phase_=Phase::idle; candidate_.reset(); message_="Project changed; cancelled"; ++revision_; }
+#ifdef WEB_BUILD
+  if(cancel_) { working_=false; job_=Job::none; webCandidate_.reset(); webDecoder_.reset(); }
+#endif
   cv_.notify_all();
 }
 bool Service::begin(Job job,int rate) {
@@ -24,7 +41,16 @@ bool Service::begin(Job job,int rate) {
   cancel_=false; ++generation_; ++revision_; phase_=Phase::loading; message_="Loading...";
   rate_=rate; job_=job; working_=true; cv_.notify_all(); return true;
 }
-bool Service::next(int rate) { std::lock_guard<std::mutex> lock(mutex_); return begin(Job::next,rate); }
+bool Service::next(int rate) {
+  std::lock_guard<std::mutex> lock(mutex_);
+  if (!begin(Job::next,rate)) return false;
+#ifdef WEB_BUILD
+  webCancelFetch(); webDecoder_.reset(); webCandidate_.reset();
+  webAttempts_=0; webLastError_="No supported candidate";
+  // Start inside webPump so request failures follow the normal error path.
+#endif
+  return true;
+}
 bool Service::fixture(std::vector<uint8_t> bytes,std::string id,int rate) {
   auto fixture=std::make_shared<Candidate>(); fixture->bytes=std::move(bytes); fixture->id=std::move(id);
   std::lock_guard<std::mutex> lock(mutex_);
@@ -43,9 +69,16 @@ bool Service::play() {
 void Service::stop() { std::lock_guard<std::mutex> lock(mutex_); active_=false; }
 void Service::shutdown() {
   { std::lock_guard<std::mutex> lock(mutex_); exiting_=true; active_=false; cancel_=true; ++generation_; cv_.notify_all(); }
+#ifdef WEB_BUILD
+  webCancelFetch(); webDecoder_.reset();
+#else
   if(worker_.joinable()) worker_.join();
+#endif
 }
 Status Service::status() {
+#ifdef WEB_BUILD
+  webPump();
+#endif
   std::lock_guard<std::mutex> lock(mutex_);
   return {phase_,generation_,revision_,active_,bool(pendingBank_),message_,candidate_};
 }
@@ -93,6 +126,7 @@ bool Service::audio(float* out,size_t frames,float gain) {
   if(ended_ && !count_) active_=false;
   return true;
 }
+#ifndef WEB_BUILD
 void Service::run() {
   std::unique_ptr<Decoder> decoder;
   std::array<int16_t,2048> chunk{};
@@ -159,6 +193,7 @@ void Service::run() {
     }
   }
 }
+#endif
 #ifdef CHOOCHOO_MOD_LUCKY_TEST
 static Service* testInstance=nullptr;
 void testService(Service* replacement) { testInstance=replacement; }

@@ -1,7 +1,12 @@
 #include "network.h"
+#ifdef WEB_BUILD
+#include <emscripten.h>
+#else
 #include <curl/curl.h>
+#endif
 #include <algorithm>
 #include <cctype>
+#include <cmath>
 #include <ctime>
 #include <mutex>
 #include <regex>
@@ -29,9 +34,15 @@ unsigned retryDelay(const std::string& value,time_t now) {
   if(std::all_of(value.begin(),value.end(),[](unsigned char c){return std::isdigit(c);})) {
     try { return static_cast<unsigned>(std::min<uint64_t>(std::stoull(value),31536000)); } catch(...) { return 31536000; }
   }
+#ifdef WEB_BUILD
+  double seconds=EM_ASM_DOUBLE({ return Date.parse(UTF8ToString($0))/1000; },value.c_str());
+  time_t date=std::isfinite(seconds)?static_cast<time_t>(seconds):0;
+#else
   time_t date=curl_getdate(value.c_str(),nullptr);
+#endif
   return date>now ? static_cast<unsigned>(std::min<int64_t>(date-now,31536000)) : 60;
 }
+#ifndef WEB_BUILD
 namespace {
 struct Transfer { HttpResponse response; size_t limit; const std::atomic<bool>& cancel; bool oversized=false, allocationFailed=false; };
 size_t body(char* data,size_t a,size_t b,void* opaque) {
@@ -98,6 +109,11 @@ HttpResponse httpsGet(const std::string& first,size_t limit,const std::atomic<bo
   }
   throw NetworkError("Too many redirects");
 }
+#else
+HttpResponse httpsGet(const std::string&,size_t,const std::atomic<bool>&) {
+  throw NetworkError("Browser requires asynchronous downloads");
+}
+#endif
 void checkResponse(const HttpResponse& r) {
   if(r.status==200) return;
   const unsigned delay=r.retryAfter.empty() ? (r.status==429?60:0) : retryDelay(r.retryAfter,time(nullptr));

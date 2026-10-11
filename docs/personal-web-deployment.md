@@ -20,7 +20,9 @@ Now the **single Web action** compiles the exact triggering SHA on
 `personal/r36h`, validates `web/dist`, uploads a SHA-named artifact, then uses
 Vercel CLI's `pull`, `build`, and `deploy --prebuilt`. Vercel's local build step
 only validates and packages the fresh files; Vercel hosting does not compile
-C++. The static output is checked again before upload. Native workflows and
+C++. The same checkout supplies the fixed-purpose `api/lucky.js` Node function.
+Its packaged source must match byte-for-byte before upload; its source hash is
+in the public manifest. The static output is checked again before upload. Native workflows and
 native build settings are unchanged; CI's old checked-in-HTML comparison now
 checks the browser source instead. `main` remains the upstream mirror.
 
@@ -36,7 +38,8 @@ the public manifest check retries temporary HTTP errors and old manifests while
 the production alias propagates, then fails if the exact artifact is not served.
 
 Published files are `index.html`, `privacy.html`, `manual.html`, Emscripten's
-`choochootracker.html`, `.js`, `.wasm`, `.data`, and `build-info.json`. Fonts,
+`choochootracker.html`, `.js`, `.wasm`, `.data`, `lucky-license.txt`, and
+`build-info.json`. `/api/lucky` is the only server function. Fonts,
 themes, public factory presets, licenses, samples, waveforms, title art and the
 Makefile's selected example projects live inside `.data`, mounted in the virtual
 filesystem. The existing manual is now source-controlled at `web/manual.html`;
@@ -123,12 +126,19 @@ follow the PowerShell activation notes in `build-notes.md`. On the audited Mac,
 the existing SDK is in the parent workspace's `.tmp/emsdk`, not this checkout.
 
 ```sh
+MOD_LUCKY_DEPS_DIR="$PWD/.tmp/mod-lucky-web" \
+  emconfigure scripts/build-mod-lucky-dependency.sh --host=wasm32-unknown-emscripten
 python3 tools/web_bundle.py build
 python3 tools/web_bundle.py validate
 python3 -m http.server 8080 --directory web/dist
 ```
 
-Open `http://localhost:8080`. A local dirty build is marked `dirty: true` and
+Open `http://localhost:8080`. This static server supports the tracker but not
+Lucky NEXT: the latter needs the `/api/lucky` function, available on Vercel.
+The web target uses the existing SHA-256-pinned libxmp-lite 4.7.3 dependency
+script, compiled with Emscripten into an isolated `.tmp/mod-lucky-web` prefix.
+Initial dependency builds need HTTPS access to GitHub; no native libcurl or
+threads are linked into Wasm. Do not reuse the native/ARM prefix. A local dirty build is marked `dirty: true` and
 cannot pass deployment's `--require-clean` check. `EMXX` may specify an executable
 path. A clean checkout must not contain private USER banks. Do not copy handheld
 assets into tracked packaging directories to prepare a web build.
@@ -145,10 +155,22 @@ The build retains shared personal fonts/themes, piano and mixer meters,
 waveform choices, native chip engines and factory banks, insert effects,
 rotary-rate/popup navigation, preset collection/import code and wavetable fixes.
 It does not package the device's private collections. R36H/PortMaster hardware
-and native MIDI backends are already platform-guarded. Mod Lucky stays at the
-existing web default OFF: its libcurl/libxmp/native process dependencies have no
-browser backend. Its source and native personal build flag are preserved.
-Porting that experiment is separate work, not a deployment flag change.
+and native MIDI backends are already platform-guarded. The personal web target
+enables Mod Lucky: asynchronous Emscripten Fetch replaces native libcurl, and
+bounded decoding runs during Settings updates using the same libxmp parser,
+preview buffer and sample-bank importer. Native worker/audio behavior remains
+unchanged. NEXT uses `/api/lucky` for the archive random-player page because that
+page lacks CORS; module bytes download directly from the archive's CORS-enabled
+endpoint. The relay accepts only GET with no parameters and one fixed upstream
+URL, follows no redirects, caps HTML at 256 KiB and respects archive errors and
+Retry-After. No extra credentials/environment variables are required. Hosting
+function quotas and archive availability can limit discovery.
+
+PLAY requires the normal browser audio activation. LOAD writes samples and
+source attribution into `/user/samples/mod_lucky`; existing IDBFS synchronization
+persists them locally. It does not upload or publicly redistribute imported
+modules. No song starts automatically after NEXT. Background-tab throttling can
+interrupt previews; foreground playback is the tested path.
 
 The wrapper currently auto-loads the tracker and hides Start. SDL/Emscripten
 creates Web Audio; its SDL2 browser backend resumes initial suspended audio
@@ -205,6 +227,21 @@ COOP/COEP. Subpath reverse-proxy hosting and embedding remain untested; prefer a
 subdomain/link first. No iframe or website integration is implemented now.
 
 ## Validation record
+
+Lucky browser port, 2026-10-11: fresh Wasm compilation and Vercel function
+packaging passed. Deterministic Chrome tests cover NEXT without autoplay, PLAY
+with nonzero audio, LOAD without another download, four imported sample files
+and project persistence after reload, cancelled downloads and retry cooldown.
+A live archive request also passed NEXT, PLAY and LOAD (14 samples), without
+a second download or JavaScript errors.
+The native Lucky-enabled suite passed 554 cases / 112,259,078 assertions
+(two opt-in checks skipped). Five relay tests cover request restrictions, size
+limits, archive errors and connection failures. Physical Safari/iOS and handheld
+behavior still require user testing; sampled headless audio is not a listening
+test. Optional regression checks: `node --test tools/test_lucky_relay.cjs` and
+`python3 tools/test_web_lucky.py` after a web build (the latter uses an existing
+Playwright install, Chrome selected by `CHROME_EXECUTABLE`, and a C++ compiler
+for the repository's self-authored fixture). No downloaded music is in the test.
 
 Personal preset/appearance follow-up, 2026-10-11: fresh Wasm build and asset
 validation passed; 27 focused native cases / 4,406 assertions passed. An isolated

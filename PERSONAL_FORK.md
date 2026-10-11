@@ -11,8 +11,9 @@ separate application codebase, and personal is not merged back into main.
 
 Browser settings, songs and imported USER presets are local to each browser/site;
 device data does not synchronize automatically. Personal assets stay private.
-Platform-specific gaps must be documented explicitly: Lucky currently needs a
-browser backend, while its existing native implementation remains in personal.
+Lucky uses a browser fetch/decoding adapter in the web target and its existing
+native implementation on the device. Platform-specific gaps and test limits
+must still be documented explicitly.
 See [web deployment](docs/personal-web-deployment.md) for the build and storage
 details.
 
@@ -368,8 +369,8 @@ Mixer meters, Project actions, and font/theme loading. Check playback and
 controls on the handheld. Audio snapshots have previously added about 9.5% to
 native render time; visual toggles currently do not remove capture overhead.
 
-Update the manifest's upstream commit and any feature decisions, commit the
-regenerated web bundle, and push `personal/r36h`. Fast-forward the fork's `main`
+Update the manifest's upstream commit and any feature decisions, build and validate the
+web target, and push `personal/r36h`. Fast-forward the fork's `main`
 to the tested upstream base separately. Keep failed candidates off the device.
 
 ## One handheld installation
@@ -387,8 +388,10 @@ A source-commit record alongside the installed binary identifies its exact build
 ## Optional sample discovery build
 
 The code and reproducible build instructions live in this fork. Normal builds
-default `CHOOCHOO_EXPERIMENTAL_MOD_LUCKY` to **0** and omit the row and its
-dependencies. The dedicated personal PortMaster target enables it:
+on native targets default `CHOOCHOO_EXPERIMENTAL_MOD_LUCKY` to **0** and omit the row and its
+dependencies. The personal web target and dedicated personal PortMaster target
+enable it. The web build uses the same pinned decoder with a browser adapter;
+see [web deployment](docs/personal-web-deployment.md). For PortMaster:
 
 ```sh
 make -C tracker -f Makefile.personal PortMaster

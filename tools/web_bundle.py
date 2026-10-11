@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DIST = ROOT / 'web/dist'
 ASSETS = ROOT / 'tracker/packaging/common'
 REQUIRED = {
-    'index.html', 'privacy.html', 'manual.html', 'choochootracker.html',
+    'index.html', 'privacy.html', 'manual.html', 'lucky-license.txt', 'choochootracker.html',
     'choochootracker.js', 'choochootracker.wasm', 'choochootracker.data',
 }
 
@@ -47,6 +47,9 @@ def inspect_bundle(directory):
     for name in ('index.html', 'privacy.html', 'manual.html'):
         check((directory / name).read_bytes() == (ROOT / 'web' / name).read_bytes(),
               f'Stale browser wrapper: {name}')
+    check((directory / 'lucky-license.txt').read_bytes() ==
+          (ROOT / 'tracker/src/experimental/mod_lucky/notices/LICENSE.libxmp.txt').read_bytes(),
+          'Missing or stale libxmp license')
     js = (directory / 'choochootracker.js').read_text()
     for symbol in ('webQueueButton', 'webLoadProject', 'webSaveProject', 'IDBFS'):
         check(symbol in js, f'Missing browser integration: {symbol}')
@@ -90,6 +93,8 @@ def validate(directory, require_clean=False):
     check({p.name for p in directory.iterdir()} == REQUIRED | {'build-info.json'},
           'Unexpected files in bundle; rebuild from clean output')
     check(info['files'] == inspect_bundle(directory), 'Bundle hashes do not match build-info.json')
+    check(info['server_files'] == {'api/lucky.js': sha256((ROOT / 'api/lucky.js').read_bytes())},
+          'Lucky relay source differs from build-info.json')
     print(f'Validated {len(REQUIRED)} runtime files, packaged assets and commit {commit}')
 
 
@@ -117,6 +122,7 @@ def build():
             'commit': commit, 'dirty': dirty, 'emscripten': version,
             'built_at': datetime.now(timezone.utc).isoformat(),
             'workflow_run': os.environ.get('GITHUB_RUN_ID'), 'files': files,
+            'server_files': {'api/lucky.js': sha256((ROOT / 'api/lucky.js').read_bytes())},
         }
         (DIST / 'build-info.json').write_text(json.dumps(info, indent=2) + '\n')
         validate(DIST, require_clean=os.environ.get('GITHUB_ACTIONS') == 'true')

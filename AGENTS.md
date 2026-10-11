@@ -52,6 +52,8 @@
   install another Emscripten SDK.
 - On `personal/r36h`, `web/dist/` is generated and ignored. Use
   `python3 tools/web_bundle.py build` with the existing Emscripten SDK activated.
+  First build the pinned Lucky decoder for Wasm into `.tmp/mod-lucky-web`; the
+  exact dependency command is in the deployment document.
   Do not commit bundles or push generated files to `main`. The Web action builds
   the exact personal commit and deploys through Vercel; see
   `docs/personal-web-deployment.md` for setup and validation.
