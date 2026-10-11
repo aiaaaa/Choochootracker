@@ -133,7 +133,9 @@ $(foreach source,$(ALL_COMPILE_SOURCES),$(eval $(call compile_source,$(source)))
 
 # Default target: build and run all tests
 all: build
-	@$(STRETCH_LIFETIME_EXECUTABLE)
+	# The global new/delete hooks in stretch_lifetime corrupt the UCRT heap.
+	# Keep this Unix-only allocation regression separate from Windows tests.
+	@if [ "$(OS)" != "Windows_NT" ]; then $(STRETCH_LIFETIME_EXECUTABLE); fi
 	@$(TEST_EXECUTABLE)
 
 # Build the test executable incrementally

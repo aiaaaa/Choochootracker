@@ -35,7 +35,7 @@ void drawScreenMap() {
   gfxPrint(34, smY + 1, "MSCPIT");
 
   // Additional screens
-  if (currentScreen == &screenMixer) {
+  if (currentScreen == &screenMixer || (currentScreen == &screenInsertFX && screenInsertFXIsMaster())) {
     gfxPrint(34, smY, "R");
     gfxPrint(34, smY + 2, "D");
   } else if (currentScreen == &screenSong || currentScreen == &screenProject || currentScreen == &screenSettings) {
@@ -44,7 +44,7 @@ void drawScreenMap() {
     gfxPrint(37, smY, "G");
   } else if (currentScreen == &screenInstrument || currentScreen == &screenSampleSettings ||
              currentScreen == &screenInstrumentPool || currentScreen == &screenModulation ||
-             currentScreen == &screenInsertFX) {
+             (currentScreen == &screenInsertFX && !screenInsertFXIsMaster())) {
     gfxPrint(38, smY - 1, "F");
     gfxPrint(38, smY, "M");
     gfxPrint(38, smY + 2, "P");
@@ -59,7 +59,7 @@ void drawScreenMap() {
 
   // Highlight current screen
   gfxSetFgColor(cs.textDefault);
-  if (currentScreen == &screenMixer) {
+  if (currentScreen == &screenMixer || (currentScreen == &screenInsertFX && screenInsertFXIsMaster())) {
     int page = screenMixerGetPage();
     gfxPrint(34, smY + (page == 1 ? 0 : page == 2 ? 2 : 1), page == 1 ? "R" : page == 2 ? "D" : "M");
   } else if (currentScreen == &screenSong) {

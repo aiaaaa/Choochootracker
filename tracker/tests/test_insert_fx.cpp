@@ -442,6 +442,12 @@ TEST_SUITE("track inserts") {
         c.bypass = t % 2;
         insertEdit(&c, 0, 255);
       }
+    for (int slot = 0; slot < 2; ++slot) {
+      auto& c = p->masterInserts[slot];
+      insertSelect(&c, slot ? insertTape : insertCompressor);
+      c.bypass = slot;
+      insertEdit(&c, 0, 255);
+    }
     const char* path = "build/tests/inserts.cct";
     REQUIRE(projectSave(p.get(), path) == 0);
     auto original = read(path);
@@ -458,6 +464,13 @@ TEST_SUITE("track inserts") {
         CHECK(memcmp(a.values, b.values, 8) == 0);
         CHECK(b.selection == 0);
       }
+    for (int slot = 0; slot < 2; ++slot) {
+      auto& a = p->masterInserts[slot];
+      auto& b = loaded->masterInserts[slot];
+      CHECK(a.module == b.module);
+      CHECK(a.bypass == b.bypass);
+      CHECK(memcmp(a.values, b.values, 8) == 0);
+    }
     auto start = original.find("- Track inserts:");
     auto end = original.find("- Track volumes:");
     REQUIRE(start != std::string::npos);
@@ -468,6 +481,7 @@ TEST_SUITE("track inserts") {
     REQUIRE(projectLoad(loaded.get(), path) == 0);
     for (auto& t : loaded->trackInserts)
       for (auto& c : t) CHECK(c.module == 0);
+    for (auto& c : loaded->masterInserts) CHECK(c.module == 0);
     for (auto bad :
          {std::string("- Track inserts: 1,9,2\n"),
           std::string("- Track inserts: 1,8,2\n- Insert: 0,0,255,0,0,0,0,0,0,0,0,0\n"),
@@ -477,6 +491,14 @@ TEST_SUITE("track inserts") {
       write(path, corrupt);
       CHECK(projectLoad(loaded.get(), path) != 0);
     }
+    auto masterStart = original.find("- Master inserts:");
+    REQUIRE(masterStart != std::string::npos);
+    auto masterEnd = original.find("- Track volumes:");
+    auto corrupt = original;
+    corrupt.replace(masterStart, masterEnd - masterStart,
+                    "- Master inserts: 1,2\n- Master insert: 0,255,0,0,0,0,0,0,0,0,0\n");
+    write(path, corrupt);
+    CHECK(projectLoad(loaded.get(), path) != 0);
     write(path, original.substr(0, start) + "- Track inserts: 1,8,2\n");
     CHECK(projectLoad(loaded.get(), path) != 0);
     projectFree(p.get());
@@ -502,6 +524,22 @@ TEST_SUITE("track inserts") {
       CHECK(wet.s->reverbBuffer[i] == doctest::Approx(b[i] * .25f).epsilon(1e-6));
       CHECK(wet.s->delayBuffer[i] == doctest::Approx(b[i] * .5f).epsilon(1e-6));
     }
+  }
+  TEST_CASE("master inserts process the completed mix") {
+    Engine dry, wet;
+    insertSelect(&wet.s->project.masterInserts[0], insertDistortion);
+    dry.start();
+    wet.start();
+    float a[512], b[512];
+    REQUIRE(chipnomadRender(dry.s, a, 256) == 256);
+    REQUIRE(chipnomadRender(wet.s, b, 256) == 256);
+    InsertChain expected(48000);
+    InsertAutomation automation{};
+    expected.sync(wet.s->project.masterInserts, &automation);
+    uint8_t v[2][8];
+    values(wet.s->project.masterInserts, v);
+    expected.process(a, 256, v);
+    for (int i = 0; i < 512; ++i) CHECK(b[i] == doctest::Approx(a[i]).epsilon(1e-6));
   }
   TEST_CASE("insert MOD recomputes from bases and does not drift or change saved configuration") {
     Engine e;
@@ -827,8 +865,8 @@ TEST_CASE("insert tips return after real key release and categorized chooser sel
   chipnomadState = chipnomadCreate();
   screensInitAll();
   *pSongTrack = 0;
+  screenInsertFXOpenTrack();
   insertSelect(&chipnomadState->project.trackInserts[0][0], insertDistortion);
-  currentScreen = &screenInsertFX;
   screenInsertFX.setup(-1);
   screenInsertFX.fullRedraw();
   auto* d = mockScreenData;
@@ -861,6 +899,15 @@ TEST_CASE("insert tips return after real key release and categorized chooser sel
   SelectionItem items[] = {{"Existing", 0, nullptr, 0, nullptr}};
   selectionPopupSetup("Existing", items, 1, 0, nullptr, nullptr);
   CHECK_FALSE(selectionPopupIsFullWidth());
+  screenInsertFXOpenMaster();
+  screenInsertFX.setup(-1);
+  screenInsertFX.fullRedraw();
+  mockScreenData->drawStatic();
+  CHECK(std::string(mockGfxCells[0], 40).find("MASTER FX") != std::string::npos);
+  screenInsertFX.onInput(1, keyShift | keyDown, 0);
+  CHECK(currentScreen == &screenInsertFX);
+  screenInsertFX.onInput(1, keyOpt, 0);
+  CHECK(currentScreen == &screenMixer);
   screenMessage(0, "");
   chipnomadDestroy(chipnomadState); chipnomadState = previous; currentScreen = previousScreen;
 }

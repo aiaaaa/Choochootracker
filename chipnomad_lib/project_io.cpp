@@ -807,6 +807,21 @@ static int projectLoadInternal(FILE* file, Project* project) {
     }
     line = peekLine(file);
   }
+  if (line && strncmp(line, "- Master inserts: ", 18) == 0) {
+    unsigned header[2];
+    if (!readInsertFields(line, "- Master inserts: ", header, 2) ||
+        header[0] != 1 || header[1] != 2) return 1;
+    consumeLine(file);
+    for (int slot = 0; slot < 2; ++slot) {
+      unsigned fields[11];
+      if (!readInsertFields(peekLine(file), "- Master insert: ", fields, 11) ||
+          fields[0] != (unsigned)slot || fields[1] >= insertModuleCount || fields[2] > 1) return 1;
+      auto& c = p.masterInserts[slot]; c.module = fields[1]; c.bypass = fields[2];
+      for (int i = 0; i < 8; ++i) c.values[i] = insertClamp(c.module, i, fields[i + 3]);
+      consumeLine(file);
+    }
+    line = peekLine(file);
+  }
   if (line == NULL || strncmp(line, "- Track volumes: ", 17) != 0) return 1;
   if (sscanf(line + 17, "%hhu,%hhu,%hhu,%hhu,%hhu,%hhu,%hhu,%hhu",
       &p.trackVolume[0], &p.trackVolume[1], &p.trackVolume[2], &p.trackVolume[3],
@@ -1585,6 +1600,13 @@ static int projectSaveInternal(FILE* file, Project* project) {
   for (int t = 0; t < PROJECT_MAX_TRACKS; ++t) for (int slot = 0; slot < 2; ++slot) {
     const auto& c = project->trackInserts[t][slot];
     fprintf(file, "- Insert: %d,%d,%u,%u",t,slot,c.module,c.bypass);
+    for (int i = 0; i < 8; ++i) fprintf(file, ",%u", c.values[i]);
+    fprintf(file, "\n");
+  }
+  fprintf(file, "- Master inserts: 1,2\n");
+  for (int slot = 0; slot < 2; ++slot) {
+    const auto& c = project->masterInserts[slot];
+    fprintf(file, "- Master insert: %d,%u,%u", slot, c.module, c.bypass);
     for (int i = 0; i < 8; ++i) fprintf(file, ",%u", c.values[i]);
     fprintf(file, "\n");
   }

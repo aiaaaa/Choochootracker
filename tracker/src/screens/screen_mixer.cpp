@@ -14,8 +14,6 @@
 static void fullRedraw(void);
 static int displayedCpuLoad = -1;
 static int mixerPage = 0; // 0 mixer, 1 reverb, 2 delay
-static uint8_t autoMixPreview[PROJECT_MAX_TRACKS];
-static uint8_t autoMixOriginal[PROJECT_MAX_TRACKS];
 static Bitmap* stereoImage;
 static Bitmap* spectrum;
 static std::chrono::steady_clock::time_point spectrumRefresh;
@@ -97,16 +95,6 @@ static void drawAnalyzers(void) {
   if (fft) gfxDrawBitmap(fft, 18, 15);
 }
 
-static void applyAutoMix(void) {
-  projectModified = 1;
-  screenSetup(&screenMixer, 0);
-}
-static void cancelAutoMix(void) {
-  for (int i = 0; i < chipnomadState->project.tracksCount; ++i)
-    chipnomadState->project.trackVolume[i] = autoMixOriginal[i];
-  screenSetup(&screenMixer, 0);
-}
-
 int screenMixerGetPage(void) { return mixerPage; }
 
 static int columnCount(int row) { return mixerPage == 0 ? (row == PROJECT_MAX_TRACKS ? 1 : 7) : 1; }
@@ -119,7 +107,7 @@ static void drawStatic(void) {
     gfxPrint(0, 0, "MIXER");
     gfxPrint(0, 2, "TRK"); gfxPrint(4, 2, "LVL"); gfxPrint(9, 2, "REV"); gfxPrint(14, 2, "DLY");
     gfxPrint(19, 2, "TLT"); gfxPrint(24, 2, "PAN"); gfxPrint(29, 2, "M"); gfxPrint(32, 2, "S");
-    gfxPrint(0, 12, "AUTO MIX");
+    gfxPrint(0, 12, "MASTER FX");
   } else if (mixerPage == 1) {
     gfxPrint(0, 0, "CLOUDS REVERB");
     gfxPrint(0, 3, "Return"); gfxPrint(0, 4, "Time");
@@ -156,7 +144,7 @@ static void drawField(int col, int row, CellState state) {
   if (mixerPage == 0) {
     if (row == PROJECT_MAX_TRACKS) {
       gfxClearRect(10, 12, 16, 1);
-      gfxPrint(10, 12, state == CellState::focus ? "> RUN AUTO MIX <" : "[ RUN AUTO MIX ]");
+      gfxPrint(10, 12, state == CellState::focus ? "> EDIT MASTER FX <" : "[ EDIT MASTER FX ]");
       return;
     }
     if (col < 0 || col >= 7 || row < 0 || row >= PROJECT_MAX_TRACKS) return;
@@ -200,21 +188,7 @@ static int onEdit(int col, int row, CellEditAction action) {
   if (mixerPage == 0) {
     if (row == PROJECT_MAX_TRACKS) {
       if (action != CellEditAction::tap) return 0;
-      if (chipnomadAutoMix(chipnomadState, 6, autoMixPreview)) screenMessage(MESSAGE_TIME, "Auto mix: no audio");
-      else {
-        char summary[128] = "Apply? ";
-        for (int i = 0; i < chipnomadState->project.tracksCount; ++i) {
-          autoMixOriginal[i] = chipnomadState->project.trackVolume[i];
-          char change[16];
-          snprintf(change, sizeof(change), "T%d %d>%d ", i + 1,
-            autoMixOriginal[i], autoMixPreview[i]);
-          strncat(summary, change, sizeof(summary) - strlen(summary) - 1);
-          chipnomadState->project.trackVolume[i] = autoMixPreview[i];
-        }
-        chipnomadQueuePlaybackStartSong(chipnomadState, 0, 0, 1);
-        confirmSetup(summary, applyAutoMix, cancelAutoMix);
-        screenSetup(&screenConfirm, 0);
-      }
+      screenInsertFXOpenMaster();
       return 1;
     }
     if (col < 0 || col >= 7 || row < 0 || row >= PROJECT_MAX_TRACKS) return 0;
@@ -269,6 +243,11 @@ static void draw(void) {
     for (int track = 0; track < chipnomadState->project.tracksCount; ++track)
       monitorDisplayDrawMeter(track, 2, 3 + track);
     drawAnalyzers();
+    gfxClearRect(34, 12, 5, 1);
+    if (chipnomadState->audioOverload) {
+      gfxSetFgColor(appSettings.colorScheme.warning);
+      gfxPrint(34, 12, "CLIP!");
+    }
   }
   int cpuLoad = audioManager.getCpuLoadPercent();
   if (cpuLoad == displayedCpuLoad) return;

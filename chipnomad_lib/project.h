@@ -406,6 +406,7 @@ struct Project {
   uint8_t trackDelaySend[PROJECT_MAX_TRACKS];
   uint8_t trackTilt[PROJECT_MAX_TRACKS];
   InsertConfig trackInserts[PROJECT_MAX_TRACKS][2];
+  InsertConfig masterInserts[2];
   uint16_t tiltPivotHz;
   uint8_t reverbReturn;
   uint8_t reverbTime;

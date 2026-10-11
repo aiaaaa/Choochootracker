@@ -26,7 +26,6 @@ class SimpleChipVoice;
 class AudioCommandQueue;
 struct MidiRouterState;
 class AudioMonitor;
-class RenderWorkerPool;
 
 constexpr int VOICE_MONITOR_SAMPLES = 256;
 
@@ -82,6 +81,8 @@ struct ChipNomadState {
   int trackWarnings[PROJECT_MAX_TRACKS];
   TrackTilt trackTilt[PROJECT_MAX_TRACKS];
   InsertChain* insertChains[PROJECT_MAX_TRACKS];
+  InsertChain* masterInsertChain;
+  InsertAutomation masterInsertAutomation;
   uint32_t insertResetSeen[PROJECT_MAX_TRACKS];
   uint8_t insertValues[PROJECT_MAX_TRACKS][2][8];
   uint8_t insertActive[PROJECT_MAX_TRACKS];
@@ -124,7 +125,6 @@ struct ChipNomadState {
   MasterEffects* masterEffects;
   AudioCommandQueue* audioCommands;
   AudioMonitor* audioMonitor;
-  RenderWorkerPool* renderWorkers;
   PlaybackStatus uiPlaybackStatus;
 };
 
@@ -153,7 +153,6 @@ void chipnomadInitChips(ChipNomadState* state, int sampleRate, ChipFactory facto
 int chipnomadReserveRenderBuffers(ChipNomadState* state, int frames);
 // Configure persistent workers for real-time rendering while audio is stopped.
 // Returns the number of workers actually enabled; 0 is the serial fallback.
-int chipnomadConfigureRealtimeWorkers(ChipNomadState* state, int requestedWorkers);
 int chipnomadQueueTrackEnabled(ChipNomadState* state, const uint8_t enabled[PROJECT_MAX_TRACKS]);
 int chipnomadQueueProjectRefresh(ChipNomadState* state);
 int chipnomadQueuePlaybackScale(ChipNomadState* state, uint8_t root, ScalePreset preset);
@@ -197,9 +196,6 @@ void chipnomadSetRenderBufferOverflow(ChipNomadState* state);
 * @return Number of samples actually rendered (may be less if playback stops)
 */
 int chipnomadRender(ChipNomadState* state, float* buffer, int samples);
-
-// Fast offline level balancing over a short render. Returns 0 on success.
-int chipnomadAutoMix(ChipNomadState* state, int seconds, uint8_t proposed[PROJECT_MAX_TRACKS]);
 
 /**
 * Set emulation quality for all chips

@@ -1147,15 +1147,13 @@ Use it to balance the 8 tracks, shape each track with Tilt EQ, and send audio to
 
 The mixer is track-based, not instrument-based. If a track changes instruments, its level, PAN, Tilt and sends remain attached to the track. Instruments also have their own `00-FF` **Vol** and **Pan** in the top row of the Instrument screen. Instrument PAN is applied first, then track PAN. Both preserve an existing stereo image at centre; they progressively attenuate the opposite side when moved left or right.
 
-### Auto Mix
+### Master FX
 
-The Mixer contains an **AUTO MIX** button. It renders `6 seconds` offline,
-balances track loudness, then checks 8 octave bands against a pink-noise
-profile and gently lowers tracks that crowd those bands. It proposes
-conservative level changes, leaves some peak headroom and starts a temporary
-preview. **Apply** keeps the proposed levels, while **Cancel** restores the previous
-8 levels. It gives you a useful starting point, but you will probably still
-want to tweak the result.
+The **MASTER FX** entry opens a two-slot Insert FX sub-menu for the complete
+mix. Its effects run after the reverb and delay returns, before the master
+volume. Select a module, edit its parameters or bypass it exactly as for a
+track insert; press **OPT** to return to Mixer. Master FX settings are saved
+with the project and are not automated by phrase, table or modulation.
 
 ### Clouds Reverb
 
@@ -1359,7 +1357,8 @@ compression off, widening on. Watch existing clipping indicators when adding
 drive/gain. Slot transitions use bounded 5 ms fades via dry audio.
 
 Saves store module IDs, bypass and configured bytes in the optional versioned
-`Track inserts: 1,8,2` section. Runtime overrides and DSP histories are not saved.
+`Track inserts: 1,8,2` and `Master inserts: 1,2` sections. Runtime overrides
+and DSP histories are not saved.
 Keep backups before opening insert-enabled saves in older builds. DSP attribution,
 source revisions and adaptations are in `chipnomad_lib/external/insert_fx/SOURCES.txt`;
 full MIT notices ship in `licenses/INSERT_FX.txt`.

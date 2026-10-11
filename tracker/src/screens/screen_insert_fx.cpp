@@ -11,11 +11,13 @@ static int onInput(int, int, int);
 static int moduleButtonDown;
 static int popupSlot;
 static int displayedCpuLoad = -1;
+static bool master;
 static int columns(int) { return 2; }
 static int y(int row) { return 3 + row + (row >= 5 ? 2 : 0); }
 static int parameter(int col, int row) { return col * 4 + row % 5 - 1; }
 static InsertConfig& config(int row) {
-  return chipnomadState->project.trackInserts[*pSongTrack][row / 5];
+  return master ? chipnomadState->project.masterInserts[row / 5] :
+                  chipnomadState->project.trackInserts[*pSongTrack][row / 5];
 }
 static int valid(int col, int row) {
   return row >= 0 && row < 10 && col >= 0 && col < 2 &&
@@ -28,7 +30,8 @@ static void drawCpuLoad(int cpuLoad) {
 }
 static void drawStatic() {
   gfxSetFgColor(appSettings.colorScheme.textTitles);
-  gfxPrintf(0, 0, "TRACK %d - INSERT FX", *pSongTrack + 1);
+  if (master) gfxPrint(0, 0, "MASTER FX");
+  else gfxPrintf(0, 0, "TRACK %d - INSERT FX", *pSongTrack + 1);
   drawCpuLoad(audioManager.getCpuLoadPercent());
 }
 static void hint(int col, int row) {
@@ -122,7 +125,7 @@ static void fullRedraw() {
   screenFullRedraw(&data);
 }
 static void selected(int module) {
-  insertSelect(&chipnomadState->project.trackInserts[*pSongTrack][popupSlot], module);
+  insertSelect(&config(popupSlot * 5), module);
   projectModified = 1;
   screenSetup(&screenInsertFX, -1);
 }
@@ -182,12 +185,16 @@ static int onInput(int down, int keys, int taps) {
     }
   }
   if (down) {
-    if (keys == (keyShift | keyDown)) {
+    if (master && keys == keyOpt) {
+      screenSetup(&screenMixer, 0);
+      return 1;
+    }
+    if (!master && keys == (keyShift | keyDown)) {
       screenMessage(0, "");
       screenSetup(&screenModulation, -1);
       return 1;
     }
-    if (keys == (keyOpt | keyLeft) || keys == (keyOpt | keyRight)) {
+    if (!master && (keys == (keyOpt | keyLeft) || keys == (keyOpt | keyRight))) {
       int t = *pSongTrack + (keys & keyRight ? 1 : -1);
       if (t >= 0 && t < chipnomadState->project.tracksCount) {
         *pSongTrack = t;
@@ -202,7 +209,7 @@ static void init() {}
 static void setup(int) {
   moduleButtonDown = 0;
   displayedCpuLoad = -1;
-  if (*pSongTrack >= chipnomadState->project.tracksCount) *pSongTrack = 0;
+  if (!master && *pSongTrack >= chipnomadState->project.tracksCount) *pSongTrack = 0;
 }
 static void draw() {
   // Releasing all buttons clears untimed app messages. Restore the selected
@@ -216,3 +223,6 @@ static void draw() {
 }
 static ScreenPlaybackLevel level() { return ScreenPlaybackLevel::phrase; }
 const AppScreen screenInsertFX = {init, setup, fullRedraw, draw, onInput, level};
+void screenInsertFXOpenMaster(void) { master = true; screenSetup(&screenInsertFX, -1); }
+void screenInsertFXOpenTrack(void) { master = false; screenSetup(&screenInsertFX, -1); }
+int screenInsertFXIsMaster(void) { return master; }
