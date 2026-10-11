@@ -236,13 +236,20 @@ physical Safari and iPhone checks remain useful. Native rendering is unchanged.
 
 The viewport uses `viewport-fit=cover`; main content adds the four CSS
 `env(safe-area-inset-*)` values to its normal margins. Canvas sizing subtracts
-that vertical padding. This keeps the tracker and controls out of the camera
+that vertical padding. Standalone Home Screen windows add another 15 CSS pixels
+above the tracker for iOS UI clearance; ordinary browser tabs keep their existing
+spacing. This keeps the tracker and controls out of the camera
 and Home indicator areas in a standalone Home Screen launch.
 
 **Reload app** pauses input, saves the current project and settings, and waits
 for the existing IDBFS flush before reloading. Serialization/storage errors or
 a 10-second timeout cancel the reload and leave the working project open.
 It does not clear site storage. Keep downloaded backups independently.
+
+Initial audio suspension while waiting for a touch/key gesture is normal and
+does not display a recovery warning. Focus and page-show events only attempt
+recovery after audio output has actually run. The first interaction activates
+the existing output; Restart audio is not required for ordinary startup.
 
 Browser audio recovery checks both the AudioContext clock and SDL's output
 callbacks, since a reported `running` state alone is insufficient on some Safari
@@ -311,6 +318,13 @@ COOP/COEP. Subpath reverse-proxy hosting and embedding remain untested; prefer a
 subdomain/link first. No iframe or website integration is implemented now.
 
 ## Validation record
+
+Startup follow-up, 2026-10-11: an autoplay-blocked browser fixture reproduced
+the premature warning on the previous deployment. With the correction, initial
+focus/page-show and a background/foreground cycle stay quiet, and the first
+touch activates the same audio context. The standalone CSS rule adds exactly
+15 pixels to the simulated safe-area layout (67 → 82 pixels from the top).
+The fixture models autoplay policy and standalone CSS in Chrome, not physical iOS.
 
 Font/Home Screen follow-up, 2026-10-11: a fresh Wasm build passed. Departure Mono
 uses 320×240 CSS pixels on a simulated iPhone 15 Pro viewport; 267 measured stroke

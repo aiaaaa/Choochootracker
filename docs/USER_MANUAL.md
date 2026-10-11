@@ -1692,7 +1692,9 @@ still requires a network connection; this does not add offline installation.
 Export projects before switching between a Safari tab and a Home Screen install,
 which may have separate browser storage.
 
-The Home Screen app respects the camera and Home indicator safe areas. Use
+The Home Screen app respects the camera and Home indicator safe areas, with
+an extra 15 pixels above the tracker. Initial audio waits quietly for your first
+touch or key press; opening the app does not require Restart audio. Use
 **Reload app** below the tracker when there is no Safari refresh button; it saves
 and flushes this browser's storage first, and cancels if saving fails.
 **Restart audio** reopens the web audio output while keeping the current project

@@ -19,6 +19,34 @@ with sync_playwright() as p:
   context=browser.new_context(viewport={'width':1512,'height':900},device_scale_factor=2)
   page=context.new_page();page.on('pageerror',lambda e:errors.append(str(e)))
   def ready(page):page.wait_for_function("window.Module && typeof calledRun!=='undefined' && calledRun && !document.querySelector('#import-project').disabled && document.documentElement.style.getPropertyValue('--background')",timeout=60000)
+  # Model iOS autoplay suspension explicitly: automation itself can grant
+  # Chromium user activation, even before a simulated click or tap.
+  startup=browser.new_context(viewport={'width':393,'height':852},device_scale_factor=3,is_mobile=True,has_touch=True)
+  startup.add_init_script("""(()=>{
+    const NativeAudioContext=window.AudioContext;
+    window.startupUnlocked=false;
+    document.addEventListener('touchend',e=>{if(e.isTrusted)startupUnlocked=true;},true);
+    window.AudioContext=class extends NativeAudioContext {
+      constructor(...args){super(...args);this.suspend();}
+      resume(){return startupUnlocked?super.resume():new Promise(()=>{});}
+    };
+  })();""")
+  first=startup.new_page();first.on('pageerror',lambda e:errors.append(str(e)))
+  first.goto(url);ready(first)
+  first.evaluate("window.initialAudio=getAudio();window.dispatchEvent(new Event('focus'));window.dispatchEvent(new Event('pageshow'));")
+  first.wait_for_timeout(3000)
+  assert first.locator('#audio-status').inner_text()=='',first.locator('#audio-status').inner_text()
+  assert first.evaluate('!audioActivated && !audioRecovering')
+  # A locked foreground/background cycle must also remain quiet.
+  first.evaluate('setPageHidden(true);setPageHidden(false)')
+  first.wait_for_timeout(2000)
+  assert first.locator('#audio-status').inner_text()==''
+  first.locator('[data-button="4"]').tap()
+  first.wait_for_function("audioActivated && !audioRecovering && getAudio().state==='running'",timeout=5000)
+  assert first.evaluate('getAudio()===initialAudio')
+  assert first.locator('#audio-status').inner_text()==''
+  startup.close()
+  print('Autoplay-blocked startup/focus/wake stayed quiet; first touch activated the existing output',flush=True)
   page.goto(url);ready(page);page.locator('#canvas').click()
   # Fetch/decode the actual linked icons and install metadata, locally or live.
   icons=page.evaluate("""async ()=>{
@@ -112,6 +140,11 @@ with sync_playwright() as p:
     t.evaluate("document.documentElement.style.setProperty('--safe-top','59px');document.documentElement.style.setProperty('--safe-bottom','34px');window.dispatchEvent(new Event('resize'))")
     t.wait_for_timeout(150)
     assert t.locator('#canvas').bounding_box()['y']>=67
+    # Chromium's media emulation does not override display-mode. Activate the
+    # actual standalone rule explicitly, keeping the iOS limitation visible.
+    t.evaluate("[...document.styleSheets[0].cssRules].find(r=>r.media && r.media.mediaText==='(display-mode: standalone)').media.mediaText='all'")
+    t.wait_for_timeout(150)
+    assert abs(t.locator('#canvas').bounding_box()['y']-82)<.01
     assert abs(geometry(t)['w']-320)<.01
     t.screenshot(path=str(root/'.tmp/home-screen-safe-area.png'),full_page=True)
     print('Simulated camera/Home-indicator safe-area layout passed',flush=True)
