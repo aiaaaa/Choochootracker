@@ -35,6 +35,7 @@ static void audioField(int, int row, CellState state) {
   if (row == 0) {
     gfxSetFgColor(cs.textDefault); gfxPrint(0, 2, "Buffer size");
     gfxSetFgColor(state == CellState::focus ? cs.textValue : cs.textDefault);
+    gfxClearRect(23, 2, 4, 1);
     gfxPrintf(23, 2, "%d", appSettings.audioBufferSize);
   } else {
     gfxSetFgColor(cs.textDefault); gfxPrint(0, 3, "CPU load");

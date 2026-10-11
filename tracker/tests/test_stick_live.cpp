@@ -385,6 +385,10 @@ TEST_CASE_FIXTURE(StickLiveFixture, "Settings menus and audio buffer control ali
   screen->drawField(0, 0, CellState::focus);
   CHECK(std::string(mockGfxCells[2], 11) == "Buffer size");
   CHECK(std::string(mockGfxCells[2] + 23, 3) == "256");
+  appSettings.audioBufferSize = 64;
+  screen->drawField(0, 0, CellState::focus);
+  CHECK(std::string(mockGfxCells[2] + 23, 4) == "64  ");
+  appSettings.audioBufferSize = 256;
   screen->drawField(0, 1, CellState::normal);
   CHECK(std::string(mockGfxCells[3], 8) == "CPU load");
   CHECK(std::string(mockGfxCells[3] + 23, 4) == "037%");
