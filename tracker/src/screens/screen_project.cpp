@@ -241,8 +241,6 @@ int projectCommonColumnCount(int row) {
   } else if (row >= 1 && row <= 3) {
     return 24; // File, title, author
   } else if (row == 4) {
-    return 1; // Linear pitch
-  } else if (row == 5) {
     return 2; // Tick rate
   }
   return 1; // Default value
@@ -262,8 +260,7 @@ void projectCommonDrawStatic(void) {
   gfxPrint(0, 6, "Title");
   gfxPrint(0, 7, "Author");
 
-  gfxPrint(0, 9, "Linear pitch");
-  gfxPrint(0, 10, "Tick rate");
+  gfxPrint(0, 9, "Tick rate");
 }
 
 void projectCommonDrawCursor(int col, int row) {
@@ -283,14 +280,11 @@ void projectCommonDrawCursor(int col, int row) {
     // Text fields: file name, title, author
     gfxCursor(7 + col, 4 + row, 1);
   } else if (row == 4) {
-    // Linear pitch
-    gfxCursor(13, 9, 3);
-  } else if (row == 5) {
     // Tick rate
     if (col == 0) {
-      gfxCursor(13, 10, 3);
+      gfxCursor(13, 9, 3);
     } else {
-      gfxCursor(17, 10, 3);
+      gfxCursor(17, 9, 3);
     }
   }
 }
@@ -323,14 +317,11 @@ void projectCommonDrawField(int col, int row, CellState state) {
     gfxClearRect(7, 7, PROJECT_TITLE_LENGTH, 1);
     gfxPrintf(7, 7, "%s", chipnomadState->project.author);
   } else if (row == 4) {
-    // Linear pitch
-    gfxPrint(13, 9, chipnomadState->project.linearPitch ? "ON " : "OFF");
-  } else if (row == 5) {
     // Tick rate and BPM
-    gfxClearRect(13, 10, 27, 1);
+    gfxClearRect(13, 9, 27, 1);
     float tickRate = (float)tickRateI + (float)tickRateF / 1000.0f;
     float bpm = tickRate * 60.0f / 24.0f;
-    gfxPrintf(13, 10, "%03d.%03dHz (%.1f BPM)", tickRateI, tickRateF, bpm);
+    gfxPrintf(13, 9, "%03d.%03dHz (%.1f BPM)", tickRateI, tickRateF, bpm);
   }
 }
 
@@ -407,14 +398,6 @@ int projectCommonOnEdit(int col, int row, enum CellEditAction action) {
       handled = 1;
     }
   } else if (row == 4) {
-    // Linear pitch (ON/OFF)
-    handled = edit8noLast(action, &chipnomadState->project.linearPitch, 1, 0, 1);
-    if (handled) {
-      projectModified = 1;
-      chipnomadQueuePlaybackStop(chipnomadState);
-      reinitializePitchTable(&chipnomadState->project);
-    }
-  } else if (row == 5) {
     // Tick rate
     if (col == 0) {
       // Integer part (1-200), clear sets to 50

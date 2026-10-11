@@ -19,6 +19,8 @@ class MasterEffects {
  private:
   float lowpass(float input, float coefficient, float& state);
   float lowpassCoefficient(float cutoff) const;
+  float highpass(float input, float coefficient, float& inputState, float& outputState);
+  float highpassCoefficient(float cutoff) const;
 
   float sampleRate_;
   uint16_t reverbMemory_[65536];
@@ -27,6 +29,8 @@ class MasterEffects {
   std::vector<float> delayLine_;
   size_t delayWrite_;
   float reverbFilterState_[2];
+  float reverbHighpassInputState_[2];
+  float reverbHighpassOutputState_[2];
   float delayFilterState_[2];
 };
 

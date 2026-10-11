@@ -904,6 +904,11 @@ TEST_CASE("insert tips return after real key release and categorized chooser sel
   screenInsertFX.fullRedraw();
   mockScreenData->drawStatic();
   CHECK(std::string(mockGfxCells[0], 40).find("MASTER FX") != std::string::npos);
+  MainLoopEventData branch{};
+  branch.type = MainLoopEvent::keyDown;
+  branch.data.input = {InputDeviceType::logical, keyShift | keyRight};
+  appOnEvent(branch);
+  CHECK(currentScreen == &screenInsertFX);
   screenInsertFX.onInput(1, keyShift | keyDown, 0);
   CHECK(currentScreen == &screenInsertFX);
   screenInsertFX.onInput(1, keyOpt, 0);

@@ -6,6 +6,7 @@ void projectInitAY(Project* project) {
   projectInit(project);
 
   project->tickRate = 50;
+  project->linearPitch = 1;
   project->chipType = ChipType::AY;
   project->chipsCount = PROJECT_MAX_TRACKS;
   project->chipSetup.ay = (struct ChipSetupAY){

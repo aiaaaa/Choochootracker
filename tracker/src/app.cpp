@@ -293,7 +293,8 @@ static bool inputBranchNavigation(int keys) {
       currentScreen == &screenMidi || currentScreen == &screenMidiChannelMap ||
       currentScreen == &screenMidiCC) column = 1;
   else if (currentScreen == &screenGroove) column = 3;
-  else if (currentScreen == &screenModulation || currentScreen == &screenInsertFX) column = 4;
+  else if (currentScreen == &screenModulation ||
+           (currentScreen == &screenInsertFX && !screenInsertFXIsMaster())) column = 4;
   else if (currentScreen == &screenAYWavetable) column = 5;
   if (column < 0) return false;
   const AppScreen* spine[] = {&screenMixer, &screenSong, &screenChain,
