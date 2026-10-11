@@ -3,68 +3,67 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#050c1f">
+  <meta name="apple-mobile-web-app-title" content="ChooChoo">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="icon" type="image/png" sizes="128x128" href="favicon.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="manifest" href="site.webmanifest">
   <title>ChooChooTracker — Web</title>
   <style>
-    :root { color-scheme: dark; }
+    :root { color-scheme: dark; --background: #050c1f; --empty: #10284a;
+      --muted: #52799b; --text: #c9bfa5; --value: #ffd665; --title: #e6b84f;
+      --play: #64d6ff; --cursor: #65d8ff; --selection: #245072; --warning: #ff6655; }
     * { box-sizing: border-box; }
-    body { margin: 0; min-height: 100vh; display: grid; place-items: center;
-      background: #050c1f; color: #c9bfa5; font: 16px system-ui, sans-serif; }
-    main { width: min(100%, 980px); padding: 1rem; text-align: center; }
-    h1 { color: #e6b84f; font-size: 1.15rem; letter-spacing: .12em; }
-    p { color: #52799b; }
-    #canvas { display: block; width: min(100%, 640px); height: auto; aspect-ratio: 4 / 3;
-      margin: 0 auto; border: 1px solid #245072; background: #050c1f;
-      image-rendering: pixelated; }
-    #status { color: #ffd665; min-height: 1.5em; }
-    button { color: #050c1f; background: #ffd665; border: 0; padding: .55rem 1rem;
+    body { margin: 0; min-height: 100vh; background: var(--background);
+      color: var(--text); font: 16px system-ui, sans-serif; }
+    main { padding: 8px; text-align: center; }
+    #screen-area { width: 100%; overflow-x: auto; }
+    #canvas { display: block; width: 640px; height: 480px; border: 0;
+      background: var(--background); image-rendering: pixelated; }
+    #canvas:focus { outline: none; }
+    #canvas:focus-visible { outline: 1px solid var(--cursor); outline-offset: -1px; }
+    #browser-controls { width: min(100%, 960px); margin: .8rem auto 0; }
+    h1 { color: var(--title); font-size: .85rem; letter-spacing: .12em; margin: 1rem 0 .4rem; }
+    #status { color: var(--value); margin-top: .6rem; overflow-wrap: anywhere; }
+    #status:empty { display: none; }
+    button { color: var(--background); background: var(--value); border: 0; padding: .55rem 1rem;
       font-weight: 700; cursor: pointer; }
     button:disabled { cursor: wait; opacity: .55; }
-    #file-controls { display: flex; flex-wrap: wrap; justify-content: center; gap: .5rem;
-      width: min(100%, 640px); margin: 0 auto .75rem; }
-    #file-controls button { padding: .42rem .7rem; font-size: .8rem; }
+    button:focus-visible, a:focus-visible { outline: 2px solid var(--cursor); outline-offset: 3px; }
+    #file-controls { display: flex; flex-wrap: wrap; justify-content: center; gap: .5rem; }
+    #file-controls button { padding: .42rem .7rem; font-size: .8rem; min-height: 2.25rem; }
     #touch-controls { display: none; width: min(100%, 640px); margin: .75rem auto 0;
-      padding: .8rem 1rem .65rem; border: 1px solid #3b4350; border-radius: 1.2rem;
-      background: linear-gradient(#10284a, #050c1f); box-shadow: inset 0 1px #52799b;
+      padding: .8rem 1rem .65rem; border: 1px solid var(--selection); border-radius: 1.2rem;
+      background: var(--empty); box-shadow: inset 0 1px var(--muted);
       grid-template-columns: 1fr 1fr 1fr; grid-template-areas: "dpad . face" "system system system";
       gap: .65rem; touch-action: none; }
-    #touch-controls button { border: 1px solid #050c1f; color: #ffd665; font: 700 .72rem system-ui;
-      touch-action: none; user-select: none; -webkit-user-select: none; box-shadow: inset 0 1px #52799b, 0 2px 2px #050c1f; }
+    #touch-controls button { border: 1px solid var(--background); font: 700 .72rem system-ui;
+      touch-action: none; user-select: none; -webkit-user-select: none;
+      box-shadow: inset 0 1px var(--muted), 0 2px 2px var(--background); }
     .dpad { grid-area: dpad; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); aspect-ratio: 1; max-width: 8rem; }
-    .dpad button { background: #245072; border-radius: .25rem; font-size: 1rem; }
+    .dpad button { background: var(--selection); color: var(--value); border-radius: .25rem; font-size: 1rem; }
     .dpad .up { grid-column: 2; } .dpad .left { grid-row: 2; grid-column: 1; }
     .dpad .right { grid-row: 2; grid-column: 3; } .dpad .down { grid-row: 3; grid-column: 2; }
     .face { grid-area: face; display: flex; align-items: center; justify-content: center; gap: .55rem; }
-    .face button { width: 3.6rem; height: 3.6rem; border-radius: 50%; background: #ff6655; }
-    .face button:first-child { background: #65d8ff; }
+    .face button { width: 3.6rem; height: 3.6rem; border-radius: 50%; background: var(--warning); }
+    .face button:first-child { background: var(--cursor); }
     .system { grid-area: system; display: flex; justify-content: center; gap: .75rem; }
-    .system button { min-width: 5.8rem; min-height: 2rem; border-radius: 1rem; background: #10284a; }
-    .links { margin: .8rem 0 0; }
-    .links a { color: #ffd665; margin: 0 .5rem; }
+    .system button { min-width: 5.8rem; min-height: 2rem; border-radius: 1rem;
+      background: var(--selection); color: var(--value); }
+    .links { margin: .4rem 0 .8rem; }
+    .links a { color: var(--value); margin: 0 .5rem; }
     @media (pointer: coarse), (max-width: 700px) {
-      main { width: min(100%, 640px); padding: .5rem; }
-      #canvas { width: 100%; }
-      #touch-controls { display: grid; width: 100%; }
+      #touch-controls { display: grid; }
     }
   </style>
 </head>
 <body>
   <main>
-    <h1>CHOOCHOO TRACKER / WEB</h1>
-    <button id="start">Start tracker</button>
-    <div id="status"></div>
-    <div id="file-controls" aria-label="Project, sample and preset files">
-      <button id="import-project" disabled>Import .cct</button>
-      <button id="import-samples" disabled>Import WAVs</button>
-      <button id="import-folder" disabled>Import sample folder</button>
-      <button id="import-presets" disabled title="Choose an instruments or USER folder. Existing files are kept. Stored only in this browser.">Import presets</button>
-      <button id="export-project" disabled>Download .cct</button>
-      <input id="project-input" type="file" accept=".cct" hidden>
-      <input id="sample-input" type="file" accept=".wav,audio/wav" multiple hidden>
-      <input id="sample-folder-input" type="file" accept=".wav,audio/wav" webkitdirectory multiple hidden>
-      <input id="preset-folder-input" type="file" webkitdirectory multiple hidden>
+    <div id="screen-area">
+      <canvas id="canvas" width="640" height="480" tabindex="0" aria-label="ChooChooTracker"></canvas>
     </div>
-    <div class="links"><a href="manual.html">Manual</a><a href="https://github.com/paiheulevrai/Choochootracker">GitHub</a></div>
-    <canvas id="canvas" width="640" height="480" tabindex="0" aria-label="ChooChooTracker"></canvas>
     <div id="touch-controls" aria-label="Touch controls">
       <div class="dpad" aria-label="Direction pad">
         <button class="up" data-button="0" aria-label="Up">&uarr;</button>
@@ -79,6 +78,23 @@
         <button data-button="7">SELECT<br>SHIFT</button><button data-button="6">START<br>PLAY</button>
       </div>
     </div>
+    <div id="browser-controls">
+      <button id="start">Start tracker</button>
+      <div id="file-controls" aria-label="Project, sample and preset files">
+        <button id="import-project" disabled>Import .cct</button>
+        <button id="import-samples" disabled>Import WAVs</button>
+        <button id="import-folder" disabled>Import sample folder</button>
+        <button id="import-presets" disabled title="Choose an instruments or USER folder. Existing files are kept. Stored only in this browser.">Import presets</button>
+        <button id="export-project" disabled>Download .cct</button>
+        <input id="project-input" type="file" accept=".cct" hidden>
+        <input id="sample-input" type="file" accept=".wav,audio/wav" multiple hidden>
+        <input id="sample-folder-input" type="file" accept=".wav,audio/wav" webkitdirectory multiple hidden>
+        <input id="preset-folder-input" type="file" webkitdirectory multiple hidden>
+      </div>
+      <div id="status" role="status" aria-live="polite"></div>
+      <h1>CHOOCHOO TRACKER / WEB</h1>
+      <div class="links"><a href="manual.html">Manual</a><a href="https://github.com/aiaaaa/Choochootracker/tree/personal/r36h">GitHub</a></div>
+    </div>
   </main>
   <script>
     const status = document.querySelector('#status');
@@ -89,6 +105,52 @@
     let storagePending = false;
     let storageCallbacks = [];
     const getFs = () => (typeof FS !== 'undefined' ? FS : (window.Module && window.Module.FS));
+
+    // Keep the 640x480 backing surface unchanged. Each source pixel occupies
+    // a whole number of display pixels, including on Retina screens.
+    const canvas = document.querySelector('#canvas');
+    const screenArea = document.querySelector('#screen-area');
+    const sizeCanvas = () => {
+      const ratio = window.devicePixelRatio || 1;
+      const availableWidth = screenArea.clientWidth;
+      const availableHeight = Math.max(1, window.innerHeight - 16);
+      const scale = Math.max(1, Math.floor(Math.min(
+        availableWidth * ratio / canvas.width,
+        availableHeight * ratio / canvas.height) + 1e-6));
+      const width = canvas.width * scale / ratio;
+      canvas.style.width = width + 'px';
+      canvas.style.height = canvas.height * scale / ratio + 'px';
+      // Snap the left edge as well as the size to display pixels.
+      const left = screenArea.getBoundingClientRect().left;
+      const offset = Math.max(0, (availableWidth - width) / 2);
+      canvas.style.marginLeft = Math.max(0, Math.round((left + offset) * ratio) / ratio - left) + 'px';
+    };
+    window.addEventListener('resize', sizeCanvas);
+    new ResizeObserver(sizeCanvas).observe(screenArea);
+    const watchPixelRatio = () => {
+      const query = matchMedia('(resolution: ' + (window.devicePixelRatio || 1) + 'dppx)');
+      query.addEventListener('change', () => { sizeCanvas(); watchPixelRatio(); }, { once: true });
+    };
+    watchPixelRatio();
+    sizeCanvas();
+
+    const themeVariables = ['background', 'empty', 'muted', 'text', 'value',
+      'title', 'play', 'cursor', 'selection', 'warning'];
+    let themeSyncTimer;
+    window.choochooApplyTheme = (colors, saveResult) => {
+      colors.forEach((color, index) => document.documentElement.style.setProperty(
+        '--' + themeVariables[index], '#' + (color & 0xffffff).toString(16).padStart(6, '0')));
+      const background = colors[0];
+      document.querySelector('meta[name="theme-color"]').content =
+        document.documentElement.style.getPropertyValue('--background');
+      const brightness = ((background >> 16 & 255) * 299 +
+        (background >> 8 & 255) * 587 + (background & 255) * 114) / 1000;
+      document.documentElement.style.colorScheme = brightness >= 128 ? 'light' : 'dark';
+      clearTimeout(themeSyncTimer);
+      if (saveResult) { status.textContent = 'Could not save theme settings.'; return; }
+      // Coalesce repeated color edits; pagehide also flushes the saved file.
+      themeSyncTimer = setTimeout(() => syncUserStorage(), 150);
+    };
 
     const userPath = (name) => name.split('/').filter((part) => part && part !== '.' && part !== '..').join('/');
     const ensureUserDirectories = (fs) => {
@@ -181,7 +243,31 @@
     };
     start.addEventListener('click', loadTracker);
     window.addEventListener('load', loadTracker);
-    window.addEventListener('pagehide', () => syncUserStorage());
+    const resumeBrowserAudio = () => {
+      if (document.hidden) return;
+      const audio = window.Module && window.Module.SDL2 && window.Module.SDL2.audioContext;
+      if (!audio || audio.state === 'running' || audio.state === 'closed') return;
+      // SDL's initial activation timer is removed after the first audio callback.
+      // Safari also needs resume() after later suspended/interrupted states.
+      audio.resume().then(() => {
+        if (audio.state === 'running' && status.textContent === 'Tap a control to resume audio.')
+          status.textContent = '';
+      }).catch(() => { status.textContent = 'Tap a control to resume audio.'; });
+    };
+    const setPageHidden = (hidden) => {
+      if (!window.Module || !window.Module._webSetPageHidden) return;
+      window.Module.ccall('webSetPageHidden', null, ['number'], [hidden ? 1 : 0]);
+      if (hidden) {
+        syncUserStorage();
+        const audio = window.Module.SDL2 && window.Module.SDL2.audioContext;
+        if (audio && audio.state !== 'closed') audio.suspend().catch(() => {});
+      } else resumeBrowserAudio();
+    };
+    document.addEventListener('visibilitychange', () => setPageHidden(document.hidden));
+    window.addEventListener('pagehide', () => setPageHidden(true));
+    window.addEventListener('pageshow', () => { if (!document.hidden) setPageHidden(false); });
+    ['pointerdown', 'touchend', 'keydown'].forEach((event) =>
+      document.addEventListener(event, resumeBrowserAudio, { capture: true, passive: true }));
 
     document.querySelector('#import-project').addEventListener('click', () => document.querySelector('#project-input').click());
     document.querySelector('#import-samples').addEventListener('click', () => document.querySelector('#sample-input').click());

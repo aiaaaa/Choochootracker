@@ -14,8 +14,10 @@ from datetime import datetime, timezone
 ROOT = Path(__file__).resolve().parents[1]
 DIST = ROOT / 'web/dist'
 ASSETS = ROOT / 'tracker/packaging/common'
-REQUIRED = {
-    'index.html', 'privacy.html', 'manual.html', 'lucky-license.txt', 'choochootracker.html',
+WRAPPER_FILES = {'index.html', 'privacy.html', 'manual.html', 'favicon.png',
+                 'apple-touch-icon.png', 'site.webmanifest'}
+REQUIRED = WRAPPER_FILES | {
+    'lucky-license.txt', 'choochootracker.html',
     'choochootracker.js', 'choochootracker.wasm', 'choochootracker.data',
 }
 
@@ -44,7 +46,7 @@ def inspect_bundle(directory):
               f'Missing/empty/unsafe runtime file: {name}')
     check((directory / 'choochootracker.wasm').read_bytes()[:8] == b'\0asm\1\0\0\0',
           'Invalid WebAssembly header')
-    for name in ('index.html', 'privacy.html', 'manual.html'):
+    for name in WRAPPER_FILES:
         check((directory / name).read_bytes() == (ROOT / 'web' / name).read_bytes(),
               f'Stale browser wrapper: {name}')
     check((directory / 'lucky-license.txt').read_bytes() ==

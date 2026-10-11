@@ -1,12 +1,39 @@
 #include <SDL2/SDL.h>
 #include <emscripten.h>
 #include <emscripten/html5.h>
+#include <cstring>
 
 #include "corelib_keymap.h"
 #include "corelib_mainloop.h"
 #include "corelib_assets.h"
 #include "corelib_gfx.h"
 #include "../../src/app.h"
+#include "../../src/common.h"
+#ifdef CHOOCHOO_EXPERIMENTAL_MOD_LUCKY
+#include "../../src/experimental/mod_lucky/service.h"
+#endif
+
+static void syncBrowserTheme() {
+  const auto& c = appSettings.colorScheme;
+  const int colors[] = {c.background, c.textEmpty, c.textInfo, c.textDefault,
+    c.textValue, c.textTitles, c.playMarkers, c.cursor, c.selection, c.warning};
+  static int previous[10] = {};
+  static char previousName[THEME_NAME_LENGTH + 1] = {};
+  static bool initialized = false;
+  if (initialized && !std::memcmp(previous, colors, sizeof(colors)) &&
+      !std::strcmp(previousName, appSettings.themeName)) return;
+  std::memcpy(previous, colors, sizeof(colors));
+  std::memcpy(previousName, appSettings.themeName, sizeof(previousName));
+  initialized = true;
+  // Tab reloads do not follow the native app's quit/save path. Serialize the
+  // selected theme immediately; the wrapper flushes it to its existing IDBFS.
+  const int saveResult = settingsSave();
+  EM_ASM({
+    if (window.choochooApplyTheme)
+      window.choochooApplyTheme([$0,$1,$2,$3,$4,$5,$6,$7,$8,$9], $10);
+  }, colors[0], colors[1], colors[2], colors[3], colors[4], colors[5],
+     colors[6], colors[7], colors[8], colors[9], saveResult);
+}
 
 extern "C" EMSCRIPTEN_KEEPALIVE void webQueueButton(int button, int isDown) {
   static const int keyCodes[] = {
@@ -28,7 +55,25 @@ struct WebLoopContext {
   int menu;
   bool stopped;
   double lastDrawAt;
+  bool hidden;
 };
+
+static WebLoopContext* activeWebLoop = nullptr;
+
+extern "C" EMSCRIPTEN_KEEPALIVE void webSetPageHidden(int hidden) {
+  if (!activeWebLoop || activeWebLoop->stopped || activeWebLoop->hidden == bool(hidden)) return;
+  activeWebLoop->hidden = bool(hidden);
+  // Key releases can be lost while a phone is locked or the tab is hidden.
+  SDL_FlushEvents(SDL_KEYDOWN, SDL_KEYUP);
+  appResetInputState();
+  activeWebLoop->menu = 0;
+#ifdef CHOOCHOO_EXPERIMENTAL_MOD_LUCKY
+  if (hidden) modLucky::service().stop();
+#endif
+  MainLoopEventData event = {};
+  event.type = hidden ? MainLoopEvent::sleep : MainLoopEvent::wake;
+  activeWebLoop->onEvent(event);
+}
 
 static void queueGamepadButton(WebLoopContext* context, int button, int down) {
   MainLoopEventData eventData;
@@ -73,6 +118,7 @@ static void pollGamepad(WebLoopContext* context, float axes[4]) {
 
 static void webLoopFrame(void* userdata) {
   WebLoopContext* context = static_cast<WebLoopContext*>(userdata);
+  if (context->hidden) return;
   SDL_Event event;
   MainLoopEventData eventData;
 
@@ -121,13 +167,15 @@ static void webLoopFrame(void* userdata) {
   if (now - context->lastDrawAt < 1000.0 / 30.0 - 1.0) return;
   context->lastDrawAt = now;
   context->draw();
+  syncBrowserTheme();
   gfxUpdateScreen();
 }
 
 void mainLoopRun(void (*draw)(void), void (*onEvent)(MainLoopEventData eventData)) {
   assetsInit();
   static WebLoopContext context;
-  context = {draw, onEvent, 0, false, 0.0};
+  context = {draw, onEvent, 0, false, 0.0, false};
+  activeWebLoop = &context;
   emscripten_set_main_loop_arg(webLoopFrame, &context, 0, 1);
 }
 

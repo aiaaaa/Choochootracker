@@ -39,7 +39,7 @@ the production alias propagates, then fails if the exact artifact is not served.
 
 Published files are `index.html`, `privacy.html`, `manual.html`, Emscripten's
 `choochootracker.html`, `.js`, `.wasm`, `.data`, `lucky-license.txt`, and
-`build-info.json`. `/api/lucky` is the only server function. Fonts,
+`build-info.json`, `favicon.png`, `apple-touch-icon.png`, and `site.webmanifest`. `/api/lucky` is the only server function. Fonts,
 themes, public factory presets, licenses, samples, waveforms, title art and the
 Makefile's selected example projects live inside `.data`, mounted in the virtual
 filesystem. The existing manual is now source-controlled at `web/manual.html`;
@@ -176,8 +176,13 @@ The wrapper currently auto-loads the tracker and hides Start. SDL/Emscripten
 creates Web Audio; its SDL2 browser backend resumes initial suspended audio
 after user activation (with gesture listeners as an older-browser fallback). Tap the canvas or a control after loading to activate sound on iOS;
 a page load alone cannot bypass browser gesture rules. iPhone Silent Mode may
-still affect audible playback. Background playback/recovery is browser-controlled;
-The startup polling/fallback does not guarantee recovery after later interruptions. No native audio or major audio-engine changes are part of this work.
+still affect audible playback. When the page is hidden, the web adapter sends the existing sleep event to save
+the current project/settings and stop transport, clears held input, and requests
+an IDBFS flush. Returning wakes SDL audio; visibility and user-interaction
+listeners resume suspended or interrupted Web Audio. The project remains open;
+press Play to continue. A browser/OS can still kill the page or reject audio
+activation, so physical iOS lock/unlock testing remains necessary. Native audio
+and rendering behavior are unchanged.
 
 Keyboard controls, pointer-based on-screen gamepad and browser gamepad polling
 remain unchanged. The wrapper imports `.cct` and WAV files/folders and downloads
@@ -197,6 +202,45 @@ instrument's Bank → USER to refresh the list; ALL uses the same imported libra
 Keep the original library: changing browser/domain or clearing site storage
 requires reimport. Mobile folder-picker support varies; import on each browser
 where you want the library. Native USER paths and defaults are unchanged.
+
+## Browser presentation
+
+The canvas is the first page element. Touch controls, file buttons, status, title
+and links all follow it. `web/index.html` controls that layout and its CSS palette.
+The web-only main loop forwards the actual active tracker colors when they change;
+the wrapper updates CSS variables. Theme loads, resets and direct color edits also
+save settings and request an IDBFS flush, so a tab reload does not depend on the
+native Quit path. This does not change native settings behavior.
+
+The backing canvas remains 640×480; automatic SDL high-DPI enlargement is
+disabled only for the web target to avoid a second scaling step. The page chooses the largest whole-number
+scale in **display pixels**, accounting for `devicePixelRatio`; for example,
+3 display pixels per source pixel on a 2× Retina display gives a 960×720 CSS
+canvas. The left edge is snapped to the same pixel grid. Controls may extend below
+the viewport rather than forcing a smaller canvas. No fractional fallback is used:
+small phone screens can leave extra space, and a viewport smaller than the 1×
+physical canvas permits horizontal scrolling. Resizing, orientation changes and
+moving between displays recompute the scale. Browser/OS compositing can still
+affect the final appearance; physical Safari and iPhone checks remain useful.
+
+## Browser and Home Screen icons
+
+`web/favicon.png` and `web/apple-touch-icon.png` reuse the supplied flat
+`train_headphones` artwork, unchanged at 128×128 and 1254×1254 respectively.
+The larger original avoids enlarging the small favicon; iOS selects and scales
+the linked Apple touch icon. `web/site.webmanifest` defines the name, relative
+start URL and standalone launch mode. The Makefile copies these with the wrapper;
+bundle validation checks their bytes against source and records their hashes.
+Edit these source files for future icon changes, never generated `web/dist`.
+
+In Safari, open the personal deployment, then Share → Add to Home Screen.
+The label defaults to **ChooChoo**. The installed shortcut keeps its icon, although
+icon changes can be cached by iOS. Back up projects before replacing an existing
+Home Screen installation: its storage may be separate from the Safari tab.
+This adds no offline cache/service worker; opening or reloading still needs the
+network. The icon does not change the browser's storage retention policy.
+See [Apple's Home Screen icon guidance](https://developer.apple.com/library/archive/documentation/AppleApplications/Reference/SafariWebContent/ConfiguringWebApplications/ConfiguringWebApplications.html).
+Physical iOS installation and the final icon background/masking require a device check.
 
 ## Later styling and website integration
 
@@ -227,6 +271,18 @@ COOP/COEP. Subpath reverse-proxy hosting and embedding remain untested; prefer a
 subdomain/link first. No iframe or website integration is implemented now.
 
 ## Validation record
+
+Browser presentation/recovery follow-up, 2026-10-11: live color editing and
+loading NostromoAmberDa2 both persisted after reload. Page colors follow the
+active palette; all surrounding elements follow the canvas. Retina screenshot
+inspection found zero mismatches across 302,736 source-pixel blocks at 3× scale.
+Desktop 1×/1.25×/2× density, 3× phone density and resize geometry passed. Three
+simulated hidden/visible cycles saved the project and recovered playable audio;
+a directly suspended audio context also resumed on a canvas gesture. These tests
+use Chrome; physical Safari lock/unlock is still a user check. Reproduce with
+`python3 tools/test_web_presentation.py` using the same optional browser-test
+requirements described below. This change affects the browser adapter/wrapper;
+native renderer flags and lifecycle behavior are unchanged.
 
 Lucky browser port, 2026-10-11: fresh Wasm compilation and Vercel function
 packaging passed. Deterministic Chrome tests cover NEXT without autoplay, PLAY

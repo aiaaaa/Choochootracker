@@ -8,6 +8,7 @@ include Makefile.common
 LIBS = $(COMMON_LIBS) platforms/sdl2
 OUTPUT_EXT = .html
 WEB_BUILD = build/web
+WEB_WRAPPER_FILES = index.html privacy.html manual.html favicon.png apple-touch-icon.png site.webmanifest
 EMXX ?= em++
 WEB_CFLAGS = $(COMMON_CFLAGS) $(INCLUDES) -DWEB_BUILD -DGAMEPAD_SUPPORT -fexceptions
 WEB_DATA_DIRS = $(filter-out projects,$(COMMON_DATA_DIRS))
@@ -38,15 +39,11 @@ web:
 	@mkdir -p $(WEB_BUILD)
 	$(EMXX) $(WEB_CFLAGS) $(SOURCES) $(WEB_LDFLAGS) -o $(WEB_BUILD)/choochootracker.html \
 	-sASSERTIONS=1 -sSTACK_SIZE=8388608 -sGL_ASSERTIONS=1
-	@cp ../web/index.html $(WEB_BUILD)/index.html
-	@cp ../web/privacy.html $(WEB_BUILD)/privacy.html
-	@cp ../web/manual.html $(WEB_BUILD)/manual.html
+	@cp $(addprefix ../web/,$(WEB_WRAPPER_FILES)) $(WEB_BUILD)/
 	@cp src/experimental/mod_lucky/notices/LICENSE.libxmp.txt $(WEB_BUILD)/lucky-license.txt
 
 web-deploy: web
 	@mkdir -p ../web/dist
 	@cp $(WEB_BUILD)/choochootracker.* ../web/dist/
-	@cp $(WEB_BUILD)/index.html ../web/dist/
-	@cp $(WEB_BUILD)/privacy.html ../web/dist/
-	@cp $(WEB_BUILD)/manual.html ../web/dist/
+	@cp $(addprefix $(WEB_BUILD)/,$(WEB_WRAPPER_FILES)) ../web/dist/
 	@cp $(WEB_BUILD)/lucky-license.txt ../web/dist/

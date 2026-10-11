@@ -539,9 +539,9 @@ int gfxSetup(int *screenWidth, int *screenHeight) {
 
   snprintf(printBuffer, PRINT_BUFFER_SIZE, "%s v%s (%s)", appTitle, appVersion, appBuild);
 
-  // Desktop deliberately uses the tracker's native window size.  Do not
+  // Desktop and web deliberately use the tracker's native window size. Do not
   // restore a DPI-scaled drawable size from a prior run as a window size.
-#ifdef DESKTOP_BUILD
+#if defined(DESKTOP_BUILD) || defined(WEB_BUILD)
   screenW = 640;
   screenH = 480;
   if (screenWidth != NULL) *screenWidth = screenW;
@@ -577,7 +577,11 @@ int gfxSetup(int *screenWidth, int *screenHeight) {
   window = SDL_CreateWindow(printBuffer,
     SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
     screenW, screenH,
-    SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI
+    SDL_WINDOW_SHOWN
+    // The web wrapper scales the native canvas to whole display pixels.
+#ifndef WEB_BUILD
+    | SDL_WINDOW_ALLOW_HIGHDPI
+#endif
 #ifdef ANDROID_BUILD
     | SDL_WINDOW_RESIZABLE
 #endif

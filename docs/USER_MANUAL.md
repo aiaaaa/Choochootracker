@@ -1670,3 +1670,23 @@ This build follows upstream 1.0.15, retaining Factory/USER collections, ZIP pack
 and continuous USER preset stepping. In personal Settings, Support report is
 followed by Get Lucky and Quit. Opt returns to Song. Vita development is paused
 and is excluded from this update.
+
+### Personal browser presentation
+
+The web page follows the active tracker theme and keeps its title, file controls,
+status, links and touch controls below the canvas. Theme changes are saved to
+this browser automatically. The viewing area uses the largest integer scale in
+display pixels, including Retina pixel density. Controls can scroll below the
+viewport; narrow displays may leave space around the strictly scaled canvas.
+The native tracker layout and controls are unchanged.
+
+When the browser page is hidden or the phone locks, the web build saves the
+current project/settings and stops transport. Returning and tapping a control
+resumes browser audio; press Play to continue in the same project. Keep downloaded
+backups because the browser can still terminate a page or clear its storage.
+
+Safari's Share → Add to Home Screen uses the train-with-headphones icon and the
+name ChooChoo. Home Screen launch uses a standalone window. Opening/reloading
+still requires a network connection; this does not add offline installation.
+Export projects before switching between a Safari tab and a Home Screen install,
+which may have separate browser storage.
