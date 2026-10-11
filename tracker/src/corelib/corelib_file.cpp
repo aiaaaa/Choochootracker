@@ -211,6 +211,17 @@ int fileDelete(const char* path) {
 FileEntry* fileListDirectory(const char* path, const char* extension, int* entryCount) {
   DIR* dir = opendir(path);
   if (!dir) {
+    // Unreadable folder (e.g. /storage/emulated above the user's storage on
+    // Android): still offer "..", otherwise the browser dead-ends there.
+    if (strcmp(path, "/") != 0) {
+      FileEntry* parentOnly = (FileEntry*)malloc(sizeof(FileEntry));
+      if (parentOnly) {
+        strcpy(parentOnly[0].name, "..");
+        parentOnly[0].isDirectory = 1;
+        *entryCount = 1;
+        return parentOnly;
+      }
+    }
     *entryCount = 0;
     return NULL;
   }
