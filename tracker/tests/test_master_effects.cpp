@@ -26,3 +26,28 @@ TEST_CASE("Ping-pong delay follows the project tick duration") {
   CHECK(std::fabs(output[20 * 2 + 1]) > 0.01f);
   delete effects;
 }
+
+TEST_CASE("Reverb high-pass removes low-frequency send energy") {
+  Project project;
+  projectInit(&project);
+  project.reverbReturn = 100;
+  project.reverbTime = 180;
+  project.reverbDamping = 255;
+  project.reverbFilterCutoffHz = 20000;
+  std::vector<float> bus(4096 * 2, 1.0f), lowOutput(4096 * 2, 0.0f), highOutput(4096 * 2, 0.0f);
+
+  MasterEffects low, high;
+  low.init(48000.0f);
+  high.init(48000.0f);
+  project.reverbHighpassCutoffHz = 20;
+  low.process(bus.data(), nullptr, lowOutput.data(), 4096, &project);
+  project.reverbHighpassCutoffHz = 2000;
+  high.process(bus.data(), nullptr, highOutput.data(), 4096, &project);
+
+  float lowEnergy = 0.0f, highEnergy = 0.0f;
+  for (int i = 1400 * 2; i < 4096 * 2; ++i) {
+    lowEnergy += fabsf(lowOutput[i]);
+    highEnergy += fabsf(highOutput[i]);
+  }
+  CHECK(lowEnergy > highEnergy * 3.0f);
+}
