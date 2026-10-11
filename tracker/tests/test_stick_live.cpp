@@ -101,7 +101,8 @@ TEST_CASE_FIXTURE(StickLiveFixture, "Shift horizontal navigation exits branch sc
     {&screenAYWavetable,&screenInstrument,&screenTable},
   };
   for (const auto& route : routes) for (int direction : {keyLeft,keyRight}) {
-    currentScreen = route.from;
+    screenSetup(route.from, 0);
+    appDraw();
     motion(keyShift,true);
     motion(direction,true);
     const auto* destination = direction == keyLeft ? route.left : route.right;
