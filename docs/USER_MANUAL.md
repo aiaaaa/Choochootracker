@@ -1691,11 +1691,15 @@ still requires a network connection; this does not add offline installation.
 Export projects before switching between a Safari tab and a Home Screen install,
 which may have separate browser storage.
 
+After changing browser controls in Key Mapping, choose **Done**. Settings saves
+immediately request a browser-storage flush, so they do not wait for the periodic
+save timer. Custom mappings belong to that browser/Home Screen installation.
+
 The web action buttons use compact uppercase labels and wrap to the available
 width. Project/app actions precede the sample and preset imports.
 
 The Home Screen app respects the camera and Home indicator safe areas, with
-an extra 15 pixels above the tracker. Initial audio waits quietly for your first
+an extra 25 pixels above the tracker. Initial audio waits quietly for your first
 touch or key press; opening the app does not require Restart audio. Use
 **Reload app** below the tracker when there is no Safari refresh button; it saves
 and flushes this browser's storage first, and cancels if saving fails.

@@ -230,7 +230,7 @@ project/app actions first, sample/preset imports second. Buttons retain their
 36-pixel minimum height; narrower viewports wrap to additional rows.
 
 The viewport uses `viewport-fit=cover`; main content adds the four CSS
-`env(safe-area-inset-*)` values to its normal margins. Standalone Home Screen windows add another 15 CSS pixels
+`env(safe-area-inset-*)` values to its normal margins. Standalone Home Screen windows add another 25 CSS pixels
 above the tracker for iOS UI clearance; ordinary browser tabs keep their existing
 spacing. This keeps the tracker and controls out of the camera
 and Home indicator areas in a standalone Home Screen launch.
@@ -239,6 +239,14 @@ and Home indicator areas in a standalone Home Screen launch.
 for the existing IDBFS flush before reloading. Serialization/storage errors or
 a 10-second timeout cancel the reload and leave the working project open.
 It does not clear site storage. Keep downloaded backups independently.
+
+Key Mapping's **Done** saves custom controls to `/user/settings.txt`. Successful
+settings saves now immediately request the existing serialized IDBFS flush,
+including mapping, theme and other settings saves. Previously Done could leave
+the durable browser copy unchanged until the 10-second timer or backgrounding.
+The in-app Done action still matters; changes left unconfirmed can remain only
+in memory. Home Screen and Safari storage may be separate. An abrupt OS kill
+can still interrupt an unfinished asynchronous write.
 
 Initial audio suspension while waiting for a touch/key gesture is normal and
 does not display a recovery warning. Focus and page-show events only attempt
@@ -312,6 +320,13 @@ COOP/COEP. Subpath reverse-proxy hosting and embedding remain untested; prefer a
 subdomain/link first. No iframe or website integration is implemented now.
 
 ## Validation record
+
+Settings persistence follow-up, 2026-10-11: reproduced a custom mapping present
+in the memory file after Done while IndexedDB still held the stock mapping.
+After the save hook, Play → PAD X and Shift → PAD Y reach IndexedDB on Done
+and remain intact after reload and wake, with the periodic flush disabled in
+the test. The standalone top inset is now 25 pixels beyond normal padding,
+and the canvas focus outline follows the title color.
 
 Original sizing restored, 2026-10-11: a fresh Wasm build and browser checks
 passed at 377×282.75 CSS pixels on the simulated 393-pixel phone viewport and

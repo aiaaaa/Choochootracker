@@ -5,6 +5,9 @@
 #include <string.h>
 #include <time.h>
 #include <chipnomad_lib.h>
+#ifdef WEB_BUILD
+#include <emscripten.h>
+#endif
 
 static char settingsPath[PATH_LENGTH + 32];
 static char autosavePath[PATH_LENGTH + 32];
@@ -255,6 +258,11 @@ int settingsSave(void) {
 #endif
 
   fclose(file);
+#ifdef WEB_BUILD
+  // A settings file in Emscripten's memory filesystem is not yet durable.
+  // Flush after Done/settings saves instead of waiting for a timer or exit.
+  EM_ASM({ if (window.choochooSettingsSaved) window.choochooSettingsSaved(); });
+#endif
   return 0;
 }
 

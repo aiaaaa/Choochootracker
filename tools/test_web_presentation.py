@@ -120,7 +120,7 @@ with sync_playwright() as p:
     # actual standalone rule explicitly, keeping the iOS limitation visible.
     t.evaluate("[...document.styleSheets[0].cssRules].find(r=>r.media && r.media.mediaText==='(display-mode: standalone)').media.mediaText='all'")
     t.wait_for_timeout(150)
-    assert abs(t.locator('#canvas').bounding_box()['y']-82)<.01
+    assert abs(t.locator('#canvas').bounding_box()['y']-92)<.01
     assert abs(geometry(t)['w']-377)<.01
     t.screenshot(path=str(root/'.tmp/home-screen-safe-area.png'),full_page=True)
     print('Simulated camera/Home-indicator safe-area layout passed',flush=True)
@@ -246,5 +246,40 @@ with sync_playwright() as p:
    page.wait_for_function('padPeak>0',timeout=5000)
   page.evaluate('navigator.getGamepads=realGetGamepads;void 0;')
   print('Synthetic gamepad starts playback after wake and reconnect; physical USB remains untested',flush=True)
+  # Settings must be durable after Done, without relying on the periodic timer
+  # or a pagehide event that a phone process termination might never deliver.
+  mapping_context=browser.new_context()
+  mapping_context.add_init_script("const interval=window.setInterval;window.setInterval=(fn,ms,...args)=>ms===10000?0:interval(fn,ms,...args);")
+  page=mapping_context.new_page();page.on('pageerror',lambda e:errors.append(str(e)))
+  page.goto(url);ready(page);page.locator('#canvas').click();key('x');key('Shift+ArrowDown')
+  for _ in range(4):key('ArrowDown')
+  key('x')
+  for _ in range(6):key('ArrowDown')
+  key('ArrowRight')
+  page.evaluate("window.pad={id:'Test pad',index:0,connected:true,mapping:'standard',timestamp:0,axes:[0,0,0,0],buttons:Array.from({length:17},()=>({pressed:false,touched:false,value:0}))};navigator.getGamepads=()=>[pad];void 0;")
+  for button in [2,3]:
+   key('x')
+   page.evaluate('(i)=>pad.buttons[i]={pressed:true,touched:true,value:1}',button);page.wait_for_timeout(150)
+   page.evaluate('(i)=>pad.buttons[i]={pressed:false,touched:false,value:0}',button);page.wait_for_timeout(150)
+   if button==2:key('ArrowDown')
+  for _ in range(4):key('ArrowDown')
+  key('x')
+  expected=['keyPlay: 32,2,0','keyShift: 1073742049,3,0','keyPlayType: 2,3,0','keyShiftType: 2,3,0']
+  def saved_mapping():return page.evaluate("FS.readFile('/user/settings.txt',{encoding:'utf8'}).split('\\n').filter(s=>/^key(Play|Shift)(Type)?:/.test(s))")
+  assert saved_mapping()==expected
+  page.wait_for_function("""expected=>new Promise((resolve,reject)=>{
+    const request=indexedDB.open('/user');request.onerror=()=>reject(request.error);
+    request.onsuccess=()=>{const db=request.result,read=db.transaction('FILE_DATA').objectStore('FILE_DATA').get('/user/settings.txt');
+      read.onsuccess=()=>{const lines=new TextDecoder().decode(read.result.contents).split('\\n').filter(s=>/^key(Play|Shift)(Type)?:/.test(s));db.close();resolve(JSON.stringify(lines)===JSON.stringify(expected));};
+      read.onerror=()=>{db.close();reject(read.error);};};
+  })""",arg=expected,timeout=3000)
+  page.reload();ready(page)
+  assert page.evaluate("Module.ccall('webSaveBrowserState','number',[],[])")==0
+  assert saved_mapping()==expected
+  page.evaluate('setPageHidden(true)');page.wait_for_timeout(150);page.evaluate('setPageHidden(false)')
+  assert page.evaluate("Module.ccall('webSaveBrowserState','number',[],[])")==0
+  assert saved_mapping()==expected
+  print('Play/Shift remaps flushed on Done and retained after reload/wake without the periodic timer',flush=True)
+  mapping_context.close()
   print('JavaScript errors:',errors,flush=True);assert not errors
  finally:browser.close();server.shutdown()

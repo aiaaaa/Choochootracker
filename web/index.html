@@ -23,14 +23,14 @@
     main { padding: calc(8px + var(--safe-top)) calc(8px + var(--safe-right))
       calc(8px + var(--safe-bottom)) calc(8px + var(--safe-left)); text-align: center; }
     @media (display-mode: standalone) {
-      main { padding-top: calc(23px + var(--safe-top)); }
+      main { padding-top: calc(33px + var(--safe-top)); }
     }
     #screen-area { width: 100%; overflow: hidden; }
     #canvas { display: block; width: min(100%, 640px); height: auto; aspect-ratio: 4 / 3;
       margin: 0 auto; border: 0;
       background: var(--background); image-rendering: pixelated; }
     #canvas:focus { outline: none; }
-    #canvas:focus-visible { outline: 1px solid var(--cursor); outline-offset: -1px; }
+    #canvas:focus-visible { outline: 1px solid var(--title); outline-offset: -1px; }
     #browser-controls { width: min(100%, 960px); margin: .8rem auto 0; }
     h1 { color: var(--title); font-size: .85rem; letter-spacing: .12em; margin: 1rem 0 .4rem; }
     #status, #audio-status { color: var(--value); margin-top: .6rem; overflow-wrap: anywhere; }
@@ -122,7 +122,6 @@
 
     const themeVariables = ['background', 'empty', 'muted', 'text', 'value',
       'title', 'play', 'cursor', 'selection', 'warning'];
-    let themeSyncTimer;
     window.choochooApplyTheme = (colors, saveResult) => {
       colors.forEach((color, index) => document.documentElement.style.setProperty(
         '--' + themeVariables[index], '#' + (color & 0xffffff).toString(16).padStart(6, '0')));
@@ -132,10 +131,7 @@
       const brightness = ((background >> 16 & 255) * 299 +
         (background >> 8 & 255) * 587 + (background & 255) * 114) / 1000;
       document.documentElement.style.colorScheme = brightness >= 128 ? 'light' : 'dark';
-      clearTimeout(themeSyncTimer);
       if (saveResult) { status.textContent = 'Could not save theme settings.'; return; }
-      // Coalesce repeated color edits; pagehide also flushes the saved file.
-      themeSyncTimer = setTimeout(() => syncUserStorage(), 150);
     };
 
     const userPath = (name) => name.split('/').filter((part) => part && part !== '.' && part !== '..').join('/');
@@ -161,6 +157,7 @@
         if (storagePending) { storagePending = false; syncUserStorage(); }
       });
     };
+    window.choochooSettingsSaved = () => syncUserStorage();
     window.choochooDownloadFile = (path) => {
       const fs = getFs();
       if (!fs) return;
