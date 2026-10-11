@@ -12,6 +12,7 @@ typedef void FrameCallback(void* userdata);
 
 struct AudioManager {
   int (*start)(int sampleRate, int audioBufferSize);
+  int (*reconfigure)(int sampleRate, int audioBufferSize);
   void (*pause)(void);
   void (*resume)(void);
   void (*replaceProject)(Project* replacement);

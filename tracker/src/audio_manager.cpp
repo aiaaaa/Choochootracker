@@ -210,6 +210,57 @@ static int start(int sampleRate, int bufferSize) {
   return 0;
 }
 
+static int reconfigure(int sampleRate, int bufferSize) {
+  if (sampleRate <= 0 || bufferSize <= 0 || bufferSize > INT_MAX / 2 ||
+      !floatBuffer || !samplePreviewBuffer) return 1;
+  if (sampleRate == aSampleRate && bufferSize == aBufferSize) return 0;
+
+  float* newFloatBuffer = (float*)malloc(bufferSize * 2 * sizeof(float));
+  float* newPreviewBuffer = (float*)malloc(bufferSize * 2 * sizeof(float));
+  if (!newFloatBuffer || !newPreviewBuffer) {
+    free(newFloatBuffer);
+    free(newPreviewBuffer);
+    return 1;
+  }
+
+  audioPause(1);
+  if (chipnomadReserveRenderBuffers(chipnomadState, bufferSize)) {
+    audioPause(0);
+    free(newFloatBuffer);
+    free(newPreviewBuffer);
+    return 1;
+  }
+
+  const int oldSampleRate = aSampleRate, oldBufferSize = aBufferSize;
+  float* oldFloatBuffer = floatBuffer;
+  float* oldPreviewBuffer = samplePreviewBuffer;
+  audioCleanup();
+  floatBuffer = newFloatBuffer;
+  samplePreviewBuffer = newPreviewBuffer;
+  aSampleRate = sampleRate;
+  aBufferSize = bufferSize;
+  cpuLoadPercent.store(0, std::memory_order_relaxed);
+  if (audioSetup(audioCallback, sampleRate, bufferSize) == 0) {
+    free(oldFloatBuffer);
+    free(oldPreviewBuffer);
+    updatePlaybackMuteFlags();
+    audioPause(0);
+    return 0;
+  }
+
+  floatBuffer = oldFloatBuffer;
+  samplePreviewBuffer = oldPreviewBuffer;
+  aSampleRate = oldSampleRate;
+  aBufferSize = oldBufferSize;
+  free(newFloatBuffer);
+  free(newPreviewBuffer);
+  if (audioSetup(audioCallback, oldSampleRate, oldBufferSize) == 0) {
+    updatePlaybackMuteFlags();
+    audioPause(0);
+  }
+  return 1;
+}
+
 static void pause(void) {
   audioPause(1);
 }
@@ -407,6 +458,7 @@ static int previewBYOWTBL(const char* path, const InstrumentBYOWTBL* settings, i
 // Singleton AudioManager struct
 struct AudioManager audioManager = {
   .start = start,
+  .reconfigure = reconfigure,
   .pause = pause,
   .resume = resume,
   .replaceProject = replaceProject,

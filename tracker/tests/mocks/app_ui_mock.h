@@ -10,3 +10,4 @@ extern const char* mockBrowserExtension;
 extern int mockLastInputKeys;
 extern int mockEnvelopePreviewCount;
 extern int mockBitmapDrawCount, mockBitmapDrawRow;
+extern int mockAudioReconfigureResult, mockAudioReconfigureCalls, mockAudioReconfigureSize, mockAudioCpuLoad;
