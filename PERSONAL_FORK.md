@@ -10,7 +10,12 @@ Check both affected targets when shared code changes. Neither target is a
 separate application codebase, and personal is not merged back into main.
 
 Browser settings, songs and imported USER presets are local to each browser/site;
-device data does not synchronize automatically. Personal assets stay private.
+device data does not synchronize automatically. Personal assets stay private
+except for the owner's explicitly published `roughdemos` song collection.
+Its web-only packaging contains 16 device projects and a separately named
+Continue snapshot collected October 11; browser edits remain local. The five
+older sample-based saves are converted to self-contained archives for both
+the handheld and web collection, with original backups kept outside Git.
 Lucky uses a browser fetch/decoding adapter in the web target and its existing
 native implementation on the device. Platform-specific gaps and test limits
 must still be documented explicitly.

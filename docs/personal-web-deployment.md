@@ -203,6 +203,27 @@ Keep the original library: changing browser/domain or clearing site storage
 requires reimport. Mobile folder-picker support varies; import on each browser
 where you want the library. Native USER paths and defaults are unchanged.
 
+### roughdemos device songs
+
+The owner explicitly approved publishing the October 11 device song collection.
+`tracker/packaging/web/roughdemos/` contains 16 additional projects and a separately
+named Blue Hour Continue snapshot, with source/output hashes in `collection.json`.
+The eight matching examples already shipped by the web app are not duplicated.
+Five older projects were saved through the current tracker to embed their WAVs;
+already embedded saves and projects without external samples remain unchanged.
+The conversion uses the same project I/O implementation as the installed device.
+Private preset collections are not included. Retained source credits accompany
+Blue Hour and Low Water.
+
+Only Makefile.web preloads this folder, at `/bundled-projects/roughdemos`.
+Once preload and IDBFS restoration finish, the wrapper copies missing `.cct`
+files into `/user/projects/roughdemos`, then flushes storage. Existing copies,
+settings and Continue are never replaced. Use Project → Load → roughdemos
+(under `/user/projects`) to edit and save these persistent working copies.
+Anyone with the public URL receives the starting songs; subsequent edits stay
+in that browser. New filenames arrive on the next load; updates to an existing
+bundled filename do not overwrite a user's saved version. Download `.cct` backups.
+
 ## Browser presentation
 
 The canvas is the first page element. File buttons, status, title

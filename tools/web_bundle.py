@@ -62,19 +62,21 @@ def inspect_bundle(directory):
     data = (directory / 'choochootracker.data').read_bytes()
     check(package['remote_package_size'] == len(data), 'Preload data size mismatch')
     tracked = set(git('ls-files', '--', 'tracker/packaging/common').splitlines())
-    expected = {'/' + p.removeprefix('tracker/packaging/common/') for p in tracked
+    expected = {'/' + p.removeprefix('tracker/packaging/common/'): ROOT / p for p in tracked
                 if not p.startswith('tracker/packaging/common/projects/')}
     makefile = (ROOT / 'tracker/Makefile.web').read_text()
-    expected.update('/projects/' + p for p in
+    expected.update(('/projects/' + p, ASSETS / 'projects' / p) for p in
                     re.findall(r'packaging/common/projects/([^@\n]+)@', makefile))
+    expected.update(('/bundled-projects/' + p.removeprefix('tracker/packaging/web/'), ROOT / p)
+                    for p in git('ls-files', '--', 'tracker/packaging/web/roughdemos').splitlines())
     names = [entry['filename'] for entry in package['files']]
-    check(len(names) == len(set(names)) and set(names) == expected,
+    check(len(names) == len(set(names)) and set(names) == set(expected),
           'Preloaded assets differ from tracked packaging inputs and Makefile.web projects')
     offset = 0
     for entry in package['files']:
         relative = entry['filename'].lstrip('/')
         check('..' not in Path(relative).parts, 'Unsafe preload path')
-        path = ASSETS / relative
+        path = expected[entry['filename']]
         check(not path.is_symlink(), f'Symlink in runtime assets: {relative}')
         check(entry['start'] == offset and entry['end'] >= offset,
               f'Invalid preload offsets: {relative}')
@@ -103,8 +105,8 @@ def validate(directory, require_clean=False):
 
 def build():
     # Never package private ignored USER collections from a developer's checkout.
-    extras = git('ls-files', '--others', '--', 'tracker/packaging/common')
-    check(not extras, 'Untracked/private files in packaging/common; use a clean checkout for web builds')
+    extras = git('ls-files', '--others', '--', 'tracker/packaging/common', 'tracker/packaging/web')
+    check(not extras, 'Untracked/private packaging files; use a clean checkout for web builds')
     commit, dirty = source_state()
     check(os.environ.get('GITHUB_ACTIONS') != 'true' or not dirty,
           'CI must compile a clean source checkout')

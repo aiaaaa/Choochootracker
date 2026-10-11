@@ -1,0 +1,74 @@
+REV 02 SOURCE / PROCESSING ADDENDUM
+No new external recordings were downloaded. The break remains the self-recorded
+RutgerMuller CC0 performance documented below; it is not the original Amen.
+
+Drum derivatives: low-mid/snare-body EQ, parallel envelope compression, soft
+saturation, 22.05 kHz resampling and 12-bit-style amplitude quantization stored in
+PCM16. Common gain preserves relative hit dynamics. Main half-bar cuts are taken
+from the processed two-bar atlas so the processing breathes across the phrase.
+Onboard Aggro filtering provides an additional live shaping stage.
+
+New original assets (all stereo, 22.05 kHz PCM16):
+pad_glass_{m9,m11,maj7,sus4}.wav: captured from the user's existing Plaits 10 patch
+using the current engine, with original FM/additive glass transient, stereo chorus,
+soft filtering and amplitude quantization. Instruments 20-23 in A_Glass.
+pad_strings_{m9,m11,maj7,sus4}.wav: original additive detuned string-ensemble
+synthesis, stereo chorus and amplitude quantization. Instruments 20-23 in B_Strings.
+pad_choir_{m9,m11,maj7,sus4}.wav: original harmonic/formant synthesis, stereo chorus
+and amplitude quantization; no voice source. Instruments 20-23 in C_Choir.
+Chord voicings follow the existing Plaits chord bank. The three banks are adjusted
+to comparable sustained RMS, with headroom; no peak limiter is applied.
+These newly generated audio assets are supplied under CC0 1.0.
+Source code: tools/build_revision.py in the development project folder.
+
+RETAINED REV 01 PROVENANCE (source times apply before the Rev 02 processing)
+
+AUDIO SOURCES — BLUE HOUR TERMINAL
+Instrument numbers below are hexadecimal, as shown in ChooChooTracker.
+
+ONE EXTERNAL RECORDING
+"Drums Breakbeat 1.wav" — RutgerMuller, published March 28, 2008.
+Source: https://freesound.org/people/RutgerMuller/sounds/50712/
+License: Creative Commons Zero / CC0 1.0 Universal.
+License text: https://creativecommons.org/publicdomain/zero/1.0/
+The uploader describes recording the acoustic kit in his attic using a
+Presonus Firebox and Samson C01. This is not the original Amen recording.
+Downloaded version: the publicly accessible HQ MP3 preview (12.077 seconds),
+not the original WAV, which requires a Freesound login.
+Download: https://cdn.freesound.org/previews/50/50712_179538-hq.mp3
+SHA256: bb015d5c2fd497633e83506164bc8f5a1a3a930329a7680d4082e67d2273ae3f
+
+Processing: decode, 35 Hz rumble removal, common gain preserving relative
+performance dynamics, selection of short played fragments, modest varispeed
+resampling to 164 BPM, sub-millisecond attack/2 ms tail fades, PCM16 WAV export.
+Only the 16-slice atlas concatenates cuts; no complete song accompaniment is baked in.
+The exact source times and hashes are in the development folder's analysis/assets.json.
+
+00 a_head.wav        0.158-0.936 s   kick/snare half-bar
+01 a_tail.wav        0.936-1.677 s   shuffle/kick/snare half-bar
+02 b_head.wav        1.677-2.455 s   pushed kick/snare/ghost half-bar
+03 b_tail.wav        2.455-3.174 s   hat/ghost/kick/snare half-bar
+04 c_head.wav        3.174-3.954 s   alternate played half-bar
+05 c_tail.wav        3.954-4.647 s   alternate open half-bar
+06 snare.wav         0.556-0.742 s   short snare plus recorded cymbal/room
+07 kick.wav          0.158-0.342 s   short kick fragment
+08 ghost.wav         5.315-5.405 s   quiet snare ghost
+09 shuffle.wav       2.450-2.627 s   hat/shuffle fragment
+0A turnaround.wav    5.795-6.162 s   one-beat turnaround
+0B slice_atlas.wav   concatenation of 00-03, divided into 16 native slices
+0C snare.wav         same file as 06, played backwards with Start=255, End=0
+All of these are derivatives of the single CC0 recording above.
+
+ORIGINAL ASSETS — NO EXTERNAL RECORDINGS
+0D relay_metal.wav: additive inharmonic synthesis with pitch-related partials,
+exponential decays and staggered stereo echoes; 44.1 kHz PCM16 stereo.
+0E terminal_air.wav: slow detuned E/B/F#/D partials, seeded filtered noise and
+stereo phase motion with gradual fades; 32 kHz PCM16 stereo.
+Generated specifically for this project by tools/prepare_assets.py. These
+original procedural audio assets are supplied under CC0 1.0 as well.
+No game audio, commercial recordings, vocal samples or AI-generated audio is used.
+
+ONBOARD PATCHES — NO AUDIO FILES
+0F Braids sub; 10 Plaits suspended chords; 11 Braids bell;
+12 AY signal; 13 AY packet; 14 Plaits strings.
+These are instrument settings rendered by ChooChoo's included engines.

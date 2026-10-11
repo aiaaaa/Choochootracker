@@ -1,0 +1,141 @@
+{
+  "collected_on": "2026-10-11",
+  "projects": [
+    {
+      "file": "Blue_Hour/Blue_Hour_R02_B_Strings.cct",
+      "device_source": "projects/Blue_Hour/Blue_Hour_R02_B_Strings.cct",
+      "source_sha256": "4c5954a20ee0abf42b5dce1dab4211c0488cbc6742c300985cfd5fcb94190228",
+      "sha256": "beed0acd79365fe36cda1b2caa407d1d428f5cb3fbee8798d391c522bd4608ad",
+      "embedded_samples": 21,
+      "bytes": 6182246
+    },
+    {
+      "file": "Blue_Hour/Blue_Hour_R03_B_Strings.cct",
+      "device_source": "projects/Blue_Hour/Blue_Hour_R03_B_Strings.cct",
+      "source_sha256": "b70cafd30ba9822facbd0f3adddb8c2512a938d9dec600ef160f053c5b3048be",
+      "sha256": "b70cafd30ba9822facbd0f3adddb8c2512a938d9dec600ef160f053c5b3048be",
+      "embedded_samples": 21,
+      "bytes": 6194121
+    },
+    {
+      "file": "Left-Right-Spoken-Test.cct",
+      "device_source": "projects/Left-Right-Spoken-Test.cct",
+      "source_sha256": "745f6c403b3c5430e9ef17671b685f34d0384c143f89e26b84e858a4d67a7b12",
+      "sha256": "6c23de591158bf0d1ddc2132e3123a981810763ca99c20786371d07a8cbb0bf8",
+      "embedded_samples": 2,
+      "bytes": 106638
+    },
+    {
+      "file": "Left-Right-Stereo-Test.cct",
+      "device_source": "projects/Left-Right-Stereo-Test.cct",
+      "source_sha256": "7c31a5f0c82f59c9996dcfe5bd27feeffe041f3feaedfaca995f6169d31de716",
+      "sha256": "7c31a5f0c82f59c9996dcfe5bd27feeffe041f3feaedfaca995f6169d31de716",
+      "embedded_samples": 0,
+      "bytes": 3917
+    },
+    {
+      "file": "Low_Water/Low_Water_R2.cct",
+      "device_source": "projects/Low_Water/Low_Water_R2.cct",
+      "source_sha256": "66d1e8e6753c11991ff2933dd73766963864ff5a8e96bb3783f8cc8be5d2f52a",
+      "sha256": "eab763498c42022590cd85423be5578dc75e8e69d6ca82e10b740880dd84d241",
+      "embedded_samples": 10,
+      "bytes": 241595
+    },
+    {
+      "file": "S KETCH4.cct",
+      "device_source": "projects/S KETCH4.cct",
+      "source_sha256": "c5d780cca50050aec86f1531d40c871bcc9c1e84e691b8295d964272fcdc938a",
+      "sha256": "c5d780cca50050aec86f1531d40c871bcc9c1e84e691b8295d964272fcdc938a",
+      "embedded_samples": 0,
+      "bytes": 11458
+    },
+    {
+      "file": "SPEAKK.cct",
+      "device_source": "projects/SPEAKK.cct",
+      "source_sha256": "8c083ac16c289c357d18e5a8615eaf5c454c237290e4f707fc3ff8e10c843b3c",
+      "sha256": "8c083ac16c289c357d18e5a8615eaf5c454c237290e4f707fc3ff8e10c843b3c",
+      "embedded_samples": 0,
+      "bytes": 10568
+    },
+    {
+      "file": "Surfin_Bird/SurfnBird_Rev1.cct",
+      "device_source": "projects/Surfin_Bird/SurfnBird_Rev1.cct",
+      "source_sha256": "e4c1e9783687aee06f29171043bce949bd5bc3bba200128ab9fbbd61c15d2bb6",
+      "sha256": "e4c1e9783687aee06f29171043bce949bd5bc3bba200128ab9fbbd61c15d2bb6",
+      "embedded_samples": 0,
+      "bytes": 372698
+    },
+    {
+      "file": "Surfin_Bird/SurfnBird_Rev2.cct",
+      "device_source": "projects/Surfin_Bird/SurfnBird_Rev2.cct",
+      "source_sha256": "aa05f785c216a031d80c35a6b31dfdcac26abdb04e9ab9d64a55b8cb0c4d4702",
+      "sha256": "9665285dc9caa9486fafeb4245a0367c79fcc7dde78425fd3790f8e9848e53b6",
+      "embedded_samples": 2,
+      "bytes": 454191
+    },
+    {
+      "file": "Surfin_Bird/SurfnBird_Rev3_V4_HumanP.cct",
+      "device_source": "projects/Surfin_Bird/SurfnBird_Rev3_V4_HumanP.cct",
+      "source_sha256": "2078216cec550ad47dae361cf7bec3486684c32940be3bb7a9e1a37354a35919",
+      "sha256": "c11bf00bbdb45b029bfab45c57ca1b6410272ca0f39f39df12104782e3821fce",
+      "embedded_samples": 2,
+      "bytes": 527071
+    },
+    {
+      "file": "fm-macros.cct",
+      "device_source": "projects/fm-macros.cct",
+      "source_sha256": "a5959617532a2cbd3fb362ad93009548dfd34588ab670dbfcd2d4724c6ff5168",
+      "sha256": "a5959617532a2cbd3fb362ad93009548dfd34588ab670dbfcd2d4724c6ff5168",
+      "embedded_samples": 0,
+      "bytes": 11267
+    },
+    {
+      "file": "native-chip-expanded-20261005.cct",
+      "device_source": "projects/native-chip-expanded-20261005.cct",
+      "source_sha256": "7c9b80b542164038792ff3fb74a27c0c317bbd7abbdb9b23758612488fe0d79e",
+      "sha256": "7c9b80b542164038792ff3fb74a27c0c317bbd7abbdb9b23758612488fe0d79e",
+      "embedded_samples": 0,
+      "bytes": 27957
+    },
+    {
+      "file": "nin_779.cct",
+      "device_source": "projects/nin_779.cct",
+      "source_sha256": "a48459392e43dfd60e9d0dc8249683498e8f90c96aa6f7e579f5af116163edd4",
+      "sha256": "a48459392e43dfd60e9d0dc8249683498e8f90c96aa6f7e579f5af116163edd4",
+      "embedded_samples": 0,
+      "bytes": 7696
+    },
+    {
+      "file": "sid-bank-audition.cct",
+      "device_source": "projects/sid-bank-audition.cct",
+      "source_sha256": "a8e7ddcf2ee3759987c0942072708c3555d7c53021a4344cfa41d6f77f9404ac",
+      "sha256": "a8e7ddcf2ee3759987c0942072708c3555d7c53021a4344cfa41d6f77f9404ac",
+      "embedded_samples": 0,
+      "bytes": 4391
+    },
+    {
+      "file": "sid-mixed.cct",
+      "device_source": "projects/sid-mixed.cct",
+      "source_sha256": "2337e0b842a2c671645cb89577f9934330b88ba30be7b171162cc188abb7e295",
+      "sha256": "2337e0b842a2c671645cb89577f9934330b88ba30be7b171162cc188abb7e295",
+      "embedded_samples": 0,
+      "bytes": 11064
+    },
+    {
+      "file": "sid-ring-sync.cct",
+      "device_source": "projects/sid-ring-sync.cct",
+      "source_sha256": "4bc46e9c226e25ab14dbbf4871ed8f691825208e684c36c08d352d4b94e06b4c",
+      "sha256": "4bc46e9c226e25ab14dbbf4871ed8f691825208e684c36c08d352d4b94e06b4c",
+      "embedded_samples": 0,
+      "bytes": 11065
+    },
+    {
+      "file": "Blue_Hour/Blue_Hour_Device_Continue_20261011.cct",
+      "device_source": "autosave.cct",
+      "source_sha256": "b68928c91302b8143da136da89bcd6d0930ea93bc1ecbf3ea6411ddbf1593280",
+      "sha256": "b68928c91302b8143da136da89bcd6d0930ea93bc1ecbf3ea6411ddbf1593280",
+      "embedded_samples": 21,
+      "bytes": 6194902
+    }
+  ]
+}

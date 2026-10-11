@@ -142,6 +142,16 @@
       fs.mkdirTree('/user/instruments/USER');
       fs.mkdirTree('/user/instruments/banks');
     };
+    const seedRoughDemos = (fs, source = '/bundled-projects/roughdemos', target = '/user/projects/roughdemos') => {
+      fs.mkdirTree(target);
+      for (const name of fs.readdir(source)) {
+        if (name.startsWith('.')) continue;
+        const from = source + '/' + name, to = target + '/' + name;
+        if (fs.isDir(fs.stat(from).mode)) seedRoughDemos(fs, from, to);
+        else if (name.endsWith('.cct') && !fs.analyzePath(to).exists)
+          fs.writeFile(to, fs.readFile(from));
+      }
+    };
     const syncUserStorage = (done) => {
       const fs = getFs();
       if (!fs) { if (done) done(new Error('Tracker is not ready.')); return; }
@@ -216,6 +226,10 @@
       window.Module.onAbort = () => { status.textContent = 'Tracker startup failed.'; };
       window.Module.onRuntimeInitialized = () => {
         status.textContent = '';
+        // Preloaded assets are ready now. Seed editable copies only after IDBFS
+        // has loaded, preserving each browser's existing projects and edits.
+        try { seedRoughDemos(getFs()); syncUserStorage(); }
+        catch (_) { status.textContent = 'Could not add roughdemos to browser storage.'; }
         fileControls.forEach((button) => { button.disabled = false; });
         setInterval(() => syncUserStorage(), 10000);
       };

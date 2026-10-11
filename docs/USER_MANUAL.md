@@ -1703,6 +1703,12 @@ save timer. Custom mappings belong to that browser/Home Screen installation.
 The web action buttons use compact uppercase labels and wrap to the available
 width. Project/app actions precede the sample and preset imports.
 
+The personal web app includes **roughdemos** under **Project → Load** in
+`/user/projects`: device songs plus a separately named Blue Hour Continue
+snapshot. Sample-based songs include their WAVs. Each browser gets its own
+editable copies; reloads and deployments preserve existing copies. This does
+not replace your current Continue save. Download `.cct` backups of your edits.
+
 The Home Screen app respects the camera and Home indicator safe areas, with
 an extra 25 pixels above the tracker. Initial audio waits quietly for your first
 touch or key press; opening the app does not require Restart audio. Use
