@@ -167,7 +167,7 @@ TEST_CASE("ModLucky one Settings row edge activation and focus ownership") {
   chipnomadState=chipnomadCreate();projectInitAY(&chipnomadState->project);initDefaultAppSettings();testService(&s);
   currentScreen=&screenSettings;screenSettings.setup(0);screenSettings.fullRedraw();auto* data=mockScreenData;
   REQUIRE(data);CHECK(data->rows==9);CHECK(data->getColumnCount(7)==3);
-  for(int row=0;row<11;++row)if(row!=9)CHECK(data->getColumnCount(row)==1);
+  for(int row=0;row<data->rows;++row)if(row!=7)CHECK(data->getColumnCount(row)==1);
   data->cursorRow=7;data->cursorCol=0;gfxClear();screenSettings.draw();
   CHECK(std::string(mockGfxCells[17],32)=="I'm Feeling Lucky NEXT PLAY LOAD");CHECK(mockCursorX==18);
   screenSettings.onInput(0,0,0);screenSettings.onInput(1,keyEdit,1);

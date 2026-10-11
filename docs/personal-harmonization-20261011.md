@@ -40,3 +40,30 @@ and public deployment verification. Physical iOS controller/Bluetooth behavior
 and subjective R36H playback require user evaluation. Build/install receipts
 record the actual source SHA, tests completed and rollback location; this file
 is the integration scope, not a claim that pending checks have passed.
+
+Local validation of the merged application source (`b1d562f`):
+
+- Native suite: 627 cases and 112,827,440 assertions passed; stretch lifetime
+  regression passed with no retained allocations.
+- Personal Lucky/Settings checks: 26 cases and 10,270 assertions passed. The
+  Settings test follows the new upstream row positions. The M8 sample lookup
+  test accepts the resolved capitalization on case-insensitive filesystems.
+- Fresh Wasm build: all 11 runtime files and packaged source assets validated.
+- Isolated Chrome: theme and mapping persistence, responsive layout, startup
+  audio activation, simulated background/wake/output recovery, reload data
+  preservation, synthetic gamepad input and Lucky playback/import passed.
+- All 17 roughdemos loaded and round-tripped with their embedded sample bytes
+  intact; existing edits, Continue and private preset data survived reload.
+- Web workflow lint and all five Lucky relay tests passed.
+
+The fresh R36H binary is built from `b1d562f`; subsequent test/documentation
+corrections do not change its application source. Installation writes the exact
+binary hash, validation results and rollback path into `personal-build.json`
+and `personal-device-validation.json` in the device installation. The public
+web build's exact source commit is recorded in `/build-info.json`.
+
+Try a smaller buffer under **Settings → Audio** while a demanding song plays.
+Lower values reduce buffering delay but can cause dropouts if a block misses
+its deadline. The personal handheld can step from its saved 4906 to 1024, then
+512, and restore 4906. This changes output buffering, not saved note timing or
+sample fidelity. Browser and Bluetooth output may add their own latency.
