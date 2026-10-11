@@ -4,7 +4,7 @@ Needs an existing Playwright install and Chrome. Set CHROME_EXECUTABLE to select
 Chrome, or WEB_THEME_TEST_URL to check a deployed build in an isolated profile.
 Phone lock/unlock is simulated here; it does not establish physical iOS behavior.
 """
-import functools,http.server,threading,pathlib,os,json,base64
+import functools,http.server,threading,pathlib,os,json
 from playwright.sync_api import sync_playwright
 root=pathlib.Path(__file__).resolve().parents[1]
 class Handler(http.server.SimpleHTTPRequestHandler):
@@ -96,46 +96,22 @@ with sync_playwright() as p:
   assert page.evaluate("getComputedStyle(document.documentElement).getPropertyValue('--background')")==colors['background']
   page.locator('#canvas').click();key('x');page.wait_for_timeout(500)
   # Every visible surrounding element follows the viewing surface in the page.
-  def geometry(page):return page.evaluate("()=>{const c=document.querySelector('#canvas'),r=c.getBoundingClientRect(),d=devicePixelRatio;return {w:r.width,h:r.height,scale:r.width*d/c.width,x:r.x*d,bottom:r.bottom,below:[...document.querySelectorAll('#browser-controls,#touch-controls')].filter(e=>getComputedStyle(e).display!=='none').every(e=>e.getBoundingClientRect().top>=r.bottom),background:getComputedStyle(document.body).backgroundColor};}")
-  g=geometry(page);assert abs(g['scale']*2-round(g['scale']*2))<.01 and g['below'],g
-  def check_font_pixels(page):
-   png=page.screenshot(scale='device',full_page=True)
-   result=page.evaluate("""async png=>{
-     const img=new Image();img.src='data:image/png;base64,'+png;await img.decode();
-     const ctx=document.createElement('canvas').getContext('2d');
-     ctx.canvas.width=img.width;ctx.canvas.height=img.height;ctx.drawImage(img,0,0);
-     const r=document.querySelector('#canvas').getBoundingClientRect(),d=devicePixelRatio;
-     const scale=r.width*d/640,unit=Math.round(scale*2);
-     // SONG is four 16x24 glyphs at row 2 when the waveform is enabled.
-     const w=Math.round(64*scale),h=Math.round(24*scale);
-     const data=ctx.getImageData(Math.round(r.left*d),Math.round(r.top*d+48*scale),w,h).data;
-     const color=parseInt(getComputedStyle(document.documentElement).getPropertyValue('--title').trim().slice(1),16);
-     const ink=(x,y)=>{const i=(y*w+x)*4;return data[i]===(color>>16&255)&&data[i+1]===(color>>8&255)&&data[i+2]===(color&255);};
-     let runs=0,uneven=0;
-     for(const horizontal of [true,false])for(let a=0;a<(horizontal?h:w);a++){
-       let length=0;for(let b=0;b<=(horizontal?w:h);b++){
-         if(b<(horizontal?w:h)&&(horizontal?ink(b,a):ink(a,b)))length++;
-         else if(length){runs++;if(length%unit)uneven++;length=0;}
-       }
-     }
-     return {unit,runs,uneven};
-   }""",base64.b64encode(png).decode())
-   assert result['runs']>50 and result['uneven']==0,result
-   print('Uniform Departure Mono stroke pixels',result,flush=True)
-  check_font_pixels(page)
+  def geometry(page):return page.evaluate("()=>{const c=document.querySelector('#canvas'),r=c.getBoundingClientRect();return {w:r.width,h:r.height,available:document.querySelector('#screen-area').clientWidth,bottom:r.bottom,below:[...document.querySelectorAll('#browser-controls,#touch-controls')].filter(e=>getComputedStyle(e).display!=='none').every(e=>e.getBoundingClientRect().top>=r.bottom),background:getComputedStyle(document.body).backgroundColor};}")
+  def check_fit(g):
+   assert abs(g['w']-min(640,g['available']))<.01 and abs(g['h']-g['w']*.75)<.01 and g['below'],g
+  g=geometry(page);check_fit(g)
   print('Retina layout',g,flush=True);page.screenshot(path=str(root/'.tmp/theme-desktop.png'),full_page=True)
-  page.set_viewport_size({'width':1100,'height':700});page.wait_for_timeout(250);g=geometry(page);assert abs(g['scale']*2-round(g['scale']*2))<.01 and g['below'],g
+  page.set_viewport_size({'width':1100,'height':700});page.wait_for_timeout(250);g=geometry(page);check_fit(g)
   print('Resized layout',g,flush=True)
   for width,height,dpr in [(393,852,3),(1440,900,1),(1024,768,1.25)]:
    c=browser.new_context(viewport={'width':width,'height':height},device_scale_factor=dpr,is_mobile=dpr==3,has_touch=dpr==3)
-   t=c.new_page();t.goto(url);ready(t);g=geometry(t);assert abs(g['scale']*2-round(g['scale']*2))<.01 and g['below'],g
+   t=c.new_page();t.goto(url);ready(t);g=geometry(t);check_fit(g)
    print('Layout',width,height,dpr,g,flush=True)
    if dpr==3:
     t.locator('[data-button="4"]').tap();t.wait_for_timeout(500);t.screenshot(path=str(root/'.tmp/theme-phone.png'),full_page=True)
-    assert abs(g['w']-320)<.01 and abs(g['h']-240)<.01,g
+    assert abs(g['w']-377)<.01 and abs(g['h']-282.75)<.01,g
     assert t.locator('#touch-controls').bounding_box()['y'] >= t.locator('#browser-controls').bounding_box()['y'] + t.locator('#browser-controls').bounding_box()['height']
     assert t.evaluate("document.querySelector('#screen-area').scrollWidth===document.querySelector('#screen-area').clientWidth")
-    check_font_pixels(t)
     # Model camera/Home-indicator insets without claiming to emulate iOS itself.
     t.evaluate("document.documentElement.style.setProperty('--safe-top','59px');document.documentElement.style.setProperty('--safe-bottom','34px');window.dispatchEvent(new Event('resize'))")
     t.wait_for_timeout(150)
@@ -145,15 +121,16 @@ with sync_playwright() as p:
     t.evaluate("[...document.styleSheets[0].cssRules].find(r=>r.media && r.media.mediaText==='(display-mode: standalone)').media.mediaText='all'")
     t.wait_for_timeout(150)
     assert abs(t.locator('#canvas').bounding_box()['y']-82)<.01
-    assert abs(geometry(t)['w']-320)<.01
+    assert abs(geometry(t)['w']-377)<.01
     t.screenshot(path=str(root/'.tmp/home-screen-safe-area.png'),full_page=True)
     print('Simulated camera/Home-indicator safe-area layout passed',flush=True)
-    # An ordinary, non-doubled font must return to whole canvas scale steps.
+    # Changing the font must no longer change the canvas dimensions.
     t.evaluate("""()=>new Promise((resolve,reject)=>{let s=FS.readFile('/user/settings.txt',{encoding:'utf8'});s=s.replace(/^fontPath:.*$/m,'fontPath: /fonts/RobotoMono.cnfont');FS.writeFile('/user/settings.txt',s);FS.syncfs(false,e=>e?reject(e):resolve());})""")
     t.reload();ready(t)
-    assert t.evaluate('fontPixelUnit')==1
-    assert abs(geometry(t)['scale']-1)<.01
-    print('Non-doubled font fallback passed',flush=True)
+    check_fit(geometry(t))
+    assert abs(geometry(t)['w']-377)<.01
+    assert t.evaluate('typeof window.choochooSetFontPixelUnit')=='undefined'
+    print('Font change preserves original fit-to-width sizing',flush=True)
 
    c.close()
   # Exercise background save/pause/wake and gesture recovery without reloading.
@@ -218,10 +195,19 @@ with sync_playwright() as p:
   assert project_hash()==before_restart
   print('Closed context restarted without losing the song',flush=True)
 
+  # Establish stopped transport before testing a fresh Play command.
+  page.evaluate('setPageHidden(true)');page.wait_for_timeout(150)
+  page.evaluate('setPageHidden(false)');page.locator('#canvas').click()
+  page.wait_for_function("!audioRecovering && getAudio().state==='running'")
+  page.wait_for_timeout(300)
   page.evaluate("window.afterRestartPeak=0;const node=Module.SDL2.audio.scriptProcessorNode,callback=node.onaudioprocess;node.onaudioprocess=e=>{callback(e);for(const v of e.outputBuffer.getChannelData(0))afterRestartPeak=Math.max(afterRestartPeak,Math.abs(v));};void 0;")
   assert page.evaluate("Module.ccall('webLoadProject','number',['string'],['/projects/native-chip-audition.cct'])")==0
   page.locator('#canvas').click();key('Space')
-  page.wait_for_function('afterRestartPeak>0',timeout=5000)
+  try:page.wait_for_function('afterRestartPeak>0',timeout=5000)
+  except Exception:
+   page.screenshot(path=str(root/'.tmp/web-playback-failure.png'),full_page=True)
+   print('Playback diagnostic',page.evaluate("({state:getAudio().state,time:getAudio().currentTime,callback:lastAudioCallback,now:performance.now(),status:audioStatus.textContent})"),flush=True)
+   raise
   # Reload must wait for durable storage and cancel on a storage error.
   page.evaluate("window.reloadMarker=1;window.realSyncfs=FS.syncfs;FS.syncfs=(populate,done)=>done(new Error('Injected storage failure'));void 0;")
   page.locator('#reload-app').click()
@@ -235,5 +221,30 @@ with sync_playwright() as p:
   assert page.evaluate("FS.readFile('/user/reload-check.txt',{encoding:'utf8'})")=='kept'
   assert project_hash()==before_reload
   print('Reload cancels on storage failure and preserves saved song/data on success',flush=True)
+  # Exercise the real Wasm gamepad polling/mapping path with a synthetic browser
+  # Gamepad. This does not test USB hardware detection or Safari permissions.
+  page.locator('#canvas').click();key('x')
+  assert page.evaluate("Module.ccall('webLoadProject','number',['string'],['/projects/native-chip-audition.cct'])")==0
+  page.evaluate("""window.pad={id:'Test standard controller',index:0,connected:true,mapping:'standard',timestamp:0,
+    axes:[0,0,0,0],buttons:Array.from({length:17},()=>({pressed:false,touched:false,value:0}))};
+    window.padConnected=true;window.realGetGamepads=navigator.getGamepads;
+    navigator.getGamepads=()=>padConnected?[pad]:[];
+    window.padPeak=0;const node=Module.SDL2.audio.scriptProcessorNode,callback=node.onaudioprocess;
+    node.onaudioprocess=e=>{callback(e);for(const v of e.outputBuffer.getChannelData(0))padPeak=Math.max(padPeak,Math.abs(v));};void 0;""")
+  for cycle in range(3):
+   page.evaluate('setPageHidden(true)');page.wait_for_timeout(150)
+   page.evaluate('setPageHidden(false)');page.locator('#canvas').click()
+   page.wait_for_function("!audioRecovering && getAudio().state==='running'")
+   if cycle==2:
+    page.evaluate('padConnected=false');page.wait_for_timeout(150)
+    page.evaluate('padConnected=true');page.wait_for_timeout(150)
+   page.wait_for_timeout(500);page.evaluate('padPeak=0');page.wait_for_timeout(150)
+   assert page.evaluate('padPeak')==0
+   page.evaluate('pad.buttons[9]={pressed:true,touched:true,value:1}')
+   page.wait_for_timeout(150)
+   page.evaluate('pad.buttons[9]={pressed:false,touched:false,value:0}')
+   page.wait_for_function('padPeak>0',timeout=5000)
+  page.evaluate('navigator.getGamepads=realGetGamepads;void 0;')
+  print('Synthetic gamepad starts playback after wake and reconnect; physical USB remains untested',flush=True)
   print('JavaScript errors:',errors,flush=True);assert not errors
  finally:browser.close();server.shutdown()

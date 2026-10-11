@@ -1675,10 +1675,9 @@ and is excluded from this update.
 
 The web page follows the active tracker theme and keeps its title, file controls,
 status and links below the canvas, followed by the touch controller. Theme changes are saved to
-this browser automatically. The viewing area uses whole display pixels for font pixels, including Retina
-pixel density. Doubled bitmap fonts such as Departure Mono allow intermediate
-canvas sizes that keep the letters crisp and make the portrait view larger. Controls can scroll below the
-viewport; narrow displays may leave space around the strictly scaled canvas.
+this browser automatically. The viewing area uses the original fit-to-width
+presentation, up to 640 pixels wide with a 4:3 aspect ratio. There are no custom
+integer or font-dependent scaling steps. Controls can scroll below the viewport.
 The native tracker layout and controls are unchanged.
 
 When the browser page is hidden or the phone locks, the web build saves the

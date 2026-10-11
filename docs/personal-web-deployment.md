@@ -212,25 +212,15 @@ the wrapper updates CSS variables. Theme loads, resets and direct color edits al
 save settings and request an IDBFS flush, so a tab reload does not depend on the
 native Quit path. This does not change native settings behavior.
 
-The backing canvas remains 640×480; automatic SDL high-DPI enlargement is
-disabled only for the web target to avoid a second scaling step. The page chooses
-the largest scale that fits in display pixels, accounting for `devicePixelRatio`.
-The web adapter checks all 95 glyph bitmaps of the active font. When every glyph
-consists of doubled 2×2 pixels (including its padding), it permits half canvas
-steps: those still give each original font pixel an integer number of display
-pixels. Departure Mono supports this; other fonts fall back to whole canvas steps.
-Changing fonts updates the scale automatically. This is not arbitrary fit-to-width
-scaling: on an iPhone 15 Pro's normal 393-pixel/3× portrait viewport, Departure Mono
-uses 320×240 CSS pixels, with each original font pixel 3×3 display pixels. That is
-50% larger than the previous 213⅓×160 view without cropping or sideways scrolling.
-
-The left edge is snapped to the display pixel grid. Controls may extend below the
-viewport. Single-pixel graphics such as waveform lines can have alternating widths
-at a half canvas step; this guarantee concerns the doubled font, not every graphic.
-The small title-screen text uses a separate reduced font. No horizontal scrolling
-or larger-view toggle is added. Resizing, orientation changes and moving between
-displays recompute the fit. Browser/OS compositing can still affect appearance;
-physical Safari and iPhone checks remain useful. Native rendering is unchanged.
+The canvas uses the original CSS fit-to-width presentation: up to 640 CSS pixels
+wide, shrinking to the available page width with its 4:3 aspect ratio intact.
+The custom integer/half-step sizing, font bitmap inspection, display-pixel
+snapping and web-only high-DPI override have been removed. Font choice no longer
+changes the displayed canvas size. At a 393-pixel portrait viewport with 8-pixel
+side margins, the viewing area is 377×282.75 CSS pixels. The browser handles the
+resampling; this does not promise pixel-perfect glyphs on every display.
+Controls follow the viewing area; there is no horizontal scrolling or size toggle.
+Native rendering is unchanged.
 
 ## Home Screen layout and recovery
 
@@ -240,8 +230,7 @@ project/app actions first, sample/preset imports second. Buttons retain their
 36-pixel minimum height; narrower viewports wrap to additional rows.
 
 The viewport uses `viewport-fit=cover`; main content adds the four CSS
-`env(safe-area-inset-*)` values to its normal margins. Canvas sizing subtracts
-that vertical padding. Standalone Home Screen windows add another 15 CSS pixels
+`env(safe-area-inset-*)` values to its normal margins. Standalone Home Screen windows add another 15 CSS pixels
 above the tracker for iOS UI clearance; ordinary browser tabs keep their existing
 spacing. This keeps the tracker and controls out of the camera
 and Home indicator areas in a standalone Home Screen launch.
@@ -324,6 +313,13 @@ subdomain/link first. No iframe or website integration is implemented now.
 
 ## Validation record
 
+Original sizing restored, 2026-10-11: a fresh Wasm build and browser checks
+passed at 377×282.75 CSS pixels on the simulated 393-pixel phone viewport and
+640×480 on desktop. Switching fonts retains the same viewing-area dimensions.
+The real Wasm gamepad polling path starts audible playback from a synthetic
+standard controller after background/wake and disconnect/reconnect cycles.
+This does not verify physical USB detection or Safari controller permissions.
+
 Startup follow-up, 2026-10-11: an autoplay-blocked browser fixture reproduced
 the premature warning on the previous deployment. With the correction, initial
 focus/page-show and a background/foreground cycle stay quiet, and the first
@@ -331,22 +327,18 @@ touch activates the same audio context. The standalone CSS rule adds exactly
 15 pixels to the simulated safe-area layout (67 → 82 pixels from the top).
 The fixture models autoplay policy and standalone CSS in Chrome, not physical iOS.
 
-Font/Home Screen follow-up, 2026-10-11: a fresh Wasm build passed. Departure Mono
-uses 320×240 CSS pixels on a simulated iPhone 15 Pro viewport; 267 measured stroke
-runs were exact multiples of 3 display pixels, with none uneven. Desktop tests
-likewise passed 623 stroke runs at 7 display pixels. Roboto Mono correctly falls
-back to whole canvas steps. Simulated top/bottom safe insets keep the tracker
-clear; page items precede the controller. Fault injection covers a frozen running
+Home Screen recovery checks, 2026-10-11: fault injection covers a frozen running
 clock, a resume promise that never resolves, missing output callbacks, and failed
 storage flushes. Output restarts preserve serialized song bytes; a successful
-Reload app preserves the autosave and user files. These are Chrome checks, not a
-physical Safari/Auto-Lock/Bluetooth certification.
+Reload app preserves the autosave and user files. The user subsequently reported
+successful recovery across several iPhone timeout/resume attempts. Bluetooth and
+USB controller behavior are not established by the automated Chrome checks.
+The earlier integer/font-pixel scaling experiment was reverted following the
+user's physical iPhone font rendering report; its pixel-stroke tests were removed.
 
 Browser presentation/recovery follow-up, 2026-10-11: live color editing and
 loading NostromoAmberDa2 both persisted after reload. Page colors follow the
-active palette; all surrounding elements follow the canvas. Retina screenshot
-inspection found zero mismatches across 302,736 source-pixel blocks at 3× scale.
-Desktop 1×/1.25×/2× density, 3× phone density and resize geometry passed. Three
+active palette; all surrounding elements follow the canvas. Desktop 1×/1.25×/2× density, 3× phone density and resize geometry passed. Three
 simulated hidden/visible cycles saved the project and recovered playable audio;
 a directly suspended audio context also resumed on a canvas gesture. These tests
 use Chrome; physical Safari lock/unlock is still a user check. Reproduce with

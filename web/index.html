@@ -26,7 +26,8 @@
       main { padding-top: calc(23px + var(--safe-top)); }
     }
     #screen-area { width: 100%; overflow: hidden; }
-    #canvas { display: block; width: 640px; height: 480px; border: 0;
+    #canvas { display: block; width: min(100%, 640px); height: auto; aspect-ratio: 4 / 3;
+      margin: 0 auto; border: 0;
       background: var(--background); image-rendering: pixelated; }
     #canvas:focus { outline: none; }
     #canvas:focus-visible { outline: 1px solid var(--cursor); outline-offset: -1px; }
@@ -118,42 +119,6 @@
     let storagePending = false;
     let storageCallbacks = [];
     const getFs = () => (typeof FS !== 'undefined' ? FS : (window.Module && window.Module.FS));
-
-    // Keep the 640x480 backing surface unchanged. Doubled bitmap fonts permit
-    // half canvas steps while retaining whole display pixels per font pixel.
-    const canvas = document.querySelector('#canvas');
-    const screenArea = document.querySelector('#screen-area');
-    let fontPixelUnit = 1;
-    const sizeCanvas = () => {
-      const ratio = window.devicePixelRatio || 1;
-      const availableWidth = screenArea.clientWidth;
-      const padding = getComputedStyle(document.querySelector('main'));
-      const availableHeight = Math.max(1, window.innerHeight -
-        parseFloat(padding.paddingTop) - parseFloat(padding.paddingBottom));
-      const scale = Math.max(1, Math.floor(Math.min(
-        availableWidth * ratio / canvas.width,
-        availableHeight * ratio / canvas.height) * fontPixelUnit + 1e-6)) / fontPixelUnit;
-      const width = canvas.width * scale / ratio;
-      canvas.style.width = width + 'px';
-      canvas.style.height = canvas.height * scale / ratio + 'px';
-      // Snap the left edge as well as the size to display pixels.
-      const left = screenArea.getBoundingClientRect().left;
-      const offset = Math.max(0, (availableWidth - width) / 2);
-      canvas.style.marginLeft = Math.max(0, Math.round((left + offset) * ratio) / ratio - left) + 'px';
-    };
-    window.choochooSetFontPixelUnit = (unit) => {
-      fontPixelUnit = unit === 2 ? 2 : 1;
-      sizeCanvas();
-    };
-    window.addEventListener('resize', sizeCanvas);
-    new ResizeObserver(sizeCanvas).observe(screenArea);
-    new ResizeObserver(sizeCanvas).observe(document.querySelector('main'));
-    const watchPixelRatio = () => {
-      const query = matchMedia('(resolution: ' + (window.devicePixelRatio || 1) + 'dppx)');
-      query.addEventListener('change', () => { sizeCanvas(); watchPixelRatio(); }, { once: true });
-    };
-    watchPixelRatio();
-    sizeCanvas();
 
     const themeVariables = ['background', 'empty', 'muted', 'text', 'value',
       'title', 'play', 'cursor', 'selection', 'warning'];
