@@ -199,7 +199,7 @@ static int onEdit(int col, int row, CellEditAction action) {
     // its old logical state into Settings: on gptokeyb/PortMaster the release
     // may arrive after this mapping has changed.
     appResetInputState();
-    screenSetup(&screenSettings, 0);
+    screenSetup(&screenControlsSettings, 0);
     return 1;
   }
 

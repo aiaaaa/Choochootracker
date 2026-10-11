@@ -110,6 +110,8 @@ extern const AppScreen screenExport;
 extern const AppScreen screenBounce;
 extern const AppScreen screenManage;
 extern const AppScreen screenSettings;
+extern const AppScreen screenControlsSettings;
+extern const AppScreen screenAudioSettings;
 extern const AppScreen screenTrackVisuals;
 extern const AppScreen screenSynthSettings;
 extern const AppScreen screenMixerSettings;

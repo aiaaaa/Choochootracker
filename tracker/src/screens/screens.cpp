@@ -353,11 +353,10 @@ static int screenTouchCellAt(int col, int row, int* targetCol, int* targetRow) {
     return 1;
   }
   if (currentScreen == &screenSettings) {
-    int field = row >= 2 && row <= 15 ? row - 2 : row == 18 ? 14 : -1;
+    int field = row >= 2 && row <= 7 ? row - 2 : row == 10 ? 6 : row == 18 ? 7 : -1;
     if (field < 0) return 0;
-    const int widths[] = {11, 9, 16};
-    if (field < 10 || field == 13) { if (col < 23 || col >= 33) return 0; }
-    else if (col < 0 || col >= (field == 14 ? 19 : widths[field - 10])) return 0;
+    static const int widths[] = {8, 5, 4, 6, 5, 8, 14, 19};
+    if (col < 0 || col >= widths[field]) return 0;
     if (targetCol) *targetCol = 0;
     if (targetRow) *targetRow = field;
     return 1;
