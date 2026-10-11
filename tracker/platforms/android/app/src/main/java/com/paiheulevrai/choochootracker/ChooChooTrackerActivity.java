@@ -4,6 +4,7 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.IntentFilter;
 import android.hardware.usb.UsbConstants;
 import android.hardware.usb.UsbDevice;
@@ -20,6 +21,7 @@ import android.media.midi.MidiReceiver;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Build;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
@@ -39,6 +41,9 @@ public final class ChooChooTrackerActivity extends SDLActivity {
     private static final int CREATE_DOCUMENT = 4102;
     private static final String ACTION_USB_PERMISSION =
             "com.paiheulevrai.choochootracker.USB_PERMISSION";
+    private static final String PREFS_NAME = "choochootracker_prefs";
+    private static final String PREF_MIGRATED = "private_workspace_migrated";
+    private boolean waitingForStorageAccess;
     private String importDirectory;
     private String exportPath;
 
@@ -174,6 +179,8 @@ public final class ChooChooTrackerActivity extends SDLActivity {
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         hideSystemBars();
+        if (isDirectStorageBuild() && !hasDirectStorageAccess()) requestDirectStorageAccess();
+        else if (isDirectStorageBuild()) migratePrivateWorkspace();
         // AssetManager lists nested directories reliably, unlike the native
         // asset API on a few Android builds. Never overwrite user files.
         seedWorkspace("choochootracker_data", getWorkspacePath());
@@ -542,6 +549,11 @@ public final class ChooChooTrackerActivity extends SDLActivity {
 
     @Override protected void onResume() {
         super.onResume();
+        if (waitingForStorageAccess && hasDirectStorageAccess()) {
+            waitingForStorageAccess = false;
+            restartApp();
+            return;
+        }
         if (midiManager != null) rebuildMidiEndpoints();
     }
 
@@ -567,9 +579,93 @@ public final class ChooChooTrackerActivity extends SDLActivity {
         });
     }
 
-    // Called by the native layer. Files stay private to the app: no storage permission.
+    // "direct" flavor (F-Droid / direct APK): the workspace is a normal folder
+    // in shared storage, reachable by any file manager or from a PC. The
+    // "store" flavor keeps it private to the app, with no storage permission.
+    private boolean isDirectStorageBuild() {
+        return getResources().getBoolean(R.bool.direct_storage);
+    }
+
+    private boolean hasDirectStorageAccess() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) return Environment.isExternalStorageManager();
+        return checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+            == android.content.pm.PackageManager.PERMISSION_GRANTED;
+    }
+
+    private File privateWorkspace() {
+        return new File(getFilesDir(), "workspace");
+    }
+
+    private File sharedWorkspace() {
+        return new File(Environment.getExternalStorageDirectory(), "ChooChooTracker");
+    }
+
+    private void requestDirectStorageAccess() {
+        waitingForStorageAccess = true;
+        android.widget.Toast.makeText(this,
+            "Allow access to all files for ChooChooTracker, then come back",
+            android.widget.Toast.LENGTH_LONG).show();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            Intent intent = new Intent(android.provider.Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
+                Uri.parse("package:" + getPackageName()));
+            try {
+                startActivity(intent);
+            } catch (Exception e) {
+                startActivity(new Intent(android.provider.Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION));
+            }
+        } else {
+            requestPermissions(new String[] {
+                android.Manifest.permission.READ_EXTERNAL_STORAGE,
+                android.Manifest.permission.WRITE_EXTERNAL_STORAGE }, 4104);
+        }
+    }
+
+    // The native side reads the workspace path once at startup, so a grant
+    // made while it is already running on the private fallback needs a fresh process.
+    private void restartApp() {
+        Intent intent = getPackageManager().getLaunchIntentForPackage(getPackageName());
+        if (intent == null) return;
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        android.os.Process.killProcess(android.os.Process.myPid());
+    }
+
+    // First run of the direct build after the private one: bring over projects
+    // and samples already created, without overwriting anything.
+    private void migratePrivateWorkspace() {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        if (prefs.getBoolean(PREF_MIGRATED, false)) return;
+        File shared = sharedWorkspace();
+        shared.mkdirs();
+        if (!shared.isDirectory()) return;
+        copyMissing(privateWorkspace(), shared);
+        prefs.edit().putBoolean(PREF_MIGRATED, true).apply();
+    }
+
+    private void copyMissing(File source, File destination) {
+        File[] children = source.listFiles();
+        if (children == null) return;
+        destination.mkdirs();
+        for (File child : children) {
+            File target = new File(destination, child.getName());
+            if (child.isDirectory()) { copyMissing(child, target); continue; }
+            if (target.exists()) continue;
+            try (InputStream input = new java.io.FileInputStream(child);
+                 FileOutputStream output = new FileOutputStream(target)) {
+                byte[] buffer = new byte[32768];
+                for (int read; (read = input.read(buffer)) != -1;) output.write(buffer, 0, read);
+            } catch (IOException ignored) { }
+        }
+    }
+
+    // Called by the native layer.
     public String getWorkspacePath() {
-        File workspace = new File(getFilesDir(), "workspace");
+        File workspace = privateWorkspace();
+        if (isDirectStorageBuild() && hasDirectStorageAccess()) {
+            File shared = sharedWorkspace();
+            shared.mkdirs();
+            if (shared.isDirectory() && shared.canWrite()) workspace = shared;
+        }
         workspace.mkdirs();
         return workspace.getAbsolutePath();
     }

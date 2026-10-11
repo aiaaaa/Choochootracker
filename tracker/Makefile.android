@@ -55,10 +55,10 @@ android-lib:
 
 .PHONY: android-apk
 android-apk: android-lib
-	cd platforms/android && ./gradlew assembleRelease
+	cd platforms/android && ./gradlew assembleStoreRelease assembleDirectRelease
 
 android-bundle: android-lib
-	cd platforms/android && ./gradlew bundleRelease
+	cd platforms/android && ./gradlew bundleStoreRelease
 
 .PHONY: android-deploy
 android-deploy: android-apk android-bundle
@@ -66,8 +66,9 @@ android-deploy: android-apk android-bundle
 	@mkdir -p ../../releases
 	@rm -rf /tmp/chipnomad-android-package
 	@mkdir -p /tmp/chipnomad-android-package
-	@cp platforms/android/app/build/outputs/apk/release/app-release.apk /tmp/chipnomad-android-package/ChooChooTracker-universal-release.apk
-	@cp platforms/android/app/build/outputs/bundle/release/app-release.aab /tmp/chipnomad-android-package/ChooChooTracker-release.aab
+	@cp platforms/android/app/build/outputs/apk/store/release/app-store-release.apk /tmp/chipnomad-android-package/ChooChooTracker-store-release.apk
+	@cp platforms/android/app/build/outputs/apk/direct/release/app-direct-release.apk /tmp/chipnomad-android-package/ChooChooTracker-direct-release.apk
+	@cp platforms/android/app/build/outputs/bundle/storeRelease/app-store-release.aab /tmp/chipnomad-android-package/ChooChooTracker-store-release.aab
 	@cd /tmp/chipnomad-android-package && zip -r ChooChooTracker-$$(date +%Y-%m-%d)-Android.zip .
 	@mv /tmp/chipnomad-android-package/ChooChooTracker-*-Android.zip ../../releases/
 	@rm -rf /tmp/chipnomad-android-package
