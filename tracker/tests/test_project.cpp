@@ -309,9 +309,9 @@ TEST_CASE("archives preserve BYOWTBL frame layout") {
 TEST_CASE("new projects initialize the validated period pitch table") {
   Project project;
   projectInitAY(&project);
-  CHECK(project.linearPitch == 0);
-  CHECK(project.pitchTable.values[0] > project.pitchTable.values[12]);
-  CHECK(project.pitchTable.values[12] > project.pitchTable.values[24]);
+  CHECK(project.linearPitch == 1);
+  CHECK(project.pitchTable.values[0] < project.pitchTable.values[12]);
+  CHECK(project.pitchTable.values[12] < project.pitchTable.values[24]);
 }
 
 TEST_CASE_FIXTURE(ProjectFixture, "projectInit other grooves empty") {

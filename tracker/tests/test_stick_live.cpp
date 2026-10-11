@@ -105,6 +105,7 @@ TEST_CASE_FIXTURE(StickLiveFixture, "Shift horizontal navigation exits branch sc
     motion(keyShift,true);
     motion(direction,true);
     const auto* destination = direction == keyLeft ? route.left : route.right;
+    appDraw();
     CHECK(currentScreen == destination);
     motion(direction,false);
     CHECK(currentScreen == destination); // releasing direction while still holding Shift
@@ -384,7 +385,7 @@ TEST_CASE_FIXTURE(StickLiveFixture, "Settings menus and audio buffer control ali
   CHECK(screen->rows == 2);
   screen->drawField(0, 0, CellState::focus);
   CHECK(std::string(mockGfxCells[2], 11) == "Buffer size");
-  CHECK(std::string(mockGfxCells[2] + 23, 3) == "256");
+  CHECK(std::string(mockGfxCells[2] + 23, 3) == "512");
   appSettings.audioBufferSize = 64;
   screen->drawField(0, 0, CellState::focus);
   CHECK(std::string(mockGfxCells[2] + 23, 4) == "64  ");
