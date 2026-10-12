@@ -19,6 +19,7 @@
 
 #define LSDJ_PHRASE_NOTES 0x0000       // 255 phrases x 16 bytes, 0 = empty
 #define LSDJ_INSTRUMENT_NAMES 0x1E7A   // 64 x 5 bytes
+#define LSDJ_GROOVES 0x1090            // 32 grooves x 16 bytes of ticks, 0 ends
 #define LSDJ_SONG_ROWS 0x1290          // 256 rows x 4 channels, 0xFF = empty
 #define LSDJ_INSTRUMENT_ALLOC 0x2040   // 64 flags
 #define LSDJ_CHAIN_PHRASES 0x2080      // 128 chains x 16 bytes, 0xFF = empty

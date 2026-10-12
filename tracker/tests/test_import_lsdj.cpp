@@ -103,6 +103,55 @@ TEST_CASE("imports song, chain, transpose, phrase notes and instruments") {
   projectFree(&p);
 }
 
+TEST_CASE("imports commands and grooves") {
+  auto s = makeSong();
+  s[0x1290 + 1] = 3;               // row 0, PU2 -> chain 3 -> phrase 7
+  s[0x2080 + 3 * 16] = 7;
+  s[0x1290 + 2] = 4;               // row 0, WAV -> chain 4 -> phrase 8
+  s[0x2080 + 4 * 16] = 8;
+  s[0x4000 + 7 * 16 + 0] = 4;      // E 5A
+  s[0x4FF0 + 7 * 16 + 0] = 0x5A;
+  s[0x4000 + 7 * 16 + 1] = 8;      // K 03
+  s[0x4FF0 + 7 * 16 + 1] = 3;
+  s[0x4000 + 7 * 16 + 2] = 6;      // G 02
+  s[0x4FF0 + 7 * 16 + 2] = 2;
+  s[0x4000 + 7 * 16 + 3] = 2;      // C 37
+  s[0x4FF0 + 7 * 16 + 3] = 0x37;
+  s[0x4000 + 7 * 16 + 4] = 3;      // D 02
+  s[0x4FF0 + 7 * 16 + 4] = 2;
+  s[0x4000 + 7 * 16 + 5] = 16;     // V 44
+  s[0x4FF0 + 7 * 16 + 5] = 0x44;
+  s[0x4000 + 7 * 16 + 6] = 14;     // S: dropped
+  s[0x4FF0 + 7 * 16 + 6] = 0x12;
+  s[0x4000 + 8 * 16 + 0] = 4;      // E on the wave channel: dropped
+  s[0x4FF0 + 8 * 16 + 0] = 0x20;
+  uint8_t groove[16] = {9, 3, 9, 3};
+  memcpy(&s[0x1090 + 2 * 16], groove, 16);
+
+  const char* path = "test_import_lsdj_fx.lsdsng";
+  REQUIRE(writeLsdsng(path, s, "FX"));
+  Project p;
+  projectInit(&p);
+  REQUIRE(projectLoadLSDJ(&p, path) == 0);
+  remove(path);
+
+  const PhraseRow* r = p.phrases[7].rows;
+  CHECK(r[0].fx[0][0] == fxCEI); CHECK(r[0].fx[0][1] == 5);
+  CHECK(r[0].fx[1][0] == fxCEP); CHECK(r[0].fx[1][1] == 2);
+  CHECK(r[0].fx[2][0] == fxCED); CHECK(r[0].fx[2][1] == 1);
+  CHECK(r[1].fx[0][0] == fxKIL); CHECK(r[1].fx[0][1] == 3);
+  CHECK(r[2].fx[0][0] == fxGGR); CHECK(r[2].fx[0][1] == 2);
+  CHECK(r[3].fx[0][0] == fxARP); CHECK(r[3].fx[0][1] == 0x37);
+  CHECK(r[4].fx[0][0] == fxDEL); CHECK(r[4].fx[0][1] == 2);
+  CHECK(r[5].fx[0][0] == fxPVB); CHECK(r[5].fx[0][1] == 0x44);
+  CHECK(r[6].fx[0][0] == EMPTY_VALUE_8);
+  CHECK(p.phrases[8].rows[0].fx[0][0] == EMPTY_VALUE_8);
+  CHECK(p.grooves[2].speed[0] == 9);
+  CHECK(p.grooves[2].speed[1] == 3);
+  CHECK(p.grooves[2].speed[4] == EMPTY_VALUE_8);
+  projectFree(&p);
+}
+
 TEST_CASE("rejects files that are not LSDj songs") {
   const char* path = "test_import_lsdj_bad.lsdsng";
   FILE* f = fopen(path, "wb");
