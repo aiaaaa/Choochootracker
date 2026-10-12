@@ -1,6 +1,6 @@
 # Manuel d'utilisation de ChooChooTracker
 
-> Traduction française de [`docs/USER_MANUAL.md`](../USER_MANUAL.md), établie à partir de la version anglaise du commit `0bffff9`. En cas de divergence, la version anglaise fait foi.
+> Traduction française de [`docs/USER_MANUAL.md`](../USER_MANUAL.md), établie à partir de la version anglaise du commit `7c3ed6f`. En cas de divergence, la version anglaise fait foi.
 >
 > **Conventions.** L'interface de l'application est en anglais. Les noms d'écrans, de menus, de champs et de touches (Song, Chain, Phrase, Instrument, Table, Mixer, **Settings**, **EDIT**, **OPT**, **SELECT**...), les codes FX (`HOP`, `TBX`, `M1A`...), les noms de modules et de moteurs (ADSR, LFO, Braids, Plaits...) et les extensions de fichiers sont donc laissés tels quels, pour que vous les retrouviez à l'écran.
 
@@ -80,7 +80,8 @@ ChooChooTracker se joue mieux avec une manette dotée d'une croix directionnelle
 | **MOTION RECORD** | L2 | W |
 | **MOTION ERASE** | R2 | E |
 
-Les affectations se changent dans **Settings > Key mapping**. Sous PortMaster, enregistrez une
+Les affectations se changent dans **Settings > Key mapping**. Sous PortMaster, relâchez
+le bouton utilisé pour sélectionner une affectation avant d'appuyer sur le nouveau bouton. Enregistrez une
 réaffectation avec **Done**, puis relâchez le bouton avant de continuer dans Settings.
 Les dispositions de bureau n'utilisent QWERTZ par défaut que pour les régions QWERTZ ; les claviers polonais
 gardent les valeurs par défaut QWERTY standard.
