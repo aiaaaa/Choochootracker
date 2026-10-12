@@ -46,7 +46,12 @@ bool ensureLinkJava(void) {
   acquireLock = env->GetMethodID(cls, "acquireLinkMulticastLock", "()Z");
   releaseLock = env->GetMethodID(cls, "releaseLinkMulticastLock", "()Z");
   env->DeleteLocalRef(cls);
-  if (!acquireLock || !releaseLock) return false;
+  if (!acquireLock || !releaseLock) {
+    // Clear any pending NoSuchMethodError so it doesn't abort the app when
+    // native code returns to Java.
+    if (env->ExceptionCheck()) env->ExceptionClear();
+    return false;
+  }
   return true;
 }
 
