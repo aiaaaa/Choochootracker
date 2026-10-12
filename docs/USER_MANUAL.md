@@ -76,7 +76,8 @@ ChooChooTracker works best with a gamepad that has a D-pad, 2 analogue sticks an
 | **MOTION RECORD** | L2 | W |
 | **MOTION ERASE** | R2 | E |
 
-Mappings can be changed in **Settings > Key mapping**. On PortMaster, save a
+Mappings can be changed in **Settings > Key mapping**. On PortMaster, release
+the button used to select a mapping before pressing the new button. Save a
 remap with **Done**, then release the button before continuing in Settings.
 Desktop layout defaults use QWERTZ only for QWERTZ regions; Polish keyboards
 keep the standard QWERTY defaults.
