@@ -200,14 +200,18 @@ int sidField(int col,int row){
 }
 int sidY(int row){return row==5?9:row==6?11:13;}
 int sidX(int col,int row){return 9+col*(row==7?6:10);}
-int columns(int row){if(sid()&&row>=5)return row==5?2:row==6?3:4;return row<3?instrumentCommonColumnCount(row):row==5&&fmEditSupported(current()->type)?2:row==6?2:row==8?5:1;}
+int columns(int row){if(sid()&&row>=5)return row==5?3:row==6?3:4;return row<3?instrumentCommonColumnCount(row):row==5&&fmEditSupported(current()->type)?2:row==6?2:row==8?5:1;}
 void drawStatic(){instrumentCommonDrawStatic();gfxSetFgColor(appSettings.colorScheme.textDefault);gfxPrint(0,6,"Bank:");gfxPrint(0,7,"Preset");if(sid()){
  gfxPrint(0,9,"Wave/PW");gfxPrint(0,11,"Filter");gfxPrint(0,13,"ADSR");
  gfxSetFgColor(appSettings.colorScheme.textInfo);gfxPrint(0,10,"Tri Saw TS Pulse TP SP TSP Noise");
  gfxPrint(0,12,"Mode / Cutoff / Reso; max 4 notes");if(!sidWaveformBitmap)sidWaveformBitmap=gfxBitmapCreate(32,3);gfxClearRect(0,16,32,3);renderFMPreview(sidWaveformBitmap,current());gfxDrawBitmap(sidWaveformBitmap,0,16);return;
  }gfxPrint(0,9,"Fine ct");gfxPrint(0,11,"Mode");const char* mode=isOPLL(current()->type)?"2 operator":fourOp()?"4 operator":dx7()?"6 operator":current()->chip.opl.topology==OPLTopology::fourOperator?"4 operator":current()->chip.opl.topology==OPLTopology::dualVoice?"Dual voice":"2 operator";gfxPrint(9,11,mode);instrumentFMAmpDrawStatic();}
-void drawCursor(int col,int row){if(sid()&&row>=5){gfxCursor(sidX(col,row),sidY(row),row==5&&!col?5:4);return;}if(row==6){instrumentFMToneDrawCursor(col);return;}if(row>=7){instrumentFMAmpDrawCursor(col,row-7);return;}if(row<3)instrumentCommonDrawCursor(col,row);else if(row==5&&col==1)gfxCursor(16,9,4);else gfxCursor(9,row==3?6:row==4?7:9,row==5?4:28);}
+void drawCursor(int col,int row){if(sid()&&row==5&&col==2){gfxCursor(29,9,4);return;}if(sid()&&row>=5){gfxCursor(sidX(col,row),sidY(row),row==5&&!col?5:4);return;}if(row==6){instrumentFMToneDrawCursor(col);return;}if(row>=7){instrumentFMAmpDrawCursor(col,row-7);return;}if(row<3)instrumentCommonDrawCursor(col,row);else if(row==5&&col==1)gfxCursor(16,9,4);else gfxCursor(9,row==3?6:row==4?7:9,row==5?4:28);}
 void drawField(int col,int row,CellState state){
+ if(sid()&&row==5&&col==2){
+  gfxSetFgColor(state==CellState::focus?appSettings.colorScheme.textValue:appSettings.colorScheme.textInfo);
+  gfxClearRect(29,9,4,1);gfxPrint(29,9,"EDIT");return;
+ }
  if(sid()&&row>=5){
   int x=sidX(col,row),y=sidY(row);auto v=current()->chip.sid.value[sidField(col,row)];
   gfxSetFgColor(state==CellState::focus?appSettings.colorScheme.textValue:appSettings.colorScheme.textDefault);gfxClearRect(x,y,row==7?4:8,1);
@@ -226,6 +230,7 @@ void drawField(int col,int row,CellState state){
   instrumentFMRefreshStaticWaveform();
 }
 int onEdit(int col,int row,CellEditAction action){
+ if(sid()&&row==5&&col==2){screenSetup(&screenSIDEdit,cInstrument);return 1;}
  if(sid()&&row>=5){
   int field=sidField(col,row),max=field==sidWave?8:field==sidPulse?4095:field==sidCutoff?2047:field==sidFilterMode?7:15;
   int min=field==sidWave?1:0,step=max>255?128:max>15?16:1;
