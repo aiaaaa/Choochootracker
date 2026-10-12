@@ -136,6 +136,15 @@
       "sha256": "b68928c91302b8143da136da89bcd6d0930ea93bc1ecbf3ea6411ddbf1593280",
       "embedded_samples": 21,
       "bytes": 6194902
+    },
+    {
+      "file": "Decisive_Battle_NERV_FM.cct",
+      "device_source": "projects/Decisive_Battle_NERV_FM.cct",
+      "source_sha256": "029361173c3a6ad40923ec751609722be0d792866e07d426809f0066f082fb5b",
+      "sha256": "029361173c3a6ad40923ec751609722be0d792866e07d426809f0066f082fb5b",
+      "embedded_samples": 9,
+      "bytes": 532056
     }
-  ]
+  ],
+  "updated_on": "2026-10-12"
 }

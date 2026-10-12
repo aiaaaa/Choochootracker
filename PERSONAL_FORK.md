@@ -1,5 +1,21 @@
 # My R36H build
 
+## October 12 device evaluation
+
+Both personal targets now include today’s standalone SID preset editor
+(`f79a5fd`) and Beads granular insert (`3b84c30`), alongside merged PRs #61–63
+and main’s PortMaster key-capture fix (`7c3ed6f`). Beads exposes eight insert
+controls, including packed Shape/Freeze. The SID page edits owned instrument
+parameters and marks playback overrides.
+
+Audio controls, normalization and defaults remain stock main: 512 frames on
+PortMaster and 1024 on web. The evaluation installation sets the device to
+512 while retaining the previous settings in the verified rollback.
+Decisive Battle — NERV FM is added to the browser’s editable rough demos
+collection, with all nine samples embedded and existing browser edits preserved.
+The original song credits are retained in that collection. Validation and
+installation receipts identify the exact final source and binary.
+
 ## October 12 main harmonization
 
 Shared source incorporates upstream `0bffff9`, including merged PRs #61, #62

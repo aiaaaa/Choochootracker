@@ -485,5 +485,20 @@
       "application_builds": "Not started",
       "device_connection": "USB network interface absent after replug/reboot; SSH timed out"
     }
+  },
+  "evaluation_20261012": {
+    "upstream_commit": "7c3ed6f6255e8c1a4882796c4ae9b73b427d173f",
+    "included_features": {
+      "sid_editor": "f79a5fd0734170dca35e03644bc9a5891caae4b6",
+      "beads_insert": "3b84c30e79d1bb3c0b38dba0cdc83cfb2923e933"
+    },
+    "merged_prs": [
+      61,
+      62,
+      63
+    ],
+    "buffer_policy": "Stock upstream choices, normalization and defaults. Device evaluation settings reset to 512 frames; web uses stock 1024.",
+    "web_song": "rough demos/Decisive_Battle_NERV_FM.cct; nine embedded samples; owner-authorized web publication",
+    "status": "Integrated; combined native, ARM64 and web validation in progress"
   }
 }

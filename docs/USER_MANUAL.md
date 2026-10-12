@@ -30,6 +30,10 @@ scales while keeping its original aspect ratio.
 
 ### Web
 
+The personal web collection **Projects → rough demos** includes
+**Decisive_Battle_NERV_FM.cct**, with all nine PCM samples embedded.
+Its Genesis FM brass voices remain editable native instruments.
+
 The browser page follows the active tracker theme. Saved settings, including
 custom key mappings confirmed with **Done**, are written promptly to this
 browser's storage. After screen lock or switching apps, tap a control to recover
