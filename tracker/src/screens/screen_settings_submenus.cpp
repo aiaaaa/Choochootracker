@@ -163,6 +163,10 @@ static void graphicsField(int, int row, CellState state) {
   } else if (row == 5) {
     gfxSetFgColor(cs.textDefault); gfxPrint(0, 7, "Renderer");
     gfxSetFgColor(cs.textInfo); gfxPrint(23, 7, gfxGetRendererType());
+  } else if (row == 6) {
+    gfxSetFgColor(cs.textDefault); gfxPrint(0, 8, "Boot screen");
+    gfxSetFgColor(state == CellState::focus ? cs.textValue : cs.textDefault);
+    gfxPrint(23, 8, appSettings.bootScreenNight ? "Night   " : "Original");
   }
 }
 static void fontLoaded(const char* path) {
@@ -177,6 +181,14 @@ static void fontLoaded(const char* path) {
 }
 static void fontCancelled(void) { screenSetup(&screenGraphicsSettings, 0); }
 static int graphicsEdit(int, int row, CellEditAction action) {
+  if (row == 6) {
+    uint8_t value = appSettings.bootScreenNight;
+    if (action == CellEditAction::tap || action == CellEditAction::doubleTap) value ^= 1;
+    else if (!edit8noLast(action, &value, 1, 0, 1)) return 0;
+    appSettings.bootScreenNight = value;
+    if (settingsSave() != 0) screenMessage(MESSAGE_TIME, "Could not save boot screen");
+    return 1;
+  }
   if (row == 2) {
     uint8_t value = appSettings.persistentWaveform;
     if (action == CellEditAction::tap || action == CellEditAction::doubleTap) value ^= 1;
@@ -199,7 +211,7 @@ static int graphicsEdit(int, int row, CellEditAction action) {
   return 0;
 }
 static int graphicsCellValid(int, int) { return 1; }
-static ScreenData graphicsData = {6, 0, 0, 0, -1, 0, 0, 0, 0, ScreenPlaybackLevel::none, columnCount, graphicsStatic, graphicsCursor, NULL, noHeader, noHeader, graphicsField, graphicsEdit, NULL, NULL, graphicsCellValid, NULL};
+static ScreenData graphicsData = {7, 0, 0, 0, -1, 0, 0, 0, 0, ScreenPlaybackLevel::none, columnCount, graphicsStatic, graphicsCursor, NULL, noHeader, noHeader, graphicsField, graphicsEdit, NULL, NULL, graphicsCellValid, NULL};
 
 static int menuInput(ScreenData* data, int isKeyDown, int keys, int taps) { if (keys == keyOpt) { screenSetup(&screenSettings, 0); return 1; } return screenInput(data, isKeyDown, keys, taps); }
 static void audioRedraw(void) { displayedCpuLoad = -1; screenFullRedraw(&audioData); }

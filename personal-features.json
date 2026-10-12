@@ -6,6 +6,12 @@
   "update_policy": "Personal combines upstream main, my additions not yet incorporated upstream, and my experiments. Keep unmerged additions, including pending or declined submissions. Once incorporated upstream, replace my earlier implementation with the maintainer's merged version, including his fixes and changes; remove duplicate code and controls. Test, preserve user data, record commit, and retain rollback before installation.",
   "features": [
     {
+      "id": "night-title",
+      "title": "Optional mellow night boot screen using the original railway art",
+      "upstream_status": "personal experiment, local only; not deployed",
+      "integration_policy": "Keep Original as default and preserve original landscape seams and scroll timing. Night adds palette variants, a drifting Milky Way and occasional shooting stars. No generated scenery joins. Preserve this choice in device/browser settings."
+    },
+    {
       "id": "fonts-theme",
       "title": "Four font auditions and NostromoAmberDa2",
       "branch": "contribution/fonts-16x24",

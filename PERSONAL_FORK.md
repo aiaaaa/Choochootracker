@@ -1,5 +1,23 @@
 # My R36H build
 
+## Local night title (October 11)
+
+Graphics → Boot screen now saves Original/Night. Original remains the default.
+Night uses the original landscape and train silhouettes, seams and scroll
+speeds with a softer palette. Its entire sky is procedural: layered gas wisps,
+1,100 seeded stars, subtle twinkles and localized lavender highlights. The
+sky closes its four-minute orbit exactly; fourteen shooting stars appear per
+cycle. No generated landscape joins or static sky texture are used. The sky
+updates at 10 Hz, with the original scenery cadence retained.
+
+The contribution is isolated on `contribution/night-title` in `../night-title-pr`.
+Its three focused native tests pass (34 assertions), and native sky frames
+match the approved JavaScript preview byte for byte at four sampled phases.
+The isolated contribution browser build passed settings persistence and asset
+parity checks (all six scenery layers). Its sky clock is independent of the
+platform draw rate. No device installation or public web deployment has been performed.
+Hardware performance validation is pending.
+
 ## Two personal build targets
 
 `personal/r36h` is the common source for the **device personal build** (R36H)
