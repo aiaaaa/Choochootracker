@@ -19,3 +19,17 @@ TEST_CASE("Night galaxy evolves, caches frames and closes its orbit exactly") {
   CHECK(std::equal(first.begin(), first.end(), std::begin(second->pixels)));
   CHECK(std::all_of(first.begin(), first.end(), [](uint32_t p) { return (p >> 24) == 255; }));
 }
+
+TEST_CASE("Night galaxy spreads work over draws without mixing phases") {
+  auto expected = std::make_unique<TitleNightSky>();
+  REQUIRE(expected->render(6));
+  auto sliced = std::make_unique<TitleNightSky>();
+  for (int i = 0; i < 5; ++i) CHECK_FALSE(sliced->render(6 + i * 2, 38));
+  REQUIRE(sliced->render(16, 38));
+  CHECK(std::equal(std::begin(expected->pixels), std::end(expected->pixels), std::begin(sliced->pixels)));
+  REQUIRE(expected->render(18));
+  CHECK_FALSE(sliced->render(18, 75));
+  CHECK_FALSE(sliced->render(20, 75));
+  REQUIRE(sliced->render(22, 75));
+  CHECK(std::equal(std::begin(expected->pixels), std::end(expected->pixels), std::begin(sliced->pixels)));
+}

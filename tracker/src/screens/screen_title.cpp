@@ -9,6 +9,7 @@
 #include "screen_project.h"
 #include "corelib_gfx.h"
 #include "corelib_file.h"
+#include "corelib_mainloop.h"
 
 static GfxImage *sky, *scene, *foreground, *viaduct, *train, *logo;
 static GfxImage *mountains, *meteor;
@@ -127,7 +128,9 @@ static void drawNightSky(void) {
   // Keep the sky's timing consistent on both 30 Hz and 60 Hz platforms.
   const uint64_t skyFrame = std::chrono::duration_cast<std::chrono::milliseconds>(
     std::chrono::steady_clock::now() - skyStartedAt).count() * 60 / 1000;
-  if (nightSky->render(skyFrame)) gfxImageUpdateARGB(sky, nightSky->pixels);
+  const int slices = std::max(1, mainLoopGetTargetFps() / 10);
+  const int rows = (TitleNightSky::height + slices - 1) / slices;
+  if (nightSky->render(skyFrame, rows)) gfxImageUpdateARGB(sky, nightSky->pixels);
   gfxImageDrawCrop(sky, 0, 0, 256, 224, 0, 0);
   const int cycleFrame = (int)(skyFrame % 14400);
   struct ShootingStar { int start, x, y, dx, dy; };

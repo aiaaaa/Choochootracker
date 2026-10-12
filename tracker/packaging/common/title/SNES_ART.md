@@ -32,7 +32,9 @@ The sky is generated entirely from seeded, layered noise and 1,100 stars in
 `title_night_sky.h`, with ordered pixel dithering, subtle twinkles and localized
 lavender highlights. Three slow depth orbits and evolving gas wisps repeat
 exactly after four minutes. There is no static sky texture or generated seam.
-The 256×224 galaxy updates at 10 Hz through one reusable image upload; scenery
+The 256×224 galaxy targets 10 Hz through one reusable image upload. Pixel
+generation is spread across draws, with only finished images uploaded, avoiding
+a full galaxy calculation on any one animation frame; scenery
 and fourteen brief shooting stars per four-minute cycle retain the original
 title drawing cadence. `night_meteor.bmp` supplies the eight-color trail palette.
 All sky buffers are allocated when Night opens and released when leaving for
