@@ -1,7 +1,10 @@
 #include "doctest.h"
 
 #include <import/import_lsdj.h>
+#include <export/export_lsdj.h>
+#include <lsdj_format.h>
 #include <chipnomad_lib.h>
+#include <import/import_common.h>
 
 #include <cstdio>
 #include <cstring>
@@ -23,36 +26,6 @@ std::vector<uint8_t> makeSong() {
   return s;
 }
 
-// Compression: C0 runs, escaped C0/E0 and a jump to the next 512 byte block
-// every time a block is nearly full, like LSDj does.
-std::vector<uint8_t> compress(const std::vector<uint8_t>& song) {
-  std::vector<uint8_t> out;
-  size_t blockStart = 0, i = 0;
-  uint8_t block = 1;
-  while (i < song.size()) {
-    if (out.size() - blockStart > 500) {
-      out.push_back(0xE0);
-      out.push_back(block++);
-      while ((out.size() % 512) != 0) out.push_back(0xFF);
-      blockStart = out.size();
-    }
-    size_t run = 1;
-    while (i + run < song.size() && song[i + run] == song[i] && run < 255) run++;
-    if (run >= 4) {
-      out.insert(out.end(), {0xC0, song[i], (uint8_t)run});
-      i += run;
-    } else {
-      if (song[i] == 0xC0) out.push_back(0xC0);
-      if (song[i] == 0xE0) out.push_back(0xE0);
-      out.push_back(song[i]);
-      i++;
-    }
-  }
-  out.push_back(0xE0);
-  out.push_back(0xFF);
-  return out;
-}
-
 bool writeLsdsng(const char* path, const std::vector<uint8_t>& song, const char* name) {
   FILE* f = fopen(path, "wb");
   if (!f) return false;
@@ -60,8 +33,9 @@ bool writeLsdsng(const char* path, const std::vector<uint8_t>& song, const char*
   memcpy(header, name, strlen(name));
   header[8] = 18;
   fwrite(header, 1, 9, f);
-  auto c = compress(song);
-  fwrite(c.data(), 1, c.size(), f);
+  std::vector<uint8_t> c(LSDJ_MAX_BLOCKS * LSDJ_BLOCK_SIZE);
+  size_t n = lsdjCompress(song.data(), c.data());
+  fwrite(c.data(), 1, n, f);
   fclose(f);
   return true;
 }
@@ -84,7 +58,7 @@ TEST_CASE("imports song, chain, transpose, phrase notes and instruments") {
   uint8_t* in = &s[0x3080 + 2 * 16];
   in[0] = 0;                       // pulse
   in[1] = 0xA5;                    // volume A, decreasing, period 5
-  in[4] = 0xFF;                    // no sweep
+  in[4] = 0xDE;                    // sweep byte, ignored
   in[7] = 0x83;                    // 50% duty, left and right
   s[0x2040 + 4] = 1;               // instrument 4 allocated, noise, stable
   in = &s[0x3080 + 4 * 16];
@@ -117,6 +91,7 @@ TEST_CASE("imports song, chain, transpose, phrase notes and instruments") {
   CHECK(lead.chip.simpleChip.envelopeIncrease == 0);
   CHECK(lead.chip.simpleChip.envelopePeriod == 5);
   CHECK(lead.chip.simpleChip.sweepPeriod == 0);
+  CHECK(p.phrases[7].rows[0].volume == PHRASE_VOLUME_MAX);
   CHECK(lead.pan == 128);
 
   const Instrument& noise = p.instruments[4];
@@ -141,6 +116,85 @@ TEST_CASE("rejects files that are not LSDj songs") {
   remove(path);
   CHECK(projectLoadLSDJ(&p, "does_not_exist.lsdsng") != 0);
   projectFree(&p);
+}
+
+
+TEST_CASE("compression round trip, including escaped bytes and runs") {
+  std::vector<uint8_t> song(SONG_SIZE);
+  for (size_t i = 0; i < song.size(); i++) song[i] = (uint8_t)((i * 7919) >> 3);
+  song[100] = 0xC0; song[101] = 0xE0; song[102] = 0xC0; song[103] = 0xC0;
+  memset(&song[5000], 0xAB, 700);
+  std::vector<uint8_t> packed(LSDJ_MAX_BLOCKS * LSDJ_BLOCK_SIZE);
+  size_t n = lsdjCompress(song.data(), packed.data());
+  REQUIRE(n > 0);
+  CHECK(n % LSDJ_BLOCK_SIZE == 0);
+  std::vector<uint8_t> back(SONG_SIZE);
+  REQUIRE(lsdjDecompress(packed.data(), n, back.data()));
+  CHECK(back == song);
+}
+
+TEST_CASE("export into a template, then import again") {
+  auto s = makeSong();
+  memcpy(&s[0x6000], "WAVEDATA", 8); // template content outside the song stays
+  const char* tpl = "test_export_lsdj_template.lsdsng";
+  const char* out = "test_export_lsdj_out.lsdsng";
+  REQUIRE(writeLsdsng(tpl, s, "TEMPLATE"));
+
+  Project p;
+  projectInit(&p);
+  strcpy(p.title, "My song");
+  p.tickRate = 60.0f;
+  p.song[0][0] = 5;
+  p.song[1][3] = 6;
+  p.song[2][4] = 7; // fifth track: dropped
+  chainClear(&p.chains[5]);
+  p.chains[5].rows[0].phrase = 9;
+  p.chains[5].rows[0].transpose = 0xFE;
+  phraseClear(&p.phrases[9]);
+  for (int r = 0; r < 16; r++) initEmptyPhraseRow(&p.phrases[9].rows[r]);
+  p.phrases[9].rows[0].note = 30;   // index 30 = LSDj note 7
+  p.phrases[9].rows[0].instrument = 3;
+  p.phrases[9].rows[2].note = 0;    // below the LSDj range: clamped to 1
+  p.phrases[9].rows[2].instrument = 3;
+  getInstrumentFunctions(InstrumentType::GBPulse).init(&p.instruments[3]);
+  p.instruments[3].chip.simpleChip.mode = 3;
+  p.instruments[3].chip.simpleChip.envelopeInitial = 12;
+  p.instruments[3].chip.simpleChip.envelopeIncrease = 1;
+  p.instruments[3].chip.simpleChip.envelopePeriod = 2;
+  snprintf(p.instruments[3].name, sizeof(p.instruments[3].name), "Lead 1");
+
+  REQUIRE(projectExportLSDJ(&p, tpl, out) == 0);
+
+  Project q;
+  projectInit(&q);
+  REQUIRE(projectLoadLSDJ(&q, out) == 0);
+  CHECK(strcmp(q.title, "MYSONG") == 0);
+  CHECK(q.tickRate == doctest::Approx(60.0f));
+  CHECK(q.song[0][0] == 5);
+  CHECK(q.song[1][3] == 6);
+  CHECK(q.song[2][4] == EMPTY_VALUE_16);
+  CHECK(q.chains[5].rows[0].phrase == 9);
+  CHECK((int8_t)q.chains[5].rows[0].transpose == -2);
+  CHECK(q.phrases[9].rows[0].note == 30);
+  CHECK(q.phrases[9].rows[0].instrument == 3);
+  CHECK(q.phrases[9].rows[1].note == EMPTY_VALUE_8);
+  CHECK(q.phrases[9].rows[2].note == 24);
+  CHECK(q.instruments[3].type == InstrumentType::GBPulse);
+  CHECK(strcmp(q.instruments[3].name, "LEAD") == 0);
+  CHECK(q.instruments[3].chip.simpleChip.mode == 3);
+  CHECK(q.instruments[3].chip.simpleChip.envelopeInitial == 12);
+  CHECK(q.instruments[3].chip.simpleChip.envelopeIncrease == 1);
+  CHECK(q.instruments[3].chip.simpleChip.envelopePeriod == 2);
+
+  // A chain above LSDj's 128 makes the export fail
+  p.song[3][0] = 130;
+  CHECK(projectExportLSDJ(&p, tpl, out) != 0);
+  CHECK(projectExportLSDJ(&p, "does_not_exist.lsdsng", out) != 0);
+
+  remove(tpl);
+  remove(out);
+  projectFree(&p);
+  projectFree(&q);
 }
 
 }

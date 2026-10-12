@@ -12,8 +12,9 @@ extern "C" {
 // chains (with transpose) and phrases (note, instrument number) keep the same
 // indices as in the LSDj file. LSDj channels PU1, PU2, WAV and NOI become
 // tracks 1-4. Pulse and noise instruments become GB Pulse and GB Noise with
-// their duty, envelope, sweep, stability and panning; wave instruments become
-// an aChChid square and kits a default GB Noise. Phrase commands (FX), tables,
+// their duty, envelope, stability and panning (the pulse sweep is not
+// imported); every note gets full volume. Wave instruments become the GB Pulse
+// Hollow Lead preset and kits a default GB Noise. Phrase commands (FX), tables,
 // grooves, wave frames, kit samples and synth settings are ignored. The tempo
 // is converted to the tick rate with a 6-tick groove.
 // The destination must be initialized with projectInit/projectInitAY first.

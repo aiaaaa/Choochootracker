@@ -2,90 +2,11 @@
 #include <project_utils.h>
 #include "import_lsdj.h"
 #include "import_common.h"
+#include <lsdj_format.h>
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-// Layout of the decompressed 32 KB LSDj song (as documented by liblsdj, MIT).
-#define LSDJ_SONG_SIZE 0x8000
-#define LSDJ_BLOCK_SIZE 0x200
-#define LSDJ_HEADER_SIZE 9 // 8 bytes of name, 1 byte of format version
-#define LSDJ_NAME_SIZE 8
-#define LSDJ_MAX_FILE_SIZE (LSDJ_HEADER_SIZE + 192 * LSDJ_BLOCK_SIZE)
-
-#define LSDJ_PHRASE_NOTES 0x0000      // 255 phrases x 16 bytes, 0 = empty
-#define LSDJ_INSTRUMENT_NAMES 0x1E7A  // 64 x 5 bytes
-#define LSDJ_SONG_ROWS 0x1290         // 256 rows x 4 channels, 0xFF = empty
-#define LSDJ_INSTRUMENT_ALLOC 0x2040  // 64 flags
-#define LSDJ_CHAIN_PHRASES 0x2080     // 128 chains x 16 bytes, 0xFF = empty
-#define LSDJ_CHAIN_TRANSPOSE 0x2880   // 128 chains x 16 bytes, signed
-#define LSDJ_INSTRUMENT_PARAMS 0x3080 // 64 x 16 bytes
-#define LSDJ_TEMPO 0x3FB4
-#define LSDJ_PHRASE_INSTRUMENTS 0x7000 // 255 phrases x 16 bytes, 0xFF = none
-
-#define LSDJ_PHRASES 255
-#define LSDJ_CHAINS 128
-#define LSDJ_INSTRUMENTS 64
-#define LSDJ_CHANNELS 4
-#define LSDJ_ROWS 256
-#define LSDJ_INSTRUMENT_SIZE 16
-#define LSDJ_INSTRUMENT_NAME_SIZE 5
-
-enum { LSDJ_PULSE = 0, LSDJ_WAVE = 1, LSDJ_KIT = 2, LSDJ_NOISE = 3 };
-
-// LSDj note 1 is its lowest note, C-3, about 65.4 Hz (MIDI 36). Pitch table
-// index N is MIDI note 12+N, as in import_midi.cpp.
-#define LSDJ_NOTE_INDEX_OFFSET 23
-
-// LSDj compression: 0xC0 is a run (C0 value count) or a literal C0 (C0 C0);
-// 0xE0 is a special code: E0 E0 literal E0, E0 FF end of data, E0 F0 n and
-// E0 F1 n repeat the default wave (16 bytes) or instrument (16 bytes) n
-// times, any other E0 n jumps to the start of the next 512 byte block.
-static const uint8_t DEFAULT_WAVE[16] = {0x8E, 0xCD, 0xEF, 0xFF, 0xFF, 0xEE, 0xDC, 0xBA, 0x98, 0x76, 0x54, 0x32, 0x11, 0x10, 0x01, 0x23};
-static const uint8_t DEFAULT_INSTRUMENT[16] = {0xA8, 0, 0, 0xFF, 0, 0, 3, 0, 0, 0xD0, 0, 0, 0, 0xF3, 0, 0};
-
-static bool lsdjDecompress(const uint8_t* in, size_t size, uint8_t* out) {
-  size_t i = 0, n = 0;
-  while (i < size) {
-    uint8_t b = in[i++];
-    if (b == 0xC0) {
-      if (i >= size) return false;
-      uint8_t v = in[i++];
-      if (v == 0xC0) {
-        if (n >= LSDJ_SONG_SIZE) return false;
-        out[n++] = 0xC0;
-      } else {
-        if (i >= size) return false;
-        size_t count = in[i++];
-        if (n + count > LSDJ_SONG_SIZE) return false;
-        memset(out + n, v, count);
-        n += count;
-      }
-    } else if (b == 0xE0) {
-      if (i >= size) return false;
-      uint8_t v = in[i++];
-      if (v == 0xE0) {
-        if (n >= LSDJ_SONG_SIZE) return false;
-        out[n++] = 0xE0;
-      } else if (v == 0xFF) {
-        return n == LSDJ_SONG_SIZE;
-      } else if (v == 0xF0 || v == 0xF1) {
-        if (i >= size) return false;
-        size_t count = in[i++];
-        if (n + count * 16 > LSDJ_SONG_SIZE) return false;
-        for (size_t k = 0; k < count; k++) memcpy(out + n + k * 16, v == 0xF0 ? DEFAULT_WAVE : DEFAULT_INSTRUMENT, 16);
-        n += count * 16;
-      } else {
-        i = (i + LSDJ_BLOCK_SIZE - 1) / LSDJ_BLOCK_SIZE * LSDJ_BLOCK_SIZE;
-      }
-    } else {
-      if (n >= LSDJ_SONG_SIZE) return false;
-      out[n++] = b;
-    }
-  }
-  return false;
-}
 
 static void copyName(char* dest, size_t destSize, const uint8_t* src, size_t srcSize) {
   size_t len = 0;
@@ -123,14 +44,9 @@ static void convertInstrument(Instrument* inst, const uint8_t* src) {
       InstrumentSimpleChip* s = &inst->chip.simpleChip;
       s->mode = src[7] >> 6; // 12.5%, 25%, 50%, 75%
       convertEnvelope(s, src[1]);
-      uint8_t sweep = src[4]; // NR10, 0xFF means no sweep
-      if (sweep == 0xFF) {
-        s->sweepPeriod = s->sweepShift = s->sweepNegate = 0;
-      } else {
-        s->sweepPeriod = (sweep >> 4) & 7;
-        s->sweepNegate = (sweep >> 3) & 1;
-        s->sweepShift = sweep & 7;
-      }
+      // The pulse sweep byte is not imported: read as a Game Boy NR10 it
+      // detunes the notes.
+      s->sweepPeriod = s->sweepShift = s->sweepNegate = 0;
       inst->pan = convertPan(src[7]);
       break;
     }
@@ -142,9 +58,8 @@ static void convertInstrument(Instrument* inst, const uint8_t* src) {
       inst->pan = convertPan(src[7]);
       break;
     }
-    case LSDJ_WAVE: {
-      getInstrumentFunctions(InstrumentType::AChChid).init(inst);
-      inst->chip.achchid.wave = AChChidWave::square;
+    case LSDJ_WAVE: { // the wave frames are not converted: Hollow Lead stands in
+      getInstrumentFunctions(InstrumentType::GBPulse).init(inst);
       inst->pan = convertPan(src[7]);
       break;
     }
@@ -167,7 +82,7 @@ int projectLoadLSDJ(Project* project, const char* path) {
   fseek(f, 0, SEEK_END);
   long size = ftell(f);
   fseek(f, 0, SEEK_SET);
-  if (size <= LSDJ_HEADER_SIZE || size > LSDJ_MAX_FILE_SIZE) {
+  if (size < LSDJ_MIN_FILE_SIZE || size > LSDJ_MAX_FILE_SIZE) {
     fclose(f);
     snprintf(projectFileError, 40, "Not a valid LSDj song");
     return 1;
@@ -184,7 +99,7 @@ int projectLoadLSDJ(Project* project, const char* path) {
   uint8_t* data = (uint8_t*)malloc(LSDJ_SONG_SIZE);
   bool ok = data && lsdjDecompress(file + LSDJ_HEADER_SIZE, size - LSDJ_HEADER_SIZE, data);
   // Both memory markers "rb" must be where LSDj puts them.
-  ok = ok && data[0x1E78] == 'r' && data[0x1E79] == 'b' && data[0x3E80] == 'r' && data[0x3E81] == 'b';
+  ok = ok && data[LSDJ_MARKER1] == 'r' && data[LSDJ_MARKER1 + 1] == 'b' && data[LSDJ_MARKER2] == 'r' && data[LSDJ_MARKER2 + 1] == 'b';
   if (!ok) {
     free(data);
     free(file);
@@ -231,6 +146,7 @@ int projectLoadLSDJ(Project* project, const char* path) {
       int index = LSDJ_NOTE_INDEX_OFFSET + note;
       if (p.pitchTable.length > 0 && index >= p.pitchTable.length) index = p.pitchTable.length - 1;
       dest->note = (uint8_t)index;
+      dest->volume = PHRASE_VOLUME_MAX; // LSDj has no note volume: full level
       uint8_t inst = data[LSDJ_PHRASE_INSTRUMENTS + ph * 16 + s];
       if (inst < LSDJ_INSTRUMENTS && inst < PROJECT_MAX_INSTRUMENTS) {
         dest->instrument = inst;

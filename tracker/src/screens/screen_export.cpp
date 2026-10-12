@@ -41,6 +41,14 @@ static int currentSampleRateIndex = 0;
 static int currentBitDepthIndex = 0;
 int startRow = 0;
 
+#ifdef EXPORT_HAS_LSDJ
+#include "export/export_lsdj.h"
+// LSDj export (desktop and Android): an existing .lsdsng is the template.
+static char lsdjTemplatePath[1024] = "";
+static void lsdjRunExport(void);
+static void lsdjPickTemplate(void);
+#endif
+
 #ifdef DESKTOP_BUILD
 // M8S export (desktop only): the .m8s used as a template for everything the
 // tracker cannot express. Remembered for the session; cleared with EDIT+OPT.
@@ -179,6 +187,10 @@ int exportCommonColumnCount(int row) {
   } else if (row == 6) {
     return 1;
 #endif
+#ifdef EXPORT_HAS_LSDJ
+  } else if (row == EXPORT_ROW_LSDJ) {
+    return 1;
+#endif
   }
   return 0;
 }
@@ -204,6 +216,9 @@ void exportCommonDrawStatic(void) {
 #ifdef DESKTOP_BUILD
   gfxPrint(0, 9, "M8S");
 #endif
+#ifdef EXPORT_HAS_LSDJ
+  gfxPrint(0, EXPORT_ROW_LSDJ + 3, "LSDJ");
+#endif
 }
 
 void exportCommonDrawCursor(int col, int row) {
@@ -226,6 +241,10 @@ void exportCommonDrawCursor(int col, int row) {
 #ifdef DESKTOP_BUILD
   } else if (row == 6) {
     gfxCursor(13, 9, 26);
+#endif
+#ifdef EXPORT_HAS_LSDJ
+  } else if (row == EXPORT_ROW_LSDJ) {
+    gfxCursor(13, EXPORT_ROW_LSDJ + 3, 26);
 #endif
   }
 }
@@ -277,6 +296,21 @@ void exportCommonDrawField(int col, int row, CellState state) {
       }
     } else {
       gfxPrint(13, 9, "Choose template");
+    }
+#endif
+#ifdef EXPORT_HAS_LSDJ
+  } else if (row == EXPORT_ROW_LSDJ) {
+    const int line = EXPORT_ROW_LSDJ + 3;
+    gfxClearRect(13, line, 26, 1);
+    if (lsdjTemplatePath[0]) {
+      int len = strlen(lsdjTemplatePath);
+      if (len > 26) {
+        gfxPrintf(13, line, "...%.23s", lsdjTemplatePath + len - 23);
+      } else {
+        gfxPrintf(13, line, "%s", lsdjTemplatePath);
+      }
+    } else {
+      gfxPrint(13, line, "Choose template");
     }
 #endif
   }
@@ -395,6 +429,45 @@ static void m8sRunExport(void) {
 }
 #endif // DESKTOP_BUILD
 
+#ifdef EXPORT_HAS_LSDJ
+static void lsdjTemplatePicked(const char* path) {
+  strncpy(lsdjTemplatePath, path, sizeof(lsdjTemplatePath) - 1);
+  lsdjTemplatePath[sizeof(lsdjTemplatePath) - 1] = 0;
+  screenSetup(&screenExport, 0);
+  lsdjRunExport();
+}
+
+static void lsdjPickCancelled(void) {
+  screenSetup(&screenExport, 0);
+}
+
+static void lsdjPickTemplate(void) {
+  screenMessage(MESSAGE_TIME, "Pick an .lsdsng file as template");
+  fileBrowserSetup("LSDJ TEMPLATE", ".lsdsng", appSettings.projectPath, lsdjTemplatePicked, lsdjPickCancelled);
+  screenSetup(&screenFileBrowser, 0);
+}
+
+static void lsdjRunExport(void) {
+  if (exportEnsureProjectDir() != 0) {
+    screenMessage(MESSAGE_TIME_ERROR, "Cannot create export folder");
+    return;
+  }
+  char exportPath[1024];
+  generateExportPath(exportPath, sizeof(exportPath), "lsdsng");
+  if (projectExportLSDJ(&chipnomadState->project, lsdjTemplatePath, exportPath) == 0) {
+    screenMessage(MESSAGE_TIME, "Exported %s", exportPath);
+#ifdef ANDROID_BUILD
+    fileExportDocument(exportPath, "application/octet-stream");
+#endif
+  } else {
+    // A bad template is forgotten so the next tap asks for another one
+    lsdjTemplatePath[0] = 0;
+    screenMessage(MESSAGE_TIME_ERROR, "%s", projectExportLSDJError);
+    fullRedraw();
+  }
+}
+#endif // EXPORT_HAS_LSDJ
+
 int exportCommonOnEdit(int col, int row, CellEditAction action) {
   int handled = 0;
 
@@ -504,6 +577,19 @@ int exportCommonOnEdit(int col, int row, CellEditAction action) {
     } else if (action == CellEditAction::tap || action == CellEditAction::doubleTap) {
       if (m8sTemplatePath[0]) m8sRunExport();
       else m8sPickTemplate();
+      handled = 1;
+    }
+#endif
+#ifdef EXPORT_HAS_LSDJ
+  } else if (row == EXPORT_ROW_LSDJ) {
+    if (currentExporter) return 1;
+    if (action == CellEditAction::clear) {
+      lsdjTemplatePath[0] = 0;
+      screenMessage(MESSAGE_TIME, "LSDj template cleared");
+      handled = 1;
+    } else if (action == CellEditAction::tap || action == CellEditAction::doubleTap) {
+      if (lsdjTemplatePath[0]) lsdjRunExport();
+      else lsdjPickTemplate();
       handled = 1;
     }
 #endif
