@@ -142,15 +142,18 @@
       fs.mkdirTree('/user/instruments/USER');
       fs.mkdirTree('/user/instruments/banks');
     };
-    const seedRoughDemos = (fs, source = '/.project-seeds/roughdemos', target = '/user/projects/rough demos') => {
-      fs.mkdirTree(target);
-      for (const name of fs.readdir(source)) {
-        if (name.startsWith('.')) continue;
-        const from = source + '/' + name, to = target + '/' + name;
-        if (fs.isDir(fs.stat(from).mode)) seedRoughDemos(fs, from, to);
-        else if (name.endsWith('.cct') && !fs.analyzePath(to).exists)
-          fs.writeFile(to, fs.readFile(from));
+    const migrateProjectLibraryPath = (fs) => {
+      const marker = '/user/.project-library-root-v1';
+      if (fs.analyzePath(marker).exists) return;
+      if (fs.analyzePath('/user/settings.txt').exists) {
+        const settings = fs.readFile('/user/settings.txt', {encoding: 'utf8'});
+        fs.writeFile('/user/settings.txt', settings.replace(
+          /^projectPath: \/user\/projects(?:\/rough ?demos(?:\/[^\r\n]*)?)?\r?$/m,
+          'projectPath: /projects'));
       }
+      // Only the initial browser location changes. Keep old saved demos and
+      // subsequent folder choices intact; bundled demos refresh in /projects.
+      fs.writeFile(marker, '1\n');
     };
     const syncUserStorage = (done) => {
       const fs = getFs();
@@ -217,6 +220,7 @@
         FS.syncfs(true, (error) => {
           if (error) status.textContent = 'Browser storage could not be opened.';
           ensureUserDirectories(FS);
+          migrateProjectLibraryPath(FS);
           FS.syncfs(false, (saveError) => {
             if (saveError) status.textContent = 'Browser storage could not be initialized.';
             removeRunDependency('choochootracker-user-storage');
@@ -226,22 +230,6 @@
       window.Module.onAbort = () => { status.textContent = 'Tracker startup failed.'; };
       window.Module.onRuntimeInitialized = () => {
         status.textContent = '';
-        // Preloaded assets are ready now. Seed editable copies only after IDBFS
-        // has loaded, preserving each browser's existing projects and edits.
-        try {
-          const fs = getFs();
-          const oldPath = '/user/projects/roughdemos', newPath = '/user/projects/rough demos';
-          if (fs.analyzePath(oldPath).exists && !fs.analyzePath(newPath).exists) {
-            fs.rename(oldPath, newPath);
-            if (fs.analyzePath('/user/settings.txt').exists) {
-              const settings = fs.readFile('/user/settings.txt', {encoding: 'utf8'});
-              fs.writeFile('/user/settings.txt', settings.replace(
-                /^(projectPath: \/user\/projects\/)roughdemos(?=\/|\r?$)/m, '$1rough demos'));
-            }
-          }
-          seedRoughDemos(fs);
-          syncUserStorage();
-        } catch (_) { status.textContent = 'Could not add rough demos to browser storage.'; }
         fileControls.forEach((button) => { button.disabled = false; });
         setInterval(() => syncUserStorage(), 10000);
       };

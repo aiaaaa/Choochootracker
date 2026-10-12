@@ -215,14 +215,18 @@ The conversion uses the same project I/O implementation as the installed device.
 Private preset collections are not included. Retained source credits accompany
 Blue Hour and Low Water.
 
-Only Makefile.web preloads this folder, at hidden `/.project-seeds/roughdemos`.
-Once preload and IDBFS restoration finish, the wrapper copies missing `.cct`
-files into `/user/projects/rough demos`, then flushes storage. Existing copies,
-settings and Continue are never replaced. Older `roughdemos` folders are renamed without changing song bytes. Use Project → Load → [rough demos]
-(under `/user/projects`) to edit and save these persistent working copies.
-Anyone with the public URL receives the starting songs; subsequent edits stay
-in that browser. New filenames arrive on the next load; updates to an existing
-bundled filename do not overwrite a user's saved version. Download `.cct` backups.
+Only Makefile.web preloads this folder, directly at `/projects/rough demos`.
+The Project Load browser defaults to `/projects`, beside the existing examples.
+A one-time browser migration redirects the former default or rough-demos browser
+location to `/projects`; later folder choices are retained. Existing saved copies
+under `/user/projects/roughdemos` or `/user/projects/rough demos` are untouched,
+as are Continue, settings unrelated to that path, and private presets.
+No new working copies are seeded into `/user/projects`.
+
+The public bundled collection refreshes on reload, so updates to an existing
+filename are visible immediately. Decisive Battle revision 2 replaces the first
+revision with simpler E-minor FM brass and on-beat phrasing. To keep edits to a
+bundled project, download its `.cct` or save under `/user/projects` (IDBFS).
 
 ## Browser presentation
 

@@ -1,5 +1,11 @@
 DECISIVE BATTLE - NERV FM
 
+REVISION 2: revoiced the brass in E minor, removed the Bb/B cluster and
+F-major response, and replaced rapid double hits with two to four on-beat
+attacks per bar. Longer notes, a simpler horn lead, softer FM brightness,
+no FM detuning or horn delay, and no high-octave brass jumps.
+The Mac song/preview and handheld song replace revision 1 at the same names.
+
 A 150 BPM, eight-track remix of Shiro Sagisu's Evangelion cue.
 80 bars / 2:08, plus a two-second audio-preview tail.
 
@@ -24,12 +30,12 @@ Each Song row is an eight-bar section (12.8 seconds):
 00 Timpani mobilization
 01 FM brass entrance
 02 Breakbeat assault
-03 Brass octave variation
+03 Steady brass variation
 04 Half-time horn lead
 05 Command-room breakdown
 06 Rebuild
 07 Final assault
-08 High brass return
+08 Brass return
 09 Withdrawal / final hit / stop
 
 The arrangement is a reinterpretation, not an exact orchestral transcription.

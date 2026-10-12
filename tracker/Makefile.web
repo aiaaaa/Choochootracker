@@ -21,7 +21,7 @@ WEB_PRELOAD = $(foreach dir,$(WEB_DATA_DIRS),--preload-file packaging/common/$(d
 	--preload-file packaging/common/projects/maple-leaf-rag.cct@/projects/maple-leaf-rag.cct \
 	--preload-file "packaging/common/projects/psy.cct@/projects/psy.cct" \
 	--preload-file "packaging/common/projects/alf dance.cct@/projects/alf dance.cct" \
-	--preload-file packaging/web/roughdemos@/.project-seeds/roughdemos
+	--preload-file "packaging/web/roughdemos@/projects/rough demos"
 WEB_LDFLAGS = -sUSE_SDL=2 -sALLOW_MEMORY_GROWTH=1 -sINITIAL_MEMORY=256MB \
 	-sASYNCIFY=1 \
 	-sFORCE_FILESYSTEM=1 -sNO_EXIT_RUNTIME=1 -sEXPORTED_RUNTIME_METHODS=ccall,FS \

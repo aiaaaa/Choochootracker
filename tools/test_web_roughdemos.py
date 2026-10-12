@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check bundled device songs and non-destructive browser seeding in isolated Chrome.
+"""Check initialized project demos, refresh and saved-copy preservation in isolated Chrome.
 Uses the same optional Playwright environment as test_web_presentation.py.
 Set WEB_THEME_TEST_URL to verify the deployed collection instead of local dist.
 """
@@ -63,8 +63,11 @@ with sync_playwright() as playwright:
         assert not page.evaluate("FS.analyzePath('/bundled-projects').exists")
         assert page.evaluate("Module.ccall('webSaveBrowserState','number',[],[])") == 0
         assert b'bootScreenNight: 1\n' in read('/user/settings.txt')
+        assert b'projectPath: /projects\n' in read('/user/settings.txt')
+        assert not page.evaluate("FS.analyzePath('/user/projects/rough demos').exists")
+        assert not page.evaluate("FS.analyzePath('/.project-seeds').exists")
         for record in records:
-            path = '/user/projects/rough demos/' + record['file']
+            path = '/projects/rough demos/' + record['file']
             assert digest(path) == record['sha256'], path
             assert page.evaluate("path => Module.ccall('webLoadProject','number',['string'],[path])", path) == 0, path
             assert page.evaluate("Module.ccall('webSaveProject','number',['string'],['/user/exports/roundtrip.cct'])") == 0
@@ -78,55 +81,54 @@ with sync_playwright() as playwright:
             if embedded:
                 with zipfile.ZipFile(collection / record['file']) as original:
                     assert embedded == {name: original.read(name) for name in original.namelist() if name.startswith('samples/')}, path
-        print(f"All {len(records)} seeded projects loaded and saved with every embedded sample intact", flush=True)
+        print(f"All {len(records)} bundled projects loaded and saved with every embedded sample intact", flush=True)
 
-        # Save a different valid project over a seeded filename. A later load
-        # must preserve this edit as well as Continue and private preset data.
+        # Simulate an older profile: edited persistent demo and Continue must
+        # survive, while the browser moves to the current bundled library once.
         changed = '/user/projects/rough demos/' + records[0]['file']
-        assert page.evaluate("Module.ccall('webLoadProject','number',['string'],['/user/projects/rough demos/Left-Right-Stereo-Test.cct'])") == 0
+        page.evaluate("path => FS.mkdirTree(path.slice(0,path.lastIndexOf('/')))", changed)
+        assert page.evaluate("path => Module.ccall('webLoadProject','number',['string'],[path])",
+                             '/projects/rough demos/Left-Right-Stereo-Test.cct') == 0
         assert page.evaluate("path => Module.ccall('webSaveProject','number',['string'],[path])", changed) == 0
         assert page.evaluate("Module.ccall('webSaveBrowserState','number',[],[])") == 0
         changed_hash = digest(changed)
         assert changed_hash != records[0]['sha256']
         continue_hash = digest('/user/autosave.cct')
-        page.evaluate("FS.mkdirTree('/user/instruments/USER/sid'); FS.writeFile('/user/instruments/USER/sid/test-user-data.txt','keep private');")
+        bundled = '/projects/rough demos/' + records[0]['file']
+        page.evaluate("([from,to]) => FS.writeFile(to,FS.readFile(from))", [changed,bundled])
+        assert digest(bundled) == changed_hash
+        page.evaluate("""() => {
+            FS.mkdirTree('/user/instruments/USER/sid');
+            FS.writeFile('/user/instruments/USER/sid/test-user-data.txt','keep private');
+            FS.unlink('/user/.project-library-root-v1');
+            let settings = FS.readFile('/user/settings.txt', {encoding:'utf8'});
+            FS.writeFile('/user/settings.txt', settings.replace(
+                /^projectPath:.*$/m, 'projectPath: /user/projects/rough demos'));
+        }""")
         flush()
         page.reload()
         ready()
         assert digest(changed) == changed_hash
         assert digest('/user/autosave.cct') == continue_hash
         assert read('/user/instruments/USER/sid/test-user-data.txt') == b'keep private'
-        assert digest('/user/projects/rough demos/' + records[-1]['file']) == records[-1]['sha256']
-        # Model an older profile with edited demos and an Original boot choice.
-        # The folder moves without losing edits, and Night applies only once.
+        assert digest(bundled) == records[0]['sha256']
+        assert b'projectPath: /projects\n' in read('/user/settings.txt')
+        for record in records:
+            assert digest('/projects/rough demos/' + record['file']) == record['sha256']
+        # A later deliberate location choice must not be redirected repeatedly.
         page.evaluate("""() => {
-            FS.rename('/user/projects/rough demos', '/user/projects/roughdemos');
+            FS.mkdirTree('/user/projects/my songs');
             let settings = FS.readFile('/user/settings.txt', {encoding:'utf8'});
-            settings = settings.replace(/^personalNightDefault:.*\\n/m, '')
-                .replace(/^bootScreenNight:.*$/m, 'bootScreenNight: 0')
-                .replace(/^projectPath:.*$/m, 'projectPath: /user/projects/roughdemos');
-            FS.writeFile('/user/settings.txt', settings);
+            FS.writeFile('/user/settings.txt', settings.replace(
+                /^projectPath:.*$/m, 'projectPath: /user/projects/my songs'));
         }""")
         flush()
         page.reload()
         ready()
-        assert not page.evaluate("FS.analyzePath('/user/projects/roughdemos').exists")
-        assert digest(changed) == changed_hash
-        settings = read('/user/settings.txt')
-        assert b'bootScreenNight: 1\n' in settings
-        assert b'personalNightDefault: 1\n' in settings
-        assert b'projectPath: /user/projects/rough demos\n' in settings
-        page.evaluate("""() => {
-            let settings = FS.readFile('/user/settings.txt', {encoding:'utf8'});
-            FS.writeFile('/user/settings.txt', settings.replace(/^bootScreenNight:.*$/m, 'bootScreenNight: 0'));
-        }""")
-        flush()
-        page.reload()
-        ready()
-        assert b'bootScreenNight: 0\n' in read('/user/settings.txt')
+        assert b'projectPath: /user/projects/my songs\n' in read('/user/settings.txt')
         assert digest(changed) == changed_hash
         assert not errors, errors
-        print('Frameless canvas, one-time Night default, legacy folder migration and later Original choice passed; edited songs, Continue and private data preserved', flush=True)
+        print('Initialized /projects library, bundled refresh and one-time location migration passed; edited songs, Continue and private data preserved', flush=True)
     finally:
         browser.close()
         server.shutdown()

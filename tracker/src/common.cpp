@@ -107,7 +107,7 @@ void initDefaultAppSettings(void) {
   appSettings.themeName[THEME_NAME_LENGTH] = '\0';
   appSettings.projectFilename[0] = '\0';
 #ifdef WEB_BUILD
-  strncpy(appSettings.projectPath, "/user/projects", PATH_LENGTH);
+  strncpy(appSettings.projectPath, "/projects", PATH_LENGTH);
   strncpy(appSettings.samplePath, "/user/samples", PATH_LENGTH);
   strncpy(appSettings.ayWavetablePath, "/AY_wavetables", PATH_LENGTH);
   strncpy(appSettings.scwfPath, "/waveforms", PATH_LENGTH);

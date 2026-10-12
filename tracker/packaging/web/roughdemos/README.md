@@ -13,7 +13,13 @@ Already embedded archives and songs without external samples are unchanged.
 `collection.json` records source/output hashes and embedded sample counts.
 Existing Blue Hour and Low Water source notes are retained in their folders.
 
-The web wrapper copies missing projects into /user/projects/roughdemos.
-Existing user edits, settings, private presets and Continue are preserved.
+The web bundle loads these projects directly at `/projects/rough demos`, next
+to the existing initialized examples. Reloading gets the latest bundled songs.
+Older saved copies under `/user/projects` remain intact; new copies are no longer
+seeded there. Download edited projects or save them under `/user/projects` for
+persistence. Settings, private presets and Continue are preserved.
 This is a public starting collection, not automatic device/browser sync.
 No private USER preset packs are included. Native app packaging is unchanged.
+
+Decisive Battle revision 2 uses simpler E-minor FM brass, longer notes and
+on-beat attacks, replacing the first revision at the same bundled filename.
