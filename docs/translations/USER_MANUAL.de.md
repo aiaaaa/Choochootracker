@@ -1,6 +1,6 @@
 # ChooChooTracker Benutzerhandbuch
 
-> Deutsche Übersetzung von [`docs/USER_MANUAL.md`](../USER_MANUAL.md), erstellt nach der englischen Fassung im Commit `0bffff9`. Bei Abweichungen gilt die englische Fassung.
+> Deutsche Übersetzung von [`docs/USER_MANUAL.md`](../USER_MANUAL.md), erstellt nach der englischen Fassung im Commit `7c3ed6f`. Bei Abweichungen gilt die englische Fassung.
 >
 > **Konventionen.** Die Oberfläche der Anwendung ist englisch. Deshalb bleiben Namen von Bildschirmen, Menüs, Feldern und Tasten (Song, Chain, Phrase, Instrument, Table, Mixer, **Settings**, **EDIT**, **OPT**, **SELECT**...), FX-Codes (`HOP`, `TBX`, `M1A`...), Modul- und Engine-Namen (ADSR, LFO, Braids, Plaits...) und Dateiendungen unübersetzt, damit du sie auf dem Bildschirm wiedererkennst.
 
@@ -80,7 +80,8 @@ ChooChooTracker funktioniert am besten mit einem Gamepad mit Steuerkreuz, 2 Anal
 | **MOTION RECORD** | L2 | W |
 | **MOTION ERASE** | R2 | E |
 
-Die Belegungen lassen sich unter **Settings > Key mapping** ändern. Speichere unter PortMaster eine
+Die Belegungen lassen sich unter **Settings > Key mapping** ändern. Lass unter PortMaster
+die Taste los, mit der du eine Belegung ausgewählt hast, bevor du die neue Taste drückst. Speichere eine
 Neubelegung mit **Done** und lass die Taste los, bevor du in Settings weitermachst.
 Desktop-Layouts verwenden QWERTZ als Standard nur in QWERTZ-Regionen; polnische Tastaturen
 behalten die QWERTY-Standardwerte.

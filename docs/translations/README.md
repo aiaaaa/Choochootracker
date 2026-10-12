@@ -6,11 +6,11 @@ text is right.
 
 | Language | File | Translated from |
 | --- | --- | --- |
-| Français | [`USER_MANUAL.fr.md`](USER_MANUAL.fr.md) | English manual at `0bffff9` |
-| Русский | [`USER_MANUAL.ru.md`](USER_MANUAL.ru.md) | English manual at `0bffff9` |
-| Español | [`USER_MANUAL.es.md`](USER_MANUAL.es.md) | English manual at `0bffff9` |
-| Deutsch | [`USER_MANUAL.de.md`](USER_MANUAL.de.md) | English manual at `0bffff9` |
-| Italiano | [`USER_MANUAL.it.md`](USER_MANUAL.it.md) | English manual at `0bffff9` |
+| Français | [`USER_MANUAL.fr.md`](USER_MANUAL.fr.md) | English manual at `7c3ed6f` |
+| Русский | [`USER_MANUAL.ru.md`](USER_MANUAL.ru.md) | English manual at `7c3ed6f` |
+| Español | [`USER_MANUAL.es.md`](USER_MANUAL.es.md) | English manual at `7c3ed6f` |
+| Deutsch | [`USER_MANUAL.de.md`](USER_MANUAL.de.md) | English manual at `7c3ed6f` |
+| Italiano | [`USER_MANUAL.it.md`](USER_MANUAL.it.md) | English manual at `7c3ed6f` |
 
 ## Conventions
 
