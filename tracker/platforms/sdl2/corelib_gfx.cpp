@@ -309,6 +309,22 @@ GfxImage* gfxImageLoadBMP(const char* path) {
   return image;
 }
 
+GfxImage* gfxImageCreateARGB(int width, int height) {
+  SDL_Texture* texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
+    SDL_TEXTUREACCESS_STREAMING, width, height);
+  if (!texture) return NULL;
+  GfxImage* image = (GfxImage*)malloc(sizeof(GfxImage));
+  if (!image) { SDL_DestroyTexture(texture); return NULL; }
+  image->texture = texture; image->width = width; image->height = height;
+  SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_NONE);
+  setTextureNearest(texture);
+  return image;
+}
+
+int gfxImageUpdateARGB(GfxImage* image, const uint32_t* pixels) {
+  return image && pixels && SDL_UpdateTexture(image->texture, NULL, pixels, image->width * 4) == 0;
+}
+
 void gfxImageFree(GfxImage* image) {
   if (!image) return;
   SDL_DestroyTexture(image->texture);
