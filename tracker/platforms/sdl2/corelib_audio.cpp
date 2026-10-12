@@ -1,6 +1,11 @@
 #include "corelib_audio.h"
 #include <SDL2/SDL.h>
 #include <stdio.h>
+#ifdef WEB_BUILD
+#include <emscripten.h>
+static AudioCallback* webAudioCallback = nullptr;
+static int webSampleRate, webBufferSize;
+#endif
 #ifdef ANDROID_BUILD
 #include "../android/audio_diagnostics.h"
 #include <android/log.h>
@@ -97,6 +102,11 @@ int audioSetup(AudioCallback* audioCallback, int sampleRate, int bufferSize) {
     fprintf(stderr, "Failed to open audio: %s\n", SDL_GetError());
     return 1;
   }
+#ifdef WEB_BUILD
+  webAudioCallback = audioCallback;
+  webSampleRate = sampleRate;
+  webBufferSize = bufferSize;
+#endif
 #ifdef ANDROID_BUILD
   if (audioDiagnostics::enabled) {
     __android_log_print(ANDROID_LOG_INFO, "CCTAudio",
@@ -131,3 +141,16 @@ void audioCleanup(void) {
   }
 #endif
 }
+
+#ifdef WEB_BUILD
+extern "C" EMSCRIPTEN_KEEPALIVE int webRestartAudio() {
+  if (!webAudioCallback) return 1;
+  // Reopen only SDL's browser output. The tracker, synth state, project and
+  // loaded samples remain alive, including when Safari's old context is stuck.
+  audioPause(1);
+  audioCleanup();
+  const int result = audioSetup(webAudioCallback, webSampleRate, webBufferSize);
+  if (!result) audioPause(0);
+  return result;
+}
+#endif

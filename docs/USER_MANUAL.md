@@ -30,6 +30,16 @@ scales while keeping its original aspect ratio.
 
 ### Web
 
+The browser page follows the active tracker theme. Saved settings, including
+custom key mappings confirmed with **Done**, are written promptly to this
+browser's storage. After screen lock or switching apps, tap a control to recover
+audio if needed. **Restart audio** reopens the output without discarding the
+project. **Reload app** saves the current work to **Continue**, saves settings,
+and waits for browser storage before reloading; a failed or timed-out save
+cancels the reload. Use **Download .cct** for a portable backup. Browser storage
+can be cleared independently, and iOS controller/audio routing recovery is not
+guaranteed.
+
 The browser version refreshes its display at about 30 FPS and uses a fixed
 1024-frame audio buffer to give audio more time between callbacks. Older saved
 buffer settings are adjusted automatically; projects and other settings are
