@@ -1802,7 +1802,44 @@ complete C64 songs. The separate twelve GoatTracker research candidates are
 not shipped; their wave/pulse/filter tables need a dedicated importer/player.
 
 The instrument page exposes waveform/pulse width, filter mode/cutoff/resonance
-and native ADSR controls. SID uses the pinned floooh/chips digital oscillator,
+and native ADSR controls. **EDIT**, to the right of Wave/PW, opens **SID EDIT**,
+using the FM editor's compact rows, theme colors, hexadecimal values and
+EDIT+direction controls. OPT or Left+Shift returns; EDIT+PLAY auditions the
+instrument. The page edits the existing stored patch directly, so changes are
+saved with the instrument and project.
+
+SID EDIT groups waveform/ring/sync, native ADSR, pulse width and motion,
+filter mode/cutoff/resonance and cutoff target, recipe clock and gate length,
+fixed pitch/partner ratio/arpeggio, pitch sweep and vibrato. Values use native
+ranges: pulse width `000–FFF`, cutoff `000–7FF`, ADSR/resonance `0–F`, and SID
+frequency registers `0000–FFFF`. Rates for pulse motion and vibrato are in
+tenths of Hz, displayed in hex. Clock HZ is `01–C8` (1–200 Hz); GAT and sweep
+LEN count recipe ticks. GAT `000` waits for note-off, FIX `0000` follows the
+played note, and sweep TGT `0000` disables the pitch sweep. Clear on the filter
+TGT selects `off`; increasing from off selects `000`. The filter sweep takes
+GAT ticks, or 75 ticks when GAT is zero. Ring/sync share the silent partner
+selected by MUL (`01–10`, 1–16 times the note frequency).
+
+Imported source sequences remain intact. The source notice identifies embedded
+instrument macros or GoatTracker tables, not the song's Phrase/Table sequence.
+An asterisk marks a field whose base value is overridden; selecting it names
+the controlling waveform, pulse, filter or arpeggio macro in the message bar.
+All fields remain editable: this page edits the saved preset, not its embedded
+sequences. Changing an overridden base value may not change what you hear.
+Pulse macros also override recipe pulse depth/rate, and filter macros override
+the cutoff target. GoatTracker tables drive the voice directly, so editing the
+base recipe does not edit those tables. Source clock shows the imported tick
+rate in decimal; Clock HZ still sets the pulse/vibrato timebase, while gate and
+sweep lengths advance at the source clock.
+
+An active SID parameter FX command also marks its base field while a track
+plays this instrument. Selecting it identifies the track and command, for
+example `Track 2: SCT active; editing preset`. The marker clears when playback
+stops or the override ends. Editing is never blocked, and the displayed number
+always remains the saved patch value, not a live meter. Edits do not change the
+Phrase/Table FX command. Unrelated insert FX do not mark SID controls.
+
+SID uses the pinned floooh/chips digital oscillator,
 envelope and per-cycle 6581-style filter. There are no alternate chip models,
 revision selectors or added character profiles. This is a generic approximation,
 not a calibrated R2/R3/R4/8580 analogue model.
