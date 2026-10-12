@@ -206,7 +206,7 @@ where you want the library. Native USER paths and defaults are unchanged.
 ### roughdemos device songs
 
 The owner explicitly approved publishing the October 11 device song collection.
-`tracker/packaging/web/roughdemos/` contains 16 additional projects and a separately
+`tracker/packaging/web/roughdemos/` contains 17 additional projects and a separately
 named Blue Hour Continue snapshot, with source/output hashes in `collection.json`.
 The eight matching examples already shipped by the web app are not duplicated.
 Five older projects were saved through the current tracker to embed their WAVs;

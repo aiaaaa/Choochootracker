@@ -499,6 +499,18 @@
     ],
     "buffer_policy": "Stock upstream choices, normalization and defaults. Device evaluation settings reset to 512 frames; web uses stock 1024.",
     "web_song": "rough demos/Decisive_Battle_NERV_FM.cct; nine embedded samples; owner-authorized web publication",
-    "status": "Integrated; combined native, ARM64 and web validation in progress"
+    "status": "Host and web validation passed; ARM64 build and device installation in progress",
+    "application_build_commit": "53db569c4a5a662c33997d91614d9f05d1bfdc78",
+    "host_validation": {
+      "native_cases": 644,
+      "native_assertions": 113117301,
+      "lucky_sid_buffer_cases": 34,
+      "beads_cases_with_lucky": 6,
+      "node_checks": 9,
+      "browser_recovery": "Passed isolated Chrome settings, reload/storage-failure, audio wake/restart and synthetic gamepad checks",
+      "web_projects": 18,
+      "web_projects_embedded_samples": "All load/save round-trips byte-identical",
+      "main_audio_policy": "Exact defaults, normalization and submenu verified"
+    }
   }
 }

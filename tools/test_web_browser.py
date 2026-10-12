@@ -82,12 +82,11 @@ with sync_playwright() as p:
   page.reload();ready(page)
   assert page.evaluate("getComputedStyle(document.documentElement).getPropertyValue('--background')")==colors['background']
   page.locator('#canvas').click();key('x');page.wait_for_timeout(500)
-  # Existing toolbar order and spacing are retained; only the two recovery
-  # buttons join the existing file controls.
-  assert page.locator('#file-controls button').evaluate_all("nodes=>nodes.map(n=>n.id)")==[
-   'import-project','import-samples','import-folder','export-project','restart-audio','reload-app']
-  assert page.evaluate("document.querySelector('#file-controls').compareDocumentPosition(document.querySelector('#canvas')) & Node.DOCUMENT_POSITION_FOLLOWING")
-  assert page.locator('main').evaluate("e=>getComputedStyle(e).padding")=='16px'
+  # Personal keeps its established toolbar, including private preset import.
+  assert page.locator('#web-buttons button').evaluate_all("nodes=>nodes.map(n=>n.id)")==[
+   'import-project','export-project','restart-audio','reload-app','import-samples','import-folder','import-presets']
+  assert page.evaluate("document.querySelector('#canvas').compareDocumentPosition(document.querySelector('#web-buttons')) & Node.DOCUMENT_POSITION_FOLLOWING")
+  assert page.locator('main').evaluate("e=>getComputedStyle(e).padding")=='8px'
   assert page.locator('#canvas').evaluate("e=>getComputedStyle(e).width")=='640px'
   assert page.locator('#import-project').evaluate("e=>getComputedStyle(e).padding")=='6.72px 11.2px'
   page.screenshot(path=str(root/'.tmp/web-theme-desktop.png'),full_page=True)
@@ -97,7 +96,7 @@ with sync_playwright() as p:
   assert phone.locator('#canvas').evaluate("e=>getComputedStyle(e).width")=='377px'
   phone.screenshot(path=str(root/'.tmp/web-theme-phone.png'),full_page=True)
   mobile.close()
-  print('Upstream toolbar order, canvas sizing, button padding and page spacing preserved',flush=True)
+  print('Personal toolbar order, canvas sizing, button padding and page spacing preserved',flush=True)
   # Exercise background save/pause/wake and gesture recovery without reloading.
   page.locator('#canvas').click()
   assert page.evaluate("Module.ccall('webLoadProject','number',['string'],['/projects/native-chip-audition.cct'])")==0
@@ -217,9 +216,9 @@ with sync_playwright() as p:
     page.evaluate('padConnected=true');page.wait_for_timeout(150)
    page.wait_for_timeout(500);page.evaluate('padPeak=0');page.wait_for_timeout(150)
    assert page.evaluate('padPeak')==0
-   page.evaluate('pad.buttons[9]={pressed:true,touched:true,value:1}')
+   page.evaluate('pad.buttons[2]={pressed:true,touched:true,value:1}')
    page.wait_for_timeout(150)
-   page.evaluate('pad.buttons[9]={pressed:false,touched:false,value:0}')
+   page.evaluate('pad.buttons[2]={pressed:false,touched:false,value:0}')
    page.wait_for_function('padPeak>0',timeout=5000)
   page.evaluate('navigator.getGamepads=realGetGamepads;void 0;')
   print('Synthetic gamepad starts playback after wake and reconnect; physical USB remains untested',flush=True)
@@ -231,7 +230,7 @@ with sync_playwright() as p:
   page.goto(url);ready(page)
   def saved_mapping():return page.evaluate("FS.readFile('/user/settings.txt',{encoding:'utf8'}).split('\\n').filter(s=>/^key(Play|Shift)(Type)?:/.test(s))")
   assert page.evaluate("Module.ccall('webSaveBrowserState','number',[],[])")==0
-  assert saved_mapping()==['keyPlay: 32,6,0','keyShift: 1073742049,4,0','keyPlayType: 2,3,0','keyShiftType: 2,3,0']
+  assert saved_mapping()==['keyPlay: 32,2,0','keyShift: 1073742049,3,0','keyPlayType: 2,3,0','keyShiftType: 2,3,0']
   page.locator('#canvas').click();key('x');key('Shift+ArrowDown')
   key('x') # Controls
   for _ in range(3):key('ArrowDown')
@@ -239,14 +238,14 @@ with sync_playwright() as p:
   for _ in range(6):key('ArrowDown')
   key('ArrowRight')
   page.evaluate("window.pad={id:'Test pad',index:0,connected:true,mapping:'standard',timestamp:0,axes:[0,0,0,0],buttons:Array.from({length:17},()=>({pressed:false,touched:false,value:0}))};navigator.getGamepads=()=>[pad];void 0;")
-  for button in [2,3]:
+  for button in [9,8]:
    key('x')
    page.evaluate('(i)=>pad.buttons[i]={pressed:true,touched:true,value:1}',button);page.wait_for_timeout(150)
    page.evaluate('(i)=>pad.buttons[i]={pressed:false,touched:false,value:0}',button);page.wait_for_timeout(150)
-   if button==2:key('ArrowDown')
+   if button==9:key('ArrowDown')
   for _ in range(4):key('ArrowDown')
   key('x')
-  expected=['keyPlay: 32,2,0','keyShift: 1073742049,3,0','keyPlayType: 2,3,0','keyShiftType: 2,3,0']
+  expected=['keyPlay: 32,6,0','keyShift: 1073742049,4,0','keyPlayType: 2,3,0','keyShiftType: 2,3,0']
   assert saved_mapping()==expected
   page.wait_for_function("""expected=>new Promise((resolve,reject)=>{
     const request=indexedDB.open('/user');request.onerror=()=>reject(request.error);
@@ -260,7 +259,7 @@ with sync_playwright() as p:
   page.evaluate('setPageHidden(true)');page.wait_for_timeout(150);page.evaluate('setPageHidden(false)')
   assert page.evaluate("Module.ccall('webSaveBrowserState','number',[],[])")==0
   assert saved_mapping()==expected
-  print('Upstream Start/Back defaults passed; custom X/Y flushed on Done and retained after reload/wake without the periodic timer',flush=True)
+  print('Fresh Play X/Shift Y defaults passed; custom Start/Back flushed on Done and retained after reload/wake without the periodic timer',flush=True)
   mapping_context.close()
   print('JavaScript errors:',errors,flush=True);assert not errors
  finally:browser.close();server.shutdown()

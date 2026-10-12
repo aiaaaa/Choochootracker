@@ -15,6 +15,11 @@ Decisive Battle — NERV FM is added to the browser’s editable rough demos
 collection, with all nine samples embedded and existing browser edits preserved.
 The original song credits are retained in that collection. Validation and
 installation receipts identify the exact final source and binary.
+The combined application at `53db569` passed 644 native cases, 40 focused
+Lucky-enabled SID/Beads/buffer cases, nine Node checks and isolated browser
+recovery and all 18 project round-trips. Physical listening remains owner
+evaluation. Later documentation/test-only commits do not change ARM application
+source.
 
 ## October 12 main harmonization
 
@@ -70,8 +75,8 @@ Browser settings, songs and imported USER presets are local to each browser/site
 device data does not synchronize automatically. Personal assets stay private
 except for the owner's explicitly published `roughdemos` song collection.
 In the browser, the editable collection appears as `[rough demos]` in the normal Projects folder; its starting files are hidden from the file browser. The web canvas has no focus frame.
-Its web-only packaging contains 16 device projects and a separately named
-Continue snapshot collected October 11; browser edits remain local. The five
+Its web-only packaging contains 17 device projects and a separately named
+Continue snapshot collected October 11, with Decisive Battle added October 12; browser edits remain local. The five
 older sample-based saves are converted to self-contained archives for both
 the handheld and web collection, with original backups kept outside Git.
 Lucky uses a browser fetch/decoding adapter in the web target and its existing
