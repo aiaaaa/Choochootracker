@@ -158,6 +158,7 @@ static const SelectionItem insertCategories[] = {
   {"Stereo", -1, stereo, (int)(sizeof(stereo) / sizeof(stereo[0])), nullptr},
   {"Tape", -1, tape, (int)(sizeof(tape) / sizeof(tape[0])), nullptr},
   {"EQ", insertParametricEQ, nullptr, 0, nullptr},
+  {"Beads", insertBeads, nullptr, 0, nullptr},
 };
 static int onInput(int down, int keys, int taps) {
   if (data.cursorRow % 5 == 0 && data.cursorCol == 0) {
