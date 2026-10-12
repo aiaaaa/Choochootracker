@@ -15,6 +15,7 @@ text is right.
 | 中文 (简体) | [`USER_MANUAL.zh.md`](USER_MANUAL.zh.md) | English manual at `7c3ed6f` |
 | Nederlands | [`USER_MANUAL.nl.md`](USER_MANUAL.nl.md) | English manual at `7c3ed6f` |
 | Polski | [`USER_MANUAL.pl.md`](USER_MANUAL.pl.md) | English manual at `7c3ed6f` |
+| Português (Brasil) | [`USER_MANUAL.pt.md`](USER_MANUAL.pt.md) | English manual at `7c3ed6f` |
 
 ## Conventions
 
