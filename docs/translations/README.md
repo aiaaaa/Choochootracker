@@ -14,6 +14,7 @@ text is right.
 | 日本語 | [`USER_MANUAL.ja.md`](USER_MANUAL.ja.md) | English manual at `7c3ed6f` |
 | 中文 (简体) | [`USER_MANUAL.zh.md`](USER_MANUAL.zh.md) | English manual at `7c3ed6f` |
 | Nederlands | [`USER_MANUAL.nl.md`](USER_MANUAL.nl.md) | English manual at `7c3ed6f` |
+| Polski | [`USER_MANUAL.pl.md`](USER_MANUAL.pl.md) | English manual at `7c3ed6f` |
 
 ## Conventions
 
