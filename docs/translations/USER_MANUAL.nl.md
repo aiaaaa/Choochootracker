@@ -179,7 +179,7 @@ met ritmepatronen:
   Het betreden of verlaten van de selectiemodus start de rotatie opnieuw; elke actiemelding
   vervangt de hint totdat ze verloopt.
 
-### Weergave
+### Afspelen
 
 - **PLAY** start vanaf de cursor. Druk er nogmaals op om te stoppen.
 - Je kunt noten, instrumenten en chains bewerken tijdens het afspelen; wijzigingen zijn te horen
