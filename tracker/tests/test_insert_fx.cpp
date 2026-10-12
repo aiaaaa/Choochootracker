@@ -237,7 +237,7 @@ TEST_SUITE("track inserts") {
     CHECK(fxF11 > fxATY);
     CHECK(fxF28 < 255);
     CHECK(genericModFirstInsert == 29);
-      const int counts[] = {0, 8, 4, 2, 6, 6, 5, 4, 5, 4, 4, 4, 4, 6};
+      const int counts[] = {0, 8, 4, 2, 6, 6, 5, 4, 5, 4, 4, 4, 4, 6, 8};
     for (int m = 0; m < insertModuleCount; ++m) {
       CHECK(insertDescriptor(m).count == counts[m]);
       InsertConfig c{};
