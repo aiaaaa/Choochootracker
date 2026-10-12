@@ -37,6 +37,36 @@ static uint8_t convertPan(uint8_t bits) {
   return bits == 1 ? 255 : bits == 2 ? 0 : 128;
 }
 
+// LSDj command numbers, as stored in the phrase command column.
+enum { CMD_NONE, CMD_A, CMD_C, CMD_D, CMD_E, CMD_F, CMD_G, CMD_H, CMD_K, CMD_L, CMD_M, CMD_O, CMD_P, CMD_R, CMD_S, CMD_T, CMD_V, CMD_W, CMD_Z };
+
+static void setFx(PhraseRow* row, int slot, enum FX fx, uint8_t value) {
+  row->fx[slot][0] = (uint8_t)fx;
+  row->fx[slot][1] = value;
+}
+
+// Commands with a clear equivalent are converted; A, F, H, L, M, O, P, R, S,
+// T, W and Z (tables, hop, slide, bend, retrigger, sweep, tempo, wave
+// settings...) are dropped. LSDj has one command per row, so up to three
+// FX slots are free: E needs all of them.
+static void convertCommand(PhraseRow* row, uint8_t cmd, uint8_t value, int channel) {
+  switch (cmd) {
+    case CMD_C: setFx(row, 0, fxARP, value); break;           // chord
+    case CMD_D: setFx(row, 0, fxDEL, value); break;           // delay in ticks
+    case CMD_G: setFx(row, 0, fxGGR, value & 0x1F); break;    // groove
+    case CMD_K: setFx(row, 0, fxKIL, value); break;           // kill after n ticks
+    case CMD_V: setFx(row, 0, fxPVB, value); break;           // vibrato, speed and depth
+    case CMD_E:
+      // Envelope of pulse and noise (NRx2 layout). On the wave channel the
+      // same command sets its volume, which has no equivalent here.
+      if (channel == 2) break;
+      setFx(row, 0, fxCEI, value >> 4);
+      setFx(row, 1, fxCEP, value & 7);
+      setFx(row, 2, fxCED, (value >> 3) & 1);
+      break;
+  }
+}
+
 static void convertInstrument(Instrument* inst, const uint8_t* src) {
   switch (src[0]) {
     case LSDJ_PULSE: {
@@ -135,12 +165,36 @@ int projectLoadLSDJ(Project* project, const char* path) {
     }
   }
 
+  // The first channel a phrase is played on (the wave channel reads E differently)
+  int phraseChannel[LSDJ_PHRASES];
+  for (int i = 0; i < LSDJ_PHRASES; i++) phraseChannel[i] = -1;
+  for (int row = 0; row < LSDJ_ROWS; row++) {
+    for (int t = 0; t < LSDJ_CHANNELS; t++) {
+      uint8_t chain = data[LSDJ_SONG_ROWS + row * LSDJ_CHANNELS + t];
+      if (chain >= LSDJ_CHAINS) continue;
+      for (int st = 0; st < 16; st++) {
+        uint8_t phrase = data[LSDJ_CHAIN_PHRASES + chain * 16 + st];
+        if (phrase < LSDJ_PHRASES && phraseChannel[phrase] < 0) phraseChannel[phrase] = t;
+      }
+    }
+  }
+
+  // Grooves: ticks per step, 0 ends the groove
+  for (int g = 0; g < 32 && g < PROJECT_MAX_GROOVES; g++) {
+    for (int i = 0; i < 16; i++) {
+      uint8_t ticks = data[LSDJ_GROOVES + g * 16 + i];
+      p.grooves[g].speed[i] = ticks ? ticks : EMPTY_VALUE_8;
+    }
+  }
+
   uint8_t instrumentUsed[LSDJ_INSTRUMENTS] = {0};
   for (int ph = 0; ph < LSDJ_PHRASES && ph < PROJECT_MAX_PHRASES; ph++) {
     phraseClear(&p.phrases[ph]);
     for (int s = 0; s < 16; s++) {
       PhraseRow* dest = &p.phrases[ph].rows[s];
       initEmptyPhraseRow(dest);
+      uint8_t command = data[LSDJ_PHRASE_COMMANDS + ph * 16 + s];
+      if (command) convertCommand(dest, command, data[LSDJ_PHRASE_COMMAND_VALUES + ph * 16 + s], phraseChannel[ph]);
       uint8_t note = data[LSDJ_PHRASE_NOTES + ph * 16 + s];
       if (note == 0) continue;
       int index = LSDJ_NOTE_INDEX_OFFSET + note;

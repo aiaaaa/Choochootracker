@@ -14,9 +14,12 @@ extern "C" {
 // tracks 1-4. Pulse and noise instruments become GB Pulse and GB Noise with
 // their duty, envelope, stability and panning (the pulse sweep is not
 // imported); every note gets full volume. Wave instruments become the GB Pulse
-// Hollow Lead preset and kits a default GB Noise. Phrase commands (FX), tables,
-// grooves, wave frames, kit samples and synth settings are ignored. The tempo
-// is converted to the tick rate with a 6-tick groove.
+// Hollow Lead preset and kits a default GB Noise. Phrase commands C (chord),
+// D (delay), E (pulse and noise envelope), G (groove), K (kill) and V
+// (vibrato) become ARP, DEL, CEI/CEP/CED, GGR, KIL and PVB, and the 32 grooves
+// are imported. Other commands, tables, wave frames, kit samples and synth
+// settings are ignored. The tempo is converted to the tick rate with a 6-tick
+// groove.
 // The destination must be initialized with projectInit/projectInitAY first.
 // Success releases its previous instrument data; failure leaves the
 // destination unchanged and owned by the caller.
