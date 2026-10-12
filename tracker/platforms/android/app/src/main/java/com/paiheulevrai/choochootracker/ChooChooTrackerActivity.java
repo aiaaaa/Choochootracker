@@ -643,6 +643,23 @@ public final class ChooChooTrackerActivity extends SDLActivity {
     // Called by the native settings screen.
     public void pickWorkingFolder() {
         runOnUiThread(() -> {
+            if (safWorkspace != null) {
+                // A folder is active: let the user either change it or leave it.
+                new android.app.AlertDialog.Builder(this)
+                    .setTitle("Working folder")
+                    .setItems(new String[] { "Choose another folder", "Use private storage" }, (dialog, which) -> {
+                        if (which == 0) launchFolderPicker(); else clearWorkingFolder();
+                    })
+                    .setNegativeButton("Cancel", null)
+                    .show();
+                return;
+            }
+            launchFolderPicker();
+        });
+    }
+
+    private void launchFolderPicker() {
+        runOnUiThread(() -> {
             waitingForFolder = true;
             Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION
