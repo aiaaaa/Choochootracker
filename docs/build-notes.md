@@ -245,16 +245,25 @@ Android has two Gradle flavors, selected by the task name:
 
 - `store` (`assembleStoreRelease`, `bundleStoreRelease`): the workspace is
   private to the app, no storage permission. This is the Play Store build.
-- `direct` (`assembleDirectRelease`): for F-Droid and direct APK download. It
-  declares `MANAGE_EXTERNAL_STORAGE` and keeps the workspace in
-  `/sdcard/ChooChooTracker`, readable and editable with any file manager or
-  from a PC. On first launch the app opens the system "All files access"
-  screen, then restarts itself once granted; until then it runs on the private
-  workspace. Projects and samples already in the private workspace are copied
-  over once, without overwriting.
+- `direct` (`assembleDirectRelease`): for F-Droid and direct APK download. No
+  storage permission: on first launch the app opens the system folder picker
+  and keeps the chosen folder (persisted URI grant) as its workspace, then
+  restarts itself once. Until a folder is chosen it runs on the private
+  workspace.
 
-The flavor only changes `src/<flavor>/` (manifest permissions and the
-`direct_storage` bool read by `ChooChooTrackerActivity`). Install the signed
+The picked folder has no filesystem path, so the native engine reaches it
+through `platforms/android/saf_storage.cpp`: `Makefile.android` links with
+`-Wl,--wrap` for `fopen`, `open`, `stat`, `opendir`, `rename`... and the wrappers
+serve paths under the virtual root `/ChooChooTracker` through the `saf*` methods
+of `ChooChooTrackerActivity` and `SafWorkspace.java` (DocumentsContract, with a
+short-lived folder listing cache). The bundled banks, presets and demo projects
+stay in the private workspace and show through as a read-only overlay: the
+picked folder wins when both have a path, writes always go to it. Add a libc
+call used by the engine to `SAF_WRAP` in `Makefile.android` and to
+`saf_storage.cpp` together.
+
+The flavor only changes `src/<flavor>/` (the `direct_storage` bool read by
+`ChooChooTrackerActivity`). Install the signed
 direct APK (`app/build/outputs/apk/direct/release/app-direct-release.apk`)
 with `adb install -r <apk>`. For handoff, copy and name the files outside Gradle's
 output directory, for example `releases/ChooChooTracker-1.0-code2-release.aab`.
