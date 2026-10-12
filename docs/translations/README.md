@@ -8,6 +8,7 @@ text is right.
 | --- | --- | --- |
 | Français | [`USER_MANUAL.fr.md`](USER_MANUAL.fr.md) | English manual at `0bffff9` |
 | Русский | [`USER_MANUAL.ru.md`](USER_MANUAL.ru.md) | English manual at `0bffff9` |
+| Español | [`USER_MANUAL.es.md`](USER_MANUAL.es.md) | English manual at `0bffff9` |
 
 ## Conventions
 
