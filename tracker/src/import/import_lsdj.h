@@ -1,0 +1,28 @@
+#ifndef __IMPORT_LSDJ_H__
+#define __IMPORT_LSDJ_H__
+
+#include "chipnomad_lib.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+// Imports a Little Sound Dj song (.lsdsng, one compressed 32 KB song) as a new
+// project. Only the structure and the notes are carried over: song rows,
+// chains (with transpose) and phrases (note, instrument number) keep the same
+// indices as in the LSDj file. LSDj channels PU1, PU2, WAV and NOI become
+// tracks 1-4. Pulse and noise instruments become GB Pulse and GB Noise with
+// their duty, envelope, sweep, stability and panning; wave instruments become
+// an aChChid square and kits a default GB Noise. Phrase commands (FX), tables,
+// grooves, wave frames, kit samples and synth settings are ignored. The tempo
+// is converted to the tick rate with a 6-tick groove.
+// The destination must be initialized with projectInit/projectInitAY first.
+// Success releases its previous instrument data; failure leaves the
+// destination unchanged and owned by the caller.
+int projectLoadLSDJ(Project* project, const char* path);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif
