@@ -11,12 +11,22 @@ cycle. No generated landscape joins or static sky texture are used. The sky
 updates at 10 Hz, with the original scenery cadence retained.
 
 The contribution is isolated on `contribution/night-title` in `../night-title-pr`.
-Its three focused native tests pass (34 assertions), and native sky frames
-match the approved JavaScript preview byte for byte at four sampled phases.
-The isolated contribution browser build passed settings persistence and asset
-parity checks (all six scenery layers). Its sky clock is independent of the
-platform draw rate. No device installation or public web deployment has been performed.
-Hardware performance validation is pending.
+Four focused native tests pass (47 assertions), including identical complete
+images when galaxy generation is split across draws. The browser build passes
+Graphics save/reload and all six scenery-pixel comparisons. On the R36H, the
+ARM64 build passes the Graphics toggle, persistence, renderer and exact-loop
+checks. Galaxy generation is spread into roughly 15.7 ms slices instead of a
+47 ms burst; the offscreen software renderer's total timings are not a measure
+of physical display frame rate.
+
+Installed device source: `83dd43f5340ae91e41a4e70b7dde4197e36c4120`.
+Binary SHA-256: `d17d0d0b340892278613ebbaf5924a42fdc04fce016b2f3f57ab483509a953ef`.
+The installation and rollback inventories were verified; 1,558 existing files,
+including settings, songs, samples and private banks, remain unchanged.
+Rollback: `/roms/choochootracker-backups/pre-night-20261011-83dd43f5340a/previous-install`.
+Physical visual review is with the user. The matching personal web update is
+published through the existing exact-commit build workflow; its public
+`build-info.json` remains the authority for the deployed version.
 
 ## Two personal build targets
 

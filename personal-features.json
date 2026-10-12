@@ -8,8 +8,9 @@
     {
       "id": "night-title",
       "title": "Optional mellow night boot screen using the original railway art",
-      "upstream_status": "personal experiment, local only; not deployed",
-      "integration_policy": "Keep Original as default and preserve original landscape seams and scroll timing. Night adds palette variants, a drifting Milky Way and occasional shooting stars. No generated scenery joins. Preserve this choice in device/browser settings."
+      "upstream_status": "Installed in device personal build; contribution prepared locally",
+      "integration_policy": "Keep Original as default, preserving the original landscape seams and scroll timing. Night uses procedural galaxy wisps, localized lavender highlights, subtle twinkles and fourteen shooting stars per four-minute cycle. Generate the sky across draws to avoid single-frame CPU spikes. Preserve the saved choice on device and web.",
+      "included_commit": "19e12bf3ffd3347ef5ab8ac58cbdcb0a3dea5d18"
     },
     {
       "id": "fonts-theme",
