@@ -2,7 +2,7 @@
 
 ## Local night title (October 11)
 
-Graphics → Boot screen now saves Original/Night. Original remains the default.
+Graphics → Boot screen now saves Original/Night. Night is the personal default, with a one-time migration for existing profiles. Later Original/Night choices remain saved.
 Night uses the original landscape and train silhouettes, seams and scroll
 speeds with a softer palette. Its entire sky is procedural: layered gas wisps,
 1,100 seeded stars, subtle twinkles and localized lavender highlights. The
@@ -24,7 +24,7 @@ Binary SHA-256: `d17d0d0b340892278613ebbaf5924a42fdc04fce016b2f3f57ab483509a953e
 The installation and rollback inventories were verified; 1,558 existing files,
 including settings, songs, samples and private banks, remain unchanged.
 Rollback: `/roms/choochootracker-backups/pre-night-20261011-83dd43f5340a/previous-install`.
-Physical visual review is with the user. The matching personal web update is
+The user confirmed Night looks good and smooth. The matching personal web update is
 published through the existing exact-commit build workflow; its public
 `build-info.json` remains the authority for the deployed version.
 
@@ -40,6 +40,7 @@ separate application codebase, and personal is not merged back into main.
 Browser settings, songs and imported USER presets are local to each browser/site;
 device data does not synchronize automatically. Personal assets stay private
 except for the owner's explicitly published `roughdemos` song collection.
+In the browser, the editable collection appears as `[rough demos]` in the normal Projects folder; its starting files are hidden from the file browser. The web canvas has no focus frame.
 Its web-only packaging contains 16 device projects and a separately named
 Continue snapshot collected October 11; browser edits remain local. The five
 older sample-based saves are converted to self-contained archives for both
@@ -57,9 +58,7 @@ Personal now incorporates upstream `46f76a1`, including merged PRs #38, #51,
 editor, M8 instrument conversion, EQUAL/AUTO/LAZY sample slicing, phrase fill
 and Note Lock tools, stereo pan, master inserts and parametric EQ, audio
 settings, lower idle CPU use, and corrected browser touch coordinates.
-Lucky remains above Quit in the reorganized Settings menu. Existing R36H
-4906-frame audio settings are retained; smaller upstream choices are available
-under Audio. Web appearance, storage, controller defaults, recovery and the
+Lucky remains above Quit in the reorganized Settings menu. The owner tested full songs successfully at the smaller buffer. Audio uses the standard 32–1024 choices; the extra personal 4906 option has been removed. The current handheld 256-frame setting stays saved. Web appearance, storage, controller defaults, recovery and the
 approved roughdemos collection remain personal additions.
 See [integration notes](docs/personal-harmonization-20261011.md).
 

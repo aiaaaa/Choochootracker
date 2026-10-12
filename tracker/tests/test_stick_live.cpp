@@ -418,7 +418,7 @@ TEST_CASE_FIXTURE(StickLiveFixture, "Settings menus and audio buffer control ali
 TEST_CASE_FIXTURE(StickLiveFixture, "audio buffer settings use supported sizes") {
   CHECK(appSettings.audioBufferSize == 512);
   struct StoredSetting { const char* text; int expected; };
-  for (const auto& setting : {StoredSetting{"audioBufferSize: 4906\n", 4906},
+  for (const auto& setting : {StoredSetting{"audioBufferSize: 4906\n", 512},
                               StoredSetting{"audioBufferSize: 1600\n", 1024},
                               StoredSetting{"audioBufferSize: 1\n", 32},
                               StoredSetting{"audioBufferSize: 700\n", 512}}) {
@@ -428,22 +428,22 @@ TEST_CASE_FIXTURE(StickLiveFixture, "audio buffer settings use supported sizes")
   }
 }
 
-TEST_CASE_FIXTURE(StickLiveFixture, "personal handheld buffer can be lowered and restored") {
-  appSettings.audioBufferSize = 4906;
+TEST_CASE_FIXTURE(StickLiveFixture, "Audio buffer menu stops at the standard maximum") {
+  appSettings.audioBufferSize = 1024;
   screenAudioSettings.fullRedraw();
   REQUIRE(mockScreenData != nullptr);
   auto* screen = mockScreenData;
   screen->drawCursor(0, 0);
   CHECK(mockCursorWidth == 4);
-  REQUIRE(screen->onEdit(0, 0, CellEditAction::decrease) == 1);
-  CHECK(appSettings.audioBufferSize == 1024);
-  CHECK(mockAudioReconfigureSize == 1024);
   REQUIRE(screen->onEdit(0, 0, CellEditAction::increase) == 1);
-  CHECK(appSettings.audioBufferSize == 4906);
-  CHECK(mockAudioReconfigureSize == 4906);
-  appSettings.audioBufferSize = 512;
+  CHECK(appSettings.audioBufferSize == 1024);
+  CHECK(mockAudioReconfigureCalls == 0);
+  REQUIRE(screen->onEdit(0, 0, CellEditAction::decrease) == 1);
+  CHECK(appSettings.audioBufferSize == 512);
+  CHECK(mockAudioReconfigureSize == 512);
+  appSettings.audioBufferSize = 1024;
   REQUIRE(settingsLoad() == 0);
-  CHECK(appSettings.audioBufferSize == 4906);
+  CHECK(appSettings.audioBufferSize == 512);
 }
 }
 

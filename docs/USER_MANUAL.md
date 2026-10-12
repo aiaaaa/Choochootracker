@@ -1232,7 +1232,7 @@ Use **Save** before changing instrument types or loading another project.
 ## 12. Settings
 
 - **Controls** contains **Repeat delay / speed**, **Stick live mode** (`HOLD`, `TOGGLE`, or `FREE`) and **Key mapping**.
-- **Audio** contains buffer size and CPU load. The personal handheld preserves an existing 4906-frame buffer and includes it alongside the upstream 32–1024 choices; smaller buffers trade latency for less processing headroom.
+- **Audio** contains buffer size and CPU load. Both personal builds use the standard 32–1024 choices; smaller buffers trade latency for less processing headroom.
 - **MIDI** opens the [MIDI](#14-midi) submenu: device selection and the MIDI In channel-to-instrument mapping.
 - **Synths** contains **AY Quality**, **Sample dithering**, and global **Braids BITS / DRFT / SIGN** settings.
 - **Mixer** contains **Mix volume** and the per-project `250-4000 Hz` **Tilt pivot** (default `1 kHz`) used by all Mixer Tilt controls.
@@ -1240,9 +1240,10 @@ Use **Save** before changing instrument types or loading another project.
 - **Support report** writes a small diagnostic text file with the app version, platform, audio settings and CPU load, playback/overflow state, and a compact project summary. It does not include sample data or project title/author text. On Android and Web it opens the normal export/download flow; desktop and handheld builds save `support-report.txt` in the app's writable folder.
 - **Quit ChooChooTracker** exits cleanly.
 
-**Graphics → Boot screen** selects **Original** (default) or **Night**. Tap EDIT
+**Graphics → Boot screen** selects **Original** or **Night** (personal default). Tap EDIT
 or use EDIT + direction to change it; the choice is saved for the next title
-screen. Night uses the original railway scene with softer blue-gray tones,
+screen. Existing personal profiles switch to Night once; later manual choices
+remain saved. Night uses the original railway scene with softer blue-gray tones,
 a procedural Milky Way with subtle star twinkles and occasional shooting stars.
 The original scenery and train keep their scrolling loops.
 
@@ -1902,7 +1903,7 @@ save timer. Custom mappings belong to that browser/Home Screen installation.
 The web action buttons use compact uppercase labels and wrap to the available
 width. Project/app actions precede the sample and preset imports.
 
-The personal web app includes **roughdemos** under **Project → Load** in
+The personal web app includes **[rough demos]** under **Project → Load** in
 `/user/projects`: device songs plus a separately named Blue Hour Continue
 snapshot. Sample-based songs include their WAVs. Each browser gets its own
 editable copies; reloads and deployments preserve existing copies. This does

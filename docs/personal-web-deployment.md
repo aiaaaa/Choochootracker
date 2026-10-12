@@ -215,10 +215,10 @@ The conversion uses the same project I/O implementation as the installed device.
 Private preset collections are not included. Retained source credits accompany
 Blue Hour and Low Water.
 
-Only Makefile.web preloads this folder, at `/bundled-projects/roughdemos`.
+Only Makefile.web preloads this folder, at hidden `/.project-seeds/roughdemos`.
 Once preload and IDBFS restoration finish, the wrapper copies missing `.cct`
-files into `/user/projects/roughdemos`, then flushes storage. Existing copies,
-settings and Continue are never replaced. Use Project → Load → roughdemos
+files into `/user/projects/rough demos`, then flushes storage. Existing copies,
+settings and Continue are never replaced. Older `roughdemos` folders are renamed without changing song bytes. Use Project → Load → [rough demos]
 (under `/user/projects`) to edit and save these persistent working copies.
 Anyone with the public URL receives the starting songs; subsequent edits stay
 in that browser. New filenames arrive on the next load; updates to an existing
@@ -226,7 +226,7 @@ bundled filename do not overwrite a user's saved version. Download `.cct` backup
 
 ## Browser presentation
 
-The canvas is the first page element. File buttons, status, title
+The canvas is the first page element, without a border or focus frame. Night is the personal boot default, migrated once for older profiles; later Original/Night choices remain saved. File buttons, status, title
 and links follow it, with the touch controller last. `web/index.html` controls that layout and its CSS palette.
 The web-only main loop forwards the actual active tracker colors when they change;
 the wrapper updates CSS variables. Theme loads, resets and direct color edits also

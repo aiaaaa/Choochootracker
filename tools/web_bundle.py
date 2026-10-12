@@ -67,7 +67,7 @@ def inspect_bundle(directory):
     makefile = (ROOT / 'tracker/Makefile.web').read_text()
     expected.update(('/projects/' + p, ASSETS / 'projects' / p) for p in
                     re.findall(r'packaging/common/projects/([^@\n]+)@', makefile))
-    expected.update(('/bundled-projects/' + p.removeprefix('tracker/packaging/web/'), ROOT / p)
+    expected.update(('/.project-seeds/' + p.removeprefix('tracker/packaging/web/'), ROOT / p)
                     for p in git('ls-files', '--', 'tracker/packaging/web/roughdemos').splitlines())
     names = [entry['filename'] for entry in package['files']]
     check(len(names) == len(set(names)) and set(names) == set(expected),

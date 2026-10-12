@@ -94,24 +94,27 @@ TEST_CASE_FIXTURE(VisualFixture, "Earlier per-layer settings retain modes and di
   CHECK_FALSE(blank(waveformDisplayGetBitmap(0))); // Audio's silent centre line remains visible.
 }
 
-TEST_CASE_FIXTURE(VisualFixture, "Boot screen defaults to original and persists the night option") {
-  { std::ofstream f(settingsPath); f << "themeName: ExistingTheme\n"; }
+TEST_CASE_FIXTURE(VisualFixture, "Personal boot screen migrates once to Night and preserves later choices") {
+  CHECK(appSettings.bootScreenNight == 1);
+  { std::ofstream f(settingsPath); f << "themeName: ExistingTheme\nbootScreenNight: 0\naudioBufferSize: 256\n"; }
   REQUIRE(settingsLoad() == 0);
-  CHECK(appSettings.bootScreenNight == 0);
-  appSettings.bootScreenNight = 1;
+  CHECK(appSettings.bootScreenNight == 1);
+  CHECK(appSettings.audioBufferSize == 256);
+  appSettings.bootScreenNight = 0;
   REQUIRE(settingsSave() == 0);
   initDefaultAppSettings();
   REQUIRE(settingsLoad() == 0);
-  CHECK(appSettings.bootScreenNight == 1);
+  CHECK(appSettings.bootScreenNight == 0);
   CHECK(std::string(appSettings.themeName) == "ExistingTheme");
   for (const char* value : {"-1", "2", "garbage"}) {
     { std::ofstream f(settingsPath); f << "bootScreenNight: " << value << '\n'; }
     REQUIRE(settingsLoad() == 0);
-    CHECK(appSettings.bootScreenNight == 0);
+    CHECK(appSettings.bootScreenNight == 1);
   }
 }
 
 TEST_CASE_FIXTURE(VisualFixture, "Boot screen Graphics row toggles and saves without changing the theme") {
+  appSettings.bootScreenNight = 0;
   currentScreen = &screenGraphicsSettings;
   screenGraphicsSettings.setup(0);
   screenGraphicsSettings.fullRedraw();

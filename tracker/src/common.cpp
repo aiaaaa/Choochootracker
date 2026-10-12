@@ -85,7 +85,7 @@ void initDefaultAppSettings(void) {
   appSettings.midiOutputDeviceName[0] = '\0';
   for (int i = 0; i < MIDI_CHANNEL_COUNT; i++) appSettings.midiChannelInstrument[i] = -1;
   appSettings.persistentWaveform = 0;
-  appSettings.bootScreenNight = 0;
+  appSettings.bootScreenNight = 1;
 
   // Zero out key mapping (platform-specific defaults applied later)
   memset(&appSettings.keyMapping, 0, sizeof(KeyMapping));
@@ -225,6 +225,7 @@ int settingsSave(void) {
   fprintf(file, "stickLiveMode: %s\n", stickLiveMode);
   fprintf(file, "persistentWaveform: %d\n", appSettings.persistentWaveform);
   fprintf(file, "bootScreenNight: %d\n", appSettings.bootScreenNight);
+  fprintf(file, "personalNightDefault: 1\n");
   for (int track = 0; track < PROJECT_MAX_TRACKS; ++track)
     fprintf(file, "trackVisuals%d: %d\n", track + 1, (int)appSettings.trackVisuals[track].mode);
 
@@ -312,6 +313,7 @@ int settingsLoad(void) {
 
   FILE* file = fopen(settingsPath, "r");
   if (file == NULL) return 1;
+  bool personalNightDefaultApplied = false;
 #ifdef WEB_BUILD
   bool personalAppearanceApplied = false;
 #endif
@@ -331,7 +333,9 @@ int settingsLoad(void) {
       continue;
     }
 #endif
-    if (strncmp(line, "bootScreenNight: ", 17) == 0) {
+    if (strcmp(line, "personalNightDefault: 1") == 0) {
+      personalNightDefaultApplied = true;
+    } else if (strncmp(line, "bootScreenNight: ", 17) == 0) {
       int enabled;
       if (sscanf(line + 17, "%d", &enabled) == 1 && (enabled == 0 || enabled == 1))
         appSettings.bootScreenNight = (uint8_t)enabled;
@@ -514,14 +518,8 @@ int settingsLoad(void) {
   appSettings.audioSampleRate = kAudioSampleRate;
   // 4,906 was the legacy platform default; other values are rounded to the
   // nearest choice exposed by the audio settings screen.
-#if defined(PORTMASTER_BUILD) || defined(TEST_PORTMASTER_INPUT)
-  // Preserve the personal handheld's validated buffer until explicitly edited.
-  if (appSettings.audioBufferSize != 4906)
-    appSettings.audioBufferSize = normalizeAudioBufferSize(appSettings.audioBufferSize);
-#else
   appSettings.audioBufferSize = appSettings.audioBufferSize == 4906
     ? defaultAudioBufferSize() : normalizeAudioBufferSize(appSettings.audioBufferSize);
-#endif
 #ifdef PORTMASTER_BUILD
   if (appSettings.keyRepeatSpeed == 2) appSettings.keyRepeatSpeed = 1;
   if (appSettings.waveformRefreshHz == 30) appSettings.waveformRefreshHz = 60;
@@ -534,15 +532,19 @@ int settingsLoad(void) {
     if (appSettings.midiChannelInstrument[i] < -1 || appSettings.midiChannelInstrument[i] >= PROJECT_MAX_INSTRUMENTS)
       appSettings.midiChannelInstrument[i] = -1;
   }
+  // Apply the owner's Night default once; later Original/Night choices persist.
+  bool savePersonalDefaults = !personalNightDefaultApplied;
+  if (!personalNightDefaultApplied) appSettings.bootScreenNight = 1;
 #ifdef WEB_BUILD
   // Apply the requested appearance once to older browser profiles. Later
   // user choices survive deployments; controller mappings are never reset.
   if (!personalAppearanceApplied) {
     strncpy(appSettings.fontPath, kWebPersonalFont, PATH_LENGTH);
     appSettings.persistentWaveform = 1;
-    settingsSave();
+    savePersonalDefaults = true;
   }
 #endif
+  if (savePersonalDefaults) settingsSave();
   return 0;
 }
 

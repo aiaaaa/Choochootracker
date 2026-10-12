@@ -30,7 +30,7 @@
       margin: 0 auto; border: 0;
       background: var(--background); image-rendering: pixelated; }
     #canvas:focus { outline: none; }
-    #canvas:focus-visible { outline: 1px solid var(--title); outline-offset: -1px; }
+    #canvas:focus-visible { outline: none; }
     #browser-controls { width: min(100%, 960px); margin: .8rem auto 0; }
     h1 { color: var(--title); font-size: .85rem; letter-spacing: .12em; margin: 1rem 0 .4rem; }
     #status, #audio-status { color: var(--value); margin-top: .6rem; overflow-wrap: anywhere; }
@@ -142,7 +142,7 @@
       fs.mkdirTree('/user/instruments/USER');
       fs.mkdirTree('/user/instruments/banks');
     };
-    const seedRoughDemos = (fs, source = '/bundled-projects/roughdemos', target = '/user/projects/roughdemos') => {
+    const seedRoughDemos = (fs, source = '/.project-seeds/roughdemos', target = '/user/projects/rough demos') => {
       fs.mkdirTree(target);
       for (const name of fs.readdir(source)) {
         if (name.startsWith('.')) continue;
@@ -228,8 +228,20 @@
         status.textContent = '';
         // Preloaded assets are ready now. Seed editable copies only after IDBFS
         // has loaded, preserving each browser's existing projects and edits.
-        try { seedRoughDemos(getFs()); syncUserStorage(); }
-        catch (_) { status.textContent = 'Could not add roughdemos to browser storage.'; }
+        try {
+          const fs = getFs();
+          const oldPath = '/user/projects/roughdemos', newPath = '/user/projects/rough demos';
+          if (fs.analyzePath(oldPath).exists && !fs.analyzePath(newPath).exists) {
+            fs.rename(oldPath, newPath);
+            if (fs.analyzePath('/user/settings.txt').exists) {
+              const settings = fs.readFile('/user/settings.txt', {encoding: 'utf8'});
+              fs.writeFile('/user/settings.txt', settings.replace(
+                /^(projectPath: \/user\/projects\/)roughdemos(?=\/|\r?$)/m, '$1rough demos'));
+            }
+          }
+          seedRoughDemos(fs);
+          syncUserStorage();
+        } catch (_) { status.textContent = 'Could not add rough demos to browser storage.'; }
         fileControls.forEach((button) => { button.disabled = false; });
         setInterval(() => syncUserStorage(), 10000);
       };

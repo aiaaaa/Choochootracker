@@ -58,8 +58,13 @@ with sync_playwright() as playwright:
 
         page.goto(url)
         ready()
+        page.locator('#canvas').focus()
+        assert page.evaluate("getComputedStyle(document.querySelector('#canvas')).outlineStyle") == 'none'
+        assert not page.evaluate("FS.analyzePath('/bundled-projects').exists")
+        assert page.evaluate("Module.ccall('webSaveBrowserState','number',[],[])") == 0
+        assert b'bootScreenNight: 1\n' in read('/user/settings.txt')
         for record in records:
-            path = '/user/projects/roughdemos/' + record['file']
+            path = '/user/projects/rough demos/' + record['file']
             assert digest(path) == record['sha256'], path
             assert page.evaluate("path => Module.ccall('webLoadProject','number',['string'],[path])", path) == 0, path
             assert page.evaluate("Module.ccall('webSaveProject','number',['string'],['/user/exports/roundtrip.cct'])") == 0
@@ -77,8 +82,8 @@ with sync_playwright() as playwright:
 
         # Save a different valid project over a seeded filename. A later load
         # must preserve this edit as well as Continue and private preset data.
-        changed = '/user/projects/roughdemos/' + records[0]['file']
-        assert page.evaluate("Module.ccall('webLoadProject','number',['string'],['/user/projects/roughdemos/Left-Right-Stereo-Test.cct'])") == 0
+        changed = '/user/projects/rough demos/' + records[0]['file']
+        assert page.evaluate("Module.ccall('webLoadProject','number',['string'],['/user/projects/rough demos/Left-Right-Stereo-Test.cct'])") == 0
         assert page.evaluate("path => Module.ccall('webSaveProject','number',['string'],[path])", changed) == 0
         assert page.evaluate("Module.ccall('webSaveBrowserState','number',[],[])") == 0
         changed_hash = digest(changed)
@@ -91,9 +96,37 @@ with sync_playwright() as playwright:
         assert digest(changed) == changed_hash
         assert digest('/user/autosave.cct') == continue_hash
         assert read('/user/instruments/USER/sid/test-user-data.txt') == b'keep private'
-        assert digest('/user/projects/roughdemos/' + records[-1]['file']) == records[-1]['sha256']
+        assert digest('/user/projects/rough demos/' + records[-1]['file']) == records[-1]['sha256']
+        # Model an older profile with edited demos and an Original boot choice.
+        # The folder moves without losing edits, and Night applies only once.
+        page.evaluate("""() => {
+            FS.rename('/user/projects/rough demos', '/user/projects/roughdemos');
+            let settings = FS.readFile('/user/settings.txt', {encoding:'utf8'});
+            settings = settings.replace(/^personalNightDefault:.*\\n/m, '')
+                .replace(/^bootScreenNight:.*$/m, 'bootScreenNight: 0')
+                .replace(/^projectPath:.*$/m, 'projectPath: /user/projects/roughdemos');
+            FS.writeFile('/user/settings.txt', settings);
+        }""")
+        flush()
+        page.reload()
+        ready()
+        assert not page.evaluate("FS.analyzePath('/user/projects/roughdemos').exists")
+        assert digest(changed) == changed_hash
+        settings = read('/user/settings.txt')
+        assert b'bootScreenNight: 1\n' in settings
+        assert b'personalNightDefault: 1\n' in settings
+        assert b'projectPath: /user/projects/rough demos\n' in settings
+        page.evaluate("""() => {
+            let settings = FS.readFile('/user/settings.txt', {encoding:'utf8'});
+            FS.writeFile('/user/settings.txt', settings.replace(/^bootScreenNight:.*$/m, 'bootScreenNight: 0'));
+        }""")
+        flush()
+        page.reload()
+        ready()
+        assert b'bootScreenNight: 0\n' in read('/user/settings.txt')
+        assert digest(changed) == changed_hash
         assert not errors, errors
-        print('Reload preserved the edited song, Continue snapshot and private preset data; no JavaScript errors', flush=True)
+        print('Frameless canvas, one-time Night default, legacy folder migration and later Original choice passed; edited songs, Continue and private data preserved', flush=True)
     finally:
         browser.close()
         server.shutdown()

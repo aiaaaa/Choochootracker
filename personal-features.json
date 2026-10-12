@@ -8,8 +8,8 @@
     {
       "id": "night-title",
       "title": "Optional mellow night boot screen using the original railway art",
-      "upstream_status": "Installed in device personal build; contribution prepared locally",
-      "integration_policy": "Keep Original as default, preserving the original landscape seams and scroll timing. Night uses procedural galaxy wisps, localized lavender highlights, subtle twinkles and fourteen shooting stars per four-minute cycle. Generate the sky across draws to avoid single-frame CPU spikes. Preserve the saved choice on device and web.",
+      "upstream_status": "Installed and visually approved; upstream PR #62 open",
+      "integration_policy": "Use Night as the personal default, migrating existing profiles once and preserving later manual choices, preserving the original landscape seams and scroll timing. Night uses procedural galaxy wisps, localized lavender highlights, subtle twinkles and fourteen shooting stars per four-minute cycle. Generate the sky across draws to avoid single-frame CPU spikes. Preserve the saved choice on device and web.",
       "included_commit": "19e12bf3ffd3347ef5ab8ac58cbdcb0a3dea5d18"
     },
     {
@@ -455,7 +455,7 @@
       "web appearance, safe areas, storage flush and audio recovery",
       "web Play X / Shift Y defaults",
       "roughdemos portable song collection",
-      "handheld saved 4906-frame buffer"
+      "handheld saved buffer (256 frames confirmed by owner)"
     ],
     "notes": "Use merged upstream implementations for Rotary/navigation and community imports; keep private library files outside Git. Source integration and validation are recorded in docs/personal-harmonization-20261011.md."
   }

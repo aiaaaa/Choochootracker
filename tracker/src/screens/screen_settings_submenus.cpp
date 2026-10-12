@@ -15,11 +15,7 @@ static void noHeader(int, CellState) {}
 static void setup(int) {}
 static void draw(void) {}
 
-static const int audioBufferSizes[] = {32, 64, 128, 256, 512, 1024,
-#if defined(PORTMASTER_BUILD) || defined(TEST_PORTMASTER_INPUT)
-  4906,
-#endif
-};
+static const int audioBufferSizes[] = {32, 64, 128, 256, 512, 1024};
 static int displayedCpuLoad = -1;
 
 static void drawAudioCpuLoad(void) {
