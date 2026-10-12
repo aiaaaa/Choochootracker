@@ -716,7 +716,7 @@ public final class ChooChooTrackerActivity extends SDLActivity {
                 android.widget.Toast.makeText(this, "Cannot keep access to this folder", android.widget.Toast.LENGTH_LONG).show();
                 return;
             }
-            getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit().putString(PREF_TREE_URI, tree.toString()).apply();
+            getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit().putString(PREF_TREE_URI, tree.toString()).commit();
             restartApp();
             return;
         }
