@@ -49,7 +49,7 @@ audiobuffer van 1024 frames om de audio tussen de aanroepen meer tijd te geven. 
 bufferinstellingen worden automatisch aangepast; projecten en andere instellingen blijven
 behouden. Het uitlezen van invoer en de timers van de app houden hun gebruikelijke ritme.
 
-### Maprichting
+### Mapconfiguratie
 
 | Map | Inhoud |
 |---|---|
@@ -240,7 +240,7 @@ De Project-pagina zet de appversie op een eigen regel en scheidt Load, Save, New
 
 ### Telemetrie van de audioweergave
 
-De audio-uitlezingen gebruiken een momentopname, die eigendom is van de interface, van de eindmix en van de bijdragen van de afzonderlijke sporen. Spoorsamples en stereopieken worden vastgelegd na spoorniveau en tilt, vóór de gedeelde effectreturns en de mastervermogenswinst. Het monitoren verandert het audiosignaal niet. De audiocallback publiceert momentopnamen van vaste grootte zonder locks of geheugentoewijzing; de getoonde geschiedenis beslaat ongeveer 21 ms.
+De audio-uitlezingen gebruiken een momentopname, die eigendom is van de interface, van de eindmix en van de bijdragen van de afzonderlijke sporen. Spoorsamples en stereopieken worden vastgelegd na spoorniveau en tilt, vóór de gedeelde effectreturns en de master-gain. Het monitoren verandert het audiosignaal niet. De audiocallback publiceert momentopnamen van vaste grootte zonder locks of geheugentoewijzing; de getoonde geschiedenis beslaat ongeveer 21 ms.
 
 ### Permanente golfvorm
 
@@ -252,7 +252,7 @@ Een met code getekende pixelpiano onder de acht spoorrijen aan de rechterkant la
 
 ### Mixer-meters
 
-De Mixer toont voor elk spoor naast elkaar liggende **L/R**-pieken, na zijn PAN en tilt, vóór de gedeelde effecten en de mastervermogenswinst. De meter beslaat -48 tot 0 dBFS en zakt terug tussen de updates. De lage en middelste banden gebruiken themakleuren, terwijl de bovenste band helderrood is nabij volle schaal.
+De Mixer toont voor elk spoor naast elkaar liggende **L/R**-pieken, na zijn PAN en tilt, vóór de gedeelde effecten en de master-gain. De meter beslaat -48 tot 0 dBFS en zakt terug tussen de updates. De lage en middelste banden gebruiken themakleuren, terwijl de bovenste band helderrood is nabij volle schaal.
 
 ## 4. Song, Chain en Phrase
 
