@@ -549,7 +549,7 @@ TEST_CASE_FIXTURE(StickLiveFixture, "Persistent waveform is opt-in and its Setti
   REQUIRE(mockScreenData != nullptr);
   auto* screen = mockScreenData;
   int modified = projectModified;
-  CHECK(screen->rows == 6);
+  CHECK(screen->rows == 7);
   screen->drawField(0, 2, CellState::focus);
   CHECK(std::string(mockGfxCells[4] + 23, 3) == "OFF");
   REQUIRE(screen->onEdit(0, 2, CellEditAction::tap) == 1);

@@ -1244,6 +1244,12 @@ Use **Save** before changing instrument types or loading another project.
 - **Support report** writes a small diagnostic text file with the app version, platform, audio settings and CPU load, playback/overflow state, and a compact project summary. It does not include sample data or project title/author text. On Android and Web it opens the normal export/download flow; desktop and handheld builds save `support-report.txt` in the app's writable folder.
 - **Quit ChooChooTracker** exits cleanly.
 
+**Graphics → Boot screen** selects **Original** (default) or **Night**. Tap EDIT
+or use EDIT + direction to change it; the choice is saved for the next title
+screen. Night uses the original railway scene with softer blue-gray tones,
+a procedural Milky Way with subtle star twinkles and occasional shooting stars.
+The original scenery and train keep their scrolling loops.
+
 ## 13. Performance and troubleshooting
 
 ### CPU
