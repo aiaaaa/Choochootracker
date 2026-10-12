@@ -10,8 +10,10 @@ TEST_CASE("FM catalog supports ten thousand metadata entries transactionally") {
   FILE* f=fopen("test_fm_catalog.tsv","wb");REQUIRE(f);fputs("CCT-CHIP-CATALOG\t1\n",f);
   for(int i=0;i<10000;++i)fprintf(f,"24\t101\tScale fixture\tUnsorted\tSynthetic %05d\tsynthetic-%05d.cni\n",i,i);fclose(f);
   std::vector<FMPresetEntry> entries;REQUIRE(loadFMCatalog("test_fm_catalog.tsv",entries));CHECK(entries.size()==10000);CHECK(entries.back().name=="Synthetic 09999");
+  f=fopen("test_fm_catalog.tsv","wb");REQUIRE(f);fputs("CCT-CHIP-CATALOG\t1\r\n25\t200\tGenesis\tKeys\tTest\ttest.cni\r\n",f);fclose(f);
+  REQUIRE(loadFMCatalog("test_fm_catalog.tsv",entries));CHECK(entries.size()==1);CHECK(entries[0].type==int(InstrumentType::GenesisFM));
   f=fopen("test_fm_catalog.tsv","wb");REQUIRE(f);fputs("CCT-CHIP-CATALOG\t1\n24\t101\tBad\tUnsorted\tBad\t../escape.cni\n",f);fclose(f);
-  CHECK_FALSE(loadFMCatalog("test_fm_catalog.tsv",entries));CHECK(entries.size()==10000);std::remove("test_fm_catalog.tsv");
+  CHECK_FALSE(loadFMCatalog("test_fm_catalog.tsv",entries));CHECK(entries.size()==1);std::remove("test_fm_catalog.tsv");
 }
 TEST_CASE("FM bundled catalogue loads all currently packaged records") {
   std::vector<FMPresetEntry> entries;
@@ -44,5 +46,11 @@ TEST_CASE("Factory collections keep engine ownership and downloaded names") {
   for(auto type:{InstrumentType::SegaPSG,InstrumentType::GBPulse,InstrumentType::GBNoise}) {
     auto groups=factoryCollections(entries,type);REQUIRE(groups.size()==1);CHECK(groups[0].name=="Factory Presets");
     for(int i:groups[0].presets)CHECK(entries[i].type==int(type));
+  }
+  for(auto type:{InstrumentType::GenesisFM,InstrumentType::ArcadeFM}) {
+    auto groups=factoryCollections(entries,type);REQUIRE(groups.size()==2);
+    CHECK(groups[0].name=="Factory Presets");CHECK(groups[0].presets.size()==24);
+    CHECK(groups[1].id==(type==InstrumentType::GenesisFM?210:211));
+    CHECK(groups[1].presets.size()==(type==InstrumentType::GenesisFM?49:57));
   }
 }

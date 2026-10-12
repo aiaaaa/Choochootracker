@@ -512,6 +512,26 @@ GfxImage* gfxImageLoadBMP(const char* path) {
   return image;
 }
 
+GfxImage* gfxImageCreateARGB(int width, int height) {
+  SDL_Surface* surface = SDL_CreateRGBSurface(SDL_SWSURFACE, width, height, 32,
+    0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000);
+  if (!surface) return NULL;
+  GfxImage* image = (GfxImage*)malloc(sizeof(GfxImage));
+  if (!image) { SDL_FreeSurface(surface); return NULL; }
+  SDL_SetAlpha(surface, 0, 255);
+  image->surface = surface; image->width = width; image->height = height;
+  return image;
+}
+
+int gfxImageUpdateARGB(GfxImage* image, const uint32_t* pixels) {
+  if (!image || !pixels || SDL_LockSurface(image->surface) != 0) return 0;
+  for (int y = 0; y < image->height; ++y)
+    memcpy((uint8_t*)image->surface->pixels + y * image->surface->pitch,
+      pixels + y * image->width, image->width * 4);
+  SDL_UnlockSurface(image->surface);
+  return 1;
+}
+
 void gfxImageFree(GfxImage* image) {
   if (!image) return;
   if (image->surface) SDL_FreeSurface(image->surface);

@@ -30,6 +30,16 @@ scales while keeping its original aspect ratio.
 
 ### Web
 
+The browser page follows the active tracker theme. Saved settings, including
+custom key mappings confirmed with **Done**, are written promptly to this
+browser's storage. After screen lock or switching apps, tap a control to recover
+audio if needed. **Restart audio** reopens the output without discarding the
+project. **Reload app** saves the current work to **Continue**, saves settings,
+and waits for browser storage before reloading; a failed or timed-out save
+cancels the reload. Use **Download .cct** for a portable backup. Browser storage
+can be cleared independently, and iOS controller/audio routing recovery is not
+guaranteed.
+
 The browser version refreshes its display at about 30 FPS and uses a fixed
 1024-frame audio buffer to give audio more time between callbacks. Older saved
 buffer settings are adjusted automatically; projects and other settings are
@@ -1247,6 +1257,12 @@ Use **Save** before changing instrument types or loading another project.
 - **Support report** writes a small diagnostic text file with the app version, platform, audio settings and CPU load, playback/overflow state, and a compact project summary. It does not include sample data or project title/author text. On Android and Web it opens the normal export/download flow; desktop and handheld builds save `support-report.txt` in the app's writable folder.
 - **Quit ChooChooTracker** exits cleanly.
 
+**Graphics → Boot screen** selects **Original** (default) or **Night**. Tap EDIT
+or use EDIT + direction to change it; the choice is saved for the next title
+screen. Night uses the original railway scene with softer blue-gray tones,
+a procedural Milky Way with subtle star twinkles and occasional shooting stars.
+The original scenery and train keep their scrolling loops.
+
 ## 13. Performance and troubleshooting
 
 ### CPU
@@ -1561,8 +1577,9 @@ button to the right of Fine ct. It opens a table of the patch parameters:
   "Custom".
 
 Left/Right and the usual edit keys change values; the instrument keeps playing
-as usual so you can hear changes. OPT or Left+Shift returns to the instrument
-screen. DX7 and SID have no operator editor.
+as usual so you can hear changes. The status bar describes the parameter under
+the cursor. OPT or Left+Shift returns to the instrument screen. DX7 and SID
+have no operator editor.
 
 Genesis FM (YM2612) and Arcade FM (YM2151) now use the same FM Bank/Preset
 browser, EDIT+PLAY audition, confirm/cancel and fine-tune controls. Genesis now

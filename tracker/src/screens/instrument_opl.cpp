@@ -57,11 +57,25 @@ bool readCatalog(){
 #ifdef ANDROID_BUILD
   external=true;
 #endif
+#ifdef _WIN32
+  // Windows users commonly launch the .exe through a shortcut or file link,
+  // whose working directory is not necessarily the package directory.
+  external=true;
+#endif
   if(external){char root[1024];if(fileGetDefaultDirectory(root,sizeof(root)))return false;base=std::string(root)+"/instruments/";}
-  folder=base+"FACTORY/";
-  if(!loadFMCatalog((folder+"catalog.tsv").c_str(),catalog)) {
-    folder=base+"chips/"; // Older installations remain readable.
-    loadFMCatalog((folder+"catalog.tsv").c_str(),catalog);
+  auto loadFrom=[&](const std::string& root){
+    folder=root+"FACTORY/";
+    if(loadFMCatalog((folder+"catalog.tsv").c_str(),catalog))return true;
+    folder=root+"chips/"; // Older installations remain readable.
+    return loadFMCatalog((folder+"catalog.tsv").c_str(),catalog);
+  };
+  if(!loadFrom(base)) {
+    // A shortcut or an IDE can start the desktop build from an unrelated
+    // working directory. Always try the executable's package as a fallback.
+    char root[1024];
+    if(fileGetDefaultDirectory(root,sizeof(root)))return false;
+    std::string installed=std::string(root)+"/instruments/";
+    if(installed==base||!loadFrom(installed))return false;
   }
   std::vector<Entry> builtins;
   if(loadFMCatalog((folder+"builtins.tsv").c_str(),builtins))catalog.insert(catalog.end(),builtins.begin(),builtins.end());

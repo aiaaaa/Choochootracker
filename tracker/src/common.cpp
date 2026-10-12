@@ -5,6 +5,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#ifdef WEB_BUILD
+#include <emscripten.h>
+#endif
 #include <chipnomad_lib.h>
 
 static char settingsPath[PATH_LENGTH + 32];
@@ -79,6 +82,7 @@ void initDefaultAppSettings(void) {
   appSettings.midiOutputDeviceName[0] = '\0';
   for (int i = 0; i < MIDI_CHANNEL_COUNT; i++) appSettings.midiChannelInstrument[i] = -1;
   appSettings.persistentWaveform = 0;
+  appSettings.bootScreenNight = 0;
 
   // Zero out key mapping (platform-specific defaults applied later)
   memset(&appSettings.keyMapping, 0, sizeof(KeyMapping));
@@ -213,6 +217,7 @@ int settingsSave(void) {
     appSettings.stickLiveMode == StickLiveMode::toggle ? "TOGGLE" : "HOLD";
   fprintf(file, "stickLiveMode: %s\n", stickLiveMode);
   fprintf(file, "persistentWaveform: %d\n", appSettings.persistentWaveform);
+  fprintf(file, "bootScreenNight: %d\n", appSettings.bootScreenNight);
   for (int track = 0; track < PROJECT_MAX_TRACKS; ++track)
     fprintf(file, "trackVisuals%d: %d\n", track + 1, (int)appSettings.trackVisuals[track].mode);
 
@@ -275,6 +280,10 @@ int settingsSave(void) {
   fprintf(file, "srWavetablePath: %s\n", appSettings.srWavetablePath);
 
   fclose(file);
+#ifdef WEB_BUILD
+  // Emscripten's in-memory settings file becomes durable only after IDBFS sync.
+  EM_ASM({ if (window.choochooSettingsSaved) window.choochooSettingsSaved(); });
+#endif
   return 0;
 }
 
@@ -302,7 +311,11 @@ int settingsLoad(void) {
       len--;
     }
 
-    if (strncmp(line, "persistentWaveform: ", 20) == 0) {
+    if (strncmp(line, "bootScreenNight: ", 17) == 0) {
+      int enabled;
+      if (sscanf(line + 17, "%d", &enabled) == 1 && (enabled == 0 || enabled == 1))
+        appSettings.bootScreenNight = (uint8_t)enabled;
+    } else if (strncmp(line, "persistentWaveform: ", 20) == 0) {
       int enabled;
       if (sscanf(line + 20, "%d", &enabled) == 1 && (enabled == 0 || enabled == 1))
         appSettings.persistentWaveform = (uint8_t)enabled;
