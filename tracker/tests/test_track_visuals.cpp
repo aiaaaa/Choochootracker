@@ -94,6 +94,40 @@ TEST_CASE_FIXTURE(VisualFixture, "Earlier per-layer settings retain modes and di
   CHECK_FALSE(blank(waveformDisplayGetBitmap(0))); // Audio's silent centre line remains visible.
 }
 
+TEST_CASE_FIXTURE(VisualFixture, "Boot screen defaults to original and persists the night option") {
+  { std::ofstream f(settingsPath); f << "themeName: ExistingTheme\n"; }
+  REQUIRE(settingsLoad() == 0);
+  CHECK(appSettings.bootScreenNight == 0);
+  appSettings.bootScreenNight = 1;
+  REQUIRE(settingsSave() == 0);
+  initDefaultAppSettings();
+  REQUIRE(settingsLoad() == 0);
+  CHECK(appSettings.bootScreenNight == 1);
+  CHECK(std::string(appSettings.themeName) == "ExistingTheme");
+  for (const char* value : {"-1", "2", "garbage"}) {
+    { std::ofstream f(settingsPath); f << "bootScreenNight: " << value << '\n'; }
+    REQUIRE(settingsLoad() == 0);
+    CHECK(appSettings.bootScreenNight == 0);
+  }
+}
+
+TEST_CASE_FIXTURE(VisualFixture, "Boot screen Graphics row toggles and saves without changing the theme") {
+  currentScreen = &screenGraphicsSettings;
+  screenGraphicsSettings.setup(0);
+  screenGraphicsSettings.fullRedraw();
+  ScreenData* table = mockScreenData;
+  REQUIRE(table != nullptr);
+  REQUIRE(table->onEdit(0, 6, CellEditAction::tap) == 1);
+  table->drawField(0, 6, CellState::focus);
+  CHECK(std::string(mockGfxCells[8], 11) == "Boot screen");
+  CHECK(std::string(mockGfxCells[8] + 23, 8) == "Night   ");
+  REQUIRE(settingsLoad() == 0);
+  CHECK(appSettings.bootScreenNight == 1);
+  REQUIRE(table->onEdit(0, 6, CellEditAction::tap) == 1);
+  REQUIRE(settingsLoad() == 0);
+  CHECK(appSettings.bootScreenNight == 0);
+}
+
 TEST_CASE_FIXTURE(VisualFixture, "One display choice switches each track and saves bulk choices") {
   currentScreen = &screenTrackVisuals;
   screenTrackVisuals.setup(0);
