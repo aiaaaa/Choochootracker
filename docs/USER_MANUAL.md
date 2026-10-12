@@ -82,6 +82,16 @@ the app; the direct APK / F-Droid build asks you on first launch to pick one fol
 manager or PC can reach them. The bundled banks and demo content stay inside the app. In both builds, use the Android file picker to import `.cct` projects and `.wav` samples,
 and to choose where WAV exports are saved.
 
+### Android working folder
+
+In the direct APK / F-Droid build, **Settings > Working folder** shows whether the
+app uses a folder you picked (`FOLDER`) or its private storage (`PRIVATE`). Press
+**EDIT** on it to pick another folder with the system picker; the app offers to copy
+your files from the current workspace (existing files in the new folder are kept),
+then restarts on the new folder. **DEL** on the row switches back to private storage.
+If you cancel the picker on first launch, the app keeps using private storage and
+does not ask again. In the Play Store build the row reads `N/A`.
+
 ### Navigation
 
 - Use **[UP/DOWN/LEFT/RIGHT]** to move the cursor.

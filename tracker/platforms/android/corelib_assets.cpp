@@ -44,6 +44,34 @@ int androidGetPrivateWorkspacePath(char* buffer, int bufferSize) {
     return value ? 0 : 1;
 }
 
+// Runs a no-argument void method of the activity (pickWorkingFolder, clearWorkingFolder).
+void androidWorkingFolderCommand(const char* name) {
+    JNIEnv* env = (JNIEnv*)SDL_AndroidGetJNIEnv();
+    jobject activity = (jobject)SDL_AndroidGetActivity();
+    if (!env || !activity) return;
+    jclass cls = env->GetObjectClass(activity);
+    jmethodID method = env->GetMethodID(cls, name, "()V");
+    if (method) env->CallVoidMethod(activity, method);
+    env->DeleteLocalRef(cls);
+    env->DeleteLocalRef(activity);
+}
+
+int androidGetWorkingFolderStatus(char* buffer, int bufferSize) {
+    JNIEnv* env = (JNIEnv*)SDL_AndroidGetJNIEnv();
+    jobject activity = (jobject)SDL_AndroidGetActivity();
+    if (!env || !activity) return 1;
+    jclass cls = env->GetObjectClass(activity);
+    jmethodID method = env->GetMethodID(cls, "getWorkingFolderStatus", "()Ljava/lang/String;");
+    jstring status = method ? (jstring)env->CallObjectMethod(activity, method) : NULL;
+    const char* value = status ? env->GetStringUTFChars(status, NULL) : NULL;
+    if (value) snprintf(buffer, bufferSize, "%s", value);
+    if (value) env->ReleaseStringUTFChars(status, value);
+    if (status) env->DeleteLocalRef(status);
+    env->DeleteLocalRef(cls);
+    env->DeleteLocalRef(activity);
+    return value ? 0 : 1;
+}
+
 void androidOpenDocument(const char* mimeType, const char* relativeDirectory) {
     JNIEnv* env = (JNIEnv*)SDL_AndroidGetJNIEnv();
     jobject activity = (jobject)SDL_AndroidGetActivity();

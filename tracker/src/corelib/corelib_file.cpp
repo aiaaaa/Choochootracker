@@ -191,6 +191,30 @@ void fileExportDocument(const char* path, const char* mimeType) {
 #endif
 }
 
+void filePickWorkingFolder(void) {
+#ifdef ANDROID_BUILD
+  extern void androidWorkingFolderCommand(const char*);
+  androidWorkingFolderCommand("pickWorkingFolder");
+#endif
+}
+
+void fileClearWorkingFolder(void) {
+#ifdef ANDROID_BUILD
+  extern void androidWorkingFolderCommand(const char*);
+  androidWorkingFolderCommand("clearWorkingFolder");
+#endif
+}
+
+int fileGetWorkingFolderStatus(char* buffer, int bufferSize) {
+#ifdef ANDROID_BUILD
+  extern int androidGetWorkingFolderStatus(char*, int);
+  return androidGetWorkingFolderStatus(buffer, bufferSize);
+#else
+  snprintf(buffer, bufferSize, "Unavailable");
+  return 0;
+#endif
+}
+
 int fileDirectoryExists(const char* path) {
   struct stat statBuf;
   return (stat(path, &statBuf) == 0 && S_ISDIR(statBuf.st_mode)) ? 1 : 0;
