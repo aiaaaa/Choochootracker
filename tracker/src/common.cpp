@@ -5,6 +5,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#ifdef WEB_BUILD
+#include <emscripten.h>
+#endif
 #include <chipnomad_lib.h>
 
 static char settingsPath[PATH_LENGTH + 32];
@@ -275,6 +278,10 @@ int settingsSave(void) {
   fprintf(file, "srWavetablePath: %s\n", appSettings.srWavetablePath);
 
   fclose(file);
+#ifdef WEB_BUILD
+  // Emscripten's in-memory settings file becomes durable only after IDBFS sync.
+  EM_ASM({ if (window.choochooSettingsSaved) window.choochooSettingsSaved(); });
+#endif
   return 0;
 }
 
