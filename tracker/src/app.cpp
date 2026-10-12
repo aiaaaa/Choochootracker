@@ -28,6 +28,11 @@
 
 // Raw input callback for key mapping screen
 void (*inputRawCallback)(InputCode input, int isDown) = NULL;
+static InputCode currentInput = {InputDeviceType::none, 0};
+
+InputCode appCurrentInput(void) {
+  return currentInput;
+}
 
 // Input handling vars:
 
@@ -659,7 +664,9 @@ void appOnEvent(MainLoopEventData eventData) {
       // As we don't support multiple d-pad keys, keep only the last pressed one
       pressedButtons = (pressedButtons & ~dPadMask) | value;
     }
+    currentInput = eventData.data.input;
     appInput(1, pressedButtons, tapCount);
+    currentInput = (InputCode){InputDeviceType::none, 0};
 
     break;
   }
