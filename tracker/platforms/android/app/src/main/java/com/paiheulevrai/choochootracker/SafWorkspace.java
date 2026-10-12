@@ -165,6 +165,17 @@ final class SafWorkspace {
         return names.toArray(new String[0]);
     }
 
+    // Paths of every file below `path`, relative to the picked folder.
+    synchronized void collectFiles(String path, List<String> out) {
+        String[] names = list(path);
+        if (names == null) return;
+        for (String name : names) {
+            String child = path.isEmpty() ? name.substring(1) : path + "/" + name.substring(1);
+            if (name.charAt(0) == 'd') collectFiles(child, out);
+            else out.add(child);
+        }
+    }
+
     // 0 created, 1 already a folder, -1 failure.
     synchronized int mkdir(String path) {
         Node existing = resolve(path);
