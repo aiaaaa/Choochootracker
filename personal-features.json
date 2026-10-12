@@ -8,7 +8,7 @@
     {
       "id": "night-title",
       "title": "Optional mellow night boot screen using the original railway art",
-      "upstream_status": "Installed and visually approved; upstream PR #62 open",
+      "upstream_status": "Merged upstream via PR #62; accepted renderer retained, personal Night default preserved",
       "integration_policy": "Use Night as the personal default, migrating existing profiles once and preserving later manual choices, preserving the original landscape seams and scroll timing. Night uses procedural galaxy wisps, localized lavender highlights, subtle twinkles and fourteen shooting stars per four-minute cycle. Generate the sky across draws to avoid single-frame CPU spikes. Preserve the saved choice on device and web.",
       "included_commit": "19e12bf3ffd3347ef5ab8ac58cbdcb0a3dea5d18"
     },
@@ -458,5 +458,32 @@
       "handheld saved buffer (256 frames confirmed by owner)"
     ],
     "notes": "Use merged upstream implementations for Rotary/navigation and community imports; keep private library files outside Git. Source integration and validation are recorded in docs/personal-harmonization-20261011.md."
+  },
+  "harmonization_20261012": {
+    "upstream_commit": "0bffff96b80012cadf4765374d79d471e2efd0bf",
+    "merged_prs": [
+      61,
+      62,
+      63
+    ],
+    "audio_buffer_origin": "Upstream a05359a by surga, 2026-10-11",
+    "audio_buffer_choices": [
+      32,
+      64,
+      128,
+      256,
+      512,
+      1024
+    ],
+    "personal_4906_option": "Removed in 88f8c13; residual cursor check reconciled with main",
+    "status": "Prepared locally; application builds, push and deployment held at owner request",
+    "validation": {
+      "native_test_cases": 631,
+      "native_assertions": 112827489,
+      "stretch_lifetime": "32 cycles; zero retained allocations",
+      "browser_storage_and_lucky_relay_tests": 9,
+      "application_builds": "Not started",
+      "device_connection": "USB network interface absent after replug/reboot; SSH timed out"
+    }
   }
 }

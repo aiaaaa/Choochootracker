@@ -29,7 +29,7 @@ static void drawAudioCpuLoad(void) {
 }
 
 static void audioStatic(void) { gfxSetFgColor(appSettings.colorScheme.textTitles); gfxPrint(0, 0, "AUDIO"); }
-static void audioCursor(int, int) { gfxCursor(23, 2, appSettings.audioBufferSize >= 1000 ? 4 : 3); }
+static void audioCursor(int, int) { gfxCursor(23, 2, appSettings.audioBufferSize == 1024 ? 4 : 3); }
 static void audioField(int, int row, CellState state) {
   const ColorScheme cs = appSettings.colorScheme;
   if (row == 0) {

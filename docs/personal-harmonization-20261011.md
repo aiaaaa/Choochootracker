@@ -27,8 +27,9 @@ Merge decisions:
 - Keep Lucky in the new Settings structure, after Support report and before
   Quit. Key Mapping now lives under Controls. Keep browser hide/wake recovery,
   immediate settings flush, theme integration and X/Y defaults.
-- Keep the saved R36H buffer of 4906; expose it as an additional personal
-  handheld Audio choice rather than silently converting it to 512.
+- Historical first integration retained a personal 4906-frame buffer choice.
+  This was removed in `88f8c13` after the owner confirmed 256 worked well.
+  Current choices and normalization follow upstream: 32/64/128/256/512/1024.
 - Use upstream's PortMaster O3 optimization and frame timing with Lucky linkage.
 - Keep generated web/dist ignored and require a fresh exact-commit CI build.
 - Carry forward roughdemos, browser-safe editable seeding and the separately
@@ -62,8 +63,5 @@ binary hash, validation results and rollback path into `personal-build.json`
 and `personal-device-validation.json` in the device installation. The public
 web build's exact source commit is recorded in `/build-info.json`.
 
-Try a smaller buffer under **Settings → Audio** while a demanding song plays.
-Lower values reduce buffering delay but can cause dropouts if a block misses
-its deadline. The personal handheld can step from its saved 4906 to 1024, then
-512, and restore 4906. This changes output buffering, not saved note timing or
-sample fidelity. Browser and Bluetooth output may add their own latency.
+Buffer choices follow upstream Settings → Audio. The owner confirmed playback
+at 256 frames. Browser and Bluetooth output can add their own latency.

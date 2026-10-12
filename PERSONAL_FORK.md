@@ -1,5 +1,18 @@
 # My R36H build
 
+## October 12 main harmonization
+
+Shared source incorporates upstream `0bffff9`, including merged PRs #61, #62
+and #63 (browser recovery, Night screen, spoken stereo test). Accepted shared
+implementations are retained alongside personal appearance, Lucky and private
+USER library support. Audio settings match main exactly: 32, 64, 128, 256,
+512 and 1024 frames. The maintainer introduced configurable buffers in
+`a05359a`; the temporary personal 4906 option was removed in `88f8c13`.
+631 native tests and nine browser-storage/relay checks passed. Application
+builds and deployment are held at the owner’s request; installed targets remain
+unchanged. The spoken stereo test is included in both targets’ packaging.
+
+
 ## Local night title (October 11)
 
 Graphics → Boot screen now saves Original/Night. Night is the personal default, with a one-time migration for existing profiles. Later Original/Night choices remain saved.

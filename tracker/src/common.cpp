@@ -5,10 +5,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <chipnomad_lib.h>
 #ifdef WEB_BUILD
 #include <emscripten.h>
 #endif
+#include <chipnomad_lib.h>
 
 static char settingsPath[PATH_LENGTH + 32];
 static char autosavePath[PATH_LENGTH + 32];
