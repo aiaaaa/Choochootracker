@@ -12,6 +12,7 @@ text is right.
 | Deutsch | [`USER_MANUAL.de.md`](USER_MANUAL.de.md) | English manual at `7c3ed6f` |
 | Italiano | [`USER_MANUAL.it.md`](USER_MANUAL.it.md) | English manual at `7c3ed6f` |
 | 日本語 | [`USER_MANUAL.ja.md`](USER_MANUAL.ja.md) | English manual at `7c3ed6f` |
+| 中文 (简体) | [`USER_MANUAL.zh.md`](USER_MANUAL.zh.md) | English manual at `7c3ed6f` |
 
 ## Conventions
 
