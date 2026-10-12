@@ -99,7 +99,8 @@ TRACKER_SRC_SOURCES = src/screens/user_preset_browser.cpp src/user_presets.cpp s
                       src/import/import_vts.cpp \
                       src/import/pt3_tables.cpp \
                       src/import/import_midi.cpp \
-                      src/import/import_m8s.cpp
+                      src/import/import_m8s.cpp \
+                      src/import/import_lsdj.cpp
 
 # Mock sources
 MOCK_SOURCES = $(wildcard tests/mocks/*.cpp)
