@@ -19,6 +19,7 @@ enum InsertModule : uint8_t {
   insertDestruction,
   insertParametricEQ,
   insertTranceGate,
+  insertBeads,
   insertModuleCount
 };
 enum class InsertMapping : uint8_t { linear, exponential, bipolar, discrete };
