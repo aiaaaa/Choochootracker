@@ -36,7 +36,7 @@ TEST_CASE("Reverb high-pass removes low-frequency send energy") {
   project.reverbFilterCutoffHz = 20000;
   std::vector<float> bus(4096 * 2, 1.0f), lowOutput(4096 * 2, 0.0f), highOutput(4096 * 2, 0.0f);
 
-  MasterEffects low, high;
+  MasterEffects low{}, high{};
   low.init(48000.0f);
   high.init(48000.0f);
   project.reverbHighpassCutoffHz = 20;

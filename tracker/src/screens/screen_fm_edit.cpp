@@ -36,6 +36,7 @@ struct Row {
 std::vector<Row> rows;
 std::vector<const char*> header;         // Operator names, one per column.
 ScreenData data;
+char hintOwnedText[48];
 
 Instrument* cur() { return &chipnomadState->project.instruments[cInstrument]; }
 
@@ -173,6 +174,52 @@ int valueX(const Field& f, int col) { return cellX(col) + (f.tag[0] ? 4 : 0); }
 int rowY(int row) { return 3 + row - data.topRow; }
 bool visible(int row) { return row >= data.topRow && row < data.topRow + screenVisibleRows(); }
 
+const char* fieldHint(int col, int row) {
+  if (row >= int(rows.size()) || col >= int(rows[row].cells.size())) return nullptr;
+  const Field& f = rows[row].cells[col];
+  if (!strcmp(f.tag, "ALG")) return "Algorithm: operator routing";
+  if (!strcmp(f.tag, "FB")) return "Feedback amount";
+  if (!strcmp(f.tag, "PAN")) return "Stereo output panning";
+  if (!strcmp(f.tag, "AMS")) return "Amplitude modulation sensitivity";
+  if (!strcmp(f.tag, "PMS")) return "Pitch modulation sensitivity";
+  if (!strcmp(f.tag, "MSK")) return "Enabled operators";
+  if (!strcmp(f.tag, "LFO")) return "Enable low-frequency modulation";
+  if (!strcmp(f.tag, "RT")) return "Low-frequency oscillator rate";
+  if (!strcmp(f.tag, "WAV")) return "Low-frequency oscillator waveform";
+  if (!strcmp(f.tag, "TOP")) return "OPL3 operator configuration";
+  if (!strcmp(f.tag, "CON")) return "Operator connection";
+  if (!strcmp(f.tag, "VIB")) return "Global vibrato depth";
+  if (!strcmp(f.tag, "TRM")) return "Global tremolo depth";
+  const char* label = rows[row].label;
+  if (!strcmp(label, "MUL")) return "Operator frequency multiplier";
+  if (!strcmp(label, "DT")) return "Operator detune";
+  if (!strcmp(label, "DT2")) return "Secondary operator detune";
+  if (!strcmp(label, "TL")) return "Operator output level";
+  if (!strcmp(label, "KS") || !strcmp(label, "KSL")) return "Key-scaling level response";
+  if (!strcmp(label, "AR")) return "Attack rate";
+  if (!strcmp(label, "D1R") || !strcmp(label, "DR")) return "First decay rate";
+  if (!strcmp(label, "D2R")) return "Second decay rate";
+  if (!strcmp(label, "RR")) return "Release rate";
+  if (!strcmp(label, "D1L") || !strcmp(label, "SL")) return "Sustain level";
+  if (!strcmp(label, "WAV") || !strcmp(label, "Wave")) return "Operator waveform";
+  if (!strcmp(label, "AM")) return "Amplitude modulation enable";
+  if (!strcmp(label, "VIB")) return "Vibrato enable";
+  if (!strcmp(label, "SUS") || !strcmp(label, "EG")) return "Sustain envelope mode";
+  if (!strcmp(label, "KSR")) return "Key-scaling rate response";
+  if (!strcmp(label, "LFO depth")) return col ? "Pitch modulation depth" : "Amplitude modulation depth";
+  return label;
+}
+
+void updateHint(int ownsBar) {
+  const char* hint = fieldHint(data.cursorCol, data.cursorRow);
+  if (hint) {
+    if (!ownsBar || strcmp(hint, hintOwnedText) != 0) {
+      screenMessage(0, "%s", hint);
+      snprintf(hintOwnedText, sizeof(hintOwnedText), "%s", screenGetActiveMessage());
+    }
+  }
+}
+
 void drawStatic() {
   const ColorScheme cs = appSettings.colorScheme;
   gfxSetFgColor(cs.textTitles);
@@ -238,6 +285,7 @@ void setup(int) {
   data.cursorRow = 0;
   data.cursorCol = 0;
   data.topRow = 0;
+  hintOwnedText[0] = '\0';
   rebuild();
 }
 
@@ -246,7 +294,12 @@ void fullRedraw() {
   screenFullRedraw(&data);
 }
 
-void draw() {}
+void draw() {
+  const char* activeMessage = screenGetActiveMessage();
+  if (!activeMessage[0]) updateHint(0);
+  else if (!strcmp(activeMessage, hintOwnedText)) updateHint(1);
+  else hintOwnedText[0] = '\0';
+}
 
 int onInput(int isKeyDown, int keys, int tapCount) {
   if (keys == 0) chipnomadQueuePlaybackStopPreview(chipnomadState, *pSongTrack);
