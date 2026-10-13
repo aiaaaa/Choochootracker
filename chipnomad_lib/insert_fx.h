@@ -46,6 +46,8 @@ struct InsertAutomation {
 };
 const InsertDescriptor& insertDescriptor(int module);
 uint8_t insertClamp(int module, int parameter, int value);
+// Nearest byte for an exact Beads semitone, clamped to +/-24.
+uint8_t insertBeadsPitchValue(int semitones);
 float insertMap(int module, int parameter, int value);
 void insertSelect(InsertConfig*, int module);
 void insertEdit(InsertConfig*, int parameter, int value);

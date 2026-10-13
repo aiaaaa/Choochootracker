@@ -1364,7 +1364,10 @@ or project format are needed. Grains run continuously without additional events.
   longer forward grains. FF enters the original delay mode after its transition.
 - **Density:** regular grains below the center, random timing above it; the center
   dead zone stops new grains. Moving away from center increases the rate.
-- **Pitch:** −24 to +24 semitones; 80 is exact unison.
+- **Pitch:** −24 to +24 semitones; 40, 80 and C0 are exact −12, 0 and +12.
+  Coarse edits step through exact semitones; fine edits retain intermediate pitches.
+  Each semitone spans five or six byte steps, keeping the sweep nearly linear.
+  Existing saved bytes remain intact; their tuning changes by less than 10 cents.
 - **Scatter:** 00 is no parameter randomness. Increasing it applies Beads' internal
   uniform Time randomness at full amount and Size randomness at half amount,
   independently for each grain. Pitch and Shape remain at their set values.

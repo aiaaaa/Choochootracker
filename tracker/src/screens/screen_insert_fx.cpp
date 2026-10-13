@@ -5,6 +5,7 @@
 #include "utils.h"
 #include "audio_manager.h"
 #include <stdio.h>
+#include <cmath>
 
 static void fullRedraw();
 static int onInput(int, int, int);
@@ -86,7 +87,15 @@ static int edit(int col, int row, CellEditAction action) {
     const auto& a = insertDescriptor(c.module).parameters[p];
     // Shape/Freeze is a packed byte, discrete for DSP slew rather than an enum.
     const bool packedShapeFreeze = c.module == insertBeads && p == 6;
-    handled = edit8noLast(action, &v,
+    const auto simpleAction = convertMultiAction(action);
+    if (c.module == insertBeads && p == 3 &&
+        (simpleAction == CellEditAction::increaseBig || simpleAction == CellEditAction::decreaseBig)) {
+      const float pitch = insertMap(insertBeads, 3, v);
+      const int next = simpleAction == CellEditAction::increaseBig ?
+          int(std::floor(pitch + 0.0001f)) + 1 : int(std::ceil(pitch - 0.0001f)) - 1;
+      v = insertBeadsPitchValue(next);
+      handled = 1;
+    } else handled = edit8noLast(action, &v,
                           a.mapping == InsertMapping::discrete && !packedShapeFreeze ? 1 : 16, 0,
                           a.mapping == InsertMapping::discrete ? (int)a.maximum : 255);
     if (handled) insertEdit(&c, p, v);

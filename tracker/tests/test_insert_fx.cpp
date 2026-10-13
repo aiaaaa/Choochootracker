@@ -918,6 +918,28 @@ TEST_CASE("one instrument on two tracks modulates independent slot bases with mu
   chipnomadSetLiveStickAxes(0, 0, 0, 0);
 }
 
+TEST_CASE("Beads coarse pitch edits follow semitones in track and master slots") {
+  auto* previous=chipnomadState;auto* previousScreen=currentScreen;
+  chipnomadState=chipnomadCreate();screensInitAll();*pSongTrack=0;
+  for(bool master:{false,true}){
+    if(master)screenInsertFXOpenMaster();else screenInsertFXOpenTrack();
+    for(int slot=0;slot<2;++slot){
+      auto& c=master?chipnomadState->project.masterInserts[slot]:chipnomadState->project.trackInserts[0][slot];
+      insertSelect(&c,insertBeads);screenInsertFX.fullRedraw();auto*d=mockScreenData;REQUIRE(d);
+      int row=slot*5+4;
+      for(int note=1;note<=24;++note){d->onEdit(0,row,CellEditAction::increaseBig);CHECK(insertMap(insertBeads,3,c.values[3])==float(note));}
+      d->onEdit(0,row,CellEditAction::increaseBig);CHECK(c.values[3]==255);
+      for(int note=23;note>=-24;--note){d->onEdit(0,row,CellEditAction::decreaseBig);CHECK(insertMap(insertBeads,3,c.values[3])==float(note));}
+      d->onEdit(0,row,CellEditAction::decreaseBig);CHECK(c.values[3]==0);
+      c.values[3]=0xc0;d->onEdit(0,row,CellEditAction::increase);CHECK(c.values[3]==0xc1);
+      d->onEdit(0,row,CellEditAction::decreaseBig);CHECK(c.values[3]==0xc0);
+      d->onEdit(0,row,CellEditAction::decrease);CHECK(c.values[3]==0xbf);
+      d->onEdit(0,row,CellEditAction::increaseBig);CHECK(c.values[3]==0xc0);
+    }
+  }
+  screenInsertFXOpenTrack();chipnomadDestroy(chipnomadState);chipnomadState=previous;currentScreen=previousScreen;
+}
+
 TEST_CASE("Beads Shape Freeze has coarse byte edits in both track and master slots") {
   auto* previous = chipnomadState;
   auto* previousScreen = currentScreen;

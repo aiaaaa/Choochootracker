@@ -206,3 +206,25 @@ TEST_CASE("full parameter extremes and delay-mode transitions stay finite") {
   }
 }
 }
+
+TEST_CASE("Beads pitch reaches every exact semitone while retaining near-linear fine travel") {
+  for (int note = -24; note <= 24; ++note) {
+    const int raw = insertBeadsPitchValue(note);
+    CHECK(insertMap(insertBeads, 3, raw) == float(note));
+  }
+  CHECK(insertMap(insertBeads, 3, 0x40) == -12.0f);
+  CHECK(insertMap(insertBeads, 3, 0x80) == 0.0f);
+  CHECK(insertMap(insertBeads, 3, 0xc0) == 12.0f);
+  for (int raw = 0; raw <= 255; ++raw) {
+    float pitch = insertMap(insertBeads, 3, raw);
+    float previousMapping = 24.0f * (raw - 128) / (raw < 128 ? 128 : 127);
+    CHECK(std::abs(pitch - previousMapping) < 0.1f);
+    if (raw) {
+      float step = pitch - insertMap(insertBeads, 3, raw - 1);
+      CHECK(step >= 1.0f / 6 - 0.00001f);
+      CHECK(step <= 0.2f + 0.00001f);
+    }
+  }
+  char text[32];insertDescribe(text, sizeof(text), insertBeads, 3, 0xc0);
+  CHECK(std::string(text) == "12.00 st");
+}

@@ -7,6 +7,14 @@ EDIT+Left/Right changes FACTORY/USER; a bare EDIT opens the chooser on release.
 Preset stepping is retained, and EDIT chords cannot trigger a release popup.
 This checkpoint remains separate from the installed October 13 daily.
 
+## Beads pitch interval checkpoint
+
+The existing pitch byte now reaches exact semitones, including 40 = −12,
+80 = unison and C0 = +12. Coarse edits move one semitone; fine edits keep
+intermediate positions. Mapping stays monotonic and nearly linear. Saved byte
+values are preserved, with tuning changes below 10 cents. This is a separate
+checkpoint; daily integration and Beads PR follow-up remain held.
+
 ## October 13 combined personal daily
 
 This candidate combines web Shift/Play right alignment (`f49f940`), lazy Beads

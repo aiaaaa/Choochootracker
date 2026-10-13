@@ -125,11 +125,27 @@ uint8_t insertClamp(int m, int p, int v) {
   return std::max(
       0, std::min(v, d.parameters[p].mapping == M::discrete ? (int)d.parameters[p].maximum : 255));
 }
+uint8_t insertBeadsPitchValue(int semitones) {
+  semitones = std::clamp(semitones, -24, 24);
+  const int distance = (std::abs(semitones) * (semitones < 0 ? 128 : 127) + 12) / 24;
+  return 128 + (semitones < 0 ? -distance : distance);
+}
+static float beadsPitch(int value) {
+  const int sign = value < 128 ? -1 : 1;
+  const int distance = std::abs(value - 128), span = sign < 0 ? 128 : 127;
+  auto anchor = [span](int note) { return (note * span + 12) / 24; };
+  int note = distance * 24 / span;
+  if (note < 24 && distance >= anchor(note + 1)) ++note;
+  if (note == 24) return sign * 24.0f;
+  // Near-linear travel with exact semitone anchors, including both octaves.
+  return sign * (note + float(distance - anchor(note)) / (anchor(note + 1) - anchor(note)));
+}
 float insertMap(int m, int p, int v) {
   const auto& d = insertDescriptor(m);
   if (p < 0 || p >= d.count) return 0;
   const auto& a = d.parameters[p];
   v = insertClamp(m, p, v);
+  if (m == insertBeads && p == 3) return beadsPitch(v);
   float x = v / 255.0f;
   if (a.mapping == M::discrete) return v;
   if (a.mapping == M::exponential) return a.minimum * powf(a.maximum / a.minimum, x);

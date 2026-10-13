@@ -561,5 +561,13 @@
     "input": "Bank EDIT chords switch FACTORY/USER; bare EDIT opens on release; preset stepping retained",
     "factory_presets": 13,
     "private_assets_bundled": false
+  },
+  "beads_pitch_intervals": {
+    "status": "Local checkpoint; integration and deployment held",
+    "branch": "personal/sq80-rev3-beads-pitch",
+    "mapping": "Exact semitone anchors from -24 to +24; nearly linear fine steps",
+    "coarse_edit": "One semitone per step",
+    "compatibility": "Saved bytes unchanged; tuning change below 0.1 semitone",
+    "pr": "Held pending owner evaluation"
   }
 }
