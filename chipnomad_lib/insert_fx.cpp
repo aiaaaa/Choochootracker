@@ -215,7 +215,7 @@ struct InsertChain::Impl {
     int module = 0, pending = 0;
     float wet = 0;
     bool switching = false;
-    BeadsInsert* beads = nullptr;
+    BeadsPool::Handle beads;
     WorkCompressor work;
     insert_dsp::Distortion distortion;
     insert_dsp::StereoDoubler doubler;
@@ -235,18 +235,17 @@ struct InsertChain::Impl {
   float rate;
   explicit Impl(float sr) : rate(sr) {
     for (auto& s : slots) {
-      s.beads = new (std::nothrow) BeadsInsert(sr);
       s.ott[0] = ott_dsp_new(sr);
       s.ott[1] = ott_dsp_new(sr);
     }
   }
   ~Impl() {
     for (auto& s : slots) {
-      delete s.beads;
       for (auto* o : s.ott) ott_dsp_free(o);
     }
   }
   void resetDSP(Slot& s, int m) {
+    if (m != insertBeads) s.beads = {};
     s.module = m;
     s.pending = m;
     s.dirty = true;
@@ -601,9 +600,11 @@ struct InsertChain::Impl {
 InsertChain::InsertChain(float rate) : impl_(new (std::nothrow) Impl(rate)) {}
 InsertChain::~InsertChain() { delete impl_; }
 bool InsertChain::ready() const {
-  return impl_ && impl_->slots[0].beads && impl_->slots[0].beads->ready() &&
-         impl_->slots[1].beads && impl_->slots[1].beads->ready() && impl_->slots[0].ott[0] && impl_->slots[0].ott[1] && impl_->slots[1].ott[0] &&
+  return impl_ && impl_->slots[0].ott[0] && impl_->slots[0].ott[1] && impl_->slots[1].ott[0] &&
          impl_->slots[1].ott[1];
+}
+void InsertChain::attachBeads(int slot, const BeadsPool::Handle& beads) {
+  if (impl_ && slot >= 0 && slot < 2) impl_->slots[slot].beads = beads;
 }
 void InsertChain::reset() {
   if (!ready()) return;
@@ -613,11 +614,14 @@ void InsertChain::reset() {
     s.switching = false;
   }
 }
-uint16_t InsertChain::sync(const InsertConfig c[2], InsertAutomation* a) {
+uint16_t InsertChain::sync(const InsertConfig c[2], InsertAutomation* a, bool rendered) {
   if (!ready()) return 0;
   uint16_t cleared = 0;
   for (int slot = 0; slot < 2; ++slot) {
     auto& s = impl_->slots[slot];
+    // Muted/hidden tracks do not run process(), so a removed instance cannot
+    // wait for a fade there. Keep selected/bypassed Beads and its history intact.
+    if (c[slot].module != insertBeads && (!rendered || s.wet == 0)) s.beads = {};
     if (c[slot].module != s.config.module || c[slot].selection != s.config.selection) {
       a->valid[slot] = 0;
       cleared |= 0xffu << (slot * 8);

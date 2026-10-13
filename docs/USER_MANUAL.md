@@ -1382,7 +1382,12 @@ This eight-control adaptation uses digital stereo quality and latched Seed.
 Internal reverb, other recording qualities, external clock/trigger inputs and the
 unpatched-input wavetable synth are not exposed. Track reverb sends remain
 available. Freeze holds runtime audio, not a sample saved with the project;
-resetting/reselecting the module clears its buffer. Beads is a substantial DSP
+resetting/reselecting the module clears its buffer. Recording memory is allocated
+only for slots selecting Beads, including bypassed slots, before the audio thread
+receives the edit. Multiple track and master instances remain independent. Removed
+instances are reclaimed after their fade-out; allocation failure leaves that
+Beads slot dry and does not disable the chain's other effects. A later project
+edit retries preparation. Beads is a substantial DSP
 workload: evaluate handheld CPU headroom in the device personal build before
 stacking instances. Its source pin and adaptation notes are in
 `chipnomad_lib/external/mutable/beads/SOURCES.txt`; the MIT notice ships in

@@ -26,6 +26,7 @@ INCLUDES = -I. -Isrc -Isrc/corelib -Isrc/screens -Isrc/import -Itests/mocks -Iex
 # Test executable
 TEST_EXECUTABLE = $(BUILD_DIR)/run_tests$(if $(filter Windows_NT,$(OS)),.exe,)
 STRETCH_LIFETIME_EXECUTABLE = $(BUILD_DIR)/stretch_lifetime$(if $(filter Windows_NT,$(OS)),.exe,)
+BEADS_LIFETIME_EXECUTABLE = $(BUILD_DIR)/beads_lifetime$(if $(filter Windows_NT,$(OS)),.exe,)
 MEASURE_EXECUTABLE = $(BUILD_DIR)/render_engine_measurements$(if $(filter Windows_NT,$(OS)),.exe,)
 BENCHMARK_EXECUTABLE = $(BUILD_DIR)/benchmark_song$(if $(filter Windows_NT,$(OS)),.exe,)
 
@@ -124,6 +125,7 @@ ALL_SOURCES = $(TEST_SOURCES) $(COMMON_SOURCES) $(MOCK_SOURCES)
 MEASURE_SOURCES = tests/render_engine_measurements.cpp $(filter-out src/copy_paste.cpp,$(COMMON_SOURCES)) $(MOCK_SOURCES)
 BENCHMARK_SOURCES = tests/benchmark_song.cpp $(COMMON_SOURCES) $(MOCK_SOURCES)
 ALL_COMPILE_SOURCES = $(sort $(ALL_SOURCES) $(MEASURE_SOURCES) $(BENCHMARK_SOURCES))
+ALL_COMPILE_SOURCES += tests/beads_lifetime.cpp
 
 # Compile each translation unit separately so -j can use every core and
 # unchanged files stay cached between test runs.
@@ -131,7 +133,8 @@ object_for = $(BUILD_DIR)/obj/$(subst ../,up/,$(basename $(1))).o
 OBJECTS := $(foreach source,$(ALL_SOURCES),$(call object_for,$(source)))
 MEASURE_OBJECTS := $(foreach source,$(MEASURE_SOURCES),$(call object_for,$(source)))
 BENCHMARK_OBJECTS := $(foreach source,$(BENCHMARK_SOURCES),$(call object_for,$(source)))
-DEPS := $(sort $(OBJECTS:.o=.d) $(MEASURE_OBJECTS:.o=.d) $(BENCHMARK_OBJECTS:.o=.d))
+BEADS_LIFETIME_OBJECTS := $(foreach source,tests/beads_lifetime.cpp $(filter-out src/copy_paste.cpp,$(COMMON_SOURCES)) $(MOCK_SOURCES),$(call object_for,$(source)))
+DEPS := $(sort $(OBJECTS:.o=.d) $(MEASURE_OBJECTS:.o=.d) $(BENCHMARK_OBJECTS:.o=.d) $(BEADS_LIFETIME_OBJECTS:.o=.d))
 
 define compile_source
 $(call object_for,$(1)): $(1) Makefile.test Makefile.mod-lucky Makefile.native-chip-flags $(BUILD_DIR)/mod-lucky-build-config
@@ -147,11 +150,15 @@ all: build
 	# The global new/delete hooks in stretch_lifetime corrupt the UCRT heap.
 	# Keep this Unix-only allocation regression separate from Windows tests.
 	@if [ "$(OS)" != "Windows_NT" ]; then $(STRETCH_LIFETIME_EXECUTABLE); fi
+	@if [ "$(OS)" != "Windows_NT" ]; then $(BEADS_LIFETIME_EXECUTABLE); fi
 	@$(TEST_EXECUTABLE)
 
 # Build the test executable incrementally
 .PHONY: build
-build: $(TEST_EXECUTABLE) $(STRETCH_LIFETIME_EXECUTABLE)
+build: $(TEST_EXECUTABLE) $(STRETCH_LIFETIME_EXECUTABLE) $(if $(filter Windows_NT,$(OS)),,$(BEADS_LIFETIME_EXECUTABLE))
+
+$(BEADS_LIFETIME_EXECUTABLE): $(BEADS_LIFETIME_OBJECTS)
+	@$(CXX) $(BEADS_LIFETIME_OBJECTS) $(LDFLAGS) -o $@
 
 # Keep the allocation hooks in their own process, away from the main suite.
 $(STRETCH_LIFETIME_EXECUTABLE): tests/stretch_lifetime.cpp ../chipnomad_lib/synth/stretch_processor.cpp ../chipnomad_lib/synth/stretch_processor.h Makefile.test

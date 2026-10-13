@@ -82,15 +82,34 @@ class AudioCommandQueue {
 
   void discardProject() {
     int old = projectPublished_.exchange(-1, std::memory_order_acq_rel);
-    if (old >= 0) releasePublished(projectSlots_, old);
+    if (old >= 0) releaseProject(old);
+    beadsPool_.collect();
   }
 
-  void applyProject(Project* project) {
-    int slot = claim(projectSlots_, projectPublished_);
+  void applyProject(ChipNomadState* state) {
+    // Exchange transfers ownership of this publication exactly once. Claiming
+    // by slot state first can mistake a recycled slot for an older publication
+    // and strand a stale index in the mailbox; no retry loop belongs here.
+    int slot = projectPublished_.exchange(-1, std::memory_order_acq_rel);
     if (slot < 0) return;
-    *project = projectSlots_[slot].value;
+    projectSlots_[slot].state.store(kReading, std::memory_order_relaxed);
+    auto& snapshot = projectSlots_[slot].value;
+    attachBeads(state, snapshot);
+    state->audioProject = snapshot.project;
+    for (auto& handle : snapshot.beads) handle = {};
     projectSlots_[slot].state.store(kFree, std::memory_order_release);
   }
+
+  // Called with audio stopped, after old chains have released their leases.
+  void initializeBeads(ChipNomadState* state) {
+    discardProject();
+    beadsSampleRate_ = (float)state->sampleRate;
+    BeadsPool::Handle handles[BeadsPool::capacity];
+    prepareBeads(state->audioProject, handles);
+    attachBeads(state, state->audioProject, handles);
+  }
+
+  void collectBeads() { beadsPool_.collect(); }
 
   int pushTrackEnabled(const uint8_t enabled[PROJECT_MAX_TRACKS]) {
     uint64_t mask = 0;
@@ -261,6 +280,10 @@ class AudioCommandQueue {
   enum { kFree, kPublished, kReading };
   template <typename T> struct Slot { T value; std::atomic<int> state{kFree}; };
   struct Settings { uint64_t trackMask = ~UINT64_C(0); LoopRange loopRange{}; uint8_t loopDirty = 0; };
+  struct ProjectSnapshot {
+    Project project;
+    BeadsPool::Handle beads[BeadsPool::capacity];
+  };
   struct AudioCommand { uint8_t type; int a, b, c, d; PhraseRow row; InstrumentOPLL patch; InstrumentOPL opl; InstrumentSimpleChip simple; InstrumentDX7 dx7; InstrumentFourOp fourOp; InstrumentSID sid; InstrumentSQ80 sq80; };
   // kStartPhraseRowFull is appended after upstream's preview commands so the
   // raw command IDs 14/15/16 used by applyCommands keep their meaning.
@@ -293,14 +316,46 @@ class AudioCommandQueue {
     return -1;
   }
   int publishProject(const Project& project) {
-    int old = projectPublished_.exchange(-1, std::memory_order_acq_rel);
-    if (old >= 0) releasePublished(projectSlots_, old);
     int slot = findFree(projectSlots_);
     if (slot < 0) return 0;
-    projectSlots_[slot].value = project;
+    projectSlots_[slot].value.project = project;
+    prepareBeads(project, projectSlots_[slot].value.beads);
     projectSlots_[slot].state.store(kPublished, std::memory_order_release);
-    projectPublished_.store(slot, std::memory_order_release);
+    int old = projectPublished_.exchange(slot, std::memory_order_acq_rel);
+    if (old >= 0) releaseProject(old);
+    beadsPool_.collect();
     return 1;
+  }
+  void releaseProject(int slot) {
+    int expected = kPublished;
+    if (projectSlots_[slot].state.compare_exchange_strong(expected, kReading, std::memory_order_acq_rel)) {
+      for (auto& handle : projectSlots_[slot].value.beads) handle = {};
+      projectSlots_[slot].state.store(kFree, std::memory_order_release);
+    }
+  }
+  void prepareBeads(const Project& project, BeadsPool::Handle* handles) {
+    for (int chain = 0; chain <= PROJECT_MAX_TRACKS; ++chain) {
+      const auto* config = chain == PROJECT_MAX_TRACKS ? project.masterInserts : project.trackInserts[chain];
+      for (int slot = 0; slot < 2; ++slot) {
+        int index = chain * 2 + slot;
+        handles[index] = config[slot].module == insertBeads && beadsSampleRate_ > 0
+            ? beadsPool_.prepare(index, beadsSampleRate_) : BeadsPool::Handle{};
+      }
+    }
+  }
+  static void attachBeads(ChipNomadState* state, const Project& project, const BeadsPool::Handle* handles) {
+    for (int chain = 0; chain <= PROJECT_MAX_TRACKS; ++chain) {
+      auto* target = chain == PROJECT_MAX_TRACKS ? state->masterInsertChain : state->insertChains[chain];
+      const auto* config = chain == PROJECT_MAX_TRACKS ? project.masterInserts : project.trackInserts[chain];
+      if (!target) continue;
+      for (int slot = 0; slot < 2; ++slot) {
+        // A removed Beads keeps its lease until resetDSP completes the fade.
+        if (config[slot].module == insertBeads) target->attachBeads(slot, handles[chain * 2 + slot]);
+      }
+    }
+  }
+  static void attachBeads(ChipNomadState* state, const ProjectSnapshot& snapshot) {
+    attachBeads(state, snapshot.project, snapshot.beads);
   }
   int publishSettings() {
     int old = settingsPublished_.exchange(-1, std::memory_order_acq_rel);
@@ -312,7 +367,10 @@ class AudioCommandQueue {
     settingsPublished_.store(slot, std::memory_order_release);
     return 1;
   }
-  Slot<Project> projectSlots_[kSlotCount];
+  // Declared before snapshots so handles are destroyed before their pool.
+  BeadsPool beadsPool_;
+  float beadsSampleRate_ = 0;
+  Slot<ProjectSnapshot> projectSlots_[kSlotCount];
   Slot<Settings> settingsSlots_[kSlotCount];
   Slot<PlaybackStatus> statusSlots_[kSlotCount];
   Settings settingsDraft_;
@@ -866,6 +924,14 @@ void chipnomadInitChips(ChipNomadState* state, int sampleRate, ChipFactory facto
   state->sampleRate = sampleRate;
   state->masterEffects->init((float)sampleRate);
   delete state->masterInsertChain;
+  state->masterInsertChain = nullptr;
+  for (auto*& chain : state->insertChains) {
+    delete chain;
+    chain = nullptr;
+  }
+  // Reinitialization can change the sample rate; reclaim all old DSP state
+  // while audio is stopped before preparing instances at the new rate.
+  state->audioCommands->discardProject();
   state->masterInsertChain = new(std::nothrow) InsertChain((float)sampleRate);
   if (state->masterInsertChain)
     state->masterInsertChain->sync(state->audioProject.masterInserts, &state->masterInsertAutomation);
@@ -880,7 +946,6 @@ void chipnomadInitChips(ChipNomadState* state, int sampleRate, ChipFactory facto
   state->opllPreview->init((float)sampleRate); state->opllPreviewTrack = -1;
   for (int i = 0; i < PROJECT_MAX_TRACKS; i++) {
     state->trackTilt[i].init((float)sampleRate);
-    delete state->insertChains[i];
     state->insertChains[i] = new(std::nothrow) InsertChain((float)sampleRate);
     if (state->insertChains[i]) state->insertChains[i]->sync(state->audioProject.trackInserts[i], &state->playbackState.tracks[i].inserts);
     state->insertResetSeen[i] = state->playbackState.tracks[i].insertReset;
@@ -905,6 +970,8 @@ void chipnomadInitChips(ChipNomadState* state, int sampleRate, ChipFactory facto
       state->sinteredVoices[i][voice]->init((float)sampleRate);
     }
   }
+
+  state->audioCommands->initializeBeads(state);
 
   // Use provided factory or default
   ChipFactory chipFactory = factory ? factory : defaultChipFactory;
@@ -1004,6 +1071,7 @@ void chipnomadQueueClearLoopRange(ChipNomadState* state) {
 }
 const PlaybackStatus* chipnomadGetPlaybackStatus(ChipNomadState* state) {
   if (!state) return NULL;
+  state->audioCommands->collectBeads();
   state->audioCommands->readStatus(&state->uiPlaybackStatus);
   return &state->uiPlaybackStatus;
 }
@@ -1056,7 +1124,7 @@ static void updateAudioRateModulations(ChipNomadState* state) {
 }
 
 static int advancePlaybackFrame(ChipNomadState* state, uint64_t dueMicros) {
-  state->audioCommands->applyProject(&state->audioProject);
+  state->audioCommands->applyProject(state);
   state->playbackState.p = &state->audioProject;
   if (state->audioCommands->takeStopRequest()) {
     chipnomadMidiPanic(state);
@@ -1066,7 +1134,8 @@ static int advancePlaybackFrame(ChipNomadState* state, uint64_t dueMicros) {
   for (int t = 0; t < PROJECT_MAX_TRACKS; ++t) {
     if (!state->insertChains[t]) continue;
     auto& track = state->playbackState.tracks[t];
-    uint16_t cleared = state->insertChains[t]->sync(state->audioProject.trackInserts[t], &track.inserts);
+    uint16_t cleared = state->insertChains[t]->sync(state->audioProject.trackInserts[t], &track.inserts,
+        t < state->audioProject.tracksCount && state->playbackState.trackEnabled[t]);
     for (int address = 0; address < 16; ++address) if (cleared & (1u << address)) {
       track.slewTarget[fxF11 + address] = -1;
       track.slewRemaining[fxF11 + address] = 0;

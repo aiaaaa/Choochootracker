@@ -264,7 +264,9 @@ TEST_SUITE("track inserts") {
           InsertConfig c[2]{};
           insertSelect(&c[slot], m);
           InsertAutomation a{};
+          BeadsPool pool;
           InsertChain chain(rate);
+          if (m == insertBeads) chain.attachBeads(slot, pool.prepare(slot, rate));
           REQUIRE(chain.ready());
           chain.sync(c, &a);
           uint8_t v[2][8];
@@ -776,7 +778,12 @@ TEST_CASE("insert delay and control smoothing are independent of callback block 
       c[0].values[4] = 200;
     }
     InsertAutomation a{}, b{};
+    BeadsPool pool;
     InsertChain whole(48000), singles(48000);
+    if (module == insertBeads) {
+      whole.attachBeads(0, pool.prepare(0, 48000));
+      singles.attachBeads(0, pool.prepare(1, 48000));
+    }
     whole.sync(c, &a);
     singles.sync(c, &b);
     uint8_t v[2][8];

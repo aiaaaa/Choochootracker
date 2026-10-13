@@ -3,6 +3,7 @@
 #include <stddef.h>
 #include <stdint.h>
 extern "C++" {
+#include "beads_pool.h"
 enum InsertModule : uint8_t {
   insertOff,
   insertCompressor,
@@ -56,8 +57,10 @@ class InsertChain {
   InsertChain(const InsertChain&) = delete;
   InsertChain& operator=(const InsertChain&) = delete;
   bool ready() const;
+  // Audio-thread attachment of a producer-prepared lease, before sync().
+  void attachBeads(int slot, const BeadsPool::Handle&);
   void reset();
-  uint16_t sync(const InsertConfig config[2], InsertAutomation*);
+  uint16_t sync(const InsertConfig config[2], InsertAutomation*, bool rendered = true);
   bool active() const;
   void process(float* interleaved, int frames, const uint8_t effective[2][8]);
 
