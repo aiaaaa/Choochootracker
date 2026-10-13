@@ -405,6 +405,7 @@ static int onInput(int isKeyDown, int keys, int tapCount) {
   int handled = 0;
 
   if (isKeyDown && keys == keyOpt && tapCount == 2) {
+    screenClearOptPressed();
     liveMode ^= 1;
     drawStatic();
     screenMessage(MESSAGE_TIME, liveMode ? "Live: PLAY queue, double urgent" : "Song mode");
@@ -426,7 +427,9 @@ static int onInput(int isKeyDown, int keys, int tapCount) {
           } else {
             muteSoloState = MUTE_SOLO_OPT_PRESSED;
           }
-            handled = 1;
+          // A plain Opt tap copies a selection on release. Let common input
+          // arm that copy while still watching for a mute/solo chord.
+          handled = tapCount == 3 || screen.selectMode == 0;
         }
         break;
 
@@ -517,6 +520,9 @@ static int onInput(int isKeyDown, int keys, int tapCount) {
   if (keys == 0) {
     muteSoloState = MUTE_SOLO_EMPTY;
   }
+
+  // A Song-specific chord must not also copy and dismiss the selection.
+  if (handled && (keys != keyOpt || tapCount == 3)) screenClearOptPressed();
 
   // Only call common input handling if we didn't handle Song-specific input
   if (!handled) {
