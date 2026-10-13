@@ -45,8 +45,9 @@ static void unload(void) {
 static GfxImage* load(const char* name) {
   char path[PATH_LENGTH + 64];
 #ifdef ANDROID_BUILD
+  extern int androidGetPrivateWorkspacePath(char*, int);
   char workspace[PATH_LENGTH];
-  if (fileGetDefaultDirectory(workspace, sizeof(workspace)) == 0) {
+  if (androidGetPrivateWorkspacePath(workspace, sizeof(workspace)) == 0) {
     snprintf(path, sizeof(path), "%s/title/%s", workspace, name);
     return gfxImageLoadBMP(path);
   }

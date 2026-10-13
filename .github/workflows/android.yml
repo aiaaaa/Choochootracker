@@ -44,12 +44,12 @@ jobs:
         working-directory: tracker/platforms/android
         run: |
           chmod +x gradlew
-          ./gradlew --no-daemon --console=plain assembleRelease bundleRelease \
+          ./gradlew --no-daemon --console=plain assembleStoreRelease assembleDirectRelease bundleStoreRelease \
             -x buildNativeArm64 -x buildNativeArm32
       - uses: actions/upload-artifact@v4
         with:
           name: choochootracker-android
           path: |
-            tracker/platforms/android/app/build/outputs/apk/release/*.apk
-            tracker/platforms/android/app/build/outputs/bundle/release/*.aab
+            tracker/platforms/android/app/build/outputs/apk/*/release/*.apk
+            tracker/platforms/android/app/build/outputs/bundle/storeRelease/*.aab
           if-no-files-found: error

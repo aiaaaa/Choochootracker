@@ -155,10 +155,13 @@ static const SelectionItem drive[] = {
 };
 static const SelectionItem stereo[] = {
   {"Doubler", insertDoubler, nullptr, 0, nullptr},
-  {"Chorus", insertChorus, nullptr, 0, nullptr},
-  {"Flanger", insertFlanger, nullptr, 0, nullptr},
-  {"Phaser", insertPhaser, nullptr, 0, nullptr},
   {"Rotary", insertRotary, nullptr, 0, nullptr},
+};
+
+static const SelectionItem modulation[] = {
+  {"Chorus", insertChorus, nullptr, 0, nullptr},
+  {"Phaser", insertPhaser, nullptr, 0, nullptr},
+  {"Flanger", insertFlanger, nullptr, 0, nullptr},
 };
 static const SelectionItem tape[] = {
   {"TAPESCAM", insertTape, nullptr, 0, nullptr},
@@ -167,19 +170,36 @@ static const SelectionItem insertCategories[] = {
   {"OFF", insertOff, nullptr, 0, nullptr},
   {"Dynamics", -1, dynamics, (int)(sizeof(dynamics) / sizeof(dynamics[0])), nullptr},
   {"Drive", -1, drive, (int)(sizeof(drive) / sizeof(drive[0])), nullptr},
+  {"Modulation", -1, modulation, (int)(sizeof(modulation) / sizeof(modulation[0])), nullptr},
   {"Stereo", -1, stereo, (int)(sizeof(stereo) / sizeof(stereo[0])), nullptr},
   {"Tape", -1, tape, (int)(sizeof(tape) / sizeof(tape[0])), nullptr},
   {"EQ", insertParametricEQ, nullptr, 0, nullptr},
   {"Beads", insertBeads, nullptr, 0, nullptr},
 };
+
+static int cycleInsertModule(int module, int direction) {
+  int modules[insertModuleCount];
+  int count = 0;
+  for (const auto& category : insertCategories) {
+    if (category.value >= 0)
+      modules[count++] = category.value;
+    for (int child = 0; child < category.childCount; ++child)
+      modules[count++] = category.children[child].value;
+  }
+
+  for (int i = 0; i < count; ++i) {
+    if (modules[i] == module)
+      return modules[(i + direction + count) % count];
+  }
+  return modules[0];
+}
 static int onInput(int down, int keys, int taps) {
   if (data.cursorRow % 5 == 0 && data.cursorCol == 0) {
     auto input = popupEditInput(down, keys, &moduleButtonDown);
     if (input == PopupEditInput::hold) return 1;
     if (input == PopupEditInput::cycle) {
       auto& c = config(data.cursorRow);
-      insertSelect(&c,
-                   (c.module + ((keys & keyLeft) ? insertModuleCount - 1 : 1)) % insertModuleCount);
+      insertSelect(&c, cycleInsertModule(c.module, (keys & keyLeft) ? -1 : 1));
       projectModified = 1;
       fullRedraw();
       return 1;

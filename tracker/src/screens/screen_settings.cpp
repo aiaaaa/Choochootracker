@@ -12,14 +12,17 @@
 #include "support_report.h"
 
 #ifdef CHOOCHOO_EXPERIMENTAL_MOD_LUCKY
-static constexpr int luckyRow = 7;
-static constexpr int quitRow = 8;
+static constexpr int luckyRow = baseQuitRow;
+static constexpr int quitRow = baseQuitRow + 1;
 static bool luckyEditHeld, luckyFocusPending;
 static uint64_t luckyRevision;
 static unsigned luckyFrame;
 static constexpr int luckyX[] = {18, 23, 28};
 static int columnCount(int row) { return row == luckyRow ? 3 : 1; }
 static void setup(int) {
+#ifdef ANDROID_BUILD
+  refreshWorkingFolderStatus();
+#endif
   modLucky::service().enter(); luckyFocusPending = false;
   luckyRevision = 0;
 }
@@ -45,9 +48,14 @@ static void luckyActivate(int column) {
   } catch (const std::exception& e) { screenMessage(MESSAGE_TIME_ERROR, "%s", e.what()); }
 }
 #else
-static constexpr int quitRow = 7;
+static constexpr int quitRow = baseQuitRow;
 static int columnCount(int) { return 1; }
-static void setup(int) {}
+static void setup(int) {
+#ifdef ANDROID_BUILD
+  refreshWorkingFolderStatus();
+  screenMessage(MESSAGE_TIME, "%s", workingFolderStatus);
+#endif
+}
 static void draw(void) {}
 #endif
 static void drawStatic(void) { gfxSetFgColor(appSettings.colorScheme.textTitles); gfxPrint(0, 0, "SETTINGS"); }
@@ -61,6 +69,9 @@ static void drawCursor(int col, int row) {
 #endif
   if (row < 6) { static const int widths[] = {8, 5, 4, 6, 5, 8}; gfxCursor(0, 2 + row, widths[row]); }
   else if (row == 6) gfxCursor(0, 10, 14);
+#ifdef ANDROID_BUILD
+  else if (row == workingFolderRow) gfxCursor(0, 12, 14);
+#endif
   else if (row == quitRow) gfxCursor(0, 18, 19);
 }
 static void noHeader(int, CellState) {}
@@ -81,6 +92,14 @@ static void drawField(int col, int row, CellState state) {
   }
 #endif
   else if (row == 6) { gfxSetFgColor(state == CellState::focus ? cs.textValue : cs.textDefault); gfxPrint(0, 10, "Support report"); }
+#ifdef ANDROID_BUILD
+  else if (row == workingFolderRow) {
+    gfxSetFgColor(state == CellState::focus ? cs.textValue : cs.textDefault);
+    gfxPrint(0, 12, "Working folder");
+    gfxPrint(23, 12, strncmp(workingFolderStatus, "Folder:", 7) == 0 ? "FOLDER " :
+      strcmp(workingFolderStatus, "Unavailable") == 0 ? "N/A    " : "PRIVATE");
+  }
+#endif
   else if (row == quitRow) { gfxSetFgColor(state == CellState::focus ? cs.textValue : cs.textDefault); gfxPrint(0, 18, "Quit ChooChooTracker"); }
 }
 static int onEdit(int col, int row, CellEditAction action) {
@@ -88,6 +107,13 @@ static int onEdit(int col, int row, CellEditAction action) {
   if (row == luckyRow) {
     // Logical key activation is edge-gated in onInput; touch taps use this path.
     if (action == CellEditAction::tap && !luckyEditHeld) luckyActivate(col);
+    return 1;
+  }
+#endif
+#ifdef ANDROID_BUILD
+  if (row == workingFolderRow && action == CellEditAction::clear) {
+    if (strcmp(workingFolderStatus, "Unavailable") == 0) { screenMessage(MESSAGE_TIME, "Not available in this build"); return 1; }
+    fileClearWorkingFolder();
     return 1;
   }
 #endif
@@ -106,6 +132,13 @@ static int onEdit(int col, int row, CellEditAction action) {
       screenMessage(MESSAGE_TIME_ERROR, "Support report failed");
     return 1;
   }
+#ifdef ANDROID_BUILD
+  else if (row == workingFolderRow) {
+    if (strcmp(workingFolderStatus, "Unavailable") == 0) screenMessage(MESSAGE_TIME, "Not available in this build");
+    else filePickWorkingFolder();
+    return 0;
+  }
+#endif
   else if (row == quitRow) { mainLoopTriggerQuit(); return 1; }
   return 0;
 }

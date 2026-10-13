@@ -93,9 +93,22 @@ touch controls appear automatically when no gamepad is connected: in portrait
 they sit below the tracker, with a square D-pad, A/EDIT, B/OPT, START/PLAY and
 SELECT/SHIFT controls, then a separate Live/Motion section with two modulation
 sticks and momentary REC/DEL controls. Landscape keeps the D-pad on the left
-and the action buttons on the right. Android projects and samples stay private to
-the app; use the Android file picker to import `.cct` projects and `.wav` samples,
+and the action buttons on the right. In the Play Store build, Android projects and samples stay private to
+the app; the direct APK / F-Droid build asks you on first launch to pick one folder
+(system folder picker, no extra permission) and keeps them there, where your file
+manager or PC can reach them. The bundled banks and demo content stay inside the app. In both builds, use the Android file picker to import `.cct` projects and `.wav` samples,
 and to choose where WAV exports are saved.
+
+### Android working folder
+
+In the direct APK / F-Droid build, **Settings > Working folder** shows whether the
+app uses a folder you picked (`FOLDER`) or its private storage (`PRIVATE`). Press
+**EDIT** on it: with `PRIVATE` the system folder picker opens; with `FOLDER` a small
+dialog offers **Choose another folder** or **Use private storage**. When a new folder is
+picked the app offers to copy your files from the current workspace (existing files in
+the new folder are kept), then restarts on it. Going back to private storage keeps the
+files in the old folder. If you cancel the picker on first launch, the app keeps using
+private storage and does not ask again. In the Play Store build the row reads `N/A`.
 
 ### Navigation
 
@@ -1212,7 +1225,7 @@ Exports, stems and bounces are written to a per-project folder inside the app's 
 
 - **Default**: `<app folder>/samples/Exports/<project name>/`. While the project is unnamed, the folder is `current-project`.
 - On the web build the default is `/user/samples/Exports/<project name>/`.
-- On Android the samples folder is inside the app's private workspace.
+- On Android the samples folder is inside the app's workspace: private to the app in the Play Store build, `samples` in the folder you picked in the direct APK / F-Droid build.
 
 The **Folder** row on the EXPORT screen shows the active destination:
 
@@ -1224,6 +1237,10 @@ When a named project is saved under a new name, the default export folder is ren
 **Load** also accepts `.mid`/`.midi` files, imported as a new project: notes are grouped by MIDI channel (one channel per track, up to the track count), quantized to 4 rows per beat, and placed on a single default AY instrument - MIDI program numbers have no chiptune equivalent, so pick real instruments afterward. Only the file's first tempo is used (one global tick rate, no per-section tempo changes). The Export screen's **MIDI** row does the reverse: writes the current arrangement's notes, volume and tempo/groove as a Standard MIDI File (one MIDI track per tracker track); [MIDI Out](#midi-out) instruments and other per-row FX beyond volume and the global groove have no MIDI equivalent and are not translated.
 
 **Load** also accepts Dirtywave M8 songs (`.m8s`, firmware 2.x-4.x), imported as a new project. Only the structure and the notes come across (song rows, chains with their transpose, phrases with note, velocity and instrument number, note-offs, tempo and song name); notes keep their real pitch (the M8 names octaves two higher: its `C-6` is `C-4` here). Each instrument used by a phrase is imported under the M8 instrument's name. M8 **MACROSYN** instruments become Braids instruments (the 47 shapes are the Braids models, same numbers; timbre, color, filter type, cutoff, resonance and pan are carried over, the cutoff curve being approximate). **SAMPLER** instruments become Sample instruments: the `.m8s` only stores the path of the WAV on the M8 card, so the file is searched under the folder of the `.m8s` and its parents (a copy of the card layout works) and in your current sample folder (`Samples` or `samples` both work); if it is not found the instrument keeps the M8 path and stays silent. Imported samples get +24 semitones in their Pitch setting, as the M8 plays a sample at its original pitch two octaves lower than this app does. **FMSYNTH** becomes a Genesis FM instrument (rough approximation), **WAVSYNTH** and **HYPERSYNTH** become aChChid. **MIDI OUT** becomes a MIDI Out instrument (channel, bank, program and the first four CC numbers). Other types (external) become a default AY instrument - pick real sounds afterward. FX and tables are ignored.
+
+**Load** also accepts Little Sound Dj songs (`.lsdsng`, one song per file), imported as a new project. Picking a whole LSDj save (`.sav`, up to 32 songs) opens a list of its songs (slot, name, version, size); pick one to import it (the song being edited when the cartridge was saved is not listed). Only the structure and the notes come across (song rows, chains with their transpose, phrases with note and instrument number, tempo and song name); every note gets full volume, as LSDj has no note volume, and the four LSDj channels PU1, PU2, WAV and NOI become tracks 1-4. Pulse instruments become GB Pulse (duty, envelope and panning are carried over; the pulse sweep is not), noise instruments become GB Noise (envelope, stability and panning), wave instruments become the GB Pulse Hollow Lead preset and kits a default GB Noise. The grooves are imported, and the phrase commands `C` (chord), `D` (delay), `E` (pulse and noise envelope, not on the wave channel), `G` (groove), `K` (kill) and `V` (vibrato) become `ARP`, `DEL`, `CEI`/`CEP`/`CED`, `GGR`, `KIL` and `PVB`. The other commands (`A`, `F`, `H`, `L`, `M`, `O`, `P`, `R`, `S`, `T`, `W`, `Z`), tables, wave frames, kit samples and synth settings are ignored, so a song relying on them will sound different. The tempo is converted for a 6-tick groove.
+
+On desktop and Android, the Export screen's **LSDJ** row does the reverse, in a limited way: tap it and pick an existing `.lsdsng` as a **template** (remembered until you quit, **EDIT + OPT** forgets it). Its song rows, chains, phrases, tempo and title are replaced and everything else (tables, grooves, waves, kits, synth settings) is kept as is. Tracks 1-4 become PU1, PU2, WAV and NOI; GB Pulse and GB Noise instruments are written back as LSDj pulse and noise instruments, any other instrument type as a default pulse instrument. FX, note volumes and note-offs are not exported, and a song using chain `80` or above or phrase `FF` or above cannot be exported (LSDj has 128 chains and 255 phrases). The exported file has not been tested in LSDj itself yet.
 
 On desktop, the Export screen's **M8S** row does the reverse, in a limited way: tap it and pick an existing `.m8s` as a **template** (remembered until you quit, **EDIT + OPT** forgets it). Its song, chains, phrases, tempo and title are replaced and everything else is kept as is, except that Braids instruments are written back as MacroSynth and Sample instruments as Sampler (path `/Samples/<file name>`: copy the WAV there on the M8 yourself), provided the template has an instrument of that type to copy the other parameters from. FX are not exported, and a song using phrase `FF` or above cannot be exported (the M8 has 255 phrases). The exported file has not been tested on a real M8 yet. See [M8 songs](m8s-format.md) for the details.
 
