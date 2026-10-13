@@ -5,7 +5,9 @@
 Bank now sits above Preset with the patch EDIT control beside the name. Bank
 EDIT+Left/Right changes FACTORY/USER; a bare EDIT opens the chooser on release.
 Preset stepping is retained, and EDIT chords cannot trigger a release popup.
-This checkpoint remains separate from the installed October 13 daily.
+Selected with Beads pitch intervals for the next October 13 personal daily.
+Native tests (665), Node checks (11) and local browser checks passed; exact web
+and handheld build/install results are recorded in deployment receipts.
 
 ## Beads pitch interval checkpoint
 
@@ -13,7 +15,8 @@ The existing pitch byte now reaches exact semitones, including 40 = −12,
 80 = unison and C0 = +12. Coarse edits move one semitone; fine edits keep
 intermediate positions. Mapping stays monotonic and nearly linear. Saved byte
 values are preserved, with tuning changes below 10 cents. This is a separate
-checkpoint; daily integration and Beads PR follow-up remain held.
+checkpoint selected with SQ80 Rev3 for daily integration. Beads PR follow-up
+remains held.
 
 ## October 13 combined personal daily
 

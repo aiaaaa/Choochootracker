@@ -555,7 +555,7 @@
     "vita": "Paused; excluded"
   },
   "sq80esq_rev3": {
-    "status": "Local checkpoint; integration and deployment held",
+    "status": "Selected for personal web and device daily; exact deployment recorded in receipts",
     "branch": "personal/sq80-rev3-beads-pitch",
     "layout": "Bank above Preset, adjacent patch editor",
     "input": "Bank EDIT chords switch FACTORY/USER; bare EDIT opens on release; preset stepping retained",
@@ -563,11 +563,22 @@
     "private_assets_bundled": false
   },
   "beads_pitch_intervals": {
-    "status": "Local checkpoint; integration and deployment held",
+    "status": "Selected for personal web and device daily; exact deployment recorded in receipts",
     "branch": "personal/sq80-rev3-beads-pitch",
     "mapping": "Exact semitone anchors from -24 to +24; nearly linear fine steps",
     "coarse_edit": "One semitone per step",
     "compatibility": "Saved bytes unchanged; tuning change below 0.1 semitone",
     "pr": "Held pending owner evaluation"
+  },
+  "daily_20261013_rev3": {
+    "baseline": "70b1496",
+    "selected_commits": {
+      "sq80_rev3": "e5ebad6",
+      "beads_pitch": "e125e58"
+    },
+    "native_tests_passed": 665,
+    "node_tests_passed": 11,
+    "status": "Authorized combined personal daily; deployment recorded in receipts",
+    "beads_pr": "Held; no PR edits"
   }
 }
