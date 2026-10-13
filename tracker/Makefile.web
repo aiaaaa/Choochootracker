@@ -26,6 +26,7 @@ WEB_LDFLAGS = -sUSE_SDL=2 -sALLOW_MEMORY_GROWTH=1 -sINITIAL_MEMORY=256MB \
 
 SOURCES := $(filter-out platforms/sdl2/corelib_mainloop.cpp,$(SOURCES)) \
 	platforms/web/corelib_mainloop.cpp
+SOURCES += platforms/web/midi_backend_web.cpp
 
 .PHONY: web web-deploy
 

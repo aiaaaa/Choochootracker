@@ -50,6 +50,12 @@ struct MidiBackend {
   void (*flushOutputQueue)(void* userdata);
   unsigned int (*droppedCount)(void* userdata);
   uint64_t (*nowMicros)(void* userdata);
+  // Starts any platform permission flow needed before ports can be listed.
+  // Native backends leave this null; Web MIDI completes it asynchronously.
+  void (*requestAccess)(void* userdata);
+  // Optional human-readable backend state for the device settings screen.
+  // The returned text remains valid until the next call.
+  const char* (*statusMessage)(void* userdata);
   int hasInput;
   int hasOutput;
   int hasClockInput;
@@ -84,6 +90,8 @@ unsigned int midiRouterGetDroppedCount(void);
 // computing several tracker rows' worth of events) read "now" through this
 // once, then add each row's offset to it.
 uint64_t midiRouterNowMicros(void);
+void midiRouterRequestAccess(void);
+const char* midiRouterStatusMessage(void);
 
 // Which incoming MIDI channels drive what. Only auto_ is implemented;
 // tracks8 is reserved so multitimbral 8-track input can be added later

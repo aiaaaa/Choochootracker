@@ -20,6 +20,8 @@
 #include "midi/midi_backend_desktop.h"
 #ifdef ANDROID_BUILD
 #include "midi/midi_backend_android.h"
+#elif defined(WEB_BUILD)
+#include "midi/midi_backend_web.h"
 #endif
 
 #ifdef WEB_BUILD
@@ -81,10 +83,11 @@ static int findMidiPortByName(int isInput, const char* name) {
   return -1;
 }
 
-#ifdef ANDROID_BUILD
-static void refreshAndroidMidiConnections(void) {
-  // Android closes a port when its device disappears. Reconcile the saved
-  // index with the live name list, then retry the saved name when it returns.
+#if defined(ANDROID_BUILD) || defined(WEB_BUILD)
+static void refreshDynamicMidiConnections(void) {
+  // Android and Web MIDI ports can disappear after startup. Reconcile the
+  // saved index with the live name list, then retry the saved name when it
+  // returns (including after Web MIDI permission resolves asynchronously).
   int inputCount = midiRouterInputPortCount();
   if (appSettings.midiInputDevice >= 0) {
     char name[MIDI_DEVICE_NAME_LENGTH + 1];
@@ -365,6 +368,8 @@ void appSetup(void) {
   // which does nothing until a backend is registered.
 #ifdef ANDROID_BUILD
   midiRouterSetBackend(midiBackendAndroidGet());
+#elif defined(WEB_BUILD)
+  midiRouterSetBackend(midiBackendWebGet());
 #else
   midiRouterSetBackend(midiBackendDesktopGet());
 #endif
@@ -745,8 +750,8 @@ void appOnEvent(MainLoopEventData eventData) {
     }
     if (audioProjectDirty && chipnomadQueueProjectRefresh(chipnomadState)) audioProjectDirty = 0;
 
-#ifdef ANDROID_BUILD
-    refreshAndroidMidiConnections();
+#if defined(ANDROID_BUILD) || defined(WEB_BUILD)
+    refreshDynamicMidiConnections();
 #endif
 
     // MIDI-in sound preview: an external MIDI keyboard auditions a sound on
