@@ -130,10 +130,14 @@ private storage and does not ask again. In the Play Store build the row reads `N
 
 - **SELECT + OPT** enters selection mode and cycles through useful selection ranges.
 - Use **[DIRECTION]** to extend the range.
-- **OPT** copies the selection.
+- Tap and release **OPT** to copy the selection and leave selection mode.
 - **OPT + EDIT** cuts it.
-- **SELECT + EDIT** pastes it.
+- Outside selection mode, hold **SELECT** and press **EDIT** to paste it.
 - **EDIT + [DIRECTION]** edits the selected cells together.
+
+On the Song screen, press **SELECT** before **OPT** to enter selection mode.
+Pressing **OPT** before **SELECT** instead mutes the selected tracks. A plain
+**OPT** tap still copies the selection; mute/solo combinations keep it active.
 
 On the Phrase screen, with a selection active, the note column can be filled
 with rhythm patterns:
