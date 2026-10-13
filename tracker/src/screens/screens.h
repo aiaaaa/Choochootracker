@@ -103,6 +103,9 @@ extern const AppScreen screenInstrument;
 extern const AppScreen screenSampleSettings;
 extern const AppScreen screenFMEdit;
 extern const AppScreen screenSIDEdit;
+#if CHOOCHOO_EXPERIMENTAL_SQ80ESQ
+extern const AppScreen screenSQ80Edit;
+#endif
 extern const AppScreen screenInstrumentPool;
 extern const AppScreen screenModulation;
 extern const AppScreen screenInsertFX;

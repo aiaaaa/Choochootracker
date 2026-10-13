@@ -135,6 +135,13 @@
       "upstream_status": "merged via PR #31 and review PR #34",
       "upstream_review_pr": "https://github.com/paiheulevrai/Choochootracker/pull/34",
       "documentation": "docs/personal-insert-review-20261004.txt"
+    },
+    {
+      "id": "sq80esq",
+      "title": "Experimental SQ80/ESQ C++ synth",
+      "branch": "experimental/sq80esq",
+      "upstream_status": "personal experiment; no PR",
+      "integration_policy": "Retain in device personal and web builds; user waveform/preset banks remain private external assets."
     }
   ],
   "personal_assets": [

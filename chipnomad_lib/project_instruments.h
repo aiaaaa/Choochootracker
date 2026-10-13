@@ -2,6 +2,7 @@
 #define __CHIPNOMAD_LIB__PROJECT_INSTRUMENTS_H__
 
 #include <stdlib.h>
+#include "sq80_config.h"
 #include <stdint.h>
 #include "project_constants.h"
 
@@ -37,6 +38,7 @@ enum class InstrumentType : uint8_t {
   GenesisFM = 25,
   ArcadeFM = 26,
   SID = 27,
+  SQ80ESQ = 28, // Reserved even in builds without the experimental engine.
   totalCount,
 };
 
@@ -429,7 +431,13 @@ struct InstrumentSID {
   ChipProgram program;
 };
 
+// Owned canonical program bytes; waveform sample data stays external.
+struct InstrumentSQ80 {
+  uint8_t schema, bank, profile, velocity; // bank 0 SQ80 / 1 ESQ1; profile 0 calibrated / 1 hardware
+  uint8_t raw[102];
+};
 union InstrumentChipData {
+  InstrumentSQ80 sq80;
   InstrumentSID sid;
   InstrumentFourOp fourOp;
   InstrumentDX7 dx7;
@@ -476,7 +484,7 @@ struct InstrumentFunctions {
 // This is metadata, not an audio abstraction: renderers keep their typed
 // paths while screens, validation and motion routing share this one catalogue.
 enum class InstrumentCategory : uint8_t { none, chip, sample, synth, drums, midi, fm };
-enum class InstrumentScreenKind : uint8_t { none, ay1, ay2, aySample, braids, sample, scwf, byowtbl, plaits, achchid, drumSynth, mme, sintered, midi, opll, opl, simpleChip, dx7 };
+enum class InstrumentScreenKind : uint8_t { none, ay1, ay2, aySample, braids, sample, scwf, byowtbl, plaits, achchid, drumSynth, mme, sintered, midi, opll, opl, simpleChip, dx7, sq80 };
 enum class InstrumentMotionValue : uint8_t { raw, speed, cutoff };
 
 static constexpr uint8_t instrumentNoFX = 0xff;

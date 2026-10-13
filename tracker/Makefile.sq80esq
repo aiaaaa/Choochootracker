@@ -1,0 +1,6 @@
+# Experimental personal synth; no sample banks are linked or packaged.
+CHOOCHOO_EXPERIMENTAL_SQ80ESQ ?= 0
+SQ80_CFLAGS = -DCHOOCHOO_EXPERIMENTAL_SQ80ESQ=$(CHOOCHOO_EXPERIMENTAL_SQ80ESQ)
+ifeq ($(CHOOCHOO_EXPERIMENTAL_SQ80ESQ),1)
+SQ80_DIR = ../chipnomad_lib/experimental/hybrid/src
+endif

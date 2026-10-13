@@ -43,6 +43,10 @@ extern ScreenData screenInstrumentOPLL;
 extern ScreenData screenInstrumentOPL;
 bool fmEditSupported(InstrumentType type);
 extern ScreenData screenInstrumentSimpleChip;
+#if CHOOCHOO_EXPERIMENTAL_SQ80ESQ
+extern ScreenData screenInstrumentSQ80;
+void instrumentSQ80LoadBanks();
+#endif
 
 #endif
 

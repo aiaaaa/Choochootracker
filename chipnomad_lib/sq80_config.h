@@ -1,0 +1,4 @@
+#pragma once
+#ifndef CHOOCHOO_EXPERIMENTAL_SQ80ESQ
+#define CHOOCHOO_EXPERIMENTAL_SQ80ESQ 0
+#endif

@@ -84,6 +84,8 @@
         <button id="reload-app" disabled>Reload app</button>
         <button id="import-samples" disabled>Import WAVs</button>
         <button id="import-folder" disabled>Import sample folder</button>
+        <button id="import-sq80" disabled title="Import SQ80/ESQ .hwb wave banks, SysEx presets, or ZIPs. Saved only in this browser.">Import SQ80/ESQ</button>
+        <input id="sq80-input" type="file" accept=".hwb,.syx,.raw,.cni,.zip" multiple hidden>
         <button id="import-presets" disabled title="Choose an instruments or USER folder. Existing files are kept. Stored only in this browser.">Import presets</button>
         <input id="project-input" type="file" accept=".cct" hidden>
         <input id="sample-input" type="file" accept=".wav,audio/wav" multiple hidden>
@@ -458,14 +460,50 @@
     document.querySelector('#sample-input').addEventListener('change', importSamples);
     document.querySelector('#sample-folder-input').addEventListener('change', importSamples);
     const presetEngines = new Set(['arcade', 'dx7', 'gb-noise', 'gb-pulse', 'genesis',
-      'opl2', 'opl3', 'opll', 'sega', 'sid', 'vrc7']);
+      'opl2', 'opl3', 'opll', 'sega', 'sid', 'vrc7', 'sq80esq']);
     const presetPath = (relative) => {
       const parts = relative.split('/');
       if (parts.some((part) => !part || part.startsWith('.') || part.includes('\\'))) return null;
       if (parts[0] === 'instruments') parts.shift();
+      if (parts[0] === 'sq80esq') parts.unshift('USER');
       if (parts.length < 3 || !['USER', 'banks'].includes(parts[0]) || !presetEngines.has(parts[1])) return null;
       return '/user/instruments/' + parts.join('/');
     };
+    document.querySelector('#import-sq80').addEventListener('click', () => document.querySelector('#sq80-input').click());
+    document.querySelector('#sq80-input').addEventListener('change', async (event) => {
+      const fs = getFs();
+      if (!fs || !event.target.files.length) return;
+      const button = document.querySelector('#import-sq80');
+      button.disabled = true;
+      let imported = 0, kept = 0, skipped = 0, ready = 0, failed = false;
+      try {
+        const root = '/user/instruments/USER/sq80esq/';
+        fs.mkdirTree(root);
+        for (const file of event.target.files) {
+          if (!/\.(hwb|syx|raw|cni|zip)$/i.test(file.name) || file.size > 32 * 1024 * 1024) { skipped++; continue; }
+          let name = file.name;
+          if (!name || name.startsWith('.') || /[/\\]/.test(name)) { skipped++; continue; }
+          const bytes = new Uint8Array(await file.arrayBuffer());
+          if (/\.hwb$/i.test(name)) {
+            if (bytes.length < 24 || new TextDecoder().decode(bytes.subarray(0,8)) !== 'HYBWAV01') { skipped++; continue; }
+            const view = new DataView(bytes.buffer);
+            const rom = view.getUint32(16, true);
+            if (view.getUint32(8,true) !== 256 || ![65536,262144].includes(rom) || bytes.length !== 36888 + rom) { skipped++; continue; }
+            name = rom === 262144 ? 'hardware-80.hwb' : 'hardware-1.hwb';
+          }
+          if (fs.analyzePath(root + name).exists) { kept++; continue; }
+          fs.writeFile(root + name, bytes); imported++;
+        }
+        ready = window.Module.ccall('webLoadSQ80Banks', 'number', [], []);
+      } catch (_) { failed = true; }
+      const error = await new Promise((resolve) => syncUserStorage(resolve));
+      status.textContent = error ? 'Imported in memory; browser storage failed. Keep the original files and retry.' :
+        failed ? 'Import interrupted. Existing files kept; retry the remaining files.' :
+        imported + ' files imported; ' + kept + ' kept; ' + skipped + ' skipped. ' +
+        (ready & 1 ? 'SQ-80 waves ready. ' : 'Import hardware-80.hwb to enable SQ-80 playback. ') +
+        (ready & 2 ? 'ESQ-1 waves ready. ' : '') + 'Choose SYNTH → SQ80/ESQ → Bank: USER.';
+      event.target.value = ''; button.disabled = false;
+    });
     document.querySelector('#import-presets').addEventListener('click', () => document.querySelector('#preset-folder-input').click());
     document.querySelector('#preset-folder-input').addEventListener('change', async (event) => {
       const fs = getFs();
@@ -484,6 +522,7 @@
           imported++;
           status.textContent = 'Importing presets: ' + imported + ' files…';
         }
+        window.Module.ccall('webLoadSQ80Banks', 'number', [], []);
       } catch (_) { failed = true; }
       const error = await new Promise((resolve) => syncUserStorage(resolve));
       status.textContent = error ? 'Presets are in memory, but browser storage failed. Keep the originals and retry.' :

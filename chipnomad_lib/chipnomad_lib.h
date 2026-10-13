@@ -17,6 +17,7 @@ class DrumSynthVoice;
 class MMEVoice;
 class SinteredVoice;
 class OPLLVoice;
+class SQ80Voice;
 class SIDVoice;
 class DX7Voice;
 class DX7Part;
@@ -110,6 +111,10 @@ struct ChipNomadState {
   DX7Part* dx7Parts[PROJECT_MAX_TRACKS];
   DX7Voice* dx7Voices[PROJECT_MAX_TRACKS][CHORD_MAX_VOICES];
   DX7Part* dx7Preview;
+#if CHOOCHOO_EXPERIMENTAL_SQ80ESQ
+  SQ80Voice* sq80Preview;
+  SQ80Voice* sq80Voices[PROJECT_MAX_TRACKS][CHORD_MAX_VOICES];
+#endif
   SIDVoice* sidPreview;
   SIDVoice* sidVoices[PROJECT_MAX_TRACKS][CHORD_MAX_VOICES];
   OPLLVoice* opllPreview;
@@ -178,6 +183,9 @@ int chipnomadQueueSimpleChipPreview(ChipNomadState* state,int track,InstrumentTy
 int chipnomadQueueFourOpPreview(ChipNomadState* state,int track,InstrumentType type,const InstrumentFourOp* patch);
 int chipnomadQueueOPLPreview(ChipNomadState* state, int track, InstrumentType type, const InstrumentOPL* patch);
 int chipnomadQueueDX7Preview(ChipNomadState* state,int track,const InstrumentDX7* patch);
+#if CHOOCHOO_EXPERIMENTAL_SQ80ESQ
+int chipnomadQueueSQ80Preview(ChipNomadState*,int,const InstrumentSQ80*);
+#endif
 int chipnomadQueueSIDPreview(ChipNomadState* state,int track,const InstrumentSID* patch);
 int chipnomadQueueOPLLPreview(ChipNomadState* state, int track, const InstrumentOPLL* patch);
 int chipnomadQueuePlaybackStopPreview(ChipNomadState* state, int trackIdx);

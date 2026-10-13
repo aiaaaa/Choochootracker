@@ -31,6 +31,10 @@ Cursor& cursor(){return cursors[{cInstrument,chipnomadState->project.instruments
 constexpr int backValue = -2, emptyValue = -3;
 void show();
 void stop() {
+#if CHOOCHOO_EXPERIMENTAL_SQ80ESQ
+  if(type==InstrumentType::SQ80ESQ)chipnomadQueueSQ80Preview(chipnomadState,*pSongTrack,nullptr);
+  else
+#endif
   if (type == InstrumentType::DX7) chipnomadQueueDX7Preview(chipnomadState, *pSongTrack, nullptr);
   else if (type == InstrumentType::SID) chipnomadQueueSIDPreview(chipnomadState, *pSongTrack, nullptr);
   else if (isOPLL(type)) chipnomadQueueOPLLPreview(chipnomadState, *pSongTrack, nullptr);
@@ -46,6 +50,10 @@ void preview(int value, bool held) {
   audition = std::make_unique<Project>(); projectInit(audition.get()); std::string error;
   if (!library->load(value, audition.get(), 0, error)) { screenMessage(MESSAGE_TIME_ERROR, "%s", error.c_str()); return; }
   const auto& i = audition->instruments[0];
+#if CHOOCHOO_EXPERIMENTAL_SQ80ESQ
+  if(type==InstrumentType::SQ80ESQ)chipnomadQueueSQ80Preview(chipnomadState,*pSongTrack,&i.chip.sq80);
+  else
+#endif
   if (type == InstrumentType::DX7) chipnomadQueueDX7Preview(chipnomadState, *pSongTrack, &i.chip.dx7);
   else if (type == InstrumentType::SID) chipnomadQueueSIDPreview(chipnomadState, *pSongTrack, &i.chip.sid);
   else if (isOPLL(type)) chipnomadQueueOPLLPreview(chipnomadState, *pSongTrack, &i.chip.opll);

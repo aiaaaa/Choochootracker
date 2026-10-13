@@ -1,4 +1,5 @@
 #include "chip_program.h"
+#include "sq80_patch.h"
 #include "project.h"
 #include "sid_patch.h"
 #include "fm_amp.h"
@@ -639,6 +640,12 @@ int instrumentLoadData(FILE* file, Instrument* instrument, Project* p) {
       case InstrumentType::Sintered:
         if (loadInstrumentSintered(file, instrument)) return 1;
         break;
+      case InstrumentType::SQ80ESQ:
+#if CHOOCHOO_EXPERIMENTAL_SQ80ESQ
+        if(loadSQ80Data(file,instrument))return 1;break;
+#else
+        return 1;
+#endif
       case InstrumentType::SID:
         if(projectFileVersion<7||loadSIDData(file,instrument))return 1;break;
       case InstrumentType::SegaPSG:
@@ -989,6 +996,9 @@ int instrumentSaveData(FILE* file, int idx, Instrument* instrument) {
     case InstrumentType::Sintered:
       saveInstrumentSintered(file, instrument);
       break;
+#if CHOOCHOO_EXPERIMENTAL_SQ80ESQ
+    case InstrumentType::SQ80ESQ: saveSQ80Data(file,instrument);break;
+#endif
     case InstrumentType::SID:
       saveSIDData(file,instrument);break;
     case InstrumentType::SegaPSG:

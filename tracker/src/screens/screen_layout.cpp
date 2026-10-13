@@ -12,6 +12,9 @@ int screenScopeRows(const AppScreen* screen) {
 }
 
 int screenVisibleRows(void) {
+#if CHOOCHOO_EXPERIMENTAL_SQ80ESQ
+  if(currentScreen==&screenSQ80Edit)return 12;
+#endif
   // Modulation has two compact blocks of eight logical fields, not a list.
   return currentScreen == &screenModulation ? 16 : 16 - screenScopeRows(currentScreen);
 }

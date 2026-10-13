@@ -10,6 +10,8 @@ CFLAGS += -D_USE_MATH_DEFINES
 endif
 LDFLAGS = -lm -pthread
 include Makefile.native-chip-flags
+include Makefile.sq80esq
+CFLAGS += $(SQ80_CFLAGS) -I../chipnomad_lib/experimental/hybrid/include
 
 # Build directory
 BUILD_DIR = build/tests
@@ -36,7 +38,7 @@ TEST_SOURCES_EXCLUDED = tests/test_project_io.cpp tests/test_screen_instrument.c
 TEST_SOURCES = $(filter-out $(TEST_SOURCES_EXCLUDED),$(TEST_SOURCES_ALL))
 
 # Common sources needed by tests - use wildcards for automatic discovery
-CHIPNOMAD_LIB_SOURCES = $(wildcard ../chipnomad_lib/external/mutable/beads/*.cc) $(wildcard ../chipnomad_lib/external/mutable/beads/dsp/*.cc) \
+CHIPNOMAD_LIB_SOURCES = $(wildcard $(SQ80_DIR)/*.cpp) $(wildcard ../chipnomad_lib/external/mutable/beads/*.cc) $(wildcard ../chipnomad_lib/external/mutable/beads/dsp/*.cc) \
                         $(wildcard ../chipnomad_lib/external/msfa/*.cc) ../chipnomad_lib/external/emu76489/emu76489.c ../chipnomad_lib/external/gb_apu/gb_apu.c $(wildcard ../chipnomad_lib/external/gb_apu/blargg/*.cpp) \
                         $(wildcard ../chipnomad_lib/external/ymfm/*.cpp) \
                         $(wildcard ../chipnomad_lib/*.cpp) \
@@ -66,7 +68,7 @@ CHIPNOMAD_LIB_SOURCES = $(wildcard ../chipnomad_lib/external/mutable/beads/*.cc)
                         $(wildcard ../chipnomad_lib/external/mutable/plaits_alt/dsp/physical_modelling/*.cc) \
                         $(wildcard ../chipnomad_lib/external/mutable/plaits_alt/dsp/speech/*.cc)
 
-TRACKER_SRC_SOURCES = src/screens/user_preset_browser.cpp src/user_presets.cpp src/fm_catalog.cpp src/app.cpp src/support_report.cpp src/version.cpp \
+TRACKER_SRC_SOURCES = src/screens/instrument_sq80.cpp src/screens/screen_sq80_edit.cpp src/screens/user_preset_browser.cpp src/user_presets.cpp src/fm_catalog.cpp src/app.cpp src/support_report.cpp src/version.cpp \
                       src/screens/instrument_fm_controls.cpp src/screens/instrument_opl.cpp src/screens/screen_fm_edit.cpp src/screens/screen_sid_edit.cpp src/screens/instrument_simple_chip.cpp \
                       src/screens/screen_insert_fx.cpp \
                       src/screens/edit_fx.cpp src/screens/help.cpp src/misc.cpp \

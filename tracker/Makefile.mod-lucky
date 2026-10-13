@@ -17,7 +17,7 @@ define mod_lucky_config_rule
 mod-lucky-config-force:
 $(1)/mod-lucky-build-config: mod-lucky-config-force
 	@mkdir -p $$(dir $$@)
-	@printf '%s\n' '$(CHOOCHOO_EXPERIMENTAL_MOD_LUCKY):$(MOD_LUCKY_PREFIX)' > $$@.tmp
+	@printf '%s\n' '$(CHOOCHOO_EXPERIMENTAL_MOD_LUCKY):$(MOD_LUCKY_PREFIX):$(CHOOCHOO_EXPERIMENTAL_SQ80ESQ)' > $$@.tmp
 	@cmp -s $$@.tmp $$@ || cp $$@.tmp $$@
 	@rm -f $$@.tmp
 endef

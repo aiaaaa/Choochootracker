@@ -1,5 +1,6 @@
 #include <string.h>
 #include "project_instruments.h"
+#include "sq80_patch.h"
 #include "project.h"
 #include "sid_patch.h"
 #include "opll_presets.h"
@@ -313,6 +314,9 @@ static int initOPL2Instrument(Instrument* instrument) {
 static int initOPL3Instrument(Instrument* instrument) {
   initOPL2Instrument(instrument);instrument->type=InstrumentType::OPL3;return 0;
 }
+#if CHOOCHOO_EXPERIMENTAL_SQ80ESQ
+static int initSQ80Instrument(Instrument* i){initCommon(i);i->type=InstrumentType::SQ80ESQ;initSQ80Patch(i->chip.sq80);strcpy(i->name,"Init SQ80");return 0;}
+#endif
 static int initSIDInstrument(Instrument* i){initCommon(i);i->type=InstrumentType::SID;initSIDPatch(&i->chip.sid);strcpy(i->name,"Moving Pulse");return 0;}
 static int initSegaInstrument(Instrument* i){initCommon(i);i->type=InstrumentType::SegaPSG;simpleChipApplyPreset(i,0);return 0;}
 static int initGBPulseInstrument(Instrument* i){initCommon(i);i->type=InstrumentType::GBPulse;simpleChipApplyPreset(i,0);return 0;}
@@ -411,6 +415,11 @@ static const InstrumentDefinition instrumentDefinitions[] = {
   {"Genesis FM",InstrumentCategory::fm,InstrumentScreenKind::opl,destOPLL,COUNT(destOPLL),NULL,0,{2,modNameOPLL,initGenesisInstrument,freeNoneInstrument,1,0}},
   {"Arcade FM",InstrumentCategory::fm,InstrumentScreenKind::opl,destOPLL,COUNT(destOPLL),NULL,0,{2,modNameOPLL,initArcadeInstrument,freeNoneInstrument,1,0}},
   {"SID",InstrumentCategory::chip,InstrumentScreenKind::opl,destOPLL,COUNT(destOPLL),NULL,0,{2,modNameOPLL,initSIDInstrument,freeNoneInstrument,0,0}},
+#if CHOOCHOO_EXPERIMENTAL_SQ80ESQ
+  {"SQ80/ESQ",InstrumentCategory::synth,InstrumentScreenKind::sq80,destOPLL,COUNT(destOPLL),NULL,0,{2,modNameOPLL,initSQ80Instrument,freeNoneInstrument,0,0}},
+#else
+  {"SQ80 unavailable",InstrumentCategory::none,InstrumentScreenKind::none,destNone,COUNT(destNone),NULL,0,{0,modNameNone,initNoneInstrument,freeNoneInstrument,0,0}},
+#endif
 };
 #undef COUNT
 

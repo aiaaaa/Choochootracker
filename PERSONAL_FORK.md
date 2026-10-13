@@ -1,5 +1,13 @@
 # My R36H build
 
+## SQ80/ESQ experiment
+
+The experimental/sq80esq branch adds the standalone C++ synth to both personal
+targets, with USER preset browsing, a native parameter editor, playback override
+indicators and persistent browser bank import. Private waveform/preset assets
+stay outside source and public bundles. See [integration notes](docs/sq80esq.md).
+Validation and installation receipts identify the deployed candidate.
+
 ## October 12 device evaluation
 
 Both personal targets now include today’s standalone SID preset editor

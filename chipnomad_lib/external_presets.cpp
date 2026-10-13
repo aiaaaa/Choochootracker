@@ -1,4 +1,5 @@
 #include "external_presets.h"
+#include "sq80_patch.h"
 
 #include <algorithm>
 #include <array>
@@ -1180,6 +1181,9 @@ ExternalPreset sbi(const Bytes& b, InstrumentType target, const std::string& tit
 
 bool externalPresetExtension(InstrumentType t, const std::string& path) {
   auto e = ext(path);
+#if CHOOCHOO_EXPERIMENTAL_SQ80ESQ
+  if(t==InstrumentType::SQ80ESQ)return e==".syx"||e==".raw";
+#endif
   if (t == InstrumentType::DX7) return e == ".syx";
   if (e == ".dmp") return isSimpleChip(t) || isFourOp(t);
   if (e == ".fui")
@@ -1198,6 +1202,15 @@ bool importExternalPresets(InstrumentType t, const std::string& path, const Byte
     need(externalPresetExtension(t, path), "Unsupported format for this engine");
     std::vector<ExternalPreset> parsed;
     auto e = ext(path), title = std::filesystem::path(path).stem().string();
+#if CHOOCHOO_EXPERIMENTAL_SQ80ESQ
+    if(t==InstrumentType::SQ80ESQ){
+      std::vector<hybrid::Preset> voices;std::string error;
+      need(importSQ80(data,voices,error),error);
+      for(size_t n=0;n<voices.size();++n){auto p=init(t,voices[n].name);std::copy(voices[n].raw.begin(),voices[n].raw.end(),p.instrument.chip.sq80.raw);p.sourceIndex=n;parsed.push_back(p);
+        if(voices[n].splitOrLayer)warning="Split/layer programs import their base voice only";
+      }
+    }else
+#endif
     if (e == ".syx") {
       std::vector<InstrumentDX7> voices;
       std::string error;

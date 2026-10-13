@@ -8,6 +8,7 @@
 #include "common.h"
 #include "audio_manager.h"
 #include "app.h"
+#include "screens/screen_instrument.h"
 #include "screens.h"
 #include "screens/selection_popup.h"
 #include "chipnomad_lib.h"
@@ -452,6 +453,9 @@ void appSetup(void) {
   chipnomadState->mixVolume = appSettings.mixVolume;
   chipnomadState->aySampleDithering = appSettings.aySampleDithering;
 
+#if CHOOCHOO_EXPERIMENTAL_SQ80ESQ
+  instrumentSQ80LoadBanks();
+#endif
   // Initialize audio system
   chipnomadInitChips(chipnomadState, appSettings.audioSampleRate, NULL);
   chipnomadSetQuality(chipnomadState, (ChipNomadQuality)appSettings.quality);

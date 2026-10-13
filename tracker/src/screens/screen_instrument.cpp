@@ -38,6 +38,9 @@ static SelectionItem instrumentTypeChip[] = {
   {NULL, (int)InstrumentType::GBNoise, NULL, 0},
 };
 static SelectionItem instrumentTypeSynth[] = {
+#if CHOOCHOO_EXPERIMENTAL_SQ80ESQ
+  {NULL, (int)InstrumentType::SQ80ESQ, NULL, 0},
+#endif
   {NULL, (int)InstrumentType::AChChid, NULL, 0},
   {NULL, (int)InstrumentType::Braids, NULL, 0},
   {NULL, (int)InstrumentType::Plaits, NULL, 0},
@@ -69,7 +72,7 @@ static const SelectionItem instrumentTypeCategories[] = {
   {"CHIP", -1, instrumentTypeChip, 7},
   {"DRUMS", -1, instrumentTypeDrums, 2},
   {"SAMPLE", -1, instrumentTypeSample, 3},
-  {"SYNTH", -1, instrumentTypeSynth, 5},
+  {"SYNTH", -1, instrumentTypeSynth, sizeof(instrumentTypeSynth)/sizeof(instrumentTypeSynth[0])},
   {"MIDI", -1, instrumentTypeMidi, 1},
   {"FM", -1, instrumentTypeFM, sizeof(instrumentTypeFM) / sizeof(instrumentTypeFM[0])},
 };
@@ -84,6 +87,9 @@ static const InstrumentType instrumentTypesQuickCycle[] = {
   InstrumentType::SegaPSG, InstrumentType::GBPulse, InstrumentType::GBNoise,
   InstrumentType::GenesisFM, InstrumentType::ArcadeFM, InstrumentType::DX7, InstrumentType::Midi, InstrumentType::OPLL, InstrumentType::VRC7, InstrumentType::OPL2, InstrumentType::OPL3,
   InstrumentType::SID,
+#if CHOOCHOO_EXPERIMENTAL_SQ80ESQ
+  InstrumentType::SQ80ESQ,
+#endif
 };
 
 static int editInstrumentType(CellEditAction action, InstrumentType* type) {
@@ -288,6 +294,11 @@ static ScreenData* instrumentScreen(void) {
     &screenInstrumentDrumSynth, &screenInstrumentMME,
     &screenInstrumentSintered,
     &screenInstrumentMidi, &screenInstrumentOPLL, &screenInstrumentOPL, &screenInstrumentSimpleChip, &screenInstrumentOPL,
+#if CHOOCHOO_EXPERIMENTAL_SQ80ESQ
+    &screenInstrumentSQ80,
+#else
+    &screenInstrumentNone,
+#endif
   };
   InstrumentScreenKind kind = getInstrumentDefinition(chipnomadState->project.instruments[cInstrument].type)->screen;
   ScreenData* data = screens[(int)kind];
@@ -302,7 +313,7 @@ static void init(void) {
   screenInstrumentNone.cursorRow = 0;
   screenInstrumentNone.cursorCol = 0;
   SelectionItem* groups[] = {instrumentTypeChip, instrumentTypeSample, instrumentTypeSynth, instrumentTypeDrums, instrumentTypeMidi};
-  const int counts[] = {7, 3, 5, 2, 1};
+  const int counts[] = {7, 3, int(sizeof(instrumentTypeSynth)/sizeof(instrumentTypeSynth[0])), 2, 1};
   for (int group = 0; group < 5; ++group)
     for (int item = 0; item < counts[group]; ++item)
       groups[group][item].label = getInstrumentDefinition((InstrumentType)groups[group][item].value)->uiName;

@@ -2019,3 +2019,10 @@ and flushes this browser's storage first, and cancels if saving fails.
 and loaded samples. Select Bluetooth output in iPhone Control Center first.
 If sound stops after locking/unlocking, tap a control, then try Restart audio.
 Physical iOS recovery is still being tested; keep downloaded project backups.
+
+## Experimental SQ80/ESQ (personal build)
+
+Choose SYNTH → SQ80/ESQ, import your wave bank and presets into USER/sq80esq,
+and open EDIT PRESET for the full native editor. Web users can use the
+Import SQ80/ESQ button once; files persist locally. See [SQ80/ESQ](sq80esq.md)
+for controls, bank formats, playback indicators and current limits.

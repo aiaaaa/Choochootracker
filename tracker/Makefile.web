@@ -1,5 +1,6 @@
 # Emscripten/WebAssembly build for the browser and Vercel.
 PLATFORM = web
+CHOOCHOO_EXPERIMENTAL_SQ80ESQ ?= 1
 CHOOCHOO_EXPERIMENTAL_MOD_LUCKY ?= 1
 MOD_LUCKY_PREFIX ?= ../.tmp/mod-lucky-web/prefix
 
