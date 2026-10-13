@@ -103,7 +103,35 @@ int projectLoadFromPath(const char* path) {
   return loadResult;
 }
 
+static void onProjectCancelled(void) {
+  screenSetup(projectReturnScreen, 0);
+}
+static void onProjectLoaded(const char* path);
+
+// A .sav holds up to 32 LSDj songs: extract them as .lsdsng files in a folder
+// named after the save and let the user pick one there.
+static int openLsdjSave(const char* path) {
+  char folder[2048];
+  snprintf(folder, sizeof(folder), "%s", path);
+  char* dot = strrchr(folder, '.');
+  if (dot) *dot = 0;
+  int count = 0;
+  if (lsdjExtractSav(path, folder, &count) != 0) {
+    screenMessage(MESSAGE_TIME_ERROR, "%s", projectFileError);
+    return 0;
+  }
+  screenMessage(MESSAGE_TIME, "%d songs extracted, pick one", count);
+  fileBrowserSetup("LOAD PROJECT", ".cct,.vt2,.mid,.midi,.m8s,.lsdsng,.sav", folder, onProjectLoaded, onProjectCancelled);
+  screenSetup(&screenFileBrowser, 0);
+  return 1;
+}
+
 static void onProjectLoaded(const char* path) {
+  const char* ext = path ? strrchr(path, '.') : NULL;
+  if (ext && strcasecmp(ext, ".sav") == 0) {
+    if (!openLsdjSave(path)) screenSetup(projectReturnScreen, 0);
+    return;
+  }
   if (projectLoadFromPath(path) == 0 && projectReturnScreen == &screenTitle)
     screenSetup(&screenSong, 0);
   else
@@ -133,12 +161,8 @@ static void onProjectSaved(const char* folderPath) {
   screenSetup(&screenProject, 0);
 }
 
-static void onProjectCancelled(void) {
-  screenSetup(projectReturnScreen, 0);
-}
-
 static void doLoadProject(void) {
-  fileBrowserSetup("LOAD PROJECT", ".cct,.vt2,.mid,.midi,.m8s,.lsdsng", appSettings.projectPath,
+  fileBrowserSetup("LOAD PROJECT", ".cct,.vt2,.mid,.midi,.m8s,.lsdsng,.sav", appSettings.projectPath,
     onProjectLoaded, onProjectCancelled);
   screenSetup(&screenFileBrowser, 0);
 }
@@ -162,7 +186,7 @@ void projectOpenFromScreen(const AppScreen* returnScreen) {
 
 void projectOpenFromScreenAtPath(const AppScreen* returnScreen, const char* path) {
   projectReturnScreen = returnScreen ? returnScreen : &screenProject;
-  fileBrowserSetup("LOAD PROJECT", ".cct,.vt2,.mid,.midi,.m8s,.lsdsng", path,
+  fileBrowserSetup("LOAD PROJECT", ".cct,.vt2,.mid,.midi,.m8s,.lsdsng,.sav", path,
     onProjectLoaded, onProjectCancelled);
   screenSetup(&screenFileBrowser, 0);
 }

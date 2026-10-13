@@ -102,12 +102,12 @@ static inline bool lsdjDecompress(const uint8_t* in, size_t size, uint8_t* out) 
 }
 
 // Compression into 512 byte blocks, each ending with a jump to the next block
-// (E0 id, ids counting up from 1) and the last one with E0 FF. out must hold
+// (E0 id, ids being 1-based block numbers, so the first jump is E0 02) and the last one with E0 FF. out must hold
 // LSDJ_MAX_BLOCKS * LSDJ_BLOCK_SIZE bytes. Returns the compressed size in
 // bytes (a multiple of the block size), or 0 when the song does not fit.
 static inline size_t lsdjCompress(const uint8_t* song, uint8_t* out) {
   size_t o = 0, blockStart = 0, i = 0;
-  unsigned block = 1;
+  unsigned block = 1; // ids are 1-based block numbers
   const size_t limit = LSDJ_MAX_BLOCKS * LSDJ_BLOCK_SIZE;
   while (i < LSDJ_SONG_SIZE) {
     // Room for the longest code (3 bytes) plus the 2 byte jump or end code
@@ -136,6 +136,63 @@ static inline size_t lsdjCompress(const uint8_t* song, uint8_t* out) {
   out[o++] = 0xFF;
   while (o % LSDJ_BLOCK_SIZE) out[o++] = 0;
   return o;
+}
+
+// .sav file: 128 KB. The working song comes first (0x0000, uncompressed), then
+// the header at 0x8000 (32 names of 8 bytes, 32 versions, "jk" marker, active
+// project, then one owner byte per block, 0xFF = free), then 191 blocks of 512
+// bytes from 0x8200. A project is its blocks chained by the jump ids.
+#define LSDJ_SAV_SIZE 0x20000
+#define LSDJ_SAV_PROJECTS 32
+#define LSDJ_SAV_NAMES 0x8000
+#define LSDJ_SAV_VERSIONS 0x8100
+#define LSDJ_SAV_MARKER 0x813E
+#define LSDJ_SAV_BLOCK_TABLE 0x8141
+#define LSDJ_SAV_BLOCKS 0x8200
+#define LSDJ_SAV_BLOCK_COUNT 191
+
+// Id (1-based block number) of the block that follows this compressed block, or -1 at the end of the
+// song (or when the block is malformed).
+static inline int lsdjBlockNext(const uint8_t* block) {
+  size_t i = 0;
+  while (i < LSDJ_BLOCK_SIZE) {
+    uint8_t b = block[i++];
+    if (b == 0xC0) {
+      if (i >= LSDJ_BLOCK_SIZE) return -1;
+      if (block[i++] != 0xC0) i++;
+    } else if (b == 0xE0) {
+      if (i >= LSDJ_BLOCK_SIZE) return -1;
+      uint8_t v = block[i++];
+      if (v == 0xFF) return -1;
+      if (v == 0xF0 || v == 0xF1) i++;
+      else if (v != 0xE0) return v;
+    }
+  }
+  return -1;
+}
+
+// Gathers the blocks of one project of a .sav into an .lsdsng stream, in
+// order. out must hold LSDJ_MAX_BLOCKS * LSDJ_BLOCK_SIZE bytes. Returns the
+// size in bytes, or 0 when the slot is empty or its chain is broken.
+static inline size_t lsdjSavProject(const uint8_t* sav, int project, uint8_t* out) {
+  const uint8_t* table = sav + LSDJ_SAV_BLOCK_TABLE;
+  int block = -1;
+  for (int i = 0; i < LSDJ_SAV_BLOCK_COUNT; i++) {
+    if (table[i] == project) { block = i; break; }
+  }
+  if (block < 0) return 0;
+  size_t n = 0;
+  for (int count = 0; count < LSDJ_MAX_BLOCKS; count++) {
+    const uint8_t* data = sav + LSDJ_SAV_BLOCKS + (size_t)block * LSDJ_BLOCK_SIZE;
+    memcpy(out + n, data, LSDJ_BLOCK_SIZE);
+    n += LSDJ_BLOCK_SIZE;
+    int id = lsdjBlockNext(data);
+    if (id < 0) return n;
+    int next = id - 1; // ids are 1-based block numbers
+    if (next < 0 || next >= LSDJ_SAV_BLOCK_COUNT || table[next] != project) return 0;
+    block = next;
+  }
+  return 0;
 }
 
 #endif // __CHIPNOMAD_LIB__LSDJ_FORMAT_H__

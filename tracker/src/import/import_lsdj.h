@@ -25,6 +25,13 @@ extern "C" {
 // destination unchanged and owned by the caller.
 int projectLoadLSDJ(Project* project, const char* path);
 
+// Extracts every song of an LSDj save file (.sav, up to 32 songs) as an
+// .lsdsng file in outDir (created if needed), named <name>_v<version>.lsdsng.
+// The song being edited when the cartridge was saved is not extracted.
+// Returns 0 on success and stores the number of files in *count; on failure
+// sets projectFileError.
+int lsdjExtractSav(const char* savPath, const char* outDir, int* count);
+
 #ifdef __cplusplus
 }
 #endif
