@@ -213,6 +213,12 @@ static void fileBrowserSetStartPath(const char* startPath) {
     }
   }
 #endif
+#ifdef ANDROID_BUILD
+  // Only user storage is browsable; a saved path outside it (such as "/")
+  // would list nothing and trap the browser.
+  if (startPath && strncmp(startPath, "/storage/emulated/0", 19) != 0 &&
+      strncmp(startPath, "/ChooChooTracker", 16) != 0) startPath = NULL;
+#endif
   if (startPath && startPath[0] && fileDirectoryExists(startPath)) {
     strncpy(currentPath, startPath, sizeof(currentPath) - 1);
     currentPath[sizeof(currentPath) - 1] = 0;
