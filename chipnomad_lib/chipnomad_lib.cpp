@@ -1016,6 +1016,7 @@ static void updateAudioRateModulations(ChipNomadState* state) {
 }
 
 static int advancePlaybackFrame(ChipNomadState* state, uint64_t dueMicros) {
+  const int wasPlaying = playbackIsPlaying(&state->playbackState);
   state->audioCommands->applyProject(&state->audioProject);
   state->playbackState.p = &state->audioProject;
   if (state->audioCommands->takeStopRequest()) {
@@ -1036,6 +1037,7 @@ static int advancePlaybackFrame(ChipNomadState* state, uint64_t dueMicros) {
     state->masterInsertChain->sync(state->audioProject.masterInserts, &state->masterInsertAutomation);
   state->audioCommands->applySettings(&state->playbackState);
   state->audioCommands->applyCommands(state);
+  if (!wasPlaying && playbackIsPlaying(&state->playbackState)) state->masterEffects->reset();
   for (int t = 0; t < PROJECT_MAX_TRACKS; ++t) {
     auto& track = state->playbackState.tracks[t];
     if (track.insertReset != state->insertResetSeen[t]) {
@@ -1063,7 +1065,7 @@ static int advancePlaybackFrame(ChipNomadState* state, uint64_t dueMicros) {
   if (playbackIsPlaying(&state->playbackState) && state->opllPreviewTrack >= 0) {
     state->sidPreview->kill();state->fourOpPreview->kill();state->dx7Preview->kill();state->opllPreview->kill(); state->oplPreview->kill();state->simpleChipPreview->kill(); state->opllPreviewTrack = -1;
   }
-  return allTracksStopped && state->opllPreviewTrack < 0;
+  return allTracksStopped && state->opllPreviewTrack < 0 && !state->masterEffects->tailActive();
 }
 
 static int prepareRenderChunk(ChipNomadState* state, float* output, int frames) {
