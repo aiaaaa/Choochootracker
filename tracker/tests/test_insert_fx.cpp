@@ -1047,8 +1047,9 @@ TEST_CASE("insert tips, CPU readout and reviewed category chooser work together"
   CHECK(std::string(mockGfxCells[0], 40).find("INSERT MODULE CPU 037%") != std::string::npos);
   CHECK(std::string(mockGfxCells[3], 18).find("Dynamics") != std::string::npos);
   CHECK(std::string(mockGfxCells[4], 18).find("Drive") != std::string::npos);
-  CHECK(std::string(mockGfxCells[5], 18).find("Stereo") != std::string::npos);
-  CHECK(std::string(mockGfxCells[6], 18).find("Tape") != std::string::npos);
+  CHECK(std::string(mockGfxCells[5], 18).find("Modulation") != std::string::npos);
+  CHECK(std::string(mockGfxCells[6], 18).find("Stereo") != std::string::npos);
+  CHECK(std::string(mockGfxCells[7], 18).find("Tape") != std::string::npos);
   // The selected Distortion starts at Drive. Navigate to Dynamics -> OTT.
   screenSelectionPopup.onInput(1, keyUp, 1);
   screenSelectionPopup.onInput(1, keyRight, 1);
