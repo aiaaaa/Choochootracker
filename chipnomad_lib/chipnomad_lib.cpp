@@ -1321,9 +1321,9 @@ int chipnomadRender(ChipNomadState* state, float* buffer, int samples) {
 #endif
     if (state->opllPreviewTrack >= 0 && state->playbackState.trackEnabled[state->opllPreviewTrack]) {
       const int track = state->opllPreviewTrack;
-      bool opl = isOPL(state->chipPreviewType)||isFourOp(state->chipPreviewType);
+      bool opl = isOPL(state->chipPreviewType)||isFourOp(state->chipPreviewType)||state->chipPreviewType==InstrumentType::SQ80ESQ;
 #if CHOOCHOO_EXPERIMENTAL_SQ80ESQ
-      if(state->chipPreviewType==InstrumentType::SQ80ESQ){state->sq80Preview->render(state->mixBuffer,frames);for(int n=0;n<frames;++n)state->mixBuffer[n]=(state->mixBuffer[2*n]+state->mixBuffer[2*n+1])*2;}else
+      if(state->chipPreviewType==InstrumentType::SQ80ESQ){state->sq80Preview->render(state->mixBuffer,frames);}else
 #endif
       if(state->chipPreviewType==InstrumentType::SID)state->sidPreview->render(state->mixBuffer,frames);else if(state->chipPreviewType==InstrumentType::DX7)state->dx7Preview->render(state->mixBuffer,frames);else if(isFourOp(state->chipPreviewType))state->fourOpPreview->render(state->mixBuffer,frames);else if (opl) state->oplPreview->render(state->mixBuffer,frames);else if(isSimpleChip(state->chipPreviewType))state->simpleChipPreview->render(state->mixBuffer,frames);else state->opllPreview->render(state->mixBuffer, frames);
       float gain = state->audioProject.trackVolume[track] / 100.0f * (opl ? 1.0f : 0.25f);

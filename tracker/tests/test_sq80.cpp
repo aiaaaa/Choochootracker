@@ -91,4 +91,12 @@ TEST_CASE("SQ80 optional private library import audit"){
  for(const auto& ref:refs){REQUIRE(library.load(ref,p.get(),0,error));REQUIRE(validSQ80(p->instruments[0].chip.sq80));++checked;}
  MESSAGE("Private presets parsed: ",checked);projectFree(p.get());
 }
+
+TEST_CASE("SQ80 preset browser audition preserves native stereo pan"){
+ bank();auto state=std::unique_ptr<ChipNomadState,decltype(&chipnomadDestroy)>(chipnomadCreate(),chipnomadDestroy);projectInitAY(&state->project);state->project.tracksCount=1;
+ InstrumentSQ80 patch;initSQ80Patch(patch);patch.raw[100]=15;
+ chipnomadInitChips(state.get(),48000,nullptr);chipnomadReserveRenderBuffers(state.get(),480);REQUIRE(chipnomadQueueProjectRefresh(state.get()));REQUIRE(chipnomadQueueSQ80Preview(state.get(),0,&patch));
+ float out[960];double left=0,right=0;for(int n=0;n<8;++n){REQUIRE(chipnomadRender(state.get(),out,480)==480);for(int k=0;k<480;++k){left+=out[k*2]*out[k*2];right+=out[k*2+1]*out[k*2+1];}}
+ CHECK(left>1e-5);CHECK(left>right*10);REQUIRE(chipnomadQueueSQ80Preview(state.get(),0,nullptr));
+}
 #endif
