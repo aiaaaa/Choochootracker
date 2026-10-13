@@ -146,6 +146,15 @@
       "embedded_samples": 9,
       "bytes": 536724,
       "revision": 2
+    },
+    {
+      "file": "90s rave/90s_Rave_Neon_Afterglow.cct",
+      "device_source": "projects/90s rave/90s_Rave_Neon_Afterglow.cct",
+      "source_sha256": "595652ca7ae1e619adab085913def6dd9f57518057d9de73eb9e7e36cd09513a",
+      "sha256": "595652ca7ae1e619adab085913def6dd9f57518057d9de73eb9e7e36cd09513a",
+      "embedded_samples": 10,
+      "bytes": 301665,
+      "revision": "Original 132 BPM Eurodance arrangement using owner-provided instruments; owner-authorized web publication"
     }
   ],
   "updated_on": "2026-10-12"

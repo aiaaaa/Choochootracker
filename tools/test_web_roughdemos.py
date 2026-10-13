@@ -87,7 +87,7 @@ with sync_playwright() as playwright:
         # Simulate both former seeded directories, including Decisive Battle v1.
         # Only exact shipped copies may disappear; edited songs and Continue stay.
         page.evaluate("""records => {
-            for (const record of records) {
+            for (const record of records.filter(record => Object.hasOwn(seededRoughDemoHashes, record.file))) {
                 const path = '/user/projects/roughdemos/' + record.file;
                 FS.mkdirTree(path.slice(0, path.lastIndexOf('/')));
                 FS.writeFile(path, FS.readFile('/projects/rough demos/' + record.file));

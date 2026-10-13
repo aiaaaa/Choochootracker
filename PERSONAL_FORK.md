@@ -82,8 +82,9 @@ Continue remains the separate, single `/user/autosave.cct`. Isolated Chrome
 checks cover both old folder names, Decisive Battle revision 1, persisted
 cleanup, and preservation of edits, Continue and private presets. The web canvas
 has no focus frame.
-Its web-only packaging contains 17 device projects and a separately named
-Continue snapshot collected October 11, with Decisive Battle added October 12; browser edits remain local. The five
+Its web-only packaging contains 19 projects, including the separately named
+Continue snapshot, Decisive Battle, and the owner-approved 90s Rave - Neon
+Afterglow arrangement under `90s rave/`. Browser edits remain local. The five
 older sample-based saves are converted to self-contained archives for both
 the handheld and web collection, with original backups kept outside Git.
 Lucky uses a browser fetch/decoding adapter in the web target and its existing

@@ -33,6 +33,8 @@ scales while keeping its original aspect ratio.
 The personal web collection **Projects → rough demos** includes
 **Decisive_Battle_NERV_FM.cct**, with all nine PCM samples embedded.
 Its Genesis FM brass voices remain editable native instruments.
+**Projects → rough demos → 90s rave → 90s_Rave_Neon_Afterglow.cct**
+contains the 132 BPM Eurodance arrangement with all ten source samples embedded.
 
 The browser page follows the active tracker theme. Saved settings, including
 custom key mappings confirmed with **Done**, are written promptly to this

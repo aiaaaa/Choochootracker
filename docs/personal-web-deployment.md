@@ -206,7 +206,7 @@ where you want the library. Native USER paths and defaults are unchanged.
 ### roughdemos device songs
 
 The owner explicitly approved publishing the October 11 device song collection.
-`tracker/packaging/web/roughdemos/` contains 17 additional projects and a separately
+`tracker/packaging/web/roughdemos/` contains 19 projects, including a separately
 named Blue Hour Continue snapshot, with source/output hashes in `collection.json`.
 The eight matching examples already shipped by the web app are not duplicated.
 Five older projects were saved through the current tracker to embed their WAVs;
@@ -214,6 +214,10 @@ already embedded saves and projects without external samples remain unchanged.
 The conversion uses the same project I/O implementation as the installed device.
 Private preset collections are not included. Retained source credits accompany
 Blue Hour and Low Water.
+
+The owner also approved publishing `90s rave/90s_Rave_Neon_Afterglow.cct`.
+It matches the R36H song byte-for-byte, with all ten source samples embedded.
+This 132 BPM Eurodance arrangement adds no new browser behavior or save paths.
 
 Only Makefile.web preloads this folder, directly at `/projects/rough demos`.
 The Project Load browser defaults to `/projects`, beside the existing examples.

@@ -96,9 +96,10 @@ function demoStorage(t) {
   const context = { crypto: require('node:crypto').webcrypto };
   vm.createContext(context);
   const begin = html.indexOf('    const seededRoughDemoHashes =');
-  vm.runInContext(html.slice(begin, start) + '\nthis.cleanup = removeSeededRoughDemos;', context);
+  vm.runInContext(html.slice(begin, start) + '\nthis.cleanup = removeSeededRoughDemos; this.seededNames = Object.keys(seededRoughDemoHashes);', context);
   const collection = path.join(__dirname, '../tracker/packaging/web/roughdemos');
-  const records = JSON.parse(fs.readFileSync(path.join(collection, 'collection.json'))).projects;
+  const records = JSON.parse(fs.readFileSync(path.join(collection, 'collection.json'))).projects
+    .filter(record => context.seededNames.includes(record.file));
   return { adapter, context, records, collection };
 }
 
