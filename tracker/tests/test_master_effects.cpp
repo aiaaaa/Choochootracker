@@ -51,3 +51,25 @@ TEST_CASE("Reverb high-pass removes low-frequency send energy") {
   }
   CHECK(lowEnergy > highEnergy * 3.0f);
 }
+
+TEST_CASE("Reset clears an existing delay tail") {
+  MasterEffects effects;
+  effects.init(1000.0f);
+  Project project;
+  projectInit(&project);
+  project.tickRate = 100.0f;
+  project.delayTicks = 1;
+  project.delayFeedback = 50;
+  project.delayReturn = 100;
+  project.delayFilterCutoffHz = 450;
+  std::vector<float> bus(12 * 2, 0.0f), output(12 * 2, 0.0f);
+  bus[0] = 1.0f;
+  effects.process(nullptr, bus.data(), output.data(), 12, &project);
+  CHECK(effects.tailActive());
+  effects.reset();
+  CHECK_FALSE(effects.tailActive());
+  std::fill(bus.begin(), bus.end(), 0.0f);
+  std::fill(output.begin(), output.end(), 0.0f);
+  effects.process(nullptr, bus.data(), output.data(), 12, &project);
+  CHECK(std::fabs(output[10 * 2]) < 0.0001f);
+}

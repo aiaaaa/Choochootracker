@@ -13,6 +13,8 @@ struct Project;
 class MasterEffects {
  public:
   void init(float sampleRate);
+  void reset();
+  bool tailActive() const;
   void process(float* reverbBus, float* delayBus, float* output,
                size_t frames, const Project* project);
 
@@ -32,6 +34,8 @@ class MasterEffects {
   float reverbHighpassInputState_[2];
   float reverbHighpassOutputState_[2];
   float delayFilterState_[2];
+  size_t reverbTailFrames_;
+  size_t delayTailFrames_;
 };
 
 #endif
