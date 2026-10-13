@@ -1546,6 +1546,7 @@ or project format are needed. Grains run continuously without additional events.
   bits sweep the same envelope from rectangular through decay and bell to reverse.
   Add/subtract 80 to toggle freeze without changing Shape: 40 and C0 have the same
   envelope. The value hint shows envelope position and Recording/Frozen status.
+  Hold EDIT with Up/Down to change by 10 hex (16); Left/Right changes by 1.
   This packed control is discrete so slew does not sweep through the freeze bit;
   modulation of its whole byte can intentionally cross between the two states.
 - **Mix:** 00 is exact dry, FF is fully processed. Changes are smoothed.
