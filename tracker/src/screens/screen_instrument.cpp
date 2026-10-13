@@ -308,8 +308,15 @@ static void init(void) {
       groups[group][item].label = getInstrumentDefinition((InstrumentType)groups[group][item].value)->uiName;
 }
 
+#ifdef DESKTOP_BUILD
+static void keyJazzReleaseAll(void);
+#endif
+
 static void setup(int input) {
   isCharEdit = 0;
+#ifdef DESKTOP_BUILD
+  keyJazzReleaseAll(); // a key held while leaving the screen never sends its release here
+#endif
   if (input != -1) {
     cInstrument = input;
   }
@@ -786,6 +793,92 @@ int instrumentKeyJazzTextField(KeyJazzTextField* field) {
   field->marksProjectModified = 1;
   field->str = NULL;
   if (screen->cursorRow == 1) { field->str = chipnomadState->project.instruments[cInstrument].name; field->maxLen = PROJECT_INSTRUMENT_NAME_LENGTH; }
+  return 1;
+}
+
+// Key jazz on the Instrument screen: with key jazz on (Esc, the same toggle as
+// the Name field's text entry), the note keys audition the instrument on the
+// current track, like an external MIDI keyboard does, without entering any
+// note. On the Name field the keys type text instead. Last-note priority:
+// releasing a key falls back to the previous key still held, and the sound is
+// released when none is left.
+static int keyJazzBaseNote = 48;
+static int keyJazzHeld[32];
+static int keyJazzHeldCount = 0;
+
+static int keyJazzClamp(int note) {
+  int maxNote = chipnomadState->project.pitchTable.length - 1;
+  return note < 0 ? 0 : note > maxNote ? maxNote : note;
+}
+
+static void keyJazzSound(int offset) {
+  PlaybackMode mode = chipnomadGetPlaybackStatus(chipnomadState)->tracks[*pSongTrack].mode;
+  if (mode != PlaybackMode::stopped && mode != PlaybackMode::phraseRow) return; // the song is playing this track
+  if (instrumentIsEmpty(&chipnomadState->project, cInstrument)) return;
+  chipnomadQueuePlaybackPreviewNote(chipnomadState, *pSongTrack, (uint8_t)keyJazzClamp(keyJazzBaseNote + offset), cInstrument);
+}
+
+static void keyJazzReleaseAll(void) {
+  if (keyJazzHeldCount) chipnomadQueuePlaybackStopPreview(chipnomadState, *pSongTrack);
+  keyJazzHeldCount = 0;
+}
+
+int instrumentKeyJazzHandleRawKey(InputCode input, int isDown) {
+  if (input.deviceType != InputDeviceType::keyboard) return 0;
+
+  if (inputIsKeyJazzToggle(input)) {
+    // The text handler flips the state right after this: start on the
+    // octave the instrument's first note is in, and let go of anything held.
+    if (isDown) {
+      if (!keyJazzTextIsEnabled()) {
+        uint16_t octaveSize = chipnomadState->project.pitchTable.octaveSize;
+        int first = instrumentFirstNote(&chipnomadState->project, cInstrument);
+        keyJazzBaseNote = octaveSize > 0 ? (first / octaveSize) * octaveSize : first;
+      }
+      keyJazzReleaseAll();
+    }
+    return 0;
+  }
+
+  if (!keyJazzTextIsEnabled()) return 0;
+
+  KeyJazzTextField field;
+  instrumentKeyJazzTextField(&field);
+  if (field.popupOpen || field.str) {   // popup open, or typing in the Name field
+    keyJazzReleaseAll();
+    return 0;
+  }
+  if (inputIsCtrlHeld()) return 0;
+
+  int octaveDelta = inputKeyJazzOctaveDelta(input);
+  if (octaveDelta != 0) {
+    if (isDown) {
+      uint16_t octaveSize = chipnomadState->project.pitchTable.octaveSize;
+      keyJazzBaseNote = keyJazzClamp(keyJazzBaseNote + octaveDelta * (int)octaveSize);
+      screenMessage(MESSAGE_TIME, "KEY JAZZ octave: %s", chipnomadState->project.pitchTable.noteNames[keyJazzBaseNote]);
+    }
+    return 1;
+  }
+
+  int offset = inputKeyJazzNoteOffset(input);
+  if (offset < 0) return 0;   // not a note key: normal input (arrows, Play...)
+
+  int held = -1;
+  for (int i = 0; i < keyJazzHeldCount; i++) if (keyJazzHeld[i] == offset) held = i;
+  if (isDown) {
+    if (held >= 0) return 1;  // key repeat
+    if (instrumentIsEmpty(&chipnomadState->project, cInstrument)) {
+      screenMessage(MESSAGE_TIME, "Instrument is empty");
+      return 1;
+    }
+    if (keyJazzHeldCount < 32) keyJazzHeld[keyJazzHeldCount++] = offset;
+    keyJazzSound(offset);
+  } else if (held >= 0) {
+    for (int i = held; i < keyJazzHeldCount - 1; i++) keyJazzHeld[i] = keyJazzHeld[i + 1];
+    keyJazzHeldCount--;
+    if (keyJazzHeldCount) keyJazzSound(keyJazzHeld[keyJazzHeldCount - 1]);
+    else chipnomadQueuePlaybackStopPreview(chipnomadState, *pSongTrack);
+  }
   return 1;
 }
 #endif

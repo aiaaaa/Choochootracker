@@ -406,6 +406,12 @@ Key jazz also works, independently toggled with Esc, on:
   name, create folder). Backspace works like a normal text field; Shift
   types uppercase letters. Esc toggles it on all of these screens at once,
   and the virtual keyboard still opens normally when key jazz is off.
+- **Instrument**: with key jazz on, the note keys play the instrument on the
+  current track to audition it, without entering any note (the same piano
+  layout as the Phrase screen; the last key pressed sounds, and the sound is
+  released with the keys). The octave keys shift the octave, starting from
+  the octave of the instrument's first note. On the **Name** field the keys
+  type text instead. Nothing is played while the song is playing that track.
 
 ## 5. Instruments
 
