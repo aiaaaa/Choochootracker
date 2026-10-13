@@ -25,6 +25,21 @@ extern "C" {
 // destination unchanged and owned by the caller.
 int projectLoadLSDJ(Project* project, const char* path);
 
+// Songs of an LSDj save file (.sav), for a picker: slot 0-31, name, version
+// and size in 512 byte blocks. Fills at most maxSongs entries and stores their
+// number in *count. Returns 0 when there is at least one song; otherwise sets
+// projectFileError.
+struct LsdjSavSong {
+  int slot;
+  char name[9];
+  uint8_t version;
+  int blocks;
+};
+int lsdjListSav(const char* savPath, LsdjSavSong* songs, int maxSongs, int* count);
+
+// Same as projectLoadLSDJ for the song in the given slot of a .sav.
+int projectLoadLSDJSav(Project* project, const char* savPath, int slot);
+
 // Extracts every song of an LSDj save file (.sav, up to 32 songs) as an
 // .lsdsng file in outDir (created if needed), named <name>_v<version>.lsdsng.
 // The song being edited when the cartridge was saved is not extracted.

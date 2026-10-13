@@ -103,28 +103,11 @@ static void convertInstrument(Instrument* inst, const uint8_t* src) {
   }
 }
 
-int projectLoadLSDJ(Project* project, const char* path) {
-  if (!project || !path) return 1;
-
-  FILE* f = fopen(path, "rb");
-  if (!f) {
-    snprintf(projectFileError, 40, "Cannot open LSDj file");
-    return 1;
-  }
-  fseek(f, 0, SEEK_END);
-  long size = ftell(f);
-  fseek(f, 0, SEEK_SET);
+// file: an .lsdsng stream (name, version, compressed blocks). Not freed here.
+static int loadLsdjBuffer(Project* project, const uint8_t* file, size_t size) {
+  if (!project || !file) return 1;
   if (size < LSDJ_MIN_FILE_SIZE || size > LSDJ_MAX_FILE_SIZE) {
-    fclose(f);
     snprintf(projectFileError, 40, "Not a valid LSDj song");
-    return 1;
-  }
-  uint8_t* file = (uint8_t*)malloc(size);
-  size_t got = file ? fread(file, 1, size, f) : 0;
-  fclose(f);
-  if (!file || got != (size_t)size) {
-    free(file);
-    snprintf(projectFileError, 40, "Cannot read LSDj file");
     return 1;
   }
 
@@ -134,7 +117,6 @@ int projectLoadLSDJ(Project* project, const char* path) {
   ok = ok && data[LSDJ_MARKER1] == 'r' && data[LSDJ_MARKER1 + 1] == 'b' && data[LSDJ_MARKER2] == 'r' && data[LSDJ_MARKER2 + 1] == 'b';
   if (!ok) {
     free(data);
-    free(file);
     snprintf(projectFileError, 40, "Not a valid LSDj song");
     return 1;
   }
@@ -222,10 +204,108 @@ int projectLoadLSDJ(Project* project, const char* path) {
   }
 
   free(data);
-  free(file);
   projectFree(project);
   *project = p;
   return 0;
+}
+
+int projectLoadLSDJ(Project* project, const char* path) {
+  if (!project || !path) return 1;
+
+  FILE* f = fopen(path, "rb");
+  if (!f) {
+    snprintf(projectFileError, 40, "Cannot open LSDj file");
+    return 1;
+  }
+  fseek(f, 0, SEEK_END);
+  long size = ftell(f);
+  fseek(f, 0, SEEK_SET);
+  if (size < LSDJ_MIN_FILE_SIZE || size > LSDJ_MAX_FILE_SIZE) {
+    fclose(f);
+    snprintf(projectFileError, 40, "Not a valid LSDj song");
+    return 1;
+  }
+  uint8_t* file = (uint8_t*)malloc(size);
+  size_t got = file ? fread(file, 1, size, f) : 0;
+  fclose(f);
+  if (!file || got != (size_t)size) {
+    free(file);
+    snprintf(projectFileError, 40, "Cannot read LSDj file");
+    return 1;
+  }
+  int result = loadLsdjBuffer(project, file, size);
+  free(file);
+  return result;
+}
+
+// Reads a whole .sav; the caller frees the result.
+static uint8_t* readSav(const char* path) {
+  FILE* f = fopen(path, "rb");
+  if (!f) {
+    snprintf(projectFileError, 40, "Cannot open LSDj save");
+    return NULL;
+  }
+  uint8_t* sav = (uint8_t*)malloc(LSDJ_SAV_SIZE);
+  size_t got = sav ? fread(sav, 1, LSDJ_SAV_SIZE, f) : 0;
+  fseek(f, 0, SEEK_END);
+  long size = ftell(f);
+  fclose(f);
+  if (!sav || got != LSDJ_SAV_SIZE || size != LSDJ_SAV_SIZE || sav[LSDJ_SAV_MARKER] != 'j' || sav[LSDJ_SAV_MARKER + 1] != 'k') {
+    free(sav);
+    snprintf(projectFileError, 40, "Not a valid LSDj save");
+    return NULL;
+  }
+  return sav;
+}
+
+// The song of a .sav slot as an .lsdsng stream: header, then its blocks.
+// Returns the size, or 0 when the slot is empty.
+static size_t savSong(const uint8_t* sav, int slot, uint8_t* out) {
+  size_t n = lsdjSavProject(sav, slot, out + LSDJ_HEADER_SIZE);
+  if (!n) return 0;
+  memcpy(out, sav + LSDJ_SAV_NAMES + slot * LSDJ_NAME_SIZE, LSDJ_NAME_SIZE);
+  out[LSDJ_NAME_SIZE] = sav[LSDJ_SAV_VERSIONS + slot];
+  return LSDJ_HEADER_SIZE + n;
+}
+
+int lsdjListSav(const char* savPath, LsdjSavSong* songs, int maxSongs, int* count) {
+  if (count) *count = 0;
+  if (!savPath || !songs) return 1;
+  uint8_t* sav = readSav(savPath);
+  if (!sav) return 1;
+  uint8_t* buffer = (uint8_t*)malloc(LSDJ_HEADER_SIZE + LSDJ_MAX_BLOCKS * LSDJ_BLOCK_SIZE);
+  int n = 0;
+  for (int i = 0; buffer && i < LSDJ_SAV_PROJECTS && n < maxSongs; i++) {
+    size_t size = savSong(sav, i, buffer);
+    if (!size) continue;
+    LsdjSavSong* s = &songs[n++];
+    s->slot = i;
+    s->version = buffer[LSDJ_NAME_SIZE];
+    s->blocks = (int)((size - LSDJ_HEADER_SIZE) / LSDJ_BLOCK_SIZE);
+    copyName(s->name, sizeof(s->name), buffer, LSDJ_NAME_SIZE);
+  }
+  free(buffer);
+  free(sav);
+  if (count) *count = n;
+  if (!n) {
+    snprintf(projectFileError, 40, "No song found in the save");
+    return 1;
+  }
+  return 0;
+}
+
+int projectLoadLSDJSav(Project* project, const char* savPath, int slot) {
+  if (!project || !savPath || slot < 0 || slot >= LSDJ_SAV_PROJECTS) return 1;
+  uint8_t* sav = readSav(savPath);
+  if (!sav) return 1;
+  uint8_t* buffer = (uint8_t*)malloc(LSDJ_HEADER_SIZE + LSDJ_MAX_BLOCKS * LSDJ_BLOCK_SIZE);
+  size_t size = buffer ? savSong(sav, slot, buffer) : 0;
+  int result = 1;
+  if (size) result = loadLsdjBuffer(project, buffer, size);
+  else snprintf(projectFileError, 40, "No song in this slot");
+  free(buffer);
+  free(sav);
+  return result;
 }
 
 // A file name made of the song name and version, as LSDj tools do
