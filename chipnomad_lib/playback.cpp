@@ -177,7 +177,7 @@ void tableReadFX(PlaybackState* state, int trackIdx, struct PlaybackTableState* 
   } else if (fxType == fxTBX) {
     tableInit(state, trackIdx, &state->tracks[trackIdx].note.auxTable, p->tables[tableIdx].rows[tableRow].fx[fxIdx][1], 0, 1);
   } else {
-    initFX(state, trackIdx, p->tables[tableIdx].rows[tableRow].fx[fxIdx], table, fxIdx);
+    initFX(state, trackIdx, &p->tables[tableIdx].rows[tableRow].fx[fxIdx], table, fxIdx);
   }
 }
 
@@ -388,9 +388,9 @@ static void restartStructuralLFOs(PlaybackState* state, int trackIdx, int entere
   }
 }
 
-static int rowHasFX(const PhraseRow* row, uint8_t fx) {
+static int rowHasFX(const PhraseRow* row, FXId fx) {
   for (int i = 0; i < 3; ++i)
-    if (row->fx[i][0] == fx) return 1;
+    if (row->fx[i].command == fx) return 1;
   return 0;
 }
 
@@ -487,7 +487,7 @@ void readPhraseRowDirect(PlaybackState* state, int trackIdx, PhraseRow* phraseRo
     } else if (fxType == fxSLE) {
       track->slewTicks = fxValue;
     } else if (!skipDelCheck && (fxType == fxDEL && fxValue != 0)) {
-      initFX(state, trackIdx, phraseRow->fx[i], NULL, -1);
+      initFX(state, trackIdx, &phraseRow->fx[i], NULL, -1);
       return;
     } else if (fxType == fxTBL) {
       instrumentTable = fxValue;
@@ -561,7 +561,7 @@ void readPhraseRowDirect(PlaybackState* state, int trackIdx, PhraseRow* phraseRo
   for (int i = 0; i < 3; i++) {
     if (phraseRow->fx[i][0] != fxDEL && phraseRow->fx[i][0] != fxSLE &&
         phraseRow->fx[i][0] != fxSCL && phraseRow->fx[i][0] != fxCRD) {
-      initFX(state, trackIdx, phraseRow->fx[i], NULL, -1);
+      initFX(state, trackIdx, &phraseRow->fx[i], NULL, -1);
     }
   }
 
@@ -1428,8 +1428,8 @@ void playbackPreviewNote(PlaybackState* state, int trackIdx, uint8_t note, uint8
 
   // Set up empty FX
   for (int i = 0; i < 3; i++) {
-    phraseRow.fx[i][0] = EMPTY_VALUE_8;
-    phraseRow.fx[i][1] = EMPTY_VALUE_8;
+    phraseRow.fx[i].command = FX_ID_EMPTY;
+    phraseRow.fx[i].value = EMPTY_VALUE_8;
   }
 
   // Use unified phrase row playback

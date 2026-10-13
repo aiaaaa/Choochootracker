@@ -500,13 +500,13 @@ enum MidiCCDestination : uint8_t {
 
 struct InstrumentModDestination {
   const char* name;
-  uint8_t fx;                 // FX enum value, or instrumentNoFX.
+  FXId fx;                    // Lane FX identifier, or instrumentNoFX.
   uint16_t range;             // Native modulation range.
   InstrumentMotionValue value;
 };
 
 struct InstrumentFX {
-  uint8_t fx;                 // FX enum value (kept byte-sized to avoid a project.h cycle).
+  FXId fx;
   const char* name;
 };
 
@@ -530,8 +530,8 @@ int instrumentMotionDestination(const Instrument* instrument, int destination,
 int instrumentCCDestinationAvailable(const Instrument* instrument, int destination);
 int instrumentCCDestinationValue(const Instrument* instrument, int destination, uint8_t cc);
 int instrumentSetCCDestination(Instrument* instrument, int destination, uint8_t cc);
-int instrumentFXAvailable(InstrumentType type, uint8_t fx);
-int instrumentFXAvailableForInstrument(const Instrument* instrument, uint8_t fx);
+int instrumentFXAvailable(InstrumentType type, FXId fx);
+int instrumentFXAvailableForInstrument(const Instrument* instrument, FXId fx);
 int instrumentModDestinationAvailable(const Instrument* instrument, int destination);
 int drumSynthMacroUsed(DrumSynthEngine engine, int macro);
 InstrumentVoicePostSettings* instrumentVoicePostSettings(Instrument* instrument);

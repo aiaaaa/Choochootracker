@@ -11,7 +11,7 @@
 
 // FX
 
-enum FX {
+enum FX : FXId {
   // Sequencer FX
   fxARP, // Arpeggio
   fxARC, // Arpeggio config
@@ -228,11 +228,22 @@ enum FX {
   // Absolute panorama controls. Appended to preserve project FX IDs.
   fxPAN, // Instrument pan
   fxTPN, // Track pan
+#ifdef TEST
+  fxTestDummy00, fxTestDummy01, fxTestDummy02, fxTestDummy03, fxTestDummy04, fxTestDummy05, fxTestDummy06, fxTestDummy07, fxTestDummy08, fxTestDummy09,
+  fxTestDummy10, fxTestDummy11, fxTestDummy12, fxTestDummy13, fxTestDummy14, fxTestDummy15, fxTestDummy16, fxTestDummy17, fxTestDummy18, fxTestDummy19,
+  fxTestDummy20, fxTestDummy21, fxTestDummy22, fxTestDummy23, fxTestDummy24, fxTestDummy25, fxTestDummy26, fxTestDummy27, fxTestDummy28, fxTestDummy29,
+  fxTestDummy30, fxTestDummy31, fxTestDummy32, fxTestDummy33, fxTestDummy34, fxTestDummy35, fxTestDummy36, fxTestDummy37, fxTestDummy38, fxTestDummy39,
+  fxTestDummy40, fxTestDummy41, fxTestDummy42, fxTestDummy43, fxTestDummy44, fxTestDummy45, fxTestDummy46, fxTestDummy47, fxTestDummy48, fxTestDummy49,
+  fxTestDummy50, fxTestDummy51, fxTestDummy52, fxTestDummy53, fxTestDummy54, fxTestDummy55, fxTestDummy56, fxTestDummy57, fxTestDummy58, fxTestDummy59,
+  fxTestDummy60, fxTestDummy61, fxTestDummy62, fxTestDummy63, fxTestDummy64, fxTestDummy65, fxTestDummy66, fxTestDummy67, fxTestDummy68, fxTestDummy69,
+  fxTestDummy70, fxTestDummy71, fxTestDummy72, fxTestDummy73, fxTestDummy74, fxTestDummy75, fxTestDummy76, fxTestDummy77, fxTestDummy78, fxTestDummy79,
+  fxTestDummy80, fxTestDummy81, fxTestDummy82, fxTestDummy83, fxTestDummy84, fxTestDummy85, fxTestDummy86, fxTestDummy87, fxTestDummy88, fxTestDummy89,
+  fxTestDummy90, fxTestDummy91, fxTestDummy92, fxTestDummy93, fxTestDummy94, fxTestDummy95, fxTestDummy96, fxTestDummy97, fxTestDummy98, fxTestDummy99,
+#endif
   // Total count - must be last
   fxTotalCount
 };
 
-static_assert(fxTotalCount < 255, "FX identifiers must not collide with FF");
 static_assert(fxF28 - fxF11 == 15, "Contiguous insert commands");
 
 struct NativeFXInfo {
@@ -270,7 +281,7 @@ uint8_t scaleQuantizeNote(uint8_t note, uint8_t root, uint16_t mask, uint16_t pi
 uint8_t scaleSnapNoteUp(uint8_t note, uint8_t root, uint16_t mask, uint16_t pitchCount);
 
 struct FXName {
-  enum FX fx;
+  FXId fx;
   char name[4];
 };
 
@@ -282,7 +293,7 @@ struct FXGroup {
   InstrumentType instType;  // InstrumentType::none for non-instrument groups
 };
 
-extern FXName fxNames[256]; // All names
+extern FXName fxNames[fxTotalCount]; // All names
 extern FXGroup fxGroups[]; // FX groups
 extern int fxGroupCount; // Number of FX groups
 
@@ -313,11 +324,29 @@ union ChipSetup {
 
 // Tables
 
+struct FXCell {
+  FXId command;
+  uint8_t value;
+  // Indexed access is retained temporarily for the column-oriented UI.
+  struct Component {
+    FXCell* cell;
+    bool isCommand;
+    operator int() const { return isCommand && cell->command == FX_ID_EMPTY ? EMPTY_VALUE_8 : (isCommand ? cell->command : cell->value); }
+    Component& operator=(FXId v) {
+      if (isCommand) cell->command = v;
+      else cell->value = (uint8_t)v;
+      return *this;
+    }
+  };
+  Component operator[](int index) { return {this, index == 0}; }
+  FXId operator[](int index) const { return index == 0 ? command : value; }
+};
+
 struct TableRow {
   uint8_t pitchFlag;
   uint8_t pitchOffset;
   uint8_t volume;
-  uint8_t fx[4][2];
+  FXCell fx[4];
 };
 
 enum class TableRetriggerMode : uint8_t { instrument, phrase, chain, free };
@@ -340,7 +369,7 @@ struct PhraseRow {
   uint8_t instrument;
   // Phrase volume is 00-7F; FFFF means an omitted/inherited volume in memory.
   uint16_t volume;
-  uint8_t fx[3][2];
+  FXCell fx[3];
 };
 
 struct Phrase {
