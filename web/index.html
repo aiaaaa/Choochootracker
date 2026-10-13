@@ -242,7 +242,7 @@
         status.textContent = 'Could not download ' + path.split('/').pop() + '.';
       }
     };
-    const importFiles = async (files, root) => {
+    const importFiles = async (files, root, showSavedStatus = true) => {
       const fs = getFs();
       if (!fs) return 0;
       let count = 0;
@@ -255,7 +255,8 @@
         count++;
       }
       syncUserStorage((error) => {
-        status.textContent = error ? 'Import kept in memory, but browser storage failed.' : count + ' file' + (count === 1 ? '' : 's') + ' saved in browser storage.';
+        if (error) status.textContent = 'Import kept in memory, but browser storage failed.';
+        else if (showSavedStatus) status.textContent = count + ' file' + (count === 1 ? '' : 's') + ' saved in browser storage.';
       });
       return count;
     };
@@ -448,7 +449,7 @@
       const file = event.target.files[0];
       if (!file) return;
       const path = '/user/projects/' + userPath(file.name);
-      await importFiles([file], '/user/projects');
+      await importFiles([file], '/user/projects', false);
       const result = window.Module.ccall('webLoadProject', 'number', ['string'], [path]);
       status.textContent = result === 0 ? 'Project loaded: ' + file.name : result === 2 ? 'Choose an LSDj song in the tracker.' : 'Could not load ' + file.name + '.';
       event.target.value = '';
