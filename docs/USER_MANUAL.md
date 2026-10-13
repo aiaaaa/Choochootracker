@@ -2086,3 +2086,16 @@ the release popup. Select the adjacent EDIT control to open patch parameters.
 The patch editor control reads **Edit** and aligns directly above the word
 **Velocity**. The preset row shows up to nine name characters beside it; the full
 instrument name remains in the header. Browsing and editor controls are unchanged.
+
+### October 13 personal daily compatibility
+
+Settings touch controls include Lucky NEXT, PLAY and LOAD at their displayed
+positions. Quit remains a separate row. Lucky stays opt-in in native builds and
+enabled in both personal targets. The Android working-folder control can coexist
+with Lucky.
+
+The personal web **Import project** button accepts `.cct`, `.lsdsng` and `.sav`.
+For an LSDj save, choose a song in the tracker popup; cancel keeps your current
+project. Upstream LSDj export is available on desktop and Android, not on web or
+PortMaster. The Modulation insert group keeps Chorus, Phaser and Flanger;
+personal Beads remains available in its own group.

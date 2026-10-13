@@ -1,7 +1,7 @@
 {
   "upstream": "paiheulevrai/Choochootracker",
   "upstream_branch": "main",
-  "upstream_commit": "46f76a1009f3f96b0a32de0f3307d56572a875cc",
+  "upstream_commit": "2899f43869e1245a178ae0d755718e5a95bffc33",
   "personal_branch": "personal/r36h",
   "update_policy": "Personal combines upstream main, my additions not yet incorporated upstream, and my experiments. Keep unmerged additions, including pending or declined submissions. Once incorporated upstream, replace my earlier implementation with the maintainer's merged version, including his fixes and changes; remove duplicate code and controls. Test, preserve user data, record commit, and retain rollback before installation.",
   "features": [
@@ -582,9 +582,33 @@
     "beads_pr": "Held; no PR edits"
   },
   "sq80esq_rev4": {
-    "status": "Local edit checkpoint; build, integration and deployment held by owner",
+    "status": "Selected for combined personal daily on web and R36H; exact deployment recorded in receipts",
     "branch": "personal/sq80-rev4",
     "layout": "Edit directly above the Velocity label; preset field limited to nine characters, full name retained in header",
-    "validation": "Diff reviewed; no build or test execution per owner instruction"
+    "validation": "Combined native, browser and device checks recorded with the daily"
+  },
+  "daily_20261013_rev4": {
+    "baseline": "98c82dcc83982ac8543dc0bc0f554f016dbc7430",
+    "upstream_commit": "2899f43869e1245a178ae0d755718e5a95bffc33",
+    "merged_prs": [
+      65,
+      67,
+      68,
+      70
+    ],
+    "selected_commits": {
+      "song_selection_copy": "9bd6e95",
+      "sq80_rev4": "eb21139"
+    },
+    "compatibility": [
+      "Accepted upstream SID editor replaces earlier contribution ancestry; source matches",
+      "Modulation insert group retains personal Beads category",
+      "Settings supports Lucky and Android working-folder rows together; touch mapping follows the displayed controls",
+      "Web project import supports .lsdsng and .sav song picker"
+    ],
+    "lsdj_export": "Upstream desktop and Android targets only; no web/PortMaster export row",
+    "status": "Authorized combined daily; exact-source validation and deployment recorded in receipts",
+    "beads_pr": "Held; no PR edits",
+    "vita": "Paused; excluded"
   }
 }

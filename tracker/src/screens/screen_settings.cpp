@@ -10,6 +10,21 @@
 #include "audio_manager.h"
 #endif
 #include "support_report.h"
+#include "corelib_file.h"
+#include <string.h>
+#include <stdio.h>
+
+#ifdef ANDROID_BUILD
+static constexpr int workingFolderRow = 7;
+static constexpr int baseQuitRow = 8;
+static char workingFolderStatus[256];
+static void refreshWorkingFolderStatus(void) {
+  if (fileGetWorkingFolderStatus(workingFolderStatus, sizeof(workingFolderStatus)) != 0)
+    snprintf(workingFolderStatus, sizeof(workingFolderStatus), "Unavailable");
+}
+#else
+static constexpr int baseQuitRow = 7;
+#endif
 
 #ifdef CHOOCHOO_EXPERIMENTAL_MOD_LUCKY
 static constexpr int luckyRow = baseQuitRow;
@@ -73,6 +88,34 @@ static void drawCursor(int col, int row) {
   else if (row == workingFolderRow) gfxCursor(0, 12, 14);
 #endif
   else if (row == quitRow) gfxCursor(0, 18, 19);
+}
+// Keep touch hit-testing beside the platform-dependent Settings row layout.
+int screenSettingsTouchCell(int col, int row, int* targetCol, int* targetRow) {
+  int field = -1, column = 0, width = 0;
+  if (row >= 2 && row <= 7) {
+    static const int widths[] = {8, 5, 4, 6, 5, 8};
+    field = row - 2; width = widths[field];
+  } else if (row == 10) { field = 6; width = 14; }
+#ifdef ANDROID_BUILD
+  else if (row == 12) { field = workingFolderRow; width = 30; }
+#endif
+#ifdef CHOOCHOO_EXPERIMENTAL_MOD_LUCKY
+  else if (row == 17) {
+    for (int i = 0; i < 3; ++i) {
+      if (col >= luckyX[i] && col < luckyX[i] + 4) {
+        if (targetCol) *targetCol = i;
+        if (targetRow) *targetRow = luckyRow;
+        return 1;
+      }
+    }
+    return 0;
+  }
+#endif
+  else if (row == 18) { field = quitRow; width = 19; }
+  if (field < 0 || col < 0 || col >= width) return 0;
+  if (targetCol) *targetCol = column;
+  if (targetRow) *targetRow = field;
+  return 1;
 }
 static void noHeader(int, CellState) {}
 static void drawField(int col, int row, CellState state) {

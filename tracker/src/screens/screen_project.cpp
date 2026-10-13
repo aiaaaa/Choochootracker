@@ -50,7 +50,7 @@ int projectLoadFromPath(const char* path) {
   }
 
   // Check file extension to determine loader
-  const char* ext = strrchr(path, '.');
+  const char* ext = path ? strrchr(path, '.') : nullptr;
   int loadResult = -1;
   Project replacement;
   projectInitAY(&replacement);
@@ -164,6 +164,11 @@ static void onProjectLoaded(const char* path) {
 
 #ifdef WEB_BUILD
 extern "C" EMSCRIPTEN_KEEPALIVE int webLoadProject(const char* path) {
+  const char* ext = path ? strrchr(path, '.') : nullptr;
+  if (ext && strcasecmp(ext, ".sav") == 0) {
+    projectReturnScreen = &screenSong;
+    return openLsdjSave(path) ? 2 : 1; // The tracker picker completes the import.
+  }
   return projectLoadFromPath(path);
 }
 #endif

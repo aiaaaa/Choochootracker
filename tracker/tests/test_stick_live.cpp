@@ -5,6 +5,7 @@
 #include "chipnomad_lib_live_stick.h"
 #include "corelib_file.h"
 #include "project_utils.h"
+#include "screens/screen_settings.h"
 
 #include <chrono>
 #include <cstring>
@@ -602,4 +603,24 @@ TEST_CASE_FIXTURE(StickLiveFixture, "Personal visual settings coexist and surviv
   REQUIRE(settingsLoad() == 0);
   CHECK(appSettings.persistentWaveform == 1);
   CHECK(appSettings.trackVisuals[1].mode == TrackVisualMode::audio);
+}
+
+TEST_CASE("Settings touch targets follow optional Lucky rows") {
+  int col = -1, row = -1;
+  CHECK(screenSettingsTouchCell(0, 10, &col, &row) == 1);
+  CHECK(row == 6);
+  CHECK(screenSettingsTouchCell(0, 18, &col, &row) == 1);
+#ifdef CHOOCHOO_EXPERIMENTAL_MOD_LUCKY
+  CHECK(row == 8);
+  for (int i = 0; i < 3; ++i) {
+    CHECK(screenSettingsTouchCell(18 + i * 5, 17, &col, &row) == 1);
+    CHECK(col == i);
+    CHECK(row == 7);
+  }
+  CHECK(screenSettingsTouchCell(22, 17, &col, &row) == 0);
+#else
+  CHECK(row == 7);
+  CHECK(screenSettingsTouchCell(18, 17, &col, &row) == 0);
+#endif
+  CHECK(screenSettingsTouchCell(0, 11, &col, &row) == 0);
 }

@@ -4,5 +4,6 @@
 #include "screens.h"
 
 extern const AppScreen screenSettings;
+int screenSettingsTouchCell(int col, int row, int* targetCol, int* targetRow);
 
 #endif

@@ -78,7 +78,7 @@
     <div id="browser-controls">
       <button id="start">Start tracker</button>
       <div id="web-buttons" role="group" aria-label="Project, sample, preset and app controls">
-        <button id="import-project" disabled>Import .cct</button>
+        <button id="import-project" disabled>Import project</button>
         <button id="export-project" disabled>Download .cct</button>
         <button id="restart-audio" disabled>Restart audio</button>
         <button id="reload-app" disabled>Reload app</button>
@@ -87,7 +87,7 @@
         <button id="import-sq80" disabled title="Import SQ80/ESQ .hwb wave banks, SysEx presets, or ZIPs. Saved only in this browser.">Import SQ80/ESQ</button>
         <input id="sq80-input" type="file" accept=".hwb,.syx,.raw,.cni,.zip" multiple hidden>
         <button id="import-presets" disabled title="Choose an instruments or USER folder. Existing files are kept. Stored only in this browser.">Import presets</button>
-        <input id="project-input" type="file" accept=".cct" hidden>
+        <input id="project-input" type="file" accept=".cct,.lsdsng,.sav" hidden>
         <input id="sample-input" type="file" accept=".wav,audio/wav" multiple hidden>
         <input id="sample-folder-input" type="file" accept=".wav,audio/wav" webkitdirectory multiple hidden>
         <input id="preset-folder-input" type="file" webkitdirectory multiple hidden>
@@ -450,7 +450,7 @@
       const path = '/user/projects/' + userPath(file.name);
       await importFiles([file], '/user/projects');
       const result = window.Module.ccall('webLoadProject', 'number', ['string'], [path]);
-      status.textContent = result === 0 ? 'Project loaded: ' + file.name : 'Could not load ' + file.name + '.';
+      status.textContent = result === 0 ? 'Project loaded: ' + file.name : result === 2 ? 'Choose an LSDj song in the tracker.' : 'Could not load ' + file.name + '.';
       event.target.value = '';
     });
     const importSamples = async (event) => {
