@@ -258,6 +258,15 @@
       "scope": "Compact tracker commands; selector removed; synthesis and live modulation unchanged",
       "source_commit": "ee0e85c3cde127e24c138d8e58e14ead0cf5a6a2",
       "upstream_status": "Incorporated in merged PR #39; earlier revision retained here as history"
+    },
+    {
+      "id": "sq80esq",
+      "branch": "experimental/sq80esq",
+      "status": "personal opt-in experiment; no upstream proposal",
+      "build_flag": "CHOOCHOO_EXPERIMENTAL_SQ80ESQ=1",
+      "normal_build_default": "OFF",
+      "documentation": "docs/sq80esq.md",
+      "engine_source_commit": "b3c90fc2f2bea9afb994c166bc5177352e1cca35"
     }
   ],
   "personal_fixes": [

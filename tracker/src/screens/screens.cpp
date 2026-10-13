@@ -24,6 +24,10 @@ static AppScreen const* pendingScreen;
 static int pendingScreenInput;
 
 void drawScreenMap() {
+  bool sq80Editor = false;
+#if CHOOCHOO_EXPERIMENTAL_SQ80ESQ
+  sq80Editor = currentScreen == &screenSQ80Edit;
+#endif
   ScreenOverlayCoordinates overlay;
   // Native preset lists use the popup area through the footer.
   if (currentScreen == &screenSelectionPopup) return;
@@ -45,7 +49,7 @@ void drawScreenMap() {
     gfxPrint(35, smY, "P");
   } else if (currentScreen == &screenPhrase || currentScreen == &screenGroove) {
     gfxPrint(37, smY, "G");
-  } else if (currentScreen == &screenInstrument || currentScreen == &screenSampleSettings || currentScreen == &screenFMEdit || currentScreen == &screenSIDEdit ||
+  } else if (currentScreen == &screenInstrument || currentScreen == &screenSampleSettings || currentScreen == &screenFMEdit || currentScreen == &screenSIDEdit || sq80Editor ||
              currentScreen == &screenInstrumentPool || currentScreen == &screenModulation ||
              (currentScreen == &screenInsertFX && !screenInsertFXIsMaster())) {
     gfxPrint(38, smY - 1, "F");
@@ -71,7 +75,7 @@ void drawScreenMap() {
     gfxPrint(36, smY + 1, "C");
   } else if (currentScreen == &screenPhrase) {
     gfxPrint(37, smY + 1, "P");
-  } else if (currentScreen == &screenInstrument || currentScreen == &screenFMEdit || currentScreen == &screenSIDEdit) {
+  } else if (currentScreen == &screenInstrument || currentScreen == &screenFMEdit || currentScreen == &screenSIDEdit || sq80Editor) {
     gfxPrint(38, smY + 1, "I");
   } else if (currentScreen == &screenInstrumentPool) {
     gfxPrint(38, smY + 2, "P");
@@ -299,6 +303,9 @@ static int screenTouchEnvelopeAt(int col, int row, int* targetCol) {
 }
 
 static int screenTouchCellAt(int col, int row, int* targetCol, int* targetRow) {
+#if CHOOCHOO_EXPERIMENTAL_SQ80ESQ
+  if(currentScreen==&screenSQ80Edit&&(row<3||row>=15))return 0;
+#endif
   if (!touchScreenData || touchScreenData->selectMode == 1) return 0;
   if (currentScreen == &screenTrackVisuals) {
     int field = row >= 3 && row < 3 + PROJECT_MAX_TRACKS ? row - 3 : row == 12 ? PROJECT_MAX_TRACKS : row == 14 ? PROJECT_MAX_TRACKS + 1 : -1;

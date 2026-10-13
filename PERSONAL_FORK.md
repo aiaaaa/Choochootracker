@@ -399,6 +399,7 @@ Personal explorations with no commitment to an upstream submission.
 
 | Work | Branch | Notes |
 | --- | --- | --- |
+| SQ80/ESQ synth | [`experimental/sq80esq`](https://github.com/aiaaaa/Choochootracker/tree/experimental/sq80esq) | Opt-in C++ engine and preset editor; [instructions](docs/sq80esq.md) |
 | Get Lucky (I’m Feeling Lucky) | [`experimental/mod-lucky-integrated`](https://github.com/aiaaaa/Choochootracker/tree/experimental/mod-lucky-integrated) | Opt-in sample discovery; [build instructions and limits](docs/mod-lucky.md) |
 
 ### Native instruments accepted upstream
