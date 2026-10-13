@@ -64,7 +64,7 @@ TEST_CASE("SQ80 adapter renders stereo with stable block partition and releases"
 TEST_CASE("SQ80 editor opens full preset controls and leaves preset ownership intact"){
  auto*old=chipnomadState;auto*screen=currentScreen;int previous=cInstrument;auto settings=appSettings;int modified=projectModified;
  chipnomadState=chipnomadCreate();initDefaultAppSettings();screensInitAll();cInstrument=0;getInstrumentFunctions(InstrumentType::SQ80ESQ).init(&chipnomadState->project.instruments[0]);
- screenInstrumentSQ80.onEdit(0,8,CellEditAction::tap);CHECK(currentScreen==&screenSQ80Edit);screenSQ80Edit.fullRedraw();auto*d=mockScreenData;REQUIRE(d);CHECK(d->rows>100);
+ screenInstrumentSQ80.onEdit(1,4,CellEditAction::tap);CHECK(currentScreen==&screenSQ80Edit);screenSQ80Edit.fullRedraw();auto*d=mockScreenData;REQUIRE(d);CHECK(d->rows>100);
  auto before=chipnomadState->project.instruments[0].chip.sq80;d->onEdit(0,4,CellEditAction::increase);CHECK(chipnomadState->project.instruments[0].chip.sq80.raw[63]==before.raw[63]+1);
  chipnomadGetPlaybackStatus(chipnomadState);auto&status=chipnomadState->uiPlaybackStatus;status={};status.isPlaying=1;status.trackEnabled[0]=1;chipnomadState->project.tracksCount=1;status.tracks[0].mode=PlaybackMode::song;status.tracks[0].note.instrument=0;status.tracks[0].note.fx[fxPIT].isOn=1;
  d->cursorRow=6;d->topRow=4;screenMessage(0,"");screenSQ80Edit.draw();CHECK(mockGfxCells[5][27]=='*');CHECK(std::string(screenGetActiveMessage()).find("Track pitch")!=std::string::npos);
@@ -74,6 +74,32 @@ TEST_CASE("SQ80 editor opens full preset controls and leaves preset ownership in
  d->cursorRow=1;screenSQ80Edit.draw();CHECK(std::string(screenGetActiveMessage()).find("Pedal:")==0);
  screenMessage(MESSAGE_TIME,"Wave bank ready");d->cursorRow=2;screenSQ80Edit.draw();CHECK(std::string(screenGetActiveMessage())=="Wave bank ready");
  screenSQ80Edit.onInput(1,keyOpt,1);CHECK(currentScreen==&screenInstrument);
+ chipnomadDestroy(chipnomadState);chipnomadState=old;currentScreen=screen;cInstrument=previous;appSettings=settings;projectModified=modified;
+}
+
+TEST_CASE("SQ80 bank chords defer the chooser and keep preset and editor on one row"){
+ auto*old=chipnomadState;auto*screen=currentScreen;int previous=cInstrument;auto settings=appSettings;int modified=projectModified;
+ chipnomadState=chipnomadCreate();initDefaultAppSettings();screensInitAll();cInstrument=0;
+ auto& inst=chipnomadState->project.instruments[0];getInstrumentFunctions(InstrumentType::SQ80ESQ).init(&inst);
+ auto& d=screenInstrumentSQ80;d.cursorRow=3;d.cursorCol=0;currentScreen=&screenInstrument;
+ d.drawStatic();d.drawField(0,3,CellState::normal);d.drawField(1,4,CellState::normal);d.drawField(0,4,CellState::normal);
+ CHECK(std::string(mockGfxCells[6],4)=="Bank");CHECK(std::string(mockGfxCells[7],6)=="Preset");CHECK(std::string(mockGfxCells[7]+28,4)=="EDIT");
+ CHECK(d.rows==8);CHECK(d.getColumnCount(4)==2);
+ CHECK(d.onInput(1,keyEdit,1)==1);CHECK(currentScreen==&screenInstrument);
+ CHECK(d.onInput(0,0,1)==1);CHECK(currentScreen==&screenSelectionPopup);
+ for(int direction:{keyLeft,keyRight}){
+  currentScreen=&screenInstrument;auto before=inst.chip.sq80.factory;
+  d.onInput(1,keyEdit,1);d.onInput(1,keyEdit|direction,1);
+  CHECK(inst.chip.sq80.factory!=before);CHECK(currentScreen==&screenInstrument);
+  d.onInput(0,keyEdit,1);d.onInput(0,0,1);CHECK(currentScreen==&screenInstrument);
+ }
+ d.cursorRow=4;currentScreen=&screenInstrument;
+ d.onInput(1,keyEdit,1);CHECK(currentScreen==&screenInstrument);
+ CHECK(d.onInput(1,keyEdit|keyPlay,1)==0); // Let common instrument input audition.
+ d.onInput(0,keyEdit,1);d.onInput(0,0,1);CHECK(currentScreen==&screenInstrument);
+ d.onInput(1,keyEdit,1);d.onInput(0,0,1);CHECK(currentScreen!=&screenInstrument);
+ d.onEdit(1,4,CellEditAction::tap);CHECK(currentScreen==&screenSQ80Edit);
+ d.cursorRow=0;d.cursorCol=0;
  chipnomadDestroy(chipnomadState);chipnomadState=old;currentScreen=screen;cInstrument=previous;appSettings=settings;projectModified=modified;
 }
 

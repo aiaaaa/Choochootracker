@@ -1,4 +1,4 @@
-# Experimental SQ80/ESQ instrument — Rev2
+# Experimental SQ80/ESQ instrument — Rev3
 
 This personal experiment integrates the standalone Hybrid C++ engine. Enable with
 `CHOOCHOO_EXPERIMENTAL_SQ80ESQ=1`; the personal PortMaster and web targets enable it.
@@ -8,13 +8,15 @@ Engine source/version and the Rev2 integration extensions are documented under
 external user data, absent from public packaging.
 
 Choose Instrument → SYNTH → SQ80/ESQ. The standard header retains name, volume,
-pan, table and chain-transpose enable. Wheel/Velocity, Pedal, Bank, Preset and
-Cutoff/Resonance are followed by EDIT PRESET. An asterisk identifies a matching
+pan, table and chain-transpose enable. Bank comes first, with Preset below it and EDIT beside the preset name.
+Wheel/Velocity, Pedal and Cutoff/Resonance follow. An asterisk identifies a matching
 track's active playback override; it never writes automation into the saved patch.
 Velocity is note intensity, which can affect timbre as well as volume.
 
-Bank offers FACTORY and USER using the standard folder/ZIP browser. EDIT +
-Left/Right on Preset steps across the selected library. Velocity stays at its
+On Bank, EDIT + Left/Right switches FACTORY/USER. Release EDIT alone to open
+the bank chooser. On Preset, EDIT + Left/Right keeps stepping through sounds;
+release EDIT alone to open the selected library browser. A chord never opens
+the browser on release. The adjacent EDIT control opens the patch editor. Velocity stays at its
 chosen value while browsing; Wheel and Pedal reset to zero for each new preset.
 Saved tracker instruments loaded through the common Load control restore their
 saved performance defaults. Hold PLAY in a preset browser to audition; EDIT +

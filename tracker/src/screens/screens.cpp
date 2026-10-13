@@ -307,6 +307,14 @@ static int screenTouchCellAt(int col, int row, int* targetCol, int* targetRow) {
   if(currentScreen==&screenSQ80Edit&&(row<3||row>=15))return 0;
 #endif
   if (!touchScreenData || touchScreenData->selectMode == 1) return 0;
+#if CHOOCHOO_EXPERIMENTAL_SQ80ESQ
+  if(currentScreen==&screenInstrument&&chipnomadState->project.instruments[cInstrument].type==InstrumentType::SQ80ESQ&&row==7){
+    if(col<9||col>=32)return 0;
+    if(targetCol)*targetCol=col>=28?1:0;
+    if(targetRow)*targetRow=4;
+    return 1;
+  }
+#endif
   if (currentScreen == &screenTrackVisuals) {
     int field = row >= 3 && row < 3 + PROJECT_MAX_TRACKS ? row - 3 : row == 12 ? PROJECT_MAX_TRACKS : row == 14 ? PROJECT_MAX_TRACKS + 1 : -1;
     int column = -1;
@@ -426,7 +434,7 @@ static int screenTouchCellAt(int col, int row, int* targetCol, int* targetRow) {
   } else if (instrumentCommonRow == 2) {
     mappedCol = col < 18 ? 0 : col < 29 ? 1 : 2; // Transpose, tick, volume
   }
-  if(currentScreen==&screenInstrument&&chipnomadState->project.instruments[cInstrument].type==InstrumentType::SQ80ESQ&&columns==2&&instrumentCommonRow<0)mappedCol=col>=19?1:0;
+  if(currentScreen==&screenInstrument&&chipnomadState->project.instruments[cInstrument].type==InstrumentType::SQ80ESQ&&columns==2&&instrumentCommonRow<0)mappedCol=col>=(row==4?28:19)?1:0;
   if (mappedCol >= columns) mappedCol = columns - 1;
   if (touchScreenData->isCellValid && !touchScreenData->isCellValid(mappedCol, row)) return 0;
   if (targetCol) *targetCol = mappedCol;

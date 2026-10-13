@@ -1,4 +1,4 @@
-# SQ80/ESQ Rev2 preset sources
+# SQ80/ESQ preset sources
 
 Reviewed October 13, 2026. Waveform banks are not part of these packages.
 
@@ -28,3 +28,10 @@ Reviewed October 13, 2026. Waveform banks are not part of these packages.
 These leads may be useful for personal USER imports; no contents from them or
 from the owner's existing private collection were added to FACTORY. The included
 MIT example is one preset, not a newly discovered large open bank.
+
+Rev3 inventory check: FACTORY still contains 13 presets (12 original starters and
+one externally attributed example). This is the prepared collection, not a claim
+that only one attributable preset exists. Chris Wareham's BSD-licensed SQ80 editor
+(<https://github.com/chriswareham/sq80>) also includes one XML-format example,
+`patches/lovelikeblood.pat`; it is not a large SysEx bank and has not been converted
+or included in this checkpoint.

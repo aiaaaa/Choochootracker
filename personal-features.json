@@ -553,5 +553,13 @@
     "preservation": "All device settings, songs, samples and private USER banks; verified rollback",
     "beads_pr": "Follow up after owner evaluation; no PR changes in this integration",
     "vita": "Paused; excluded"
+  },
+  "sq80esq_rev3": {
+    "status": "Local checkpoint; integration and deployment held",
+    "branch": "personal/sq80-rev3-beads-pitch",
+    "layout": "Bank above Preset, adjacent patch editor",
+    "input": "Bank EDIT chords switch FACTORY/USER; bare EDIT opens on release; preset stepping retained",
+    "factory_presets": 13,
+    "private_assets_bundled": false
   }
 }

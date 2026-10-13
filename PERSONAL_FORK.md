@@ -1,5 +1,12 @@
 # My R36H build
 
+## SQ80/ESQ Rev3 checkpoint
+
+Bank now sits above Preset with the patch EDIT control beside the name. Bank
+EDIT+Left/Right changes FACTORY/USER; a bare EDIT opens the chooser on release.
+Preset stepping is retained, and EDIT chords cannot trigger a release popup.
+This checkpoint remains separate from the installed October 13 daily.
+
 ## October 13 combined personal daily
 
 This candidate combines web Shift/Play right alignment (`f49f940`), lazy Beads

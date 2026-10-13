@@ -2049,3 +2049,10 @@ on the right. Left/Right switches panes, Up/Down moves within a pane, EDIT selec
 and EDIT+PLAY auditions. The collection path remains visible below both panes.
 Folder and ZIP collections are grouped without extracting presets. FACTORY
 browsing keeps its existing layout. Reopening USER recalls the selected sound.
+
+### SQ80/ESQ Rev3 browsing
+
+Bank sits above Preset, with EDIT beside the preset name. Hold EDIT + Left/Right
+on Bank to switch FACTORY/USER; on Preset it continues to step through sounds.
+Release EDIT alone to open the chooser/browser. Using an EDIT chord suppresses
+the release popup. Select the adjacent EDIT control to open patch parameters.
