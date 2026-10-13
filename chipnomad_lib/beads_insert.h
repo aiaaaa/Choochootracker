@@ -1,8 +1,8 @@
 #pragma once
 #include <cstdint>
 
-// Owned by an insert slot. All storage and rate-conversion coefficients are
-// prepared at engine construction; process/reset never allocate.
+// Storage and rate-conversion coefficients are prepared by the producer when
+// Beads is selected, before publishing the project; process/reset never allocate.
 class BeadsInsert {
  public:
   explicit BeadsInsert(float sampleRate);

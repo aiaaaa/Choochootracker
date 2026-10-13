@@ -44,6 +44,67 @@ double power(const std::vector<float>& x, size_t start = 0) {
 }
 
 TEST_SUITE("Beads insert") {
+TEST_CASE("pool is lazy bounded and keeps leases alive until producer collection") {
+  BeadsPool pool;
+  CHECK(pool.allocated() == 0);
+  CHECK_FALSE(pool.prepare(-1, 48000));
+  CHECK_FALSE(pool.prepare(BeadsPool::capacity, 48000));
+  BeadsPool::Handle handles[BeadsPool::capacity];
+  for (int i = 0; i < BeadsPool::capacity; ++i) {
+    handles[i] = pool.prepare(i, 48000);
+    REQUIRE(handles[i]);
+    CHECK(pool.allocated() == i + 1);
+    CHECK(pool.prepare(i, 48000).get() == handles[i].get());
+    for (int j = 0; j < i; ++j) CHECK(handles[i].get() != handles[j].get());
+  }
+  auto snapshot = handles[0];
+  for (auto& handle : handles) handle = {};
+  CHECK(pool.allocated() == BeadsPool::capacity);
+  pool.collect();
+  CHECK(pool.allocated() == 1);
+  snapshot = {};
+  CHECK(pool.allocated() == 1);
+  pool.collect();
+  CHECK(pool.allocated() == 0);
+}
+TEST_CASE("chains keep Beads through fade out and allocation absence affects only Beads") {
+  BeadsPool pool;
+  InsertChain chain(48000), reference(48000);
+  REQUIRE(chain.ready());
+  InsertConfig config[2]{};
+  insertSelect(&config[0], insertBeads);
+  insertSelect(&config[1], insertDistortion);
+  InsertAutomation a{}, b{};
+  chain.sync(config, &a); // Missing Beads instance must not disable distortion.
+  config[0] = {};
+  reference.sync(config, &b);
+  uint8_t v[2][8]{};
+  std::memcpy(v[1], config[1].values, 8);
+  float actual[2048], expected[2048];
+  std::fill_n(actual, 2048, .7f);
+  std::fill_n(expected, 2048, .7f);
+  chain.process(actual, 1024, v);
+  reference.process(expected, 1024, v);
+  CHECK(std::equal(actual, actual + 2048, expected));
+  CHECK(actual[2047] != .7f);
+
+  insertSelect(&config[0], insertBeads);
+  std::memcpy(v[0], config[0].values, 8);
+  chain.attachBeads(0, pool.prepare(0, 48000));
+  chain.sync(config, &a);
+  chain.process(actual, 1024, v);
+  insertSelect(&config[0], insertOff);
+  chain.sync(config, &a);
+  pool.collect();
+  CHECK(pool.allocated() == 1);
+  chain.process(actual, 1, v);
+  pool.collect();
+  CHECK(pool.allocated() == 1);
+  chain.process(actual, 1024, v);
+  CHECK(pool.allocated() == 1); // No destruction on the processing thread.
+  pool.collect();
+  CHECK(pool.allocated() == 0);
+}
 TEST_CASE("eight existing addresses include independently packed shape and freeze") {
   CHECK(insertDescriptor(insertBeads).count == 8);
   char a[64], b[64];
