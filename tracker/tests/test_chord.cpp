@@ -98,8 +98,8 @@ TEST_CASE("STA aliases SST") {
   projectInit(&project);
   PlaybackState state = {};
   playbackInit(&state, &project);
-  uint8_t fx[] = {fxSTA, 0x42};
-  initFX(&state, 0, fx, NULL, 0);
+  FXCell fx = {fxSTA, 0x42};
+  initFX(&state, 0, &fx, NULL, 0);
   CHECK(state.tracks[0].note.fx[fxSST].isOn);
   CHECK(state.tracks[0].note.fx[fxSST].fxValue == 0x42);
   CHECK(!state.tracks[0].note.fx[fxSTA].isOn);

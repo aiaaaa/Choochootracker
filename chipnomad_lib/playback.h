@@ -61,7 +61,7 @@ struct PlaybackNoteState {
   NativeFMValues nativeFM;
   NativeFMValues nativeFMCurrent;
   NativeFMValues nativeFMRemaining;
-  PlaybackFXState fx[256]; // Active FX on this note, indexed by FX enum
+  PlaybackFXState fx[fxTotalCount]; // Active FX on this note, indexed by FX ID
 
   PlaybackModState modulation[4]; // Modulation states
 
