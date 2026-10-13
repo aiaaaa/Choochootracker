@@ -1,9 +1,21 @@
 # My R36H build
 
+## October 13 combined personal daily
+
+This candidate combines web Shift/Play right alignment (`f49f940`), lazy Beads
+allocation with off-audio-thread pooled ownership (`8c7fc19`), and SQ80/ESQ Rev2
+(`d5232b3`) on personal baseline `14b31a3`. The audio-command merge retains both
+SQ80 previews and Beads snapshot ownership. Generated contribution web bundles
+are excluded; both targets build from the combined committed source.
+
+Device installation must preserve songs, samples, private USER banks and all
+settings, with a verified rollback. Build/install receipts and the web
+`build-info.json` identify the exact tested source. Beads PR follow-up is held
+until the owner has evaluated the combined daily. Vita remains paused.
+
 ## SQ80/ESQ Rev2 checkpoint
 
-Rev2 is prepared on `experimental/sq80esq`; integration and deployment are held
-at the owner’s request. It adds eleven performance FX, the revised main/editor
+Rev2 is now included in this combined personal candidate. It adds eleven performance FX, the revised main/editor
 layout, velocity-preserving neutral preset auditions, and FACTORY/USER browsing.
 USER browsing now keeps collections on the left and presets on the right.
 Factory includes twelve original starters and one MIT-licensed example.

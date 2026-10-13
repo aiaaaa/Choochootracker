@@ -537,5 +537,21 @@
     "private_assets_bundled": false,
     "user_browser": "Collection and preset columns; USER only",
     "validation": "docs/sq80esq-rev2-validation.json"
+  },
+  "daily_20261013": {
+    "baseline": "14b31a3",
+    "selected_commits": {
+      "web_controls": "f49f940",
+      "beads_lifetime": "8c7fc19",
+      "sq80_rev2": "d5232b3"
+    },
+    "targets": [
+      "device personal build",
+      "personal web app"
+    ],
+    "status": "Combined candidate; deployment and exact-source validation recorded in build/install receipts",
+    "preservation": "All device settings, songs, samples and private USER banks; verified rollback",
+    "beads_pr": "Follow up after owner evaluation; no PR changes in this integration",
+    "vita": "Paused; excluded"
   }
 }
