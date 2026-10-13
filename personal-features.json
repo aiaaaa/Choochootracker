@@ -580,5 +580,11 @@
     "node_tests_passed": 11,
     "status": "Authorized combined personal daily; deployment recorded in receipts",
     "beads_pr": "Held; no PR edits"
+  },
+  "sq80esq_rev4": {
+    "status": "Local edit checkpoint; build, integration and deployment held by owner",
+    "branch": "personal/sq80-rev4",
+    "layout": "Edit directly above the Velocity label; preset field limited to nine characters, full name retained in header",
+    "validation": "Diff reviewed; no build or test execution per owner instruction"
   }
 }

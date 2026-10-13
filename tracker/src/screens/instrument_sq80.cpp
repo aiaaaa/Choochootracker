@@ -26,12 +26,12 @@ int fieldFX(int c,int r){return r==5?(c?fxVEL:fxWHL):r==6?fxPED:r==7?(c?fxQRS:fx
 void drawStatic(){instrumentCommonDrawStatic();gfxSetFgColor(appSettings.colorScheme.textDefault);
  gfxPrint(0,6,"Bank");gfxPrint(0,7,"Preset");gfxPrint(0,8,"Wheel");gfxPrint(19,8,"Velocity");gfxPrint(0,9,"Pedal");gfxPrint(0,10,"Cutoff");gfxPrint(19,10,"Resonance");
  gfxSetFgColor(appSettings.colorScheme.textInfo);gfxPrint(0,14,"* = playback override");gfxPrint(0,15,"EDIT+PLAY: audition");}
-void drawCursor(int c,int r){if(r<3)instrumentCommonDrawCursor(c,r);else gfxCursor(c?(r==4?28:30):9,y(r),r==4?(c?4:18):r==3?7:4);}
+void drawCursor(int c,int r){if(r<3)instrumentCommonDrawCursor(c,r);else gfxCursor(c?(r==4?19:30):9,y(r),r==4?(c?4:9):r==3?7:4);}
 void drawField(int c,int r,CellState s){if(r<3){instrumentCommonDrawField(c,r,s);return;}
- const auto&p=current()->chip.sq80;int x=c?(r==4?28:30):9;gfxClearRect(x,y(r),r==4?(c?4:18):9,1);gfxSetFgColor(s==CellState::focus?appSettings.colorScheme.textValue:appSettings.colorScheme.textDefault);
+ const auto&p=current()->chip.sq80;int x=c?(r==4?19:30):9;gfxClearRect(x,y(r),r==4?(c?4:9):9,1);gfxSetFgColor(s==CellState::focus?appSettings.colorScheme.textValue:appSettings.colorScheme.textDefault);
  const char* star=instrumentSQ80Override(fieldFX(c,r))?"*":"";
  if(r==3)gfxPrint(x,y(r),p.factory?"FACTORY":"USER");
- if(r==4){if(c)gfxPrint(x,y(r),"EDIT");else gfxPrintf(x,y(r),"%.18s",current()->name);}
+ if(r==4){if(c)gfxPrint(x,y(r),"Edit");else gfxPrintf(x,y(r),"%.9s",current()->name);}
  if(r==5)gfxPrintf(x,y(r),"%03u%s",c?p.velocity:p.wheel,star);
  if(r==6)gfxPrintf(x,y(r),"%03u%s",p.pedal,star);
  if(r==7)gfxPrintf(x,y(r),"%03u%s",p.raw[c?90:89]&(c?31:127),star);

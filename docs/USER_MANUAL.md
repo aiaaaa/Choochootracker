@@ -2080,3 +2080,9 @@ Bank sits above Preset, with EDIT beside the preset name. Hold EDIT + Left/Right
 on Bank to switch FACTORY/USER; on Preset it continues to step through sounds.
 Release EDIT alone to open the chooser/browser. Using an EDIT chord suppresses
 the release popup. Select the adjacent EDIT control to open patch parameters.
+
+### SQ80/ESQ Rev4 alignment
+
+The patch editor control reads **Edit** and aligns directly above the word
+**Velocity**. The preset row shows up to nine name characters beside it; the full
+instrument name remains in the header. Browsing and editor controls are unchanged.

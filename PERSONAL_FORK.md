@@ -1,5 +1,12 @@
 # My R36H build
 
+## SQ80/ESQ Rev4 edit checkpoint
+
+Edit now uses title case and aligns directly above the Velocity label. The preset
+field stops before Edit, with the full instrument name retained in the header.
+This is a separate local commit. Build, integration and deployment are held at
+the owner's request; the existing layout assertion was updated but not run.
+
 ## SQ80/ESQ Rev3 checkpoint
 
 Bank now sits above Preset with the patch EDIT control beside the name. Bank
