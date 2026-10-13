@@ -48,7 +48,10 @@ bool Synth::setSampleRate(double rate) {
     rate_ = rate; reset(); return true;
 }
 void Synth::setWaveBank(const WaveBank* bank) { bank_ = bank; reset(); }
-void Synth::reset() { voices_ = {}; tails_ = {}; channels_ = {}; serial_ = 0; }
+void Synth::reset() { voices_ = {}; tails_ = {}; channels_ = {}; serial_ = 0; performanceCutoff_=performanceResonance_=performanceLfo1_=-1; }
+void Synth::setPerformance(int cutoff,int resonance,int lfo1Rate) {
+ performanceCutoff_=std::clamp(cutoff,-1,127);performanceResonance_=std::clamp(resonance,-1,31);performanceLfo1_=std::clamp(lfo1Rate,-1,63);
+}
 void Synth::setPatch(const Patch& p) { patches_.fill(sanitized(p)); }
 void Synth::setChannelPatch(unsigned c, const Patch& p) { if (c < 16) patches_[c] = sanitized(p); }
 size_t Synth::activeVoices() const {
@@ -104,6 +107,7 @@ void Synth::start(Voice& v, uint8_t channel, uint8_t key, double velocity, bool 
         const double glideTicks = std::max(1.0, std::round(envelopeSeconds(v.patch.glide) * 100));
         v.glideStep = glide ? static_cast<float>((key-v.glideOrigin)/glideTicks) : 0;
     }
+    v.notePressure=0;
     channelState.lastKey = key;
     if (!returning) v.controlPhase = 1;
     v.dc.configure(rate_);
@@ -130,6 +134,10 @@ void Synth::event(const Event& m) {
     case EventKind::pedal: c.pedal = value; return;
     case EventKind::external: c.external = value; return;
     case EventKind::channelPressure: c.pressure = value; return;
+    case EventKind::latestPressure: {
+        Voice* latest=nullptr;for(auto& v:voices_)if(v.active&&v.channel==m.channel&&(!latest||v.serial>latest->serial))latest=&v;
+        if(latest)latest->notePressure=value;return;
+    }
     case EventKind::polyPressure: c.keyPressure[m.key] = value; return;
     case EventKind::channelVolume: c.volume = value; return;
     case EventKind::sustain:
@@ -199,7 +207,7 @@ void Synth::inputSources(Voice& v) {
     s[9] = v.key / 128.0;
     s[10] = std::clamp((v.key - 64.0) / 32, -1.0, 127.0/128);
     s[11] = std::round(c.wheel*127)/128; s[12] = std::round(c.pedal*127)/128; s[13] = std::round(c.external*127)/128;
-    s[14] = std::round(std::max(c.pressure, c.keyPressure[v.key])*127)/128; s[15] = 0;
+    s[14] = std::round(std::max({c.pressure, c.keyPressure[v.key], v.notePressure})*127)/128; s[15] = 0;
 }
 void Synth::controls(Voice& v) {
     const auto& c = channels_[v.channel];
@@ -214,8 +222,8 @@ void Synth::controls(Voice& v) {
             v.interpolationOrder = std::max(v.interpolationOrder, v.oscillators[i].interpolationOrder());
     }
     v.interpolator.order = v.interpolationOrder;
-    const double cutoff = v.patch.cutoff + .5*std::trunc(2*(mod(v.patch.filterMods) + 2*v.patch.filterKeyTrack*s[9]));
-    v.filter.configure(filterHertz(cutoff), v.patch.resonance, rate_);
+    const double cutoff = (performanceCutoff_<0?v.patch.cutoff:performanceCutoff_) + .5*std::trunc(2*(mod(v.patch.filterMods) + 2*v.patch.filterKeyTrack*s[9]));
+    v.filter.configure(filterHertz(cutoff), performanceResonance_<0?v.patch.resonance:performanceResonance_, rate_);
     // Measured pan uses a signed integer balance followed by unit-energy
     // normalization of two linear gains, rather than a constant angular sweep.
     const double basePan = v.patch.pan >= 15 ? 63 : 8*(v.patch.pan-8);
@@ -251,8 +259,10 @@ double Synth::sample(Voice& v) {
         v.controlPhase -= 1;
         inputSources(v);
         const auto previous = v.sources;
-        for (size_t i = 0; i < 3; ++i)
-            v.sources[i] = (63.0/128) * v.lfos[i].tick(v.patch.lfos[i], previous[static_cast<unsigned>(v.patch.lfos[i].depthSource)], 83.59257507324219);
+        for (size_t i = 0; i < 3; ++i) {
+            auto spec=v.patch.lfos[i];if(i==0&&performanceLfo1_>=0)spec.speed=performanceLfo1_;
+            v.sources[i] = (63.0/128) * v.lfos[i].tick(spec, previous[static_cast<unsigned>(spec.depthSource)], 83.59257507324219);
+        }
     }
     v.controlPhase += 83.59257507324219 / rate_;
     if (controlTick && v.glideStep) {
@@ -309,7 +319,7 @@ bool Synth::render(float* left, float* right, size_t frames, const Event* events
     for (size_t i = 0; i < count; ++i) {
         const auto& e = events[i];
         if (e.frame >= frames || e.channel >= 16 || e.key >= 128 || !std::isfinite(e.value) ||
-            static_cast<unsigned>(e.kind) > static_cast<unsigned>(EventKind::channelVolume) ||
+            static_cast<unsigned>(e.kind) > static_cast<unsigned>(EventKind::latestPressure) ||
             (i && e.frame < events[i-1].frame)) return false;
     }
     size_t next = 0;

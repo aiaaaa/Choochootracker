@@ -336,6 +336,9 @@ static void fullRedraw(void) {
 
 static void draw(void) {
   instrumentCommonDrawLivePreview();
+#if CHOOCHOO_EXPERIMENTAL_SQ80ESQ
+  if(chipnomadState->project.instruments[cInstrument].type==InstrumentType::SQ80ESQ){auto&d=screenInstrumentSQ80;for(int r:{3,4,7})for(int c=0;c<d.getColumnCount(r);++c)d.drawField(c,r,d.cursorRow==r&&d.cursorCol==c?CellState::focus:CellState::normal);d.drawCursor(d.cursorCol,d.cursorRow);}
+#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////

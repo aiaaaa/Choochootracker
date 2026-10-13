@@ -1178,10 +1178,10 @@ static void renderMonoVoiceTracks(ChipNomadState* state, Voice* const voices[][C
 }
 
 template <typename Voice>
-static void renderStereoVoiceTracks(ChipNomadState* state, Voice* const voices[][CHORD_MAX_VOICES], float* output, int frames) {
+static void renderStereoVoiceTracks(ChipNomadState* state, Voice* const voices[][CHORD_MAX_VOICES], float* output, int frames, bool includeReleaseSlots=false) {
   for (int trackIdx = 0; trackIdx < state->audioProject.tracksCount; ++trackIdx) {
     if (!state->playbackState.trackEnabled[trackIdx]) continue;
-    for (int slot = 0; slot < state->playbackState.tracks[trackIdx].chordVoiceCount; ++slot) {
+    for (int slot = 0; slot < (includeReleaseSlots?CHORD_MAX_VOICES:state->playbackState.tracks[trackIdx].chordVoiceCount); ++slot) {
       Voice* voice = voices[trackIdx][slot];
       if (!voice->active()) continue;
       float* rendered = state->mixBuffer;
@@ -1317,7 +1317,7 @@ int chipnomadRender(ChipNomadState* state, float* buffer, int samples) {
     limitSIDVoices(sidPool,sidCount,4);
     renderMonoVoiceTracks(state,state->sidVoices,output,frames);
 #if CHOOCHOO_EXPERIMENTAL_SQ80ESQ
-    renderStereoVoiceTracks(state,state->sq80Voices,output,frames);
+    renderStereoVoiceTracks(state,state->sq80Voices,output,frames,true);
 #endif
     if (state->opllPreviewTrack >= 0 && state->playbackState.trackEnabled[state->opllPreviewTrack]) {
       const int track = state->opllPreviewTrack;
@@ -1428,7 +1428,12 @@ static void applyVoiceEvents(ChipNomadState* state, uint64_t dueMicros) {
       case InstrumentType::SID:
         applyEvent(state->sidVoices[trackIdx]);break;
 #if CHOOCHOO_EXPERIMENTAL_SQ80ESQ
-      case InstrumentType::SQ80ESQ: applyEvent(state->sq80Voices[trackIdx]);break;
+      case InstrumentType::SQ80ESQ:
+        for(int slot=0;slot<CHORD_MAX_VOICES;++slot){auto* voice=state->sq80Voices[trackIdx][slot];
+          if(track->note.noteKilled)voice->kill();
+          else if(track->note.noteTriggered&&slot<track->chordVoiceCount)voice->noteOn();
+          else voice->noteOff();
+        }break;
 #endif
       case InstrumentType::SegaPSG:
       case InstrumentType::GBPulse:
@@ -2535,11 +2540,20 @@ static void updateSQ80Voices(ChipNomadState* state) {
       } else if (mod.modulation->destination == 2) pitch += playbackModScaleToRange(mod.outValue, 1200);
     }
     auto configured=instrument->chip.sq80;
-    for (int v = 0; v < track->chordVoiceCount; ++v) {
+    auto value=[&](int fx,int fallback){return track->note.fx[fx].isOn?int(track->note.fx[fx].fxValue):fallback;};
+    configured.velocity=value(fxVEL,configured.velocity);
+    configured.raw[95]=(configured.raw[95]&~63)|value(fxGLI,configured.raw[95]&63);
+    SQ80Performance controls;controls.wheel=value(fxWHL,configured.wheel);controls.pedal=value(fxPED,configured.pedal);
+    controls.sustain=value(fxSUS,0);controls.aftertouch=value(fxAFT,0);controls.external=value(fxEXT,0);
+    controls.cutoff=value(fxQCF,-1);controls.resonance=value(fxQRS,-1);controls.lfo1Rate=value(fxLFR,-1);
+    for (int v = 0; v < CHORD_MAX_VOICES; ++v) {
+      controls.notePressure=v==track->chordVoiceCount-1?value(fxNPR,-1):-1;
+      if(v>=track->chordVoiceCount){voices[v]->setGain(gain / std::max(1,int(track->chordVoiceCount)));voices[v]->performance(controls);continue;}
       uint8_t note = track->chordPitchFinal[v];
       int cents = note == EMPTY_VALUE_8 ? 6000 :
         (project->linearPitch ? project->pitchTable.values[note] : (note + 12) * 100) + track->note.fineOffset + pitch;
       voices[v]->configure(&configured, cents, gain / track->chordVoiceCount);
+      voices[v]->performance(controls,track->note.noteTriggered);
     }
   }
 }

@@ -1,0 +1,7 @@
+Stuart Keith, ESQ1 example TRIBEL
+Source: https://github.com/stuartkeith/esq1
+Commit: 13a9fbccb8f43c4388e2280f250731c7e72dc08f
+The included tribel.syx is unchanged. Repository MIT license retained.
+External wave banks are required; no waveform samples are included.
+
+tribel.syx SHA256: 174ebe6b29a05170e679f3cdfedd106dcd2d84acc188ce6dcf1563eedc5c7f0f

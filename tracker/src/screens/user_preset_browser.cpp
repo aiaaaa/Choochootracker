@@ -12,21 +12,30 @@
 #include <map>
 #include <memory>
 #include <cstring>
+#include <tuple>
+#include <filesystem>
 
 namespace {
-std::map<InstrumentType, UserPresets> libraries;
-UserPresets* library = nullptr;
 InstrumentType type = InstrumentType::none;
+bool factorySelected(){const auto&i=chipnomadState->project.instruments[cInstrument];return i.type==InstrumentType::SQ80ESQ&&i.chip.sq80.factory;}
+using LibraryKey=std::pair<InstrumentType,bool>;
+LibraryKey libraryKey(){return {type,factorySelected()};}
+std::map<LibraryKey, UserPresets> libraries;
+UserPresets* library = nullptr;
 std::vector<SelectionItem> choices;
 std::vector<std::string> labels;
+bool userColumns=false;
+std::vector<UserPresets::Reference> userReferences;
+std::vector<std::vector<SelectionItem>> collectionSounds;
+std::vector<std::string> collectionPaths;
 std::unique_ptr<Project> audition;
 struct Cursor {bool valid=false;UserPresets::Reference selected;};
-std::map<std::pair<int,InstrumentType>,Cursor> cursors;
-std::map<InstrumentType,std::vector<UserPresets::Reference>> sequences;
+std::map<std::tuple<int,InstrumentType,bool>,Cursor> cursors;
+std::map<LibraryKey,std::vector<UserPresets::Reference>> sequences;
 bool samePreset(const UserPresets::Reference& a,const UserPresets::Reference& b) {
   return a.path==b.path&&a.archive==b.archive&&a.voice==b.voice&&a.legacy==b.legacy;
 }
-Cursor& cursor(){return cursors[{cInstrument,chipnomadState->project.instruments[cInstrument].type}];}
+Cursor& cursor(){return cursors[{cInstrument,chipnomadState->project.instruments[cInstrument].type,factorySelected()}];}
 
 constexpr int backValue = -2, emptyValue = -3;
 void show();
@@ -45,10 +54,12 @@ void stop() {
 }
 void preview(int value, bool held) {
   stop();
-  if (!held || value < 0 || size_t(value) >= library->items().size() ||
-      library->items()[value].kind != UserPresets::Kind::preset) return;
+  if (!held || value < 0) return;
+  if(userColumns){if(size_t(value)>=userReferences.size())return;}
+  else if(size_t(value)>=library->items().size()||library->items()[value].kind!=UserPresets::Kind::preset)return;
   audition = std::make_unique<Project>(); projectInit(audition.get()); std::string error;
-  if (!library->load(value, audition.get(), 0, error)) { screenMessage(MESSAGE_TIME_ERROR, "%s", error.c_str()); return; }
+  if(type==InstrumentType::SQ80ESQ)audition->instruments[0]=chipnomadState->project.instruments[cInstrument];
+  if (!(userColumns?library->load(userReferences[value],audition.get(),0,error):library->load(value,audition.get(),0,error))) { screenMessage(MESSAGE_TIME_ERROR, "%s", error.c_str()); return; }
   const auto& i = audition->instruments[0];
 #if CHOOCHOO_EXPERIMENTAL_SQ80ESQ
   if(type==InstrumentType::SQ80ESQ)chipnomadQueueSQ80Preview(chipnomadState,*pSongTrack,&i.chip.sq80);
@@ -63,7 +74,7 @@ void preview(int value, bool held) {
 }
 void back() {
   stop();
-  if (library->atRoot()) { screenSetup(&screenInstrument, cInstrument); return; }
+  if (userColumns || library->atRoot()) { screenSetup(&screenInstrument, cInstrument); return; }
   std::string error; library->back(error);
   if (!error.empty()) screenMessage(MESSAGE_TIME_ERROR, "%s", error.c_str());
   show();
@@ -71,6 +82,11 @@ void back() {
 void select(int value) {
   stop();
   if (value == backValue) { back(); return; }
+  if(userColumns){
+    if(value<0||size_t(value)>=userReferences.size())return;std::string error;
+    if(library->load(userReferences[value],&chipnomadState->project,cInstrument,error)){rememberUserPreset(userReferences[value]);projectModified=1;screenSetup(&screenInstrument,cInstrument);}
+    if(!error.empty())screenMessage(MESSAGE_TIME_ERROR,"%s",error.c_str());return;
+  }
   if (value < 0 || size_t(value) >= library->items().size()) return;
   std::string error;
   if (library->items()[value].kind != UserPresets::Kind::preset) {
@@ -81,7 +97,40 @@ void select(int value) {
   }
   if (!error.empty()) screenMessage(MESSAGE_TIME_ERROR, "%s", error.c_str());
 }
+void showUserColumns(){
+  std::string error;userReferences=library->scan(error);
+  using FileKey=std::tuple<bool,std::string,std::string>;
+  std::map<FileKey,int> fileCounts;
+  for(const auto&r:userReferences)++fileCounts[{r.legacy,r.archive,r.path}];
+  std::map<std::string,std::vector<int>> groups;
+  for(size_t n=0;n<userReferences.size();++n){const auto&r=userReferences[n];
+    const bool bank=fileCounts[{r.legacy,r.archive,r.path}]>1;
+    std::string path=bank?r.path:std::filesystem::path(r.path).parent_path().generic_string();
+    std::string key=(r.legacy?"Previous banks/":"")+r.archive;
+    if(!path.empty())key+=(key.empty()?"":"/")+path;
+    if(key.empty())key="Loose presets";
+    groups[key].push_back(int(n));
+  }
+  choices.clear();labels.clear();collectionPaths.clear();collectionSounds.clear();
+  labels.reserve(groups.size());collectionPaths.reserve(groups.size());collectionSounds.resize(groups.size());
+  choices.push_back({"< Back",backValue,nullptr,0,nullptr});
+  size_t group=0;int selected=userReferences.empty()?backValue:0;
+  for(const auto& entry:groups){
+    collectionPaths.push_back(entry.first);auto label=std::filesystem::path(entry.first).filename().string();
+    if(label.empty())label=entry.first;labels.push_back(label);
+    auto&children=collectionSounds[group];children.reserve(entry.second.size());
+    for(int n:entry.second){const auto&r=userReferences[n];children.push_back({r.name.c_str(),n,nullptr,0,r.name.c_str()});if(cursor().valid&&samePreset(r,cursor().selected))selected=n;}
+    choices.push_back({labels.back().c_str(),-100-int(group),children.data(),int(children.size()),collectionPaths.back().c_str()});++group;
+  }
+  if(groups.empty())choices.push_back({"(No presets)",emptyValue,nullptr,0,nullptr});
+  char title[32];snprintf(title,sizeof(title),"%s USER",instrumentTypeName(type));
+  selectionPopupSetup(title,choices.data(),int(choices.size()),selected,select,back,false,preview,true);
+  screenSetup(&screenSelectionPopup,0);
+  if(!error.empty())screenMessage(MESSAGE_TIME_ERROR,"%s",error.c_str());
+}
 void show() {
+  if(userColumns){showUserColumns();return;}
+
   labels.clear(); choices.clear();
   labels.push_back(library->atRoot() ? "< Back to instrument" : "../");
   for (const auto& i : library->items())
@@ -91,7 +140,7 @@ void show() {
   for (size_t i = 0; i < library->items().size(); ++i)
     choices.push_back({labels[i + 1].c_str(), int(i), nullptr, 0, labels[i + 1].c_str()});
   if (library->items().empty()) choices.push_back({labels.back().c_str(), emptyValue, nullptr, 0, nullptr});
-  char title[32]; snprintf(title, sizeof(title), "%s USER", instrumentTypeName(type));
+  char title[32]; snprintf(title, sizeof(title), "%s %s", instrumentTypeName(type),factorySelected()?"FACTORY":"USER");
   int selected=library->items().empty()?backValue:0;
   const auto& position=cursor();
   if(position.valid)for(size_t i=0;i<library->items().size();++i)
@@ -102,7 +151,7 @@ void show() {
 }
 }
 
-bool setupUserPresetLibrary(UserPresets& target, InstrumentType type) {
+bool setupUserPresetLibrary(UserPresets& target, InstrumentType type, bool factory) {
   const auto* subfolder = userPresetFolder(type);
   if (!subfolder) return false;
   std::string base = "instruments/";
@@ -119,17 +168,18 @@ bool setupUserPresetLibrary(UserPresets& target, InstrumentType type) {
     base = std::string(directory) + "/instruments/";
   }
 #ifdef WEB_BUILD
-  base = "/user/instruments/"; // Imported libraries live in persistent browser storage.
+  base = factory?"/instruments/":"/user/instruments/"; // Imported libraries live in persistent browser storage.
 #endif
-  target.setup(base + "USER/" + subfolder, type, base + "banks/" + subfolder);
+  target.setup(base + (factory?"FACTORY/":"USER/") + subfolder, type, factory?"":base + "banks/" + subfolder);
   return true;
 }
 
 void openUserPresetBrowser() {
   type = chipnomadState->project.instruments[cInstrument].type;
-  library = &libraries[type];
-  if(!setupUserPresetLibrary(*library,type))return;
-  sequences[type].clear();
+  userColumns=!factorySelected();
+  library = &libraries[libraryKey()];
+  if(!setupUserPresetLibrary(*library,type,factorySelected()))return;
+  sequences[libraryKey()].clear();
   std::string error;
   if(cursor().valid)library->focus(cursor().selected,error);
   if (!library->refresh(error)) {
@@ -141,12 +191,12 @@ void openUserPresetBrowser() {
 }
 
 void rememberUserPreset(const UserPresets::Reference& preset) {
-  auto& position=cursor();position.valid=true;position.selected=preset;sequences[chipnomadState->project.instruments[cInstrument].type].clear();
+  auto& position=cursor();position.valid=true;position.selected=preset;sequences[{chipnomadState->project.instruments[cInstrument].type,factorySelected()}].clear();
 }
 void cycleUserPreset(int direction) {
   type=chipnomadState->project.instruments[cInstrument].type;
-  library=&libraries[type];if(!setupUserPresetLibrary(*library,type))return;
-  auto& position=cursor();auto& sequence=sequences[type];std::string error;
+  library=&libraries[libraryKey()];if(!setupUserPresetLibrary(*library,type,factorySelected()))return;
+  auto& position=cursor();auto& sequence=sequences[libraryKey()];std::string error;
   if(sequence.empty())sequence=library->scan(error);
   if(error.rfind("ALL: ",0)==0)error.erase(0,5);
   if(!error.empty())screenMessage(MESSAGE_TIME_ERROR,"%s",error.c_str());

@@ -528,5 +528,14 @@
       "web_projects_embedded_samples": "All load/save round-trips byte-identical",
       "main_audio_policy": "Exact defaults, normalization and submenu verified"
     }
+  },
+  "sq80esq_rev2": {
+    "status": "Ready local checkpoint; integration and deployment held by owner",
+    "branch": "experimental/sq80esq",
+    "documentation": "docs/sq80esq.md",
+    "factory_presets": 13,
+    "private_assets_bundled": false,
+    "user_browser": "Collection and preset columns; USER only",
+    "validation": "docs/sq80esq-rev2-validation.json"
   }
 }

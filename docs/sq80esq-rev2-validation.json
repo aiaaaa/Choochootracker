@@ -1,0 +1,80 @@
+{
+  "date": "2026-10-13",
+  "branch": "experimental/sq80esq",
+  "base_commit": "14b31a3fa4ac4fb3f0bfe5849841cb9750f78e0b",
+  "scope": "SQ80/ESQ Rev2 performance controls and USER-only collection/preset columns",
+  "integration": "held by owner",
+  "deployment": "held by owner",
+  "push": "not performed",
+  "device_validation": "No Rev2 device build or hardware test; installed build unchanged.",
+  "checks": {
+    "default_native_suite": {
+      "command": "make -C tracker -f Makefile.test -j4",
+      "passed": 645,
+      "failed": 0,
+      "assertions": 113117594
+    },
+    "sq80_native_suite": {
+      "command": "make -C tracker -f Makefile.test -j4 CHOOCHOO_EXPERIMENTAL_SQ80ESQ=1 BUILD_DIR=build/tests-sq80",
+      "status": "validated with focused rerun after correcting a test timing error",
+      "initial_full_run": {
+        "passed": 659,
+        "failed": 1,
+        "assertions": 113347147
+      },
+      "initial_failure": "New sustain test waited through a looping phrase and observed the retriggered chord. Shortened observation before the loop and explicitly checked SUS=0; no production-code change.",
+      "focused_rerun": {
+        "filter": "*SQ80*,*USER popup*,Collection UI*",
+        "passed": 17,
+        "failed": 0,
+        "assertions": 229586
+      }
+    },
+    "feature_disabled_syntax": {
+      "passed_sources": 23,
+      "failed": 0
+    },
+    "web_node": {
+      "command": "node --test tools/test_lucky_relay.cjs tools/test_web_storage.cjs",
+      "passed": 11,
+      "failed": 0
+    },
+    "local_web_build": {
+      "command": "python3 tools/web_bundle.py build",
+      "passed": true,
+      "validated_runtime_files": 11,
+      "working_tree_build": true
+    },
+    "local_headless_browser": {
+      "bank_zip_import": true,
+      "invalid_bank_rejected": true,
+      "reload_sha256_preservation": true,
+      "existing_files_preserved": true,
+      "path_traversal_rejected": true,
+      "cct_load": true,
+      "user_two_column_visual_check": true,
+      "page_errors": 0,
+      "uploads": 0
+    },
+    "private_library": {
+      "presets_parsed": 6801,
+      "failed": 0,
+      "copied_to_repository": false
+    },
+    "factory_packages": {
+      "presets": 13,
+      "zip_integrity": true,
+      "starter_reproducible_bytes": true,
+      "waveforms_bundled": false
+    },
+    "stretch_lifetime": {
+      "passed_cycles": 32,
+      "retained_allocation_bytes": 0
+    }
+  },
+  "limitations": [
+    "Hardware timing and device performance remain untested for Rev2.",
+    "Latest-note pressure addresses the newest voice, or the last tone of the latest chord; arbitrary older-note addressing is not implemented.",
+    "Existing compiler warnings remain; builds complete successfully."
+  ]
+}

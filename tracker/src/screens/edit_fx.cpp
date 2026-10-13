@@ -54,6 +54,16 @@ static bool nativeInfo(uint8_t instrumentIdx,int fx,NativeFXInfo& info) {
 
 static const char* nativeControlDescription(int fx) {
   switch(fx) {
+    case fxQCF:return "Filter cutoff; keeps preset modulation";
+    case fxQRS:return "Filter resonance, 00-1F";
+    case fxWHL:return "Preset WHEEL modulation, 00-7F";
+    case fxPED:return "Preset PEDAL modulation, 00-7F";
+    case fxSUS:return "00 releases pedal; 01 holds notes";
+    case fxAFT:return "Pressure on all voices in this track";
+    case fxNPR:return "Pressure on latest note / last chord tone";
+    case fxGLI:return "Glide time for subsequent notes";
+    case fxVEL:return "Velocity for subsequent note triggers";
+    case fxEXT:return "Preset external modulation, 00-7F";
     case fxOAR:return "How quickly the operator attacks";
     case fxODR:return "How quickly the operator decays";
     case fxORR:return "Decay rate after note release";
@@ -75,7 +85,7 @@ void selectInstrumentFX(uint8_t* fx,uint8_t selected,uint8_t instrumentIdx) {
   if (!insertFXAvailable(selected)) return;
   NativeFXInfo info{};
   bool native=nativeInfo(instrumentIdx,selected,info);
-  if(selected>=fxFBR&&selected<=fxLEN&&!native)return;
+  if(((selected>=fxFBR&&selected<=fxLEN)||selected>=fxQCF)&&!native)return;
   if(fx[0]==selected) {
     if(native)fx[1]=std::clamp(int(fx[1]),info.minimum,info.maximum);
     return; // Preserve legal edits; repair values from a different engine.
@@ -111,7 +121,7 @@ static bool isFXAvailable(enum FX fx, uint8_t instrumentIdx, int isTable) {
   InstrumentType instrumentType = getInstrumentType(instrumentIdx);
   const Instrument* instrument = instrumentIdx != EMPTY_VALUE_8 && instrumentIdx < PROJECT_MAX_INSTRUMENTS
     ? &chipnomadState->project.instruments[instrumentIdx] : NULL;
-  if(fx>=fxFBR&&fx<=fxLEN)return instrument && instrumentFXAvailableForInstrument(instrument,fx);
+  if((fx>=fxFBR&&fx<=fxLEN)||fx>=fxQCF)return instrument && instrumentFXAvailableForInstrument(instrument,fx);
   if (instrument && instrumentFXAvailableForInstrument(instrument, (uint8_t)fx)) return true;
   for (int groupIdx = 0; groupIdx < fxGroupCount; groupIdx++) {
     FXGroup* group = &fxGroups[groupIdx];

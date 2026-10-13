@@ -1,5 +1,16 @@
 # My R36H build
 
+## SQ80/ESQ Rev2 checkpoint
+
+Rev2 is prepared on `experimental/sq80esq`; integration and deployment are held
+at the owner’s request. It adds eleven performance FX, the revised main/editor
+layout, velocity-preserving neutral preset auditions, and FACTORY/USER browsing.
+USER browsing now keeps collections on the left and presets on the right.
+Factory includes twelve original starters and one MIT-licensed example.
+[Behavior and limitations](docs/sq80esq.md) and
+[local validation](docs/sq80esq-rev2-validation.json). Existing installed/deployed receipts
+continue to describe Rev1 or earlier builds.
+
 ## SQ80/ESQ experiment
 
 The experimental/sq80esq branch adds the standalone C++ synth to both personal

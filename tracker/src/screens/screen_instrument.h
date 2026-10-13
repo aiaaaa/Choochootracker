@@ -46,6 +46,7 @@ extern ScreenData screenInstrumentSimpleChip;
 #if CHOOCHOO_EXPERIMENTAL_SQ80ESQ
 extern ScreenData screenInstrumentSQ80;
 void instrumentSQ80LoadBanks();
+bool instrumentSQ80Override(int fx);
 void instrumentSQ80Import(const char* path);
 #endif
 

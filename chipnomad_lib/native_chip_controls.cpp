@@ -19,6 +19,25 @@ int instrumentFMOperatorCount(const Instrument* i) {
 
 bool instrumentNativeFXInfo(const Instrument* i,int fx,NativeFXInfo* out,int op) {
   if(!i||!out)return false;
+#if CHOOCHOO_EXPERIMENTAL_SQ80ESQ
+  if(i->type==InstrumentType::SQ80ESQ){
+    const auto&p=i->chip.sq80;int max=127,value=0,min=0;const char*label=nullptr;
+    switch(fx){
+    case fxQCF:value=p.raw[89]&127;label="Cutoff";break;
+    case fxQRS:max=31;value=p.raw[90]&31;label="Resonance";break;
+    case fxWHL:value=p.wheel;label="Wheel";break;
+    case fxPED:value=p.pedal;label="Pedal";break;
+    case fxSUS:max=1;label="Sustain";break;
+    case fxAFT:label="Aftertouch";break;
+    case fxNPR:label="Note pressure";break;
+    case fxLFR:max=63;value=p.raw[46]&63;label="LFO1 rate";break;
+    case fxGLI:max=63;value=p.raw[95]&63;label="Glide time";break;
+    case fxVEL:min=1;value=p.velocity;label="Velocity";break;
+    case fxEXT:label="External";break;
+    default:return false;
+    }*out={max,value,false,min,label};return true;
+  }
+#endif
   if(fx>=fxOAR&&fx<=fxLEN)return instrumentDirectFMInfo(i,fx,out,op);
   if(fx==fxFBK) {
     if(!instrumentFMOperatorCount(i))return false;

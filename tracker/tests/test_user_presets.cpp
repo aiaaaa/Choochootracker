@@ -132,7 +132,7 @@ TEST_CASE("Every factory CNI remains loadable from its portable ZIP collection")
   projectFree(p.get());
 }
 
-TEST_CASE("USER popup selects a ZIP preset and backs through folders without changing a song") {
+TEST_CASE("USER popup keeps collection visible beside presets and remembers selection") {
   Fixture f;
   const auto original=fs::current_path();
   fs::create_directories(f.root/"instruments/USER/opl3");
@@ -144,16 +144,15 @@ TEST_CASE("USER popup selects a ZIP preset and backs through folders without cha
   state->project.instruments[0].type=InstrumentType::OPL3;
   auto before=state->project.instruments[0];
   auto select=[] {screenSelectionPopup.onInput(1,keyEdit,0);screenSelectionPopup.onInput(0,keyEdit,0);};
-  openUserPresetBrowser();CHECK(currentScreen==&screenSelectionPopup);CHECK(selectionPopupIsFullWidth());
-  select(); // Pack.zip
-  select(); // Collection/
-  select(); // Bass/
+  openUserPresetBrowser();CHECK(currentScreen==&screenSelectionPopup);CHECK_FALSE(selectionPopupIsFullWidth());
+  screenSelectionPopup.fullRedraw();std::string cells;for(auto&row:mockGfxCells)cells.append(row,40);CHECK(cells.find("COLLECTION")!=std::string::npos);CHECK(cells.find("PRESET")!=std::string::npos);CHECK(cells.find("Bass")!=std::string::npos);
+  select(); // Left collection -> right presets
   CHECK(!memcmp(&before,&state->project.instruments[0],sizeof(before)));
   select(); // Acoustic Grand
   CHECK(currentScreen==&screenInstrument);CHECK(std::string(state->project.instruments[0].name)=="Acoustic Grand");
   openUserPresetBrowser(); // Return to Bass/, not to the root.
   auto selected=state->project.instruments[0];
-  for(int i=0;i<4;++i)screenSelectionPopup.onInput(1,keyOpt,0);
+  screenSelectionPopup.onInput(1,keyOpt,0);
   CHECK(currentScreen==&screenInstrument);CHECK(!memcmp(&selected,&state->project.instruments[0],sizeof(selected)));
   chipnomadDestroy(state);chipnomadState=prior;
 }
@@ -202,7 +201,7 @@ TEST_CASE("Collection UI retains top USER and ALL Unsorted loads a zipped DX7 ba
   CHECK(menu.find("Factory Presets")!=std::string::npos);CHECK(menu.find("OpenDX7 Originals")!=std::string::npos);
   CHECK(menu.find("YSE")==std::string::npos);CHECK(menu.find("USER")!=std::string::npos);
   press(keyUp);press(keyEdit);CHECK(std::string(instrumentPresetCollectionName())=="USER");
-  instrumentPresetOpenSounds();CHECK(selectionPopupIsFullWidth());CHECK(text().find("Pack.zip")!=std::string::npos);press(keyOpt);
+  instrumentPresetOpenSounds();CHECK_FALSE(selectionPopupIsFullWidth());CHECK(text().find("Pack.zip")!=std::string::npos);press(keyOpt);
   instrumentPresetOpenCollections();press(keyDown);press(keyEdit);CHECK(std::string(instrumentPresetCollectionName())=="ALL");
   auto before=state->project.instruments[0];instrumentPresetOpenSounds();
   for(int n=0;n<24&&text().find("> Unsorted")==std::string::npos;++n)press(keyDown);

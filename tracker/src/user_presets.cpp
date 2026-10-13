@@ -253,6 +253,10 @@ bool UserPresets::load(const Reference& item, Project* destination, int slot, st
   } else if (ok) ok = instrumentLoadMemory(staged.get(), data.data(), data.size(), 0) == 0;
   ok = ok && userPresetCompatible(type_, staged->instruments[0].type);
   if (ok) {
+    if(type_==InstrumentType::SQ80ESQ&&destination->instruments[slot].type==type_){
+      auto& p=staged->instruments[0].chip.sq80;const auto& old=destination->instruments[slot].chip.sq80;
+      p.velocity=old.velocity;p.factory=old.factory;p.wheel=0;p.pedal=0;
+    }
     instrumentClear(&destination->instruments[slot]);
     destination->instruments[slot] = staged->instruments[0];
     destination->instruments[slot].type = type_;

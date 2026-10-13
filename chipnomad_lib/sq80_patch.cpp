@@ -30,7 +30,7 @@ void initSQ80Patch(InstrumentSQ80& p){
  for(int o=0;o<3;++o){int n=58+10*o;b[n]=36;b[n+2]=255;b[n+6]=100|(o==0?128:0);b[n+7]=255;}
  b[88]=100;b[89]=100;b[91]=255;b[94]=128;b[95]=128;b[100]=143;
 }
-bool validSQ80(const InstrumentSQ80& p){return p.schema==1&&p.bank<2&&p.profile<2&&p.velocity>0&&p.velocity<=127;}
+bool validSQ80(const InstrumentSQ80& p){return p.schema==1&&p.bank<2&&p.profile<2&&p.velocity>0&&p.velocity<=127&&p.wheel<=127&&p.pedal<=127&&p.factory<=1;}
 hybrid::Patch decodeSQ80(const InstrumentSQ80& p){std::array<uint8_t,102>b;std::copy_n(p.raw,102,b.begin());return hybrid::decodePreset(b,p.profile?hybrid::PresetProfile::hardware:hybrid::PresetProfile::legacyPlugin).patch;}
 int loadSQ80Data(FILE* f,Instrument* i){
  InstrumentSQ80 p{};unsigned seen=0;
@@ -40,6 +40,10 @@ int loadSQ80Data(FILE* f,Instrument* i){
    unsigned s,b,m,v;char tail;
    if((seen&1)||sscanf(line+17,"%u,%u,%u,%u %c",&s,&b,&m,&v,&tail)!=4||s!=1||b>1||m>1||!v||v>127)return 1;
    p.schema=s;p.bank=b;p.profile=m;p.velocity=v;seen|=1;
+  }else if(!strncmp(line,"- SQ80 performance: ",20)){
+   unsigned wheel,pedal,factory;char tail;
+   if((seen&4)||sscanf(line+20,"%u,%u,%u %c",&wheel,&pedal,&factory,&tail)!=3||wheel>127||pedal>127||factory>1)return 1;
+   p.wheel=wheel;p.pedal=pedal;p.factory=factory;seen|=4;
   }else if(!strncmp(line,"- SQ80 program: ",16)){
    const char* hex=line+16;if((seen&2)||strlen(hex)!=204)return 1;
    auto digit=[](char c){return c>='0'&&c<='9'?c-'0':c>='A'&&c<='F'?c-'A'+10:c>='a'&&c<='f'?c-'a'+10:-1;};
@@ -47,11 +51,12 @@ int loadSQ80Data(FILE* f,Instrument* i){
   }
   consumeLine(f);
  }
- if(seen!=3||!validSQ80(p))return 1;i->chip.sq80=p;return 0;
+ if((seen&3)!=3||!validSQ80(p))return 1;i->chip.sq80=p;return 0;
 }
 void saveSQ80Data(FILE* f,const Instrument* i){const auto&p=i->chip.sq80;
  fprintf(f,"- SQ80 identity: %u,%u,%u,%u\n- SQ80 program: ",p.schema,p.bank,p.profile,p.velocity);
  for(auto b:p.raw)fprintf(f,"%02X",b);fputc('\n',f);
+ fprintf(f,"- SQ80 performance: %u,%u,%u\n",p.wheel,p.pedal,p.factory);
 }
 bool importSQ80(const std::vector<uint8_t>& bytes,std::vector<hybrid::Preset>& out,std::string& error){
  try{

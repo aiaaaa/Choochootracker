@@ -17,34 +17,50 @@
 namespace {
 Instrument* current(){return &chipnomadState->project.instruments[cInstrument];}
 int held=0;
-int columns(int r){return r<3?instrumentCommonColumnCount(r):1;}
+void chooseBank(int n){if(n>=0&&n<=1){current()->chip.sq80.factory=n;projectModified=1;}screenSetup(&screenInstrument,cInstrument);}
+void cancelBank(){screenSetup(&screenInstrument,cInstrument);}
+void openBanks(){static const SelectionItem items[]={{"FACTORY",1,nullptr,0},{"USER",0,nullptr,0}};selectionPopupSetup("SQ80/ESQ BANK",items,2,current()->chip.sq80.factory,chooseBank,cancelBank);screenSetup(&screenSelectionPopup,0);}
+int columns(int r){return r<3?instrumentCommonColumnCount(r):(r==3||r==7?2:1);}
 int y(int r){return r+3;}
+int fieldFX(int c,int r){return r==3?(c?fxVEL:fxWHL):r==4?fxPED:r==7?(c?fxQRS:fxQCF):-1;}
 void drawStatic(){instrumentCommonDrawStatic();gfxSetFgColor(appSettings.colorScheme.textDefault);
- gfxPrint(0,6,"Bank:");gfxPrint(0,7,"Preset:");gfxPrint(0,8,"Editor:");gfxPrint(0,9,"Waves:");gfxPrint(0,10,"Load:");gfxPrint(0,11,"Velocity:");gfxPrint(0,12,"Profile:");
- gfxSetFgColor(appSettings.colorScheme.textInfo);gfxPrint(0,14,"Experimental SQ80/ESQ engine");gfxPrint(0,15,"EDIT+PLAY: audition");gfxPrint(0,16,"Patch edits apply on next note");}
-void drawCursor(int c,int r){if(r<3)instrumentCommonDrawCursor(c,r);else gfxCursor(10,y(r),r==6?20:24);}
+ gfxPrint(0,6,"Wheel");gfxPrint(19,6,"Velocity");gfxPrint(0,7,"Pedal");gfxPrint(0,8,"Bank");gfxPrint(0,9,"Preset");gfxPrint(0,10,"Cutoff");gfxPrint(19,10,"Resonance");gfxPrint(0,11,"Editor");
+ gfxSetFgColor(appSettings.colorScheme.textInfo);gfxPrint(0,14,"* = playback override");gfxPrint(0,15,"EDIT+PLAY: audition");}
+void drawCursor(int c,int r){if(r<3)instrumentCommonDrawCursor(c,r);else gfxCursor(c?30:9,y(r),r==6||r==8?24:4);}
 void drawField(int c,int r,CellState s){if(r<3){instrumentCommonDrawField(c,r,s);return;}
- const auto&p=current()->chip.sq80;gfxClearRect(10,y(r),28,1);gfxSetFgColor(s==CellState::focus?appSettings.colorScheme.textValue:appSettings.colorScheme.textDefault);
- if(r==3)gfxPrint(10,y(r),"USER");if(r==4)gfxPrintf(10,y(r),"%.24s",current()->name);if(r==5)gfxPrint(10,y(r),"EDIT PRESET >");
- if(r==6)gfxPrintf(10,y(r),"%s %s",p.bank?"ESQ-1":"SQ-80",sq80Bank(p.bank)?"ready":"MISSING");
- if(r==7)gfxPrint(10,y(r),"Reload USER banks");if(r==8)gfxPrintf(10,y(r),"%03u",p.velocity);
- if(r==9)gfxPrint(10,y(r),p.profile?"Hardware import":"Calibrated import");}
-int edit(int c,int r,CellEditAction a){if(r<3)return instrumentCommonOnEdit(c,r,a);
- if(r==3||r==4){instrumentSQ80LoadBanks();openUserPresetBrowser();return 1;}
- if(r==5){screenSetup(&screenSQ80Edit,cInstrument);return 1;}
- if(r==7){instrumentSQ80LoadBanks();screenMessage(MESSAGE_TIME, sq80Bank(current()->chip.sq80.bank)?"Wave bank ready":"Missing bank: import hardware-80.hwb");return 1;}
- auto&p=current()->chip.sq80;uint8_t* v=r==6?&p.bank:r==8?&p.velocity:r==9?&p.profile:nullptr;
- if(v&&edit8noLast(a,v,r==8?10:1,r==8?1:0,r==8?127:1)){projectModified=1;return 1;}return 0;
+ const auto&p=current()->chip.sq80;int x=c?30:9;gfxClearRect(x,y(r),r==6||r==8?28:9,1);gfxSetFgColor(s==CellState::focus?appSettings.colorScheme.textValue:appSettings.colorScheme.textDefault);
+ const char* star=instrumentSQ80Override(fieldFX(c,r))?"*":"";
+ if(r==3)gfxPrintf(x,y(r),"%03u%s",c?p.velocity:p.wheel,star);
+ if(r==4)gfxPrintf(x,y(r),"%03u%s",p.pedal,star);
+ if(r==5)gfxPrint(x,y(r),p.factory?"FACTORY":"USER");
+ if(r==6)gfxPrintf(x,y(r),"%.24s",current()->name);
+ if(r==7)gfxPrintf(x,y(r),"%03u%s",p.raw[c?90:89]&(c?31:127),star);
+ if(r==8)gfxPrint(x,y(r),"EDIT PRESET >");
 }
-int input(int down,int keys,int){if(screenInstrumentSQ80.cursorRow!=4){held=0;return 0;}auto action=popupEditInput(down,keys,&held);
+int edit(int c,int r,CellEditAction a){if(r<3)return instrumentCommonOnEdit(c,r,a);
+ if(r==5&&convertMultiAction(a)==CellEditAction::tap){openBanks();return 1;}
+ if(r==6){instrumentSQ80LoadBanks();openUserPresetBrowser();return 1;}
+ if(r==8){screenSetup(&screenSQ80Edit,cInstrument);return 1;}
+ auto&p=current()->chip.sq80;
+ if(r==7){uint8_t value=p.raw[c?90:89]&(c?31:127);if(edit8noLast(a,&value,10,0,c?31:127)){p.raw[c?90:89]=(p.raw[c?90:89]&~(c?31:127))|value;projectModified=1;return 1;}return 0;}
+ uint8_t*v=r==3?(c?&p.velocity:&p.wheel):r==4?&p.pedal:r==5?&p.factory:nullptr;
+ if(v&&edit8noLast(a,v,r==5?1:10,r==3&&c?1:0,r==5?1:127)){projectModified=1;return 1;}return 0;
+}
+int input(int down,int keys,int){if(screenInstrumentSQ80.cursorRow!=6){held=0;return 0;}auto action=popupEditInput(down,keys,&held);
  if(action==PopupEditInput::cycle){cycleUserPreset(keys==(keyEdit|keyRight)?1:-1);return 1;}if(action==PopupEditInput::hold)return 1;
  if(action==PopupEditInput::open){instrumentSQ80LoadBanks();openUserPresetBrowser();return 1;}return 0;}
+}
+bool instrumentSQ80Override(int fx){
+ if(fx<0)return false;const auto*s=chipnomadGetPlaybackStatus(chipnomadState);if(!s||!s->isPlaying)return false;
+ for(int t=0;t<chipnomadState->project.tracksCount;++t){const auto&tr=s->tracks[t];
+  if(s->trackEnabled[t]&&tr.mode!=PlaybackMode::stopped&&tr.mode!=PlaybackMode::none&&tr.note.instrument==cInstrument&&!tr.note.noteKilled&&tr.note.fx[fx].isOn)return true;
+ }return false;
 }
 namespace {
 std::vector<ExternalPreset> imported;std::vector<SelectionItem> importChoices;
 void cancelImport(){chipnomadQueueSQ80Preview(chipnomadState,*pSongTrack,nullptr);screenSetup(&screenInstrument,cInstrument);}
-void selectImport(int n){cancelImport();if(n<0||size_t(n)>=imported.size())return;instrumentClear(current());*current()=imported[n].instrument;projectModified=1;}
-void previewImport(int n,bool held){chipnomadQueueSQ80Preview(chipnomadState,*pSongTrack,held&&n>=0&&size_t(n)<imported.size()?&imported[n].instrument.chip.sq80:nullptr);}
+void selectImport(int n){cancelImport();if(n<0||size_t(n)>=imported.size())return;auto before=current()->chip.sq80;instrumentClear(current());*current()=imported[n].instrument;current()->chip.sq80.velocity=before.velocity;current()->chip.sq80.factory=before.factory;projectModified=1;}
+void previewImport(int n,bool held){if(held&&n>=0&&size_t(n)<imported.size()){auto p=imported[n].instrument.chip.sq80;p.velocity=current()->chip.sq80.velocity;chipnomadQueueSQ80Preview(chipnomadState,*pSongTrack,&p);}else chipnomadQueueSQ80Preview(chipnomadState,*pSongTrack,nullptr);}
 }
 void instrumentSQ80Import(const char* path){
  std::vector<uint8_t> bytes;std::string error;instrumentSQ80LoadBanks();
@@ -83,5 +99,5 @@ void instrumentSQ80LoadBanks(){
 extern "C" EMSCRIPTEN_KEEPALIVE int webValidateSQ80Bank(const char* path,int model){hybrid::WaveBank bank;std::string error;return path&&bank.load(path,error)&&bank.romSize()==(model?65536u:262144u);}
 extern "C" EMSCRIPTEN_KEEPALIVE int webLoadSQ80Banks(){instrumentSQ80LoadBanks();return (sq80Bank(0)?1:0)|(sq80Bank(1)?2:0);}
 #endif
-ScreenData screenInstrumentSQ80={.rows=10,.cursorRow=0,.cursorCol=0,.topRow=0,.selectMode=-1,.selectStartRow=0,.selectStartCol=0,.selectAnchorRow=0,.selectAnchorCol=0,.playbackLevel=ScreenPlaybackLevel::none,.getColumnCount=columns,.drawStatic=drawStatic,.drawCursor=drawCursor,.drawSelection=nullptr,.drawRowHeader=nullptr,.drawColHeader=nullptr,.drawField=drawField,.onEdit=edit,.onInput=input,.onRawInput=nullptr,.isCellValid=nullptr,.getLoopRange=nullptr};
+ScreenData screenInstrumentSQ80={.rows=9,.cursorRow=0,.cursorCol=0,.topRow=0,.selectMode=-1,.selectStartRow=0,.selectStartCol=0,.selectAnchorRow=0,.selectAnchorCol=0,.playbackLevel=ScreenPlaybackLevel::none,.getColumnCount=columns,.drawStatic=drawStatic,.drawCursor=drawCursor,.drawSelection=nullptr,.drawRowHeader=nullptr,.drawColHeader=nullptr,.drawField=drawField,.onEdit=edit,.onInput=input,.onRawInput=nullptr,.isCellValid=nullptr,.getLoopRange=nullptr};
 #endif

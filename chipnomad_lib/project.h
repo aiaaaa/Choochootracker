@@ -228,6 +228,8 @@ enum FX {
   // Absolute panorama controls. Appended to preserve project FX IDs.
   fxPAN, // Instrument pan
   fxTPN, // Track pan
+  // SQ80 performance controls; append without renumbering saved commands.
+  fxQCF, fxQRS, fxWHL, fxPED, fxSUS, fxAFT, fxNPR, fxGLI, fxVEL, fxEXT,
   // Total count - must be last
   fxTotalCount
 };

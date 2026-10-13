@@ -426,6 +426,7 @@ static int screenTouchCellAt(int col, int row, int* targetCol, int* targetRow) {
   } else if (instrumentCommonRow == 2) {
     mappedCol = col < 18 ? 0 : col < 29 ? 1 : 2; // Transpose, tick, volume
   }
+  if(currentScreen==&screenInstrument&&chipnomadState->project.instruments[cInstrument].type==InstrumentType::SQ80ESQ&&columns==2&&instrumentCommonRow<0)mappedCol=col>=19?1:0;
   if (mappedCol >= columns) mappedCol = columns - 1;
   if (touchScreenData->isCellValid && !touchScreenData->isCellValid(mappedCol, row)) return 0;
   if (targetCol) *targetCol = mappedCol;

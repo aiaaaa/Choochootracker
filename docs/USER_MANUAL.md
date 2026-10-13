@@ -2026,3 +2026,21 @@ Choose SYNTH → SQ80/ESQ, import your wave bank and presets into USER/sq80esq,
 and open EDIT PRESET for the full native editor. Web users can use the
 Import SQ80/ESQ button once; files persist locally. See [SQ80/ESQ](sq80esq.md)
 for controls, bank formats, playback indicators and current limits.
+
+
+### SQ80/ESQ Rev2 performance controls
+
+The experimental SQ80/ESQ instrument now provides Wheel, Velocity, Pedal,
+FACTORY/USER selection and Cutoff/Resonance on its main page. Preset browsing
+keeps Velocity and resets Wheel/Pedal. Waves and Find wave banks are at the top
+of EDIT PRESET; Profile is hidden and saved profiles are preserved.
+Roll controls are QCF (Cutoff), QRS (Resonance), WHL (Wheel), PED (Pedal),
+SUS (Sustain), AFT (track aftertouch), NPR (latest-note pressure), LFR (LFO1 rate),
+GLI (Glide time), VEL (Velocity), and EXT (External). No additional ADSR is added.
+See [SQ80/ESQ instructions](sq80esq.md) for ranges, persistence and chord targeting.
+
+USER preset browsing uses two panes: collections on the left and their presets
+on the right. Left/Right switches panes, Up/Down moves within a pane, EDIT selects,
+and EDIT+PLAY auditions. The collection path remains visible below both panes.
+Folder and ZIP collections are grouped without extracting presets. FACTORY
+browsing keeps its existing layout. Reopening USER recalls the selected sound.

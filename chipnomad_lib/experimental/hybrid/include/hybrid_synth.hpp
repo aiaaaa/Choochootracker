@@ -107,7 +107,7 @@ private:
 };
 
 enum class EventKind { noteOn, noteOff, sustain, pitchBend, allSoundOff,
-    wheel, pedal, external, channelPressure, polyPressure, channelVolume };
+    wheel, pedal, external, channelPressure, polyPressure, channelVolume, latestPressure };
 struct Event {
     uint32_t frame = 0;
     EventKind kind = EventKind::noteOn;
@@ -158,10 +158,14 @@ public:
     void reset();
     void setPatch(const Patch& patch); // all channels; applies to subsequent notes
     void setChannelPatch(unsigned channel, const Patch& patch);
+    // Tracker extension: live overrides, -1 restores each voice's own patch.
+    void setPerformance(int cutoff, int resonance, int lfo1Rate);
     size_t activeVoices() const;
     bool render(float* left, float* right, size_t frames, const Event* events = nullptr, size_t count = 0);
 private:
+    int performanceCutoff_=-1, performanceResonance_=-1, performanceLfo1_=-1;
     struct Voice {
+        double notePressure = 0;
         bool active = false, held = false, used = false;
         uint8_t channel = 0, key = 0;
         uint64_t serial = 0, samples = 0;

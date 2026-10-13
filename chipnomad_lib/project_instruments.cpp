@@ -452,6 +452,9 @@ static bool trackerDirectFMAvailable(InstrumentType type, int fx) {
 }
 
 int instrumentFXAvailable(InstrumentType type, uint8_t fx) {
+#if CHOOCHOO_EXPERIMENTAL_SQ80ESQ
+  if(type==InstrumentType::SQ80ESQ)return (fx>=fxQCF&&fx<=fxEXT)||fx==fxLFR;
+#endif
   if(fx>=fxOAR&&fx<=fxLEN) { if(!trackerDirectFMAvailable(type,fx))return 0; Instrument i{}; getInstrumentFunctions(type).init(&i); NativeFXInfo info{}; return instrumentDirectFMInfo(&i,fx,&info); }
   if(fx==fxFBK)return instrumentNativeModDestination(type,genericModFMFeedback)!=nullptr;
   if(fx>=fxOL1&&fx<=fxOL6) {
@@ -465,6 +468,7 @@ int instrumentFXAvailable(InstrumentType type, uint8_t fx) {
 }
 
 int instrumentFXAvailableForInstrument(const Instrument* instrument, uint8_t fx) {
+  if(instrument&&instrument->type==InstrumentType::SQ80ESQ)return instrumentFXAvailable(instrument->type,fx);
   if(instrument && fx>=fxOAR&&fx<=fxLEN) { if(!trackerDirectFMAvailable(instrument->type,fx))return 0; NativeFXInfo info{}; return instrumentDirectFMInfo(instrument,fx,&info); }
   if (!instrument || !instrumentFXAvailable(instrument->type, fx)) return 0;
   if(fx>=fxOL1&&fx<=fxOL6)return fx-fxOL1<instrumentFMOperatorCount(instrument);
@@ -481,7 +485,7 @@ int instrumentModDestinationAvailable(const Instrument* instrument, int destinat
   int generic = instrumentGenericModDestination(type, destination);
   if (instrument && isOPL(type) && instrument->chip.opl.topology==OPLTopology::twoOperator && generic>=genericModFMOperator3 && generic<=genericModFMOperator6) return 0;
   int fx,op;
-  if(nativeFMModTarget(generic,&fx,&op)) { NativeFXInfo info{};return instrument && instrumentNativeFXInfo(instrument,fx,&info,op); }
+  if(nativeFMModTarget(generic,&fx,&op)) { NativeFXInfo info{};return type!=InstrumentType::SQ80ESQ && instrument && instrumentNativeFXInfo(instrument,fx,&info,op); }
   if(generic==genericModFMBrightness||(generic>=genericModFMTime&&generic<=genericModFMLFODepth))return 0;
   if (generic == genericModInstrumentPan || generic == genericModTrackPan)
     return instrument && instrument->type != InstrumentType::Midi;

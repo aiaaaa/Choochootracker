@@ -61,6 +61,7 @@ const char* instrumentName(Project* project, uint8_t instrument) {
 // Instrument type name
 const char* instrumentTypeName(InstrumentType type) {
   switch (type) {
+    case InstrumentType::SQ80ESQ: return "SQ80/ESQ";
     case InstrumentType::SID:
       return "SID";
     case InstrumentType::AY1:

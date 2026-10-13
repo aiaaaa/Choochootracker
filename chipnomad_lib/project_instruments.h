@@ -435,6 +435,7 @@ struct InstrumentSID {
 struct InstrumentSQ80 {
   uint8_t schema, bank, profile, velocity; // bank 0 SQ80 / 1 ESQ1; profile 0 calibrated / 1 hardware
   uint8_t raw[102];
+  uint8_t wheel, pedal, factory; // tracker performance defaults and browser source
 };
 union InstrumentChipData {
   InstrumentSQ80 sq80;

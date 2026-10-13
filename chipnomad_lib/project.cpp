@@ -57,6 +57,8 @@ FXName fxNamesInsert[] = {
   {fxF28, "F28"}
 };
 
+FXName fxNamesSQ80[]={{fxQCF,"QCF"},{fxQRS,"QRS"},{fxWHL,"WHL"},{fxPED,"PED"},{fxSUS,"SUS"},{fxAFT,"AFT"},{fxNPR,"NPR"},{fxLFR,"LFR"},{fxGLI,"GLI"},{fxVEL,"VEL"},{fxEXT,"EXT"}};
+
 // FX Groups array. FX counts are filled in fillFXNames()
 FXGroup fxGroups[] = {
   {"Sequencer FX", fxNamesSequencer, 0, 8, InstrumentType::none},
@@ -90,6 +92,9 @@ FXGroup fxGroups[] = {
   {"MIDI FX", NULL, 0, 4, InstrumentType::Midi},
   {"TF1", fxNamesInsert, 8, 8, InstrumentType::none},
   {"TF2", fxNamesInsert + 8, 8, 8, InstrumentType::none},
+#if CHOOCHOO_EXPERIMENTAL_SQ80ESQ
+  {"SQ80/ESQ FX",fxNamesSQ80,11,6,InstrumentType::SQ80ESQ},
+#endif
 };
 int fxGroupCount = sizeof(fxGroups) / sizeof(FXGroup);
 

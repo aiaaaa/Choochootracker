@@ -407,6 +407,13 @@ void initFX(PlaybackState* state, int trackIdx, uint8_t* fx, PlaybackTableState*
     }
     return;
   }
+  if ((fx[0]>=fxQCF&&fx[0]<=fxEXT)||
+      (fx[0]==fxLFR&&track->note.instrument!=EMPTY_VALUE_8&&state->p->instruments[track->note.instrument].type==InstrumentType::SQ80ESQ)) {
+    if(track->note.instrument==EMPTY_VALUE_8)return;
+    NativeFXInfo info{};const auto*i=&state->p->instruments[track->note.instrument];
+    if(i->type!=InstrumentType::SQ80ESQ||!instrumentNativeFXInfo(i,fx[0],&info))return;
+    auto& f=track->note.fx[fx[0]];f.isOn=1;f.fxValue=clampInt(fx[1],info.minimum,info.maximum);return;
+  }
   if (fx[0] >= fxOAR && fx[0] <= fxLEN) {
     if (track->note.instrument == EMPTY_VALUE_8) return;
     const auto* instrument = &state->p->instruments[track->note.instrument];
