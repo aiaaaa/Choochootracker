@@ -310,6 +310,25 @@ TEST_CASE("extracts the songs of a .sav, with blocks out of order") {
   fclose(f);
 
   int count = 0;
+  LsdjSavSong songs[32];
+  REQUIRE(lsdjListSav(savPath, songs, 32, &count) == 0);
+  REQUIRE(count == 2);
+  CHECK(songs[0].slot == 0);
+  CHECK(strcmp(songs[0].name, "ALPHA") == 0);
+  CHECK(songs[0].version == 0x0B);
+  CHECK(songs[0].blocks == (int)blocksA);
+  CHECK(songs[1].slot == 5);
+  CHECK(strcmp(songs[1].name, "BETA") == 0);
+  {
+    Project direct;
+    projectInit(&direct);
+    CHECK(projectLoadLSDJSav(&direct, savPath, 3) != 0); // empty slot
+    REQUIRE(projectLoadLSDJSav(&direct, savPath, 5) == 0);
+    CHECK(strcmp(direct.title, "BETA") == 0);
+    CHECK(direct.phrases[8].rows[0].note == 28);
+    projectFree(&direct);
+  }
+
   REQUIRE(lsdjExtractSav(savPath, dir, &count) == 0);
   CHECK(count == 2);
 
