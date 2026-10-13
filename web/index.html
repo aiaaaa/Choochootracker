@@ -151,61 +151,8 @@
           /^projectPath: \/user\/projects(?:\/rough ?demos(?:\/[^\r\n]*)?)?\r?$/m,
           'projectPath: /projects'));
       }
-      // Only the initial browser location changes. Subsequent folder choices
-      // remain intact; bundled demos refresh in /projects.
-      fs.writeFile(marker, '1\n');
-    };
-    // Exact shipped bytes only: include both Decisive Battle revisions. Never
-    // identify a disposable demo by its filename alone; saved edits belong to the user.
-    const seededRoughDemoHashes = {
-      "Blue_Hour/Blue_Hour_R02_B_Strings.cct": ["beed0acd79365fe36cda1b2caa407d1d428f5cb3fbee8798d391c522bd4608ad"],
-      "Blue_Hour/Blue_Hour_R03_B_Strings.cct": ["b70cafd30ba9822facbd0f3adddb8c2512a938d9dec600ef160f053c5b3048be"],
-      "Left-Right-Spoken-Test.cct": ["6c23de591158bf0d1ddc2132e3123a981810763ca99c20786371d07a8cbb0bf8"],
-      "Left-Right-Stereo-Test.cct": ["7c31a5f0c82f59c9996dcfe5bd27feeffe041f3feaedfaca995f6169d31de716"],
-      "Low_Water/Low_Water_R2.cct": ["eab763498c42022590cd85423be5578dc75e8e69d6ca82e10b740880dd84d241"],
-      "S KETCH4.cct": ["c5d780cca50050aec86f1531d40c871bcc9c1e84e691b8295d964272fcdc938a"],
-      "SPEAKK.cct": ["8c083ac16c289c357d18e5a8615eaf5c454c237290e4f707fc3ff8e10c843b3c"],
-      "Surfin_Bird/SurfnBird_Rev1.cct": ["e4c1e9783687aee06f29171043bce949bd5bc3bba200128ab9fbbd61c15d2bb6"],
-      "Surfin_Bird/SurfnBird_Rev2.cct": ["9665285dc9caa9486fafeb4245a0367c79fcc7dde78425fd3790f8e9848e53b6"],
-      "Surfin_Bird/SurfnBird_Rev3_V4_HumanP.cct": ["c11bf00bbdb45b029bfab45c57ca1b6410272ca0f39f39df12104782e3821fce"],
-      "fm-macros.cct": ["a5959617532a2cbd3fb362ad93009548dfd34588ab670dbfcd2d4724c6ff5168"],
-      "native-chip-expanded-20261005.cct": ["7c9b80b542164038792ff3fb74a27c0c317bbd7abbdb9b23758612488fe0d79e"],
-      "nin_779.cct": ["a48459392e43dfd60e9d0dc8249683498e8f90c96aa6f7e579f5af116163edd4"],
-      "sid-bank-audition.cct": ["a8e7ddcf2ee3759987c0942072708c3555d7c53021a4344cfa41d6f77f9404ac"],
-      "sid-mixed.cct": ["2337e0b842a2c671645cb89577f9934330b88ba30be7b171162cc188abb7e295"],
-      "sid-ring-sync.cct": ["4bc46e9c226e25ab14dbbf4871ed8f691825208e684c36c08d352d4b94e06b4c"],
-      "Blue_Hour/Blue_Hour_Device_Continue_20261011.cct": ["b68928c91302b8143da136da89bcd6d0930ea93bc1ecbf3ea6411ddbf1593280"],
-      "Decisive_Battle_NERV_FM.cct": ["029361173c3a6ad40923ec751609722be0d792866e07d426809f0066f082fb5b", "2bbaac6b08c1c1ad7f575dc1761595e2450e51a6f56ef5c242629b17878c4197"],
-    };
-    const removeSeededRoughDemos = async (fs) => {
-      const marker = '/user/.rough-demo-cleanup-v1';
-      if (fs.analyzePath(marker).exists) return;
-      for (const root of ['/user/projects/roughdemos', '/user/projects/rough demos']) {
-        const directories = new Set([root]);
-        for (const [relative, hashes] of Object.entries(seededRoughDemoHashes)) {
-          const path = root + '/' + relative;
-          for (let dir = path.slice(0, path.lastIndexOf('/')); dir !== root;
-               dir = dir.slice(0, dir.lastIndexOf('/'))) directories.add(dir);
-          if (!fs.analyzePath(path).exists || !fs.isFile(fs.stat(path).mode)) continue;
-          const bytes = fs.readFile(path);
-          const digest = await crypto.subtle.digest('SHA-256', bytes);
-          const hash = Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('');
-          if (hashes.includes(hash)) fs.unlink(path);
-        }
-        // Only prune known demo directories, and only when nothing remains.
-        for (const dir of [...directories].sort((a, b) => b.length - a.length)) {
-          if (fs.analyzePath(dir).exists && fs.isDir(fs.stat(dir).mode) &&
-              fs.readdir(dir).every(name => name === '.' || name === '..')) fs.rmdir(dir);
-        }
-      }
-      // Older profiles may already have the library-root migration marker.
-      // Repair a saved browser location only if this cleanup removed that folder.
-      if (fs.analyzePath('/user/settings.txt').exists) {
-        const settings = fs.readFile('/user/settings.txt', {encoding: 'utf8'});
-        fs.writeFile('/user/settings.txt', settings.replace(
-          /^projectPath: (\/user\/projects\/rough ?demos(?:\/[^\r\n]*)?)\r?$/m,
-          (line, path) => fs.analyzePath(path).exists ? line : 'projectPath: /projects'));
-      }
+      // Only the initial browser location changes. Keep old saved demos and
+      // subsequent folder choices intact; bundled demos refresh in /projects.
       fs.writeFile(marker, '1\n');
     };
     const syncUserStorage = (done) => {
@@ -270,14 +217,10 @@
         } catch (_) {}
         FS.mount(IDBFS, {}, '/user');
         addRunDependency('choochootracker-user-storage');
-        FS.syncfs(true, async (error) => {
+        FS.syncfs(true, (error) => {
           if (error) status.textContent = 'Browser storage could not be opened.';
           ensureUserDirectories(FS);
           migrateProjectLibraryPath(FS);
-          if (!error) {
-            try { await removeSeededRoughDemos(FS); }
-            catch (_) { status.textContent = 'Could not finish removing old demo copies; will retry next launch.'; }
-          }
           FS.syncfs(false, (saveError) => {
             if (saveError) status.textContent = 'Browser storage could not be initialized.';
             removeRunDependency('choochootracker-user-storage');

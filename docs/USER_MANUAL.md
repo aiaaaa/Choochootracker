@@ -1990,22 +1990,10 @@ The web action buttons use compact uppercase labels and wrap to the available
 width. Project/app actions precede the sample and preset imports.
 
 The personal web app includes **[rough demos]** under **Project → Load** in
-`/projects`: device songs plus a separately named Blue Hour Continue snapshot.
-Sample-based songs include their WAVs. Bundled demos refresh on reload. Old,
-unchanged demo copies are removed from `/user/projects/rough demos` and the older
-`roughdemos` folder; edited or extra files stay intact. To keep your own version,
-save it under `/user/projects` or download its `.cct`.
-
-**Continue** is one rolling autosave at `/user/autosave.cct`, replaced by the
-current project as you work. It is saved roughly once a minute while active,
-when the page is hidden, and before **Reload app**. It is not a history of songs.
-Imported projects and named saves in `/user/projects` are separate files; you
-can keep multiple songs there. `/user/samples` holds imported samples,
-`/user/instruments` holds imported presets, and `/user/exports` holds exports.
-These are virtual folders stored in this website's browser database on this
-phone, not folders in the phone's Files app or cloud storage. They normally
-survive reloads; clearing site data can remove them. **Download .cct** creates
-a portable file you can keep outside the app.
+`/user/projects`: device songs plus a separately named Blue Hour Continue
+snapshot. Sample-based songs include their WAVs. Each browser gets its own
+editable copies; reloads and deployments preserve existing copies. This does
+not replace your current Continue save. Download `.cct` backups of your edits.
 
 The Home Screen app respects the camera and Home indicator safe areas, with
 an extra 25 pixels above the tracker. Initial audio waits quietly for your first

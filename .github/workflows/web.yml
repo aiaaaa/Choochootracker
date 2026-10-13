@@ -49,8 +49,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Check Lucky relay and browser storage
-        run: node --test tools/test_lucky_relay.cjs tools/test_web_storage.cjs
+      - name: Check Lucky relay
+        run: node --test tools/test_lucky_relay.cjs
       - name: Deploy the validated bundle
         if: env.DEPLOY_TARGET != 'build'
         env:
