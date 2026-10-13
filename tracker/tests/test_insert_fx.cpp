@@ -911,6 +911,55 @@ TEST_CASE("one instrument on two tracks modulates independent slot bases with mu
   chipnomadSetLiveStickAxes(0, 0, 0, 0);
 }
 
+TEST_CASE("Beads Shape Freeze has coarse byte edits in both track and master slots") {
+  auto* previous = chipnomadState;
+  auto* previousScreen = currentScreen;
+  chipnomadState = chipnomadCreate();
+  screensInitAll();
+  *pSongTrack = 0;
+  for (bool master : {false, true}) {
+    if (master) screenInsertFXOpenMaster();
+    else screenInsertFXOpenTrack();
+    for (int slot = 0; slot < 2; ++slot) {
+      auto& c = master ? chipnomadState->project.masterInserts[slot] :
+                        chipnomadState->project.trackInserts[0][slot];
+      insertSelect(&c, insertBeads);
+      screenInsertFX.fullRedraw();
+      auto* d = mockScreenData;
+      REQUIRE(d);
+      const int row = slot * 5 + 3;
+      c.values[6] = 0x78;
+      d->onEdit(1, row, CellEditAction::increaseBig);
+      CHECK(c.values[6] == 0x88);
+      d->onEdit(1, row, CellEditAction::decreaseBig);
+      CHECK(c.values[6] == 0x78);
+      d->onEdit(1, row, CellEditAction::increase);
+      CHECK(c.values[6] == 0x79);
+      d->onEdit(1, row, CellEditAction::decrease);
+      CHECK(c.values[6] == 0x78);
+      c.values[6] = 0xf8;
+      d->onEdit(1, row, CellEditAction::increaseBig);
+      CHECK(c.values[6] == 0xff);
+      c.values[6] = 0x08;
+      d->onEdit(1, row, CellEditAction::decreaseBig);
+      CHECK(c.values[6] == 0x00);
+      // The packed freeze bit must still bypass DSP parameter slew.
+      CHECK(insertDescriptor(insertBeads).parameters[6].mapping == InsertMapping::discrete);
+      insertSelect(&c, insertCompressor);
+      c.values[4] = 0;
+      REQUIRE(insertDescriptor(c.module).parameters[4].mapping == InsertMapping::discrete);
+      d->onEdit(1, slot * 5 + 1, CellEditAction::increaseBig);
+      CHECK(c.values[4] == 1);
+      d->onEdit(1, slot * 5 + 1, CellEditAction::decreaseBig);
+      CHECK(c.values[4] == 0);
+    }
+  }
+  screenInsertFXOpenTrack();
+  chipnomadDestroy(chipnomadState);
+  chipnomadState = previous;
+  currentScreen = previousScreen;
+}
+
 TEST_CASE("insert tips, CPU readout and reviewed category chooser work together") {
   auto* previous = chipnomadState;
   auto* previousScreen = currentScreen;
