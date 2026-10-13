@@ -225,7 +225,9 @@ No new working copies are seeded into `/user/projects`.
 
 The public bundled collection refreshes on reload, so updates to an existing
 filename are visible immediately. Decisive Battle revision 2 replaces the first
-revision with simpler E-minor FM brass and on-beat phrasing. To keep edits to a
+revision with simpler E-minor FM brass and on-beat phrasing. Low Water R3 replaces
+R2 with the owner-edited R36H dub master, copied byte-for-byte into
+`Low_Water/Low_Water_R3.cct`. To keep edits to a
 bundled project, download its `.cct` or save under `/user/projects` (IDBFS).
 
 ## Browser presentation

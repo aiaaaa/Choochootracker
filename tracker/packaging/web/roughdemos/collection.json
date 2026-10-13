@@ -34,12 +34,13 @@
       "bytes": 3917
     },
     {
-      "file": "Low_Water/Low_Water_R2.cct",
-      "device_source": "projects/Low_Water/Low_Water_R2.cct",
-      "source_sha256": "66d1e8e6753c11991ff2933dd73766963864ff5a8e96bb3783f8cc8be5d2f52a",
-      "sha256": "eab763498c42022590cd85423be5578dc75e8e69d6ca82e10b740880dd84d241",
-      "embedded_samples": 10,
-      "bytes": 241595
+      "file": "Low_Water/Low_Water_R3.cct",
+      "device_source": "projects/Low_Water/Low_Water_R3_Dub_Draft_2.cct",
+      "source_sha256": "9812ed9d98b8093134bf8a14364d5803d6ab8c0712345448eb0851fb5e600d84",
+      "sha256": "9812ed9d98b8093134bf8a14364d5803d6ab8c0712345448eb0851fb5e600d84",
+      "embedded_samples": 8,
+      "bytes": 124471,
+      "revision": "R3: owner-edited handheld dub master, 2026-10-12"
     },
     {
       "file": "S KETCH4.cct",
