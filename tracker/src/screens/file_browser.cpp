@@ -25,7 +25,7 @@ static int entryCount = 0;
 static int selectedIndex = 0;
 static int topIndex = 0;
 static char currentPath[2048];
-static char fileExtension[32];
+static char fileExtension[64];
 static char browserTitle[32];
 static char saveFilename[256];
 static char saveExtension[8];
@@ -163,8 +163,8 @@ void fileBrowserSetupWithPreview(const char* title, const char* extension,
     void (*cancelCallback)(void), void (*previewCallback)(const char*)) {
   strncpy(browserTitle, title, 31);
   browserTitle[31] = 0;
-  strncpy(fileExtension, extension, 31);
-  fileExtension[31] = 0;
+  strncpy(fileExtension, extension, sizeof(fileExtension) - 1);
+  fileExtension[sizeof(fileExtension) - 1] = 0;
   isFolderMode = 0;
   onFileSelected = fileCallback;
   onCancelled = cancelCallback;

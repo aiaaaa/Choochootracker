@@ -13,6 +13,8 @@
 #include "import/import_vt2.h"
 #include "import/import_midi.h"
 #include "import/import_m8s.h"
+#include "import/import_lsdj.h"
+#include "selection_popup.h"
 #include "string_utils.h"
 #include <string.h>
 #include <strings.h>
@@ -27,6 +29,8 @@ static char* editingString = NULL;
 static int editingStringLength = 0;
 static int tickRateI = 0;
 static uint16_t tickRateF = 0;
+// Song picked in an LSDj save (.sav), -1 when none: read by projectLoadFromPath
+static int pendingSavSlot = -1;
 
 int projectLoadFromPath(const char* path) {
   if (!path) {
@@ -61,6 +65,17 @@ int projectLoadFromPath(const char* path) {
     } else if (strcasecmp(ext, ".m8s") == 0) {
       // Import a Dirtywave M8 song (structure and notes only)
       loadResult = projectLoadM8SWithSamples(&replacement, path, appSettings.samplePath);
+    } else if (strcasecmp(ext, ".lsdsng") == 0) {
+      // Import a Little Sound Dj song (structure and notes only)
+      loadResult = projectLoadLSDJ(&replacement, path);
+    } else if (strcasecmp(ext, ".sav") == 0) {
+      // One song of an LSDj save, picked in the list
+      if (pendingSavSlot >= 0) {
+        loadResult = projectLoadLSDJSav(&replacement, path, pendingSavSlot);
+      } else {
+        snprintf(projectFileError, 40, "Pick a song in the .sav list");
+        loadResult = 1;
+      }
     } else if (strcasecmp(ext, ".cct") == 0) {
       // Load ChooChooTracker native format
       loadResult = projectLoad(&replacement, path);
@@ -79,7 +94,8 @@ int projectLoadFromPath(const char* path) {
     projectModified = 0; // Clear modified flag after loading
 
     // Store filename without extension
-    extractFilenameWithoutExtension(path, appSettings.projectFilename, FILENAME_LENGTH + 1);
+    if (pendingSavSlot >= 0) snprintf(appSettings.projectFilename, FILENAME_LENGTH + 1, "%s", replacement.title);
+    else extractFilenameWithoutExtension(path, appSettings.projectFilename, FILENAME_LENGTH + 1);
     // The loaded project's export folder (if any) is adopted on next export
     exportResetFolderTracking();
     settingsSave();
@@ -99,7 +115,47 @@ int projectLoadFromPath(const char* path) {
   return loadResult;
 }
 
+static void onProjectCancelled(void) {
+  screenSetup(projectReturnScreen, 0);
+}
+static void onProjectLoaded(const char* path);
+
+// An LSDj save (.sav) holds up to 32 songs: list them and load the one picked.
+static char savPath[2048];
+static LsdjSavSong savSongs[32];
+static char savLabels[32][40];
+static SelectionItem savItems[32];
+
+static void onSavSongSelected(int slot) {
+  pendingSavSlot = slot;
+  int result = projectLoadFromPath(savPath);
+  pendingSavSlot = -1;
+  if (result == 0 && projectReturnScreen == &screenTitle) screenSetup(&screenSong, 0);
+  else screenSetup(projectReturnScreen, 0);
+}
+
+static int openLsdjSave(const char* path) {
+  int count = 0;
+  if (lsdjListSav(path, savSongs, 32, &count) != 0) {
+    screenMessage(MESSAGE_TIME_ERROR, "%s", projectFileError);
+    return 0;
+  }
+  snprintf(savPath, sizeof(savPath), "%s", path);
+  for (int i = 0; i < count; i++) {
+    snprintf(savLabels[i], sizeof(savLabels[i]), "%02d %-8s v%02X %3d blocks", savSongs[i].slot, savSongs[i].name[0] ? savSongs[i].name : "-", savSongs[i].version, savSongs[i].blocks);
+    savItems[i] = {savLabels[i], savSongs[i].slot, nullptr, 0, nullptr};
+  }
+  selectionPopupSetup("LSDJ SONGS", savItems, count, savSongs[0].slot, onSavSongSelected, onProjectCancelled, true);
+  screenSetup(&screenSelectionPopup, 0);
+  return 1;
+}
+
 static void onProjectLoaded(const char* path) {
+  const char* ext = path ? strrchr(path, '.') : NULL;
+  if (ext && strcasecmp(ext, ".sav") == 0) {
+    if (!openLsdjSave(path)) screenSetup(projectReturnScreen, 0);
+    return;
+  }
   if (projectLoadFromPath(path) == 0 && projectReturnScreen == &screenTitle)
     screenSetup(&screenSong, 0);
   else
@@ -129,12 +185,8 @@ static void onProjectSaved(const char* folderPath) {
   screenSetup(&screenProject, 0);
 }
 
-static void onProjectCancelled(void) {
-  screenSetup(projectReturnScreen, 0);
-}
-
 static void doLoadProject(void) {
-  fileBrowserSetup("LOAD PROJECT", ".cct,.vt2,.mid,.midi,.m8s", appSettings.projectPath,
+  fileBrowserSetup("LOAD PROJECT", ".cct,.vt2,.mid,.midi,.m8s,.lsdsng,.sav", appSettings.projectPath,
     onProjectLoaded, onProjectCancelled);
   screenSetup(&screenFileBrowser, 0);
 }
@@ -158,7 +210,7 @@ void projectOpenFromScreen(const AppScreen* returnScreen) {
 
 void projectOpenFromScreenAtPath(const AppScreen* returnScreen, const char* path) {
   projectReturnScreen = returnScreen ? returnScreen : &screenProject;
-  fileBrowserSetup("LOAD PROJECT", ".cct,.vt2,.mid,.midi,.m8s", path,
+  fileBrowserSetup("LOAD PROJECT", ".cct,.vt2,.mid,.midi,.m8s,.lsdsng,.sav", path,
     onProjectLoaded, onProjectCancelled);
   screenSetup(&screenFileBrowser, 0);
 }
