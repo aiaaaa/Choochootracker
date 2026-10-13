@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <cstdint>
+#include <cstring>
 
 // Router-level tests through a hand-built fake MidiBackend: this is the
 // "testable with a fake backend" requirement from the upstream review, and
@@ -41,6 +42,9 @@ void fakeScheduleOutput(void*, const MidiEvent* event, uint64_t) {
 void fakeFlushOutputQueue(void*) {}
 unsigned int fakeDroppedCount(void*) { return 42; } // fixed sentinel to verify the passthrough
 uint64_t fakeNowMicros(void*) { return 12345; }
+int g_accessRequests;
+void fakeRequestAccess(void*) { g_accessRequests++; }
+const char* fakeStatusMessage(void*) { return "Fake MIDI ready"; }
 
 const MidiBackend kFakeBackend = {
   nullptr, // userdata
@@ -51,6 +55,8 @@ const MidiBackend kFakeBackend = {
   fakeFlushOutputQueue,
   fakeDroppedCount,
   fakeNowMicros,
+  fakeRequestAccess,
+  fakeStatusMessage,
   1, 1, 0, 0,
 };
 
@@ -61,6 +67,14 @@ const int8_t kNoChannelMap[16] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
 }
 
 TEST_SUITE("MIDI router") {
+
+TEST_CASE("Backend access request and status are forwarded") {
+  g_accessRequests = 0;
+  midiRouterSetBackend(&kFakeBackend);
+  midiRouterRequestAccess();
+  CHECK(g_accessRequests == 1);
+  CHECK(strcmp(midiRouterStatusMessage(), "Fake MIDI ready") == 0);
+}
 
 TEST_CASE("Incoming CC values are retained independently of note preview") {
   resetFake();
