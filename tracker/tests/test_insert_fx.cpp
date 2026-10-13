@@ -940,6 +940,24 @@ TEST_CASE("insert tips return after real key release and categorized chooser sel
   screenInsertFX.draw();
   CHECK(std::string(screenGetActiveMessage()) == "Saved");
   d->cursorRow = 0;
+  d->cursorCol = 0;
+  auto& insert = chipnomadState->project.trackInserts[0][0];
+  insertSelect(&insert, insertOff);
+  const int popupOrder[] = {
+      insertOff, insertCompressor, insertOTT,
+      insertDistortion, insertSaturation, insertBitcrusher, insertDestruction,
+      insertChorus, insertPhaser, insertFlanger,
+      insertDoubler, insertRotary, insertTape, insertParametricEQ,
+  };
+  for (int i = 1; i < (int)(sizeof(popupOrder) / sizeof(popupOrder[0])); ++i) {
+    screenInsertFX.onInput(1, keyEdit | keyRight, 0);
+    CHECK(insert.module == popupOrder[i]);
+  }
+  screenInsertFX.onInput(1, keyEdit | keyRight, 0);
+  CHECK(insert.module == insertOff);
+  screenInsertFX.onInput(1, keyEdit | keyLeft, 0);
+  CHECK(insert.module == insertParametricEQ);
+  insertSelect(&insert, insertDistortion);
   screenInsertFX.onInput(1, keyEdit, 1);
   screenInsertFX.onInput(0, 0, 1);
   REQUIRE(currentScreen == &screenSelectionPopup);
