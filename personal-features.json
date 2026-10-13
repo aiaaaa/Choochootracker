@@ -1,7 +1,7 @@
 {
   "upstream": "paiheulevrai/Choochootracker",
   "upstream_branch": "main",
-  "upstream_commit": "2899f43869e1245a178ae0d755718e5a95bffc33",
+  "upstream_commit": "7ab92323b1e4aa61314f1baae565e0ff19a328e0",
   "personal_branch": "personal/r36h",
   "update_policy": "Personal combines upstream main, my additions not yet incorporated upstream, and my experiments. Keep unmerged additions, including pending or declined submissions. Once incorporated upstream, replace my earlier implementation with the maintainer's merged version, including his fixes and changes; remove duplicate code and controls. Test, preserve user data, record commit, and retain rollback before installation.",
   "features": [
@@ -589,12 +589,14 @@
   },
   "daily_20261013_rev4": {
     "baseline": "98c82dcc83982ac8543dc0bc0f554f016dbc7430",
-    "upstream_commit": "2899f43869e1245a178ae0d755718e5a95bffc33",
+    "upstream_commit": "7ab92323b1e4aa61314f1baae565e0ff19a328e0",
     "merged_prs": [
       65,
       67,
       68,
-      70
+      70,
+      72,
+      73
     ],
     "selected_commits": {
       "song_selection_copy": "9bd6e95",
@@ -604,7 +606,9 @@
       "Accepted upstream SID editor replaces earlier contribution ancestry; source matches",
       "Modulation insert group retains personal Beads category",
       "Settings supports Lucky and Android working-folder rows together; touch mapping follows the displayed controls",
-      "Web project import supports .lsdsng and .sav song picker"
+      "Web project import supports .lsdsng and .sav song picker",
+      "Song selection fix now accepted through PR #72; shared implementation retained",
+      "Web MIDI from merged PR #73 retained beside personal storage, controls and Lucky"
     ],
     "lsdj_export": "Upstream desktop and Android targets only; no web/PortMaster export row",
     "status": "Authorized combined daily; exact-source validation and deployment recorded in receipts",

@@ -35,6 +35,7 @@ endif
 
 SOURCES := $(filter-out platforms/sdl2/corelib_mainloop.cpp,$(SOURCES)) \
 	platforms/web/corelib_mainloop.cpp
+SOURCES += platforms/web/midi_backend_web.cpp
 
 .PHONY: web web-deploy
 

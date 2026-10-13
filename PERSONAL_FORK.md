@@ -2,8 +2,8 @@
 
 ## October 13 Rev4 combined personal daily
 
-Selected on personal baseline `98c82dc`: upstream MAIN `2899f43` (merged PRs
-#65, #67, #68 and #70), Song selection copy fix `9bd6e95`, and SQ80 Rev4
+Selected on personal baseline `98c82dc`: upstream MAIN `7ab9232` (merged PRs
+#65, #67, #68, #70, #72 and #73), Song selection copy fix `9bd6e95`, and SQ80 Rev4
 `eb21139`. Edit uses title case directly above the Velocity label. The earlier
 hold is superseded by the owner's combined web/device daily request.
 
@@ -13,7 +13,8 @@ targets and Quit now follow the displayed controls. Web Import project accepts
 CCT, LSDj songs and SAV files with the upstream song picker. LSDj export remains
 limited to upstream's desktop/Android targets. Exact tested commit, deployment,
 preserved-file inventory and rollback are recorded in build/install receipts.
-Beads PR follow-up remains held; Vita remains paused.
+Web MIDI input/output from merged PR #73 is included. The Song copy fix is now
+accepted upstream through PR #72. Beads PR follow-up remains held; Vita remains paused.
 
 ## SQ80/ESQ Rev3 checkpoint
 

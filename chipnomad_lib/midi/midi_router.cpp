@@ -75,6 +75,12 @@ unsigned int midiRouterGetDroppedCount(void) {
 uint64_t midiRouterNowMicros(void) {
   return (g_backend && g_backend->nowMicros) ? g_backend->nowMicros(g_backend->userdata) : 0;
 }
+void midiRouterRequestAccess(void) {
+  if (g_backend && g_backend->requestAccess) g_backend->requestAccess(g_backend->userdata);
+}
+const char* midiRouterStatusMessage(void) {
+  return (g_backend && g_backend->statusMessage) ? g_backend->statusMessage(g_backend->userdata) : nullptr;
+}
 
 MidiRouterState* midiRouterCreate(void) {
   MidiRouterState* router = new MidiRouterState();

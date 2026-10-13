@@ -32,6 +32,7 @@ const MidiBackend kFakeMidiBackend = {
   fakeFlushOutputQueue,
   nullptr, // droppedCount - unused here
   fakeNowMicros,
+  nullptr, nullptr,
   1, 1, 0, 0,
 };
 }

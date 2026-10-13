@@ -175,11 +175,14 @@ static ScreenData screenMidiData = {
 };
 
 static int displayedDroppedCount = -1;
+static char displayedMidiStatus[41] = {};
 
 static void setup(int input) {
   screenMidiData.cursorRow = 0;
   screenMidiData.cursorCol = 0;
   displayedDroppedCount = -1;
+  displayedMidiStatus[0] = '\0';
+  midiRouterRequestAccess();
 }
 
 static void fullRedraw(void) {
@@ -187,11 +190,21 @@ static void fullRedraw(void) {
 }
 
 static void draw(void) {
+  const char* status = midiRouterStatusMessage();
+  if (!status) status = "";
+  if (strcmp(status, displayedMidiStatus) != 0) {
+    strncpy(displayedMidiStatus, status, 40);
+    displayedMidiStatus[40] = '\0';
+    gfxSetFgColor(appSettings.colorScheme.warning);
+    gfxClearRect(0, 7, 40, 1);
+    if (displayedMidiStatus[0]) gfxPrint(0, 7, displayedMidiStatus);
+  }
+
   // Dropped count is monotonic (see midiRouterGetDroppedCount) and only
   // means something went wrong at some point this session - once shown it
   // stays shown, rather than disappearing again on its own.
   int dropped = (int)midiRouterGetDroppedCount();
-  if (dropped == displayedDroppedCount || dropped == 0) return;
+  if (displayedMidiStatus[0] || dropped == displayedDroppedCount || dropped == 0) return;
   displayedDroppedCount = dropped;
   gfxSetFgColor(appSettings.colorScheme.warning);
   gfxClearRect(0, 7, 40, 1);
