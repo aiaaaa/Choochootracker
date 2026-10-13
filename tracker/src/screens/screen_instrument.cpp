@@ -132,6 +132,9 @@ static void onInstrumentLoaded(const char* path) {
   int result = 1;
   const char* ext = strrchr(path, '.');
   int formatHandled = 0;
+#if CHOOCHOO_EXPERIMENTAL_SQ80ESQ
+  if(chipnomadState->project.instruments[cInstrument].type==InstrumentType::SQ80ESQ&&ext&&(!strcasecmp(ext,".syx")||!strcasecmp(ext,".raw"))){instrumentSQ80Import(path);return;}
+#endif
   if(ext&&!strcasecmp(ext,".syx")){instrumentFMImportSysEx(path);return;}
 
   if (ext != NULL) {
@@ -640,7 +643,7 @@ int instrumentCommonOnEdit(int col, int row, enum CellEditAction action) {
     }
   } else if (row == 0 && col == 1) {
     // Load instrument (supports .cni and .vts formats)
-    fileBrowserSetup("LOAD INSTRUMENT", ".cni,.vts,.syx", appSettings.instrumentPath, onInstrumentLoaded, onInstrumentCancelled);
+    fileBrowserSetup("LOAD INSTRUMENT", ".cni,.vts,.syx,.raw", appSettings.instrumentPath, onInstrumentLoaded, onInstrumentCancelled);
     screenSetup(&screenFileBrowser, 0);
   } else if (row == 0 && col == 2) {
     // Save instrument

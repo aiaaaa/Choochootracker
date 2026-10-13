@@ -103,12 +103,16 @@ bool UserPresets::refresh(std::string& error) {
   auto location = stack_.back();
   if (location.zip) {
     auto path=fs::path(locationRoot())/location.path;
-    if(scanBudget_!=size_t(-1)) {
+    if(scanBudget_!=size_t(-1)&&!scannedArchives_.count(path.string())) {
       std::error_code ec;auto size=fs::file_size(path,ec);
       if(ec||size>scanBudget_){error="USER scan size limit reached";scanBudget_=0;return false;}
       scanBudget_-=size;
+      scannedArchives_.insert(path.string());
     }
-    if(!archive_.open(path.string(),error))return false;
+    if(scanBudget_==size_t(-1)||openArchivePath_!=path.string()) {
+      if(!archive_.open(path.string(),error)){openArchivePath_.clear();return false;}
+      openArchivePath_=path.string();
+    }
   }
   if (location.bank) {
     std::vector<uint8_t> data;
@@ -260,7 +264,7 @@ bool UserPresets::load(const Reference& item, Project* destination, int slot, st
 
 std::vector<UserPresets::Reference> UserPresets::scan(std::string& error) {
   auto saved=stack_;stack_={{"","",false,false}};
-  scanBudget_=64*1024*1024;
+  scanBudget_=64*1024*1024;scannedArchives_.clear();
   std::vector<Reference> result;
   size_t visited=0,folders=0;bool limited=false;std::string warning;
   std::function<void()> walk=[&] {

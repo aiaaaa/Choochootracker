@@ -696,6 +696,13 @@ int instrumentLoadData(FILE* file, Instrument* instrument, Project* p) {
     if (s->filterCutoffHz > FILTER_CUTOFF_MAX_HZ) s->filterCutoffHz = FILTER_CUTOFF_MAX_HZ;
   }
 
+  if(instrument->type==InstrumentType::SQ80ESQ){
+#if CHOOCHOO_EXPERIMENTAL_SQ80ESQ
+    if(!validSQ80(instrument->chip.sq80))return 1;
+#else
+    return 1;
+#endif
+  }
   if(isFourOp(instrument->type)&&!validFourOp(instrument->type,instrument->chip.fourOp))return 1;
   if(instrument->type==InstrumentType::DX7&&!validDX7(instrument->chip.dx7))return 1;
   if (isSimpleChip(instrument->type) && !validSimpleChip(instrument->type,instrument->chip.simpleChip))return 1;

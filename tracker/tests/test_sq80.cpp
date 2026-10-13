@@ -8,6 +8,7 @@
 #include "user_presets.h"
 #include "screen_instrument.h"
 #include "project_utils.h"
+#include "pitch_table_utils.h"
 #include "mocks/app_ui_mock.h"
 #include <filesystem>
 #include <fstream>
@@ -59,12 +60,16 @@ TEST_CASE("SQ80 adapter renders stereo with stable block partition and releases"
  v.noteOn();v.kill();v.render(out,256);for(float x:out)CHECK(x==0);
 }
 TEST_CASE("SQ80 editor opens full preset controls and leaves preset ownership intact"){
- auto*old=chipnomadState;auto*screen=currentScreen;int previous=cInstrument;
+ auto*old=chipnomadState;auto*screen=currentScreen;int previous=cInstrument;auto settings=appSettings;int modified=projectModified;
  chipnomadState=chipnomadCreate();initDefaultAppSettings();screensInitAll();cInstrument=0;getInstrumentFunctions(InstrumentType::SQ80ESQ).init(&chipnomadState->project.instruments[0]);
  screenInstrumentSQ80.onEdit(0,5,CellEditAction::tap);CHECK(currentScreen==&screenSQ80Edit);screenSQ80Edit.fullRedraw();auto*d=mockScreenData;REQUIRE(d);CHECK(d->rows>100);
  auto before=chipnomadState->project.instruments[0].chip.sq80;d->onEdit(0,0,CellEditAction::increase);CHECK(chipnomadState->project.instruments[0].chip.sq80.raw[63]==before.raw[63]+1);
+ chipnomadGetPlaybackStatus(chipnomadState);auto&status=chipnomadState->uiPlaybackStatus;status={};status.isPlaying=1;status.trackEnabled[0]=1;chipnomadState->project.tracksCount=1;status.tracks[0].mode=PlaybackMode::song;status.tracks[0].note.instrument=0;status.tracks[0].note.fx[fxPIT].isOn=1;
+ d->cursorRow=2;d->topRow=0;screenMessage(0,"");screenSQ80Edit.draw();CHECK(mockGfxCells[5][27]=='*');CHECK(std::string(screenGetActiveMessage()).find("Track pitch")!=std::string::npos);
+ auto saved=chipnomadState->project.instruments[0].chip.sq80;d->onEdit(0,2,CellEditAction::increase);CHECK(chipnomadState->project.instruments[0].chip.sq80.raw[58]==saved.raw[58]+1);CHECK(status.tracks[0].note.fx[fxPIT].isOn==1);
+ status.trackEnabled[0]=0;screenSQ80Edit.draw();CHECK(mockGfxCells[5][27]!='*');
  screenSQ80Edit.onInput(1,keyOpt,1);CHECK(currentScreen==&screenInstrument);
- chipnomadDestroy(chipnomadState);chipnomadState=old;currentScreen=screen;cInstrument=previous;
+ chipnomadDestroy(chipnomadState);chipnomadState=old;currentScreen=screen;cInstrument=previous;appSettings=settings;projectModified=modified;
 }
 
 TEST_CASE("SQ80 real tracker routing produces audio and preserves patch snapshots"){
@@ -81,7 +86,7 @@ TEST_CASE("SQ80 real tracker routing produces audio and preserves patch snapshot
 }
 TEST_CASE("SQ80 optional private library import audit"){
  const char* assets=std::getenv("SQ80_PRIVATE_ASSETS");if(!assets)return;
- UserPresets library;library.setup(assets,InstrumentType::SQ80ESQ);std::string error;auto refs=library.scan(error);REQUIRE(refs.size()>0);
+ UserPresets library;library.setup(assets,InstrumentType::SQ80ESQ);std::string error;auto refs=library.scan(error);REQUIRE(refs.size()>0);CHECK(error.find("limit")==std::string::npos);
  auto p=std::make_unique<Project>();projectInitAY(p.get());unsigned checked=0;
  for(const auto& ref:refs){REQUIRE(library.load(ref,p.get(),0,error));REQUIRE(validSQ80(p->instruments[0].chip.sq80));++checked;}
  MESSAGE("Private presets parsed: ",checked);projectFree(p.get());

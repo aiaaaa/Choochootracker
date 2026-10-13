@@ -6,6 +6,7 @@
 #include "corelib_gfx.h"
 #include "project_utils.h"
 #include "sq80_patch.h"
+#include "external_presets.h"
 #include <string>
 #include <filesystem>
 #include <fstream>
@@ -39,6 +40,19 @@ int input(int down,int keys,int){if(screenInstrumentSQ80.cursorRow!=4){held=0;re
  if(action==PopupEditInput::cycle){cycleUserPreset(keys==(keyEdit|keyRight)?1:-1);return 1;}if(action==PopupEditInput::hold)return 1;
  if(action==PopupEditInput::open){instrumentSQ80LoadBanks();openUserPresetBrowser();return 1;}return 0;}
 }
+namespace {
+std::vector<ExternalPreset> imported;std::vector<SelectionItem> importChoices;
+void cancelImport(){chipnomadQueueSQ80Preview(chipnomadState,*pSongTrack,nullptr);screenSetup(&screenInstrument,cInstrument);}
+void selectImport(int n){cancelImport();if(n<0||size_t(n)>=imported.size())return;instrumentClear(current());*current()=imported[n].instrument;projectModified=1;}
+void previewImport(int n,bool held){chipnomadQueueSQ80Preview(chipnomadState,*pSongTrack,held&&n>=0&&size_t(n)<imported.size()?&imported[n].instrument.chip.sq80:nullptr);}
+}
+void instrumentSQ80Import(const char* path){
+ std::vector<uint8_t> bytes;std::string error;instrumentSQ80LoadBanks();
+ if(!readPresetFile(path,bytes,error)||!importExternalPresets(InstrumentType::SQ80ESQ,path,bytes,imported,error)){screenSetup(&screenInstrument,cInstrument);screenMessage(MESSAGE_TIME_ERROR,"%s",error.c_str());return;}
+ importChoices.clear();for(size_t n=0;n<imported.size();++n)importChoices.push_back({imported[n].name.c_str(),int(n),nullptr,0});
+ selectionPopupSetup("IMPORT SQ80/ESQ",importChoices.data(),int(importChoices.size()),0,selectImport,cancelImport,true,previewImport);screenSetup(&screenSelectionPopup,0);
+ if(!error.empty())screenMessage(MESSAGE_TIME_ERROR,"%s",error.c_str());
+}
 void instrumentSQ80LoadBanks(){
  std::string root="instruments/USER/sq80esq";
 #ifdef WEB_BUILD
@@ -66,6 +80,7 @@ void instrumentSQ80LoadBanks(){
  sq80LoadBanks(root,error);
 }
 #ifdef WEB_BUILD
+extern "C" EMSCRIPTEN_KEEPALIVE int webValidateSQ80Bank(const char* path,int model){hybrid::WaveBank bank;std::string error;return path&&bank.load(path,error)&&bank.romSize()==(model?65536u:262144u);}
 extern "C" EMSCRIPTEN_KEEPALIVE int webLoadSQ80Banks(){instrumentSQ80LoadBanks();return (sq80Bank(0)?1:0)|(sq80Bank(1)?2:0);}
 #endif
 ScreenData screenInstrumentSQ80={.rows=10,.cursorRow=0,.cursorCol=0,.topRow=0,.selectMode=-1,.selectStartRow=0,.selectStartCol=0,.selectAnchorRow=0,.selectAnchorCol=0,.playbackLevel=ScreenPlaybackLevel::none,.getColumnCount=columns,.drawStatic=drawStatic,.drawCursor=drawCursor,.drawSelection=nullptr,.drawRowHeader=nullptr,.drawColHeader=nullptr,.drawField=drawField,.onEdit=edit,.onInput=input,.onRawInput=nullptr,.isCellValid=nullptr,.getLoopRange=nullptr};

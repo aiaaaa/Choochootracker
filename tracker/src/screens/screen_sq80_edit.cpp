@@ -16,7 +16,8 @@ const char* overrideReason(const SQ80Parameter& f){
   bool volume=f.byte==88&&f.mask==126;
   bool pitch=f.byte==58||f.byte==68||f.byte==78||f.byte==59||f.byte==69||f.byte==79;
   if(volume&&tr.note.fx[fxVOL].isOn)return "* Track volume FX shapes playback";
-  if(pitch&&tr.note.fineOffset)return "* Track pitch offset shapes playback";
+  if(f.byte==100&&f.mask==240&&tr.note.fx[fxPAN].isOn)return "* Track pan FX shapes playback";
+  if(pitch&&(tr.note.fineOffset||tr.note.fx[fxPIT].isOn||tr.note.fx[fxPBN].isOn||tr.note.fx[fxPVB].isOn||tr.note.fx[fxPSL].isOn))return "* Track pitch offset shapes playback";
   for(const auto&m:tr.note.modulation)if(m.modulation&&((volume&&m.modulation->destination==1)||(pitch&&m.modulation->destination==2)))return "* Track modulation shapes playback";
  }return nullptr;
 }

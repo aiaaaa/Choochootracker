@@ -490,6 +490,12 @@
             const rom = view.getUint32(16, true);
             if (view.getUint32(8,true) !== 256 || ![65536,262144].includes(rom) || bytes.length !== 36888 + rom) { skipped++; continue; }
             name = rom === 262144 ? 'hardware-80.hwb' : 'hardware-1.hwb';
+            const temporary = '/user/.sq80-bank-check.hwb';
+            fs.writeFile(temporary, bytes);
+            let valid;
+            try { valid = window.Module.ccall('webValidateSQ80Bank', 'number', ['string','number'], [temporary, rom === 65536 ? 1 : 0]); }
+            finally { fs.unlink(temporary); }
+            if (!valid) { skipped++; continue; }
           }
           if (fs.analyzePath(root + name).exists) { kept++; continue; }
           fs.writeFile(root + name, bytes); imported++;

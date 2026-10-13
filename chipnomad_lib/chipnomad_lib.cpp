@@ -60,6 +60,12 @@ static int instrumentFXCutoff(uint8_t value);
 static int slewEngineFX(PlaybackTrackState*, FX, int);
 static void updateInsertValues(ChipNomadState*);
 
+static void stopSQ80Preview(ChipNomadState* state) {
+#if CHOOCHOO_EXPERIMENTAL_SQ80ESQ
+  state->sq80Preview->kill();
+#endif
+}
+
 class AudioCommandQueue {
  public:
   void requestStop() { stopRequested_.store(1, std::memory_order_release); }
@@ -167,50 +173,50 @@ class AudioCommandQueue {
         case kPreviewNote: playbackPreviewNote(playback, command.a, (uint8_t)command.b, (uint8_t)command.c); break;
         #if CHOOCHOO_EXPERIMENTAL_SQ80ESQ
         case 18:
-          state->sq80Preview->kill();state->sidPreview->kill();state->fourOpPreview->kill();state->dx7Preview->kill();state->opllPreview->kill();state->oplPreview->kill();state->simpleChipPreview->kill();
+          state->sq80Preview->kill();stopSQ80Preview(state);state->sidPreview->kill();state->fourOpPreview->kill();state->dx7Preview->kill();state->opllPreview->kill();state->oplPreview->kill();state->simpleChipPreview->kill();
           state->opllPreviewTrack=-1;
           if(command.b&&!playbackIsPlaying(playback)){state->chipPreviewType=InstrumentType::SQ80ESQ;state->opllPreviewTrack=command.a;state->sq80Preview->configure(&command.sq80,6000,.7f);state->sq80Preview->noteOn();}
           break;
 #endif
         case 16:
           if(command.b&&!playbackIsPlaying(playback)) {
-            state->sidPreview->kill();state->fourOpPreview->kill();state->dx7Preview->kill();state->opllPreview->kill();state->oplPreview->kill();state->simpleChipPreview->kill();
+            stopSQ80Preview(state);state->sidPreview->kill();state->fourOpPreview->kill();state->dx7Preview->kill();state->opllPreview->kill();state->oplPreview->kill();state->simpleChipPreview->kill();
             state->opllPreviewTrack=command.a;state->chipPreviewType=InstrumentType::SID;
             state->sidPreview->configure(&command.sid,6000,.7f);state->sidPreview->noteOn();
-          }else if(!command.b){state->sidPreview->kill();state->opllPreviewTrack=-1;}
+          }else if(!command.b){stopSQ80Preview(state);state->sidPreview->kill();state->opllPreviewTrack=-1;}
           break;
         case 15:
           if(command.b&&!playbackIsPlaying(playback)) {
-            state->sidPreview->kill();state->fourOpPreview->kill();state->dx7Preview->kill();state->opllPreview->kill();state->oplPreview->kill();state->simpleChipPreview->kill();
+            stopSQ80Preview(state);state->sidPreview->kill();state->fourOpPreview->kill();state->dx7Preview->kill();state->opllPreview->kill();state->oplPreview->kill();state->simpleChipPreview->kill();
             state->opllPreviewTrack=command.a;state->chipPreviewType=(InstrumentType)command.c;
             state->fourOpPreview->configure((InstrumentType)command.c,&command.fourOp,6000,.7f);state->fourOpPreview->noteOn();
-          }else if(!command.b){state->sidPreview->kill();state->fourOpPreview->kill();state->opllPreviewTrack=-1;}
+          }else if(!command.b){stopSQ80Preview(state);state->sidPreview->kill();state->fourOpPreview->kill();state->opllPreviewTrack=-1;}
           break;
         case 14:
           if(command.b&&!playbackIsPlaying(playback)) {
-            state->sidPreview->kill();state->fourOpPreview->kill();state->dx7Preview->kill();state->opllPreview->kill();state->oplPreview->kill();state->simpleChipPreview->kill();
+            stopSQ80Preview(state);state->sidPreview->kill();state->fourOpPreview->kill();state->dx7Preview->kill();state->opllPreview->kill();state->oplPreview->kill();state->simpleChipPreview->kill();
             state->opllPreviewTrack=command.a;state->chipPreviewType=InstrumentType::DX7;
             state->dx7Preview->voices[0].configure(&command.dx7,6000,.7f);state->dx7Preview->voices[0].noteOn();
-          }else if(!command.b){state->sidPreview->kill();state->fourOpPreview->kill();state->dx7Preview->kill();state->opllPreviewTrack=-1;}
+          }else if(!command.b){stopSQ80Preview(state);state->sidPreview->kill();state->fourOpPreview->kill();state->dx7Preview->kill();state->opllPreviewTrack=-1;}
           break;
         case kSimplePreview:
           if(command.b && !playbackIsPlaying(playback)) {
-            state->sidPreview->kill();state->fourOpPreview->kill();state->dx7Preview->kill();state->opllPreview->kill();state->oplPreview->kill();state->simpleChipPreview->kill();
+            stopSQ80Preview(state);state->sidPreview->kill();state->fourOpPreview->kill();state->dx7Preview->kill();state->opllPreview->kill();state->oplPreview->kill();state->simpleChipPreview->kill();
             state->opllPreviewTrack=command.a;state->chipPreviewType=(InstrumentType)command.c;
             state->simpleChipPreview->configure((InstrumentType)command.c,&command.simple,6000,.7f);state->simpleChipPreview->noteOn();
           }else if(!command.b){state->simpleChipPreview->kill();state->opllPreviewTrack=-1;}
           break;
         case kOPLPreview:
           if (command.b && !playbackIsPlaying(playback)) {
-            state->sidPreview->kill();state->fourOpPreview->kill();state->dx7Preview->kill();state->opllPreview->kill(); state->oplPreview->kill();state->simpleChipPreview->kill();state->opllPreviewTrack=command.a;state->chipPreviewType=(InstrumentType)command.c;
+            stopSQ80Preview(state);state->sidPreview->kill();state->fourOpPreview->kill();state->dx7Preview->kill();state->opllPreview->kill(); state->oplPreview->kill();state->simpleChipPreview->kill();state->opllPreviewTrack=command.a;state->chipPreviewType=(InstrumentType)command.c;
             state->oplPreview->configure((InstrumentType)command.c,&command.opl,6000,.7f);state->oplPreview->noteOn();
           } else if (!command.b) {state->oplPreview->kill();state->opllPreviewTrack=-1;}
           break;
         case kChipPreview:
           if (command.b && !playbackIsPlaying(playback)) {
-            state->sidPreview->kill();state->fourOpPreview->kill();state->dx7Preview->kill();state->opllPreview->kill(); state->oplPreview->kill();state->simpleChipPreview->kill(); state->chipPreviewType = InstrumentType::OPLL; state->opllPreviewTrack = command.a;
+            stopSQ80Preview(state);state->sidPreview->kill();state->fourOpPreview->kill();state->dx7Preview->kill();state->opllPreview->kill(); state->oplPreview->kill();state->simpleChipPreview->kill(); state->chipPreviewType = InstrumentType::OPLL; state->opllPreviewTrack = command.a;
             state->opllPreview->configure(&command.patch, 6000, .7f); state->opllPreview->noteOn();
-          } else if (!command.b) { state->sidPreview->kill();state->fourOpPreview->kill();state->dx7Preview->kill();state->opllPreview->kill(); state->oplPreview->kill();state->simpleChipPreview->kill(); state->opllPreviewTrack = -1; }
+          } else if (!command.b) { stopSQ80Preview(state);state->sidPreview->kill();state->fourOpPreview->kill();state->dx7Preview->kill();state->opllPreview->kill(); state->oplPreview->kill();state->simpleChipPreview->kill(); state->opllPreviewTrack = -1; }
           break;
         case kStopPreview: playbackStopPreview(playback, command.a); break;
         case kClearTrackFX: memset(playback->tracks[command.a].note.fx, 0, sizeof(playback->tracks[command.a].note.fx)); break;
@@ -1055,7 +1061,7 @@ static int advancePlaybackFrame(ChipNomadState* state, uint64_t dueMicros) {
   if (state->audioCommands->takeStopRequest()) {
     chipnomadMidiPanic(state);
     playbackStop(&state->playbackState);
-    state->sidPreview->kill();state->fourOpPreview->kill();state->dx7Preview->kill();state->opllPreview->kill(); state->oplPreview->kill();state->simpleChipPreview->kill(); state->opllPreviewTrack = -1;
+    stopSQ80Preview(state);state->sidPreview->kill();state->fourOpPreview->kill();state->dx7Preview->kill();state->opllPreview->kill(); state->oplPreview->kill();state->simpleChipPreview->kill(); state->opllPreviewTrack = -1;
   }
   for (int t = 0; t < PROJECT_MAX_TRACKS; ++t) {
     if (!state->insertChains[t]) continue;
@@ -1099,7 +1105,7 @@ static int advancePlaybackFrame(ChipNomadState* state, uint64_t dueMicros) {
   detectAYPitchConflicts(state);
   state->audioCommands->publishStatus(&state->playbackState);
   if (playbackIsPlaying(&state->playbackState) && state->opllPreviewTrack >= 0) {
-    state->sidPreview->kill();state->fourOpPreview->kill();state->dx7Preview->kill();state->opllPreview->kill(); state->oplPreview->kill();state->simpleChipPreview->kill(); state->opllPreviewTrack = -1;
+    stopSQ80Preview(state);state->sidPreview->kill();state->fourOpPreview->kill();state->dx7Preview->kill();state->opllPreview->kill(); state->oplPreview->kill();state->simpleChipPreview->kill(); state->opllPreviewTrack = -1;
   }
   return allTracksStopped && state->opllPreviewTrack < 0;
 }

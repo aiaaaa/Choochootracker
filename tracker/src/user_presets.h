@@ -4,6 +4,7 @@
 #include "external_presets.h"
 #include <string>
 #include <vector>
+#include <set>
 
 const char* userPresetFolder(InstrumentType type);
 bool userPresetCompatible(InstrumentType target, InstrumentType source);
@@ -37,6 +38,8 @@ private:
   std::vector<Location> stack_;
   std::vector<Item> items_;
   PresetZip archive_;
+  std::string openArchivePath_;
+  std::set<std::string> scannedArchives_;
   std::vector<ExternalPreset> voices_;
   size_t scanBudget_ = size_t(-1);
 };
