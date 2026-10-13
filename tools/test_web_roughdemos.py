@@ -11,6 +11,7 @@ import io
 import json
 import os
 from pathlib import Path
+import subprocess
 import threading
 import zipfile
 
@@ -27,7 +28,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
 
 server = http.server.ThreadingHTTPServer(
-    ('127.0.0.1', 0), functools.partial(Handler, directory=str(root / 'web/dist')))
+    ('127.0.0.1', 0), functools.partial(Handler, directory=os.environ.get('WEB_TEST_DIST', str(root / 'web/dist'))))
 threading.Thread(target=server.serve_forever, daemon=True).start()
 url = os.environ.get('WEB_THEME_TEST_URL', f'http://127.0.0.1:{server.server_port}/')
 with sync_playwright() as playwright:
@@ -83,8 +84,24 @@ with sync_playwright() as playwright:
                     assert embedded == {name: original.read(name) for name in original.namelist() if name.startswith('samples/')}, path
         print(f"All {len(records)} bundled projects loaded and saved with every embedded sample intact", flush=True)
 
-        # Simulate an older profile: edited persistent demo and Continue must
-        # survive, while the browser moves to the current bundled library once.
+        # Simulate both former seeded directories, including Decisive Battle v1.
+        # Only exact shipped copies may disappear; edited songs and Continue stay.
+        page.evaluate("""records => {
+            for (const record of records) {
+                const path = '/user/projects/roughdemos/' + record.file;
+                FS.mkdirTree(path.slice(0, path.lastIndexOf('/')));
+                FS.writeFile(path, FS.readFile('/projects/rough demos/' + record.file));
+            }
+            FS.mkdirTree('/user/projects/rough demos');
+            FS.writeFile('/user/projects/rough demos/Left-Right-Stereo-Test.cct',
+                         FS.readFile('/projects/rough demos/Left-Right-Stereo-Test.cct'));
+        }""", records)
+        old_decisive = subprocess.check_output(['git', 'show',
+            '53db569:tracker/packaging/web/roughdemos/Decisive_Battle_NERV_FM.cct'], cwd=root)
+        page.evaluate("""encoded => FS.writeFile(
+            '/user/projects/roughdemos/Decisive_Battle_NERV_FM.cct',
+            Uint8Array.from(atob(encoded), char => char.charCodeAt(0)))""",
+            base64.b64encode(old_decisive).decode())
         changed = '/user/projects/rough demos/' + records[0]['file']
         page.evaluate("path => FS.mkdirTree(path.slice(0,path.lastIndexOf('/')))", changed)
         assert page.evaluate("path => Module.ccall('webLoadProject','number',['string'],[path])",
@@ -101,6 +118,7 @@ with sync_playwright() as playwright:
             FS.mkdirTree('/user/instruments/USER/sid');
             FS.writeFile('/user/instruments/USER/sid/test-user-data.txt','keep private');
             FS.unlink('/user/.project-library-root-v1');
+            FS.unlink('/user/.rough-demo-cleanup-v1');
             let settings = FS.readFile('/user/settings.txt', {encoding:'utf8'});
             FS.writeFile('/user/settings.txt', settings.replace(
                 /^projectPath:.*$/m, 'projectPath: /user/projects/rough demos'));
@@ -108,6 +126,9 @@ with sync_playwright() as playwright:
         flush()
         page.reload()
         ready()
+        assert not page.evaluate("FS.analyzePath('/user/projects/roughdemos').exists")
+        assert not page.evaluate("FS.analyzePath('/user/projects/rough demos/Left-Right-Stereo-Test.cct').exists")
+        assert read('/user/.rough-demo-cleanup-v1') == b'1\n'
         assert digest(changed) == changed_hash
         assert digest('/user/autosave.cct') == continue_hash
         assert read('/user/instruments/USER/sid/test-user-data.txt') == b'keep private'
@@ -127,8 +148,10 @@ with sync_playwright() as playwright:
         ready()
         assert b'projectPath: /user/projects/my songs\n' in read('/user/settings.txt')
         assert digest(changed) == changed_hash
+        assert not page.evaluate("FS.analyzePath('/user/projects/roughdemos').exists")
+        assert not page.evaluate("FS.analyzePath('/user/projects/rough demos/Left-Right-Stereo-Test.cct').exists")
         assert not errors, errors
-        print('Initialized /projects library, bundled refresh and one-time location migration passed; edited songs, Continue and private data preserved', flush=True)
+        print('Library refresh and persisted cleanup of both old demo roots (including Decisive Battle v1) passed; edited songs, Continue and private data preserved', flush=True)
     finally:
         browser.close()
         server.shutdown()

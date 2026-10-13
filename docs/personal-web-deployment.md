@@ -218,10 +218,23 @@ Blue Hour and Low Water.
 Only Makefile.web preloads this folder, directly at `/projects/rough demos`.
 The Project Load browser defaults to `/projects`, beside the existing examples.
 A one-time browser migration redirects the former default or rough-demos browser
-location to `/projects`; later folder choices are retained. Existing saved copies
-under `/user/projects/roughdemos` or `/user/projects/rough demos` are untouched,
-as are Continue, settings unrelated to that path, and private presets.
-No new working copies are seeded into `/user/projects`.
+location to `/projects`; later folder choices are retained. A separate one-time
+cleanup removes only exact SHA-256 matches to the shipped demo files from
+`/user/projects/roughdemos` and `/user/projects/rough demos`, including the first
+Decisive Battle revision. Edited and unrecognized files remain intact. Empty
+known demo directories are removed, and a saved browser location pointing into
+a removed demo directory returns to `/projects`. Continue, other settings and
+private presets are untouched. The cleanup runs after IDBFS restore and before
+the tracker starts; its marker and deletions are flushed together. Failed hash
+checks leave the marker unset so cleanup can retry. No new working copies are
+seeded into `/user/projects`.
+
+Continue is one rolling `/user/autosave.cct`, serialized roughly once per active
+minute, on hiding the page, and before Reload app. The 10-second IDBFS timer
+flushes filesystem changes; it does not create additional autosave versions.
+Imported projects and explicit saves under `/user/projects` are independent
+files in the same browser database. These virtual folders are not phone Files
+folders, a server library, or cloud sync; download `.cct` for an external copy.
 
 The public bundled collection refreshes on reload, so updates to an existing
 filename are visible immediately. Decisive Battle revision 2 replaces the first

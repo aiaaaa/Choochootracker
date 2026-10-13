@@ -74,7 +74,14 @@ separate application codebase, and personal is not merged back into main.
 Browser settings, songs and imported USER presets are local to each browser/site;
 device data does not synchronize automatically. Personal assets stay private
 except for the owner's explicitly published `roughdemos` song collection.
-In the browser, the editable collection appears as `[rough demos]` in the normal Projects folder; its starting files are hidden from the file browser. The web canvas has no focus frame.
+In the browser, `[rough demos]` lives in `/projects/rough demos` and refreshes
+from the bundle on reload. A one-time cleanup removes exact shipped copies from
+the old `/user/projects/roughdemos` and `/user/projects/rough demos` folders,
+preserving edits and extra files. User saves belong in `/user/projects`;
+Continue remains the separate, single `/user/autosave.cct`. Isolated Chrome
+checks cover both old folder names, Decisive Battle revision 1, persisted
+cleanup, and preservation of edits, Continue and private presets. The web canvas
+has no focus frame.
 Its web-only packaging contains 17 device projects and a separately named
 Continue snapshot collected October 11, with Decisive Battle added October 12; browser edits remain local. The five
 older sample-based saves are converted to self-contained archives for both
