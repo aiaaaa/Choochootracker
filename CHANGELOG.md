@@ -25,6 +25,15 @@
 - Loading a WAV that contains cue chunks into an unsliced Sampler instrument
   now seeds AUTO slicing from the cue positions.
 - Slice and Stretch are mutually exclusive: enabling one disables the other.
+- Android now builds in two flavors. `store` keeps projects and samples private
+  to the app (no storage permission). `direct`, for F-Droid and APK downloads,
+  lets the user pick one workspace folder with the system folder picker (no
+  broad storage permission): the engine's file calls are routed to that folder
+  through the Storage Access Framework, while bundled banks and demo content
+  stay in the app as a read-only overlay. **Settings > Working folder** changes
+  the folder (optionally copying the files) or goes back to private storage.
+- The file browser always offers `..` in empty or unreadable folders, and on
+  Android stops at the user storage root.
 
 ## v0.1.0-prealpha.5 (October 3, 2026)
 
