@@ -6,6 +6,8 @@
 #include <chipnomad_lib.h>
 #include <import/import_common.h>
 
+#include <corelib/corelib_file.h>
+
 #include <cstdio>
 #include <cstring>
 #include <vector>
@@ -244,6 +246,94 @@ TEST_CASE("export into a template, then import again") {
   remove(out);
   projectFree(&p);
   projectFree(&q);
+}
+
+
+// Position of the jump id that ends a compressed block, or -1
+int jumpPosition(const uint8_t* block) {
+  size_t i = 0;
+  while (i < LSDJ_BLOCK_SIZE) {
+    uint8_t b = block[i++];
+    if (b == 0xC0) { if (block[i++] != 0xC0) i++; }
+    else if (b == 0xE0) {
+      uint8_t v = block[i++];
+      if (v == 0xFF) return -1;
+      if (v == 0xF0 || v == 0xF1) i++;
+      else if (v != 0xE0) return (int)i - 1;
+    }
+  }
+  return -1;
+}
+
+// Copies a compressed song into the sav at the given block indices
+void placeSong(std::vector<uint8_t>& sav, int project, const char* name, uint8_t version,
+               const std::vector<uint8_t>& song, const std::vector<int>& blocks) {
+  std::vector<uint8_t> packed(LSDJ_MAX_BLOCKS * LSDJ_BLOCK_SIZE);
+  size_t n = lsdjCompress(song.data(), packed.data());
+  REQUIRE(n / LSDJ_BLOCK_SIZE == blocks.size());
+  memcpy(&sav[LSDJ_SAV_NAMES + project * 8], name, strlen(name));
+  sav[LSDJ_SAV_VERSIONS + project] = version;
+  for (size_t b = 0; b < blocks.size(); b++) {
+    uint8_t* block = &packed[b * LSDJ_BLOCK_SIZE];
+    int pos = jumpPosition(block);
+    if (pos >= 0) block[pos] = (uint8_t)(blocks[b + 1] + 1);
+    memcpy(&sav[LSDJ_SAV_BLOCKS + blocks[b] * LSDJ_BLOCK_SIZE], block, LSDJ_BLOCK_SIZE);
+    sav[LSDJ_SAV_BLOCK_TABLE + blocks[b]] = (uint8_t)project;
+  }
+}
+
+TEST_CASE("extracts the songs of a .sav, with blocks out of order") {
+  std::vector<uint8_t> sav(LSDJ_SAV_SIZE, 0);
+  memset(&sav[LSDJ_SAV_BLOCK_TABLE], 0xFF, LSDJ_SAV_BLOCK_COUNT);
+  sav[LSDJ_SAV_MARKER] = 'j'; sav[LSDJ_SAV_MARKER + 1] = 'k';
+
+  auto a = makeSong();
+  a[0x1290 + 1] = 3; a[0x2080 + 3 * 16] = 7; a[7 * 16] = 1; a[0x7000 + 7 * 16] = 0;
+  auto b = makeSong();
+  b[0x1290 + 1] = 4; b[0x2080 + 4 * 16] = 8; b[8 * 16] = 5;
+  std::vector<uint8_t> packed(LSDJ_MAX_BLOCKS * LSDJ_BLOCK_SIZE);
+  size_t blocksA = lsdjCompress(a.data(), packed.data()) / LSDJ_BLOCK_SIZE;
+  size_t blocksB = lsdjCompress(b.data(), packed.data()) / LSDJ_BLOCK_SIZE;
+  REQUIRE(blocksA >= 1); REQUIRE(blocksB >= 1);
+  // Song A takes the even blocks 20, 22, ...; song B the odd ones starting at 1
+  std::vector<int> ia, ib;
+  for (size_t i = 0; i < blocksA; i++) ia.push_back(20 + 2 * (int)i);
+  for (size_t i = 0; i < blocksB; i++) ib.push_back(1 + 2 * (int)i);
+  placeSong(sav, 0, "ALPHA", 0x0B, a, ia);
+  placeSong(sav, 5, "BETA", 0x02, b, ib);
+
+  const char* savPath = "test_extract_lsdj.sav";
+  const char* dir = "test_extract_lsdj";
+  FILE* f = fopen(savPath, "wb");
+  REQUIRE(f);
+  fwrite(sav.data(), 1, sav.size(), f);
+  fclose(f);
+
+  int count = 0;
+  REQUIRE(lsdjExtractSav(savPath, dir, &count) == 0);
+  CHECK(count == 2);
+
+  Project p;
+  projectInit(&p);
+  REQUIRE(projectLoadLSDJ(&p, "test_extract_lsdj/ALPHA_v0B.lsdsng") == 0);
+  CHECK(strcmp(p.title, "ALPHA") == 0);
+  CHECK(p.song[0][1] == 3);
+  CHECK(p.phrases[7].rows[0].note == 24);
+  REQUIRE(projectLoadLSDJ(&p, "test_extract_lsdj/BETA_v02.lsdsng") == 0);
+  CHECK(strcmp(p.title, "BETA") == 0);
+  CHECK(p.song[0][1] == 4);
+  CHECK(p.phrases[8].rows[0].note == 28);
+  projectFree(&p);
+
+  remove("test_extract_lsdj/ALPHA_v0B.lsdsng");
+  remove("test_extract_lsdj/BETA_v02.lsdsng");
+  remove(dir);
+  CHECK(lsdjExtractSav("test_import_lsdj_none.sav", dir, &count) != 0);
+  f = fopen(savPath, "wb");
+  fwrite("junk", 1, 4, f);
+  fclose(f);
+  CHECK(lsdjExtractSav(savPath, dir, &count) != 0);
+  remove(savPath);
 }
 
 }

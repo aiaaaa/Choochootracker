@@ -4,6 +4,8 @@
 #include "import_common.h"
 #include <lsdj_format.h>
 
+#include "corelib/corelib_file.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -223,5 +225,67 @@ int projectLoadLSDJ(Project* project, const char* path) {
   free(file);
   projectFree(project);
   *project = p;
+  return 0;
+}
+
+// A file name made of the song name and version, as LSDj tools do
+static void savFileName(char* dest, size_t size, const uint8_t* name, uint8_t version) {
+  char clean[LSDJ_NAME_SIZE + 1];
+  size_t n = 0;
+  for (int i = 0; i < LSDJ_NAME_SIZE && name[i]; i++) {
+    char c = (char)name[i];
+    if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '-' || c == '_') clean[n++] = c;
+  }
+  clean[n] = 0;
+  snprintf(dest, size, "%s_v%02X.lsdsng", n ? clean : "SONG", version);
+}
+
+int lsdjExtractSav(const char* savPath, const char* outDir, int* count) {
+  if (count) *count = 0;
+  if (!savPath || !outDir) return 1;
+  FILE* f = fopen(savPath, "rb");
+  if (!f) {
+    snprintf(projectFileError, 40, "Cannot open LSDj save");
+    return 1;
+  }
+  uint8_t* sav = (uint8_t*)malloc(LSDJ_SAV_SIZE);
+  size_t got = sav ? fread(sav, 1, LSDJ_SAV_SIZE, f) : 0;
+  fseek(f, 0, SEEK_END);
+  long size = ftell(f);
+  fclose(f);
+  if (!sav || got != LSDJ_SAV_SIZE || size != LSDJ_SAV_SIZE || sav[LSDJ_SAV_MARKER] != 'j' || sav[LSDJ_SAV_MARKER + 1] != 'k') {
+    free(sav);
+    snprintf(projectFileError, 40, "Not a valid LSDj save");
+    return 1;
+  }
+  if (!fileDirectoryExists(outDir) && fileCreateDirectory(outDir) != 0) {
+    free(sav);
+    snprintf(projectFileError, 40, "Cannot create folder");
+    return 1;
+  }
+
+  uint8_t* packed = (uint8_t*)malloc(LSDJ_MAX_BLOCKS * LSDJ_BLOCK_SIZE);
+  int written = 0;
+  for (int i = 0; packed && i < LSDJ_SAV_PROJECTS; i++) {
+    size_t n = lsdjSavProject(sav, i, packed);
+    if (!n) continue;
+    uint8_t header[LSDJ_HEADER_SIZE];
+    memcpy(header, sav + LSDJ_SAV_NAMES + i * LSDJ_NAME_SIZE, LSDJ_NAME_SIZE);
+    header[LSDJ_NAME_SIZE] = sav[LSDJ_SAV_VERSIONS + i];
+    char fileName[64], path[2048];
+    savFileName(fileName, sizeof(fileName), header, header[LSDJ_NAME_SIZE]);
+    snprintf(path, sizeof(path), "%s%s%s", outDir, PATH_SEPARATOR_STR, fileName);
+    FILE* out = fopen(path, "wb");
+    if (!out) continue;
+    size_t w = fwrite(header, 1, sizeof(header), out) + fwrite(packed, 1, n, out);
+    if (fclose(out) == 0 && w == sizeof(header) + n) written++;
+  }
+  free(packed);
+  free(sav);
+  if (count) *count = written;
+  if (!written) {
+    snprintf(projectFileError, 40, "No song found in the save");
+    return 1;
+  }
   return 0;
 }
