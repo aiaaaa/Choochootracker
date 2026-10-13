@@ -95,6 +95,76 @@
     let storageCallbacks = [];
     const getFs = () => (typeof FS !== 'undefined' ? FS : (window.Module && window.Module.FS));
 
+    // Kept in the wrapper because Web MIDI is a browser API. The C++ backend
+    // only sees the same port list and raw messages as every other platform.
+    // Status values match platforms/web/midi_backend_web.cpp.
+    (() => {
+      let access = null, pending = false, state = 0;
+      let inputs = [], outputs = [], inputPort = null, outputPort = null;
+      const rebuild = () => {
+        if (!access) { inputs = []; outputs = []; return; }
+        inputs = Array.from(access.inputs.values()).filter(port => port.state === 'connected');
+        outputs = Array.from(access.outputs.values()).filter(port => port.state === 'connected');
+        if (inputPort && !inputs.includes(inputPort)) inputPort = null;
+        if (outputPort && !outputs.includes(outputPort)) outputPort = null;
+      };
+      const closeInput = () => {
+        if (inputPort) inputPort.onmidimessage = null;
+        inputPort = null;
+      };
+      const receive = (event) => {
+        const data = event.data;
+        if (!data || data.length < 2 || !window.Module || !window.Module.ccall) return;
+        window.Module.ccall('webMidiMessage', null, ['number', 'number', 'number'],
+          [data[0], data[1], data.length > 2 ? data[2] : 0]);
+      };
+      window.choochooWebMidi = {
+        requestAccess() {
+          if (access || pending) return;
+          if (!navigator.requestMIDIAccess) { state = 2; return; }
+          pending = true;
+          state = 1;
+          navigator.requestMIDIAccess({ sysex: false }).then((granted) => {
+            access = granted;
+            pending = false;
+            state = 0;
+            rebuild();
+            access.onstatechange = rebuild;
+          }, () => { pending = false; state = 3; });
+        },
+        status() { return state; },
+        portCount(isInput) { return (isInput ? inputs : outputs).length; },
+        portName(isInput, index) {
+          const port = (isInput ? inputs : outputs)[index];
+          return port ? (port.name || port.manufacturer || 'Unnamed MIDI port') : null;
+        },
+        openPort(isInput, index) {
+          const port = (isInput ? inputs : outputs)[index];
+          if (!port) return false;
+          if (isInput) {
+            closeInput();
+            inputPort = port;
+            inputPort.onmidimessage = receive;
+            inputPort.open().catch(() => { state = 4; });
+          } else {
+            outputPort = port;
+            outputPort.open().catch(() => { state = 4; });
+          }
+          return true;
+        },
+        closePort(isInput) {
+          if (isInput) closeInput();
+          else outputPort = null;
+        },
+        send(statusByte, data1, data2, dueTime) {
+          if (!outputPort) return;
+          const message = [statusByte, data1];
+          if ((statusByte & 0xe0) !== 0xc0) message.push(data2);
+          try { outputPort.send(message, dueTime); } catch (_) { state = 4; }
+        },
+      };
+    })();
+
     const themeVariables = ['background', 'empty', 'muted', 'text', 'value',
       'title', 'play', 'cursor', 'selection', 'warning'];
     window.choochooApplyTheme = (colors, saveResult) => {
