@@ -42,7 +42,7 @@ TEST_CASE_FIXTURE(NativePreviewFixture, "SID redraw renders without an FM amp an
         mockBitmapDrawCount = 0;
         instrumentFMRefreshStaticWaveform();
         CHECK(mockBitmapDrawCount == 1);
-        CHECK(mockBitmapDrawRow == (persistent && envelope ? 15 : 16));
+        CHECK(mockBitmapDrawRow == 16);
         CHECK(mockEnvelopePreviewCount == (envelope && enabled ? 1 : 0));
         CHECK(std::memcmp(&before, &instrument, sizeof(Instrument)) == 0);
       }

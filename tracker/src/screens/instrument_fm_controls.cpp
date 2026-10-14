@@ -12,7 +12,7 @@ static Bitmap* staticWaveformBitmap = nullptr;
 void instrumentFMRefreshStaticWaveform() {
   const auto* envelope = amp();
   // SID shares this redraw path but has no optional FM amp or ADSR overlay.
-  const int row = appSettings.persistentWaveform && envelope ? 15 : 16;
+  const int row = 16;
   if (!staticWaveformBitmap) staticWaveformBitmap = gfxBitmapCreate(32, 3);
   gfxClearRect(0, row, 32, 3);
   renderFMPreview(staticWaveformBitmap, &chipnomadState->project.instruments[cInstrument]);
@@ -32,7 +32,7 @@ void instrumentFMAmpDrawStatic() {
   gfxPrint(0, 14, "ADSR");
   gfxPrint(6, 14, "A"); gfxPrint(11, 14, "D");
   gfxPrint(16, 14, "S"); gfxPrint(21, 14, "R");
-  gfxPrint(appSettings.persistentWaveform ? 25 : 27, 14, appSettings.persistentWaveform ? "Shape" : "SHP");
+  gfxPrint(27, 14, "SHP");
   instrumentFMRefreshStaticWaveform();
 }
 

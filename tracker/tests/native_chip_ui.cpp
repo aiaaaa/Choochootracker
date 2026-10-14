@@ -35,6 +35,52 @@ static void tapEdit(){key(1,keyEdit);key(0,0);}
 int main(int argc,char** argv){
   if(argc!=2&&argc!=3)return 1;output=argv[1];initDefaultAppSettings();appSettings.screenWidth=640;appSettings.screenHeight=480;fontSetCurrent(fontGetDefault());require(!gfxSetup(&appSettings.screenWidth,&appSettings.screenHeight),"SDL dummy setup");
   chipnomadState=chipnomadCreate();require(chipnomadState,"state");require(!projectLoad(&chipnomadState->project,"projects/gm-midi-demo.cct"),"fixture");
+  if(argc==3 && !strcmp(argv[2],"--song-waveform-only")) {
+    screensInitAll();waveformDisplayInit();monitorDisplayInit();
+    auto& project=chipnomadState->project;
+    *pSongRow=*pChainRow=*pSongTrack=0;
+    project.song[0][0]=0;project.chains[0].rows[0].phrase=0;
+    getInstrumentFunctions(InstrumentType::OPLL).init(&project.instruments[0]);
+    for(auto& mod:project.instruments[0].modulation) {
+      mod.type=ModulationType::SLFO;mod.p1=static_cast<uint8_t>(LFOShape::wavetable);
+    }
+    struct Page { const AppScreen* screen; const char* name; };
+    const Page pages[]={{&screenSong,"song"},{&screenChain,"chain"},
+      {&screenPhrase,"phrase"},{&screenTable,"table"},{&screenInstrument,"instrument"},
+      {&screenModulation,"modulation"},{&screenMixer,"mixer"},
+      {&screenGroove,"groove"},{&screenInstrumentPool,"pool"}};
+    for(int enabled:{0,1}) {
+      appSettings.persistentWaveform=enabled;
+      for(const auto& page:pages) {
+        // Exercise every transition from the offset SONG page back to an editor.
+        screenSetup(&screenSong,0);appDraw();
+        screenSetup(page.screen,0);appDraw();
+        int offset=enabled && page.screen==&screenSong ? 2 : 0;
+        require(gfxGetContentRowOffset()==offset,"Only SONG shifts page content");
+        require(screenVisibleRows()==16-offset,"Full editor row capacity");
+        if(page.screen==&screenSong) {
+          require(screenTouchTap(3,3+offset),"SONG first row touch follows waveform");
+          require(*pSongRow==0,"SONG first row selected");
+        }
+        if(page.screen==&screenPhrase) {
+          for(int row:{14,15}) {
+            project.phrases[0].rows[row].note=48;
+            require(screenTouchTap(3,3+row),"Restored bottom phrase row touch");
+            key(1,keyEdit|keyRight);key(0,0);
+            require(project.phrases[0].rows[row].note==49,"Bottom row edit reaches correct note");
+          }
+        }
+        if(page.screen==&screenModulation) {
+          require(screenTouchTap(7,18),"Last modulation field accessible");
+          require(!screenTouchTap(7,10),"Modulation gap is not a field");
+        }
+        char name[64];snprintf(name,sizeof(name),"%s-waveform-%d",page.name,enabled);
+        capture(name);
+      }
+    }
+    printf("Song-only waveform: transitions, full editor rows, bottom Phrase edits and Modulation touch passed in both modes\n");
+    chipnomadDestroy(chipnomadState);SDL_Quit();return 0;
+  }
   if(argc==3 && !strcmp(argv[2],"--insert-popup-only")) {
     screensInitAll();waveformDisplayInit();monitorDisplayInit();
     auto& project=chipnomadState->project;
@@ -277,7 +323,7 @@ int main(int argc,char** argv){
       auto& inst=chipnomadState->project.instruments[0];getInstrumentFunctions(type).init(&inst);
       require(!instrumentFXAvailableForInstrument(&inst,fxFBK+1),"selector removed");
       for(int command=fxOAR;command<=fxLEN;++command) {
-        uint8_t fx[]={EMPTY_VALUE_8,0};selectInstrumentFX(fx,command,0);
+        FXCell fx{FX_ID_EMPTY,0};selectInstrumentFX(&fx,command,0);
         require((fx[0]==command)==bool(instrumentFXAvailableForInstrument(&inst,command)),"selection follows compact list");
       }
       *pSongTrack=0;*pSongRow=0;*pChainRow=0;
@@ -383,16 +429,16 @@ int main(int argc,char** argv){
     auto& inst=chipnomadState->project.instruments[0];getInstrumentFunctions(type).init(&inst);
     for(int command=fxFBR;command<fxTotalCount;++command) {
       NativeFXInfo info{};if(!instrumentFXAvailableForInstrument(&inst,command)||!instrumentNativeFXInfo(&inst,command,&info))continue;
-      uint8_t fx[]={EMPTY_VALUE_8,255},last[]={uint8_t(command),255};
-      selectInstrumentFX(fx,command,0);require(fx[1]==info.preset,"new native FX starts at instrument value");
-      fx[1]=info.minimum;selectInstrumentFX(fx,command,0);require(fx[1]==info.minimum,"existing native FX value preserved");
+      FXCell fx{FX_ID_EMPTY,255},last{FXId(command),255};
+      selectInstrumentFX(&fx,command,0);require(fx[1]==info.preset,"new native FX starts at instrument value");
+      fx[1]=info.minimum;selectInstrumentFX(&fx,command,0);require(fx[1]==info.minimum,"existing native FX value preserved");
       for(auto action:{CellEditAction::increase,CellEditAction::increaseBig,CellEditAction::multiIncreaseBig}) {
-        fx[1]=info.maximum;editFXValue(action,fx,last,0,0);require(fx[1]==info.maximum,"native upper bound");
+        fx[1]=info.maximum;editFXValue(action,&fx,&last,0,0);require(fx[1]==info.maximum,"native upper bound");
       }
       for(auto action:{CellEditAction::decrease,CellEditAction::decreaseBig}) {
-        fx[1]=info.minimum;editFXValue(action,fx,last,1,0);require(fx[1]==info.minimum,"native lower bound in table");
+        fx[1]=info.minimum;editFXValue(action,&fx,&last,1,0);require(fx[1]==info.minimum,"native lower bound in table");
       }
-      fx[1]=255;editFXValue(CellEditAction::tap,fx,last,0,0);require(fx[1]<=info.maximum,"out of range cached FX repaired on edit");
+      fx[1]=255;editFXValue(CellEditAction::tap,&fx,&last,0,0);require(fx[1]<=info.maximum,"out of range cached FX repaired on edit");
     }
   }
   getInstrumentFunctions(InstrumentType::DX7).init(&chipnomadState->project.instruments[0]);
@@ -405,11 +451,11 @@ int main(int argc,char** argv){
   fxProject.instruments[1].chip.opl.operators[0].level=20;
   fxProject.phrases[0].rows[1].instrument=1;
   require(lookupInstrument(&fxProject,0,0,0,0)==0&&lookupInstrument(&fxProject,0,0,2,0)==1,"FX lookup follows explicit and inherited I column");
-  uint8_t inherited[]={EMPTY_VALUE_8,255};selectInstrumentFX(inherited,fxOL1,lookupInstrument(&fxProject,0,0,2,0));
+  FXCell inherited{FX_ID_EMPTY,255};selectInstrumentFX(&inherited,fxOL1,lookupInstrument(&fxProject,0,0,2,0));
   require(inherited[1]==43,"inherited instrument supplies its own operator level");
   for(int header:{0,1}) {
     appSettings.persistentWaveform=header;screenSetup(&screenPhrase,-1);appDraw();
-    fxProject.phrases[0].rows[0].fx[0][0]=EMPTY_VALUE_8;
+    fxProject.phrases[0].rows[0].fx[0].command=FX_ID_EMPTY;
     screenPhrase.init();
     for(int col=0;col<3;++col)key(1,keyRight);
     key(1,keyEdit|keyUp);
@@ -417,7 +463,7 @@ int main(int argc,char** argv){
     fxEditFullDraw(fxFBK,0,0);capture(header?"fx-native-last-header-on":"fx-native-last-header-off");
     fxEditFullDraw(fxOL1,0,0);
     screenPhrase.onInput(0,0,1);
-    auto* fx=fxProject.phrases[0].rows[0].fx[0];require(fx[0]==fxOL1&&fx[1]==42,"popup commit reads instrument preset");
+    auto& fx=fxProject.phrases[0].rows[0].fx[0];require(fx[0]==fxOL1&&fx[1]==42,"popup commit reads instrument preset");
   }
   getInstrumentFunctions(InstrumentType::GBPulse).init(&chipnomadState->project.instruments[0]);
   screenSetup(&screenPhrase,-1);appDraw();screenPhrase.init();
