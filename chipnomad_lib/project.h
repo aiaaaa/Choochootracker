@@ -228,18 +228,6 @@ enum FX : FXId {
   // Absolute panorama controls. Appended to preserve project FX IDs.
   fxPAN, // Instrument pan
   fxTPN, // Track pan
-#ifdef TEST
-  fxTestDummy00, fxTestDummy01, fxTestDummy02, fxTestDummy03, fxTestDummy04, fxTestDummy05, fxTestDummy06, fxTestDummy07, fxTestDummy08, fxTestDummy09,
-  fxTestDummy10, fxTestDummy11, fxTestDummy12, fxTestDummy13, fxTestDummy14, fxTestDummy15, fxTestDummy16, fxTestDummy17, fxTestDummy18, fxTestDummy19,
-  fxTestDummy20, fxTestDummy21, fxTestDummy22, fxTestDummy23, fxTestDummy24, fxTestDummy25, fxTestDummy26, fxTestDummy27, fxTestDummy28, fxTestDummy29,
-  fxTestDummy30, fxTestDummy31, fxTestDummy32, fxTestDummy33, fxTestDummy34, fxTestDummy35, fxTestDummy36, fxTestDummy37, fxTestDummy38, fxTestDummy39,
-  fxTestDummy40, fxTestDummy41, fxTestDummy42, fxTestDummy43, fxTestDummy44, fxTestDummy45, fxTestDummy46, fxTestDummy47, fxTestDummy48, fxTestDummy49,
-  fxTestDummy50, fxTestDummy51, fxTestDummy52, fxTestDummy53, fxTestDummy54, fxTestDummy55, fxTestDummy56, fxTestDummy57, fxTestDummy58, fxTestDummy59,
-  fxTestDummy60, fxTestDummy61, fxTestDummy62, fxTestDummy63, fxTestDummy64, fxTestDummy65, fxTestDummy66, fxTestDummy67, fxTestDummy68, fxTestDummy69,
-  fxTestDummy70, fxTestDummy71, fxTestDummy72, fxTestDummy73, fxTestDummy74, fxTestDummy75, fxTestDummy76, fxTestDummy77, fxTestDummy78, fxTestDummy79,
-  fxTestDummy80, fxTestDummy81, fxTestDummy82, fxTestDummy83, fxTestDummy84, fxTestDummy85, fxTestDummy86, fxTestDummy87, fxTestDummy88, fxTestDummy89,
-  fxTestDummy90, fxTestDummy91, fxTestDummy92, fxTestDummy93, fxTestDummy94, fxTestDummy95, fxTestDummy96, fxTestDummy97, fxTestDummy98, fxTestDummy99,
-#endif
   // Total count - must be last
   fxTotalCount
 };
