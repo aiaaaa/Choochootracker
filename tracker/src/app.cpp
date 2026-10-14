@@ -20,6 +20,7 @@
 #include "midi/midi_router.h"
 #include "link/link_client.h"
 #include "midi/midi_backend_desktop.h"
+#include <math.h>
 #ifdef ANDROID_BUILD
 #include "midi/midi_backend_android.h"
 #elif defined(WEB_BUILD)
@@ -78,6 +79,74 @@ static uint32_t clockBpmAppliedSerial;
 // pattern as clockBpmAppliedSerial/clockTransportAppliedSerial).
 static uint32_t linkBpmAppliedSerial;
 static uint32_t linkTransportAppliedSerial;
+// Link phase follower: Link owns the shared musical timeline, while the
+// tracker advances at its audio device's actual clock. Once per 4/4 bar we
+// measure the difference and slew the next bar by at most two percent. This
+// never skips/repeats a tracker tick or publishes a Link session change.
+static float linkPhaseBaseTickRate;
+static uint64_t linkPhaseLastCorrectionTick;
+static int linkPhaseFollowing;
+
+static void resetLinkPhaseFollowing(void) {
+  linkPhaseBaseTickRate = 0.0f;
+  linkPhaseLastCorrectionTick = 0;
+  linkPhaseFollowing = 0;
+}
+
+static double wrapLinkPhaseTicks(double ticks) {
+  ticks = fmod(ticks, 96.0); // 24 tracker ticks/beat, four beats/bar.
+  if (ticks >= 48.0) ticks -= 96.0;
+  if (ticks < -48.0) ticks += 96.0;
+  return ticks;
+}
+
+static void updateLinkPhaseFollowing(void) {
+  if (linkPhaseBaseTickRate <= 0.0f) return;
+  if (linkClientGetStatus(chipnomadState->linkClient, NULL) != LinkStatus::connected) {
+    // Keep the last session tempo while discovery is in progress. A peer can
+    // appear without changing Link's tempo serial, so clearing the base rate
+    // here would leave phase following disabled after a no-peers -> connected
+    // transition.
+    linkPhaseFollowing = 0;
+    linkPhaseLastCorrectionTick = 0;
+    return;
+  }
+
+  const PlaybackStatus* playback = chipnomadGetPlaybackStatus(chipnomadState);
+  if (!playback || !playback->isPlaying || playback->linkPhaseTickMicros == 0) {
+    linkPhaseFollowing = 0;
+    return;
+  }
+
+  uint64_t capturedAtMicros = 0;
+  const double capturedBeat = linkClientGetSessionBeat(chipnomadState->linkClient, &capturedAtMicros);
+  if (capturedAtMicros == 0) return;
+
+  // The session beat was captured on the UI thread. Project it back to the
+  // precise audio tick timestamp so the UI frame cadence cannot modulate the
+  // correction.
+  const int64_t elapsedMicros = (int64_t)capturedAtMicros - (int64_t)playback->linkPhaseTickMicros;
+  const double beatAtTick = capturedBeat -
+    (double)elapsedMicros * (double)linkPhaseBaseTickRate / (24.0 * 1000000.0);
+
+  if (!linkPhaseFollowing) {
+    linkPhaseFollowing = 1;
+    linkPhaseLastCorrectionTick = playback->linkPhaseTicks;
+    return;
+  }
+  if (playback->linkPhaseTicks - linkPhaseLastCorrectionTick < 96) return;
+
+  // Positive error means the Link timeline has moved ahead, so make the
+  // following bar faster. A bounded correction avoids any audible jump.
+  const double phaseErrorTicks = wrapLinkPhaseTicks(beatAtTick * 24.0 -
+                                                     (double)playback->linkPhaseTicks);
+  double correction = phaseErrorTicks / 96.0;
+  if (correction > 0.02) correction = 0.02;
+  if (correction < -0.02) correction = -0.02;
+  chipnomadState->project.tickRate = linkPhaseBaseTickRate * (float)(1.0 + correction);
+  audioProjectDirty = 1;
+  linkPhaseLastCorrectionTick = playback->linkPhaseTicks;
+}
 
 // Port indices aren't saved (see common.h's AppSettings comment): this
 // resolves the saved device name back to whatever live port currently has
@@ -501,6 +570,7 @@ void appSetup(void) {
   } else {
     linkClientDeselect(chipnomadState->linkClient);
   }
+  resetLinkPhaseFollowing();
 
   screenSetup(&screenTitle, 0);
 }
@@ -877,9 +947,14 @@ void appOnEvent(MainLoopEventData eventData) {
         if (linkBpm > 0.0f && linkBpmSerial != linkBpmAppliedSerial) {
           linkBpmAppliedSerial = linkBpmSerial;
           // BPM -> Hz: tickRate = BPM * 0.4 (24 ticks per beat).
-          chipnomadState->project.tickRate = linkBpm * 0.4f;
+          linkPhaseBaseTickRate = linkBpm * 0.4f;
+          chipnomadState->project.tickRate = linkPhaseBaseTickRate;
+          linkPhaseFollowing = 0;
           audioProjectDirty = 1;
         }
+        updateLinkPhaseFollowing();
+      } else {
+        resetLinkPhaseFollowing();
       }
       // Link transport follow (start/stop sync): the session's play
       // state drives song playback, mirroring the MIDI clock block

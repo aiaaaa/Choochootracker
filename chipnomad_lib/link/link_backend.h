@@ -32,11 +32,13 @@ struct LinkBackend {
   int (*numPeers)(void* userdata, void* state);
   // Session snapshot (App/UI thread; the real backend uses Link's
   // thread-safe captureAppSessionState, NOT the realtime-only audio
-  // variant). Fills tempo/peers/isPlaying from the latest session state;
+  // variant). Fills tempo/beat/peers/isPlaying from the latest session state;
   // returns 1 on success, 0 if Link is not enabled. isPlaying reports the
   // session-wide transport state (start/stop sync must be enabled for
   // peers' transport to propagate).
-  int (*captureAudioSessionState)(void* userdata, void* state, double* tempo, uint64_t* peers, int* isPlaying);
+  // beat is sampled at capturedAtMicros, both on the app steady_clock scale.
+  int (*captureAudioSessionState)(void* userdata, void* state, double* tempo, double* beat,
+                                  uint64_t* capturedAtMicros, uint64_t* peers, int* isPlaying);
   // Requests a local beat-0 alignment at (now + outputLatencyMicros +
   // schedulingHeadroomMicros) and returns the absolute host time in
   // microseconds at which playback should begin (the quantized beat-0

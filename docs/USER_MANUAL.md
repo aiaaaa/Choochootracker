@@ -1236,6 +1236,8 @@ Ableton Link lets ChooChooTracker follow the tempo of other Link-enabled apps (A
 
 **What is not synced:**
 
+While Link playback is running, ChooChooTracker checks the shared beat phase once per 4/4 bar and gently adjusts its own tick rate when needed. This compensates small device-clock differences without skipping or repeating tracker ticks, and never changes another participant's Link session.
+
 - Grooves, `SPD` and `DELAY` values are not affected — they stay relative to the followed tempo.
 - Song/chain/phrase cursor positions and mixer settings are never shared.
 

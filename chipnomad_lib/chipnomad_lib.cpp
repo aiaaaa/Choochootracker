@@ -298,7 +298,7 @@ class AudioCommandQueue {
     commandTail_.store(tail, std::memory_order_release);
   }
 
-  void publishStatus(const PlaybackState* playback) {
+  void publishStatus(const PlaybackState* playback, uint64_t linkPhaseTicks, uint64_t linkPhaseTickMicros) {
     int old = statusPublished_.exchange(-1, std::memory_order_acq_rel);
     if (old >= 0) releasePublished(statusSlots_, old);
     int slot = findFree(statusSlots_);
@@ -307,6 +307,8 @@ class AudioCommandQueue {
     memcpy(status.tracks, playback->tracks, sizeof(status.tracks));
     memcpy(status.trackEnabled, playback->trackEnabled, sizeof(status.trackEnabled));
     status.isPlaying = playbackIsPlaying(const_cast<PlaybackState*>(playback));
+    status.linkPhaseTicks = linkPhaseTicks;
+    status.linkPhaseTickMicros = linkPhaseTickMicros;
     statusSlots_[slot].state.store(kPublished, std::memory_order_release);
     statusPublished_.store(slot, std::memory_order_release);
   }
@@ -1223,6 +1225,9 @@ static int advancePlaybackFrame(ChipNomadState* state, uint64_t dueMicros) {
   for (int t = 0; t < state->audioProject.tracksCount; ++t)
     if (state->playbackState.tracks[t].note.noteTriggered && state->insertChains[t])
       state->insertChains[t]->trigger();
+  const int isPlaying = playbackIsPlaying(&state->playbackState);
+  if (!isPlaying) state->linkPhaseTicks = 0;
+  else if (wasPlaying) state->linkPhaseTicks++;
   motionRecordFrame(state);
   if (allTracksStopped) playbackUpdateLiveStickModulation(&state->playbackState, axes, enabled);
   updateSoundbankVoices(state);
@@ -1233,7 +1238,7 @@ static int advancePlaybackFrame(ChipNomadState* state, uint64_t dueMicros) {
     if (state->trackClipping[i] > 0) state->trackClipping[i]--;
   updateInsertValues(state);
   detectAYPitchConflicts(state);
-  state->audioCommands->publishStatus(&state->playbackState);
+  state->audioCommands->publishStatus(&state->playbackState, state->linkPhaseTicks, dueMicros);
   if (playbackIsPlaying(&state->playbackState) && state->opllPreviewTrack >= 0) {
     state->sidPreview->kill();state->fourOpPreview->kill();state->dx7Preview->kill();state->opllPreview->kill(); state->oplPreview->kill();state->simpleChipPreview->kill(); state->opllPreviewTrack = -1;
   }

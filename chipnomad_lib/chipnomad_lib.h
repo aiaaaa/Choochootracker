@@ -51,6 +51,11 @@ struct PlaybackStatus {
   PlaybackTrackState tracks[PROJECT_MAX_TRACKS];
   uint8_t trackEnabled[PROJECT_MAX_TRACKS];
   uint8_t isPlaying;
+  // Audio-thread tick counter and the host timestamp of that tick. They are
+  // published with the status snapshot so the UI can follow Link phase
+  // without racing the audio callback.
+  uint64_t linkPhaseTicks;
+  uint64_t linkPhaseTickMicros;
 };
 class MasterEffects;
 
@@ -135,6 +140,8 @@ struct ChipNomadState {
   AudioMonitor* audioMonitor;
   int benchmarkBypassPan;
   PlaybackStatus uiPlaybackStatus;
+  // Audio-thread-only state, copied into PlaybackStatus each tick.
+  uint64_t linkPhaseTicks;
 };
 
 /**

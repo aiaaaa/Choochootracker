@@ -29,8 +29,11 @@ void linkBackendDisable(void*, void*) {}
 int linkBackendIsEnabled(void*, void*) { return 0; }
 int linkBackendNumPeers(void*, void*) { return 0; }
 
-int linkBackendCaptureAudioSessionState(void*, void*, double* tempo, uint64_t* peers, int* isPlaying) {
+int linkBackendCaptureAudioSessionState(void*, void*, double* tempo, double* beat,
+                                        uint64_t* capturedAtMicros, uint64_t* peers, int* isPlaying) {
   if (tempo) *tempo = 0.0;
+  if (beat) *beat = 0.0;
+  if (capturedAtMicros) *capturedAtMicros = 0;
   if (peers) *peers = 0;
   if (isPlaying) *isPlaying = 0;
   return 0;

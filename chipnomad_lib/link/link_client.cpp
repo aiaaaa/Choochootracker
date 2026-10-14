@@ -66,6 +66,8 @@ struct LinkClientState {
   // anywhere; the App-session-state variant is thread-safe) ---
   std::atomic<float> sessionTempo;
   std::atomic<uint32_t> tempoSerial;
+  std::atomic<double> sessionBeat;
+  std::atomic<uint64_t> beatCapturedAtMicros;
   std::atomic<int> peerCount;
   // Session transport (start/stop sync): 1 while the session reports
   // playing. Serial bumps only on value change.
@@ -85,6 +87,8 @@ struct LinkClientState {
       statusSerial(0),
       sessionTempo(0.0f),
       tempoSerial(0),
+      sessionBeat(0.0),
+      beatCapturedAtMicros(0),
       peerCount(0),
       transportIsPlaying(0),
       transportSerial(0),
@@ -125,6 +129,8 @@ void linkClientDeselect(LinkClientState* state) {
   }
   state->connectPending = 0;
   state->sessionTempo.store(0.0f, std::memory_order_release);
+  state->sessionBeat.store(0.0, std::memory_order_release);
+  state->beatCapturedAtMicros.store(0, std::memory_order_release);
   state->tempoSerial.fetch_add(1, std::memory_order_acq_rel);
   state->peerCount.store(0, std::memory_order_release);
   state->transportIsPlaying.store(0, std::memory_order_release);
@@ -154,6 +160,8 @@ void linkClientDisconnect(LinkClientState* state) {
   }
   state->connectPending = 0;
   state->sessionTempo.store(0.0f, std::memory_order_release);
+  state->sessionBeat.store(0.0, std::memory_order_release);
+  state->beatCapturedAtMicros.store(0, std::memory_order_release);
   state->tempoSerial.fetch_add(1, std::memory_order_acq_rel);
   state->peerCount.store(0, std::memory_order_release);
   state->transportIsPlaying.store(0, std::memory_order_release);
@@ -175,6 +183,11 @@ float linkClientGetSessionTempo(const LinkClientState* state, uint32_t* serial) 
   return state->sessionTempo.load(std::memory_order_acquire);
 }
 
+double linkClientGetSessionBeat(const LinkClientState* state, uint64_t* capturedAtMicros) {
+  if (capturedAtMicros) *capturedAtMicros = state->beatCapturedAtMicros.load(std::memory_order_acquire);
+  return state->sessionBeat.load(std::memory_order_acquire);
+}
+
 void linkClientGetTransport(const LinkClientState* state, int* isPlaying, uint32_t* serial) {
   if (isPlaying) *isPlaying = state->transportIsPlaying.load(std::memory_order_acquire);
   if (serial) *serial = state->transportSerial.load(std::memory_order_acquire);
@@ -182,10 +195,12 @@ void linkClientGetTransport(const LinkClientState* state, int* isPlaying, uint32
 
 int linkClientCaptureAudioSessionState(LinkClientState* state, double* tempo, uint64_t* peers, int* isPlaying) {
   double capturedTempo = 0.0;
+  double capturedBeat = 0.0;
+  uint64_t capturedAtMicros = 0;
   uint64_t capturedPeers = 0;
   int capturedIsPlaying = 0;
   if (!activeBackend()->captureAudioSessionState(activeBackend()->userdata, state->backendState,
-                                                 &capturedTempo, &capturedPeers,
+                                                 &capturedTempo, &capturedBeat, &capturedAtMicros, &capturedPeers,
                                                  &capturedIsPlaying)) {
     // Zero the out-params so callers never see stale values on failure.
     if (tempo) *tempo = 0.0;
@@ -199,6 +214,8 @@ int linkClientCaptureAudioSessionState(LinkClientState* state, double* tempo, ui
   const float previous = state->sessionTempo.load(std::memory_order_relaxed);
   const float next = (float)capturedTempo;
   state->sessionTempo.store(next, std::memory_order_release);
+  state->sessionBeat.store(capturedBeat, std::memory_order_release);
+  state->beatCapturedAtMicros.store(capturedAtMicros, std::memory_order_release);
   if (next != previous) {
     state->tempoSerial.fetch_add(1, std::memory_order_acq_rel);
   }
