@@ -1,8 +1,12 @@
-Asio (standalone) - vendored header-only library
-================================================
+Asio (standalone) - git submodule, header-only library
+======================================================
 
 Source: https://github.com/chriskohlhoff/asio
 Revision: 8806a6803cde7054c3049d3666d3ec36786568c5 (asio 1.38.2)
+
+Asio is consumed as a git submodule pinned to the revision listed above; its
+source is not redistributed in this package. The Boost Software License text
+below is reproduced from the upstream repository (LICENSE_1_0.txt).
 
 Copyright (c) 2003-2026 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 
