@@ -47,6 +47,7 @@ struct Location {
 };
 std::string normalizedPath(std::string path);  // rejects absolute/escaping paths
 std::string extension(const std::string& path);
+bool isPlatformMetadata(const std::string& path);
 uint16_t read16(const uint8_t* p, bool big = false);
 uint32_t read32(const uint8_t* p, bool big = false);
 void require(bool condition, const std::string& message);

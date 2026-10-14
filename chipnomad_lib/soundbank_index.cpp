@@ -127,6 +127,10 @@ std::vector<BankEntry> BankIndex::scan(bool force) const {
       end;
   for (; !ec && iter != end; iter.increment(ec)) {
     offlineYield();
+    if (isPlatformMetadata(iter->path().lexically_relative(root_).generic_string())) {
+      iter.disable_recursion_pending();
+      continue;
+    }
     if (iter.depth() > 32) {
       iter.disable_recursion_pending();
       continue;
@@ -150,7 +154,7 @@ std::vector<BankEntry> BankIndex::scan(bool force) const {
       try {
         Archive archive(path.string());
         for (auto& member : archive.entries())
-          if (supported(extension(member.name)))
+          if (!isPlatformMetadata(member.name) && supported(extension(member.name)))
             add(id + "::" + member.name, signature + ":" + std::to_string(member.crc));
       } catch (const std::exception& e) {
         BankEntry b;

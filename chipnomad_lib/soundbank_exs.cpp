@@ -75,10 +75,14 @@ void parseEXS(Bank& b, const SourcePtr& source) {
       auto directory = str(p + 164, 256), name = total > 420 ? str(p + 420, 256) : str(p + 20, 64);
       require(!name.empty(), "Empty EXS sample reference");
       Location loc = b.source.relative(name);
-      // Legacy absolute directories identify the author's machine. Resolve a
-      // unique basename inside the collection at preparation time instead.
-      if (!directory.empty() && directory.front() != '/' &&
-          directory.find(':') == std::string::npos)
+      // Keep the original directory suffix to distinguish identically named
+      // samples in different source folders. Never open an author's absolute
+      // path: relocation searches only this archive or the permitted root.
+      std::replace(directory.begin(), directory.end(), '\\', '/');
+      if (directory.size() >= 2 && directory[1] == ':') directory.erase(0, 2);
+      std::replace(directory.begin(), directory.end(), ':', '/');  // Legacy HFS paths.
+      while (!directory.empty() && directory.front() == '/') directory.erase(0, 1);
+      if (!directory.empty())
         loc = b.source.relative(directory + "/" + name);
       // Zone references are ordinal indexes, not the optional chunk IDs.
       // Real AutoSampler exports often write zero to every sample chunk ID.

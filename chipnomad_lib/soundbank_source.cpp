@@ -14,6 +14,13 @@
 #include "external/miniz/miniz_tinfl.h"
 
 namespace soundbank {
+bool isPlatformMetadata(const std::string& path) {
+  for (const auto& part : std::filesystem::path(path)) {
+    const auto name = part.string();
+    if (name == "__MACOSX" || name.rfind("._", 0) == 0) return true;
+  }
+  return false;
+}
 void offlineYield() {
 #ifdef __EMSCRIPTEN__
   static double previous = 0;
@@ -189,6 +196,14 @@ Archive::Archive(const std::string& path) : source_(openFile(path)) {
       x += 4 + sz;
     }
     std::string raw(reinterpret_cast<const char*>(p + 46), ns);
+    // Dropbox folder downloads include an empty root directory marker. It is
+    // metadata only: never expose it as a member or accept absolute file paths.
+    if (raw == "/" || raw == "./") {
+      require(entry.size == 0 && entry.compressed == 0 && entry.method == 0,
+              "Invalid ZIP root directory marker");
+      pos += 46 + ns + xs + cs;
+      continue;
+    }
     entry.name = normalizedPath(raw);
     require(names.insert(entry.name).second, "Duplicate ZIP member path");
     require(entry.offset < offset && entry.compressed <= offset - entry.offset,
@@ -329,6 +344,15 @@ Location Location::relocated() const {
     for (auto& c : s) c = char(std::tolower(uint8_t(c)));
     return s;
   };
+  auto suffixScore = [&](const std::string& a, const std::string& b) {
+    std::vector<std::string> left, right;
+    for (const auto& part : fs::path(a)) left.push_back(lower(part.string()));
+    for (const auto& part : fs::path(b)) right.push_back(lower(part.string()));
+    size_t score = 0;
+    while (score < left.size() && score < right.size() &&
+           left[left.size() - score - 1] == right[right.size() - score - 1]) ++score;
+    return score;
+  };
   if (!member.empty()) {
     const auto& archive = cachedArchive(path);
     for (const auto& e : archive.entries())
@@ -338,6 +362,16 @@ Location Location::relocated() const {
     for (const auto& e : archive.entries()) {
       if (lower(e.name) == wanted) exact.push_back(e.name);
       if (lower(fs::path(e.name).filename().string()) == leaf) basename.push_back(e.name);
+    }
+    if (exact.empty() && basename.size() > 1) {
+      size_t best = 0;
+      std::vector<std::string> ranked;
+      for (const auto& name : basename) {
+        auto score = suffixScore(name, member);
+        if (score > best) { ranked.clear(); best = score; }
+        if (score == best) ranked.push_back(name);
+      }
+      basename = std::move(ranked);
     }
     const auto& matches = exact.empty() ? basename : exact;
     require(matches.size() == 1, matches.empty() ? "Missing ZIP sample: " + member
@@ -369,25 +403,41 @@ Location Location::relocated() const {
   }
   if (!candidate.empty() && fs::is_regular_file(candidate, ec))
     return {candidate.string(), "", root};
-  const auto search = root.empty() ? fs::path(path).parent_path() : fs::path(root);
-  std::vector<fs::path> matches;
+  // Prefer the nearest enclosing collection before searching the whole root.
+  // Legacy EXS files often keep mappings and Samples in sibling directories;
+  // unrelated collections may legitimately reuse the same sample basename.
+  auto search = fs::path(path).parent_path();
+  const auto boundary = fs::weakly_canonical(root.empty() ? search : fs::path(root));
   const auto leaf = lower(fs::path(path).filename().string());
   size_t count = 0;
-  ec.clear();
-  for (fs::recursive_directory_iterator
-           i(search, fs::directory_options::skip_permission_denied, ec),
-       end;
-       !ec && i != end; i.increment(ec)) {
-    require(++count <= 200000, "Sample relocation search limit exceeded");
-    if (i.depth() > 32 || i->is_symlink(ec)) {
-      i.disable_recursion_pending();
-      continue;
+  for (;;) {
+    std::vector<fs::path> matches;
+    size_t best = 0;
+    ec.clear();
+    for (fs::recursive_directory_iterator
+             i(search, fs::directory_options::skip_permission_denied, ec),
+         end;
+         !ec && i != end; i.increment(ec)) {
+      require(++count <= 200000, "Sample relocation search limit exceeded");
+      if (i.depth() > 32 || i->is_symlink(ec) || isPlatformMetadata(i->path().string())) {
+        i.disable_recursion_pending();
+        continue;
+      }
+      if (i->is_regular_file(ec) && lower(i->path().filename().string()) == leaf) {
+        auto score = suffixScore(i->path().string(), path);
+        if (score > best) { matches.clear(); best = score; }
+        if (score == best) matches.push_back(i->path());
+      }
     }
-    if (i->is_regular_file(ec) && lower(i->path().filename().string()) == leaf)
-      matches.push_back(i->path());
     require(matches.size() < 2, "Ambiguous sample reference: " + path);
+    if (matches.size() == 1) return {matches.front().string(), "", root};
+    if (root.empty() || fs::weakly_canonical(search) == boundary) break;
+    auto parent = search.parent_path();
+    const auto relative = fs::weakly_canonical(parent).lexically_relative(boundary).generic_string();
+    if (parent == search || relative.empty() || relative == ".." || relative.rfind("../", 0) == 0)
+      break;
+    search = parent;
   }
-  require(matches.size() == 1, "Missing sample: " + path);
-  return {matches.front().string(), "", root};
+  throw std::runtime_error("Missing sample: " + path);
 }
 }  // namespace soundbank

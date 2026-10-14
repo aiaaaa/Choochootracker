@@ -181,6 +181,9 @@ TEST_CASE("soundbank root resolution and index survive rebuilding and detect mis
   fs::remove_all(root);
   fs::create_directories(root / "Korean_Gugak/Wind/Samples");
   fs::copy_file(fixtures + "tone.wav", root / "Korean_Gugak/Wind/Samples/Tone.WAV");
+  fs::create_directories(root / "__MACOSX");
+  std::ofstream(root / "__MACOSX/._Invalid.exs") << "resource fork";
+  std::ofstream(root / "Korean_Gugak/Wind/._Flute.sfz") << "resource fork";
   auto sfz = root / "Korean_Gugak/Wind/Flute.sfz";
   {
     std::ofstream f(sfz);
@@ -309,4 +312,54 @@ TEST_CASE("soundbank SFZ CC-only regions do not invalidate playable key regions"
   CHECK_NOTHROW(cache.prepare(bank, "sfz"));
   std::filesystem::remove(path);
   std::filesystem::remove(path.parent_path() / "choochoo-cc-tone.wav");
+}
+
+TEST_CASE("soundbank EXS relocation prefers sibling samples within its own collection") {
+  namespace fs = std::filesystem;
+  auto root = fs::temp_directory_path() / "choochoo-exs-relocation-test";
+  fs::remove_all(root);
+  fs::create_directories(root / "Gugak/Data/Sampler Instruments");
+  fs::create_directories(root / "Gugak/Data/Samples");
+  fs::create_directories(root / "Other/Samples");
+  fs::copy_file(fixtures + "tone.exs", root / "Gugak/Data/Sampler Instruments/tone.exs");
+  fs::copy_file(fixtures + "tone.wav", root / "Gugak/Data/Samples/tone.wav");
+  fs::copy_file(fixtures + "tone.wav", root / "Other/Samples/tone.wav");
+  auto bank = parseBank({(root / "Gugak/Data/Sampler Instruments/tone.exs").string(), "", root.string()});
+  CHECK(bank.assets[0].source.relocated().path == (root / "Gugak/Data/Samples/tone.wav").string());
+  SampleCache cache;
+  CHECK_NOTHROW(cache.prepare(bank, "exs"));
+  fs::create_directories(root / "Gugak/Data/Conflicting Samples");
+  fs::copy_file(fixtures + "tone.wav", root / "Gugak/Data/Conflicting Samples/tone.wav");
+  CHECK_THROWS(bank.assets[0].source.relocated());
+  fs::remove_all(root);
+}
+
+TEST_CASE("soundbank EXS original directory suffix disambiguates duplicate sample names") {
+  const auto file = fixtures + "exs-paths.zip";
+  auto bank = parseBank({file, "Mappings/bows.exs"});
+  REQUIRE(bank.assets.size() == 2);
+  CHECK(bank.assets[0].source.relocated().member == "Samples/Bows/Forsythia/tone.wav");
+  CHECK(bank.assets[1].source.relocated().member == "Samples/Bows/Horsehair/tone.wav");
+  CHECK_THROWS((Location{file, "Missing/tone.wav"}).relocated());
+  SampleCache cache;
+  auto prepared = cache.prepare(bank, "exs");
+  REQUIRE(prepared->zones.size() == 2);
+  CHECK(prepared->zones[0].audio != prepared->zones[1].audio);
+
+  namespace fs = std::filesystem;
+  auto root = fs::temp_directory_path() / "choochoo-exs-path-hint-test";
+  fs::remove_all(root);
+  Archive archive(file);
+  for (const auto& entry : archive.entries()) {
+    auto target = root / entry.name;
+    fs::create_directories(target.parent_path());
+    auto data = archive.open(entry.name)->bytes(0, entry.size);
+    std::ofstream out(target, std::ios::binary);
+    out.write(reinterpret_cast<const char*>(data.data()), data.size());
+  }
+  bank = parseBank({(root / "Mappings/bows.exs").string(), "", root.string()});
+  CHECK(bank.assets[0].source.relocated().path == (root / "Samples/Bows/Forsythia/tone.wav").string());
+  CHECK(bank.assets[1].source.relocated().path == (root / "Samples/Bows/Horsehair/tone.wav").string());
+  CHECK_NOTHROW(cache.prepare(bank, "exs"));
+  fs::remove_all(root);
 }
