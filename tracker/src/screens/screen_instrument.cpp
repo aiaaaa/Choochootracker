@@ -49,6 +49,7 @@ static SelectionItem instrumentTypeDrums[] = {
   {NULL, (int)InstrumentType::Sintered, NULL, 0},
 };
 static SelectionItem instrumentTypeSample[] = {
+  {NULL, (int)InstrumentType::SoundFont, NULL, 0},
   {NULL, (int)InstrumentType::Sample, NULL, 0},
   {NULL, (int)InstrumentType::SCWF, NULL, 0},
   {NULL, (int)InstrumentType::BYOWTBL, NULL, 0},
@@ -68,7 +69,7 @@ static SelectionItem instrumentTypeMidi[] = {
 static const SelectionItem instrumentTypeCategories[] = {
   {"CHIP", -1, instrumentTypeChip, 7},
   {"DRUMS", -1, instrumentTypeDrums, 2},
-  {"SAMPLE", -1, instrumentTypeSample, 3},
+  {"SAMPLE", -1, instrumentTypeSample, 4},
   {"SYNTH", -1, instrumentTypeSynth, 5},
   {"MIDI", -1, instrumentTypeMidi, 1},
   {"FM", -1, instrumentTypeFM, sizeof(instrumentTypeFM) / sizeof(instrumentTypeFM[0])},
@@ -77,7 +78,7 @@ static const SelectionItem instrumentTypeCategories[] = {
 static const InstrumentType instrumentTypesQuickCycle[] = {
   InstrumentType::none, InstrumentType::DrumSynth, InstrumentType::Sintered,
   InstrumentType::AY1, InstrumentType::AY2, InstrumentType::AYSample,
-  InstrumentType::SCWF, InstrumentType::BYOWTBL, InstrumentType::Sample,
+  InstrumentType::SCWF, InstrumentType::BYOWTBL, InstrumentType::Sample, InstrumentType::SoundFont,
   InstrumentType::AChChid, InstrumentType::Braids,
   InstrumentType::Plaits, InstrumentType::PlaitsAlt,
   InstrumentType::MME,
@@ -287,7 +288,7 @@ static ScreenData* instrumentScreen(void) {
     &screenInstrumentSCWF, &screenInstrumentBYOWTBL, &screenInstrumentPlaits, &screenInstrumentAChChid,
     &screenInstrumentDrumSynth, &screenInstrumentMME,
     &screenInstrumentSintered,
-    &screenInstrumentMidi, &screenInstrumentOPLL, &screenInstrumentOPL, &screenInstrumentSimpleChip, &screenInstrumentOPL,
+    &screenInstrumentMidi, &screenInstrumentOPLL, &screenInstrumentOPL, &screenInstrumentSimpleChip, &screenInstrumentOPL, &screenInstrumentSoundFont,
   };
   InstrumentScreenKind kind = getInstrumentDefinition(chipnomadState->project.instruments[cInstrument].type)->screen;
   ScreenData* data = screens[(int)kind];
