@@ -76,7 +76,7 @@ class AudioCommandQueue {
   bool hasSoundbank(uint32_t handle) const {
     for (const auto& slot : projectSlots_)
       if (slot.state.load() != kFree)
-        for (const auto& i : slot.value.instruments)
+        for (const auto& i : slot.value.project.instruments)
           if (i.type == InstrumentType::SoundFont && i.chip.soundfont.prepared == handle)
             return true;
     return false;

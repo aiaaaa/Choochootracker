@@ -7,6 +7,8 @@
 #include <vector>
 #include <memory>
 #include <algorithm>
+#include <cmath>
+#include "soundbank_library.h"
 #include "chipnomad_lib.h"
 #include "app.h"
 #include "corelib_font.h"
@@ -35,6 +37,33 @@ static void tapEdit(){key(1,keyEdit);key(0,0);}
 int main(int argc,char** argv){
   if(argc!=2&&argc!=3)return 1;output=argv[1];initDefaultAppSettings();appSettings.screenWidth=640;appSettings.screenHeight=480;fontSetCurrent(fontGetDefault());require(!gfxSetup(&appSettings.screenWidth,&appSettings.screenHeight),"SDL dummy setup");
   chipnomadState=chipnomadCreate();require(chipnomadState,"state");require(!projectLoad(&chipnomadState->project,"projects/gm-midi-demo.cct"),"fixture");
+  if(argc==3 && !strcmp(argv[2],"--soundfont-only")) {
+    screensInitAll();waveformDisplayInit();monitorDisplayInit();cInstrument=0;
+    auto& instrument=chipnomadState->project.instruments[0];
+    getInstrumentFunctions(InstrumentType::SoundFont).init(&instrument);
+    screenSetup(&screenInstrument,0);screenInstrumentSoundFont.cursorRow=3;appDraw();
+    tapEdit();require(currentScreen!=&screenInstrument,"SoundFont Bank Manager opens");
+    auto finish=[](){auto until=SDL_GetTicks()+15000;while(soundbankBusy()&&SDL_GetTicks()<until){soundbankPoll();appDraw();SDL_Delay(2);}require(!soundbankBusy(),"SoundFont background job completes");};
+    finish();require(!soundbankEntries().empty(),"SoundFont bank discovery");
+    const auto bank=soundbankEntries().front();require(bank.error.empty()&&!bank.presets.empty(),"SoundFont fixture indexed");
+    soundbankLoad(0,bank.id,bank.presets.front().first);finish();
+    require(instrument.chip.soundfont.prepared!=0,"SoundFont preset prepared");
+    require(!strcmp(instrument.chip.soundfont.bank,bank.id.c_str()),"SoundFont bank identity retained");
+    chipnomadInitChips(chipnomadState,48000,nullptr);chipnomadReserveRenderBuffers(chipnomadState,480);
+    require(chipnomadQueueProjectRefresh(chipnomadState),"SoundFont project queued");
+    require(chipnomadQueuePlaybackPreviewNote(chipnomadState,0,48,0),"SoundFont preview queued");
+    float samples[960];double energy=0;
+    for(int n=0;n<12;++n){require(chipnomadRender(chipnomadState,samples,480),"SoundFont renders");for(float v:samples){require(std::isfinite(v),"SoundFont finite audio");energy+=v*v;}}
+    require(energy>0.01,"SoundFont audible signal");chipnomadQueuePlaybackStopPreview(chipnomadState,0);
+    screenSetup(&screenInstrument,0);screenInstrumentSoundFont.cursorRow=4;appDraw();capture("soundfont-instrument");
+    tapEdit();require(currentScreen!=&screenInstrument,"SoundFont Preset Browser opens");capture("soundfont-presets");
+    char path[2048];snprintf(path,sizeof(path),"%s/soundfont-roundtrip.cct",output);
+    require(!projectSave(&chipnomadState->project,path),"SoundFont saves");
+    auto loaded=std::make_unique<Project>();projectInit(loaded.get());require(!projectLoad(loaded.get(),path),"SoundFont reloads");
+    require(loaded->instruments[0].type==InstrumentType::SoundFont&&!strcmp(loaded->instruments[0].chip.soundfont.bank,bank.id.c_str()),"SoundFont saved identity");
+    projectFree(loaded.get());soundbankShutdown();chipnomadDestroy(chipnomadState);SDL_Quit();
+    printf("SoundFont: bank discovery, asynchronous preset load, Instrument/browser routes, finite audio and save/reload passed\n");return 0;
+  }
   if(argc==3 && !strcmp(argv[2],"--song-waveform-only")) {
     screensInitAll();waveformDisplayInit();monitorDisplayInit();
     auto& project=chipnomadState->project;
