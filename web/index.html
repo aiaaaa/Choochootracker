@@ -447,8 +447,12 @@
         const started = performance.now();
         await audioDeadline(audio.resume());
         const node = window.Module.SDL2.audio && window.Module.SDL2.audio.scriptProcessorNode;
-        await delay(Math.max(350, node ? node.bufferSize / audio.sampleRate * 2000 + 100 : 350));
-        if (generation !== audioGeneration || document.hidden || audio !== getAudio()) return;
+        const outputDeadline = performance.now() + Math.max(1500, node ? node.bufferSize / audio.sampleRate * 2000 + 100 : 1500);
+        do {
+          await delay(25);
+          if (generation !== audioGeneration || document.hidden || audio !== getAudio()) return;
+        } while ((audio.state !== 'running' || audio.currentTime <= before || lastAudioCallback <= started) &&
+                 performance.now() < outputDeadline);
         if (audio.state !== 'running' || audio.currentTime <= before || lastAudioCallback <= started)
           throw new Error('Audio output did not recover');
         audioActivated = true;

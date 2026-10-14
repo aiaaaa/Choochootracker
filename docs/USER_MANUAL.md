@@ -2218,3 +2218,6 @@ Browser **Import USER ZIP** accepts a ZIP rooted at `instruments/USER/` or
 `USER/`, including `soundfont` banks and their relative sample folders. Existing
 files are kept. Import only the collection you need: each import supports up to
 1 GiB of new uncompressed files, with a 512 MiB per-file limit.
+
+Browser audio recovery waits for clock progress and a real output callback within
+a bounded timeout before reporting success or failure.
