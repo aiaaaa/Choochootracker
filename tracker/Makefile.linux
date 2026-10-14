@@ -112,7 +112,7 @@ appimage: linux
 		echo "See docs/build-notes.md for details."; \
 		exit 1; \
 	}
-	ARCH=x86_64 appimagetool $(BUILD)/$(APPNAME).AppDir ../releases/$(APPNAME)-$$(date +%Y-%m-%d)-$(VERSION)-x86_64.AppImage
+	ARCH=x86_64 appimagetool $(if $(APPIMAGE_RUNTIME),--runtime-file $(APPIMAGE_RUNTIME)) $(BUILD)/$(APPNAME).AppDir ../releases/$(APPNAME)-$$(date +%Y-%m-%d)-$(VERSION)-x86_64.AppImage
 	@echo "AppImage created in ../releases/"
 
 .PHONY: clean
