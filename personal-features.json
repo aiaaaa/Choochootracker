@@ -165,7 +165,7 @@
       "title": "SoundFont direct instrument editor",
       "branch": "experimental/soundfont-edit",
       "upstream_status": "Experimental evaluation, not submitted",
-      "integration_policy": "Bank defaults preserved; instrument-owned tune, filter and envelope overrides. No new Lane FX commands. Integrate and deploy only with a requested daily."
+      "integration_policy": "Bank defaults preserved; instrument-owned tune, filter and full supported amplitude envelope plus volume/pan. Eight contextual Lane FX, scan status and one folder-based preset browser with wrapping cycling. FX IDs appended; source banks unchanged. Integrate and deploy only with a requested daily."
     }
   ],
   "personal_assets": [

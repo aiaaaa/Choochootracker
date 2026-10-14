@@ -348,6 +348,12 @@ static void fullRedraw(void) {
 
 static void draw(void) {
   instrumentCommonDrawLivePreview();
+  if (chipnomadState->project.instruments[cInstrument].type==InstrumentType::SoundFont) {
+    auto& d=screenInstrumentSoundFont;
+    for (int row : {3,4}) for (int col=0; col<d.getColumnCount(row); ++col)
+      d.drawField(col,row,d.cursorRow==row && d.cursorCol==col ? CellState::focus : CellState::normal);
+    d.drawCursor(d.cursorCol,d.cursorRow);
+  }
 #if CHOOCHOO_EXPERIMENTAL_SQ80ESQ
   if(chipnomadState->project.instruments[cInstrument].type==InstrumentType::SQ80ESQ){auto&d=screenInstrumentSQ80;for(int r:{5,6,7})for(int c=0;c<d.getColumnCount(r);++c)d.drawField(c,r,d.cursorRow==r&&d.cursorCol==c?CellState::focus:CellState::normal);d.drawCursor(d.cursorCol,d.cursorRow);}
 #endif

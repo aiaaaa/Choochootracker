@@ -1,5 +1,6 @@
 #include "audio_monitor.h"
 #include "chipnomad_lib.h"
+#include "soundbank_fx.h"
 #include "chipnomad_lib_live_stick.h"
 #include "playback.h"
 #include "synth/braids_voice.h"
@@ -675,6 +676,8 @@ static int effectivePan(ChipNomadState* state, int trackIdx, bool instrumentPan)
   }
   FX fx = instrumentPan ? fxPAN : fxTPN;
   if (track->note.fx[fx].isOn) value = track->note.fx[fx].fxValue;
+  if (instrumentPan && type == InstrumentType::SoundFont && track->note.fx[fxFPN].isOn)
+    value = track->note.fx[fxFPN].fxValue;
   for (const auto& mod : track->note.modulation) {
     if (!mod.modulation) continue;
     int destination = instrumentGenericModDestination(type, mod.modulation->destination);
@@ -1649,7 +1652,9 @@ static void updateSoundbankVoices(ChipNomadState* state) {
       continue;
     }
     auto* instrument = &project->instruments[track->note.instrument];
-    float gain = phraseGain(playback, track, instrument);
+    const auto controls = soundbankFXControls(instrument->chip.soundfont.controls, track->note.fx);
+    float gain = (track->note.fx[fxFVL].isOn ? track->note.fx[fxFVL].fxValue : instrument->volume)
+      * playbackVolumeGain(playback, track) / 255.f;
     int pitch = 0;
     for (int m = 0; m < 4; ++m) {
       auto& mod = track->note.modulation[m];
@@ -1669,7 +1674,7 @@ static void updateSoundbankVoices(ChipNomadState* state) {
       int velocity = std::clamp(int(track->note.volume) * 127 / PHRASE_VOLUME_MAX, 0, 127);
       voices[v]->configure(instrument->chip.soundfont.prepared, cents,
                            gain / std::max(1, int(track->chordVoiceCount)), velocity, 20000,
-                           instrument->chip.soundfont.controls);
+                           controls);
     }
   }
 }

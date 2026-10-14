@@ -1,26 +1,34 @@
 # Experimental native SoundBanks
 
-This implementation lives on `experimental/native-soundbanks`, based on upstream
-main `583702d`. It is an experimental contribution for a later daily integration,
-not a deployment to the device personal build. See [validation](validation.md)
+The SoundBanks implementation originated on `experimental/native-soundbanks`,
+based on upstream main `583702d`. The direct editor, eight Lane FX and unified
+folder browser are being evaluated on `experimental/soundfont-edit`. Those updates
+remain separate from the installed device personal build until a requested daily. See [validation](validation.md)
 and the [library compatibility report](compatibility.md) before packaging it.
 
 ## Using a bank
 
 1. Copy an original SF2, SF3, SFZ or EXS instrument, a WAV/AIFF sample, or a ZIP
    containing those files into `instruments/USER/soundfont`. Retain relative sample directories.
-2. In Instrument, select **SOUNDFONT**. Open **BANK MANAGER**, select a collection
-   and instrument, then open the **Preset** row and select a preset with EDIT.
-3. Wait for “Preset ready”. Existing note entry plays the prepared instrument;
-   EDIT + PLAY previews the selected, loaded preset in the browser.
-4. Save the project normally. It records a root-relative bank/member path and a
-   stable preset ID, not the browser row number or decoded samples.
+2. In Instrument, select **SOUNDFONT**. **Rescan** indexes the library; the row
+   reports not scanned/scanning/scanned. **Preset** opens one browser following
+   actual folders, bank files and presets, including ZIP member directories.
+3. Select a preset with EDIT and wait for “Preset ready”. EDIT+PLAY previews the
+   loaded preset. EDIT+Left/Right on the home Preset row cycles across indexed
+   presets and wraps. A newer request supersedes an unfinished decode on the same
+   instrument; failures preserve the existing playable selection.
+4. **Edit** beside Preset exposes tuning, filter, the complete supported amplitude
+   envelope, volume and pan. These are playback overrides, not bank-layer authoring.
+5. Eight contextual Lane FX expose pitch, volume, pan, cutoff, resonance, attack,
+   decay and release. See the SoundFont section of the user manual for units and
+   reset values. Delay, hold and sustain remain in Edit.
+6. Save normally. The project records root-relative bank/member paths, stable
+   preset IDs, controls and FX; decoded samples remain external.
 
-The two browser pages are children of Instrument. They use the existing scrolling
-selection popup and controller mappings. Collections are grouped by their first
-folder, or their ZIP filename. Mappings appear before a separate raw WAV/AIFF
-sample list. This small extra collection level keeps thousands of source samples
-from burying the actual instruments. All collections are USER banks.
+The browser uses the existing scrolling selection popup and controller mappings.
+Mapped collections hide their source WAV/AIFF assets behind a separate raw-sample
+view. There is no enabled-bank list or second bank manager. Scanning discovers
+metadata; only a selected preset is prepared for playback. All collections are USER banks.
 
 Keep Korean instruments under `instruments/USER/soundfont/Korean_Gugak/`, retaining `Wind/` and
 other original family directories. This preserves a dedicated Gugak identity in
@@ -46,7 +54,7 @@ keeps existing files and preserves relative bank/sample paths. It accepts up to
 1 GiB of new uncompressed files per import and 512 MiB per file.
 They retain selected relative paths under `/user/instruments/USER/soundfont` and use existing
 persistent browser storage. ZIP import is convenient where folder picking is not
-available. Rescan in Bank Manager after importing. Browser storage quotas apply;
+available. Use Rescan on Instrument after importing. Browser storage quotas apply;
 its virtual filesystem can keep imported archives and temporary files in memory,
 so the native disk-backed memory profile does not apply to large web imports.
 

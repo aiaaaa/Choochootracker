@@ -42,13 +42,27 @@ int main(int argc,char** argv){
     auto& instrument=chipnomadState->project.instruments[0];
     getInstrumentFunctions(InstrumentType::SoundFont).init(&instrument);
     screenSetup(&screenInstrument,0);screenInstrumentSoundFont.cursorRow=3;appDraw();
-    tapEdit();require(currentScreen!=&screenInstrument,"SoundFont Bank Manager opens");
+    tapEdit();require(currentScreen==&screenInstrument && soundbankScanning(),"SoundFont Rescan stays on Instrument");
     auto finish=[](){auto until=SDL_GetTicks()+15000;while(soundbankBusy()&&SDL_GetTicks()<until){soundbankPoll();appDraw();SDL_Delay(2);}require(!soundbankBusy(),"SoundFont background job completes");};
-    finish();require(!soundbankEntries().empty(),"SoundFont bank discovery");
+    finish();require(soundbankScanned() && !soundbankEntries().empty(),"SoundFont bank discovery");
     const auto bank=soundbankEntries().front();require(bank.error.empty()&&!bank.presets.empty(),"SoundFont fixture indexed");
     soundbankLoad(0,bank.id,bank.presets.front().first);finish();
     require(instrument.chip.soundfont.prepared!=0,"SoundFont preset prepared");
     require(!strcmp(instrument.chip.soundfont.bank,bank.id.c_str()),"SoundFont bank identity retained");
+    auto originalHandle=instrument.chip.soundfont.prepared;
+    soundbankLoad(0,"missing.sf2","0:0");finish();
+    require(instrument.chip.soundfont.prepared==originalHandle,"Failed selection preserves playable preset");
+    soundbankLoad(0,"missing.sf2","0:0");
+    soundbankLoad(0,bank.id,bank.presets.front().first);finish();
+    require(instrument.chip.soundfont.prepared!=originalHandle,"Latest queued selection wins");
+    screenSetup(&screenInstrument,0);screenInstrumentSoundFont.cursorRow=4;
+    key(1,keyEdit|keyRight);key(0,0);finish();
+    require(currentScreen==&screenInstrument,"Preset cycling does not open browser on release");
+    for(int command=fxFPT;command<=fxFRL;++command) {
+      FXCell cell{FX_ID_EMPTY,0};selectInstrumentFX(&cell,FXId(command),0);
+      require(cell.command==command,"All eight SoundFont Lane FX selectable");
+      require(cell.value==(command==fxFPT ? 24 : command==fxFVL ? 255 : command==fxFPN ? 128 : 255),"Lane FX starts at preset value");
+    }
     chipnomadInitChips(chipnomadState,48000,nullptr);chipnomadReserveRenderBuffers(chipnomadState,480);
     require(chipnomadQueueProjectRefresh(chipnomadState),"SoundFont project queued");
     require(chipnomadQueuePlaybackPreviewNote(chipnomadState,0,48,0),"SoundFont preview queued");
@@ -70,6 +84,10 @@ int main(int argc,char** argv){
     require(screenTouchTap(22,11),"Last envelope row accessible");
     key(1,keyEdit|keyRight);key(0,0);
     require(instrument.chip.soundfont.controls.releaseMs==0,"Release overrides Bank");
+    require(screenTouchTap(22,12),"Volume editor touch");
+    key(1,keyEdit|keyLeft);key(0,0);require(instrument.volume==254,"Edit volume changes common volume");
+    require(screenTouchTap(22,13),"Pan editor touch");
+    key(1,keyEdit|keyRight);key(0,0);require(instrument.pan==129,"Edit pan changes common pan");
     capture("soundfont-edit-values");
     key(1,keyOpt);key(0,0);require(currentScreen==&screenInstrument,"Editor returns to instrument");
     require(screenTouchTap(12,7),"Active preset touch");tapEdit();
@@ -80,6 +98,11 @@ int main(int argc,char** argv){
     require(loaded->instruments[0].type==InstrumentType::SoundFont&&!strcmp(loaded->instruments[0].chip.soundfont.bank,bank.id.c_str()),"SoundFont saved identity");
     require(loaded->instruments[0].chip.soundfont.controls.tuneCents==100 &&
       loaded->instruments[0].chip.soundfont.controls.cutoffHz==20,"Editor settings survive song reload");
+    screenSetup(&screenPhrase,-1);appDraw();
+    for(int command=fxFPT;command<=fxFRL;++command) {
+      fxEditFullDraw(FXId(command),0,0);
+      char name[40];snprintf(name,sizeof(name),"soundfont-fx-%d",command);capture(name,false);
+    }
     projectFree(loaded.get());soundbankShutdown();chipnomadDestroy(chipnomadState);SDL_Quit();
     printf("SoundFont: bank discovery, asynchronous preset load, Instrument/browser routes, finite audio and save/reload passed\n");return 0;
   }

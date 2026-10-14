@@ -451,26 +451,59 @@ Each instrument has a default table with the same number in the `00-7F` range. Y
 ### SOUNDFONT (experimental)
 
 Copy original SF2/SF3 banks, SFZ/EXS instruments with their samples, or ZIP archives
-into `instruments/USER/soundfont`. Select **SOUNDFONT** on Instrument, then use **BANK MANAGER**
-and the **Preset** row. The row displays the active preset; EDIT opens its picker. EDIT loads a preset; EDIT + PLAY previews the loaded
-selection. Existing tracker note entry, note-off, volume/pitch MODs and pan apply.
-Projects save stable bank/preset references; libraries remain external.
+into `instruments/USER/soundfont`. Select **SOUNDFONT** on Instrument. The library
+row shows **Not scanned**, **Scanning...**, or **Scanned**, with a **Rescan** action.
+Scanning reads metadata; it does not load every preset's samples into memory.
 
-**Edit**, to the right of Preset, opens the experimental SoundFont editor.
-Tune spans −2400 to +2400 cents, cutoff 20–20000 Hz, resonance 0–40 dB,
-envelope delay/attack/hold/decay/release 0–20000 ms, and sustain 0–100%.
+The **Preset** row shows the active preset. Tap and release EDIT to open the one
+preset browser, then follow the actual folders, bank files and presets. ZIPs
+retain their internal folder paths. EDIT selects a preset; EDIT+PLAY previews the
+loaded selection. Raw WAV/AIFF assets in mapped collections are available under
+**Raw WAV/AIFF samples**, keeping source samples out of the instrument list.
+Hold EDIT and press Left/Right on Preset to cycle through discovered instruments,
+wrapping at either end. Rapid cycling prepares the latest requested selection.
+The current preset stays playable until a replacement succeeds; a failed load
+keeps it intact. Rescan after importing or changing library files.
+
+**Edit**, to the right of Preset, opens the experimental SoundFont editor:
+tune (−2400 to +2400 cents), cutoff (20–20000 Hz), resonance (0–40 dB), envelope
+delay/attack/hold/decay/release (0–20000 ms), sustain (0–100%), volume and pan.
+Volume and pan are the same instrument values shown on the home page.
 Tone and envelope fields default to **Bank**, retaining each layer's authored
 value. An explicit value overrides that parameter across the preset's layers.
-Clear restores **Bank** (or zero cents for Tune). EDIT+Left/Right makes fine
-changes; EDIT+Up/Down makes larger changes. OPT returns to Instrument;
-EDIT+PLAY auditions the instrument at its song note or the usual default.
+Clear restores **Bank**, zero cents for Tune, full volume, or centered pan.
+EDIT+Left/Right makes fine changes; EDIT+Up/Down makes larger changes. OPT returns
+to Instrument; EDIT+PLAY auditions the instrument at its song note or the default.
+This edits instrument playback controls, not the bank's per-sample mappings,
+key/velocity zones or loop points.
 
 Tuning, cutoff and resonance apply live. Envelope changes apply to the next
 trigger, preserving the current note's envelope. A release time cannot extend
 a sample past its available audio, and bank-authored one-shot behavior remains.
 Edits save in instrument and project files without modifying the source bank;
-older songs without overrides retain their original bank settings. These are
-direct instrument controls, with no new Lane FX commands.
+older songs without overrides retain their original bank settings.
+
+**SoundFont FX** exposes eight controls in the contextual Lane FX picker. All
+values below use tracker hexadecimal notation. The FX affect their track only
+and leave the instrument's saved controls unchanged. Each new note starts from
+the instrument settings, then applies commands on its row and subsequent rows.
+
+| FX | Control | Values |
+| --- | --- | --- |
+| FPT | Pitch | `00` = −24 semitones, `18` = zero, `30` = +24; exact semitone steps |
+| FVL | Volume | `00` silent to `FF` full instrument volume; phrase volume still applies |
+| FPN | Pan | `00` left, `80` center, `FF` right; takes precedence over PAN |
+| FCF | Cutoff | `00`–`FE`: 20 Hz–20 kHz, logarithmic |
+| FRS | Resonance | `00`–`FE`: 0–40 dB |
+| FAT | Attack | `00`–`FE`: 0–20 seconds, finer spacing at short times |
+| FDC | Decay | `00`–`FE`: 0–20 seconds, finer spacing at short times |
+| FRL | Release | `00`–`FE`: 0–20 seconds, finer spacing at short times |
+
+For FCF/FRS/FAT/FDC/FRL, `FF` returns to the Edit setting (including **Bank**).
+Envelope FX apply when a note is triggered: put them on the note's row. Pitch FX
+change tuning without changing the bank's selected key zone. Existing sequencer
+pitch/fine-pitch commands, MODs and track effects remain available. Projects save
+stable bank/preset references and FX commands; sample libraries remain external.
 
 
 All banks are USER banks. Large instruments may exceed the default 64 MiB PCM

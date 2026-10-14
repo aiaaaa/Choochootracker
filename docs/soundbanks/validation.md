@@ -4,6 +4,32 @@ Experimental branch, 2026-10-14. Architecture base: upstream/main `583702d`.
 These results do not certify a release or replace interactive testing of the
 combined daily build.
 
+## SoundFont editor, Lane FX and browser follow-up (2026-10-14)
+
+On `experimental/soundfont-edit`, the eight Lane FX are checked against actual
+tracker playback: each produces the same audio as the corresponding saved
+instrument control. Tests also cover command persistence, unchanged old IDs,
+track isolation, Bank/default restoration, nested folders, ZIP directories,
+raw-sample separation and cycling in both directions with wraparound.
+
+The combined native suite ran **724 cases: 723 passed, one failed, two skipped**.
+The sole failure was an old Monk test freezing the total FX count at 254. Its
+check now protects the existing ID boundary while allowing appended commands;
+the subsequent SoundFont/Monk run passed **14 cases / 1,032,439 assertions**.
+The engine code did not change after the full-suite run. Stretch and Beads
+lifetime checks also passed.
+
+Production UI checks ran through SDL's dummy driver, with screenshots inspected:
+scan status/Rescan, preset browser and cycling, failed-load preservation, latest
+queued selection, all 11 Edit controls and all eight contextual Lane FX.
+A local Emscripten build and headless Chrome 155 run passed USER ZIP import,
+existing-file preservation, traversal rejection, persistence, preset browsing,
+Edit changes, finite audible output and song save/reload, with no page errors.
+Only synthetic public fixtures were used. These updates have not been deployed
+or interactively checked on the handheld.
+
+The earlier results below describe the original SoundBanks implementation.
+
 ## Automated checks
 
 - Focused core tests: **16 cases / 127 assertions pass** with AddressSanitizer and

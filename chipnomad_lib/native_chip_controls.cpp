@@ -2,6 +2,7 @@
 #include "synth/multimode_filter.h"
 #include "sid_patch.h"
 #include <cstdio>
+#include <algorithm>
 #include <cstring>
 #include <initializer_list>
 
@@ -20,6 +21,22 @@ int instrumentFMOperatorCount(const Instrument* i) {
 
 bool instrumentNativeFXInfo(const Instrument* i,int fx,NativeFXInfo* out,int op) {
   if(!i||!out)return false;
+  if (i->type == InstrumentType::SoundFont) {
+    const char* label = nullptr;
+    int value = 255;
+    switch (fx) {
+      case fxFPT: *out={48, std::clamp(int(i->chip.soundfont.controls.tuneCents)/100+24,0,48), false,0,"Pitch"}; return true;
+      case fxFVL: label="Volume"; value=i->volume; break;
+      case fxFPN: label="Pan"; value=i->pan; break;
+      case fxFCF: label="Cutoff"; break;
+      case fxFRS: label="Resonance"; break;
+      case fxFAT: label="Attack"; break;
+      case fxFDC: label="Decay"; break;
+      case fxFRL: label="Release"; break;
+      default: return false;
+    }
+    *out = {255, value, false, 0, label}; return true;
+  }
   if (i->type == InstrumentType::Monk) {
     const auto& p = i->chip.monk;
     int value; const char* label;

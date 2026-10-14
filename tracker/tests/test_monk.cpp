@@ -73,7 +73,7 @@ TEST_CASE("MonkSynth unchanged tick updates do not restart native glide") {
 
 TEST_CASE("MonkSynth instrument and song save every control and preserve old IDs") {
   CHECK(int(InstrumentType::SQ80ESQ)==28);CHECK(int(InstrumentType::Monk)==29);
-  CHECK(fxTotalCount==254);
+  CHECK(fxEXT==253);CHECK(fxTotalCount>fxEXT); // New commands may append; saved IDs cannot move.
   fillFXNames();
   auto p=std::make_unique<Project>(),q=std::make_unique<Project>();projectInit(p.get());projectInit(q.get());
   REQUIRE(projectLoad(p.get(),"packaging/common/projects/gm-midi-demo.cct")==0);

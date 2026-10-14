@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <initializer_list>
 #include <string.h>
 #include "project.h"
 #include "project_instruments.h"
@@ -96,6 +97,7 @@ FXGroup fxGroups[] = {
   {"SQ80/ESQ FX",fxNamesSQ80,11,6,InstrumentType::SQ80ESQ},
 #endif
   {"MonkSynth FX", NULL, 0, 2, InstrumentType::Monk},
+  {"SoundFont FX", NULL, 0, 4, InstrumentType::SoundFont},
 };
 int fxGroupCount = sizeof(fxGroups) / sizeof(FXGroup);
 
@@ -148,10 +150,10 @@ void fillFXNames() {
     for (int i = 0; i < definition->fxCount; ++i) { names[i].fx = (FX)definition->fxList[i].fx; strcpy(names[i].name, definition->fxList[i].name); }
   }
 
-  {
-    const auto* definition = getInstrumentDefinition(InstrumentType::Monk);
-    auto* names = instrumentGroupNames[(int)InstrumentType::Monk];
-    auto& group = fxGroups[fxGroupCount - 1];
+  for (auto type : {InstrumentType::Monk, InstrumentType::SoundFont}) {
+    const auto* definition = getInstrumentDefinition(type);
+    auto* names = instrumentGroupNames[(int)type];
+    auto& group = fxGroups[fxGroupCount - (type == InstrumentType::Monk ? 2 : 1)];
     group.fxList = names; group.count = definition->fxCount;
     for (int i = 0; i < definition->fxCount; ++i) {
       names[i].fx = (FX)definition->fxList[i].fx;

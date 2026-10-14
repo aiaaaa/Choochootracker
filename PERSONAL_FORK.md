@@ -710,5 +710,12 @@ and relative sample references.
 
 The isolated experimental/soundfont-edit branch adds instrument-owned tuning,
 filter and envelope overrides, defaulting to the bank-authored sound. The active
-preset row has an Edit action. No new Lane FX commands, bank files, deployment
-or library-manager selection changes are included.
+preset row has an Edit action including volume and pan. Eight contextual Lane FX
+expose pitch, volume, pan, cutoff, resonance, attack, decay and release; their IDs
+are appended after the existing commands. Instrument defaults and source banks
+remain unchanged by track automation.
+
+The duplicate Bank Manager flow is replaced by scan status/Rescan and one folder
+browser. Preset cycling wraps across indexed presets; asynchronous preparation
+keeps the latest selection and retains playable audio on failure. The branch
+remains isolated until a requested daily integration; no deployment is included.

@@ -1,6 +1,7 @@
 #include "playback.h"
 #include "playback_internal.h"
 #include <stdio.h>
+#include <algorithm>
 #include <string.h>
 
 PlaybackFXHandler fxHandlers[fxTotalCount] = {};
@@ -413,6 +414,14 @@ void initFX(PlaybackState* state, int trackIdx, const FXCell* fx, PlaybackTableS
     NativeFXInfo info{};const auto*i=&state->p->instruments[track->note.instrument];
     if(i->type!=InstrumentType::SQ80ESQ||!instrumentNativeFXInfo(i,fx->command,&info))return;
     auto& f=track->note.fx[fx->command];f.isOn=1;f.fxValue=clampInt(fx->value,info.minimum,info.maximum);return;
+  }
+  if (fx->command >= fxFPT && fx->command <= fxFRL) {
+    if (track->note.instrument == EMPTY_VALUE_8 ||
+        state->p->instruments[track->note.instrument].type != InstrumentType::SoundFont) return;
+    auto& f = track->note.fx[fx->command];
+    f.isOn = 1;
+    f.fxValue = fx->command == fxFPT ? std::min(int(fx->value), 48) : fx->value;
+    return;
   }
   if (fx->command >= fxOAR && fx->command <= fxLEN) {
     if (track->note.instrument == EMPTY_VALUE_8) return;

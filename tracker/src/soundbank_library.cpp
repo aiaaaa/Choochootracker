@@ -4,6 +4,7 @@
 // clang-format on
 
 #include "soundbank_library.h"
+#include "soundbank_browser.h"
 
 #include <chrono>
 #include <cstdlib>
@@ -28,6 +29,10 @@ std::string status, bankId, presetId, expectedBank, expectedPreset;
 int target = -1;
 int preparationFrames = 0;
 bool restoringProject = false;
+bool scanned = false;
+int pendingInstrument = -1;
+std::string pendingBank, pendingPreset, pendingExpectedBank, pendingExpectedPreset;
+uint32_t pendingExpectedHandle=0;
 bool refreshPending = false;
 uint32_t expectedHandle = 0;
 size_t cacheLimit() {
@@ -64,6 +69,8 @@ std::string soundbankRoot() {
 }
 const std::vector<soundbank::BankEntry>& soundbankEntries() { return entries; }
 bool soundbankBusy() { return job.valid(); }
+bool soundbankScanned() { return scanned; }
+bool soundbankScanning() { return job.valid() && target < 0; }
 const std::string& soundbankStatus() { return status; }
 void soundbankRescan(bool force) {
   if (soundbankBusy()) return;
@@ -84,10 +91,17 @@ void soundbankRescan(bool force) {
 }
 void soundbankLoad(int instrument, const std::string& bank, const std::string& preset,
                    bool restoring) {
-  if (soundbankBusy() || !chipnomadState || instrument < 0 || instrument >= PROJECT_MAX_INSTRUMENTS)
-    return;
+  if (!chipnomadState || instrument < 0 || instrument >= PROJECT_MAX_INSTRUMENTS) return;
   auto& i = chipnomadState->project.instruments[instrument];
   if (i.type != InstrumentType::SoundFont) return;
+  if (soundbankBusy()) {
+    if (!restoring) {
+      pendingInstrument=instrument; pendingBank=bank; pendingPreset=preset;
+      pendingExpectedBank=i.chip.soundfont.bank; pendingExpectedPreset=i.chip.soundfont.preset;
+      pendingExpectedHandle=i.chip.soundfont.prepared;
+    }
+    return;
+  }
   if (bank.size() >= sizeof(i.chip.soundfont.bank) ||
       preset.size() >= sizeof(i.chip.soundfont.preset)) {
     status = "Bank/preset path too long";
@@ -118,6 +132,25 @@ void soundbankLoad(int instrument, const std::string& bank, const std::string& p
     return r;
   });
 }
+void soundbankCycle(int instrument, int direction) {
+  if (!chipnomadState || instrument < 0 || instrument >= PROJECT_MAX_INSTRUMENTS) return;
+  const auto& i = chipnomadState->project.instruments[instrument];
+  if (i.type != InstrumentType::SoundFont) return;
+  if (!scanned) { if (!soundbankBusy()) soundbankRescan(); return; }
+  auto selected = soundbank::cyclePreset(entries,
+    pendingInstrument == instrument ? pendingBank : (soundbankBusy() && target == instrument ? bankId : i.chip.soundfont.bank),
+    pendingInstrument == instrument ? pendingPreset : (soundbankBusy() && target == instrument ? presetId : i.chip.soundfont.preset), direction);
+  if (selected.first >= 0)
+    soundbankLoad(instrument, entries[selected.first].id, entries[selected.first].presets[selected.second].first);
+}
+static void loadPending() {
+  int next=pendingInstrument; pendingInstrument=-1;
+  if (!chipnomadState || next<0) return;
+  const auto& i=chipnomadState->project.instruments[next];
+  if (i.type==InstrumentType::SoundFont && pendingExpectedBank==i.chip.soundfont.bank &&
+      pendingExpectedPreset==i.chip.soundfont.preset && pendingExpectedHandle==i.chip.soundfont.prepared)
+    soundbankLoad(next,pendingBank,pendingPreset);
+}
 void soundbankPoll() {
   if (refreshPending && chipnomadState && chipnomadQueueProjectRefresh(chipnomadState))
     refreshPending = false;
@@ -126,6 +159,11 @@ void soundbankPoll() {
     if (ready == std::future_status::deferred && preparationFrames-- > 0) return;
     if (ready != std::future_status::ready && ready != std::future_status::deferred) return;
     auto r = job.get();
+    // Only the latest requested preset is published when cycling outruns decoding.
+    if (pendingInstrument == target && target >= 0) {
+      loadPending();
+      return;
+    }
     if (!r.error.empty()) {
       status = r.error;
       if (target >= 0) failed.insert(bankId + "|" + presetId);
@@ -134,6 +172,7 @@ void soundbankPoll() {
     }
     if (target < 0) {
       entries = std::move(r.banks);
+      scanned = true;
       status = std::to_string(entries.size()) + " USER banks";
       return;
     }
@@ -164,6 +203,9 @@ void soundbankPoll() {
     return;
   }
   if (!chipnomadState) return;
+  if (pendingInstrument >= 0) {
+    loadPending(); return;
+  }
   for (int n = 0; n < PROJECT_MAX_INSTRUMENTS; ++n) {
     auto& i = chipnomadState->project.instruments[n];
     if (i.type != InstrumentType::SoundFont) continue;
@@ -178,6 +220,7 @@ void soundbankPoll() {
 
 void soundbankShutdown() {
   if (job.valid()) job.get();
+  pendingInstrument=-1; entries.clear(); scanned=false; status.clear();
   soundbank::collect([](uint32_t) { return false; });
   cache.trim();
 }

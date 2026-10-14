@@ -230,6 +230,9 @@ enum FX : FXId {
   fxTPN, // Track pan
   // SQ80 performance controls; append without renumbering saved commands.
   fxQCF, fxQRS, fxWHL, fxPED, fxSUS, fxAFT, fxNPR, fxGLI, fxVEL, fxEXT,
+  // Append only: saved FX identifiers remain stable.
+  fxFPT, fxFVL, fxFPN, fxFCF, fxFRS, fxFAT, fxFDC, fxFRL,
+
   // Total count - must be last
   fxTotalCount
 };

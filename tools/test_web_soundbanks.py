@@ -82,15 +82,39 @@ try:
             for _ in range(3):
                 button(7, True); button(3, True); button(3, False); button(7, False)
             page.screenshot(path=str(work / 'instrument.png'))
+            def tap(number):
+                button(number, True); button(number, False)
+            def edit_step(number):
+                button(4, True); tap(number); button(4, False)
+            for _ in range(4):
+                tap(1)
+            tap(4)  # One preset browser, scanning automatically on its first use.
+            page.wait_for_timeout(1200)
+            page.screenshot(path=str(work / 'preset-folders.png'))
+            tap(4)  # tone.sf2 -> preset list
+            tap(4)  # Select Test.
+            page.wait_for_timeout(750)
+            tap(5)  # Return to Instrument.
+            tap(3); tap(4)  # Edit beside Preset.
+            edit_step(0)  # Tune +100 cents.
+            tap(1); edit_step(3)  # Cutoff Bank -> 20 Hz.
+            for _ in range(8):
+                tap(1)
+            edit_step(2)  # Volume FF -> FE.
+            tap(1); edit_step(3)  # Pan 80 -> 81.
+            page.screenshot(path=str(work / 'soundfont-edit.png'))
             assert page.evaluate("Module.ccall('webSaveProject','number',['string'],['/user/projects/roundtrip.cct'])") == 0
             saved = page.evaluate("FS.readFile('/user/projects/roundtrip.cct',{encoding:'utf8'})")
             assert '- Type: 30' in saved and '- Sound bank: tone.sf2' in saved and '- Sound preset: 0:0' in saved
+            assert '- Sound controls: 100 20 -1 -1 -1 -1 -1 -1 -1' in saved, saved[saved.index('### Instrument 0'):saved.index('### Instrument 1')]
+            saved_instrument = saved[saved.index('### Instrument 0'):saved.index('### Instrument 1')]
+            assert '- Volume: 254' in saved_instrument and '- Pan: 129' in saved_instrument, saved_instrument
             assert page.evaluate("Module.ccall('webLoadProject','number',['string'],['/user/projects/roundtrip.cct'])") == 0
             page.wait_for_timeout(1000)
             page.wait_for_function('Asyncify.state===0 && Asyncify.currData===null', timeout=15000)
             assert not errors, errors
             result = dict(browser=browser.version, audio=audio, user_zip=True, existing_files_kept=True,
-                          traversal_rejected=True, import_persisted=True, song_roundtrip=True, errors=errors)
+                          traversal_rejected=True, import_persisted=True, song_roundtrip=True, folder_browser=True, direct_editor=True, errors=errors)
             (work / 'result.json').write_text(json.dumps(result,indent=2)+'\n')
             print(json.dumps(result))
         finally:
