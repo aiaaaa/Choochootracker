@@ -31,7 +31,7 @@ void drawField(int c,int r,CellState s){if(r<3){instrumentCommonDrawField(c,r,s)
  const auto&p=current()->chip.sq80;int x=c?(r==4?19:30):9;gfxClearRect(x,y(r),r==4?(c?4:9):9,1);gfxSetFgColor(s==CellState::focus?appSettings.colorScheme.textValue:appSettings.colorScheme.textDefault);
  const char* star=instrumentSQ80Override(fieldFX(c,r))?"*":"";
  if(r==3)gfxPrint(x,y(r),p.factory?"FACTORY":"USER");
- if(r==4){if(c)gfxPrint(x,y(r),"Edit");else gfxPrintf(x,y(r),"%.9s",current()->name);}
+ if(r==4){if(c){gfxSetFgColor(s==CellState::focus?appSettings.colorScheme.textValue:appSettings.colorScheme.textInfo);gfxPrint(x,y(r),"EDIT");}else gfxPrintf(x,y(r),"%.9s",current()->name);}
  if(r==5)gfxPrintf(x,y(r),"%03u%s",c?p.velocity:p.wheel,star);
  if(r==6)gfxPrintf(x,y(r),"%03u%s",p.pedal,star);
  if(r==7)gfxPrintf(x,y(r),"%03u%s",p.raw[c?90:89]&(c?31:127),star);

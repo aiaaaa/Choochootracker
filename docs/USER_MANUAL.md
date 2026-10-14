@@ -1981,8 +1981,15 @@ SID parameter programs with envelopes and motion recipes, not sampled audio or
 complete C64 songs. The separate twelve GoatTracker research candidates are
 not shipped; their wave/pulse/filter tables need a dedicated importer/player.
 
-The instrument page exposes waveform/pulse width, filter mode/cutoff/resonance
-and native ADSR controls. **EDIT**, to the right of Wave/PW, opens **SID EDIT**,
+The instrument home page shows **Bank:** and **Preset:**, with **EDIT** at the
+right of the preset name beneath PAN/VOL. **Wave:** and **PW:** share a row.
+The **Filter:** section places **Mode:** above **Cutoff:** and **Reso:**.
+Native **ADSR:** values share one row as `A00 D00 S00 R00`, aligned like the FM
+pages; SID has no additional Shape control. These are saved native patch
+values: pulse width is `000–FFF`, cutoff `000–7FF`, and ADSR/resonance `00–0F`.
+Lane FX keep their existing ranges (SCP/SCT use `00–FF`), 16-bit command IDs,
+and separate Phrase/Table values; reorganizing the home controls does not
+change automation. **EDIT** opens **SID EDIT**,
 using the FM editor's compact rows, theme colors, hexadecimal values and
 EDIT+direction controls. OPT or Left+Shift returns; EDIT+PLAY auditions the
 instrument. The page edits the existing stored patch directly, so changes are
@@ -2122,6 +2129,8 @@ Choose SYNTH → SQ80/ESQ, import your wave bank and presets into USER/sq80esq,
 and open EDIT PRESET for the full native editor. Web users can use the
 Import SQ80/ESQ button once; files persist locally. See [SQ80/ESQ](sq80esq.md)
 for controls, bank formats, playback indicators and current limits.
+The SQ80/ESQ home page uses uppercase **EDIT**, with the same theme action
+color and selected-value highlight as other instrument editors.
 
 
 ### SQ80/ESQ Rev2 performance controls

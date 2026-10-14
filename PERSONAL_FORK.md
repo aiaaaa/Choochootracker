@@ -645,3 +645,18 @@ Handheld verification passed: ARM64 build with Lucky and SQ80 enabled,
 six MonkSynth engine regressions, production UI checks and voice benchmark.
 See personal-device-validation.json for the exact source snapshot and results.
 Physical listening remains pending user evaluation.
+
+## SID home cleanup — October 14, 2026
+
+`feature/sid-home-cleanup` is prepared on daily candidate `7d37f79`, including
+v1.0.16-alpha and post-release MAIN's 16-bit lane FX refactor through `583702d`.
+SID now has labeled Bank/Preset rows, EDIT beneath PAN/VOL, separate Wave/PW
+fields, a Filter section with Mode above Cutoff/Resonance, and one native ADSR
+row. SQ80 uses the shared uppercase EDIT action styling.
+
+Validation: production SDL UI with SQ80 enabled, both waveform header modes,
+exact touch/drag targets, editor routing and Phrase/Table FX bounds/defaults;
+seven SID editor regressions (14,592 assertions), including active lane FX;
+Emscripten web build and final changed-source compilation. Native patch ranges,
+lane command IDs, normalized SCP/SCT values and saved automation are preserved.
+Prepared for daily integration and review; no device or public web deployment.
