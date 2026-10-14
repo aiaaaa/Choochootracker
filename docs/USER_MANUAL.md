@@ -1340,6 +1340,7 @@ the current screen.
 | Bitcrusher | Bit depth, Rate reduction, Tone, Mix |
 | Destruction | Mode, Amount, Tone, Mix |
 | Parametric EQ | Low gain, Low frequency, Mid gain, Mid frequency, High gain, High frequency |
+| Trance Gate | Pattern, Rate, Length, Gate, Phase, Mode, Smooth, Mix |
 
 Continuous controls use 00–FF, including valid zero and maximum FF. Bipolar
 controls have an exact neutral at 80. Distortion modes are 00 Density, 01 Drive,
@@ -1362,6 +1363,18 @@ Parametric EQ has 24 dB boost/cut shelves at 60–500 Hz and 2–14 kHz, plus a
 fixed-Q 0.9 bell at 250 Hz–5 kHz. Its gain controls are neutral at 80; with all
 three neutral it is an exact bypass. Active EQ uses a transparent soft knee above
 full scale and reaches a maximum of 1.5 to contain extreme boosts.
+
+Trance Gate is a tempo-synchronised amplitude sequencer for pads, leads and
+stabs. Pattern values 00–3F select named musical motifs; 00–1F are core grooves
+and 20–3F are experimental variations. Their binary masks are
+intentionally not shown. Rate offers straight, triplet and dotted values from
+1/2 to 1/32. Length truncates the independently rotated 16-step motif to 1–16
+steps. Every track note-on restarts the sequence; note-off leaves it running
+through the release. Forward, Reverse and Ping-Pong define traversal; Chaos
+uses a repeatable density-preserving mutation every four loops. On the master
+insert it follows transport time without note retriggers. Gate sets each open
+step's width, Smooth rounds its edges while retaining a click-safe minimum fade,
+and Mix crossfades between dry and gated audio.
 
 Track level and tilt EQ precede the inserts, so both affect the signal entering
 compression and distortion. All voices/chord notes on the track feed one insert

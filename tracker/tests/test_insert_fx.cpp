@@ -237,7 +237,7 @@ TEST_SUITE("track inserts") {
     CHECK(fxF11 > fxATY);
     CHECK(fxF28 < 255);
     CHECK(genericModFirstInsert == 29);
-      const int counts[] = {0, 8, 4, 2, 6, 6, 5, 4, 5, 4, 4, 4, 4, 6};
+      const int counts[] = {0, 8, 4, 2, 6, 6, 5, 4, 5, 4, 4, 4, 4, 6, 8};
     for (int m = 0; m < insertModuleCount; ++m) {
       CHECK(insertDescriptor(m).count == counts[m]);
       InsertConfig c{};
@@ -253,6 +253,41 @@ TEST_SUITE("track inserts") {
       CHECK(insertClamp(m, 8, 255) == 0);
     }
     CHECK(insertDescriptor(999).count == 0);
+  }
+  TEST_CASE("trance gate has named patterns, deterministic cycles and smooth dry/wet control") {
+    InsertConfig c[2]{};
+    insertSelect(&c[0], insertTranceGate);
+    CHECK(std::string(insertDescriptor(insertTranceGate).name) == "Trance Gate");
+    char described[64];
+    insertDescribe(described, sizeof(described), insertTranceGate, 0, 14);
+    CHECK(std::string(described) == "0E Gate Sweep");
+    insertDescribe(described, sizeof(described), insertTranceGate, 5, 3);
+    CHECK(std::string(described) == "Chaos");
+    c[0].values[0] = 1;   // Four Floor
+    c[0].values[1] = 12;  // 1/32 = 3 ticks
+    c[0].values[2] = 15;
+    c[0].values[3] = 255;
+    c[0].values[6] = 0;
+    c[0].values[7] = 255;
+    InsertAutomation a{};
+    InsertChain whole(48000), split(48000);
+    whole.setTempo(2400); split.setTempo(2400); // 60 frames per 1/32 step
+    whole.sync(c, &a); split.sync(c, &a);
+    uint8_t v[2][8]; values(c, v);
+    std::vector<float> x(960 * 2, .25f), y = x;
+    whole.process(x.data(), 960, v);
+    for (int frame = 0; frame < 960; ++frame) split.process(y.data() + frame * 2, 1, v);
+    for (size_t i = 0; i < x.size(); ++i) CHECK(x[i] == doctest::Approx(y[i]).epsilon(1e-6));
+    CHECK(x[200] < .01f); // The 1st 1/32 is open; the following seven are closed.
+    whole.trigger();
+    std::vector<float> retrigger(120 * 2, .25f);
+    whole.process(retrigger.data(), 120, v);
+    CHECK(retrigger[0] < retrigger[100]);
+    c[0].values[7] = 0;
+    values(c, v);
+    std::vector<float> dry(240 * 2, .25f);
+    split.process(dry.data(), 240, v);
+    for (float sample : dry) CHECK(sample == doctest::Approx(.25f).epsilon(1e-6));
   }
   TEST_CASE("all DSP modules handle both slots, silence, stereo and variable blocks") {
     for (float rate : {32000.f, 44100.f, 48000.f, 96000.f})
@@ -947,6 +982,7 @@ TEST_CASE("insert tips return after real key release and categorized chooser sel
       insertOff, insertCompressor, insertOTT,
       insertDistortion, insertSaturation, insertBitcrusher, insertDestruction,
       insertChorus, insertPhaser, insertFlanger,
+      insertTranceGate,
       insertDoubler, insertRotary, insertTape, insertParametricEQ,
   };
   for (int i = 1; i < (int)(sizeof(popupOrder) / sizeof(popupOrder[0])); ++i) {

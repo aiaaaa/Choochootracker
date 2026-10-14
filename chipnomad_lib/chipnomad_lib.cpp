@@ -1019,6 +1019,7 @@ static int advancePlaybackFrame(ChipNomadState* state, uint64_t dueMicros) {
   const int wasPlaying = playbackIsPlaying(&state->playbackState);
   state->audioCommands->applyProject(&state->audioProject);
   state->playbackState.p = &state->audioProject;
+  const bool wasPlaying = playbackIsPlaying(&state->playbackState);
   if (state->audioCommands->takeStopRequest()) {
     chipnomadMidiPanic(state);
     playbackStop(&state->playbackState);
@@ -1027,12 +1028,15 @@ static int advancePlaybackFrame(ChipNomadState* state, uint64_t dueMicros) {
   for (int t = 0; t < PROJECT_MAX_TRACKS; ++t) {
     if (!state->insertChains[t]) continue;
     auto& track = state->playbackState.tracks[t];
+    state->insertChains[t]->setTempo(state->audioProject.tickRate);
     uint16_t cleared = state->insertChains[t]->sync(state->audioProject.trackInserts[t], &track.inserts);
     for (int address = 0; address < 16; ++address) if (cleared & (1u << address)) {
       track.slewTarget[fxF11 + address] = -1;
       track.slewRemaining[fxF11 + address] = 0;
     }
   }
+  if (state->masterInsertChain)
+    state->masterInsertChain->setTempo(state->audioProject.tickRate);
   if (state->masterInsertChain)
     state->masterInsertChain->sync(state->audioProject.masterInserts, &state->masterInsertAutomation);
   state->audioCommands->applySettings(&state->playbackState);
@@ -1052,6 +1056,11 @@ static int advancePlaybackFrame(ChipNomadState* state, uint64_t dueMicros) {
   playbackUpdateLiveStickModulation(&state->playbackState, axes, enabled);
   state->frameSampleCounter += state->sampleRate / state->audioProject.tickRate;
   int allTracksStopped = playbackNextFrame(state);
+  if (!wasPlaying && playbackIsPlaying(&state->playbackState) && state->masterInsertChain)
+    state->masterInsertChain->reset();
+  for (int t = 0; t < state->audioProject.tracksCount; ++t)
+    if (state->playbackState.tracks[t].note.noteTriggered && state->insertChains[t])
+      state->insertChains[t]->trigger();
   motionRecordFrame(state);
   if (allTracksStopped) playbackUpdateLiveStickModulation(&state->playbackState, axes, enabled);
   updateSampleVoices(state); updateSCWFVoices(state); updateBraidsVoices(state);
