@@ -6,7 +6,16 @@
 #include <string>
 #include <utility>
 #include <vector>
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#endif
 #include "project.h"
+#include "opll_presets.h"
+#include "opl_patch.h"
+#include "four_op_patch.h"
+#include "simple_chip_presets.h"
+#include <memory>
 #include "project_io_common.h"
 #include "synth/sample_voice.h"
 #include "synth/sr_wavetable_loader.h"
@@ -14,7 +23,7 @@
 
 // Shared state
 char projectFileError[41];
-int projectFileVersion = 6;  // Default to current version
+int projectFileVersion = 7;  // Default to current version
 static char chipNames[][16] = { "AY8910" };
 
 // Peek/consume implementation - single global buffer (ChipNomad is single-threaded)
@@ -23,6 +32,7 @@ static char* currentLine = NULL;
 static int isConsumed = 1;
 
 static uint16_t scanPhraseVolume(char* str);
+static uint16_t legacyPhraseVolume(uint16_t value);
 
 void resetPeekConsume(void) {
   currentLine = NULL;
@@ -233,7 +243,7 @@ static uint8_t scanNote(char* str, Project* p) {
   return EMPTY_VALUE_8;
 }
 
-static uint8_t scanFX(char* str, Project* p) {
+static FXId scanFX(char* str, Project* p) {
   // Silly linear search through the list of FX. To replace with a simple hash
   static char buf[4];
   buf[0] = str[0];
@@ -241,7 +251,12 @@ static uint8_t scanFX(char* str, Project* p) {
   buf[2] = str[2];
   buf[3] = 0;
 
-  if (!strcmp(buf, "---")) return EMPTY_VALUE_8;
+  if (!strcmp(buf, "---")) return FX_ID_EMPTY;
+
+  // Legacy file spelling of the sample playback FX (shown as SPL in the
+  // UI). The AY2 Pulse Low Level FX owns the "SPL" name in this flat
+  // namespace, so the sample FX keeps "SLP" in files and resolves here.
+  if (!strcmp(buf, "SLP")) return fxSLP;
 
   // Scan all FX groups
   extern FXGroup fxGroups[];
@@ -252,7 +267,7 @@ static uint8_t scanFX(char* str, Project* p) {
     }
   }
 
-  return EMPTY_VALUE_8;
+  return FX_ID_EMPTY;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -477,7 +492,10 @@ static int projectLoadPhrases(FILE* file, Project* p) {
     for (int c = 0; c < 16; c++) {
       line = peekLine(file);
       if (line == NULL) return 1;
-      if (strlen(line) != 30) return 1;
+      // Empty FX names are serialized as blank fields when the FX name table
+      // has not been initialized yet, so the shortest valid phrase row is 21
+      // characters instead of the usual 30.
+      if (strlen(line) < 21) return 1;
       // Note
       p->phrases[idx].rows[c].note = scanNote(line, p);
       // Instrument
@@ -689,6 +707,7 @@ static bool readInsertFields(const char* line, const char* prefix, unsigned* val
 
 static int projectLoadInternal(FILE* file, Project* project) {
   char buf[128];
+  int tempLinearPitch;
   Project p;
   projectInit(&p);
   p.signedTrackSpeed = 0; // Absent from old files: retain the legacy SPD map.
@@ -707,7 +726,15 @@ static int projectLoadInternal(FILE* file, Project* project) {
 
   // Detect version
   if (strlen(version) > 0) {
-    if (strncmp(version, " 6.0", 4) == 0) {
+    if (strncmp(version, " 10.0", 5) == 0) {
+      projectFileVersion = 10;
+    } else if (strncmp(version, " 9.0", 4) == 0) {
+      projectFileVersion = 9;
+    } else if (strncmp(version, " 8.0", 4) == 0) {
+      projectFileVersion = 8;
+    } else if (strncmp(version, " 7.0", 4) == 0) {
+      projectFileVersion = 7;
+    } else if (strncmp(version, " 6.0", 4) == 0) {
       projectFileVersion = 6;
     } else if (strncmp(version, " 5.0", 4) == 0) {
       projectFileVersion = 5;
@@ -780,6 +807,21 @@ static int projectLoadInternal(FILE* file, Project* project) {
     }
     line = peekLine(file);
   }
+  if (line && strncmp(line, "- Master inserts: ", 18) == 0) {
+    unsigned header[2];
+    if (!readInsertFields(line, "- Master inserts: ", header, 2) ||
+        header[0] != 1 || header[1] != 2) return 1;
+    consumeLine(file);
+    for (int slot = 0; slot < 2; ++slot) {
+      unsigned fields[11];
+      if (!readInsertFields(peekLine(file), "- Master insert: ", fields, 11) ||
+          fields[0] != (unsigned)slot || fields[1] >= insertModuleCount || fields[2] > 1) return 1;
+      auto& c = p.masterInserts[slot]; c.module = fields[1]; c.bypass = fields[2];
+      for (int i = 0; i < 8; ++i) c.values[i] = insertClamp(c.module, i, fields[i + 3]);
+      consumeLine(file);
+    }
+    line = peekLine(file);
+  }
   if (line == NULL || strncmp(line, "- Track volumes: ", 17) != 0) return 1;
   if (sscanf(line + 17, "%hhu,%hhu,%hhu,%hhu,%hhu,%hhu,%hhu,%hhu",
       &p.trackVolume[0], &p.trackVolume[1], &p.trackVolume[2], &p.trackVolume[3],
@@ -788,6 +830,14 @@ static int projectLoadInternal(FILE* file, Project* project) {
     if (p.trackVolume[i] > 100) p.trackVolume[i] = 100;
   }
   consumeLine(file);
+
+  line = peekLine(file);
+  if (line && strncmp(line, "- Track pans: ", 14) == 0) {
+    if (sscanf(line + 14, "%hhu,%hhu,%hhu,%hhu,%hhu,%hhu,%hhu,%hhu",
+        &p.trackPan[0], &p.trackPan[1], &p.trackPan[2], &p.trackPan[3],
+        &p.trackPan[4], &p.trackPan[5], &p.trackPan[6], &p.trackPan[7]) != PROJECT_MAX_TRACKS) return 1;
+    consumeLine(file);
+  }
 
   line = peekLine(file);
   if (line && strncmp(line, "- Reverb sends: ", 16) == 0) {
@@ -811,8 +861,13 @@ static int projectLoadInternal(FILE* file, Project* project) {
     consumeLine(file);
   }
   line = peekLine(file);
-  if (line && sscanf(line, "- Reverb: %hhu,%hhu,%hhu,%hu", &p.reverbReturn, &p.reverbTime,
-                     &p.reverbDamping, &p.reverbFilterCutoffHz) == 4) consumeLine(file);
+  if (line && sscanf(line, "- Reverb: %hhu,%hhu,%hhu,%hu,%hu", &p.reverbReturn, &p.reverbTime,
+                     &p.reverbDamping, &p.reverbFilterCutoffHz, &p.reverbHighpassCutoffHz) == 5) {
+    consumeLine(file);
+  } else if (line && sscanf(line, "- Reverb: %hhu,%hhu,%hhu,%hu", &p.reverbReturn, &p.reverbTime,
+                            &p.reverbDamping, &p.reverbFilterCutoffHz) == 4) {
+    consumeLine(file);
+  }
   line = peekLine(file);
   if (line && sscanf(line, "- Delay: %hhu,%hhu,%hhu,%hhu,%hu", &p.delayReturn, &p.delayReverbSend,
                      &p.delayTicks, &p.delayFeedback, &p.delayFilterCutoffHz) == 5) {
@@ -824,6 +879,32 @@ static int projectLoadInternal(FILE* file, Project* project) {
   }
   line = peekLine(file);
   if (line && sscanf(line, "- Tilt pivot: %hu", &p.tiltPivotHz) == 1) consumeLine(file);
+  line = peekLine(file);
+  if (line && sscanf(line, "- Sample save choice: %hhu", &p.sampleSaveChoice) == 1) {
+    consumeLine(file);
+  }
+
+  line = peekLine(file);
+  if (line && sscanf(line, "- MIDI CC mappings: %d", &tempLinearPitch) == 1) {
+    int count = tempLinearPitch < 0 ? 0 : tempLinearPitch;
+    consumeLine(file);
+    for (int i = 0; i < count; ++i) {
+      unsigned slot, enabled, channel, cc, instrument, destination;
+      line = peekLine(file);
+      if (!line || sscanf(line, "- MIDI CC: %u,%u,%u,%u,%u,%u", &slot, &enabled, &channel,
+                          &cc, &instrument, &destination) != 6) return 1;
+      if (slot < PROJECT_MAX_MIDI_CC_MAPPINGS) {
+        MidiCCMapping& m = p.midiCCMappings[slot];
+        m.enabled = enabled != 0;
+        m.channel = channel < 16 ? channel : 0;
+        m.cc = cc < 128 ? cc : 0;
+        m.instrument = instrument < PROJECT_MAX_INSTRUMENTS ? instrument : 0;
+        m.destination = destination < 255 ? destination : 0;
+      }
+      consumeLine(file);
+    }
+    line = peekLine(file);
+  }
 
   for (int i = 0; i < PROJECT_MAX_TRACKS; i++) {
     if (p.trackReverbSend[i] > 100) p.trackReverbSend[i] = 100;
@@ -835,14 +916,15 @@ static int projectLoadInternal(FILE* file, Project* project) {
   if (p.delayFeedback > 95) p.delayFeedback = 95;
   if (p.delayTicks == 0) p.delayTicks = 1;
   if (p.reverbFilterCutoffHz < 20) p.reverbFilterCutoffHz = 20;
+  if (p.reverbHighpassCutoffHz < 20) p.reverbHighpassCutoffHz = 20;
   if (p.delayFilterCutoffHz < 20) p.delayFilterCutoffHz = 20;
   if (p.tiltPivotHz < 250) p.tiltPivotHz = 250;
   if (p.tiltPivotHz > 4000) p.tiltPivotHz = 4000;
+  if (p.sampleSaveChoice > 2) p.sampleSaveChoice = 0;
 
   // Try to read linear pitch (optional for backwards compatibility)
   line = peekLine(file);
   if (line == NULL) return 1;
-  int tempLinearPitch;
   if (sscanf(line, "- Linear pitch: %d", &tempLinearPitch) == 1) {
     p.linearPitch = (uint8_t)tempLinearPitch;
     consumeLine(file);
@@ -863,15 +945,25 @@ static int projectLoadInternal(FILE* file, Project* project) {
   }
   int scaleRoot, scalePreset;
   unsigned int scaleCustomMask, scaleTracksMask;
-  int scaleFields = line ? sscanf(line, "- Scale: %d,%d,%d,%u,%u", &tempLinearPitch, &scaleRoot,
-                                  &scalePreset, &scaleCustomMask, &scaleTracksMask) : 0;
+  int scaleMode = 0;
+  // Try the current 6-field layout: apply,mode,root,preset,customMask,tracksMask.
+  // Legacy lines have no mode field (4 or 5 fields), so a short parse means the
+  // values sit in the legacy positions and must be re-read that way.
+  int scaleFields = line ? sscanf(line, "- Scale: %d,%d,%d,%d,%u,%u", &tempLinearPitch, &scaleMode,
+                                  &scaleRoot, &scalePreset, &scaleCustomMask, &scaleTracksMask) : 0;
+  if (scaleFields > 0 && scaleFields < 6) {
+    scaleFields = sscanf(line, "- Scale: %d,%d,%d,%u,%u", &tempLinearPitch, &scaleRoot,
+                         &scalePreset, &scaleCustomMask, &scaleTracksMask);
+    scaleMode = 0; // legacy files predate Note Lock: default Quantizer
+  }
   if (scaleFields >= 4) {
     p.scaleApply = tempLinearPitch != 0;
+    p.scaleMode = scaleMode != 0;
     p.scaleRoot = scaleRoot >= 0 && scaleRoot < 12 ? (uint8_t)scaleRoot : 0;
     p.scalePreset = scalePreset >= 0 && scalePreset < scalePresetCount ? (ScalePreset)scalePreset : scaleChromatic;
     p.scaleCustomMask = scaleCustomMask & 0x0fff;
     if (!p.scaleCustomMask) p.scaleCustomMask = 0x0fff;
-    if (scaleFields == 5) p.scaleTracksMask = scaleTracksMask & 0xff;
+    if (scaleFields >= 5) p.scaleTracksMask = scaleTracksMask & 0xff;
     consumeLine(file);
     line = peekLine(file);
     if (line == NULL) return 1;
@@ -1009,6 +1101,25 @@ static int projectLoadInternal(FILE* file, Project* project) {
     for (int table = 0; table < PROJECT_MAX_TABLES; ++table) for (int row = 0; row < 16; ++row) for (int fx = 0; fx < 4; ++fx)
       if (p.tables[table].rows[row].fx[fx][0] == fxSDT) p.tables[table].rows[row].fx[fx][1] = convert(p.tables[table].rows[row].fx[fx][1]);
   }
+  if (projectFileVersion < 7) {
+    // SPL redefinition: SLP 1=loop / 2=ping-pong became SPL 01=reverse /
+    // 02=loop / 03=ping-pong. Shift the old loop values so existing songs
+    // keep their playback mode.
+    for (int phrase = 0; phrase < PROJECT_MAX_PHRASES; ++phrase)
+      for (int row = 0; row < 16; ++row)
+        for (int fx = 0; fx < 3; ++fx)
+          if (p.phrases[phrase].rows[row].fx[fx][0] == fxSLP &&
+              p.phrases[phrase].rows[row].fx[fx][1] >= 1 &&
+              p.phrases[phrase].rows[row].fx[fx][1] <= 2)
+            p.phrases[phrase].rows[row].fx[fx].value += 1;
+    for (int table = 0; table < PROJECT_MAX_TABLES; ++table)
+      for (int row = 0; row < 16; ++row)
+        for (int fx = 0; fx < 4; ++fx)
+          if (p.tables[table].rows[row].fx[fx][0] == fxSLP &&
+              p.tables[table].rows[row].fx[fx][1] >= 1 &&
+              p.tables[table].rows[row].fx[fx][1] <= 2)
+            p.tables[table].rows[row].fx[fx].value += 1;
+  }
   projectFree(project);
   *project = p;
   return 0;
@@ -1023,12 +1134,17 @@ static int pathIsAbsolute(const char* path) {
 #endif
 }
 
+static uint16_t legacyPhraseVolume(uint16_t value) {
+  if (value == EMPTY_VALUE_16 || value == EMPTY_VALUE_8) return EMPTY_VALUE_16;
+  return (std::min(value, uint16_t(15)) * PHRASE_VOLUME_MAX + 7) / 15;
+}
+
 static uint16_t scanPhraseVolume(char* str) {
   if (str[0] == '-' && str[1] == '-') return EMPTY_VALUE_16;
   uint8_t value;
   if (sscanf(str, "%2hhX", &value) != 1) return EMPTY_VALUE_16;
   if (projectFileVersion < 6)
-    return ((uint16_t)value * PHRASE_VOLUME_MAX + 7) / 15;
+    return legacyPhraseVolume(value);
   return value > PHRASE_VOLUME_MAX ? PHRASE_VOLUME_MAX : value;
 }
 
@@ -1123,7 +1239,8 @@ static int cctReadFile(const char* path, std::vector<uint8_t>* data) {
   int ok = fread(data->data(), 1, data->size(), file) == data->size(); fclose(file); return ok ? 0 : 1;
 }
 
-static void cctAppendSampleWav(const InstrumentSample* sample, std::vector<uint8_t>* wav) {
+static void cctAppendSampleWav(const InstrumentSample* sample, std::vector<uint8_t>* wav,
+                               uint16_t wavetableFrameSize = 0) {
   uint32_t channels = sample->channels >= 2 ? 2 : 1;
   uint32_t dataBytes = sample->frameCount * channels * 2;
   wav->resize(44 + dataBytes); uint8_t* p = wav->data();
@@ -1135,6 +1252,20 @@ static void cctAppendSampleWav(const InstrumentSample* sample, std::vector<uint8
   p[32] = channels * 2; p[34] = 16; memcpy(p + 36, "data", 4);
   for (int i = 0; i < 4; ++i) p[40 + i] = dataBytes >> (i * 8);
   memcpy(p + 44, sample->data, dataBytes);
+  // Keep the wavetable's cycle length in the WAV itself, using the same
+  // Serum metadata understood by the normal loader. PCM alone loses it.
+  if (wavetableFrameSize) {
+    char layout[32];
+    uint32_t length = (uint32_t)snprintf(layout, sizeof(layout), "<!>%u", wavetableFrameSize);
+    size_t offset = wav->size();
+    wav->resize(offset + 8 + length + (length & 1), 0);
+    p = wav->data();
+    memcpy(p + offset, "clm ", 4);
+    for (int i = 0; i < 4; ++i) p[offset + 4 + i] = length >> (i * 8);
+    memcpy(p + offset + 8, layout, length);
+    riffSize = (uint32_t)wav->size() - 8;
+    for (int i = 0; i < 4; ++i) p[4 + i] = riffSize >> (i * 8);
+  }
 }
 
 static bool cctHasSamples(const Project* project) {
@@ -1229,7 +1360,13 @@ int projectLoad(Project* p, const char* path) {
         }
         rewind(sampleFile);
         char error[64];
-        sampleLoadWav16File(sampleFile, samples[j]->path, samples[j], error, sizeof(error));
+        if (instrument->type == InstrumentType::BYOWTBL) {
+          srWavetableLoadWavFile(sampleFile, samples[j]->path, samples[j],
+                                &instrument->chip.byowtbl.frameSize[j],
+                                &instrument->chip.byowtbl.tableFrames[j], error, sizeof(error));
+        } else {
+          sampleLoadWav16File(sampleFile, samples[j]->path, samples[j], error, sizeof(error));
+        }
         fclose(sampleFile);
       }
     }
@@ -1266,7 +1403,6 @@ static int projectSavePitchTable(FILE* file, Project* project) {
 }
 
 static int projectSaveSong(FILE* file, Project* project) {
-  extern FXName fxNames[256];
 
   fprintf(file, "\n## Song\n\n```\n");
 
@@ -1347,8 +1483,16 @@ static int projectSaveGrooves(FILE* file, Project* project) {
   return 0;
 }
 
+// File spelling of an FX name. SPL (sample playback) keeps its legacy
+// "SLP" spelling: the AY2 Pulse Low Level FX already owns "SPL" in the
+// flat FX namespace scanFX resolves, so writing "SPL" for the sample FX
+// would hijack loads of both old and new files.
+static const char* fxSaveName(FXId fx) {
+  if (fx == FX_ID_EMPTY || fx >= fxTotalCount) return "---";
+  return fx == fxSLP ? "SLP" : fxNames[fx].name;
+}
+
 static int projectSavePhrases(FILE* file, Project* project) {
-  extern FXName fxNames[256];
 
   fprintf(file, "\n## Phrases\n\n");
 
@@ -1360,11 +1504,11 @@ static int projectSavePhrases(FILE* file, Project* project) {
           noteName(project, project->phrases[c].rows[d].note),
           byteToHexOrEmpty(project->phrases[c].rows[d].instrument),
           volumeToHexOrEmpty(project->phrases[c].rows[d].volume),
-          fxNames[project->phrases[c].rows[d].fx[0][0]].name,
+          fxSaveName(project->phrases[c].rows[d].fx[0].command),
           byteToHex(project->phrases[c].rows[d].fx[0][1]),
-          fxNames[project->phrases[c].rows[d].fx[1][0]].name,
+          fxSaveName(project->phrases[c].rows[d].fx[1].command),
           byteToHex(project->phrases[c].rows[d].fx[1][1]),
-          fxNames[project->phrases[c].rows[d].fx[2][0]].name,
+          fxSaveName(project->phrases[c].rows[d].fx[2].command),
           byteToHex(project->phrases[c].rows[d].fx[2][1])
         );
       }
@@ -1376,7 +1520,6 @@ static int projectSavePhrases(FILE* file, Project* project) {
 }
 
 int saveTable(FILE* file, int idx, Table* table) {
-  extern FXName fxNames[256];
 
   fprintf(file, "\n### Table %X (Retrig: %s)\n\n```\n", idx, tableRetriggerModeName(table->retriggerMode));
   for (int d = 0; d < 16; d++) {
@@ -1384,10 +1527,10 @@ int saveTable(FILE* file, int idx, Table* table) {
       table->rows[d].pitchFlag ? '=' : '~',
       byteToHex(table->rows[d].pitchOffset),
       byteToHexOrEmpty(table->rows[d].volume),
-      fxNames[table->rows[d].fx[0][0]].name, byteToHex(table->rows[d].fx[0][1]),
-      fxNames[table->rows[d].fx[1][0]].name, byteToHex(table->rows[d].fx[1][1]),
-      fxNames[table->rows[d].fx[2][0]].name, byteToHex(table->rows[d].fx[2][1]),
-      fxNames[table->rows[d].fx[3][0]].name, byteToHex(table->rows[d].fx[3][1]));
+      fxSaveName(table->rows[d].fx[0].command), byteToHex(table->rows[d].fx[0][1]),
+      fxSaveName(table->rows[d].fx[1].command), byteToHex(table->rows[d].fx[1][1]),
+      fxSaveName(table->rows[d].fx[2].command), byteToHex(table->rows[d].fx[2][1]),
+      fxSaveName(table->rows[d].fx[3].command), byteToHex(table->rows[d].fx[3][1]));
   }
   fprintf(file, "```\n");
   return 0;
@@ -1440,7 +1583,20 @@ static int projectSaveAYWavetables(FILE* file, Project* project) {
 }
 
 static int projectSaveInternal(FILE* file, Project* project) {
-  fprintf(file, "# ChooChooTracker Module 6.0\n\n");
+  bool nativeChips = false;
+  for (const auto& instrument : project->instruments) nativeChips |= (instrument.type==InstrumentType::SID || instrument.type==InstrumentType::DX7 || isOPLL(instrument.type) || (isOPL(instrument.type) || isFourOp(instrument.type)) || isSimpleChip(instrument.type));
+  for (const auto& phrase : project->phrases) for (const auto& row : phrase.rows) for (const auto& fx : row.fx) nativeChips |= fx.command >= fxFBR && fx.command < fxTotalCount;
+  for (const auto& table : project->tables) for (const auto& row : table.rows) for (const auto& fx : row.fx) nativeChips |= fx.command >= fxFBR && fx.command < fxTotalCount;
+  bool sourcePrograms=false;
+  for(const auto& i:project->instruments)sourcePrograms |= i.type==InstrumentType::SID?bool(i.chip.sid.program.format):isSimpleChip(i.type)?bool(i.chip.simpleChip.program.format):false;
+  // Native formats 6-8 predate upstream's expanded phrase volume. Format 9
+  // distinguishes new 00-7F songs while retaining their native patches and FX.
+  // Plain projects stay at 7.0: this fork's 7.0 carries the redefined SLP
+  // playback values (0=fwd/1=rev/2=loop/3=ping-pong) and the 6-field Scale
+  // line, so writing 6.0 would re-trigger the <7 SLP value migration on
+  // reload and corrupt loop modes. Upstream never wrote 7.0 files, so the
+  // number stays unambiguous. Native-chip projects use upstream's 9/10.
+  fprintf(file, "# ChooChooTracker Module %d.0\n\n", sourcePrograms ? 10 : nativeChips ? 9 : 7);
 
   fprintf(file, "- Title: %s\n", project->title);
   fprintf(file, "- Author: %s\n", project->author);
@@ -1454,9 +1610,19 @@ static int projectSaveInternal(FILE* file, Project* project) {
     for (int i = 0; i < 8; ++i) fprintf(file, ",%u", c.values[i]);
     fprintf(file, "\n");
   }
+  fprintf(file, "- Master inserts: 1,2\n");
+  for (int slot = 0; slot < 2; ++slot) {
+    const auto& c = project->masterInserts[slot];
+    fprintf(file, "- Master insert: %d,%u,%u", slot, c.module, c.bypass);
+    for (int i = 0; i < 8; ++i) fprintf(file, ",%u", c.values[i]);
+    fprintf(file, "\n");
+  }
   fprintf(file, "- Track volumes: %hhu,%hhu,%hhu,%hhu,%hhu,%hhu,%hhu,%hhu\n",
     project->trackVolume[0], project->trackVolume[1], project->trackVolume[2], project->trackVolume[3],
     project->trackVolume[4], project->trackVolume[5], project->trackVolume[6], project->trackVolume[7]);
+  fprintf(file, "- Track pans: %hhu,%hhu,%hhu,%hhu,%hhu,%hhu,%hhu,%hhu\n",
+    project->trackPan[0], project->trackPan[1], project->trackPan[2], project->trackPan[3],
+    project->trackPan[4], project->trackPan[5], project->trackPan[6], project->trackPan[7]);
   fprintf(file, "- Reverb sends: %hhu,%hhu,%hhu,%hhu,%hhu,%hhu,%hhu,%hhu\n",
     project->trackReverbSend[0], project->trackReverbSend[1], project->trackReverbSend[2], project->trackReverbSend[3],
     project->trackReverbSend[4], project->trackReverbSend[5], project->trackReverbSend[6], project->trackReverbSend[7]);
@@ -1466,16 +1632,30 @@ static int projectSaveInternal(FILE* file, Project* project) {
   fprintf(file, "- Track tilts: %hhu,%hhu,%hhu,%hhu,%hhu,%hhu,%hhu,%hhu\n",
     project->trackTilt[0], project->trackTilt[1], project->trackTilt[2], project->trackTilt[3],
     project->trackTilt[4], project->trackTilt[5], project->trackTilt[6], project->trackTilt[7]);
-  fprintf(file, "- Reverb: %hhu,%hhu,%hhu,%hu\n", project->reverbReturn, project->reverbTime,
-    project->reverbDamping, project->reverbFilterCutoffHz);
+  fprintf(file, "- Reverb: %hhu,%hhu,%hhu,%hu,%hu\n", project->reverbReturn, project->reverbTime,
+    project->reverbDamping, project->reverbFilterCutoffHz, project->reverbHighpassCutoffHz);
   fprintf(file, "- Delay: %hhu,%hhu,%hhu,%hhu,%hu\n", project->delayReturn, project->delayReverbSend,
     project->delayTicks, project->delayFeedback, project->delayFilterCutoffHz);
   fprintf(file, "- Tilt pivot: %hu\n", project->tiltPivotHz);
+  // Optional field (Phase 4): only written when set, so older versions of
+  // the format stay byte-identical for projects without the preference.
+  // Must stay before the MIDI CC mappings block: the loader reads it right
+  // after the tilt pivot line (this fork's layout, kept from before the
+  // upstream merge).
+  if (project->sampleSaveChoice) {
+    fprintf(file, "- Sample save choice: %hhu\n", project->sampleSaveChoice);
+  }
+  fprintf(file, "- MIDI CC mappings: %d\n", PROJECT_MAX_MIDI_CC_MAPPINGS);
+  for (int i = 0; i < PROJECT_MAX_MIDI_CC_MAPPINGS; ++i) {
+    const MidiCCMapping& m = project->midiCCMappings[i];
+    fprintf(file, "- MIDI CC: %d,%d,%d,%d,%d,%d\n", i, m.enabled, m.channel, m.cc,
+            m.instrument, m.destination);
+  }
   fprintf(file, "- Linear pitch: %d\n", project->linearPitch);
   fprintf(file, "- Signed track speed: %d\n", project->signedTrackSpeed);
   fprintf(file, "- Perceptual effects: %d\n", project->perceptualEffects);
-  fprintf(file, "- Scale: %d,%d,%d,%u,%u\n", project->scaleApply, project->scaleRoot,
-          project->scalePreset, project->scaleCustomMask, project->scaleTracksMask);
+  fprintf(file, "- Scale: %d,%d,%d,%u,%u,%u\n", project->scaleApply, project->scaleMode, project->scaleRoot,
+          (unsigned)project->scalePreset, project->scaleCustomMask, project->scaleTracksMask);
   fprintf(file, "- Chip type: %s\n", chipNames[static_cast<int>(project->chipType)]);
 
   switch (project->chipType) {
@@ -1512,45 +1692,134 @@ static int projectSaveInternal(FILE* file, Project* project) {
   return 0;
 }
 
-int projectSave(Project* p, const char* path) {
-  projectFileError[0] = 0;
+static int closeProjectOutput(FILE* file, int result) {
+  if (!file) return 1;
+  if (result == 0 && fflush(file) != 0) result = 1;
+  if (ferror(file)) result = 1;
+  if (fclose(file) != 0) result = 1;
+  return result;
+}
 
+static int projectSaveDirect(Project* p, const char* path) {
   if (cctHasSamples(p)) {
     FILE* projectFile = tmpfile();
-    if (!projectFile) return 1;
-    projectSaveInternal(projectFile, p);
+    if (!projectFile) {
+      snprintf(projectFileError, 40, "Can't create temporary project");
+      return 1;
+    }
+
+    int projectResult = projectSaveInternal(projectFile, p);
+    if (projectResult != 0 || fflush(projectFile) != 0 || ferror(projectFile)) {
+      fclose(projectFile);
+      snprintf(projectFileError, 40, "Can't serialize project");
+      return 1;
+    }
+
     long projectSize = ftell(projectFile);
-    if (projectSize < 0 || fseek(projectFile, 0, SEEK_SET) != 0) { fclose(projectFile); return 1; }
-    CctZipEntry projectEntry; projectEntry.name = "project.cct"; projectEntry.data.resize((size_t)projectSize);
+    if (projectSize < 0 || fseek(projectFile, 0, SEEK_SET) != 0) {
+      fclose(projectFile);
+      snprintf(projectFileError, 40, "Can't prepare project archive");
+      return 1;
+    }
+
+    CctZipEntry projectEntry;
+    projectEntry.name = "project.cct";
+    projectEntry.data.resize((size_t)projectSize);
     if (fread(projectEntry.data.data(), 1, projectEntry.data.size(), projectFile) != projectEntry.data.size()) {
-      fclose(projectFile); return 1;
+      fclose(projectFile);
+      snprintf(projectFileError, 40, "Can't read serialized project");
+      return 1;
     }
     fclose(projectFile);
-    std::vector<CctZipEntry> entries; entries.push_back(std::move(projectEntry));
+
+    std::vector<CctZipEntry> entries;
+    entries.push_back(std::move(projectEntry));
     int sampleIndex = 0;
     for (int i = 0; i < PROJECT_MAX_INSTRUMENTS; ++i) {
       Instrument* instrument = &p->instruments[i];
-      InstrumentSample* samples[2] = {NULL, NULL}; int count = 0;
-      if (instrument->type == InstrumentType::Sample) samples[count++] = &instrument->chip.sample;
-      else if (instrument->type == InstrumentType::SCWF || instrument->type == InstrumentType::BYOWTBL) {
-        samples[count++] = &instrument->chip.scwf.oscillator[0]; samples[count++] = &instrument->chip.scwf.oscillator[1];
+      InstrumentSample* samples[2] = {NULL, NULL};
+      int count = 0;
+      if (instrument->type == InstrumentType::Sample) {
+        samples[count++] = &instrument->chip.sample;
+      } else if (instrument->type == InstrumentType::SCWF || instrument->type == InstrumentType::BYOWTBL) {
+        samples[count++] = &instrument->chip.scwf.oscillator[0];
+        samples[count++] = &instrument->chip.scwf.oscillator[1];
       }
-      for (int j = 0; j < count; ++j, ++sampleIndex) if (samples[j]->data && samples[j]->frameCount) {
-        CctZipEntry sample; char name[32]; snprintf(name, sizeof(name), "samples/%03d.wav", sampleIndex); sample.name = name;
-        cctAppendSampleWav(samples[j], &sample.data); entries.push_back(std::move(sample));
+
+      for (int j = 0; j < count; ++j, ++sampleIndex) {
+        if (!samples[j]->data || !samples[j]->frameCount) continue;
+        CctZipEntry sample;
+        char name[32];
+        snprintf(name, sizeof(name), "samples/%03d.wav", sampleIndex);
+        sample.name = name;
+        cctAppendSampleWav(samples[j], &sample.data,
+                           instrument->type == InstrumentType::BYOWTBL ? instrument->chip.byowtbl.frameSize[j] : 0);
+        entries.push_back(std::move(sample));
       }
     }
+
     FILE* file = fopen(path, "wb");
-    if (!file) return 1;
-    int result = cctWriteZip(file, entries); fclose(file); return result;
+    if (!file) {
+      snprintf(projectFileError, 40, "Can't open save file");
+      return 1;
+    }
+    int result = cctWriteZip(file, entries);
+    result = closeProjectOutput(file, result);
+    if (result != 0 && projectFileError[0] == 0) {
+      snprintf(projectFileError, 40, "Can't write save file");
+    }
+    return result;
   }
 
   FILE* file = fopen(path, "wb");
-  if (file == NULL) return 1;
+  if (!file) {
+    snprintf(projectFileError, 40, "Can't open save file");
+    return 1;
+  }
 
   int result = projectSaveInternal(file, p);
-  fclose(file);
+  result = closeProjectOutput(file, result);
+  if (result != 0 && projectFileError[0] == 0) {
+    snprintf(projectFileError, 40, "Can't write save file");
+  }
   return result;
+}
+
+#ifndef WEB_BUILD
+static int replaceProjectFile(const char* tempPath, const char* path) {
+#ifdef _WIN32
+  return MoveFileExA(tempPath, path, MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH) ? 0 : 1;
+#else
+  return rename(tempPath, path) == 0 ? 0 : 1;
+#endif
+}
+#endif
+
+int projectSave(Project* p, const char* path) {
+  projectFileError[0] = 0;
+
+#ifdef WEB_BUILD
+  // The browser filesystem does not provide the rename semantics used by the
+  // native transactional path. Keep the existing direct-save behavior there.
+  return projectSaveDirect(p, path);
+#else
+  // Write beside the destination first. A failed serialization or close never
+  // truncates the previous valid project/autosave.
+  std::string tempPath = std::string(path) + ".tmp";
+  int result = projectSaveDirect(p, tempPath.c_str());
+  if (result != 0) {
+    remove(tempPath.c_str());
+    return result;
+  }
+
+  if (replaceProjectFile(tempPath.c_str(), path) != 0) {
+    remove(tempPath.c_str());
+    snprintf(projectFileError, 40, "Can't replace save file");
+    return 1;
+  }
+
+  return 0;
+#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1565,7 +1834,13 @@ int instrumentSave(Project* project, const char* path, int instrumentIdx) {
     return 1;
   }
 
-  fprintf(file, "# ChipNomad Instrument 5.0\n\n");
+  bool nativeFormat = (project->instruments[instrumentIdx].type==InstrumentType::SID || project->instruments[instrumentIdx].type==InstrumentType::DX7 || isOPLL(project->instruments[instrumentIdx].type) || (isOPL(project->instruments[instrumentIdx].type) || isFourOp(project->instruments[instrumentIdx].type)) || isSimpleChip(project->instruments[instrumentIdx].type));
+  for (const auto& row : project->tables[instrumentIdx].rows) for (const auto& fx : row.fx) nativeFormat |= fx.command >= fxFBR && fx.command < fxTotalCount;
+  bool absoluteLevels=false;
+  for(const auto& row:project->tables[instrumentIdx].rows)for(const auto& fx:row.fx)absoluteLevels |= fx.command>=fxOL1&&fx.command<=fxFBK;
+  const auto& inst=project->instruments[instrumentIdx];
+  bool sourceProgram=inst.type==InstrumentType::SID?bool(inst.chip.sid.program.format):isSimpleChip(inst.type)?bool(inst.chip.simpleChip.program.format):false;
+  fprintf(file, "# ChipNomad Instrument %d.0\n\n", sourceProgram ? 9 : absoluteLevels ? 8 : nativeFormat ? 7 : 5);
   instrumentSaveData(file, 0, &project->instruments[instrumentIdx]);
   saveTable(file, 0, &project->tables[instrumentIdx]);
 
@@ -1583,7 +1858,15 @@ static int instrumentLoadInternal(FILE* file, Project* project, int instrumentId
 
   // Detect version
   if (strlen(line) > 22) {
-    if (strncmp(line + 22, " 5.0", 4) == 0) {
+    if (strncmp(line + 22, " 9.0", 4) == 0) {
+      projectFileVersion = 9;
+    } else if (strncmp(line + 22, " 8.0", 4) == 0) {
+      projectFileVersion = 8;
+    } else if (strncmp(line + 22, " 7.0", 4) == 0) {
+      projectFileVersion = 7;
+    } else if (strncmp(line + 22, " 6.0", 4) == 0) {
+      projectFileVersion = 6;
+    } else if (strncmp(line + 22, " 5.0", 4) == 0) {
       projectFileVersion = 5;
     } else if (strncmp(line + 22, " 4.0", 4) == 0) {
       projectFileVersion = 4;
@@ -1628,17 +1911,41 @@ static int instrumentLoadInternal(FILE* file, Project* project, int instrumentId
   return 0;
 }
 
-int instrumentLoad(Project* project, const char* path, int instrumentIdx) {
+static int instrumentLoadStream(Project* project, FILE* file, int instrumentIdx) {
   projectFileError[0] = 0;
   resetPeekConsume();  // Ensure clean state
 
-  FILE* file = fopen(path, "rb");
-  if (file == NULL) {
-    snprintf(projectFileError, 40, "Can't open file");
-    return 1;
-  }
-
-  int result = instrumentLoadInternal(file, project, instrumentIdx);
-  fclose(file);
+  if (!file) return 1;
+  int result;
+  const char* header = peekLine(file);
+  if (header && (strncmp(header, "# ChipNomad Instrument 6.0", 25) == 0 || strncmp(header, "# ChipNomad Instrument 7.0", 25) == 0 || strncmp(header, "# ChipNomad Instrument 8.0",25)==0 || strncmp(header,"# ChipNomad Instrument 9.0",25)==0)) {
+    auto temporary = std::make_unique<Project>();
+    projectInit(temporary.get());
+    result = instrumentLoadInternal(file, temporary.get(), instrumentIdx);
+    if (!result && projectFileVersion==6 && !(temporary->instruments[instrumentIdx].type==InstrumentType::SID || temporary->instruments[instrumentIdx].type==InstrumentType::DX7 || isOPLL(temporary->instruments[instrumentIdx].type) || (isOPL(temporary->instruments[instrumentIdx].type) || isFourOp(temporary->instruments[instrumentIdx].type)) || isSimpleChip(temporary->instruments[instrumentIdx].type))) result = 1;
+    if (!result) {
+      instrumentClear(&project->instruments[instrumentIdx]);
+      project->instruments[instrumentIdx] = temporary->instruments[instrumentIdx];
+      project->tables[instrumentIdx] = temporary->tables[instrumentIdx];
+      temporary->instruments[instrumentIdx] = {}; // Ownership moved, including sample buffers.
+    }
+    projectFree(temporary.get());
+  } else result = instrumentLoadInternal(file, project, instrumentIdx);
   return result;
+}
+
+int instrumentLoad(Project* project, const char* path, int instrumentIdx) {
+  FILE* file = fopen(path, "rb");
+  if (!file) { snprintf(projectFileError, 40, "Can't open file"); return 1; }
+  int result = instrumentLoadStream(project, file, instrumentIdx);
+  fclose(file); return result;
+}
+
+int instrumentLoadMemory(Project* project, const uint8_t* bytes, size_t size, int instrumentIdx) {
+  if (!project || !bytes || !size || size > 1024 * 1024 || instrumentIdx < 0 || instrumentIdx >= PROJECT_MAX_INSTRUMENTS) return 1;
+  FILE* file = tmpfile();
+  if (!file) { snprintf(projectFileError, 40, "Cannot read preset buffer"); return 1; }
+  bool ok = fwrite(bytes, 1, size, file) == size && !fseek(file, 0, SEEK_SET);
+  int result = ok ? instrumentLoadStream(project, file, instrumentIdx) : 1;
+  fclose(file); return result;
 }

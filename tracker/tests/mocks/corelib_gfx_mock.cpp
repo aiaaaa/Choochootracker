@@ -8,6 +8,7 @@
 
 char mockGfxCells[20][40];
 int mockCursorX, mockCursorY, mockCursorWidth;
+int mockBitmapDrawCount, mockBitmapDrawRow;
 
 int gfxSetup(int *screenWidth, int* screenHeight) { return 0; }
 void gfxCleanup(void) {}
@@ -16,7 +17,11 @@ void gfxSetCursorColor(int rgb) {}
 void gfxSetBgColor(int rgb) {}
 void gfxClear(void) { memset(mockGfxCells, ' ', sizeof(mockGfxCells)); }
 void gfxUpdateScreen(void) {}
-void gfxClearRect(int x, int y, int w, int h) {}
+void gfxClearRect(int x, int y, int w, int h) {
+  for (int row = y; row < y + h && row < 20; ++row)
+    for (int col = x; col < x + w && col < 40; ++col)
+      if (row >= 0 && col >= 0) mockGfxCells[row][col] = ' ';
+}
 void gfxCursor(int x, int y, int w) { mockCursorX = x; mockCursorY = y; mockCursorWidth = w; }
 void gfxRect(int x, int y, int w, int h) {}
 void gfxPrint(int x, int y, const char* text) {
@@ -41,7 +46,10 @@ Bitmap* gfxBitmapCreate(int widthChars, int heightChars) {
 }
 void gfxBitmapClear(Bitmap* bitmap) { if (bitmap) memset(bitmap->data, 0, bitmap->widthPixels * bitmap->heightPixels); }
 void gfxBitmapFree(Bitmap* bitmap) { if (bitmap) { free(bitmap->data); free(bitmap); } }
-void gfxDrawBitmap(Bitmap* bitmap, int col, int row) {}
+void gfxDrawBitmap(Bitmap* bitmap, int col, int row) {
+  ++mockBitmapDrawCount;
+  mockBitmapDrawRow = row;
+}
 int gfxGetCharWidth(void) { return 8; }
 int gfxGetCharHeight(void) { return 16; }
 void gfxReloadFont(void) {}

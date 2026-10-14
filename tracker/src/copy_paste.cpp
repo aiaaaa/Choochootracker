@@ -24,7 +24,7 @@ static int cpBufPhraseEndCol;
 static int cpBufTableRows = 0;
 static int cpBufTableStartCol;
 static int cpBufTableEndCol;
-static uint8_t cpBufFX[16][8];
+static FXId cpBufFX[16][8];
 static int cpBufFXRows = 0;
 static int cpBufFXCols = 0;
 static int cpBufFXStartCol;
@@ -47,14 +47,19 @@ static int isFXSelection(int startCol, int endCol, int lastFXCol) {
   return startCol >= 3 && endCol <= lastFXCol;
 }
 
-static void copyFXCells(const uint8_t fx[][2], int row, int startCol, int endCol) {
-  for (int col = startCol; col <= endCol; ++col)
-    cpBufFX[row][col - startCol] = fx[(col - 3) / 2][(col - 3) % 2];
+static void copyFXCells(const FXCell* fx, int row, int startCol, int endCol) {
+  for (int col = startCol; col <= endCol; ++col) {
+    const FXCell& cell = fx[(col - 3) / 2];
+    cpBufFX[row][col - startCol] = (col - 3) % 2 ? cell.value : cell.command;
+  }
 }
 
-static void clearFXCells(uint8_t fx[][2], int startCol, int endCol) {
-  for (int col = startCol; col <= endCol; ++col)
-    fx[(col - 3) / 2][(col - 3) % 2] = (col - 3) % 2 ? 0 : EMPTY_VALUE_8;
+static void clearFXCells(FXCell* fx, int startCol, int endCol) {
+  for (int col = startCol; col <= endCol; ++col) {
+    FXCell& cell = fx[(col - 3) / 2];
+    if ((col - 3) % 2) cell.value = 0;
+    else cell.command = FX_ID_EMPTY;
+  }
 }
 
 static int canPasteFX(int lastFXCol, int startCol) {
@@ -62,9 +67,12 @@ static int canPasteFX(int lastFXCol, int startCol) {
     !((startCol - cpBufFXStartCol) & 1);
 }
 
-static void pasteFXCells(uint8_t fx[][2], int row, int lastFXCol, int startCol) {
-  for (int col = 0; col < cpBufFXCols && startCol + col <= lastFXCol; ++col)
-    fx[(startCol + col - 3) / 2][(startCol + col - 3) % 2] = cpBufFX[row][col];
+static void pasteFXCells(FXCell* fx, int row, int lastFXCol, int startCol) {
+  for (int col = 0; col < cpBufFXCols && startCol + col <= lastFXCol; ++col) {
+    FXCell& cell = fx[(startCol + col - 3) / 2];
+    if ((startCol + col - 3) % 2) cell.value = (uint8_t)cpBufFX[row][col];
+    else cell.command = cpBufFX[row][col];
+  }
 }
 
 void copyGroove(int grooveIdx, int startRow, int endRow, int isCut) {

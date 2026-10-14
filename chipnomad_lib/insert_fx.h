@@ -17,6 +17,8 @@ enum InsertModule : uint8_t {
   insertSaturation,
   insertBitcrusher,
   insertDestruction,
+  insertParametricEQ,
+  insertTranceGate,
   insertModuleCount
 };
 enum class InsertMapping : uint8_t { linear, exponential, bipolar, discrete };
@@ -55,6 +57,10 @@ class InsertChain {
   InsertChain& operator=(const InsertChain&) = delete;
   bool ready() const;
   void reset();
+  // The tracker clock is 24 ticks per quarter note. Tempo is updated at its
+  // frame boundary, while trigger() aligns track gates with note-on events.
+  void setTempo(float tickRate);
+  void trigger();
   uint16_t sync(const InsertConfig config[2], InsertAutomation*);
   bool active() const;
   void process(float* interleaved, int frames, const uint8_t effective[2][8]);

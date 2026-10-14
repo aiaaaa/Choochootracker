@@ -17,7 +17,9 @@ class Envelope {
     release_ = release < 0.0f ? 0.0f : release;
     shape_ = shape;
   }
-  void noteOn() { level_ = 0.0f; enter(Stage::attack); }
+  // A retrigger resumes from the instantaneous level. Resetting to zero here
+  // creates a full-scale step when a monophonic voice receives consecutive notes.
+  void noteOn() { enter(Stage::attack); }
   void noteOff() { if (stage_ != Stage::idle) enter(Stage::release); }
   void kill() { stage_ = Stage::idle; level_ = 0.0f; start_ = 0.0f; samplesLeft_ = 0; }
   float next() {
@@ -61,11 +63,6 @@ class Envelope {
   uint32_t samplesLeft_ = 0, samplesTotal_ = 0;
   uint8_t shape_ = 0x80;
   Stage stage_ = Stage::idle;
-};
-
-class PlaitsEnvelope : public Envelope {
- public:
-  void noteOn() { enter(Stage::attack); }  // Preserve the current VCA level on retrigger.
 };
 
 #endif

@@ -25,7 +25,7 @@ static int entryCount = 0;
 static int selectedIndex = 0;
 static int topIndex = 0;
 static char currentPath[2048];
-static char fileExtension[32];
+static char fileExtension[64];
 static char browserTitle[32];
 static char saveFilename[256];
 static char saveExtension[8];
@@ -38,6 +38,7 @@ static ScrollState scrollState = {-1, 0, 0, 1};
 
 static void fileBrowserRefreshWithSelection(const char* selectName);
 static void fileBrowserRefresh(void);
+static void fileBrowserSetStartPath(const char* startPath);
 static int getEntryIndex(void);
 static int getEntryIndexForItem(int itemIndex);
 static int getMaxDisplayForEntry(int entryIdx);
@@ -162,19 +163,14 @@ void fileBrowserSetupWithPreview(const char* title, const char* extension,
     void (*cancelCallback)(void), void (*previewCallback)(const char*)) {
   strncpy(browserTitle, title, 31);
   browserTitle[31] = 0;
-  strncpy(fileExtension, extension, 31);
-  fileExtension[31] = 0;
+  strncpy(fileExtension, extension, sizeof(fileExtension) - 1);
+  fileExtension[sizeof(fileExtension) - 1] = 0;
   isFolderMode = 0;
   onFileSelected = fileCallback;
   onCancelled = cancelCallback;
   onPreview = previewCallback;
 
-  if (startPath && strlen(startPath) > 0 && fileDirectoryExists(startPath)) {
-    strncpy(currentPath, startPath, sizeof(currentPath) - 1);
-    currentPath[sizeof(currentPath) - 1] = 0;
-  } else {
-    fileGetDefaultDirectory(currentPath, sizeof(currentPath));
-  }
+  fileBrowserSetStartPath(startPath);
   fileBrowserRefresh();
 }
 
@@ -195,13 +191,40 @@ void fileBrowserSetupFolderMode(const char* title, const char* startPath, const 
   onCancelled = cancelCallback;
   onPreview = NULL;
 
-  if (startPath && strlen(startPath) > 0 && fileDirectoryExists(startPath)) {
+  fileBrowserSetStartPath(startPath);
+  fileBrowserRefresh();
+}
+
+static void fileBrowserSetStartPath(const char* startPath) {
+#ifdef PORTMASTER_BUILD
+  // PortMaster launchers do not guarantee the game's working directory. Keep
+  // relative paths from settings.txt (such as "themes") next to the binary.
+  if (startPath && startPath[0] && startPath[0] != PATH_SEPARATOR) {
+    char appDirectory[sizeof(currentPath)];
+    char resolvedPath[sizeof(currentPath)];
+    if (fileGetDefaultDirectory(appDirectory, sizeof(appDirectory)) == 0) {
+      snprintf(resolvedPath, sizeof(resolvedPath), "%s%s%s", appDirectory,
+               PATH_SEPARATOR_STR, startPath);
+      if (fileDirectoryExists(resolvedPath)) {
+        strncpy(currentPath, resolvedPath, sizeof(currentPath) - 1);
+        currentPath[sizeof(currentPath) - 1] = 0;
+        return;
+      }
+    }
+  }
+#endif
+#ifdef ANDROID_BUILD
+  // Only user storage is browsable; a saved path outside it (such as "/")
+  // would list nothing and trap the browser.
+  if (startPath && strncmp(startPath, "/storage/emulated/0", 19) != 0 &&
+      strncmp(startPath, "/ChooChooTracker", 16) != 0) startPath = NULL;
+#endif
+  if (startPath && startPath[0] && fileDirectoryExists(startPath)) {
     strncpy(currentPath, startPath, sizeof(currentPath) - 1);
     currentPath[sizeof(currentPath) - 1] = 0;
   } else {
     fileGetDefaultDirectory(currentPath, sizeof(currentPath));
   }
-  fileBrowserRefresh();
 }
 
 static int getEntryIndex(void) {

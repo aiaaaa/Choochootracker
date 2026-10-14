@@ -30,7 +30,7 @@ void initTableRow(TableRow* row) {
   row->pitchOffset = 0;
   row->volume = EMPTY_VALUE_8;
   for (int i = 0; i < MAX_TABLE_FX_SLOTS; i++) {
-    row->fx[i][0] = EMPTY_VALUE_8;
+    row->fx[i].command = FX_ID_EMPTY;
     row->fx[i][1] = 0;
   }
 }
@@ -40,7 +40,7 @@ void initEmptyPhraseRow(PhraseRow* row) {
   row->instrument = EMPTY_VALUE_8;
   row->volume = EMPTY_VALUE_16;
   for (int i = 0; i < MAX_FX_SLOTS; i++) {
-    row->fx[i][0] = EMPTY_VALUE_8;
+    row->fx[i].command = FX_ID_EMPTY;
     row->fx[i][1] = 0;
   }
 }

@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "playback_internal.h"
+#include "synth/sample_voice.h"
 
 ///////////////////////////////////////////////////////////////////////////////
 //
@@ -55,6 +56,9 @@ static void resetTableFXAuxState(PlaybackTableState* tableState) {
 
 static void resetNoteFX(PlaybackState* state, int trackIdx) {
   PlaybackTrackState* track = &state->tracks[trackIdx];
+  track->note.nativeFM = {};
+  track->note.nativeFMCurrent = {};
+  track->note.nativeFMRemaining = {};
   for (int i = 0; i < fxTotalCount; i++) {
     track->note.fx[i].isOn = 0;
     track->note.fx[i].counter = 0;
@@ -63,6 +67,9 @@ static void resetNoteFX(PlaybackState* state, int trackIdx) {
 }
 
 static void resetInstrumentFX(PlaybackTrackState* track) {
+  track->note.nativeFM = {};
+  track->note.nativeFMCurrent = {};
+  track->note.nativeFMRemaining = {};
   for (int i = fxBMD; i <= fxPRS; i++) track->note.fx[i].isOn = 0;
   for (int i = fxRSN; i <= fxTCL; i++) track->note.fx[i].isOn = 0;
   for (int i = fxASL; i <= fxATY; ++i) track->note.fx[i].isOn = 0;
@@ -113,6 +120,7 @@ static void resetTrack(PlaybackState* state, int trackIdx) {
   track->note.auxTable.tableIdx = EMPTY_VALUE_8;
   track->mode = PlaybackMode::stopped;
   track->queue.liveAction = LiveQueueAction::none;
+  track->sliceBypass = 0;
 
   resetNoteFX(state, trackIdx);
 
@@ -169,7 +177,7 @@ void tableReadFX(PlaybackState* state, int trackIdx, struct PlaybackTableState* 
   } else if (fxType == fxTBX) {
     tableInit(state, trackIdx, &state->tracks[trackIdx].note.auxTable, p->tables[tableIdx].rows[tableRow].fx[fxIdx][1], 0, 1);
   } else {
-    initFX(state, trackIdx, p->tables[tableIdx].rows[tableRow].fx[fxIdx], table, fxIdx);
+    initFX(state, trackIdx, &p->tables[tableIdx].rows[tableRow].fx[fxIdx], table, fxIdx);
   }
 }
 
@@ -380,9 +388,9 @@ static void restartStructuralLFOs(PlaybackState* state, int trackIdx, int entere
   }
 }
 
-static int rowHasFX(const PhraseRow* row, uint8_t fx) {
+static int rowHasFX(const PhraseRow* row, FXId fx) {
   for (int i = 0; i < 3; ++i)
-    if (row->fx[i][0] == fx) return 1;
+    if (row->fx[i].command == fx) return 1;
   return 0;
 }
 
@@ -463,9 +471,10 @@ void readPhraseRowDirect(PlaybackState* state, int trackIdx, PhraseRow* phraseRo
 
     if (fxType == fxSCL) {
       // SCL XY: X selects a scale, Y selects C..B. Phrase-only global FX.
+      // Inert in Note Lock mode: entry and chords follow the project scale.
       uint8_t preset = fxValue >> 4;
       uint8_t root = fxValue & 0x0f;
-      if (!state->scaleFXCommandSeen && preset < scalePresetCount && root < 12) {
+      if (!state->scaleFXCommandSeen && p->scaleMode == 0 && preset < scalePresetCount && root < 12) {
         state->scalePreset = (ScalePreset)preset;
         state->scaleRoot = root;
         state->scaleFXCommandSeen = 1;
@@ -478,7 +487,7 @@ void readPhraseRowDirect(PlaybackState* state, int trackIdx, PhraseRow* phraseRo
     } else if (fxType == fxSLE) {
       track->slewTicks = fxValue;
     } else if (!skipDelCheck && (fxType == fxDEL && fxValue != 0)) {
-      initFX(state, trackIdx, phraseRow->fx[i], NULL, -1);
+      initFX(state, trackIdx, &phraseRow->fx[i], NULL, -1);
       return;
     } else if (fxType == fxTBL) {
       instrumentTable = fxValue;
@@ -552,7 +561,7 @@ void readPhraseRowDirect(PlaybackState* state, int trackIdx, PhraseRow* phraseRo
   for (int i = 0; i < 3; i++) {
     if (phraseRow->fx[i][0] != fxDEL && phraseRow->fx[i][0] != fxSLE &&
         phraseRow->fx[i][0] != fxSCL && phraseRow->fx[i][0] != fxCRD) {
-      initFX(state, trackIdx, phraseRow->fx[i], NULL, -1);
+      initFX(state, trackIdx, &phraseRow->fx[i], NULL, -1);
     }
   }
 
@@ -584,14 +593,16 @@ void readPhraseRowDirect(PlaybackState* state, int trackIdx, PhraseRow* phraseRo
 
   InstrumentType type = track->note.instrument == EMPTY_VALUE_8 ? InstrumentType::none
     : p->instruments[track->note.instrument].type;
-  uint8_t sampleSlice = type == InstrumentType::Sample
-    ? p->instruments[track->note.instrument].chip.sample.slice : 0;
-  int slicedSample = sampleSlice == 2 || sampleSlice == 4 || sampleSlice == 8 ||
-    sampleSlice == 16 || sampleSlice == 32;
+  const InstrumentSample* sample = type == InstrumentType::Sample
+    ? &p->instruments[track->note.instrument].chip.sample : NULL;
+  int slicedSample = sampleActsAsSliced(sample);
 
   // Keep phrases chromatic; only the pitch sent to the engine is quantized.
   // Sliced PCM samples map notes to windows, so they stay unquantized.
-  if (note != EMPTY_VALUE_8 && note != NOTE_OFF && p->scaleApply && !slicedSample &&
+  // In Note Lock mode entry is already restricted to the scale, so playback
+  // quantization of plain notes is bypassed (chords below still quantize).
+  int noteLock = p->scaleMode != 0;
+  if (note != EMPTY_VALUE_8 && note != NOTE_OFF && p->scaleApply && !noteLock && !slicedSample &&
       (p->scaleTracksMask & (1u << trackIdx)) && p->pitchTable.octaveSize == 12) {
     uint16_t mask = state->scalePreset == scaleCustom ? p->scaleCustomMask : scalePresetMask(state->scalePreset);
     track->note.pitchBase = scaleQuantizeNote(track->note.pitchBase, state->scaleRoot, mask, p->pitchTable.length);
@@ -1216,6 +1227,7 @@ void playbackInit(PlaybackState* state, Project* project) {
   state->liveStickWasPlaying = 0;
   state->scaleRoot = project->scaleRoot;
   state->scalePreset = project->scalePreset;
+  memset(state->midiCC, 0, sizeof(state->midiCC));
 
   initFXHandlers();
   initAYSampleTables();
@@ -1416,8 +1428,8 @@ void playbackPreviewNote(PlaybackState* state, int trackIdx, uint8_t note, uint8
 
   // Set up empty FX
   for (int i = 0; i < 3; i++) {
-    phraseRow.fx[i][0] = EMPTY_VALUE_8;
-    phraseRow.fx[i][1] = EMPTY_VALUE_8;
+    phraseRow.fx[i].command = FX_ID_EMPTY;
+    phraseRow.fx[i].value = EMPTY_VALUE_8;
   }
 
   // Use unified phrase row playback

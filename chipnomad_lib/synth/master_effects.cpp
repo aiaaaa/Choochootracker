@@ -5,6 +5,8 @@
 
 #include "project.h"
 
+static constexpr float tailThreshold = 0.000001f;
+
 static float mixerGain(uint8_t value) {
   if (value == 0) return 0.0f;
   return powf(10.0f, -60.0f * (100 - value) / 2000.0f);
@@ -12,12 +14,24 @@ static float mixerGain(uint8_t value) {
 
 void MasterEffects::init(float sampleRate) {
   sampleRate_ = sampleRate > 0.0f ? sampleRate : 48000.0f;
-  reverb_.Init(reverbMemory_, sampleRate_);
   reverbFrames_.clear();
   delayLine_.assign((size_t)(sampleRate_ * 8.0f) * 2, 0.0f);
+  reset();
+}
+
+void MasterEffects::reset() {
+  reverb_.Init(reverbMemory_, sampleRate_);
+  std::fill(delayLine_.begin(), delayLine_.end(), 0.0f);
   delayWrite_ = 0;
   reverbFilterState_[0] = reverbFilterState_[1] = 0.0f;
+  reverbHighpassInputState_[0] = reverbHighpassInputState_[1] = 0.0f;
+  reverbHighpassOutputState_[0] = reverbHighpassOutputState_[1] = 0.0f;
   delayFilterState_[0] = delayFilterState_[1] = 0.0f;
+  reverbTailFrames_ = delayTailFrames_ = 0;
+}
+
+bool MasterEffects::tailActive() const {
+  return reverbTailFrames_ || delayTailFrames_;
 }
 
 float MasterEffects::lowpassCoefficient(float cutoff) const {
@@ -31,9 +45,24 @@ float MasterEffects::lowpass(float input, float coefficient, float& state) {
   return state;
 }
 
+float MasterEffects::highpassCoefficient(float cutoff) const {
+  if (cutoff < 20.0f) cutoff = 20.0f;
+  if (cutoff > sampleRate_ * 0.45f) cutoff = sampleRate_ * 0.45f;
+  return expf(-6.283185307179586f * cutoff / sampleRate_);
+}
+
+float MasterEffects::highpass(float input, float coefficient, float& inputState, float& outputState) {
+  float output = coefficient * (outputState + input - inputState);
+  inputState = input;
+  return outputState = output;
+}
+
 void MasterEffects::process(float* reverbBus, float* delayBus, float* output,
                             size_t frames, const Project* project) {
   if (!project || !output) return;
+
+  reverbTailFrames_ = reverbTailFrames_ > frames ? reverbTailFrames_ - frames : 0;
+  delayTailFrames_ = delayTailFrames_ > frames ? delayTailFrames_ - frames : 0;
 
   if (delayBus && !delayLine_.empty()) {
     size_t capacity = delayLine_.size() / 2;
@@ -48,6 +77,9 @@ void MasterEffects::process(float* reverbBus, float* delayBus, float* output,
     for (size_t i = 0; i < frames; ++i) {
       float wetL = lowpass(delayLine_[read * 2], filterCoefficient, delayFilterState_[0]);
       float wetR = lowpass(delayLine_[read * 2 + 1], filterCoefficient, delayFilterState_[1]);
+      if (fabsf(delayBus[i * 2]) > tailThreshold || fabsf(delayBus[i * 2 + 1]) > tailThreshold ||
+          fabsf(wetL) > tailThreshold || fabsf(wetR) > tailThreshold)
+        delayTailFrames_ = delaySamples + frames;
       delayLine_[delayWrite_ * 2] = delayBus[i * 2] + wetR * feedback;
       delayLine_[delayWrite_ * 2 + 1] = delayBus[i * 2 + 1] + wetL * feedback;
       output[i * 2] += wetL * returnGain;
@@ -64,9 +96,14 @@ void MasterEffects::process(float* reverbBus, float* delayBus, float* output,
   if (reverbBus) {
     reverbFrames_.resize(frames);
     float filterCoefficient = lowpassCoefficient(project->reverbFilterCutoffHz);
+    float highpassCoeff = highpassCoefficient(project->reverbHighpassCutoffHz);
     for (size_t i = 0; i < frames; ++i) {
-      reverbFrames_[i].l = lowpass(reverbBus[i * 2], filterCoefficient, reverbFilterState_[0]);
-      reverbFrames_[i].r = lowpass(reverbBus[i * 2 + 1], filterCoefficient, reverbFilterState_[1]);
+      float left = highpass(reverbBus[i * 2], highpassCoeff, reverbHighpassInputState_[0], reverbHighpassOutputState_[0]);
+      float right = highpass(reverbBus[i * 2 + 1], highpassCoeff, reverbHighpassInputState_[1], reverbHighpassOutputState_[1]);
+      reverbFrames_[i].l = lowpass(left, filterCoefficient, reverbFilterState_[0]);
+      reverbFrames_[i].r = lowpass(right, filterCoefficient, reverbFilterState_[1]);
+      if (fabsf(reverbBus[i * 2]) > tailThreshold || fabsf(reverbBus[i * 2 + 1]) > tailThreshold)
+        reverbTailFrames_ = (size_t)sampleRate_;
     }
     reverb_.set_amount(1.0f);
     reverb_.set_input_gain(0.2f);
@@ -84,6 +121,8 @@ void MasterEffects::process(float* reverbBus, float* delayBus, float* output,
     for (size_t i = 0; i < frames; ++i) {
       output[i * 2] += reverbFrames_[i].l * gain;
       output[i * 2 + 1] += reverbFrames_[i].r * gain;
+      if (fabsf(reverbFrames_[i].l) > tailThreshold || fabsf(reverbFrames_[i].r) > tailThreshold)
+        reverbTailFrames_ = (size_t)sampleRate_;
     }
   }
 
