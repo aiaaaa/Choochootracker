@@ -1,5 +1,19 @@
 # My R36H build
 
+## October 14 combined personal daily
+
+The owner released the build/deployment hold and selected `dacc21e` on the
+prepared upstream v1.0.16-alpha plus MAIN `583702d` integration. Both device and
+web use this combined source. The new SID home layout and SQ80 uppercase EDIT
+styling join SQ80, Beads, Lucky and MonkSynth. Stock Trance Gate stays ID 14;
+experimental Beads uses 15. The converted Low Water song is installed alongside
+the matching app only, with the old app and song preserved together for rollback.
+
+Validation/deployment receipts record the final source and outcomes. Earlier
+preparation holds below are historical and are superseded by this daily request.
+Private USER banks, settings, samples and unaffected songs remain preserved.
+Beads PR work and Vita remain held.
+
 ## October 14 alpha preparation — build and deployment held
 
 Local candidate `candidate/personal-alpha-20261014` combines v1.0.16-alpha

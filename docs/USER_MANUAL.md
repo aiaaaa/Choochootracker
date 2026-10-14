@@ -2175,3 +2175,11 @@ For an LSDj save, choose a song in the tracker popup; cancel keeps your current
 project. Upstream LSDj export is available on desktop and Android, not on web or
 PortMaster. The Modulation insert group keeps Chorus, Phaser and Flanger;
 personal Beads remains available in its own group.
+
+### October 14 combined personal daily
+
+This daily includes the upstream v1.0.16-alpha changes and subsequent lane FX
+refactor, plus the revised SID home controls and SQ80 EDIT styling. Phrase and
+Table FX slot counts and 00–FF value editing are unchanged. Trance Gate uses the
+stock module number; old personal Beads songs are converted with the update,
+with originals retained for rollback. User presets and settings are preserved.

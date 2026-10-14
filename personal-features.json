@@ -668,5 +668,19 @@
       "migration_tests_passed": 7,
       "device_files_scanned": 38
     }
+  },
+  "daily_20261014": {
+    "status": "Authorized combined daily; validation and deployment in progress",
+    "selected_commit": "dacc21e7ba6b70334254cc7f53ce4f1ef753260b",
+    "integration_base": "7d37f79",
+    "upstream_commit": "583702d68ee6badf7ad37f7264a1ba9f2b87ab46",
+    "targets": [
+      "R36H device personal build",
+      "personal web"
+    ],
+    "song_migration": "Apply verified legacy Beads 14 -> 15 with matching build; retain original app and songs for rollback",
+    "validation": "Exact results recorded in daily receipts",
+    "beads_pr": "Held",
+    "vita": "Paused"
   }
 }
