@@ -155,9 +155,9 @@ TEST_SUITE("track inserts") {
       }
     }
     insertSelect(&chipnomadState->project.trackInserts[3][1], insertRotary);
-    uint8_t fx[] = {fxF21, 254}, last[] = {fxF21, 0};
-    editFXValue(CellEditAction::increase, fx, last, 0, EMPTY_VALUE_8);
-    CHECK(fx[1] == 255);
+    FXCell fx = {fxF21, 254}, last = {fxF21, 0};
+    editFXValue(CellEditAction::increase, &fx, &last, 0, EMPTY_VALUE_8);
+    CHECK(fx.value == 255);
     CHECK(std::string(screenGetActiveMessage()) == "Rotary Speed: 25 Hz");
     chipnomadDestroy(chipnomadState);
     chipnomadState = previous;
@@ -493,24 +493,24 @@ TEST_SUITE("track inserts") {
     insertSelect(&p->trackInserts[0][0], insertCompressor);
     auto s = std::make_unique<PlaybackState>();
     playbackInit(s.get(), p.get());
-    uint8_t fx[] = {fxF11, 255};
-    initFX(s.get(), 0, fx, nullptr, 0);
+    FXCell fx = {fxF11, 255};
+    initFX(s.get(), 0, &fx, nullptr, 0);
     CHECK(s->tracks[0].inserts.values[0][0] == 255);
-    fx[1] = 0;
+    fx.value = 0;
     PlaybackTableState table{};
-    initFX(s.get(), 0, fx, &table, 3);
+    initFX(s.get(), 0, &fx, &table, 3);
     CHECK(s->tracks[0].inserts.values[0][0] == 0);
     CHECK(s->tracks[0].inserts.valid[0] == 1);
-    fx[0] = fxF15;
-    fx[1] = 255;
-    initFX(s.get(), 0, fx, nullptr, 2);
+    fx.command = fxF15;
+    fx.value = 255;
+    initFX(s.get(), 0, &fx, nullptr, 2);
     CHECK(s->tracks[0].inserts.values[0][4] == 7);
-    fx[0] = fxF21;
-    initFX(s.get(), 0, fx, nullptr, 0);
+    fx.command = fxF21;
+    initFX(s.get(), 0, &fx, nullptr, 0);
     CHECK(s->tracks[0].inserts.valid[1] == 0);
     p->trackInserts[0][0].bypass = 1;
-    fx[0] = fxF18;
-    initFX(s.get(), 0, fx, nullptr, 0);
+    fx.command = fxF18;
+    initFX(s.get(), 0, &fx, nullptr, 0);
     CHECK(s->tracks[0].inserts.values[0][7] == 255);
     playbackStop(s.get());
     CHECK(s->tracks[0].inserts.valid[0] == 0);
