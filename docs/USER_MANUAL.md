@@ -263,9 +263,9 @@ The Project page puts the application version on its own line and separates Load
 
 Audio readouts use a UI-owned snapshot of the final mix and individual track contributions. Track samples and stereo peaks are captured after track level and tilt, before shared effect returns and master gain. Monitoring does not change the audio signal. The audio callback publishes fixed-size snapshots without locks or allocation; display history spans about 21 ms.
 
-### Persistent waveform
+### Song waveform
 
-Graphics → Persistent waveform is OFF by default. Tap EDIT to toggle it, or use EDIT + direction; the choice is saved as an app preference. OFF restores full-height pages and the existing instrument waveform previews. When enabled, a two-row waveform above editing pages shows the final mix summed to mono. Instrument and Modulation pages show the output of a track using the selected instrument; the selected Song track wins if several tracks use it. Project, Settings, wavetable and popups keep their full-height content. Lists scroll within the remaining rows. Instrument footers retain ADSR/sample previews, and Modulation fields are compacted to keep all controls accessible. Its touch targets follow the displayed fields in both waveform modes.
+Graphics → Song waveform toggles the two-row visualizer above the SONG page, showing the final mix summed to mono. Tap EDIT to toggle it, or use EDIT + direction; the choice is saved as an app preference and preserves the previous Persistent waveform setting. SONG shows 14 list rows when enabled and 16 when disabled. Every other page keeps its full-height layout regardless of this setting, including full-height Phrase and Table lists, the spaced Modulation controls, and the existing instrument waveform, sample and envelope previews. Touch targets follow the displayed rows.
 
 ### Playback piano
 
@@ -274,7 +274,7 @@ A code-drawn pixel piano below the eight right-side track rows lights sounding p
 ### Personal build Settings
 
 The device personal build retains Get Lucky alongside upstream Settings.
-Support report is followed by Get Lucky and Quit. Persistent waveform and
+Support report is followed by Get Lucky and Quit. Song waveform and
 Track visuals remain separate Graphics controls. The personal launcher cover
 carries a red diagonal GITHUB FORK stamp.
 
@@ -1316,7 +1316,7 @@ Use **Save** before changing instrument types or loading another project.
 - **MIDI** opens the [MIDI](#14-midi) submenu: device selection and the MIDI In channel-to-instrument mapping.
 - **Synths** contains **AY Quality**, **Sample dithering**, and global **Braids BITS / DRFT / SIGN** settings.
 - **Mixer** contains **Mix volume** and the per-project `250-4000 Hz` **Tilt pivot** (default `1 kHz`) used by all Mixer Tilt controls.
-- **Graphics** contains **Edit color theme**, **Load font**, **Persistent waveform**, **Track visuals**, **Waveform FPS**, and the active renderer (`GPU` or `Software`). **Waveform FPS** sets the refresh rate of the instrument scope and mixer visualizers from `01` to `60`. Track visuals selects **Detailed** (the synth waveform and its overlays) or **Audio waveform** (the actual summed output of that track) independently for every track; audio waveform clears any prior ADSR overlay immediately when playback starts. ChipNomad fonts and themes should work.
+- **Graphics** contains **Edit color theme**, **Load font**, **Song waveform**, **Track visuals**, **Waveform FPS**, and the active renderer (`GPU` or `Software`). **Waveform FPS** sets the refresh rate of the instrument scope and mixer visualizers from `01` to `60`. Track visuals selects **Detailed** (the synth waveform and its overlays) or **Audio waveform** (the actual summed output of that track) independently for every track; audio waveform clears any prior ADSR overlay immediately when playback starts. ChipNomad fonts and themes should work.
 - **Support report** writes a small diagnostic text file with the app version, platform, audio settings and CPU load, playback/overflow state, and a compact project summary. It does not include sample data or project title/author text. On Android and Web it opens the normal export/download flow; desktop and handheld builds save `support-report.txt` in the app's writable folder.
 - **Quit ChooChooTracker** exits cleanly.
 
@@ -1369,7 +1369,7 @@ changing the instrument selector. The module header opens a chooser grouped into
 Dynamics, Drive, Stereo and Tape, with OFF above the groups. Use Left/Right to
 switch panels, Up/Down to move, EDIT to select and OPT to exit. The page and
 chooser show CPU load at the top. Insert FX keeps its full-height layout even
-when Persistent waveform is enabled. Bypass retains the module, configured
+when Song waveform is enabled. Bypass retains the module, configured
 values, and automation. Parameters are
 byte values: left column 1–4, right column 5–8. Context text shows full names and
 decoded values. Old projects load with both slots OFF.

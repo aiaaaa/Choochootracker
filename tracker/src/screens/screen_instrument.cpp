@@ -466,7 +466,7 @@ void instrumentCommonDrawVoicePostStatic(int drawEnvelope) {
     gfxPrint(11, 14, "D");
     gfxPrint(16, 14, "S");
     gfxPrint(21, 14, "R");
-    gfxPrint(appSettings.persistentWaveform ? 25 : 27, 14, appSettings.persistentWaveform ? "Shape" : "SHP");
+    gfxPrint(27, 14, "SHP");
   }
 }
 
@@ -562,7 +562,7 @@ static void drawEnvelopePreviewSegment(Bitmap* bitmap, int x0, float start, int 
 
 void instrumentCommonDrawEnvelopePreview(uint8_t attack, uint8_t decay, uint8_t sustain, uint8_t release, uint8_t shape) {
   const int columns = 17;
-  const int rows = appSettings.persistentWaveform ? 2 : 3;
+  const int rows = 3;
   if (envelopePreviewBitmap && (envelopePreviewBitmap->widthPixels != columns * gfxGetCharWidth() ||
       envelopePreviewBitmap->heightPixels != rows * gfxGetCharHeight())) {
     gfxBitmapFree(envelopePreviewBitmap);
@@ -584,59 +584,47 @@ void instrumentCommonDrawEnvelopePreview(uint8_t attack, uint8_t decay, uint8_t 
   drawEnvelopePreviewSegment(bitmap, decayEnd, sustainLevel, releaseStart, sustainLevel, shape);
   drawEnvelopePreviewSegment(bitmap, releaseStart, sustainLevel, width, 0.0f, shape);
   gfxSetFgColor(appSettings.colorScheme.textTitles);
-  const int column = appSettings.persistentWaveform &&
-    chipnomadState->project.instruments[cInstrument].type == InstrumentType::Sample ? 16 : 6;
+  const int column = 6;
   gfxDrawBitmap(bitmap, column, 15);
 }
 
 void instrumentCommonDrawLivePreview(void) {
-  if (!appSettings.persistentWaveform) {
-    const PlaybackStatus* playback = chipnomadGetPlaybackStatus(chipnomadState);
-    int track = -1;
-    for (int i = 0; i < chipnomadState->project.tracksCount; ++i) {
-      if (playback->tracks[i].note.instrument == cInstrument &&
-          chipnomadState->voiceMonitors[i].active &&
-          (track < 0 || i == *pSongTrack)) track = i;
-    }
-    if (track < 0) {
-      if (livePreviewWasActive) currentScreen->fullRedraw();
-      livePreviewWasActive = 0;
-      livePreviewRefresh = {};
-      return;
-    }
-    if (!livePreviewBitmap) livePreviewBitmap = gfxBitmapCreate(32, 3);
-    const auto now = std::chrono::steady_clock::now();
-    int hz = appSettings.waveformRefreshHz;
-    if (hz < 1 || hz > 60) hz = 30;
-    if (livePreviewRefresh == std::chrono::steady_clock::time_point() ||
-        std::chrono::duration<float>(now - livePreviewRefresh).count() >= 1.0f / hz) {
-      gfxClearRect(0, 16, 32, 3);
-      renderFloatPreview(livePreviewBitmap, chipnomadState->voiceMonitors[track].samples,
-                         VOICE_MONITOR_SAMPLES);
-      livePreviewRefresh = now;
-    }
-    gfxSetFgColor(appSettings.colorScheme.textInfo);
-    gfxDrawBitmap(livePreviewBitmap, 0, 16);
-    Instrument* instrument = &chipnomadState->project.instruments[cInstrument];
-    InstrumentVoicePostSettings* post = voicePostSettings(instrument, instrument->type);
-    if (post && instrument->type != InstrumentType::DrumSynth && instrument->type != InstrumentType::Sintered &&
-        ((instrument->type != InstrumentType::Plaits &&
-                  instrument->type != InstrumentType::PlaitsAlt) ||
-                 instrument->chip.plaits.envelopeMode != 0)) {
-      instrumentCommonDrawEnvelopePreview(post->attack, post->decay, post->sustain,
-                                          post->release, post->envelopeShape);
-    }
-    livePreviewWasActive = 1;
+  const PlaybackStatus* playback = chipnomadGetPlaybackStatus(chipnomadState);
+  int track = -1;
+  for (int i = 0; i < chipnomadState->project.tracksCount; ++i) {
+    if (playback->tracks[i].note.instrument == cInstrument &&
+        chipnomadState->voiceMonitors[i].active &&
+        (track < 0 || i == *pSongTrack)) track = i;
+  }
+  if (track < 0) {
+    if (livePreviewWasActive) currentScreen->fullRedraw();
+    livePreviewWasActive = 0;
+    livePreviewRefresh = {};
     return;
   }
-  // The opt-in header leaves the footer available for ADSR.
+  if (!livePreviewBitmap) livePreviewBitmap = gfxBitmapCreate(32, 3);
+  const auto now = std::chrono::steady_clock::now();
+  int hz = appSettings.waveformRefreshHz;
+  if (hz < 1 || hz > 60) hz = 30;
+  if (livePreviewRefresh == std::chrono::steady_clock::time_point() ||
+      std::chrono::duration<float>(now - livePreviewRefresh).count() >= 1.0f / hz) {
+    gfxClearRect(0, 16, 32, 3);
+    renderFloatPreview(livePreviewBitmap, chipnomadState->voiceMonitors[track].samples,
+                       VOICE_MONITOR_SAMPLES);
+    livePreviewRefresh = now;
+  }
+  gfxSetFgColor(appSettings.colorScheme.textInfo);
+  gfxDrawBitmap(livePreviewBitmap, 0, 16);
   Instrument* instrument = &chipnomadState->project.instruments[cInstrument];
   InstrumentVoicePostSettings* post = voicePostSettings(instrument, instrument->type);
   if (post && instrument->type != InstrumentType::DrumSynth && instrument->type != InstrumentType::Sintered &&
-      ((instrument->type != InstrumentType::Plaits && instrument->type != InstrumentType::PlaitsAlt) ||
-       instrument->chip.plaits.envelopeMode != 0))
+      ((instrument->type != InstrumentType::Plaits &&
+                instrument->type != InstrumentType::PlaitsAlt) ||
+               instrument->chip.plaits.envelopeMode != 0)) {
     instrumentCommonDrawEnvelopePreview(post->attack, post->decay, post->sustain,
                                         post->release, post->envelopeShape);
+  }
+  livePreviewWasActive = 1;
 }
 
 int instrumentCommonOnEdit(int col, int row, enum CellEditAction action) {

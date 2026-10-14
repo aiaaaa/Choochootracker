@@ -674,3 +674,20 @@ seven SID editor regressions (14,592 assertions), including active lane FX;
 Emscripten web build and final changed-source compilation. Native patch ranges,
 lane command IDs, normalized SCP/SCT values and saved automation are preserved.
 Prepared for daily integration and review; no device or public web deployment.
+
+## Song-only waveform — October 14, 2026
+
+`feature/song-only-waveform` branches from daily candidate `44e29a2`.
+The persistent header visualizer now appears only on SONG. Graphics calls the
+option **Song waveform** and retains the existing saved preference. Other pages
+keep their full row capacity, spaced Modulation controls, and full instrument
+waveform/sample/envelope previews. Audio and lane FX behavior are unchanged.
+
+Validation: two layout regressions (142 assertions); offscreen production SDL
+checks across nine pages in both setting states, including transitions from
+SONG, bottom Phrase row edits and Modulation touch targets. All eight non-SONG
+page captures match byte-for-byte with the setting on/off. SID/SQ80 and Monk
+production UI routing, touch and lane FX checks also pass. The Emscripten web
+build passes with SQ80 and Lucky enabled. Captures and build logs are local
+under `.tmp/song-waveform/`. Prepared for daily integration;
+no device or public web deployment.

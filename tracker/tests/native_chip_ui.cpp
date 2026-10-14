@@ -35,6 +35,52 @@ static void tapEdit(){key(1,keyEdit);key(0,0);}
 int main(int argc,char** argv){
   if(argc!=2&&argc!=3)return 1;output=argv[1];initDefaultAppSettings();appSettings.screenWidth=640;appSettings.screenHeight=480;fontSetCurrent(fontGetDefault());require(!gfxSetup(&appSettings.screenWidth,&appSettings.screenHeight),"SDL dummy setup");
   chipnomadState=chipnomadCreate();require(chipnomadState,"state");require(!projectLoad(&chipnomadState->project,"projects/gm-midi-demo.cct"),"fixture");
+  if(argc==3 && !strcmp(argv[2],"--song-waveform-only")) {
+    screensInitAll();waveformDisplayInit();monitorDisplayInit();
+    auto& project=chipnomadState->project;
+    *pSongRow=*pChainRow=*pSongTrack=0;
+    project.song[0][0]=0;project.chains[0].rows[0].phrase=0;
+    getInstrumentFunctions(InstrumentType::Monk).init(&project.instruments[0]);
+    for(auto& mod:project.instruments[0].modulation) {
+      mod.type=ModulationType::SLFO;mod.p1=static_cast<uint8_t>(LFOShape::wavetable);
+    }
+    struct Page { const AppScreen* screen; const char* name; };
+    const Page pages[]={{&screenSong,"song"},{&screenChain,"chain"},
+      {&screenPhrase,"phrase"},{&screenTable,"table"},{&screenInstrument,"instrument"},
+      {&screenModulation,"modulation"},{&screenMixer,"mixer"},
+      {&screenGroove,"groove"},{&screenInstrumentPool,"pool"}};
+    for(int enabled:{0,1}) {
+      appSettings.persistentWaveform=enabled;
+      for(const auto& page:pages) {
+        // Exercise every transition from the offset SONG page back to an editor.
+        screenSetup(&screenSong,0);appDraw();
+        screenSetup(page.screen,0);appDraw();
+        int offset=enabled && page.screen==&screenSong ? 2 : 0;
+        require(gfxGetContentRowOffset()==offset,"Only SONG shifts page content");
+        require(screenVisibleRows()==16-offset,"Full editor row capacity");
+        if(page.screen==&screenSong) {
+          require(screenTouchTap(3,3+offset),"SONG first row touch follows waveform");
+          require(*pSongRow==0,"SONG first row selected");
+        }
+        if(page.screen==&screenPhrase) {
+          for(int row:{14,15}) {
+            project.phrases[0].rows[row].note=48;
+            require(screenTouchTap(3,3+row),"Restored bottom phrase row touch");
+            key(1,keyEdit|keyRight);key(0,0);
+            require(project.phrases[0].rows[row].note==49,"Bottom row edit reaches correct note");
+          }
+        }
+        if(page.screen==&screenModulation) {
+          require(screenTouchTap(7,18),"Last modulation field accessible");
+          require(!screenTouchTap(7,10),"Modulation gap is not a field");
+        }
+        char name[64];snprintf(name,sizeof(name),"%s-waveform-%d",page.name,enabled);
+        capture(name);
+      }
+    }
+    printf("Song-only waveform: transitions, full editor rows, bottom Phrase edits and Modulation touch passed in both modes\n");
+    chipnomadDestroy(chipnomadState);SDL_Quit();return 0;
+  }
   if(argc==3 && !strcmp(argv[2],"--sid-home-only")) {
     screensInitAll();waveformDisplayInit();monitorDisplayInit();
     static_assert(sizeof(FXId)==2,"Current lane commands must remain 16-bit");

@@ -149,7 +149,7 @@ static void graphicsField(int, int row, CellState state) {
   } else if (row == 1) {
     gfxSetFgColor(state == CellState::focus ? cs.textValue : cs.textDefault); gfxPrint(0, 3, "Load font");
   } else if (row == 2) {
-    gfxSetFgColor(cs.textDefault); gfxPrint(0, 4, "Persistent waveform");
+    gfxSetFgColor(cs.textDefault); gfxPrint(0, 4, "Song waveform");
     gfxSetFgColor(state == CellState::focus ? cs.textValue : cs.textDefault); gfxPrint(23, 4, appSettings.persistentWaveform ? "ON " : "OFF");
   } else if (row == 3) {
     gfxSetFgColor(state == CellState::focus ? cs.textValue : cs.textDefault); gfxPrint(0, 5, "Track visuals");
