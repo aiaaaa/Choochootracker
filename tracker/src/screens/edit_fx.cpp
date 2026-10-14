@@ -85,7 +85,6 @@ void selectInstrumentFX(FXCell* fx, FXId selected, uint8_t instrumentIdx) {
 }
 
 static const char* contextualFXHint(const FXCell* fx,int table,uint8_t instrument) {
-  if (fx->command >= fxTestDummy00 && fx->command <= fxTestDummy99) return "Test dummy FX (inert)";
   NativeFXInfo native{};
   if(nativeInfo(instrument,fx->command,native) && native.label) {
     static char text[80];
