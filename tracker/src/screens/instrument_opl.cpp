@@ -195,28 +195,35 @@ void showSounds(){
 }
 int sidField(int col,int row){
  if(row==5)return col?sidPulse:sidWave;
- if(row==6)return col==0?sidFilterMode:col==1?sidCutoff:sidResonance;
+ if(row==6)return sidFilterMode;
+ if(row==7)return col?sidResonance:sidCutoff;
  return sidAttack+col;
 }
-int sidY(int row){return row==5?9:row==6?11:13;}
-int sidX(int col,int row){return 9+col*(row==7?6:10);}
-int columns(int row){if(sid()&&row>=5)return row==5?3:row==6?3:4;return row<3?instrumentCommonColumnCount(row):row==5&&fmEditSupported(current()->type)?2:row==6?2:row==8?5:1;}
-void drawStatic(){instrumentCommonDrawStatic();gfxSetFgColor(appSettings.colorScheme.textDefault);gfxPrint(0,6,"Bank:");gfxPrint(0,7,"Preset");if(sid()){
- gfxPrint(0,9,"Wave/PW");gfxPrint(0,11,"Filter");gfxPrint(0,13,"ADSR");
- gfxSetFgColor(appSettings.colorScheme.textInfo);gfxPrint(0,10,"Tri Saw TS Pulse TP SP TSP Noise");
- gfxPrint(0,12,"Mode / Cutoff / Reso; max 4 notes");if(!sidWaveformBitmap)sidWaveformBitmap=gfxBitmapCreate(32,3);gfxClearRect(0,16,32,3);renderFMPreview(sidWaveformBitmap,current());gfxDrawBitmap(sidWaveformBitmap,0,16);return;
+int sidY(int row){return row==5?9:row==6?12:row==7?13:14;}
+int sidX(int col,int row){return row==8?7+col*5:col?(row==5?24:26):9;}
+int sidWidth(int col,int row){return row==5&&!col?5:row==6?3:row==5|| (row==7&&!col)?3:2;}
+int columns(int row){if(sid()&&row>=4)return row==4||row==5||row==7?2:row==6?1:4;return row<3?instrumentCommonColumnCount(row):row==5&&fmEditSupported(current()->type)?2:row==6?2:row==8?5:1;}
+void drawStatic(){instrumentCommonDrawStatic();gfxSetFgColor(appSettings.colorScheme.textDefault);gfxPrint(0,6,"Bank:");gfxPrint(0,7,sid()?"Preset:":"Preset");if(sid()){
+ gfxPrint(0,9,"Wave:");gfxPrint(20,9,"PW:");
+ gfxPrint(0,11,"Filter:");gfxPrint(0,12,"Mode:");
+ gfxPrint(0,13,"Cutoff:");gfxPrint(20,13,"Reso:");
+ gfxPrint(0,14,"ADSR:");
+ gfxPrint(6,14,"A");gfxPrint(11,14,"D");gfxPrint(16,14,"S");gfxPrint(21,14,"R");
+ gfxSetFgColor(appSettings.colorScheme.textInfo);gfxPrint(0,15,"Max 4 notes");
+ if(!sidWaveformBitmap)sidWaveformBitmap=gfxBitmapCreate(32,3);gfxClearRect(0,16,32,3);renderFMPreview(sidWaveformBitmap,current());gfxDrawBitmap(sidWaveformBitmap,0,16);return;
  }gfxPrint(0,9,"Fine ct");gfxPrint(0,11,"Mode");const char* mode=isOPLL(current()->type)?"2 operator":fourOp()?"4 operator":dx7()?"6 operator":current()->chip.opl.topology==OPLTopology::fourOperator?"4 operator":current()->chip.opl.topology==OPLTopology::dualVoice?"Dual voice":"2 operator";gfxPrint(9,11,mode);instrumentFMAmpDrawStatic();}
-void drawCursor(int col,int row){if(sid()&&row==5&&col==2){gfxCursor(29,9,4);return;}if(sid()&&row>=5){gfxCursor(sidX(col,row),sidY(row),row==5&&!col?5:4);return;}if(row==6){instrumentFMToneDrawCursor(col);return;}if(row>=7){instrumentFMAmpDrawCursor(col,row-7);return;}if(row<3)instrumentCommonDrawCursor(col,row);else if(row==5&&col==1)gfxCursor(16,9,4);else gfxCursor(9,row==3?6:row==4?7:9,row==5?4:28);}
+void drawCursor(int col,int row){if(sid()&&row==4){gfxCursor(col?28:9,7,col?4:18);return;}if(sid()&&row>=5){gfxCursor(sidX(col,row),sidY(row),sidWidth(col,row));return;}if(row==6){instrumentFMToneDrawCursor(col);return;}if(row>=7){instrumentFMAmpDrawCursor(col,row-7);return;}if(row<3)instrumentCommonDrawCursor(col,row);else if(row==5&&col==1)gfxCursor(16,9,4);else gfxCursor(9,row==3?6:row==4?7:9,row==5?4:28);}
 void drawField(int col,int row,CellState state){
- if(sid()&&row==5&&col==2){
+ if(sid()&&row==4&&col==1){
   gfxSetFgColor(state==CellState::focus?appSettings.colorScheme.textValue:appSettings.colorScheme.textInfo);
-  gfxClearRect(29,9,4,1);gfxPrint(29,9,"EDIT");return;
+  gfxClearRect(28,7,4,1);gfxPrint(28,7,"EDIT");return;
  }
  if(sid()&&row>=5){
   int x=sidX(col,row),y=sidY(row);auto v=current()->chip.sid.value[sidField(col,row)];
-  gfxSetFgColor(state==CellState::focus?appSettings.colorScheme.textValue:appSettings.colorScheme.textDefault);gfxClearRect(x,y,row==7?4:8,1);
+  gfxSetFgColor(state==CellState::focus?appSettings.colorScheme.textValue:appSettings.colorScheme.textDefault);gfxClearRect(x,y,sidWidth(col,row),1);
   if(row==5&&!col){const char* waves[]={"Off","Tri","Saw","TS","Pulse","TP","SP","TSP","Noise"};gfxPrint(x,y,waves[v]);}
-  else gfxPrintf(x,y,"%0*X",row==5||(row==6&&col==1)?3:2,v);
+  else if(row==6){const char* modes[]={"Off","LP","BP","LB","HP","LH","BH","LBH"};gfxPrint(x,y,modes[v&7]);}
+  else gfxPrintf(x,y,"%0*X",sidWidth(col,row),v);
   if(sidWaveformBitmap){gfxClearRect(0,16,32,3);renderFMPreview(sidWaveformBitmap,current());gfxSetFgColor(appSettings.colorScheme.textInfo);gfxDrawBitmap(sidWaveformBitmap,0,16);}
   return;
  }
@@ -224,13 +231,13 @@ void drawField(int col,int row,CellState state){
   if(row==6){instrumentFMToneDrawField(col,state);return;}if(row>=7){instrumentFMAmpDrawField(col,row-7,state);return;}
   if(row<3){instrumentCommonDrawField(col,row,state);return;}
   if(row==5&&col==1){gfxSetFgColor(state==CellState::focus?appSettings.colorScheme.textValue:appSettings.colorScheme.textInfo);gfxClearRect(16,9,4,1);gfxPrint(16,9,"EDIT");return;}
-  gfxSetFgColor(state==CellState::focus?appSettings.colorScheme.textValue:appSettings.colorScheme.textDefault);int y=row==3?6:row==4?7:9;gfxClearRect(9,y,row==3?28:row==5?6:30,1);
+  gfxSetFgColor(state==CellState::focus?appSettings.colorScheme.textValue:appSettings.colorScheme.textDefault);int y=row==3?6:row==4?7:9;gfxClearRect(9,y,row==3?28:row==5?6:sid()?18:30,1);
   if(row==3)gfxPrintf(9,y,"%.28s",instrumentPresetCollectionName());
-  else if(row==4)gfxPrintf(9,y,"%.30s",presetName());else gfxPrintf(9,y,"%+04d",fineTune());
+  else if(row==4)gfxPrintf(9,y,"%.*s",sid()?18:30,presetName());else gfxPrintf(9,y,"%+04d",fineTune());
   instrumentFMRefreshStaticWaveform();
 }
 int onEdit(int col,int row,CellEditAction action){
- if(sid()&&row==5&&col==2){screenSetup(&screenSIDEdit,cInstrument);return 1;}
+ if(sid()&&row==4&&col==1){screenSetup(&screenSIDEdit,cInstrument);return 1;}
  if(sid()&&row>=5){
   int field=sidField(col,row),max=field==sidWave?8:field==sidPulse?4095:field==sidCutoff?2047:field==sidFilterMode?7:15;
   int min=field==sidWave?1:0,step=max>255?128:max>15?16:1;
@@ -250,7 +257,7 @@ int onEdit(int col,int row,CellEditAction action){
   fineTune()=std::clamp(v,-100,100);projectModified=1;return 1;
 }
 int onInput(int down,int keys,int){
-  int row=screenInstrumentOPL.cursorRow;if(row!=3&&row!=4){buttonDown=0;return 0;}
+  int row=screenInstrumentOPL.cursorRow;if((sid()&&row==4&&screenInstrumentOPL.cursorCol==1)||(row!=3&&row!=4)){buttonDown=0;return 0;}
   PopupEditInput input=popupEditInput(down,keys,&buttonDown);
   if(input==PopupEditInput::cycle){
     int direction=keys==(keyEdit|keyRight)?1:-1;
@@ -295,7 +302,7 @@ void instrumentPresetCycle(int direction){
 }
 
 void instrumentFMSetContext(int instrument, InstrumentType type) {
-  screenInstrumentOPL.rows=type==InstrumentType::SID?8:9;
+  screenInstrumentOPL.rows=9;
   if(instrument!=contextInstrument||type!=contextType) {
     bankFilter=-1;
     buttonDown=0;

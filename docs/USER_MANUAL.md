@@ -1843,8 +1843,12 @@ complete C64 songs. The separate twelve GoatTracker research candidates are
 not shipped; their wave/pulse/filter tables need a dedicated importer/player.
 
 The instrument page exposes waveform/pulse width, filter mode/cutoff/resonance
-and native ADSR controls. **EDIT**, to the right of Wave/PW, opens **SID EDIT**,
-using the FM editor's compact rows, theme colors, hexadecimal values and
+and native ADSR controls. **EDIT**, beside the preset name, opens **SID EDIT**.
+Wave and PW have separate labels; Filter has a mode row, then Cutoff and Reso;
+ADSR labels sit beside their values. Touching each field selects that exact
+control. Existing parameter ranges and fine/coarse adjustment behavior are retained.
+
+SID EDIT uses the FM editor's compact rows, theme colors, hexadecimal values and
 EDIT+direction controls. OPT or Left+Shift returns; EDIT+PLAY auditions the
 instrument. The page edits the existing stored patch directly, so changes are
 saved with the instrument and project.

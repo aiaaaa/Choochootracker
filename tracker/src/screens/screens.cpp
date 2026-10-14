@@ -313,6 +313,31 @@ static int screenTouchCellAt(int col, int row, int* targetCol, int* targetRow) {
     if (targetRow) *targetRow = field;
     return 1;
   }
+  if (currentScreen == &screenInstrument &&
+      chipnomadState->project.instruments[cInstrument].type == InstrumentType::SID && row >= 5) {
+    int field = -1, column = 0;
+    if (row == 6 && col >= 9 && col <= 36) field = 3;
+    if (row == 7 && col >= 9 && col <= 31) {
+      if (col == 27) return 0;
+      field = 4; column = col >= 28 ? 1 : 0;
+    }
+    if (row == 9 && col >= 0 && col <= 26) {
+      if (col >= 14 && col < 20) return 0;
+      field = 5; column = col >= 20 ? 1 : 0;
+    }
+    if (row == 12 && col >= 0 && col <= 11) field = 6;
+    if (row == 13 && col >= 0 && col <= 27) {
+      if (col >= 12 && col < 20) return 0;
+      field = 7; column = col >= 20 ? 1 : 0;
+    }
+    if (row == 14 && col >= 6 && col <= 23) {
+      field = 8; column = col <= 10 ? 0 : col <= 15 ? 1 : col <= 20 ? 2 : 3;
+    }
+    if (field < 0) return 0;
+    if (targetCol) *targetCol = column;
+    if (targetRow) *targetRow = field;
+    return 1;
+  }
   if (currentScreen == &screenGraphicsSettings) {
     const int fieldY[] = {2, 3, 4, 5};
     const int widths[] = {16, 9, 26, 13};
@@ -441,6 +466,12 @@ TouchAdjustResult screenTouchAdjust(int col, int row) {
     return touchScreenData->cursorRow == 9 && touchScreenData->cursorCol == envelopeCol ? touchAdjustCoarse : touchAdjustNone;
   int targetCol, targetRow;
   if (!screenTouchCellAt(col, row, &targetCol, &targetRow)) return touchAdjustNone;
+  if (currentScreen == &screenInstrument &&
+      chipnomadState->project.instruments[cInstrument].type == InstrumentType::SID) {
+    if (targetRow != touchScreenData->cursorRow || targetCol != touchScreenData->cursorCol)
+      return touchAdjustNone;
+    return touchAdjustCoarse;
+  }
   // Tap selects the exact ADSR/Shape field. Once selected, accept a drag
   // anywhere across that envelope row so narrow values remain usable.
   if (currentScreen == &screenInstrument && targetRow >= 6)
