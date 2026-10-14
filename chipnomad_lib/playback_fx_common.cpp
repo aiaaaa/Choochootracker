@@ -393,38 +393,38 @@ static void handleFX_PSL(PlaybackState* state, PlaybackTrackState* track, int tr
 // General FX handling functions
 //
 
-void initFX(PlaybackState* state, int trackIdx, uint8_t* fx, PlaybackTableState* tableState, int tableFXColumn) {
-  if (fx[0] == EMPTY_VALUE_8 || fx[0] >= fxTotalCount) return;
-  if (tableState != NULL && (fx[0] == fxSCL || fx[0] == fxCRD)) return;
+void initFX(PlaybackState* state, int trackIdx, const FXCell* fx, PlaybackTableState* tableState, int tableFXColumn) {
+  if (fx->command == FX_ID_EMPTY || fx->command >= fxTotalCount) return;
+  if (tableState != NULL && (fx->command == fxSCL || fx->command == fxCRD)) return;
 
   PlaybackTrackState* track = &state->tracks[trackIdx];
-  if (fx[0] >= fxF11 && fx[0] <= fxF28) {
-    int address = fx[0] - fxF11, slot = address / 8, parameter = address % 8;
+  if (fx->command >= fxF11 && fx->command <= fxF28) {
+    int address = fx->command - fxF11, slot = address / 8, parameter = address % 8;
     int module = state->p->trackInserts[trackIdx][slot].module;
     if (parameter < insertDescriptor(module).count) {
-      track->inserts.values[slot][parameter] = insertClamp(module, parameter, fx[1]);
+      track->inserts.values[slot][parameter] = insertClamp(module, parameter, fx->value);
       track->inserts.valid[slot] |= 1 << parameter;
     }
     return;
   }
-  if (fx[0] >= fxOAR && fx[0] <= fxLEN) {
+  if (fx->command >= fxOAR && fx->command <= fxLEN) {
     if (track->note.instrument == EMPTY_VALUE_8) return;
     const auto* instrument = &state->p->instruments[track->note.instrument];
-    if (!instrumentFXAvailableForInstrument(instrument, fx[0])) return;
+    if (!instrumentFXAvailableForInstrument(instrument, fx->command)) return;
     constexpr int op = 0;
     NativeFXInfo info{};
-    if (!instrumentDirectFMInfo(instrument, fx[0], &info, op)) return;
-    int value = clampInt(fx[1], info.minimum, info.maximum);
-    if (fx[0] >= fxOAR && fx[0] <= fxOE4) {
-      int n=fx[0]-fxOAR;
+    if (!instrumentDirectFMInfo(instrument, fx->command, &info, op)) return;
+    int value = clampInt(fx->value, info.minimum, info.maximum);
+    if (fx->command >= fxOAR && fx->command <= fxOE4) {
+      int n=fx->command-fxOAR;
       auto& target=track->note.nativeFM.operators[op][n];
       if(!target)track->note.nativeFMCurrent.operators[op][n]=value+1;
       if(target!=value+1)track->note.nativeFMRemaining.operators[op][n]=track->slewTicks;
       target=value+1;
       return;
     }
-    if (fx[0] >= fxLFR) {
-      int n=fx[0]-fxLFR;
+    if (fx->command >= fxLFR) {
+      int n=fx->command-fxLFR;
       auto& target=track->note.nativeFM.global[n];
       if(!target)track->note.nativeFMCurrent.global[n]=value+1;
       if(target!=value+1)track->note.nativeFMRemaining.global[n]=track->slewTicks;
@@ -435,11 +435,11 @@ void initFX(PlaybackState* state, int trackIdx, uint8_t* fx, PlaybackTableState*
   }
   // STA is a spelling alias for SST, so both commands share one runtime
   // state and the most recent one wins just like two SST commands would.
-  uint8_t fxIdx = fx[0] == fxSTA ? fxSST : fx[0];
+  FXId fxIdx = fx->command == fxSTA ? fxSST : fx->command;
   PlaybackFXState* fxState = &track->note.fx[fxIdx];
 
   fxState->isOn = 1;
-  fxState->fxValue = fx[1];
+  fxState->fxValue = fx->value;
 
   if (fxHandlers[fxIdx].init) {
     fxHandlers[fxIdx].init(state, track, trackIdx, fxState, tableState, tableFXColumn);

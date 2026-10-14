@@ -38,7 +38,7 @@ struct VoiceMonitor {
 struct MotionRecordEvent {
   uint16_t phrase;
   uint8_t row;
-  uint8_t fx;
+  FXId fx;
   uint8_t value;
   uint8_t erase;
 };

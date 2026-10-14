@@ -442,7 +442,7 @@ static bool trackerDirectFMAvailable(InstrumentType type, int fx) {
   }
 }
 
-int instrumentFXAvailable(InstrumentType type, uint8_t fx) {
+int instrumentFXAvailable(InstrumentType type, FXId fx) {
   if(fx>=fxOAR&&fx<=fxLEN) { if(!trackerDirectFMAvailable(type,fx))return 0; Instrument i{}; getInstrumentFunctions(type).init(&i); NativeFXInfo info{}; return instrumentDirectFMInfo(&i,fx,&info); }
   if(fx==fxFBK)return instrumentNativeModDestination(type,genericModFMFeedback)!=nullptr;
   if(fx>=fxOL1&&fx<=fxOL6) {
@@ -455,7 +455,7 @@ int instrumentFXAvailable(InstrumentType type, uint8_t fx) {
   return 0;
 }
 
-int instrumentFXAvailableForInstrument(const Instrument* instrument, uint8_t fx) {
+int instrumentFXAvailableForInstrument(const Instrument* instrument, FXId fx) {
   if(instrument && fx>=fxOAR&&fx<=fxLEN) { if(!trackerDirectFMAvailable(instrument->type,fx))return 0; NativeFXInfo info{}; return instrumentDirectFMInfo(instrument,fx,&info); }
   if (!instrument || !instrumentFXAvailable(instrument->type, fx)) return 0;
   if(fx>=fxOL1&&fx<=fxOL6)return fx-fxOL1<instrumentFMOperatorCount(instrument);
