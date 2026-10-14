@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <cstring>
 #include <fstream>
@@ -13,6 +14,8 @@
 #include "playback_internal.h"
 #include "screen_instrument.h"
 #include "screens.h"
+#include "help.h"
+#include "corelib_gfx.h"
 
 namespace {
 std::vector<float> signal(int frames) {
@@ -61,11 +64,180 @@ void write(const char* path, const std::string& text) {
 }
 }  // namespace
 TEST_SUITE("track inserts") {
+  TEST_CASE("Rotary speed spans slow LFO rates through the existing maximum") {
+    float previous = 0;
+    for (int value = 0; value <= 255; ++value) {
+      float hz = insertMap(insertRotary, 0, value);
+      CHECK(hz > previous);
+      previous = hz;
+    }
+    CHECK(insertMap(insertRotary, 0, 0) == doctest::Approx(0.01f));
+    CHECK(insertMap(insertRotary, 0, 255) == doctest::Approx(25.f));
+    CHECK(insertMap(insertRotary, 0, insertDescriptor(insertRotary).parameters[0].initial)
+          == doctest::Approx(0.8f).epsilon(0.02));
+    // Count real left/right amplitude cycles on steady input, after the
+    // initial delay fill and bypass fade. This exercises the DSP's rate too.
+    for (int speed : {0, 143, 255}) {
+      InsertConfig config[2]{};
+      insertSelect(&config[0], insertRotary);
+      insertEdit(&config[0], 0, speed);
+      insertEdit(&config[0], 1, 255);
+      insertEdit(&config[0], 3, 255);
+      InsertAutomation automation{};
+      InsertChain chain(48000);
+      chain.sync(config, &automation);
+      uint8_t effective[2][8];
+      values(config, effective);
+      const int seconds = speed == 0 ? 105 : 4;
+      std::vector<float> audio(seconds * 48000 * 2, 0.25f);
+      chain.process(audio.data(), seconds * 48000, effective);
+      int crossings = 0;
+      int firstCrossing = 0;
+      for (int frame = 48001; frame < seconds * 48000; ++frame) {
+        float before = audio[2 * frame - 1] - audio[2 * frame - 2];
+        float now = audio[2 * frame + 1] - audio[2 * frame];
+        if (before <= 0 && now > 0) {
+          if (!crossings) firstCrossing = frame;
+          ++crossings;
+        }
+      }
+      CHECK(std::abs(crossings - (seconds - 1) * insertMap(insertRotary, 0, speed)) <= 1);
+      if (speed == 0) CHECK(firstCrossing / 48000.f == doctest::Approx(100.f).epsilon(0.001));
+    }
+  }
+
+  TEST_CASE("tracker insert popup describes every module on the selected track and slot") {
+    auto* previous = chipnomadState;
+    auto* previousScreen = currentScreen;
+    chipnomadState = chipnomadCreate();
+    screensInitAll();
+    currentScreen = &screenPhrase;
+    // A deliberately different first track catches accidental track-zero lookup.
+    insertSelect(&chipnomadState->project.trackInserts[0][0], insertDistortion);
+    *pSongTrack = 3;
+    for (int module = 0; module < insertModuleCount; ++module) {
+      for (int slot = 0; slot < 2; ++slot) {
+        insertSelect(&chipnomadState->project.trackInserts[3][slot], module);
+        const auto& descriptor = insertDescriptor(module);
+        for (int parameter = 0; parameter < 8; ++parameter) {
+          CAPTURE(module);
+          CAPTURE(slot);
+          CAPTURE(parameter);
+          auto fx = FX(fxF11 + slot * 8 + parameter);
+          std::string description = helpFXDescription(fx, EMPTY_VALUE_8);
+          size_t lineStart = 0;
+          do {
+            size_t lineEnd = description.find('\n', lineStart);
+            if (lineEnd == std::string::npos) lineEnd = description.size();
+            CHECK(lineEnd - lineStart <= 33); // keep clear of the track sidebar
+            lineStart = lineEnd + 1;
+          } while (lineStart < description.size());
+          CHECK(description.find(descriptor.name) != std::string::npos);
+          if (parameter < descriptor.count) {
+            CHECK(description.find(descriptor.parameters[parameter].name) != std::string::npos);
+            CHECK(description.find("absolute track control") != std::string::npos);
+          } else {
+            CHECK(description.find("no effect") != std::string::npos);
+          }
+          for (int table : {0, 1}) {
+            gfxClear();
+            fxEditFullDraw(fx, EMPTY_VALUE_8, table);
+            if (parameter < descriptor.count) {
+              CHECK(std::string(mockGfxCells[1], 40).find(descriptor.name) != std::string::npos);
+            } else {
+              std::string drawn;
+              for (const auto& row : mockGfxCells) drawn.append(row, 35);
+              CHECK(drawn.find("Unused") == std::string::npos);
+              CHECK(drawn.find(fxNames[fx].name) == std::string::npos);
+            }
+          }
+        }
+      }
+    }
+    insertSelect(&chipnomadState->project.trackInserts[3][1], insertRotary);
+    FXCell fx = {fxF21, 254}, last = {fxF21, 0};
+    editFXValue(CellEditAction::increase, &fx, &last, 0, EMPTY_VALUE_8);
+    CHECK(fx.value == 255);
+    CHECK(std::string(screenGetActiveMessage()) == "Rotary Speed: 25 Hz");
+    chipnomadDestroy(chipnomadState);
+    chipnomadState = previous;
+    currentScreen = previousScreen;
+  }
+
+  TEST_CASE("roll and popup offer only configured insert controls") {
+    auto* previous = chipnomadState;
+    auto* previousScreen = currentScreen;
+    chipnomadState = chipnomadCreate();
+    screensInitAll();
+    currentScreen = &screenPhrase;
+    *pSongTrack = 3;
+    insertSelect(&chipnomadState->project.trackInserts[0][0], insertCompressor);
+    for (int first = 0; first < insertModuleCount; ++first) {
+      for (int second = 0; second < insertModuleCount; ++second) {
+        CAPTURE(first); CAPTURE(second);
+        auto* config = chipnomadState->project.trackInserts[3];
+        insertSelect(&config[0], first);
+        insertSelect(&config[1], second);
+        config[0].bypass = config[1].bypass = 1; // Still editable while bypassed.
+        std::vector<int> expected;
+        for (int slot = 0; slot < 2; ++slot)
+          for (int p = 0; p < insertDescriptor(config[slot].module).count; ++p)
+            expected.push_back(fxF11 + slot * 8 + p);
+        for (int table : {0, 1}) {
+          for (int direction : {-1, 1}) {
+            FXCell fx = {(FXId)(direction > 0 ? fxF11 - 1 : fxF28 + 1), 73};
+            FXCell last = fx;
+            std::vector<int> seen;
+            for (int attempts = 0; attempts < fxTotalCount; ++attempts) {
+              const int before = fx.command;
+              editFX(direction > 0 ? CellEditAction::increase : CellEditAction::decrease,
+                     &fx, &last, table, EMPTY_VALUE_8);
+              if (fx.command == before || fx.command < fxF11 || fx.command > fxF28) break;
+              seen.push_back(fx.command);
+              CHECK(fx.value == 73);
+            }
+            if (direction < 0) std::reverse(seen.begin(), seen.end());
+            CHECK(seen == expected);
+          }
+          // Traverse through both slot groups using real popup input.
+          fxEditFullDraw(fxARP, EMPTY_VALUE_8, table);
+          std::string popup;
+          for (const auto& row : mockGfxCells) popup.append(row, 35);
+          for (int slot = 0; slot < 2; ++slot) {
+            std::string title = "TF" + std::to_string(slot + 1) + ": " + insertDescriptor(config[slot].module).name;
+            CHECK((popup.find(title) != std::string::npos) == (config[slot].module != insertOff));
+          }
+          std::vector<int> seen;
+          int before = -1;
+          for (int attempts = 0; attempts < fxTotalCount; ++attempts) {
+            FXCell selected = {FX_ID_EMPTY, 73}, last = {};
+            fxEditInput(0, 1, &selected, &last);
+            if (selected.command == before) break;
+            before = selected.command;
+            if (selected.command >= fxF11 && selected.command <= fxF28) seen.push_back(selected.command);
+            fxEditInput(keyEdit | keyRight, 1, &selected, &last);
+          }
+          CHECK(seen == expected);
+          // Cached FX from another track cannot insert an unused address.
+          FXCell stale = {fxF28, 73}, cell = {FX_ID_EMPTY, 0};
+          editFX(CellEditAction::tap, &cell, &stale, table, EMPTY_VALUE_8);
+          CHECK(cell.value == 73);
+          if (cell.command >= fxF11 && cell.command <= fxF28)
+            CHECK(std::find(expected.begin(), expected.end(), cell.command) != expected.end());
+          else CHECK(expected.empty());
+        }
+      }
+    }
+    chipnomadDestroy(chipnomadState);
+    chipnomadState = previous;
+    currentScreen = previousScreen;
+  }
+
   TEST_CASE("metadata addresses all native controls with exact neutral and discrete values") {
     CHECK(fxF11 > fxATY);
     CHECK(fxF28 < 255);
     CHECK(genericModFirstInsert == 29);
-      const int counts[] = {0, 8, 4, 2, 6, 6, 5, 4, 5, 4, 4, 4, 4};
+      const int counts[] = {0, 8, 4, 2, 6, 6, 5, 4, 5, 4, 4, 4, 4, 6, 8};
     for (int m = 0; m < insertModuleCount; ++m) {
       CHECK(insertDescriptor(m).count == counts[m]);
       InsertConfig c{};
@@ -81,6 +253,41 @@ TEST_SUITE("track inserts") {
       CHECK(insertClamp(m, 8, 255) == 0);
     }
     CHECK(insertDescriptor(999).count == 0);
+  }
+  TEST_CASE("trance gate has named patterns, deterministic cycles and smooth dry/wet control") {
+    InsertConfig c[2]{};
+    insertSelect(&c[0], insertTranceGate);
+    CHECK(std::string(insertDescriptor(insertTranceGate).name) == "Trance Gate");
+    char described[64];
+    insertDescribe(described, sizeof(described), insertTranceGate, 0, 14);
+    CHECK(std::string(described) == "0E Gate Sweep");
+    insertDescribe(described, sizeof(described), insertTranceGate, 5, 3);
+    CHECK(std::string(described) == "Chaos");
+    c[0].values[0] = 1;   // Four Floor
+    c[0].values[1] = 12;  // 1/32 = 3 ticks
+    c[0].values[2] = 15;
+    c[0].values[3] = 255;
+    c[0].values[6] = 0;
+    c[0].values[7] = 255;
+    InsertAutomation a{};
+    InsertChain whole(48000), split(48000);
+    whole.setTempo(2400); split.setTempo(2400); // 60 frames per 1/32 step
+    whole.sync(c, &a); split.sync(c, &a);
+    uint8_t v[2][8]; values(c, v);
+    std::vector<float> x(960 * 2, .25f), y = x;
+    whole.process(x.data(), 960, v);
+    for (int frame = 0; frame < 960; ++frame) split.process(y.data() + frame * 2, 1, v);
+    for (size_t i = 0; i < x.size(); ++i) CHECK(x[i] == doctest::Approx(y[i]).epsilon(1e-6));
+    CHECK(x[200] < .2f); // The 1st 1/32 is open; the following seven fade closed.
+    whole.trigger();
+    std::vector<float> retrigger(120 * 2, .25f);
+    whole.process(retrigger.data(), 120, v);
+    CHECK(retrigger[0] < retrigger[100]);
+    c[0].values[7] = 0;
+    values(c, v);
+    std::vector<float> dry(240 * 2, .25f);
+    split.process(dry.data(), 240, v);
+    for (float sample : dry) CHECK(sample == doctest::Approx(.25f).epsilon(1e-6));
   }
   TEST_CASE("all DSP modules handle both slots, silence, stereo and variable blocks") {
     for (float rate : {32000.f, 44100.f, 48000.f, 96000.f})
@@ -144,9 +351,11 @@ TEST_SUITE("track inserts") {
         }
         char text[32];
         insertDescribe(text, sizeof(text), insertRotary, 0, 0);
-        CHECK(std::string(text) == "Slow");
+        CHECK(std::string(text) == "0.01 Hz");
         insertDescribe(text, sizeof(text), insertRotary, 0, 1);
-        CHECK(std::string(text) == "Fast");
+        CHECK(insertMap(insertRotary, 0, 1) > 0.01f);
+        insertDescribe(text, sizeof(text), insertRotary, 0, 255);
+        CHECK(std::string(text) == "25 Hz");
         insertDescribe(text, sizeof(text), insertBitcrusher, 0, 12);
         CHECK(std::string(text) == "16 bit");
         insertDescribe(text, sizeof(text), insertBitcrusher, 1, 31);
@@ -172,6 +381,57 @@ TEST_SUITE("track inserts") {
       out = dry;
       chain.process(out.data(), 1024, v);
       CHECK(out == dry);
+    }
+  }
+  TEST_CASE("parametric EQ is neutral at zero gain, shapes bands and soft clips boosts") {
+    InsertConfig c[2]{};
+    insertSelect(&c[0], insertParametricEQ);
+    CHECK(insertMap(insertParametricEQ, 1, 0) == doctest::Approx(60.f));
+    CHECK(insertMap(insertParametricEQ, 1, 255) == doctest::Approx(500.f));
+    CHECK(insertMap(insertParametricEQ, 3, 0) == doctest::Approx(250.f));
+    CHECK(insertMap(insertParametricEQ, 5, 255) == doctest::Approx(14000.f));
+    InsertAutomation a{};
+    InsertChain chain(48000);
+    chain.sync(c, &a);
+    uint8_t v[2][8];
+    values(c, v);
+    auto dry = signal(4096), out = dry;
+    chain.process(out.data(), 4096, v);
+    CHECK(out == dry);
+
+    auto shapedPeak = [](int gainParameter, int gain, float frequency) {
+      InsertConfig config[2]{};
+      insertSelect(&config[0], insertParametricEQ);
+      insertEdit(&config[0], gainParameter, gain);
+      InsertAutomation automation{};
+      InsertChain eq(48000);
+      eq.sync(config, &automation);
+      uint8_t effective[2][8];
+      values(config, effective);
+      std::vector<float> signal(48000 * 2);
+      for (int i = 0; i < 48000; ++i)
+        signal[2 * i] = .001f * sinf(6.28318530718f * frequency * i / 48000.f);
+      eq.process(signal.data(), 48000, effective);
+      float peak = 0;
+      for (int i = 24000; i < 48000; ++i) peak = std::max(peak, fabsf(signal[2 * i]));
+      for (int i = 0; i < 48000; ++i) CHECK(signal[2 * i + 1] == 0);
+      return peak;
+    };
+    for (const auto& band : {std::array<float, 2>{0, 60}, {2, 1000}, {4, 12000}}) {
+      int gainParameter = (int)band[0];
+      CHECK(shapedPeak(gainParameter, 255, band[1]) > .003f);
+      CHECK(shapedPeak(gainParameter, 0, band[1]) < .0004f);
+    }
+
+    insertEdit(&c[0], 0, 255);
+    insertEdit(&c[0], 2, 128);
+    chain.sync(c, &a);
+    values(c, v);
+    std::vector<float> loud(4096 * 2, 4.f);
+    chain.process(loud.data(), 4096, v);
+    for (int i = 1024; i < 4096 * 2; ++i) {
+      CHECK(std::isfinite(loud[i]));
+      CHECK(fabsf(loud[i]) <= 1.5f);
     }
   }
   TEST_CASE("repeated effects are serial and each slot has independent state") {
@@ -233,24 +493,24 @@ TEST_SUITE("track inserts") {
     insertSelect(&p->trackInserts[0][0], insertCompressor);
     auto s = std::make_unique<PlaybackState>();
     playbackInit(s.get(), p.get());
-    uint8_t fx[] = {fxF11, 255};
-    initFX(s.get(), 0, fx, nullptr, 0);
+    FXCell fx = {fxF11, 255};
+    initFX(s.get(), 0, &fx, nullptr, 0);
     CHECK(s->tracks[0].inserts.values[0][0] == 255);
-    fx[1] = 0;
+    fx.value = 0;
     PlaybackTableState table{};
-    initFX(s.get(), 0, fx, &table, 3);
+    initFX(s.get(), 0, &fx, &table, 3);
     CHECK(s->tracks[0].inserts.values[0][0] == 0);
     CHECK(s->tracks[0].inserts.valid[0] == 1);
-    fx[0] = fxF15;
-    fx[1] = 255;
-    initFX(s.get(), 0, fx, nullptr, 2);
+    fx.command = fxF15;
+    fx.value = 255;
+    initFX(s.get(), 0, &fx, nullptr, 2);
     CHECK(s->tracks[0].inserts.values[0][4] == 7);
-    fx[0] = fxF21;
-    initFX(s.get(), 0, fx, nullptr, 0);
+    fx.command = fxF21;
+    initFX(s.get(), 0, &fx, nullptr, 0);
     CHECK(s->tracks[0].inserts.valid[1] == 0);
     p->trackInserts[0][0].bypass = 1;
-    fx[0] = fxF18;
-    initFX(s.get(), 0, fx, nullptr, 0);
+    fx.command = fxF18;
+    initFX(s.get(), 0, &fx, nullptr, 0);
     CHECK(s->tracks[0].inserts.values[0][7] == 255);
     playbackStop(s.get());
     CHECK(s->tracks[0].inserts.valid[0] == 0);
@@ -269,6 +529,12 @@ TEST_SUITE("track inserts") {
         c.bypass = t % 2;
         insertEdit(&c, 0, 255);
       }
+    for (int slot = 0; slot < 2; ++slot) {
+      auto& c = p->masterInserts[slot];
+      insertSelect(&c, slot ? insertTape : insertCompressor);
+      c.bypass = slot;
+      insertEdit(&c, 0, 255);
+    }
     const char* path = "build/tests/inserts.cct";
     REQUIRE(projectSave(p.get(), path) == 0);
     auto original = read(path);
@@ -285,6 +551,13 @@ TEST_SUITE("track inserts") {
         CHECK(memcmp(a.values, b.values, 8) == 0);
         CHECK(b.selection == 0);
       }
+    for (int slot = 0; slot < 2; ++slot) {
+      auto& a = p->masterInserts[slot];
+      auto& b = loaded->masterInserts[slot];
+      CHECK(a.module == b.module);
+      CHECK(a.bypass == b.bypass);
+      CHECK(memcmp(a.values, b.values, 8) == 0);
+    }
     auto start = original.find("- Track inserts:");
     auto end = original.find("- Track volumes:");
     REQUIRE(start != std::string::npos);
@@ -295,6 +568,7 @@ TEST_SUITE("track inserts") {
     REQUIRE(projectLoad(loaded.get(), path) == 0);
     for (auto& t : loaded->trackInserts)
       for (auto& c : t) CHECK(c.module == 0);
+    for (auto& c : loaded->masterInserts) CHECK(c.module == 0);
     for (auto bad :
          {std::string("- Track inserts: 1,9,2\n"),
           std::string("- Track inserts: 1,8,2\n- Insert: 0,0,255,0,0,0,0,0,0,0,0,0\n"),
@@ -304,6 +578,14 @@ TEST_SUITE("track inserts") {
       write(path, corrupt);
       CHECK(projectLoad(loaded.get(), path) != 0);
     }
+    auto masterStart = original.find("- Master inserts:");
+    REQUIRE(masterStart != std::string::npos);
+    auto masterEnd = original.find("- Track volumes:");
+    auto corrupt = original;
+    corrupt.replace(masterStart, masterEnd - masterStart,
+                    "- Master inserts: 1,2\n- Master insert: 0,255,0,0,0,0,0,0,0,0,0\n");
+    write(path, corrupt);
+    CHECK(projectLoad(loaded.get(), path) != 0);
     write(path, original.substr(0, start) + "- Track inserts: 1,8,2\n");
     CHECK(projectLoad(loaded.get(), path) != 0);
     projectFree(p.get());
@@ -329,6 +611,22 @@ TEST_SUITE("track inserts") {
       CHECK(wet.s->reverbBuffer[i] == doctest::Approx(b[i] * .25f).epsilon(1e-6));
       CHECK(wet.s->delayBuffer[i] == doctest::Approx(b[i] * .5f).epsilon(1e-6));
     }
+  }
+  TEST_CASE("master inserts process the completed mix") {
+    Engine dry, wet;
+    insertSelect(&wet.s->project.masterInserts[0], insertDistortion);
+    dry.start();
+    wet.start();
+    float a[512], b[512];
+    REQUIRE(chipnomadRender(dry.s, a, 256) == 256);
+    REQUIRE(chipnomadRender(wet.s, b, 256) == 256);
+    InsertChain expected(48000);
+    InsertAutomation automation{};
+    expected.sync(wet.s->project.masterInserts, &automation);
+    uint8_t v[2][8];
+    values(wet.s->project.masterInserts, v);
+    expected.process(a, 256, v);
+    for (int i = 0; i < 512; ++i) CHECK(b[i] == doctest::Approx(a[i]).epsilon(1e-6));
   }
   TEST_CASE("insert MOD recomputes from bases and does not drift or change saved configuration") {
     Engine e;
@@ -654,8 +952,8 @@ TEST_CASE("insert tips return after real key release and categorized chooser sel
   chipnomadState = chipnomadCreate();
   screensInitAll();
   *pSongTrack = 0;
+  screenInsertFXOpenTrack();
   insertSelect(&chipnomadState->project.trackInserts[0][0], insertDistortion);
-  currentScreen = &screenInsertFX;
   screenInsertFX.setup(-1);
   screenInsertFX.fullRedraw();
   auto* d = mockScreenData;
@@ -677,6 +975,25 @@ TEST_CASE("insert tips return after real key release and categorized chooser sel
   screenInsertFX.draw();
   CHECK(std::string(screenGetActiveMessage()) == "Saved");
   d->cursorRow = 0;
+  d->cursorCol = 0;
+  auto& insert = chipnomadState->project.trackInserts[0][0];
+  insertSelect(&insert, insertOff);
+  const int popupOrder[] = {
+      insertOff, insertCompressor, insertOTT,
+      insertDistortion, insertSaturation, insertBitcrusher, insertDestruction,
+      insertChorus, insertPhaser, insertFlanger,
+      insertTranceGate,
+      insertDoubler, insertRotary, insertTape, insertParametricEQ,
+  };
+  for (int i = 1; i < (int)(sizeof(popupOrder) / sizeof(popupOrder[0])); ++i) {
+    screenInsertFX.onInput(1, keyEdit | keyRight, 0);
+    CHECK(insert.module == popupOrder[i]);
+  }
+  screenInsertFX.onInput(1, keyEdit | keyRight, 0);
+  CHECK(insert.module == insertOff);
+  screenInsertFX.onInput(1, keyEdit | keyLeft, 0);
+  CHECK(insert.module == insertParametricEQ);
+  insertSelect(&insert, insertDistortion);
   screenInsertFX.onInput(1, keyEdit, 1);
   screenInsertFX.onInput(0, 0, 1);
   REQUIRE(currentScreen == &screenSelectionPopup);
@@ -688,6 +1005,20 @@ TEST_CASE("insert tips return after real key release and categorized chooser sel
   SelectionItem items[] = {{"Existing", 0, nullptr, 0, nullptr}};
   selectionPopupSetup("Existing", items, 1, 0, nullptr, nullptr);
   CHECK_FALSE(selectionPopupIsFullWidth());
+  screenInsertFXOpenMaster();
+  screenInsertFX.setup(-1);
+  screenInsertFX.fullRedraw();
+  mockScreenData->drawStatic();
+  CHECK(std::string(mockGfxCells[0], 40).find("MASTER FX") != std::string::npos);
+  MainLoopEventData branch{};
+  branch.type = MainLoopEvent::keyDown;
+  branch.data.input = {InputDeviceType::logical, keyShift | keyRight};
+  appOnEvent(branch);
+  CHECK(currentScreen == &screenInsertFX);
+  screenInsertFX.onInput(1, keyShift | keyDown, 0);
+  CHECK(currentScreen == &screenInsertFX);
+  screenInsertFX.onInput(1, keyOpt, 0);
+  CHECK(currentScreen == &screenMixer);
   screenMessage(0, "");
   chipnomadDestroy(chipnomadState); chipnomadState = previous; currentScreen = previousScreen;
 }

@@ -50,6 +50,12 @@ struct MidiBackend {
   void (*flushOutputQueue)(void* userdata);
   unsigned int (*droppedCount)(void* userdata);
   uint64_t (*nowMicros)(void* userdata);
+  // Starts any platform permission flow needed before ports can be listed.
+  // Native backends leave this null; Web MIDI completes it asynchronously.
+  void (*requestAccess)(void* userdata);
+  // Optional human-readable backend state for the device settings screen.
+  // The returned text remains valid until the next call.
+  const char* (*statusMessage)(void* userdata);
   int hasInput;
   int hasOutput;
   int hasClockInput;
@@ -84,6 +90,8 @@ unsigned int midiRouterGetDroppedCount(void);
 // computing several tracker rows' worth of events) read "now" through this
 // once, then add each row's offset to it.
 uint64_t midiRouterNowMicros(void);
+void midiRouterRequestAccess(void);
+const char* midiRouterStatusMessage(void);
 
 // Which incoming MIDI channels drive what. Only auto_ is implemented;
 // tracks8 is reserved so multitimbral 8-track input can be added later
@@ -141,6 +149,12 @@ struct MidiPreviewIntent {
   int stop; // 1 = stop preview (note/instrument unused), 0 = play note on instrument
 };
 
+struct MidiCCIntent {
+  uint8_t channel;
+  uint8_t cc;
+  uint8_t value;
+};
+
 // Sets the per-channel instrument mapping Auto mode input uses (-1 =
 // channel not assigned, falls back to midiRouterTick's fallbackInstrument).
 // Call once at startup and whenever it changes.
@@ -161,5 +175,11 @@ void midiRouterResetHeldNotes(MidiRouterState* router);
 // mode only needs to also decide a track index, not reach into engine
 // internals to do it.
 int midiRouterTick(MidiRouterState* router, int fallbackInstrument, MidiPreviewIntent* outIntents, int maxIntents);
+// Returns whether this exact CC has been received, and optionally its value
+// and the serial of that receipt.  A zero value is meaningful, so callers
+// must not confuse an unseen CC with a CC explicitly sent at zero.
+int midiRouterGetCCValue(const MidiRouterState* router, uint8_t channel, uint8_t cc,
+                         uint8_t* value, uint32_t* serial);
+int midiRouterGetLastCC(const MidiRouterState* router, MidiCCIntent* out, uint32_t* serial);
 
 #endif // __CHIPNOMAD_LIB__MIDI_ROUTER_H__

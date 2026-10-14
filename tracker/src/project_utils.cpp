@@ -6,6 +6,7 @@ void projectInitAY(Project* project) {
   projectInit(project);
 
   project->tickRate = 50;
+  project->linearPitch = 1;
   project->chipType = ChipType::AY;
   project->chipsCount = PROJECT_MAX_TRACKS;
   project->chipSetup.ay = (struct ChipSetupAY){
@@ -59,6 +60,8 @@ const char* instrumentName(Project* project, uint8_t instrument) {
 // Instrument type name
 const char* instrumentTypeName(InstrumentType type) {
   switch (type) {
+    case InstrumentType::SID:
+      return "SID";
     case InstrumentType::AY1:
       return "AY Classic";
     case InstrumentType::AY2:
@@ -87,6 +90,17 @@ const char* instrumentTypeName(InstrumentType type) {
       return "Sintered";
     case InstrumentType::Midi:
       return "MIDI Out";
+    case InstrumentType::OPLL:
+    case InstrumentType::VRC7:
+    case InstrumentType::OPL2:
+    case InstrumentType::OPL3:
+    case InstrumentType::SegaPSG:
+    case InstrumentType::GBPulse:
+    case InstrumentType::GBNoise:
+    case InstrumentType::GenesisFM:
+    case InstrumentType::ArcadeFM:
+    case InstrumentType::DX7:
+      return getInstrumentDefinition(type)->uiName;
     case InstrumentType::none:
       return "None";
     default:

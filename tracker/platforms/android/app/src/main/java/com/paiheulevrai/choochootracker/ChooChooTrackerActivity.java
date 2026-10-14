@@ -4,6 +4,8 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.UriPermission;
 import android.content.IntentFilter;
 import android.hardware.usb.UsbConstants;
 import android.hardware.usb.UsbDevice;
@@ -20,6 +22,7 @@ import android.media.midi.MidiReceiver;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Build;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
@@ -29,6 +32,7 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.Locale;
@@ -39,6 +43,11 @@ public final class ChooChooTrackerActivity extends SDLActivity {
     private static final int CREATE_DOCUMENT = 4102;
     private static final String ACTION_USB_PERMISSION =
             "com.paiheulevrai.choochootracker.USB_PERMISSION";
+    private static final String PREFS_NAME = "choochootracker_prefs";
+    private static final String PREF_TREE_URI = "workspace_tree_uri";
+    private static final int PICK_FOLDER = 4103;
+    private static final String PREF_FOLDER_DECLINED = "workspace_folder_declined";
+    private boolean waitingForFolder;
     private String importDirectory;
     private String exportPath;
 
@@ -172,11 +181,16 @@ public final class ChooChooTrackerActivity extends SDLActivity {
     }
 
     @Override protected void onCreate(Bundle savedInstanceState) {
+        // Before SDL starts the native side, which reads the workspace path once.
+        if (isDirectStorageBuild()) initSafWorkspace();
         super.onCreate(savedInstanceState);
         hideSystemBars();
+        if (isDirectStorageBuild() && safWorkspace == null
+                && !getSharedPreferences(PREFS_NAME, MODE_PRIVATE).getBoolean(PREF_FOLDER_DECLINED, false))
+            requestWorkspaceFolder();
         // AssetManager lists nested directories reliably, unlike the native
         // asset API on a few Android builds. Never overwrite user files.
-        seedWorkspace("choochootracker_data", getWorkspacePath());
+        seedWorkspace("choochootracker_data", getPrivateWorkspacePath());
     }
 
     // Called by the native backend after SDL has loaded the application.
@@ -567,11 +581,292 @@ public final class ChooChooTrackerActivity extends SDLActivity {
         });
     }
 
-    // Called by the native layer. Files stay private to the app: no storage permission.
-    public String getWorkspacePath() {
+    // "direct" flavor (F-Droid / direct APK): the user picks one folder with the
+    // system folder picker (no broad storage permission) and the workspace lives
+    // there, reached through SafWorkspace and the native wrappers in
+    // saf_storage.cpp. The "store" flavor keeps it private to the app.
+    private boolean isDirectStorageBuild() {
+        return getResources().getBoolean(R.bool.direct_storage);
+    }
+
+    // The virtual root native code sees for the picked folder (see saf_storage.cpp).
+    private static final String SAF_ROOT = "/ChooChooTracker";
+
+    private SafWorkspace safWorkspace;
+
+    private void initSafWorkspace() {
+        String stored = getSharedPreferences(PREFS_NAME, MODE_PRIVATE).getString(PREF_TREE_URI, null);
+        if (stored == null) return;
+        Uri tree = Uri.parse(stored);
+        try {
+            for (UriPermission permission : getContentResolver().getPersistedUriPermissions()) {
+                if (permission.getUri().equals(tree) && permission.isReadPermission() && permission.isWritePermission()) {
+                    safWorkspace = new SafWorkspace(getContentResolver(), tree);
+                    return;
+                }
+            }
+        } catch (Exception ignored) { }
+    }
+
+    private void requestWorkspaceFolder() {
+        waitingForFolder = true;
+        android.widget.Toast.makeText(this,
+            "Choose the folder ChooChooTracker should use for projects and samples",
+            android.widget.Toast.LENGTH_LONG).show();
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION
+            | Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+            | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+        startActivityForResult(intent, PICK_FOLDER);
+    }
+
+    // The native side reads the workspace path once at startup, so a folder
+    // chosen while it is already running on the private fallback needs a fresh process.
+    private void restartApp() {
+        Intent intent = getPackageManager().getLaunchIntentForPackage(getPackageName());
+        if (intent == null) return;
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        android.os.Process.killProcess(android.os.Process.myPid());
+    }
+
+    // Called by the native settings screen.
+    public String getWorkingFolderStatus() {
+        if (!isDirectStorageBuild()) return "Unavailable";
+        if (safWorkspace == null) return "Private (app storage)";
+        String id = getSharedPreferences(PREFS_NAME, MODE_PRIVATE).getString(PREF_TREE_URI, "");
+        String name = Uri.parse(id).getLastPathSegment();
+        if (name != null && name.indexOf(':') >= 0) name = name.substring(name.indexOf(':') + 1);
+        return "Folder: " + (name == null || name.isEmpty() ? "storage root" : name);
+    }
+
+    // Called by the native settings screen.
+    public void pickWorkingFolder() {
+        runOnUiThread(() -> {
+            if (safWorkspace != null) {
+                // A folder is active: let the user either change it or leave it.
+                new android.app.AlertDialog.Builder(this)
+                    .setTitle("Working folder")
+                    .setItems(new String[] { "Choose another folder", "Use private storage" }, (dialog, which) -> {
+                        if (which == 0) launchFolderPicker(); else clearWorkingFolder();
+                    })
+                    .setNegativeButton("Cancel", null)
+                    .show();
+                return;
+            }
+            launchFolderPicker();
+        });
+    }
+
+    private void launchFolderPicker() {
+        runOnUiThread(() -> {
+            waitingForFolder = true;
+            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION
+                | Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+            startActivityForResult(intent, PICK_FOLDER);
+        });
+    }
+
+    // Called by the native settings screen: back to the app's private storage.
+    public void clearWorkingFolder() {
+        runOnUiThread(() -> {
+            if (safWorkspace == null) return;
+            new android.app.AlertDialog.Builder(this)
+                .setTitle("Use private storage?")
+                .setMessage("Your files stay in the folder you chose, but the app will stop using it.")
+                .setPositiveButton("Switch", (dialog, which) -> {
+                    releaseTree(getSharedPreferences(PREFS_NAME, MODE_PRIVATE).getString(PREF_TREE_URI, null));
+                    getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit()
+                        .remove(PREF_TREE_URI).putBoolean(PREF_FOLDER_DECLINED, true).commit();
+                    restartApp();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+        });
+    }
+
+    private void releaseTree(String tree) {
+        if (tree == null) return;
+        try {
+            getContentResolver().releasePersistableUriPermission(Uri.parse(tree),
+                Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+        } catch (Exception ignored) { }
+    }
+
+    private void folderPicked(Uri tree) {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        String previous = prefs.getString(PREF_TREE_URI, null);
+        if (tree.toString().equals(previous)) return;
+        try {
+            getContentResolver().takePersistableUriPermission(tree,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+        } catch (Exception e) {
+            android.widget.Toast.makeText(this, "Cannot keep access to this folder", android.widget.Toast.LENGTH_LONG).show();
+            return;
+        }
+        Runnable finish = () -> {
+            prefs.edit().putString(PREF_TREE_URI, tree.toString()).putBoolean(PREF_FOLDER_DECLINED, false).commit();
+            if (previous != null) releaseTree(previous);
+            restartApp();
+        };
+        List<String> files = collectFilesToCopy();
+        if (files.isEmpty()) { finish.run(); return; }
+        new android.app.AlertDialog.Builder(this)
+            .setTitle("Copy your files?")
+            .setMessage("Copy " + files.size() + " file(s) from the current workspace to the new folder? "
+                + "Existing files there are kept.")
+            .setPositiveButton("Copy", (dialog, which) -> copyFiles(files, tree, finish))
+            .setNegativeButton("Don't copy", (dialog, which) -> finish.run())
+            .setOnCancelListener(dialog -> releaseTree(tree.toString()))
+            .show();
+    }
+
+    // Files the user made in the current workspace. For the private workspace the
+    // bundled content (unchanged since seeding) is left out; it is in the app anyway.
+    private List<String> collectFilesToCopy() {
+        List<String> files = new ArrayList<>();
+        if (safWorkspace != null) {
+            safWorkspace.collectFiles("", files);
+            return files;
+        }
+        collectPrivateFiles(privateWorkspace(), "", files);
+        return files;
+    }
+
+    private void collectPrivateFiles(File dir, String prefix, List<String> out) {
+        File[] children = dir.listFiles();
+        if (children == null) return;
+        for (File child : children) {
+            String rel = prefix.isEmpty() ? child.getName() : prefix + "/" + child.getName();
+            if (child.isDirectory()) collectPrivateFiles(child, rel, out);
+            else if (!matchesBundledAsset(rel, child.length())) out.add(rel);
+        }
+    }
+
+    private boolean matchesBundledAsset(String rel, long length) {
+        try (InputStream input = getAssets().open("choochootracker_data/" + rel)) {
+            long total = 0;
+            byte[] buffer = new byte[32768];
+            for (int read; (read = input.read(buffer)) != -1;) total += read;
+            return total == length;
+        } catch (IOException notBundled) {
+            return false;
+        }
+    }
+
+    private void copyFiles(List<String> files, Uri tree, Runnable done) {
+        android.widget.TextView text = new android.widget.TextView(this);
+        text.setPadding(48, 32, 48, 32);
+        text.setText("Copying 0/" + files.size());
+        android.app.AlertDialog progress = new android.app.AlertDialog.Builder(this)
+            .setTitle("Copying files").setView(text).setCancelable(false).show();
+        new Thread(() -> {
+            SafWorkspace target = new SafWorkspace(getContentResolver(), tree);
+            String privateRoot = getPrivateWorkspacePath();
+            int copied = 0, failed = 0;
+            for (String rel : files) {
+                final int index = copied + failed + 1;
+                runOnUiThread(() -> text.setText("Copying " + index + "/" + files.size()));
+                if (target.stat(rel) != null) { copied++; continue; }  // never overwrite
+                try (InputStream input = openWorkspaceFile(safWorkspace != null
+                        ? SAF_ROOT + "/" + rel : privateRoot + "/" + rel)) {
+                    byte[] data = readAll(input);
+                    if (rel.equals("settings.txt") && safWorkspace == null)
+                        data = new String(data).replace(privateRoot, SAF_ROOT).getBytes();  // paths of the old workspace
+                    int fd = target.open(rel, "wt");
+                    if (fd < 0) throw new IOException("cannot create " + rel);
+                    try (java.io.OutputStream output = new android.os.ParcelFileDescriptor.AutoCloseOutputStream(
+                            android.os.ParcelFileDescriptor.adoptFd(fd))) {
+                        output.write(data);
+                    }
+                    copied++;
+                } catch (Exception e) {
+                    android.util.Log.w("CCTSaf", "copy failed for " + rel, e);
+                    failed++;
+                }
+            }
+            final int failures = failed;
+            runOnUiThread(() -> {
+                progress.dismiss();
+                if (failures > 0)
+                    android.widget.Toast.makeText(this, failures + " file(s) could not be copied",
+                        android.widget.Toast.LENGTH_LONG).show();
+                done.run();
+            });
+        }).start();
+    }
+
+    private static byte[] readAll(InputStream input) throws IOException {
+        java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+        byte[] buffer = new byte[32768];
+        for (int read; (read = input.read(buffer)) != -1;) out.write(buffer, 0, read);
+        return out.toByteArray();
+    }
+
+    private File privateWorkspace() {
         File workspace = new File(getFilesDir(), "workspace");
         workspace.mkdirs();
-        return workspace.getAbsolutePath();
+        return workspace;
+    }
+
+    // Bundled content is always seeded here, whatever the active workspace is.
+    public String getPrivateWorkspacePath() {
+        return privateWorkspace().getAbsolutePath();
+    }
+
+    // Called by the native layer.
+    public String getWorkspacePath() {
+        return safWorkspace != null ? SAF_ROOT : getPrivateWorkspacePath();
+    }
+
+    // Native storage hooks (saf_storage.cpp). Paths are relative to the picked folder.
+    public int safOpen(String path, String mode) {
+        return safWorkspace == null ? -1 : safWorkspace.open(path, mode);
+    }
+
+    public long[] safStat(String path) {
+        return safWorkspace == null ? null : safWorkspace.stat(path);
+    }
+
+    public String[] safList(String path) {
+        return safWorkspace == null ? null : safWorkspace.list(path);
+    }
+
+    public int safMkdir(String path) {
+        return safWorkspace == null ? -1 : safWorkspace.mkdir(path);
+    }
+
+    public int safDelete(String path) {
+        return safWorkspace == null ? -1 : safWorkspace.delete(path);
+    }
+
+    public int safRename(String from, String to) {
+        return safWorkspace == null ? -1 : safWorkspace.rename(from, to);
+    }
+
+    // Reads a file the native side named: a real path, or one in the picked folder.
+    private InputStream openWorkspaceFile(String path) throws IOException {
+        if (safWorkspace != null && path.startsWith(SAF_ROOT + "/")) {
+            int fd = safWorkspace.open(path.substring(SAF_ROOT.length() + 1), "r");
+            if (fd < 0) throw new IOException("cannot open " + path);
+            return new android.os.ParcelFileDescriptor.AutoCloseInputStream(
+                android.os.ParcelFileDescriptor.adoptFd(fd));
+        }
+        return new java.io.FileInputStream(path);
+    }
+
+    private java.io.OutputStream createWorkspaceFile(String directory, String name) throws IOException {
+        if (safWorkspace != null) {
+            int fd = safWorkspace.open(directory + "/" + name, "wt");
+            if (fd < 0) throw new IOException("cannot create " + name);
+            return new android.os.ParcelFileDescriptor.AutoCloseOutputStream(
+                android.os.ParcelFileDescriptor.adoptFd(fd));
+        }
+        File destination = new File(new File(getWorkspacePath(), directory), name);
+        destination.getParentFile().mkdirs();
+        return new FileOutputStream(destination);
     }
 
     public void openDocument(String mimeType, String relativeDirectory) {
@@ -589,9 +884,23 @@ public final class ChooChooTrackerActivity extends SDLActivity {
 
     @Override protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == PICK_FOLDER) {
+            waitingForFolder = false;
+            if (resultCode != RESULT_OK || data == null || data.getData() == null) {
+                if (safWorkspace == null) {
+                    getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit().putBoolean(PREF_FOLDER_DECLINED, true).commit();
+                    android.widget.Toast.makeText(this,
+                        "Using the app's private storage. Choose a folder in Settings > Working folder.",
+                        android.widget.Toast.LENGTH_LONG).show();
+                }
+                return;
+            }
+            folderPicked(data.getData());
+            return;
+        }
         if (resultCode != RESULT_OK || data == null || data.getData() == null) return;
         if (requestCode == CREATE_DOCUMENT) {
-            try (InputStream input = new java.io.FileInputStream(exportPath);
+            try (InputStream input = openWorkspaceFile(exportPath);
                  java.io.OutputStream output = getContentResolver().openOutputStream(data.getData())) {
                 byte[] buffer = new byte[32768];
                 for (int read; output != null && (read = input.read(buffer)) != -1;) output.write(buffer, 0, read);
@@ -613,10 +922,8 @@ public final class ChooChooTrackerActivity extends SDLActivity {
             android.widget.Toast.makeText(this, "Choose a " + expectedExtension + " file", android.widget.Toast.LENGTH_SHORT).show();
             return;
         }
-        File destination = new File(new File(getWorkspacePath(), importDirectory), name);
-        destination.getParentFile().mkdirs();
         try (InputStream input = getContentResolver().openInputStream(uri);
-             FileOutputStream output = new FileOutputStream(destination)) {
+             java.io.OutputStream output = createWorkspaceFile(importDirectory, name)) {
             byte[] buffer = new byte[32768];
             for (int read; input != null && (read = input.read(buffer)) != -1;) output.write(buffer, 0, read);
         } catch (Exception ignored) { }

@@ -8,11 +8,14 @@ LIBS = $(COMMON_LIBS) platforms/sdl2 ../chipnomad_lib/external/rtmidi
 OUTPUT_EXT =
 
 XTRA_CFLAGS = -DDESKTOP_BUILD -DGAMEPAD_SUPPORT -D__LINUX_ALSA__ -D__LINUX_ALSASEQ__
-XTRA_LIBS = -lSDL2 -lm -lasound -lpthread
+XTRA_LIBS = -lSDL2 -lm -lasound -lpthread -lstdc++fs
 CFLAGS = $(COMMON_CFLAGS) $(INCLUDES) $(SOURCES) $(XTRA_CFLAGS)
 OUTPUT = -o $(BUILD)/choochootracker$(OUTPUT_EXT)
 
 APPNAME = ChooChooTracker
+PACKAGE_ARCH ?= $(shell uname -m)
+PACKAGE_SUFFIX ?= Linux-$(PACKAGE_ARCH)
+PACKAGE_README ?= packaging/linux/README.txt
 
 # Simple Linux build
 .PHONY: linux
@@ -38,7 +41,7 @@ linux-deploy:
 	@mkdir -p $(BUILD)/$(APPNAME)-Linux
 	@cp $(BUILD)/choochootracker $(BUILD)/$(APPNAME)-Linux/
 	@cp -r packaging/common/* $(BUILD)/$(APPNAME)-Linux/
-	@cp packaging/linux/README.txt $(BUILD)/$(APPNAME)-Linux/
+	@cp $(PACKAGE_README) $(BUILD)/$(APPNAME)-Linux/README.txt
 	@cp ../docs/USER_MANUAL.md $(BUILD)/$(APPNAME)-Linux/
 	@mkdir -p $(BUILD)/$(APPNAME)-Linux/licenses
 	@cp ../LICENSE packaging/portmaster/license/* $(BUILD)/$(APPNAME)-Linux/licenses/
@@ -57,7 +60,7 @@ linux-package: linux
 	@mkdir -p $(BUILD)/$(APPNAME)-Linux
 	@cp $(BUILD)/choochootracker $(BUILD)/$(APPNAME)-Linux/
 	@cp -r packaging/common/* $(BUILD)/$(APPNAME)-Linux/
-	@cp packaging/linux/README.txt $(BUILD)/$(APPNAME)-Linux/
+	@cp $(PACKAGE_README) $(BUILD)/$(APPNAME)-Linux/README.txt
 	@cp ../docs/USER_MANUAL.md $(BUILD)/$(APPNAME)-Linux/
 	@mkdir -p $(BUILD)/$(APPNAME)-Linux/licenses
 	@cp ../LICENSE packaging/portmaster/license/* $(BUILD)/$(APPNAME)-Linux/licenses/
@@ -65,8 +68,8 @@ linux-package: linux
 	@echo 'cd "$$(dirname "$$0")"' >> $(BUILD)/$(APPNAME)-Linux/chipnomad.sh
 	@echo 'exec ./choochootracker "$$@"' >> $(BUILD)/$(APPNAME)-Linux/chipnomad.sh
 	@chmod +x $(BUILD)/$(APPNAME)-Linux/chipnomad.sh
-	@cd $(BUILD) && tar -czf $(APPNAME)-$$(date +%Y-%m-%d)-$(VERSION)-Linux-$(shell uname -m).tar.gz $(APPNAME)-Linux
-	@echo "Linux package created: $(BUILD)/$(APPNAME)-$$(date +%Y-%m-%d)-$(VERSION)-Linux-$(shell uname -m).tar.gz"
+	@cd $(BUILD) && tar -czf $(APPNAME)-$$(date +%Y-%m-%d)-$(VERSION)-$(PACKAGE_SUFFIX).tar.gz $(APPNAME)-Linux
+	@echo "Linux package created: $(BUILD)/$(APPNAME)-$$(date +%Y-%m-%d)-$(VERSION)-$(PACKAGE_SUFFIX).tar.gz"
 
 # AppImage (Linux x86_64). Bundles only the libraries that aren't
 # guaranteed present on the host (SDL2 and its libsamplerate dependency -
@@ -92,7 +95,7 @@ appimage: linux
 	@cp -r packaging/common/* $(BUILD)/$(APPNAME).AppDir/usr/share/choochootracker/common/
 	@cp packaging/linux-appimage/AppRun $(BUILD)/$(APPNAME).AppDir/
 	@sed -i 's/\r$$//' $(BUILD)/$(APPNAME).AppDir/AppRun
-	@if grep -q "$$(printf '\r')" $(BUILD)/$(APPNAME).AppDir/AppRun || ! grep -q 'readlink' $(BUILD)/$(APPNAME).AppDir/AppRun || ! grep -q '^for item in ' $(BUILD)/$(APPNAME).AppDir/AppRun; then \
+	@if grep -q "$$(printf '\r')" $(BUILD)/$(APPNAME).AppDir/AppRun || ! grep -q 'readlink' $(BUILD)/$(APPNAME).AppDir/AppRun || ! grep -q '^for item in ' $(BUILD)/$(APPNAME).AppDir/AppRun || ! grep -Fq 'cd "$${DATA_DIR}"' $(BUILD)/$(APPNAME).AppDir/AppRun; then \
 		echo "Error: generated AppRun is not a valid LF-normalized launcher."; \
 		exit 1; \
 	fi

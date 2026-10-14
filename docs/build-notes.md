@@ -4,14 +4,17 @@ Run all commands from the repository root unless stated otherwise.
 
 ## Windows
 
-Use MSYS2 UCRT64:
+Use the Windows wrapper; it keeps MSYS2's home and temporary files inside
+the checkout, avoiding permissions failures under restricted environments:
 
-```sh
-cd tracker
-make -j4 windows
+```bat
+tracker\build-windows.bat
 ```
 
 The executable and bundled files are written to `tracker/build/windows/`.
+The Windows makefile enables `_USE_MATH_DEFINES` before compiling, so the
+vendored SID core can use the CRT math constants under C++17. The Docker
+cross-build enables the same flag.
 
 The ChooChooPlayer visualizer uses the same Windows toolchain:
 
@@ -91,7 +94,7 @@ chmod +x /usr/local/bin/appimagetool
 
 The GitHub Actions workflow `.github/workflows/appimage.yml` builds the
 AppImage inside a `debian:10` container (glibc 2.28, packages from
-`archive.debian.org`) so it runs on Debian 10+ and Ubuntu 18.04+ including
+`archive.debian.org`) so it runs on Debian 10+ and Ubuntu 20.04+ including
 22.04. Trigger it by hand (`workflow_dispatch`), by pushing `linux-appimage`
 or a `v*` tag; the AppImage is uploaded as the `choochootracker-appimage`
 artifact.
@@ -113,6 +116,9 @@ top-level bonus directory independently and only if it's missing on the
 destination - so an interrupted first run, or a user who already created
 their own e.g. `projects` folder before the rest was seeded, still gets the
 remaining bonus content on a later launch instead of never seeing it.
+`AppRun` then starts the executable from that workspace, so relative assets
+including the animated title artwork resolve from the writable copy rather
+than the read-only mount (or the caller's current directory).
 `initDefaultAppSettings()` (`src/common.cpp`) points
 `projectPath`/`samplePath`/`themePath`/etc at that same directory when
 `fileIsRunningFromAppImage()` is true - normal desktop builds keep their
@@ -121,6 +127,17 @@ untouched. Confirmed under Xvfb with a fresh `$HOME`: first launch populates
 every subfolder, the files are writable, and the Project screen's Load
 browser lists the bundled example songs from the seeded (not the read-only)
 copy.
+
+## Raspberry Pi (ARM)
+
+The release GitHub Actions workflow `.github/workflows/raspberry-pi.yml`
+runs for `v*` tags or manually. It uses GitHub's native ARM runner to produce the
+`*-RaspberryPi-aarch64.tar.gz` artifact for Raspberry Pi OS 64-bit on Pi 3B+,
+Pi 4, Pi 5, Zero 2 W, and compatible Compute Modules.
+
+The archive contains the executable, runtime assets, manual, and licenses. It
+requires SDL2 on the target (`sudo apt install libsdl2-2.0-0`). Launch the
+extracted application with `./chipnomad.sh`.
 
 ## Web
 
@@ -213,7 +230,7 @@ $env:CCT_KEY_PASSWORD = $env:CCT_KEYSTORE_PASSWORD
 Push-Location tracker\platforms\android
 & "$env:JAVA_HOME\bin\java.exe" -classpath gradle\wrapper\gradle-wrapper.jar `
   org.gradle.wrapper.GradleWrapperMain --no-daemon --console=plain `
-  assembleRelease bundleRelease -x buildNativeArm64 -x buildNativeArm32
+  assembleStoreRelease assembleDirectRelease bundleStoreRelease -x buildNativeArm64 -x buildNativeArm32
 Pop-Location
 ```
 
@@ -224,7 +241,7 @@ strictly greater `versionCode`; update `versionCode` in
 `versionName` may stay unchanged for a replacement internal build.
 
 The signed Play artifact is
-`tracker/platforms/android/app/build/outputs/bundle/release/app-release.aab`.
+`tracker/platforms/android/app/build/outputs/bundle/storeRelease/app-store-release.aab`.
 It contains `arm64-v8a` and `armeabi-v7a` native libraries plus all bundled
 content from `tracker/packaging/common`: projects, samples, instruments,
 themes, fonts, AY/SR wavetables, waveforms and title assets. Confirm it before
@@ -232,11 +249,34 @@ uploading:
 
 ```powershell
 & 'C:\Program Files\Android\Android Studio\jbr\bin\jar.exe' tf `
-  tracker\platforms\android\app\build\outputs\bundle\release\app-release.aab
+  tracker\platforms\android\app\build\outputs\bundle\storeRelease\app-store-release.aab
 ```
 
-The same Gradle command produces the signed direct-install APK; install it with
-`adb install -r <apk>`. For handoff, copy and name the files outside Gradle's
+Android has two Gradle flavors, selected by the task name:
+
+- `store` (`assembleStoreRelease`, `bundleStoreRelease`): the workspace is
+  private to the app, no storage permission. This is the Play Store build.
+- `direct` (`assembleDirectRelease`): for F-Droid and direct APK download. No
+  storage permission: on first launch the app opens the system folder picker
+  and keeps the chosen folder (persisted URI grant) as its workspace, then
+  restarts itself once. Until a folder is chosen it runs on the private
+  workspace.
+
+The picked folder has no filesystem path, so the native engine reaches it
+through `platforms/android/saf_storage.cpp`: `Makefile.android` links with
+`-Wl,--wrap` for `fopen`, `open`, `stat`, `opendir`, `rename`... and the wrappers
+serve paths under the virtual root `/ChooChooTracker` through the `saf*` methods
+of `ChooChooTrackerActivity` and `SafWorkspace.java` (DocumentsContract, with a
+short-lived folder listing cache). The bundled banks, presets and demo projects
+stay in the private workspace and show through as a read-only overlay: the
+picked folder wins when both have a path, writes always go to it. Add a libc
+call used by the engine to `SAF_WRAP` in `Makefile.android` and to
+`saf_storage.cpp` together.
+
+The flavor only changes `src/<flavor>/` (the `direct_storage` bool read by
+`ChooChooTrackerActivity`). Install the signed
+direct APK (`app/build/outputs/apk/direct/release/app-direct-release.apk`)
+with `adb install -r <apk>`. For handoff, copy and name the files outside Gradle's
 output directory, for example `releases/ChooChooTracker-1.0-code2-release.aab`.
 Upload that AAB to Play Console's Internal testing track. Complete the values
 and artwork in `docs/play-store-listing.md` before submission.
@@ -250,6 +290,25 @@ cd tracker
 make -f Makefile.test -j4
 ```
 
+On Windows (`OS=Windows_NT`), the test makefile enables `_USE_MATH_DEFINES`,
+matching the application build's CRT math constants for the vendored SID core.
+
 If MSYS2 reports exit code 127 after `Built: build/tests/run_tests.exe`, run
 `build/tests/run_tests.exe` directly; the executable is the authoritative test
 result in that environment.
+
+## Native chip instruments
+
+The normal builds include the native instruments and shipped preset catalog.
+Synth core sources live under `chipnomad_lib/external/`; each new dependency
+includes its license and provenance. Preset source licenses are packaged under
+`tracker/packaging/common/licenses/`. See `docs/native-chip-instruments.md`.
+
+PortMaster appends `-O3` only for native synth cores and adapters through
+`Makefile.native-chip-flags`; other platform and audio settings are unchanged.
+The native UI/audio harnesses are developer-only targets in
+`Makefile.native-chip-device` and are not included in release packages.
+
+To regenerate factory data, build `chip-factory` with `Makefile.test`, then use
+`tools/chip_banks/convert.py` and the documented expansion/SID conversion tools.
+The ordinary build uses the checked-in presets and needs no network access.

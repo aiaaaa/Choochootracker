@@ -74,7 +74,7 @@ static const InsertDescriptor descriptors[] = {
       {"Stages", "Stages", "", 0, 4, 0, M::discrete}}},
     {"Rotary",
      4,
-     {{"Speed", "Speed", "", 0, 3, 0, M::discrete},
+     {{"Speed", "Speed", "Hz", 0.01f, 25, 143, M::exponential},
       {"Depth", "Depth", "%", 0, 1, 128, M::linear},
       {"Drive", "Drive", "dB", 0, 12, 0, M::linear},
       {"Mix", "Mix", "%", 0, 1, 128, M::linear}}},
@@ -95,7 +95,25 @@ static const InsertDescriptor descriptors[] = {
      {{"Mode", "Mode", "", 0, 2, 0, M::discrete},
       {"Amount", "Amount", "%", 0, 1, 64, M::linear},
       {"Tone", "Tone", "Hz", 500, 18000, 220, M::exponential},
-      {"Mix", "Mix", "%", 0, 1, 160, M::linear}}}};
+      {"Mix", "Mix", "%", 0, 1, 160, M::linear}}},
+    {"Parametric EQ",
+     6,
+     {{"Low G", "Low gain", "dB", -24, 24, 128, M::bipolar},
+      {"Low F", "Low frequency", "Hz", 60, 500, 84, M::exponential},
+      {"Mid G", "Mid gain", "dB", -24, 24, 128, M::bipolar},
+      {"Mid F", "Mid frequency", "Hz", 250, 5000, 118, M::exponential},
+      {"High G", "High gain", "dB", -24, 24, 128, M::bipolar},
+      {"High F", "High frequency", "Hz", 2000, 14000, 182, M::exponential}}},
+    {"Trance Gate",
+     8,
+     {{"Pattern", "Pattern", "", 0, 63, 0, M::discrete},
+      {"Rate", "Rate", "", 0, 14, 9, M::discrete},
+      {"Length", "Length", "steps", 0, 15, 15, M::discrete},
+      {"Gate", "Gate width", "%", 0, 1, 128, M::linear},
+      {"Phase", "Phase", "", 0, 15, 0, M::discrete},
+      {"Mode", "Mode", "", 0, 3, 0, M::discrete},
+      {"Smooth", "Smooth", "%", 0, 1, 20, M::linear},
+      {"Mix", "Mix", "%", 0, 1, 255, M::linear}}}};
 static_assert(sizeof(descriptors) / sizeof(descriptors[0]) == insertModuleCount,
               "Stable module catalogue");
 const InsertDescriptor& insertDescriptor(int m) {
@@ -144,8 +162,8 @@ void insertDescribe(char* text, size_t size, int m, int p, int value) {
     static const char* n[] = {"Density", "Drive", "Spiral", "Mojo", "Dyno"};
     snprintf(text, size, "%s", n[(int)v]);
   } else if (m == insertRotary && p == 0) {
-    static const char* n[] = {"Slow", "Fast", "Hyper", "Chaos"};
-    snprintf(text, size, "%s", n[(int)v]);
+    // Keep neighboring very slow rates distinguishable in the edit hint.
+    snprintf(text, size, "%.4g Hz", v);
   } else if (m == insertBitcrusher && p == 0) {
     snprintf(text, size, "%d bit", (int)v + 4);
   } else if (m == insertBitcrusher && p == 1) {
@@ -161,16 +179,84 @@ void insertDescribe(char* text, size_t size, int m, int p, int value) {
   } else if (m == insertCompressor && p == 5) {
     static const char* n[] = {"Stereo", "Left", "Right"};
     snprintf(text, size, "%s", n[(int)v]);
+  } else if (m == insertTranceGate && p == 0) {
+    static const char* n[] = {
+        "Full 1/16", "Downbeat 4/4", "8th Note Pulse", "Double Pump",
+        "Minimal Stab", "Heavy Stomp", "Half Bar Heavy", "Triple Push",
+        "Psy Offbeat", "Triplet Galop", "Rolling Lead", "Goa Flow",
+        "Triple Staccato", "Classic Uplifting", "Gate Sweep", "Rave Chord",
+        "Build-Up Ramp", "Split Bar", "Measure Anchor", "Double Center Beat",
+        "Psy Accent", "Staggered Pump", "Slow Answer", "Odd Skank",
+        "Polyrhythmic 3/4", "Sparse Scatter", "Broken Beat", "Industrial Stutter",
+        "Random Flutter", "Lone Stab", "Front Load", "Polystep",
+        "Fractal Drift", "Glass Engine", "Binary Bloom", "Orbit Shift",
+        "Hexa Pulse", "Razor Roll", "Lunar Skip", "Neon Scatter",
+        "Offset Drive", "Phase Fray", "Woven Steps", "Pulse Mirage",
+        "Fractured Rise", "Void Stabs", "Shuffled Flux", "Spiral Cut",
+        "Prism Runner", "Jagged Echo", "Solar Static", "Crosswire",
+        "Metric Flux", "Machine Prayer", "Ghost Train", "Overclock",
+        "Warp Lattice", "Kinetic Dust", "Chrome Rattle", "Tension Field",
+        "Rift Walker", "Echo Mosaic", "Shiver Grid", "Final Orbit"};
+    snprintf(text, size, "%02X %s", (unsigned)v, n[(int)v]);
+  } else if (m == insertTranceGate && p == 1) {
+    static const char* n[] = {"1/2", "1/2T", "1/2.", "1/4", "1/4T", "1/4.", "1/8", "1/8T", "1/8.", "1/16", "1/16T", "1/16.", "1/32", "1/32T", "1/32."};
+    snprintf(text, size, "%s", n[(int)v]);
+  } else if (m == insertTranceGate && p == 2) {
+    snprintf(text, size, "%d steps", (int)v + 1);
+  } else if (m == insertTranceGate && p == 4) {
+    snprintf(text, size, "%d steps", (int)v);
+  } else if (m == insertTranceGate && p == 5) {
+    static const char* n[] = {"Forward", "Reverse", "Ping-Pong", "Chaos"};
+    snprintf(text, size, "%s", n[(int)v]);
   } else if (m == insertCompressor && (p == 1 || p == 2))
     snprintf(text, size, "%.2f ms", 1000.0f / (6.28318530718f * v));
   else
     snprintf(text, size, "%.2f %s", d.parameters[p].units[0] == '%' ? v * 100 : v,
              d.parameters[p].units);
 }
+static constexpr uint16_t tranceGatePatterns[] = {
+    // 00-1F: immediate techno, house, trance and psy foundations.
+    0xffff, 0x8888, 0xaaaa, 0xc0c0, 0x1010, 0x9090, 0xf0f0, 0xe0e0,
+    0x7777, 0x6db6, 0xb6da, 0x3f3f, 0xa8a8, 0xf1f1, 0x1ee1, 0xf888,
+    0x7f00, 0xf00f, 0x8081, 0x6666, 0x3a3a, 0xc888, 0xcc80, 0xa490,
+    0x9248, 0x4210, 0xb4b4, 0x6868, 0xd3d3, 0x8000, 0xf800, 0xe248,
+    // 20-3F: asymmetric, broken and deliberately stranger material.
+    0x391c, 0x3c7a, 0x0c42, 0x8912, 0xca49, 0xf29b, 0x6097, 0x9a04,
+    0x9034, 0x33e4, 0x69c1, 0x3f48, 0xdbe0, 0x1970, 0xd5d6, 0xa32f,
+    0xe85a, 0x61b4, 0xe847, 0x42e2, 0x8b83, 0x5d8b, 0xe1b0, 0xc1fb,
+    0xb994, 0xc291, 0xcf61, 0x715a, 0xab68, 0xaf19, 0x57c5, 0xf58a};
+constexpr uint16_t rotateTranceGate(uint16_t value, int amount) {
+  return amount ? (uint16_t)((value << amount) | (value >> (16 - amount))) : value;
+}
+constexpr uint16_t reverseTranceGate(uint16_t value) {
+  uint16_t result = 0;
+  for (int bit = 0; bit < 16; ++bit) result |= ((value >> bit) & 1) << (15 - bit);
+  return result;
+}
+constexpr bool tranceGatePatternsAreUnique() {
+  for (int i = 0; i < (int)(sizeof(tranceGatePatterns) / sizeof(tranceGatePatterns[0])); ++i)
+    for (int j = 0; j < i; ++j)
+    for (int rotation = 0; rotation < 16; ++rotation)
+      if (rotateTranceGate(tranceGatePatterns[i], rotation) == tranceGatePatterns[j] ||
+          rotateTranceGate(reverseTranceGate(tranceGatePatterns[i]), rotation) == tranceGatePatterns[j])
+        return false;
+  return true;
+}
+static_assert(tranceGatePatternsAreUnique(), "Trance Gate patterns must not be rotations or mirrors");
 #include "external/insert_fx/work_compressor.h"
 struct InsertChain::Impl {
   static constexpr int block = 128;
   static constexpr int delaySize = 4096;
+  struct Biquad {
+    float b0 = 1, b1 = 0, b2 = 0, a1 = 0, a2 = 0;
+    float x1 = 0, x2 = 0, y1 = 0, y2 = 0;
+    void reset() { x1 = x2 = y1 = y2 = 0; }
+    float process(float x) {
+      float y = b0 * x + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2;
+      x2 = x1; x1 = x; y2 = y1; y1 = y;
+      return y;
+    }
+  };
   struct Slot {
     InsertConfig config{};
     uint8_t previous[8]{};
@@ -186,11 +272,18 @@ struct InsertChain::Impl {
     float delay[2][delaySize]{};
     float filter[2]{};
     float allpassX[2][8]{}, allpassY[2][8]{}, phaserFeedback[2]{};
-    float phase = 0, feedback[2]{}, held[2]{};
+    // Long LFO cycles need enough precision to accumulate sub-microradian steps.
+    double phase = 0;
+    double gateFrames = 0;
+    float gateLevel = 0;
+    float feedback[2]{}, held[2]{};
+    Biquad eq[2][3];
     int delayWrite = 0, holdCounter = 0;
     float toneCoefficient = 1;
+    bool eqNeutral = true;
   } slots[2];
   float rate;
+  float tickRate = 50;
   explicit Impl(float sr) : rate(sr) {
     for (auto& s : slots) {
       s.ott[0] = ott_dsp_new(sr);
@@ -230,7 +323,11 @@ struct InsertChain::Impl {
     memset(s.phaserFeedback, 0, sizeof(s.phaserFeedback));
     memset(s.feedback, 0, sizeof(s.feedback));
     memset(s.held, 0, sizeof(s.held));
+    for (auto& channel : s.eq) for (auto& band : channel) band.reset();
+    s.eqNeutral = true;
     s.phase = 0;
+    s.gateFrames = 0;
+    s.gateLevel = 0;
     s.delayWrite = s.holdCounter = 0;
   }
   float readDelay(const Slot& s, int channel, float samples) const {
@@ -248,6 +345,84 @@ struct InsertChain::Impl {
   }
   static float coefficient(float cutoff, float sampleRate) {
     return 1.0f - expf(-6.28318530718f * cutoff / sampleRate);
+  }
+  static void setBiquad(Biquad& b, float b0, float b1, float b2, float a0, float a1, float a2) {
+    b.b0 = b0 / a0; b.b1 = b1 / a0; b.b2 = b2 / a0;
+    b.a1 = a1 / a0; b.a2 = a2 / a0;
+  }
+  static void setEQBand(Biquad& b, int type, float gain, float frequency, float rate) {
+    const float A = powf(10.0f, gain / 40.0f);
+    const float w = 6.28318530718f * std::min(frequency, rate * 0.45f) / rate;
+    const float c = cosf(w), s = sinf(w);
+    const float alpha = type == 1 ? s / (2.0f * 0.9f)
+                                  : s * 0.5f * sqrtf((A + 1.0f / A) * 2.0f);
+    const float beta = 2.0f * sqrtf(A) * alpha;
+    if (type == 0) {
+      setBiquad(b, A * ((A + 1) - (A - 1) * c + beta),
+                2 * A * ((A - 1) - (A + 1) * c),
+                A * ((A + 1) - (A - 1) * c - beta),
+                (A + 1) + (A - 1) * c + beta,
+                -2 * ((A - 1) + (A + 1) * c),
+                (A + 1) + (A - 1) * c - beta);
+    } else if (type == 1) {
+      setBiquad(b, 1 + alpha * A, -2 * c, 1 - alpha * A,
+                1 + alpha / A, -2 * c, 1 - alpha / A);
+    } else {
+      setBiquad(b, A * ((A + 1) + (A - 1) * c + beta),
+                -2 * A * ((A - 1) + (A + 1) * c),
+                A * ((A + 1) + (A - 1) * c - beta),
+                (A + 1) - (A - 1) * c + beta,
+                2 * ((A - 1) - (A + 1) * c),
+                (A + 1) - (A - 1) * c - beta);
+    }
+  }
+  static float softClip(float x) {
+    float magnitude = fabsf(x);
+    if (magnitude <= 1.0f) return x;
+    if (magnitude >= 2.0f) return copysignf(1.5f, x);
+    magnitude -= 1.0f;
+    return copysignf(1.0f + magnitude - 0.5f * magnitude * magnitude, x);
+  }
+  static uint32_t gateRandom(uint32_t value) {
+    value ^= value >> 16;
+    value *= 0x7feb352dU;
+    value ^= value >> 15;
+    value *= 0x846ca68bU;
+    return value ^ (value >> 16);
+  }
+  static bool tranceGateOpen(const uint8_t* v, uint64_t step) {
+    const int length = v[2] + 1;
+    const int mode = v[5];
+    const int span = mode == 2 && length > 1 ? length * 2 - 2 : length;
+    const uint64_t loop = step / span;
+    int position = (int)(step % span);
+    if (mode == 1) position = length - 1 - position;
+    else if (mode == 2 && position >= length) position = span - position;
+    bool bits[16];
+    int opened = 0;
+    for (int i = 0; i < length; ++i) {
+      bits[i] = (tranceGatePatterns[v[0]] & (0x8000u >> ((i - v[4] + 16) & 15))) != 0;
+      opened += bits[i];
+    }
+    if (mode == 3 && opened && opened < length) {
+      int open[16], closed[16], openCount = 0, closedCount = 0;
+      for (int i = 0; i < length; ++i) {
+        if (bits[i]) open[openCount++] = i;
+        else closed[closedCount++] = i;
+      }
+      // Two moves make Chaos plainly audible while preserving density and its
+      // four-cycle anchor. Sparse patterns naturally fall back to one move.
+      for (int move = 0; move < 2 && openCount && closedCount; ++move) {
+        uint32_t random = gateRandom((uint32_t)v[0] | ((uint32_t)v[4] << 8) |
+                                     ((uint32_t)(loop / 4) << 16) | ((uint32_t)move << 28));
+        int openPick = random % openCount, closedPick = (random >> 8) % closedCount;
+        bits[open[openPick]] = false;
+        bits[closed[closedPick]] = true;
+        open[openPick] = open[--openCount];
+        closed[closedPick] = closed[--closedCount];
+      }
+    }
+    return bits[position];
   }
   void parameters(Slot& s, const uint8_t* v) {
     if (!s.dirty && !memcmp(v, s.previous, 8)) return;
@@ -292,6 +467,24 @@ struct InsertChain::Impl {
       case insertBitcrusher:
         s.toneCoefficient = coefficient(p[2], rate);
         break;
+      case insertParametricEQ: {
+        bool neutral = v[0] == 128 && v[2] == 128 && v[4] == 128;
+        if (neutral) {
+          if (!s.eqNeutral)
+            for (auto& channel : s.eq) for (auto& band : channel) band.reset();
+          s.eqNeutral = true;
+          break;
+        }
+        if (s.eqNeutral)
+          for (auto& channel : s.eq) for (auto& band : channel) band.reset();
+        s.eqNeutral = false;
+        for (int channel = 0; channel < 2; ++channel) {
+          setEQBand(s.eq[channel][0], 0, p[0], p[1], rate);
+          setEQBand(s.eq[channel][1], 1, p[2], p[3], rate);
+          setEQBand(s.eq[channel][2], 2, p[4], p[5], rate);
+        }
+        break;
+      }
     }
     memcpy(s.previous, v, 8);
     s.dirty = false;
@@ -343,8 +536,7 @@ struct InsertChain::Impl {
         case insertChorus:
         case insertFlanger:
         case insertRotary: {
-          const float rotaryRates[] = {0.8f, 5.0f, 12.0f, 25.0f};
-          const float rateHz = s.module == insertRotary ? rotaryRates[(int)p[0]] : p[0];
+          const float rateHz = p[0];
           const float depthMs = s.module == insertChorus ? p[1] :
                                 s.module == insertFlanger ? p[1] : 1.5f + p[1] * 8.0f;
           const float feedback = s.module == insertFlanger ? p[2] :
@@ -469,6 +661,36 @@ struct InsertChain::Impl {
           }
           break;
         }
+        case insertParametricEQ:
+          if (!s.eqNeutral) for (int i = 0; i < n; ++i) {
+            l[i] = softClip(s.eq[0][2].process(s.eq[0][1].process(s.eq[0][0].process(l[i]))));
+            r[i] = softClip(s.eq[1][2].process(s.eq[1][1].process(s.eq[1][0].process(r[i]))));
+          }
+          break;
+        case insertTranceGate: {
+          // 24 tracker ticks make a quarter note; Rate selects a note value,
+          // then the triplet/dotted variants scale it by 2/3 or 3/2.
+          const int rateIndex = values[1];
+          float ticks = 48.0f / (1 << (rateIndex / 3));
+          if (rateIndex % 3 == 1) ticks *= 2.0f / 3.0f;
+          if (rateIndex % 3 == 2) ticks *= 1.5f;
+          const double stepFrames = std::max(1.0, (double)rate * ticks / std::max(1.0f, tickRate));
+          const float gate = values[3] / 255.0f;
+          const float smoothSeconds = 0.0005f + 0.0300f * p[6] * p[6];
+          const float smooth = 1.0f - expf(-1.0f / (rate * smoothSeconds));
+          const float mix = p[7];
+          for (int i = 0; i < n; ++i) {
+            uint64_t step = (uint64_t)(s.gateFrames / stepFrames);
+            double position = fmod(s.gateFrames, stepFrames) / stepFrames;
+            float targetGate = tranceGateOpen(values, step) && position < gate ? 1.0f : 0.0f;
+            s.gateLevel += smooth * (targetGate - s.gateLevel);
+            float gain = 1.0f + mix * (s.gateLevel - 1.0f);
+            l[i] *= gain;
+            r[i] *= gain;
+            s.gateFrames += 1.0;
+          }
+          break;
+        }
       }
       for (int i = 0; i < n; ++i) {
         s.wet = target > s.wet ? std::min(target, s.wet + increment)
@@ -497,6 +719,16 @@ void InsertChain::reset() {
     impl_->resetDSP(s, s.config.module);
     s.wet = 0;
     s.switching = false;
+  }
+}
+void InsertChain::setTempo(float tickRate) {
+  if (impl_) impl_->tickRate = std::max(1.0f, tickRate);
+}
+void InsertChain::trigger() {
+  if (!ready()) return;
+  for (auto& s : impl_->slots) {
+    s.gateFrames = 0;
+    s.gateLevel = 0;
   }
 }
 uint16_t InsertChain::sync(const InsertConfig c[2], InsertAutomation* a) {

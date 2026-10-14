@@ -2,8 +2,12 @@
 #include "corelib/corelib_file.h"
 #include "corelib/corelib_gfx.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#ifdef WEB_BUILD
+#include <emscripten.h>
+#endif
 #include <chipnomad_lib.h>
 
 static char settingsPath[PATH_LENGTH + 32];
@@ -11,24 +15,48 @@ static char autosavePath[PATH_LENGTH + 32];
 static char lineBuffer[1024];
 static const int kAudioSampleRate = 48000;
 
+static int defaultAudioBufferSize(void) {
+#ifdef WEB_BUILD
+  return 1024;
+#elif defined(PORTMASTER_BUILD)
+  return 512;
+#elif defined(ANDROID_BUILD) || defined(DESKTOP_BUILD)
+  return 256;
+#else
+  return 512;
+#endif
+}
+
+static int normalizeAudioBufferSize(int size) {
+  static const int sizes[] = {32, 64, 128, 256, 512, 1024};
+  int closest = sizes[0];
+  long long closestDistance = llabs((long long)closest - size);
+  for (int candidate : sizes) {
+    const long long distance = llabs((long long)candidate - size);
+    if (distance < closestDistance) {
+      closest = candidate;
+      closestDistance = distance;
+    }
+  }
+  return closest;
+}
+
 AppSettings appSettings;
 
 void initDefaultAppSettings(void) {
   appSettings.screenWidth = 0; // 0 to auto-detect resolution
   appSettings.screenHeight = 0;
   appSettings.audioSampleRate = kAudioSampleRate;
-#ifdef WEB_BUILD
-  appSettings.audioBufferSize = 1024;
-#elif defined(ANDROID_BUILD) || defined(DESKTOP_BUILD)
-  // Keep Android input latency low while leaving enough render headroom.
-  appSettings.audioBufferSize = 256;
-#else
-  appSettings.audioBufferSize = 4906;
-#endif
+  appSettings.audioBufferSize = defaultAudioBufferSize();
   appSettings.aySampleDithering = 1; // Default: ON
   appSettings.doubleTapFrames = 20;
   appSettings.keyRepeatDelay = 16;
+#ifdef PORTMASTER_BUILD
+  // One navigation step per 60 Hz UI frame feels natural on a physical D-pad.
+  appSettings.keyRepeatSpeed = 1;
+#else
   appSettings.keyRepeatSpeed = 2;
+#endif
   appSettings.mixVolume = 1.0f;
   appSettings.quality = (int)ChipNomadQuality::medium;
   appSettings.braidsBits = 6;
@@ -40,7 +68,11 @@ void initDefaultAppSettings(void) {
   appSettings.pitchConflictWarning = 0;
   appSettings.quickHelpReleaseSeen = 0;
   appSettings.ayWavetableLfoView = 0;
+#ifdef PORTMASTER_BUILD
+  appSettings.waveformRefreshHz = 60;
+#else
   appSettings.waveformRefreshHz = 30;
+#endif
   appSettings.stickLiveMode = StickLiveMode::hold;
   for (auto& visual : appSettings.trackVisuals)
     visual.mode = TrackVisualMode::detailed;
@@ -50,6 +82,7 @@ void initDefaultAppSettings(void) {
   appSettings.midiOutputDeviceName[0] = '\0';
   for (int i = 0; i < MIDI_CHANNEL_COUNT; i++) appSettings.midiChannelInstrument[i] = -1;
   appSettings.persistentWaveform = 0;
+  appSettings.bootScreenNight = 0;
 
   // Zero out key mapping (platform-specific defaults applied later)
   memset(&appSettings.keyMapping, 0, sizeof(KeyMapping));
@@ -146,6 +179,7 @@ int* pSongTrack;
 int* pChainRow;
 ChipNomadState* chipnomadState;
 int projectModified = 0;
+int sampleLazyPlaybackActive = 0;
 int autosaveLoadFailed = 0;
 
 int settingsSave(void) {
@@ -183,6 +217,7 @@ int settingsSave(void) {
     appSettings.stickLiveMode == StickLiveMode::toggle ? "TOGGLE" : "HOLD";
   fprintf(file, "stickLiveMode: %s\n", stickLiveMode);
   fprintf(file, "persistentWaveform: %d\n", appSettings.persistentWaveform);
+  fprintf(file, "bootScreenNight: %d\n", appSettings.bootScreenNight);
   for (int track = 0; track < PROJECT_MAX_TRACKS; ++track)
     fprintf(file, "trackVisuals%d: %d\n", track + 1, (int)appSettings.trackVisuals[track].mode);
 
@@ -245,6 +280,10 @@ int settingsSave(void) {
   fprintf(file, "srWavetablePath: %s\n", appSettings.srWavetablePath);
 
   fclose(file);
+#ifdef WEB_BUILD
+  // Emscripten's in-memory settings file becomes durable only after IDBFS sync.
+  EM_ASM({ if (window.choochooSettingsSaved) window.choochooSettingsSaved(); });
+#endif
   return 0;
 }
 
@@ -272,7 +311,11 @@ int settingsLoad(void) {
       len--;
     }
 
-    if (strncmp(line, "persistentWaveform: ", 20) == 0) {
+    if (strncmp(line, "bootScreenNight: ", 17) == 0) {
+      int enabled;
+      if (sscanf(line + 17, "%d", &enabled) == 1 && (enabled == 0 || enabled == 1))
+        appSettings.bootScreenNight = (uint8_t)enabled;
+    } else if (strncmp(line, "persistentWaveform: ", 20) == 0) {
       int enabled;
       if (sscanf(line + 20, "%d", &enabled) == 1 && (enabled == 0 || enabled == 1))
         appSettings.persistentWaveform = (uint8_t)enabled;
@@ -449,18 +492,13 @@ int settingsLoad(void) {
 
   fclose(file);
   appSettings.audioSampleRate = kAudioSampleRate;
-#ifdef WEB_BUILD
-  // Browser audio and UI share a thread. Large saved buffers batch playback
-  // updates and stall animations; 4906 is rounded up to 8192 by SDL/Web Audio.
-  appSettings.audioBufferSize = 1024;
-#elif defined(ANDROID_BUILD) || defined(DESKTOP_BUILD)
-  // Migrate the old 10 Hz default.
-  if (appSettings.audioBufferSize == 4906) appSettings.audioBufferSize = 1600;
-#ifdef ANDROID_BUILD
-  // Migrate the previous Android latency-oriented default.
-  if (appSettings.audioBufferSize == 1600) appSettings.audioBufferSize = 512;
-  if (appSettings.audioBufferSize == 512) appSettings.audioBufferSize = 256;
-#endif
+  // 4,906 was the legacy platform default; other values are rounded to the
+  // nearest choice exposed by the audio settings screen.
+  appSettings.audioBufferSize = appSettings.audioBufferSize == 4906
+    ? defaultAudioBufferSize() : normalizeAudioBufferSize(appSettings.audioBufferSize);
+#ifdef PORTMASTER_BUILD
+  if (appSettings.keyRepeatSpeed == 2) appSettings.keyRepeatSpeed = 1;
+  if (appSettings.waveformRefreshHz == 30) appSettings.waveformRefreshHz = 60;
 #endif
   if (appSettings.braidsBits < 0 || appSettings.braidsBits > 6) appSettings.braidsBits = 6;
   if (appSettings.braidsDrift < 0 || appSettings.braidsDrift > 4) appSettings.braidsDrift = 0;

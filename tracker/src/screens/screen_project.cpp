@@ -12,6 +12,9 @@
 #include "export_path.h"
 #include "import/import_vt2.h"
 #include "import/import_midi.h"
+#include "import/import_m8s.h"
+#include "import/import_lsdj.h"
+#include "selection_popup.h"
 #include "string_utils.h"
 #include <string.h>
 #include <strings.h>
@@ -26,6 +29,8 @@ static char* editingString = NULL;
 static int editingStringLength = 0;
 static int tickRateI = 0;
 static uint16_t tickRateF = 0;
+// Song picked in an LSDj save (.sav), -1 when none: read by projectLoadFromPath
+static int pendingSavSlot = -1;
 
 int projectLoadFromPath(const char* path) {
   if (!path) {
@@ -57,6 +62,20 @@ int projectLoadFromPath(const char* path) {
     } else if (strcasecmp(ext, ".mid") == 0 || strcasecmp(ext, ".midi") == 0) {
       // Import a Standard MIDI File as a new project
       loadResult = projectLoadMidi(&replacement, path);
+    } else if (strcasecmp(ext, ".m8s") == 0) {
+      // Import a Dirtywave M8 song (structure and notes only)
+      loadResult = projectLoadM8SWithSamples(&replacement, path, appSettings.samplePath);
+    } else if (strcasecmp(ext, ".lsdsng") == 0) {
+      // Import a Little Sound Dj song (structure and notes only)
+      loadResult = projectLoadLSDJ(&replacement, path);
+    } else if (strcasecmp(ext, ".sav") == 0) {
+      // One song of an LSDj save, picked in the list
+      if (pendingSavSlot >= 0) {
+        loadResult = projectLoadLSDJSav(&replacement, path, pendingSavSlot);
+      } else {
+        snprintf(projectFileError, 40, "Pick a song in the .sav list");
+        loadResult = 1;
+      }
     } else if (strcasecmp(ext, ".cct") == 0) {
       // Load ChooChooTracker native format
       loadResult = projectLoad(&replacement, path);
@@ -75,7 +94,8 @@ int projectLoadFromPath(const char* path) {
     projectModified = 0; // Clear modified flag after loading
 
     // Store filename without extension
-    extractFilenameWithoutExtension(path, appSettings.projectFilename, FILENAME_LENGTH + 1);
+    if (pendingSavSlot >= 0) snprintf(appSettings.projectFilename, FILENAME_LENGTH + 1, "%s", replacement.title);
+    else extractFilenameWithoutExtension(path, appSettings.projectFilename, FILENAME_LENGTH + 1);
     // The loaded project's export folder (if any) is adopted on next export
     exportResetFolderTracking();
     settingsSave();
@@ -95,7 +115,47 @@ int projectLoadFromPath(const char* path) {
   return loadResult;
 }
 
+static void onProjectCancelled(void) {
+  screenSetup(projectReturnScreen, 0);
+}
+static void onProjectLoaded(const char* path);
+
+// An LSDj save (.sav) holds up to 32 songs: list them and load the one picked.
+static char savPath[2048];
+static LsdjSavSong savSongs[32];
+static char savLabels[32][40];
+static SelectionItem savItems[32];
+
+static void onSavSongSelected(int slot) {
+  pendingSavSlot = slot;
+  int result = projectLoadFromPath(savPath);
+  pendingSavSlot = -1;
+  if (result == 0 && projectReturnScreen == &screenTitle) screenSetup(&screenSong, 0);
+  else screenSetup(projectReturnScreen, 0);
+}
+
+static int openLsdjSave(const char* path) {
+  int count = 0;
+  if (lsdjListSav(path, savSongs, 32, &count) != 0) {
+    screenMessage(MESSAGE_TIME_ERROR, "%s", projectFileError);
+    return 0;
+  }
+  snprintf(savPath, sizeof(savPath), "%s", path);
+  for (int i = 0; i < count; i++) {
+    snprintf(savLabels[i], sizeof(savLabels[i]), "%02d %-8s v%02X %3d blocks", savSongs[i].slot, savSongs[i].name[0] ? savSongs[i].name : "-", savSongs[i].version, savSongs[i].blocks);
+    savItems[i] = {savLabels[i], savSongs[i].slot, nullptr, 0, nullptr};
+  }
+  selectionPopupSetup("LSDJ SONGS", savItems, count, savSongs[0].slot, onSavSongSelected, onProjectCancelled, true);
+  screenSetup(&screenSelectionPopup, 0);
+  return 1;
+}
+
 static void onProjectLoaded(const char* path) {
+  const char* ext = path ? strrchr(path, '.') : NULL;
+  if (ext && strcasecmp(ext, ".sav") == 0) {
+    if (!openLsdjSave(path)) screenSetup(projectReturnScreen, 0);
+    return;
+  }
   if (projectLoadFromPath(path) == 0 && projectReturnScreen == &screenTitle)
     screenSetup(&screenSong, 0);
   else
@@ -125,12 +185,8 @@ static void onProjectSaved(const char* folderPath) {
   screenSetup(&screenProject, 0);
 }
 
-static void onProjectCancelled(void) {
-  screenSetup(projectReturnScreen, 0);
-}
-
 static void doLoadProject(void) {
-  fileBrowserSetup("LOAD PROJECT", ".cct,.vt2,.mid,.midi", appSettings.projectPath,
+  fileBrowserSetup("LOAD PROJECT", ".cct,.vt2,.mid,.midi,.m8s,.lsdsng,.sav", appSettings.projectPath,
     onProjectLoaded, onProjectCancelled);
   screenSetup(&screenFileBrowser, 0);
 }
@@ -154,7 +210,7 @@ void projectOpenFromScreen(const AppScreen* returnScreen) {
 
 void projectOpenFromScreenAtPath(const AppScreen* returnScreen, const char* path) {
   projectReturnScreen = returnScreen ? returnScreen : &screenProject;
-  fileBrowserSetup("LOAD PROJECT", ".cct,.vt2,.mid,.midi", path,
+  fileBrowserSetup("LOAD PROJECT", ".cct,.vt2,.mid,.midi,.m8s,.lsdsng,.sav", path,
     onProjectLoaded, onProjectCancelled);
   screenSetup(&screenFileBrowser, 0);
 }
@@ -237,8 +293,6 @@ int projectCommonColumnCount(int row) {
   } else if (row >= 1 && row <= 3) {
     return 24; // File, title, author
   } else if (row == 4) {
-    return 1; // Linear pitch
-  } else if (row == 5) {
     return 2; // Tick rate
   }
   return 1; // Default value
@@ -258,8 +312,7 @@ void projectCommonDrawStatic(void) {
   gfxPrint(0, 6, "Title");
   gfxPrint(0, 7, "Author");
 
-  gfxPrint(0, 9, "Linear pitch");
-  gfxPrint(0, 10, "Tick rate");
+  gfxPrint(0, 9, "Tick rate");
 }
 
 void projectCommonDrawCursor(int col, int row) {
@@ -279,14 +332,11 @@ void projectCommonDrawCursor(int col, int row) {
     // Text fields: file name, title, author
     gfxCursor(7 + col, 4 + row, 1);
   } else if (row == 4) {
-    // Linear pitch
-    gfxCursor(13, 9, 3);
-  } else if (row == 5) {
     // Tick rate
     if (col == 0) {
-      gfxCursor(13, 10, 3);
+      gfxCursor(13, 9, 3);
     } else {
-      gfxCursor(17, 10, 3);
+      gfxCursor(17, 9, 3);
     }
   }
 }
@@ -319,14 +369,11 @@ void projectCommonDrawField(int col, int row, CellState state) {
     gfxClearRect(7, 7, PROJECT_TITLE_LENGTH, 1);
     gfxPrintf(7, 7, "%s", chipnomadState->project.author);
   } else if (row == 4) {
-    // Linear pitch
-    gfxPrint(13, 9, chipnomadState->project.linearPitch ? "ON " : "OFF");
-  } else if (row == 5) {
     // Tick rate and BPM
-    gfxClearRect(13, 10, 27, 1);
+    gfxClearRect(13, 9, 27, 1);
     float tickRate = (float)tickRateI + (float)tickRateF / 1000.0f;
     float bpm = tickRate * 60.0f / 24.0f;
-    gfxPrintf(13, 10, "%03d.%03dHz (%.1f BPM)", tickRateI, tickRateF, bpm);
+    gfxPrintf(13, 9, "%03d.%03dHz (%.1f BPM)", tickRateI, tickRateF, bpm);
   }
 }
 
@@ -403,14 +450,6 @@ int projectCommonOnEdit(int col, int row, enum CellEditAction action) {
       handled = 1;
     }
   } else if (row == 4) {
-    // Linear pitch (ON/OFF)
-    handled = edit8noLast(action, &chipnomadState->project.linearPitch, 1, 0, 1);
-    if (handled) {
-      projectModified = 1;
-      chipnomadQueuePlaybackStop(chipnomadState);
-      reinitializePitchTable(&chipnomadState->project);
-    }
-  } else if (row == 5) {
     // Tick rate
     if (col == 0) {
       // Integer part (1-200), clear sets to 50
@@ -442,7 +481,7 @@ int projectCommonOnEdit(int col, int row, enum CellEditAction action) {
 //
 
 static int inputScreenNavigation(int keys, int tapCount) {
-  if (keys == (keyDown | keyShift)) {
+  if (keys == keyOpt || keys == (keyDown | keyShift)) {
     screenSetup(&screenSong, 0);
     return 1;
   }
@@ -471,82 +510,19 @@ static int onInput(int isKeyDown, int keys, int tapCount) {
   return 0;
 }
 
-///////////////////////////////////////////////////////////////////////////////
-//
-// Key jazz (desktop only): type the filename/title/author directly on the
-// keyboard instead of using the on-screen virtual keyboard popup. Toggled
-// with Esc, independent of the other screens' key jazz modes. The popup
-// (isCharEdit) still works normally when this is off.
-//
-
 #ifdef DESKTOP_BUILD
 
-static int keyJazzEnabled = 0;
-
-static void keyJazzTextField(int row, char** str, int* maxLen) {
-  if (row == 1) { *str = appSettings.projectFilename; *maxLen = FILENAME_LENGTH; }
-  else if (row == 2) { *str = chipnomadState->project.title; *maxLen = PROJECT_TITLE_LENGTH; }
-  else { *str = chipnomadState->project.author; *maxLen = PROJECT_TITLE_LENGTH; }
-}
-
-int projectKeyJazzHandleRawKey(InputCode input, int isDown) {
-  if (input.deviceType != InputDeviceType::keyboard) return 0;
-
-  if (inputIsKeyJazzToggle(input)) {
-    if (isDown && !isCharEdit) {
-      keyJazzEnabled = !keyJazzEnabled;
-      screenMessage(MESSAGE_TIME, keyJazzEnabled ? "KEY JAZZ ON (Esc to exit)" : "KEY JAZZ OFF");
-    }
-    return 1;
-  }
-
-  // Shift is read live via inputIsShiftHeld() for uppercase below, but its
-  // own keydown/keyup are NOT swallowed here (unlike Phrase): Shift+Down
-  // navigates to the Song screen (inputScreenNavigation) and must keep
-  // working while key jazz is active on these rows.
+// Key jazz text entry (see keyJazzTextHandleRawKey): filename, title, author.
+int projectKeyJazzTextField(KeyJazzTextField* field) {
   ScreenData* screen = projectScreen();
-  if (!keyJazzEnabled || screen->cursorRow < 1 || screen->cursorRow > 3) return 0;
-
-  char* str;
-  int maxLen;
-  keyJazzTextField(screen->cursorRow, &str, &maxLen);
-
-  if (inputIsBackspaceKey(input)) {
-    // Text fields rest the cursor one past the last typed character
-    // (unlike a grid cell), so Backspace deletes the character BEFORE the
-    // cursor - classic text editor behavior - not "at" it.
-    if (isDown) {
-      int col = screen->cursorCol;
-      int len = (int)strlen(str);
-      if (col > 0) {
-        if (col - 1 < len) {
-          memmove(&str[col - 1], &str[col], len - col + 1);
-          trimString(str);
-          projectModified = 1;
-        }
-        screen->cursorCol = col - 1;
-      }
-      screen->drawField(0, screen->cursorRow, CellState::normal);
-    }
-    return 1;
-  }
-
-  char c = inputTypedCharacter(input, inputIsShiftHeld());
-  if (c == 0) return 0;
-
-  if (isDown) {
-    int col = screen->cursorCol;
-    int len = (int)strlen(str);
-    if (col >= len) {
-      for (int i = len; i < col; i++) str[i] = ' ';
-      str[col + 1] = 0;
-    }
-    str[col] = c;
-    trimString(str);
-    projectModified = 1;
-    if (col < maxLen - 1) screen->cursorCol = col + 1;
-    screen->drawField(0, screen->cursorRow, CellState::normal);
-  }
+  field->screen = screen;
+  field->row = screen->cursorRow;
+  field->popupOpen = isCharEdit;
+  field->marksProjectModified = 1;
+  field->str = NULL;
+  if (screen->cursorRow == 1) { field->str = appSettings.projectFilename; field->maxLen = FILENAME_LENGTH; }
+  else if (screen->cursorRow == 2) { field->str = chipnomadState->project.title; field->maxLen = PROJECT_TITLE_LENGTH; }
+  else if (screen->cursorRow == 3) { field->str = chipnomadState->project.author; field->maxLen = PROJECT_TITLE_LENGTH; }
   return 1;
 }
 
