@@ -1,0 +1,83 @@
+{
+  "date": "2026-10-13",
+  "installation": {
+    "base_commit": "adc8069c75191dc2fb89893c55359dcc88ceb44f",
+    "source_snapshot_sha256": "44686cd497ef8310eed435bc355d775784103fbc4b0795d500f8b2ea9bea3e9e",
+    "source_state": "Working tree on personal/r36h; task files only",
+    "upstream_commit": "7ab92323b1e4aa61314f1baae565e0ff19a328e0",
+    "binary_sha256": "cc7d200618fe43f34564482beab95ee73f944e4d22a65985361a92269bc428f8",
+    "binary_bytes": 3532608,
+    "build_method": "ARM64 O3 personal build with verified unchanged dependency cache, Lucky and SQ80 enabled",
+    "validation": "Package integrity, runtime libraries, MonkSynth engine tests and production UI, shared Settings/insert UI, isolated voice performance benchmark",
+    "physical_playback": "Pending user evaluation",
+    "installed": "/roms/ports/choochootracker",
+    "rollback": "/roms/choochootracker-backups/pre-monksynth-20261013-44686cd497ef/previous-install",
+    "preserved_files": 1590,
+    "replaced": [
+      "PERSONAL_FORK.md",
+      "USER_MANUAL.md",
+      "choochootracker.aarch64",
+      "licenses/LICENSE.monksynth.txt",
+      "package-manifest.json",
+      "personal-build.json",
+      "personal-device-validation.json",
+      "personal-features.json"
+    ],
+    "settings_unchanged": true,
+    "launcher_unchanged": true,
+    "songs_samples_private_banks_unchanged": true,
+    "installed_inventory_verified": true,
+    "rollback_inventory_verified": true
+  },
+  "host": {
+    "test_cases": 663,
+    "assertions": 113564925,
+    "native_ui": "Passed both waveform headers, all eight FX controls and touch mapping",
+    "web": {
+      "browser": "155.0.8059.40",
+      "audio": {
+        "callbacks": 122,
+        "peak": 0.076934814453125,
+        "finite": true
+      },
+      "saved_type": 29,
+      "saved_project_reloaded": true,
+      "errors": []
+    }
+  },
+  "device": {
+    "engine_test_cases": 6,
+    "engine_assertions": 445560,
+    "ui": [
+      "MonkSynth page and eight FX controls in both header modes",
+      "Shared Settings harmonization",
+      "Insert effect popup"
+    ],
+    "startup": {
+      "source_snapshot_sha256": "44686cd497ef8310eed435bc355d775784103fbc4b0795d500f8b2ea9bea3e9e",
+      "production_startup": true,
+      "settings_unchanged": true,
+      "audio": "ALSA null; functional startup, physical listening remains user evaluation"
+    },
+    "benchmark": {
+      "sample_rate_hz": 48000,
+      "seconds_rendered": 2,
+      "voices": [
+        1,
+        4,
+        8,
+        32
+      ],
+      "realtime_multipliers": [
+        41.1,
+        9.34,
+        4.56,
+        1.11
+      ],
+      "scope": "Isolated production voice DSP and per-block control updates; excludes tracker mixer, insert effects, UI and physical audio backend"
+    },
+    "physical_listening": "Pending user evaluation"
+  },
+  "public_web_deployment": "Not deployed",
+  "source_snapshot_scope": "Tracked working files plus explicit new MonkSynth files, before post-install build-record updates; private user assets excluded"
+}

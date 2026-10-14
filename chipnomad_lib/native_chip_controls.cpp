@@ -1,4 +1,5 @@
 #include "project.h"
+#include "synth/multimode_filter.h"
 #include "sid_patch.h"
 #include <cstdio>
 #include <cstring>
@@ -19,6 +20,23 @@ int instrumentFMOperatorCount(const Instrument* i) {
 
 bool instrumentNativeFXInfo(const Instrument* i,int fx,NativeFXInfo* out,int op) {
   if(!i||!out)return false;
+  if (i->type == InstrumentType::Monk) {
+    const auto& p = i->chip.monk;
+    int value; const char* label;
+    switch (fx) {
+      case fxMWV: value=p.vowel; label="Vowel"; break;
+      case fxMIN: value=p.character; label="Voice character"; break;
+      case fxMAM: value=p.breath; label="Breath"; break;
+      case fxMFL: value=p.glide; label="Glide"; break;
+      case fxMFB: value=p.vibrato; label="Vibrato depth"; break;
+      case fxMSH: value=p.rate; label="Vibrato rate"; break;
+      case fxMCF: value=filterControlFromCutoff(p.filterCutoffHz); label="Cutoff"; break;
+      case fxMRS: value=p.filterResonance; label="Resonance"; break;
+      default: return false;
+    }
+    *out = {255, value, false, 0, label}; return true;
+  }
+
 #if CHOOCHOO_EXPERIMENTAL_SQ80ESQ
   if(i->type==InstrumentType::SQ80ESQ){
     const auto&p=i->chip.sq80;int max=127,value=0,min=0;const char*label=nullptr;

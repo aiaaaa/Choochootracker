@@ -416,6 +416,22 @@ static int loadInstrumentDrumSynth(FILE* file, Instrument* instrument) {
   }
 }
 
+static int loadInstrumentMonk(FILE* file, Instrument* instrument) {
+  InstrumentMonk* m = &instrument->chip.monk;
+  while (1) {
+    char* line = peekLine(file);
+    if (line == NULL || line[0] == '#') return 0;
+    if (strncmp(line, "- Vowel: ", 9) == 0) sscanf(line, "- Vowel: %hhu", &m->vowel);
+    else if (strncmp(line, "- Voice: ", 9) == 0) sscanf(line, "- Voice: %hhu", &m->character);
+    else if (strncmp(line, "- Breath: ", 10) == 0) sscanf(line, "- Breath: %hhu", &m->breath);
+    else if (strncmp(line, "- Glide: ", 9) == 0) sscanf(line, "- Glide: %hhu", &m->glide);
+    else if (strncmp(line, "- Vibrato: ", 11) == 0) sscanf(line, "- Vibrato: %hhu", &m->vibrato);
+    else if (strncmp(line, "- Vib rate: ", 12) == 0) sscanf(line, "- Vib rate: %hhu", &m->rate);
+    else loadVoicePostSetting(line, m);
+    consumeLine(file);
+  }
+}
+
 static int loadInstrumentMME(FILE* file, Instrument* instrument) {
   InstrumentMME* m = &instrument->chip.mme;
   while (1) {
@@ -633,6 +649,9 @@ int instrumentLoadData(FILE* file, Instrument* instrument, Project* p) {
         break;
       case InstrumentType::DrumSynth:
         if (loadInstrumentDrumSynth(file, instrument)) return 1;
+        break;
+      case InstrumentType::Monk:
+        if (loadInstrumentMonk(file, instrument)) return 1;
         break;
       case InstrumentType::MME:
         if (loadInstrumentMME(file, instrument)) return 1;
@@ -914,6 +933,14 @@ static int saveInstrumentDrumSynth(FILE* file, Instrument* instrument) {
   return 0;
 }
 
+static int saveInstrumentMonk(FILE* file, Instrument* instrument) {
+  InstrumentMonk* m = &instrument->chip.monk;
+  fprintf(file, "- Vowel: %hhu\n", m->vowel); fprintf(file, "- Voice: %hhu\n", m->character);
+  fprintf(file, "- Breath: %hhu\n", m->breath); fprintf(file, "- Glide: %hhu\n", m->glide);
+  fprintf(file, "- Vibrato: %hhu\n", m->vibrato); fprintf(file, "- Vib rate: %hhu\n", m->rate);
+  saveVoicePostSettings(file, m); return 0;
+}
+
 static int saveInstrumentMME(FILE* file, Instrument* instrument) {
   InstrumentMME* m = &instrument->chip.mme;
   fprintf(file, "- Model: %hhu\n", (uint8_t)m->model);
@@ -996,6 +1023,9 @@ int instrumentSaveData(FILE* file, int idx, Instrument* instrument) {
       break;
     case InstrumentType::DrumSynth:
       saveInstrumentDrumSynth(file, instrument);
+      break;
+    case InstrumentType::Monk:
+      saveInstrumentMonk(file, instrument);
       break;
     case InstrumentType::MME:
       saveInstrumentMME(file, instrument);

@@ -29,12 +29,37 @@
 extern SDL_Renderer* renderer;
 static const char* output;
 static void require(bool condition,const char* why){if(!condition){fprintf(stderr,"FAIL: %s\n",why);exit(2);}}
-static void capture(const char* name){appDraw();auto* s=SDL_CreateRGBSurfaceWithFormat(0,640,480,32,SDL_PIXELFORMAT_ARGB8888);require(s,"surface");require(SDL_RenderReadPixels(renderer,nullptr,s->format->format,s->pixels,s->pitch)==0,"pixels");char path[2048];snprintf(path,sizeof(path),"%s/%s.bmp",output,name);require(SDL_SaveBMP(s,path)==0,"capture");SDL_FreeSurface(s);}
+static void capture(const char* name,bool redraw=true){if(redraw)appDraw();auto* s=SDL_CreateRGBSurfaceWithFormat(0,640,480,32,SDL_PIXELFORMAT_ARGB8888);require(s,"surface");require(SDL_RenderReadPixels(renderer,nullptr,s->format->format,s->pixels,s->pitch)==0,"pixels");char path[2048];snprintf(path,sizeof(path),"%s/%s.bmp",output,name);require(SDL_SaveBMP(s,path)==0,"capture");SDL_FreeSurface(s);}
 static void key(int down,int keys){appDraw();currentScreen->onInput(down,keys,1);appDraw();}
 static void tapEdit(){key(1,keyEdit);key(0,0);}
 int main(int argc,char** argv){
   if(argc!=2&&argc!=3)return 1;output=argv[1];initDefaultAppSettings();appSettings.screenWidth=640;appSettings.screenHeight=480;fontSetCurrent(fontGetDefault());require(!gfxSetup(&appSettings.screenWidth,&appSettings.screenHeight),"SDL dummy setup");
   chipnomadState=chipnomadCreate();require(chipnomadState,"state");require(!projectLoad(&chipnomadState->project,"projects/gm-midi-demo.cct"),"fixture");
+  if(argc==3 && !strcmp(argv[2],"--monk-only")) {
+    screensInitAll();waveformDisplayInit();monitorDisplayInit();
+    getInstrumentFunctions(InstrumentType::Monk).init(&chipnomadState->project.instruments[0]);
+    for(int header:{0,1}) {
+      appSettings.persistentWaveform=header;screenSetup(&screenInstrument,0);appDraw();
+      char name[64];snprintf(name,sizeof(name),"monk-instrument-header-%d",header);capture(name);
+      const int offset=screenScopeRows(currentScreen);
+      require(screenTouchTap(11,6+offset),"vowel touch");
+      require(screenInstrumentMonk.cursorRow==3&&screenInstrumentMonk.cursorCol==0,"vowel field mapping");
+      for(int row=4;row<=8;++row)for(int column=0;column<2;++column) {
+        require(screenTouchTap(column?28:11,row+4+offset),"source/filter touch");
+        require(screenInstrumentMonk.cursorRow==row&&screenInstrumentMonk.cursorCol==column,"exact source/filter touch mapping");
+      }
+      require(screenTouchTap(22,14+offset),"release touch");
+      require(screenInstrumentMonk.cursorRow==9&&screenInstrumentMonk.cursorCol==3,"release mapping");
+      require(!screenTouchTap(11,7+offset),"SOURCE title not editable");
+      screenSetup(&screenPhrase,-1);appDraw();
+      for(int fx:{fxMWV,fxMIN,fxMAM,fxMFL,fxMFB,fxMSH,fxMCF,fxMRS}) {
+        fxEditFullDraw(fx,0,0);
+        snprintf(name,sizeof(name),"monk-fx-%d-header-%d",fx,header);capture(name,false);
+      }
+    }
+    printf("Monk instrument and eight effect controls: both header modes and touch mappings passed\n");
+    chipnomadDestroy(chipnomadState);SDL_Quit();return 0;
+  }
   if(argc==3 && !strcmp(argv[2],"--insert-popup-only")) {
     screensInitAll();waveformDisplayInit();monitorDisplayInit();
     auto& project=chipnomadState->project;

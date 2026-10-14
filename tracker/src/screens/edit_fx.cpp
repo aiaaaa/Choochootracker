@@ -4,6 +4,7 @@
 #include "chord.h"
 #include "synth/sample_voice.h"
 #include <algorithm>
+#include <cstring>
 
 // State for FX selection screen
 int currentGroup;      // Current group being navigated
@@ -53,6 +54,19 @@ static bool nativeInfo(uint8_t instrumentIdx,int fx,NativeFXInfo& info) {
 }
 
 static const char* nativeControlDescription(int fx) {
+  if (getCurrentInstrumentType() == InstrumentType::Monk) {
+    switch (fx) {
+      case fxMWV: return "A 00  E 40  I 80  O BF  U FF";
+      case fxMIN: return "Low voice <------> High voice";
+      case fxMAM: return "Amount of breath in the voice";
+      case fxMFL: return "Smooth pitch and vowel changes";
+      case fxMFB: return "Depth of the voice's pitch movement";
+      case fxMSH: return "Speed of the voice's pitch movement";
+      case fxMCF: return "Tracker filter cutoff";
+      case fxMRS: return "Tracker filter resonance";
+      default: return "";
+    }
+  }
   switch(fx) {
     case fxQCF:return "Filter cutoff; keeps preset modulation";
     case fxQRS:return "Filter resonance, 00-1F";
@@ -433,9 +447,15 @@ int drawFXList(int visibleGroupIdx, int y) {
       gfxSetFgColor(appSettings.colorScheme.textDefault);
     }
 
-    gfxPrint(1 + col * 4, fxY, item->name);
-
-    if (isCurrent) gfxCursor(1 + col * 4, fxY, 3);
+    NativeFXInfo monk{};
+    if (group->instType == InstrumentType::Monk && nativeInfo(currentInstrumentIdx,item->fx,monk)) {
+      const int x = 1 + col * 17;
+      gfxPrint(x, fxY, monk.label);
+      if (isCurrent) gfxCursor(x, fxY, std::strlen(monk.label));
+    } else {
+      gfxPrint(1 + col * 4, fxY, item->name);
+      if (isCurrent) gfxCursor(1 + col * 4, fxY, 3);
+    }
   }
 
   // Calculate how many rows the FX list takes
@@ -501,12 +521,14 @@ void fxEditFullDraw(uint8_t currentFX, uint8_t instrumentIdx, int isTable) {
   NativeFXInfo direct{};
   int presetRow=6;
   if(nativeInfo(instrumentIdx,currentFX,direct) && direct.label) {
-    gfxSetFgColor(appSettings.colorScheme.textValue);gfxPrint(1,1,direct.label);
+    gfxSetFgColor(appSettings.colorScheme.textValue);
+    if (instType == InstrumentType::Monk) gfxPrintf(1,1,"%s (%s)",direct.label,fxNames[currentFX].name);
+    else gfxPrint(1,1,direct.label);
     gfxSetFgColor(appSettings.colorScheme.textDefault);
     gfxPrint(1,2,nativeControlDescription(currentFX));
     int nextRow=3;
     if(currentFX>=fxOAR&&currentFX<=fxOE4)gfxPrint(1,nextRow++,"Operator 1");
-    gfxPrint(1,nextRow++,"Absolute native value");
+    gfxPrint(1,nextRow++,instType == InstrumentType::Monk ? "Continuous sweep: 00-FF" : "Absolute native value");
     presetRow=nextRow;
   } else drawFXHelp((enum FX)currentFX, instrumentIdx);
   NativeFXInfo info{};

@@ -581,6 +581,38 @@ On the Modulation screen, press **EDIT** on a source to choose a family (Envelop
 
 Motion is an internal macro envelope, not pitch glide: values below `80` use an AD shape, `80` disables it, and values above `80` use a decay-only shape. Moving farther from the centre makes the envelope faster. Its destinations are fixed per model, so Sintered stays predictable in tracker patterns: Knot animates Mod/Fold; Shard Feedback/Bite; Burst Noise/Color/Feedback; Comb Damping/Regen; Logic Rate/Crush; Melt Chaos/Drive. All models reset their state on a note trigger and bound internal feedback for repeatable hits.
 
+### MonkSynth
+
+Choose **SYNTH → MonkSynth** for a native vocal/formant engine. Vowel is the
+primary control at the top of the page: it sweeps continuously through the
+upstream **A / E / I / O / U** landmarks (approximately **00 / 40 / 80 / BF / FF**).
+The highlighted letter is the nearest landmark; intermediate values remain
+continuous. Voice shifts the vocal character independently of the played note;
+Breath adds aspiration. Glide smooths pitch and vowel changes, while Vib depth
+and Vib rate control the native pitch movement.
+
+The page shares the other synths' header, filter and ADSR controls. Standard
+tracker notes, chords, pitch effects, four modulation lanes, MIDI CC mappings,
+track inserts and delay/reverb sends apply. Save/Load preserves the complete
+instrument in CNI and project files. This engine uses the MonkSynth vocal core;
+the plugin's separate unison and delay controls are replaced by tracker chords
+and effects routing.
+
+The **MonkSynth FX** picker shows eight named controls, beginning with Vowel and
+Voice character. These reuse existing saved macro command IDs, so existing songs
+keep their original meanings when played with their original engines:
+
+| Control | Command | Range |
+| --- | --- | --- |
+| Vowel | MWV | 00–FF, smooth A/E/I/O/U sweep |
+| Voice character | MIN | 00–FF, lower to higher formants |
+| Breath | MAM | 00–FF |
+| Glide | MFL | 00–FF |
+| Vibrato depth | MFB | 00–FF |
+| Vibrato rate | MSH | 00–FF |
+| Filter cutoff | MCF | 00–FF, standard cutoff curve |
+| Filter resonance | MRS | 00–FF |
+
 ### MME
 
 **MME** (Multi Modulation Engine) is a two-oscillator synth dedicated to interactions between oscillators. Its models are `Ring`, `Fold`, `Cross`, `VPM`, `Sync`, `Logic` and `Vocode`. Both oscillators are internal and follow tracker notes; `Interval` sets their relationship.

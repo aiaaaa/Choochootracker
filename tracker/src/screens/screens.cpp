@@ -315,6 +315,17 @@ static int screenTouchCellAt(int col, int row, int* targetCol, int* targetRow) {
     return 1;
   }
 #endif
+  if (currentScreen == &screenInstrument &&
+      chipnomadState->project.instruments[cInstrument].type == InstrumentType::Monk && row >= 5) {
+    int field = row == 6 ? 3 : row >= 8 && row <= 12 ? row - 4 : -1;
+    int column = row >= 8 && col >= 18 ? 1 : 0;
+    int envelopeColumn;
+    if (screenTouchEnvelopeAt(col, row, &envelopeColumn)) { field = 9; column = envelopeColumn; }
+    if (field < 0 || col < 0 || col > 33 || (field == 3 && col > 16)) return 0;
+    if (targetCol) *targetCol = column;
+    if (targetRow) *targetRow = field;
+    return 1;
+  }
   if (currentScreen == &screenTrackVisuals) {
     int field = row >= 3 && row < 3 + PROJECT_MAX_TRACKS ? row - 3 : row == 12 ? PROJECT_MAX_TRACKS : row == 14 ? PROJECT_MAX_TRACKS + 1 : -1;
     int column = -1;
@@ -453,6 +464,9 @@ TouchAdjustResult screenTouchAdjust(int col, int row) {
     return touchScreenData->cursorRow == 9 && touchScreenData->cursorCol == envelopeCol ? touchAdjustCoarse : touchAdjustNone;
   int targetCol, targetRow;
   if (!screenTouchCellAt(col, row, &targetCol, &targetRow)) return touchAdjustNone;
+  if (currentScreen == &screenInstrument &&
+      chipnomadState->project.instruments[cInstrument].type == InstrumentType::Monk)
+    return targetRow == touchScreenData->cursorRow && targetCol == touchScreenData->cursorCol ? touchAdjustCoarse : touchAdjustNone;
   // Tap selects the exact ADSR/Shape field. Once selected, accept a drag
   // anywhere across that envelope row so narrow values remain usable.
   if (currentScreen == &screenInstrument && targetRow >= 6)

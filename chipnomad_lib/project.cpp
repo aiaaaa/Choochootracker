@@ -95,6 +95,7 @@ FXGroup fxGroups[] = {
 #if CHOOCHOO_EXPERIMENTAL_SQ80ESQ
   {"SQ80/ESQ FX",fxNamesSQ80,11,6,InstrumentType::SQ80ESQ},
 #endif
+  {"MonkSynth FX", NULL, 0, 2, InstrumentType::Monk},
 };
 int fxGroupCount = sizeof(fxGroups) / sizeof(FXGroup);
 
@@ -146,6 +147,17 @@ void fillFXNames() {
     FXName* names = instrumentGroupNames[(int)type];
     fxGroups[group].fxList = names; fxGroups[group].count = definition->fxCount;
     for (int i = 0; i < definition->fxCount; ++i) { names[i].fx = (FX)definition->fxList[i].fx; strcpy(names[i].name, definition->fxList[i].name); }
+  }
+
+  {
+    const auto* definition = getInstrumentDefinition(InstrumentType::Monk);
+    auto* names = instrumentGroupNames[(int)InstrumentType::Monk];
+    auto& group = fxGroups[fxGroupCount - 1];
+    group.fxList = names; group.count = definition->fxCount;
+    for (int i = 0; i < definition->fxCount; ++i) {
+      names[i].fx = (FX)definition->fxList[i].fx;
+      strcpy(names[i].name, definition->fxList[i].name);
+    }
   }
 
   for(int group=14;group<25;++group) {

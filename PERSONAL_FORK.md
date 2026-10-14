@@ -585,3 +585,28 @@ their source program/bank. The extra library is named **Non-attributable**, with
 source credits and licenses retained. FatMan 2-op, FatMan 4-op and DMXOPL3 WOPLX
 copies are excluded from its OPL USER packs because Factory already includes
 those sources. Their offline originals remain intact.
+
+
+## MonkSynth integration — October 13, 2026
+
+The personal source includes JonET/monksynth's MIT-licensed vocal core, pinned to
+`53fdf3927e9d75930e92e5c919196d19a3ae7704`. Instrument type 29 is appended without
+renumbering existing instruments. The page uses shared filter/ADSR controls,
+with continuous vowel landmarks and an eight-control effect picker ordered
+Vowel, Voice character, Breath, Glide, Vibrato depth/rate, Cutoff, Resonance.
+Existing macro IDs are shared contextually; the 254-command namespace is unchanged.
+Native and web targets discover the C++ wrapper through their existing synth
+source lists. See the user manual and vendored source record. This engine is installed in the device personal build. Public web deployment
+remains pending.
+
+Validation passed: all 663 host tests (113,564,925 assertions), including six
+MonkSynth regressions; offscreen production UI and touch mapping in both waveform
+header modes; Emscripten compilation; Chrome audio output and saved-project
+reopening. The eight-second vocal sweep rendered in 0.034 seconds on the audited
+Mac (not a handheld performance claim). DSP storage adds about 5.13 MiB for all
+32 tracker voice slots. The pinned source and packaged license match upstream
+byte-for-byte. Local logs, captures and an audition WAV are in `.tmp/monksynth/`.
+Handheld verification passed: ARM64 build with Lucky and SQ80 enabled,
+six MonkSynth engine regressions, production UI checks and voice benchmark.
+See personal-device-validation.json for the exact source snapshot and results.
+Physical listening remains pending user evaluation.

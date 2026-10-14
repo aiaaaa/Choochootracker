@@ -37,6 +37,7 @@ extern ScreenData screenInstrumentPlaits;
 extern ScreenData screenInstrumentAChChid;
 extern ScreenData screenInstrumentDrumSynth;
 extern ScreenData screenInstrumentMME;
+extern ScreenData screenInstrumentMonk;
 extern ScreenData screenInstrumentSintered;
 extern ScreenData screenInstrumentMidi;
 extern ScreenData screenInstrumentOPLL;

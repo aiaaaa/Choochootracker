@@ -142,6 +142,23 @@
       "branch": "experimental/sq80esq",
       "upstream_status": "personal experiment; no PR",
       "integration_policy": "Retain in device personal and web builds; user waveform/preset banks remain private external assets."
+    },
+    {
+      "id": "monksynth",
+      "title": "Native MonkSynth vocal engine with continuous vowel control",
+      "upstream_status": "Personal integration of MIT-licensed JonET/monksynth DSP",
+      "source_commit": "53fdf3927e9d75930e92e5c919196d19a3ae7704",
+      "integration_policy": "Retain native FOF core, tracker filter/ADSR and effects, eight contextual controls, CNI/project persistence, and native/web compatibility. Instrument ID 29; existing FX IDs unchanged.",
+      "deployment_status": "Installed in device personal build; public web deployment pending",
+      "validation": {
+        "host_tests": 663,
+        "host_assertions": 113564925,
+        "focused_engine_tests": 6,
+        "native_ui": "Both waveform header modes, all eight effects, source/filter/ADSR touch mapping passed",
+        "web": "Emscripten build; Chrome audio output and project save/reopen passed",
+        "hardware": "ARM64 build, six engine tests, UI checks and isolated voice benchmark passed",
+        "deployment": "Installed with verified rollback; settings and user assets preserved"
+      }
     }
   ],
   "personal_assets": [
@@ -286,13 +303,13 @@
     }
   ],
   "current_device_build": {
-    "source_commit": "b5bc205f24ca6ad42acd111f7d9a067434c85f19",
-    "binary_sha256": "5b1f07a729d867aad0cc90e837dd4d438e61569afadff126eeccf7e882e8b8cd",
-    "validation_report": "docs/preset-polish-device-20261007.json",
-    "human_listening": "Initial library listening feedback recorded; final cleanup awaits user evaluation",
-    "rollback": "/roms/choochootracker-backups/pre-preset-polish-b5bc205f24ca/previous-install",
-    "binary_build_commit": "b5bc205f24ca6ad42acd111f7d9a067434c85f19",
-    "branch": "personal/r36h"
+    "base_commit": "adc8069c75191dc2fb89893c55359dcc88ceb44f",
+    "source_state": "Working tree on personal/r36h; task files only",
+    "source_snapshot_sha256": "44686cd497ef8310eed435bc355d775784103fbc4b0795d500f8b2ea9bea3e9e",
+    "binary_sha256": "cc7d200618fe43f34564482beab95ee73f944e4d22a65985361a92269bc428f8",
+    "branch": "personal/r36h",
+    "validation_report": "personal-device-validation.json",
+    "rollback": "/roms/choochootracker-backups/pre-monksynth-20261013-44686cd497ef/previous-install"
   },
   "song_storage": "Upstream CCT archives embed loaded Sample, SCWF and BYOWTBL audio. Text songs remain readable; no-sample songs stay text. Native patches remain owned by the song.",
   "harmonization_20261005": {

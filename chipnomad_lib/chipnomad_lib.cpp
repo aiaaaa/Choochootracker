@@ -12,6 +12,7 @@
 #include "synth/achchid_voice.h"
 #include "synth/drum_synth_voice.h"
 #include "synth/mme_voice.h"
+#include "synth/monk_voice.h"
 #include "synth/sintered_voice.h"
 #include "synth/opll_voice.h"
 #include "synth/sid_voice.h"
@@ -42,6 +43,7 @@ static void updatePlaitsAltVoices(ChipNomadState* state);
 static void updateAChChidVoices(ChipNomadState* state);
 static void updateDrumSynthVoices(ChipNomadState* state);
 static void updateMMEVoices(ChipNomadState* state);
+static void updateMonkVoices(ChipNomadState* state);
 static void updateSinteredVoices(ChipNomadState* state);
 static void updateOPLLVoices(ChipNomadState* state);
 static void updateDX7Voices(ChipNomadState* state);
@@ -824,7 +826,9 @@ ChipNomadState* chipnomadCreate(void) {
       state->drumSynthVoices[i][voice] = new DrumSynthVoice();
       state->drumSynthVoices[i][voice]->init(96000.0f);
       state->mmeVoices[i][voice] = new MMEVoice();
+      state->monkVoices[i][voice] = new MonkSynthVoice();
       state->mmeVoices[i][voice]->init(96000.0f);
+      state->monkVoices[i][voice]->init(96000.0f);
       state->sidVoices[i][voice]=new SIDVoice();state->sidVoices[i][voice]->init(96000);
 #if CHOOCHOO_EXPERIMENTAL_SQ80ESQ
       state->sq80Voices[i][voice]=new SQ80Voice();state->sq80Voices[i][voice]->init(96000);
@@ -874,6 +878,7 @@ void chipnomadDestroy(ChipNomadState* state) {
       delete state->achchidVoices[i][voice];
       delete state->drumSynthVoices[i][voice];
       delete state->mmeVoices[i][voice];
+      delete state->monkVoices[i][voice];
       delete state->sidVoices[i][voice];
 #if CHOOCHOO_EXPERIMENTAL_SQ80ESQ
       delete state->sq80Voices[i][voice];
@@ -958,6 +963,7 @@ void chipnomadInitChips(ChipNomadState* state, int sampleRate, ChipFactory facto
       state->achchidVoices[i][voice]->init((float)sampleRate);
       state->drumSynthVoices[i][voice]->init((float)sampleRate);
       state->mmeVoices[i][voice]->init((float)sampleRate);
+      state->monkVoices[i][voice]->init((float)sampleRate);
       state->sidVoices[i][voice]->init((float)sampleRate);
 #if CHOOCHOO_EXPERIMENTAL_SQ80ESQ
       state->sq80Voices[i][voice]->init((float)sampleRate);
@@ -1114,7 +1120,7 @@ static void updateAudioRateModulations(ChipNomadState* state) {
   updatePlaitsAltVoices(state);
   updateAChChidVoices(state);
   updateDrumSynthVoices(state);
-  updateMMEVoices(state);
+  updateMMEVoices(state); updateMonkVoices(state);
   updateSinteredVoices(state); updateOPLLVoices(state); updateOPLVoices(state); updateFourOpVoices(state); updateSimpleChipVoices(state); updateSIDVoices(state); updateDX7Voices(state);
 #if CHOOCHOO_EXPERIMENTAL_SQ80ESQ
   updateSQ80Voices(state);
@@ -1162,7 +1168,7 @@ static int advancePlaybackFrame(ChipNomadState* state, uint64_t dueMicros) {
   motionRecordFrame(state);
   if (allTracksStopped) playbackUpdateLiveStickModulation(&state->playbackState, axes, enabled);
   updateSampleVoices(state); updateSCWFVoices(state); updateBraidsVoices(state);
-  updatePlaitsVoices(state); updatePlaitsAltVoices(state); updateAChChidVoices(state); updateDrumSynthVoices(state); updateMMEVoices(state); updateSinteredVoices(state); updateOPLLVoices(state); updateOPLVoices(state); updateFourOpVoices(state); updateSimpleChipVoices(state); updateSIDVoices(state); updateDX7Voices(state);
+  updatePlaitsVoices(state); updatePlaitsAltVoices(state); updateAChChidVoices(state); updateDrumSynthVoices(state); updateMMEVoices(state); updateMonkVoices(state); updateSinteredVoices(state); updateOPLLVoices(state); updateOPLVoices(state); updateFourOpVoices(state); updateSimpleChipVoices(state); updateSIDVoices(state); updateDX7Voices(state);
 #if CHOOCHOO_EXPERIMENTAL_SQ80ESQ
   updateSQ80Voices(state);
 #endif
@@ -1357,6 +1363,7 @@ int chipnomadRender(ChipNomadState* state, float* buffer, int samples) {
     renderMonoVoiceTracks(state, state->achchidVoices, output, frames);
     renderMonoVoiceTracks(state, state->drumSynthVoices, output, frames);
     renderMonoVoiceTracks(state, state->mmeVoices, output, frames);
+    renderMonoVoiceTracks(state, state->monkVoices, output, frames);
     renderMonoVoiceTracks(state, state->sinteredVoices, output, frames);
     renderMonoVoiceTracks(state, state->opllVoices, output, frames);
     for(int t=0;t<state->audioProject.tracksCount;++t) {
@@ -1519,6 +1526,9 @@ static void applyVoiceEvents(ChipNomadState* state, uint64_t dueMicros) {
       case InstrumentType::OPLL:
       case InstrumentType::VRC7:
         applyEvent(state->opllVoices[trackIdx]);
+        break;
+      case InstrumentType::Monk:
+        applyEvent(state->monkVoices[trackIdx]);
         break;
       case InstrumentType::MME:
         applyEvent(state->mmeVoices[trackIdx]);
@@ -1949,6 +1959,63 @@ static void updateMMEVoices(ChipNomadState* state) {
     if (track->note.fx[fxERL].isOn) release = track->note.fx[fxERL].fxValue;
     if (track->note.fx[fxESH].isOn) shape = track->note.fx[fxESH].fxValue;
     applyVoicePostModulations(track, InstrumentType::MME, &attack, &decay, &sustain, &release,
+                              &shape, &triggerDecay, &triggerColor);
+    configured.attack = (uint8_t)attack; configured.decay = (uint8_t)decay; configured.sustain = (uint8_t)sustain;
+    configured.release = (uint8_t)release; configured.envelopeShape = (uint8_t)shape;
+    for (int slot = 0; slot < track->chordVoiceCount; ++slot) {
+      uint8_t note = track->chordPitchFinal[slot];
+      int cents = note == EMPTY_VALUE_8 ? 6000 :
+        (project->linearPitch ? project->pitchTable.values[note] : (note + 12) * 100) + track->note.fineOffset + pitch;
+      voices[slot]->configure(&configured, (float)cents, (gain < 0.0f ? 0.0f : gain) / track->chordVoiceCount,
+        (uint16_t)clampInt(cutoff, FILTER_CUTOFF_MIN_HZ, FILTER_CUTOFF_MAX_HZ), (uint8_t)clampInt(resonance, 0, 255));
+    }
+  }
+}
+
+static void updateMonkVoices(ChipNomadState* state) {
+  Project* project = &state->audioProject;
+  PlaybackState* playback = &state->playbackState;
+  for (int trackIdx = 0; trackIdx < project->tracksCount; ++trackIdx) {
+    PlaybackTrackState* track = &playback->tracks[trackIdx];
+    MonkSynthVoice** voices = state->monkVoices[trackIdx];
+    if (track->note.instrument == EMPTY_VALUE_8 ||
+        project->instruments[track->note.instrument].type != InstrumentType::Monk) { for (int slot = 0; slot < CHORD_MAX_VOICES; ++slot) voices[slot]->kill(); continue; }
+    InstrumentMonk* m = &project->instruments[track->note.instrument].chip.monk;
+    int vowel = m->vowel, character = m->character, breath = m->breath;
+    int glide = m->glide, vibrato = m->vibrato, rate = m->rate;
+    int cutoff = m->filterCutoffHz, resonance = m->filterResonance, pitch = 0;
+    float gain = phraseGain(playback, track, &project->instruments[track->note.instrument]);
+    vowel = slewEngineFX(track, fxMWV, track->note.fx[fxMWV].isOn ? track->note.fx[fxMWV].fxValue : vowel);
+    character = slewEngineFX(track, fxMIN, track->note.fx[fxMIN].isOn ? track->note.fx[fxMIN].fxValue : character);
+    breath = slewEngineFX(track, fxMAM, track->note.fx[fxMAM].isOn ? track->note.fx[fxMAM].fxValue : breath);
+    glide = slewEngineFX(track, fxMFL, track->note.fx[fxMFL].isOn ? track->note.fx[fxMFL].fxValue : glide);
+    vibrato = slewEngineFX(track, fxMFB, track->note.fx[fxMFB].isOn ? track->note.fx[fxMFB].fxValue : vibrato);
+    rate = slewEngineFX(track, fxMSH, track->note.fx[fxMSH].isOn ? track->note.fx[fxMSH].fxValue : rate);
+    cutoff = instrumentFXCutoff(slewEngineFX(track, fxMCF, track->note.fx[fxMCF].isOn ? track->note.fx[fxMCF].fxValue : filterControlFromCutoff(cutoff)));
+    resonance = slewEngineFX(track, fxMRS, track->note.fx[fxMRS].isOn ? track->note.fx[fxMRS].fxValue : resonance);
+    for (int i = 0; i < 4; ++i) {
+      PlaybackModState* mod = &track->note.modulation[i]; if (!mod->modulation) continue;
+      int value = playbackModScaleToRange(mod->outValue, 255);
+      switch (mod->modulation->destination) {
+        case 1: gain = modulationIsAdditive(mod->modulation->type) ? gain + value / 255.0f : value / 255.0f; break;
+        case 2: pitch += playbackModScaleToRange(mod->outValue, 1200); break;
+        case 3: vowel += value; break; case 4: character += value; break; case 5: breath += value; break;
+        case 6: glide += value; break; case 7: vibrato += value; break; case 8: rate += value; break;
+        case 9: cutoff = playbackModulateCutoff(cutoff, mod); break; case 10: resonance += value; break;
+      }
+    }
+    InstrumentMonk configured = *m;
+    configured.vowel = (uint8_t)clampInt(vowel, 0, 255); configured.character = (uint8_t)clampInt(character, 0, 255);
+    configured.breath = (uint8_t)clampInt(breath, 0, 255); configured.glide = (uint8_t)clampInt(glide, 0, 255);
+    configured.vibrato = (uint8_t)clampInt(vibrato, 0, 255); configured.rate = (uint8_t)clampInt(rate, 0, 255);
+    int attack = configured.attack, decay = configured.decay, sustain = configured.sustain, release = configured.release;
+    int shape = configured.envelopeShape, triggerDecay = 0, triggerColor = 0;
+    if (track->note.fx[fxEAT].isOn) attack = track->note.fx[fxEAT].fxValue;
+    if (track->note.fx[fxEDC].isOn) decay = track->note.fx[fxEDC].fxValue;
+    if (track->note.fx[fxESU].isOn) sustain = track->note.fx[fxESU].fxValue;
+    if (track->note.fx[fxERL].isOn) release = track->note.fx[fxERL].fxValue;
+    if (track->note.fx[fxESH].isOn) shape = track->note.fx[fxESH].fxValue;
+    applyVoicePostModulations(track, InstrumentType::Monk, &attack, &decay, &sustain, &release,
                               &shape, &triggerDecay, &triggerColor);
     configured.attack = (uint8_t)attack; configured.decay = (uint8_t)decay; configured.sustain = (uint8_t)sustain;
     configured.release = (uint8_t)release; configured.envelopeShape = (uint8_t)shape;

@@ -15,6 +15,7 @@ class PlaitsAltVoice;
 class AChChidVoice;
 class DrumSynthVoice;
 class MMEVoice;
+class MonkSynthVoice;
 class SinteredVoice;
 class OPLLVoice;
 class SQ80Voice;
@@ -101,6 +102,7 @@ struct ChipNomadState {
   AChChidVoice* achchidVoices[PROJECT_MAX_TRACKS][CHORD_MAX_VOICES];
   DrumSynthVoice* drumSynthVoices[PROJECT_MAX_TRACKS][CHORD_MAX_VOICES];
   MMEVoice* mmeVoices[PROJECT_MAX_TRACKS][CHORD_MAX_VOICES];
+  MonkSynthVoice* monkVoices[PROJECT_MAX_TRACKS][CHORD_MAX_VOICES];
   OPLVoice* oplVoices[PROJECT_MAX_TRACKS][CHORD_MAX_VOICES];
   OPLVoice* oplPreview;
   FourOpVoice* fourOpPreview;

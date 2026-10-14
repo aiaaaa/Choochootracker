@@ -1583,7 +1583,7 @@ static int projectSaveAYWavetables(FILE* file, Project* project) {
 
 static int projectSaveInternal(FILE* file, Project* project) {
   bool nativeChips = false;
-  for (const auto& instrument : project->instruments) nativeChips |= (instrument.type==InstrumentType::SQ80ESQ || instrument.type==InstrumentType::SID || instrument.type==InstrumentType::DX7 || isOPLL(instrument.type) || (isOPL(instrument.type) || isFourOp(instrument.type)) || isSimpleChip(instrument.type));
+  for (const auto& instrument : project->instruments) nativeChips |= (instrument.type==InstrumentType::Monk || instrument.type==InstrumentType::SQ80ESQ || instrument.type==InstrumentType::SID || instrument.type==InstrumentType::DX7 || isOPLL(instrument.type) || (isOPL(instrument.type) || isFourOp(instrument.type)) || isSimpleChip(instrument.type));
   for (const auto& phrase : project->phrases) for (const auto& row : phrase.rows) for (const auto& fx : row.fx) nativeChips |= fx[0] >= fxFBR && fx[0] < fxTotalCount;
   for (const auto& table : project->tables) for (const auto& row : table.rows) for (const auto& fx : row.fx) nativeChips |= fx[0] >= fxFBR && fx[0] < fxTotalCount;
   bool sourcePrograms=false;
@@ -1833,7 +1833,7 @@ int instrumentSave(Project* project, const char* path, int instrumentIdx) {
     return 1;
   }
 
-  bool nativeFormat = (project->instruments[instrumentIdx].type==InstrumentType::SQ80ESQ || project->instruments[instrumentIdx].type==InstrumentType::SID || project->instruments[instrumentIdx].type==InstrumentType::DX7 || isOPLL(project->instruments[instrumentIdx].type) || (isOPL(project->instruments[instrumentIdx].type) || isFourOp(project->instruments[instrumentIdx].type)) || isSimpleChip(project->instruments[instrumentIdx].type));
+  bool nativeFormat = (project->instruments[instrumentIdx].type==InstrumentType::Monk || project->instruments[instrumentIdx].type==InstrumentType::SQ80ESQ || project->instruments[instrumentIdx].type==InstrumentType::SID || project->instruments[instrumentIdx].type==InstrumentType::DX7 || isOPLL(project->instruments[instrumentIdx].type) || (isOPL(project->instruments[instrumentIdx].type) || isFourOp(project->instruments[instrumentIdx].type)) || isSimpleChip(project->instruments[instrumentIdx].type));
   for (const auto& row : project->tables[instrumentIdx].rows) for (const auto& fx : row.fx) nativeFormat |= fx[0] >= fxFBR && fx[0] < fxTotalCount;
   bool absoluteLevels=false;
   for(const auto& row:project->tables[instrumentIdx].rows)for(const auto& fx:row.fx)absoluteLevels |= fx[0]>=fxOL1&&fx[0]<=fxFBK;

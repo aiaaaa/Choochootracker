@@ -47,6 +47,7 @@ static SelectionItem instrumentTypeSynth[] = {
   {NULL, (int)InstrumentType::Plaits, NULL, 0},
   {NULL, (int)InstrumentType::PlaitsAlt, NULL, 0},
   {NULL, (int)InstrumentType::MME, NULL, 0},
+  {NULL, (int)InstrumentType::Monk, NULL, 0},
 };
 static SelectionItem instrumentTypeDrums[] = {
   {NULL, (int)InstrumentType::DrumSynth, NULL, 0},
@@ -84,7 +85,7 @@ static const InstrumentType instrumentTypesQuickCycle[] = {
   InstrumentType::SCWF, InstrumentType::BYOWTBL, InstrumentType::Sample,
   InstrumentType::AChChid, InstrumentType::Braids,
   InstrumentType::Plaits, InstrumentType::PlaitsAlt,
-  InstrumentType::MME,
+  InstrumentType::MME, InstrumentType::Monk,
   InstrumentType::SegaPSG, InstrumentType::GBPulse, InstrumentType::GBNoise,
   InstrumentType::GenesisFM, InstrumentType::ArcadeFM, InstrumentType::DX7, InstrumentType::Midi, InstrumentType::OPLL, InstrumentType::VRC7, InstrumentType::OPL2, InstrumentType::OPL3,
   InstrumentType::SID,
@@ -303,6 +304,7 @@ static ScreenData* instrumentScreen(void) {
 #else
     &screenInstrumentNone,
 #endif
+    &screenInstrumentMonk,
   };
   InstrumentScreenKind kind = getInstrumentDefinition(chipnomadState->project.instruments[cInstrument].type)->screen;
   ScreenData* data = screens[(int)kind];
