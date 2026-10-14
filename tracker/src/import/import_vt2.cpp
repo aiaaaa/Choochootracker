@@ -828,7 +828,7 @@ static int convertPatternToPhrases(const VT2Pattern* pattern, Project* project,
         for (int ch = 0; ch < VT2_CHANNELS && !inserted; ch++) {
           PhraseRow* phraseRow = &phrases[ch]->rows[lastRow];
           for (int fx = 0; fx < MAX_FX_SLOTS; fx++) {
-            if (phraseRow->fx[fx][0] == EMPTY_VALUE_8) {
+            if (phraseRow->fx[fx].command == FX_ID_EMPTY) {
               phraseRow->fx[fx][0] = fxGGR;
               phraseRow->fx[fx][1] = (uint8_t)skipGrooveIdx;
               inserted = 1;

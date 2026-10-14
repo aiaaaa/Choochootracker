@@ -2180,6 +2180,7 @@ personal Beads remains available in its own group.
 
 Instrument motion destinations and FX lists preserve the wider lane FX identifiers,
 including the empty destination marker, across the upstream refactor.
+Short imported VT2 patterns also retain their end-of-pattern skipping behavior.
 
 This daily includes the upstream v1.0.16-alpha changes and subsequent lane FX
 refactor, plus the revised SID home controls and SQ80 EDIT styling. Phrase and

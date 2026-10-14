@@ -778,6 +778,19 @@ TEST_CASE("VT2 import keeps volume levels and inherited rows in the expanded dom
   CHECK(p.phrases[phrase].rows[0].volume == PHRASE_VOLUME_MAX);
   CHECK(p.phrases[phrase].rows[1].volume == 59);
   CHECK(p.phrases[phrase].rows[2].volume == EMPTY_VALUE_16);
+  // A short final phrase must still find an empty widened FX cell and insert
+  // the groove command that skips its unused rows.
+  const auto& finalRow = p.phrases[phrase].rows[2];
+  bool skipsTail = false;
+  for (const auto& fx : finalRow.fx) {
+    if (fx.command == fxGGR) {
+      REQUIRE(fx.value < PROJECT_MAX_GROOVES);
+      CHECK(p.grooves[fx.value].speed[0] == 6);
+      CHECK(p.grooves[fx.value].speed[1] == 0);
+      skipsTail = true;
+    }
+  }
+  CHECK(skipsTail);
   projectFree(&p);
   remove(path);
 }
