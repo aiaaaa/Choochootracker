@@ -19,6 +19,9 @@ extern "C" {
 #define THEME_NAME_LENGTH (16)
 #define MIDI_CHANNEL_COUNT (16)
 #define MIDI_DEVICE_NAME_LENGTH (127)
+#define AUDIO_DEVICE_NAME_LENGTH (127)
+#define AUDIO_INPUT_MAX_DEVICES (16)
+#define AUDIO_INPUT_MAX_ARMED (8)
 
 struct ColorScheme {
   int background;
@@ -63,6 +66,33 @@ enum class ClockSource : int {
   midiClock = 1,
   link = 2,
 };
+
+// Audio input recording source. -1 = none; 0..7 = bounce the captured
+// signal into that track's chain input; 100..115 = external MIDI instrument
+// (index = value - 100), mirroring the MIDI channel-instrument convention.
+enum class AudioInputSource : int {
+  none = -1,
+  track0 = 0,
+  track1,
+  track2,
+  track3,
+  track4,
+  track5,
+  track6,
+  track7,
+  externalBase = 100
+};
+
+inline bool audioInputIsTrackSource(int source) {
+  return source >= 0 && source < PROJECT_MAX_TRACKS;
+}
+inline bool audioInputIsExternalSource(int source) {
+  return source >= (int)AudioInputSource::externalBase &&
+         source < (int)AudioInputSource::externalBase + MIDI_CHANNEL_COUNT;
+}
+inline int audioInputExternalIndex(int source) {
+  return source - (int)AudioInputSource::externalBase;
+}
 
 struct AppSettings {
   int screenWidth;
@@ -125,6 +155,15 @@ struct AppSettings {
   char ayWavetablePath[PATH_LENGTH + 1];
   char scwfPath[PATH_LENGTH + 1];
   char srWavetablePath[PATH_LENGTH + 1];
+  // Audio input recording (see docs/audio-input-recording-implementation-plan.md).
+  // Device names are persisted; indices are runtime-only (enumeration order
+  // isn't stable across reboots), resolved at launch like MIDI devices.
+  char audioInputDeviceNames[AUDIO_INPUT_MAX_DEVICES][AUDIO_DEVICE_NAME_LENGTH + 1];
+  int audioInputDeviceCount;
+  // Armed capture devices as indices into audioInputDeviceNames, -1 = empty.
+  int8_t audioInputArmed[AUDIO_INPUT_MAX_ARMED];
+  int audioInputMonitor; // 1 = route capture to output at -6 dB
+  char recordingPath[PATH_LENGTH + 1]; // Last recording output folder
 };
 
 extern AppSettings appSettings;

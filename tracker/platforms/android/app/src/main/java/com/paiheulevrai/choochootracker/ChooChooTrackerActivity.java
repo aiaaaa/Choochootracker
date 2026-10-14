@@ -1,5 +1,6 @@
 package com.paiheulevrai.choochootracker;
 
+import android.Manifest;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -47,6 +48,8 @@ import org.libsdl.app.SDLActivity;
 public final class ChooChooTrackerActivity extends SDLActivity {
     private static final int OPEN_DOCUMENT = 4101;
     private static final int CREATE_DOCUMENT = 4102;
+    private static final int REQUEST_RECORD_AUDIO = 4103;
+    private static boolean recordAudioPermissionRequested = false;
     private static final String ACTION_USB_PERMISSION =
             "com.paiheulevrai.choochootracker.USB_PERMISSION";
     private static final String PREFS_NAME = "choochootracker_prefs";
@@ -1035,5 +1038,36 @@ public final class ChooChooTrackerActivity extends SDLActivity {
             byte[] buffer = new byte[32768];
             for (int read; input != null && (read = input.read(buffer)) != -1;) output.write(buffer, 0, read);
         } catch (Exception ignored) { }
+    }
+
+    // Audio input recording (opt-in): SDL2's capture backend needs the
+    // RECORD_AUDIO runtime permission. Called from native code via SDL
+    // before the first audioInputSetup(); if the user denies, capture
+    // device enumeration simply returns no devices.
+    @SuppressWarnings("unused")
+    public static boolean ensureRecordAudioPermission() {
+        ChooChooTrackerActivity activity = (ChooChooTrackerActivity)mSingleton;
+        if (activity == null) return false;
+        if (Build.VERSION.SDK_INT >= 23
+                && activity.checkSelfPermission(Manifest.permission.RECORD_AUDIO)
+                        != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            if (!recordAudioPermissionRequested) {
+                recordAudioPermissionRequested = true;
+                activity.requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO},
+                        REQUEST_RECORD_AUDIO);
+            }
+            return false;
+        }
+        return true;
+    }
+
+    @Override public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode != REQUEST_RECORD_AUDIO) return;
+        // Granted or denied: either way the user can retry from the Audio
+        // Input settings screen, which calls ensureRecordAudioPermission()
+        // again (recordAudioPermissionRequested only gates repeat prompts
+        // within one attempt).
+        recordAudioPermissionRequested = false;
     }
 }
