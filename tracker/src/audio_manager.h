@@ -14,6 +14,9 @@ typedef int ProjectMutation(void* userdata);
 struct AudioManager {
   int (*start)(int sampleRate, int audioBufferSize);
   int (*reconfigure)(int sampleRate, int audioBufferSize);
+  // Reopens the output device at the current rate/size (device lost, driver
+  // reset). Buffers and engine state are preserved; returns 0 on success.
+  int (*restart)(void);
   void (*pause)(void);
   void (*resume)(void);
   void (*replaceProject)(Project* replacement);

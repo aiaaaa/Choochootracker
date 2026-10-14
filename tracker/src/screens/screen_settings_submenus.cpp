@@ -1,4 +1,5 @@
 #include "screen_color_theme.h"
+#include "screen_audio_input.h"
 #include "screen_keymapping.h"
 #include "audio_manager.h"
 #include "app.h"
@@ -29,7 +30,18 @@ static void drawAudioCpuLoad(void) {
 }
 
 static void audioStatic(void) { gfxSetFgColor(appSettings.colorScheme.textTitles); gfxPrint(0, 0, "AUDIO"); }
-static void audioCursor(int, int) { gfxCursor(23, 2, appSettings.audioBufferSize == 1024 ? 4 : 3); }
+
+static int audioInputArmedCount(void) {
+  int count = 0;
+  for (int i = 0; i < AUDIO_INPUT_MAX_ARMED; i++)
+    if (appSettings.audioInputArmed[i] >= 0) count++;
+  return count;
+}
+
+static void audioCursor(int, int row) {
+  if (row == 0) gfxCursor(23, 2, appSettings.audioBufferSize == 1024 ? 4 : 3);
+  else if (row == 2) gfxCursor(23, 4, 3); // "OFF"/"ON" value width
+}
 static void audioField(int, int row, CellState state) {
   const ColorScheme cs = appSettings.colorScheme;
   if (row == 0) {
@@ -37,6 +49,11 @@ static void audioField(int, int row, CellState state) {
     gfxSetFgColor(state == CellState::focus ? cs.textValue : cs.textDefault);
     gfxClearRect(23, 2, 4, 1);
     gfxPrintf(23, 2, "%d", appSettings.audioBufferSize);
+  } else if (row == 2) {
+    gfxSetFgColor(cs.textDefault); gfxPrint(0, 4, "Audio Input");
+    gfxSetFgColor(state == CellState::focus ? cs.textValue : cs.textDefault);
+    gfxClearRect(23, 4, 3, 1);
+    gfxPrint(23, 4, audioInputArmedCount() > 0 ? "ON" : "OFF");
   } else {
     gfxSetFgColor(cs.textDefault); gfxPrint(0, 3, "CPU load");
     drawAudioCpuLoad();
@@ -48,6 +65,11 @@ static int audioBufferIndex(int value) {
   return 0;
 }
 static int audioEdit(int, int row, CellEditAction action) {
+  if (row == 2) {
+    if (action != CellEditAction::tap) return 0;
+    screenSetup(&screenAudioInput, 0);
+    return 1;
+  }
   if (row != 0) return 0;
   int direction = 0;
   if (action == CellEditAction::clear) direction = -99;
@@ -71,8 +93,8 @@ static int audioEdit(int, int row, CellEditAction action) {
   if (settingsSave() != 0) screenMessage(MESSAGE_TIME_ERROR, "Could not save audio setting");
   return 1;
 }
-static int audioCellValid(int, int row) { return row == 0; }
-static ScreenData audioData = {2, 0, 0, 0, -1, 0, 0, 0, 0, ScreenPlaybackLevel::none, columnCount, audioStatic, audioCursor, NULL, noHeader, noHeader, audioField, audioEdit, NULL, NULL, audioCellValid, NULL};
+static int audioCellValid(int, int row) { return row == 0 || row == 2; }
+static ScreenData audioData = {3, 0, 0, 0, -1, 0, 0, 0, 0, ScreenPlaybackLevel::none, columnCount, audioStatic, audioCursor, NULL, noHeader, noHeader, audioField, audioEdit, NULL, NULL, audioCellValid, NULL};
 
 static void controlsStatic(void) { gfxSetFgColor(appSettings.colorScheme.textTitles); gfxPrint(0, 0, "CONTROLS"); }
 #ifdef TOUCH_INPUT

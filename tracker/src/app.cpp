@@ -5,6 +5,8 @@
 #include "corelib_file.h"
 #include "common.h"
 #include "audio_manager.h"
+#include "audio_input_manager.h"
+#include "corelib/corelib_audio.h"
 #include "app.h"
 #include "screens.h"
 #include "screens/selection_popup.h"
@@ -591,6 +593,12 @@ void appSetup(void) {
   audioManager.start(appSettings.audioSampleRate, appSettings.audioBufferSize);
   audioManager.resume();
 
+  // Audio input: enumerate capture devices and re-arm the ones saved in
+  // settings (Phase 4). Monitor state comes from settings too.
+  audioInputManager.enumerate();
+  syncArmedDevicesFromSettings();
+  audioInputManager.setMonitor(appSettings.audioInputMonitor);
+
   int savedInputPort = findMidiPortByName(1, appSettings.midiInputDeviceName);
   if (savedInputPort >= 0 && midiRouterOpenInput(savedInputPort) == 0) appSettings.midiInputDevice = savedInputPort;
   int savedOutputPort = findMidiPortByName(0, appSettings.midiOutputDeviceName);
@@ -727,6 +735,24 @@ void appDraw(void) {
 * @param value Event value
 * @param userdata Arbitraty event data
 */
+
+// An audio device was unplugged or its stream died (SDL_AUDIODEVICEREMOVED).
+// Audio interfaces often take the output down with them, so rebuild the whole
+// audio handler: stop any active capture recording, drop armed inputs, close
+// and re-enumerate capture, then reopen the output device. The helper box
+// shows an animated notice while the restart runs.
+static void handleAudioDeviceRemoved(int isCapture) {
+  (void)isCapture; // both capture loss and output loss get the same rebuild
+  screenNotifyAudioRestart();
+  audioInputManagerStopRecording();
+  audioInputManager.disarmAll();
+  audioInputCleanup();
+  audioInputRefreshDevices();
+  audioInputManager.enumerate();
+  syncArmedDevicesFromSettings();
+  audioManager.restart();
+}
+
 void appOnEvent(MainLoopEventData eventData) {
   static int dPadMask = keyLeft | keyRight | keyUp | keyDown;
   static int doubleTapMask = keyEdit | keyOpt | keyUnmapped | keyPlay;
@@ -1101,6 +1127,9 @@ void appOnEvent(MainLoopEventData eventData) {
     }
     break;
   }
+  case MainLoopEvent::audioDeviceRemoved:
+    handleAudioDeviceRemoved(eventData.data.value);
+    break;
   case MainLoopEvent::exit:
     // Auto-save the current project and settings on exit
     projectSave(&chipnomadState->project, getAutosavePath());

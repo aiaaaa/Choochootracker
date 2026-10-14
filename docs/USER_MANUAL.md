@@ -748,6 +748,18 @@ This clean Sample engine plays mono or stereo PCM samples loaded into RAM.
 
 Unsupported WAV formats display an error. Convert unusual files to `PCM8`, `PCM16` or `PCM24` WAV before importing them.
 
+##### Recording audio input
+
+On the Sample instrument screen, the **EDIT/REC** field opens the sample editor, which hosts recording and editing in one screen. Arm inputs on the **Settings → Audio → Audio Input** screen first (see [Audio input](#audio-input)). The editor's top rows control recording:
+
+- **Input** cycles the recording source: `T1`..`T8` (a tracker track's rendered output) and then every armed external input, wrapping back to `-` (none). Hold **EDIT** and press **LEFT**/**RIGHT** to step backwards/forwards, or **EDIT+OPT** to clear to `-`. Tapping Input cycles it directly.
+- The level meter next to **Input** shows the armed input's live level (external sources only). **MON** toggles input monitoring: the armed input is routed to the output at -6 dB to avoid feedback. The setting is shared with the Audio Input screen and saved in the settings file.
+- **REC** starts recording. External sources record immediately; a track source shows **ARMED** and recording starts when playback starts (press **PLAY**). **STOP** finishes the recording: the WAV is written to the project's export folder (`recNNN.wav`), loaded into the current Sampler instrument, and the Region resets to the full sample. Leaving the screen with **OPT** while a recording is in flight finalizes it the same way.
+- **PLAY** (shown after a recording) auditions the take; it becomes **STOP** while the preview plays. **CLEAR** (next to it) deletes the WAV file and unloads the sample from the instrument; after clearing, **REC** takes its place again.
+- The waveform shows the live input while recording and the full recorded waveform after the recording stops. The status line shows the file name while recording and the frame count after. A recorded sample is fully editable: loop region, selection, slicing, processing and saving all work on it like on any loaded file.
+
+Recordings are written at the project's audio sample rate as stereo 16-bit WAV files. Track sources capture what the track's instruments render (post-FX); external sources capture the device input directly.
+
 #### 2xSCWF
 
 2xSCWF is a dual single-cycle waveform oscillator. Load 1 mono WAV containing exactly 1 period into each oscillator. Both oscillators read forwards and wrap at the end of their cycle.
