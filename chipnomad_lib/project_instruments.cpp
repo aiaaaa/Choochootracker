@@ -363,7 +363,7 @@ static int freeMidiInstrument(Instrument* instrument) { freeCommon(instrument); 
 
 // The one source of truth for family metadata.  Values are accessed through
 // typed code below; no union member is addressed by an offset.
-#define D(n, f, r, v) {n, (uint8_t)(f), r, v}
+#define D(n, f, r, v) {n, (FXId)(f), r, v}
 #define N D("-", instrumentNoFX, 0, InstrumentMotionValue::raw)
 static const InstrumentModDestination destNone[] = {N};
 static const InstrumentModDestination destAY1[] = {N, D("Volume", instrumentNoFX, 255, InstrumentMotionValue::raw), D("Pitch", instrumentNoFX, 0, InstrumentMotionValue::raw), D("Noise", instrumentNoFX, 0, InstrumentMotionValue::raw), D("EnvPrd", instrumentNoFX, 0, InstrumentMotionValue::raw)};
@@ -383,7 +383,7 @@ static const InstrumentModDestination destMidi[] = {N};
 static const InstrumentModDestination destOPLL[] = {N,D("Volume",instrumentNoFX,255,InstrumentMotionValue::raw),D("Pitch",instrumentNoFX,0,InstrumentMotionValue::raw)};
 #undef N
 #undef D
-#define F(f, n) {(uint8_t)(f), n}
+#define F(f, n) {(FXId)(f), n}
 static const InstrumentFX fxAY1[]={F(fxAYM,"AYM"),F(fxNOI,"NOI"),F(fxNOA,"NOA"),F(fxERT,"ERT"),F(fxEAU,"EAU"),F(fxEVB,"EVB"),F(fxEBN,"EBN"),F(fxESL,"ESL"),F(fxENT,"ENT"),F(fxEPT,"EPT"),F(fxEPL,"EPL"),F(fxEPH,"EPH")};
 static const InstrumentFX fxAY2[]={F(fxAYM,"AYM"),F(fxNOI,"NOI"),F(fxNOA,"NOA"),F(fxTNN,"TNN"),F(fxTNP,"TNP"),F(fxTNF,"TNF"),F(fxTRT,"TRT"),F(fxEAU,"EAU"),F(fxENN,"ENN"),F(fxENP,"ENP"),F(fxENF,"ENF"),F(fxERT,"ERT"),F(fxSFT,"SFT"),F(fxSFN,"SFN"),F(fxSFP,"SFP"),F(fxSFF,"SFF"),F(fxSRT,"SRT"),F(fxSFM,"SFM"),F(fxPWM,"PWM"),F(fxSPL,"SPL"),F(fxSWT,"SWT")};
 static const InstrumentFX fxAYSample[]={F(fxAYM,"AYM"),F(fxNOI,"NOI"),F(fxNOA,"NOA"),F(fxTNN,"TNN"),F(fxTNP,"TNP"),F(fxTNF,"TNF"),F(fxTRT,"TRT"),F(fxSFN,"SFN"),F(fxSFP,"SFP"),F(fxSFF,"SFF"),F(fxSMS,"SMS")};

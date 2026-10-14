@@ -83,7 +83,7 @@ TEST_CASE("SQ80 bank chords defer the chooser and keep preset and editor on one 
  auto& inst=chipnomadState->project.instruments[0];getInstrumentFunctions(InstrumentType::SQ80ESQ).init(&inst);
  auto& d=screenInstrumentSQ80;d.cursorRow=3;d.cursorCol=0;currentScreen=&screenInstrument;
  d.drawStatic();d.drawField(0,3,CellState::normal);d.drawField(1,4,CellState::normal);d.drawField(0,4,CellState::normal);
- CHECK(std::string(mockGfxCells[6],4)=="Bank");CHECK(std::string(mockGfxCells[7],6)=="Preset");CHECK(std::string(mockGfxCells[7]+19,4)=="Edit");
+ CHECK(std::string(mockGfxCells[6],4)=="Bank");CHECK(std::string(mockGfxCells[7],6)=="Preset");CHECK(std::string(mockGfxCells[7]+19,4)=="EDIT");
  CHECK(d.rows==8);CHECK(d.getColumnCount(4)==2);
  CHECK(d.onInput(1,keyEdit,1)==1);CHECK(currentScreen==&screenInstrument);
  CHECK(d.onInput(0,0,1)==1);CHECK(currentScreen==&screenSelectionPopup);

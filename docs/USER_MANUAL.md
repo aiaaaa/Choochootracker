@@ -2178,6 +2178,9 @@ personal Beads remains available in its own group.
 
 ### October 14 combined personal daily
 
+Instrument motion destinations and FX lists preserve the wider lane FX identifiers,
+including the empty destination marker, across the upstream refactor.
+
 This daily includes the upstream v1.0.16-alpha changes and subsequent lane FX
 refactor, plus the revised SID home controls and SQ80 EDIT styling. Phrase and
 Table FX slot counts and 00–FF value editing are unchanged. Trance Gate uses the

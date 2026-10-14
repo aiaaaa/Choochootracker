@@ -383,6 +383,7 @@ TEST_CASE("instrument catalogue covers every family and its routable motion FX")
     for (int destination = 0; destination < definition->destinationCount; ++destination) {
       const InstrumentModDestination* metadata = instrumentModDestination(type, destination);
       REQUIRE(metadata != nullptr);
+      if (destination == 0) CHECK(metadata->fx == instrumentNoFX);
       const char* expectedName = destination == midiCCDestinationNone ? "-" : instrumentModDestinationName(type, destination);
       CHECK(std::strcmp(metadata->name, expectedName) == 0);
       if (metadata->fx != instrumentNoFX) CHECK(instrumentFXAvailable(type, metadata->fx));
