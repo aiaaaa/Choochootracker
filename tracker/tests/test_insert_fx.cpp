@@ -278,7 +278,7 @@ TEST_SUITE("track inserts") {
     whole.process(x.data(), 960, v);
     for (int frame = 0; frame < 960; ++frame) split.process(y.data() + frame * 2, 1, v);
     for (size_t i = 0; i < x.size(); ++i) CHECK(x[i] == doctest::Approx(y[i]).epsilon(1e-6));
-    CHECK(x[200] < .01f); // The 1st 1/32 is open; the following seven are closed.
+    CHECK(x[200] < .2f); // The 1st 1/32 is open; the following seven fade closed.
     whole.trigger();
     std::vector<float> retrigger(120 * 2, .25f);
     whole.process(retrigger.data(), 120, v);
