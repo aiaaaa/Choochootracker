@@ -57,6 +57,7 @@ static SelectionItem instrumentTypeSample[] = {
   {NULL, (int)InstrumentType::Sample, NULL, 0},
   {NULL, (int)InstrumentType::SCWF, NULL, 0},
   {NULL, (int)InstrumentType::BYOWTBL, NULL, 0},
+  {NULL, (int)InstrumentType::SoundFont, NULL, 0},
 };
 static SelectionItem instrumentTypeFM[] = {
   {"OPLL / YM2413", (int)InstrumentType::OPLL, NULL, 0},
@@ -73,7 +74,7 @@ static SelectionItem instrumentTypeMidi[] = {
 static const SelectionItem instrumentTypeCategories[] = {
   {"CHIP", -1, instrumentTypeChip, 7},
   {"DRUMS", -1, instrumentTypeDrums, 2},
-  {"SAMPLE", -1, instrumentTypeSample, 3},
+  {"SAMPLE", -1, instrumentTypeSample, 4},
   {"SYNTH", -1, instrumentTypeSynth, sizeof(instrumentTypeSynth)/sizeof(instrumentTypeSynth[0])},
   {"MIDI", -1, instrumentTypeMidi, 1},
   {"FM", -1, instrumentTypeFM, sizeof(instrumentTypeFM) / sizeof(instrumentTypeFM[0])},
@@ -82,7 +83,7 @@ static const SelectionItem instrumentTypeCategories[] = {
 static const InstrumentType instrumentTypesQuickCycle[] = {
   InstrumentType::none, InstrumentType::DrumSynth, InstrumentType::Sintered,
   InstrumentType::AY1, InstrumentType::AY2, InstrumentType::AYSample,
-  InstrumentType::SCWF, InstrumentType::BYOWTBL, InstrumentType::Sample,
+  InstrumentType::SCWF, InstrumentType::BYOWTBL, InstrumentType::Sample, InstrumentType::SoundFont,
   InstrumentType::AChChid, InstrumentType::Braids,
   InstrumentType::Plaits, InstrumentType::PlaitsAlt,
   InstrumentType::MME, InstrumentType::Monk,
@@ -305,6 +306,7 @@ static ScreenData* instrumentScreen(void) {
     &screenInstrumentNone,
 #endif
     &screenInstrumentMonk,
+    &screenInstrumentSoundFont,
   };
   InstrumentScreenKind kind = getInstrumentDefinition(chipnomadState->project.instruments[cInstrument].type)->screen;
   ScreenData* data = screens[(int)kind];
@@ -319,7 +321,7 @@ static void init(void) {
   screenInstrumentNone.cursorRow = 0;
   screenInstrumentNone.cursorCol = 0;
   SelectionItem* groups[] = {instrumentTypeChip, instrumentTypeSample, instrumentTypeSynth, instrumentTypeDrums, instrumentTypeMidi};
-  const int counts[] = {7, 3, int(sizeof(instrumentTypeSynth)/sizeof(instrumentTypeSynth[0])), 2, 1};
+  const int counts[] = {7, 4, int(sizeof(instrumentTypeSynth)/sizeof(instrumentTypeSynth[0])), 2, 1};
   for (int group = 0; group < 5; ++group)
     for (int item = 0; item < counts[group]; ++item)
       groups[group][item].label = getInstrumentDefinition((InstrumentType)groups[group][item].value)->uiName;

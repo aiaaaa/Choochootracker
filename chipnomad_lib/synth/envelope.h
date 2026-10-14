@@ -35,6 +35,7 @@ class Envelope {
     }
     return level_;
   }
+  Stage stage() const { return stage_; }
   bool active() const { return stage_ != Stage::idle; }
   float level() const { return level_; }
 

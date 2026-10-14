@@ -48,6 +48,12 @@ static int initNoneInstrument(Instrument* instrument) {
   return 0;
 }
 
+static int initSoundFontInstrument(Instrument* instrument) {
+  initCommon(instrument);
+  instrument->type = InstrumentType::SoundFont;
+  return 0;
+}
+
 static int freeNoneInstrument(Instrument* instrument) {
   freeCommon(instrument);
   return 0;
@@ -436,6 +442,7 @@ static const InstrumentDefinition instrumentDefinitions[] = {
   {"SQ80 unavailable",InstrumentCategory::none,InstrumentScreenKind::none,destNone,COUNT(destNone),NULL,0,{0,modNameNone,initNoneInstrument,freeNoneInstrument,0,0}},
 #endif
   {"MonkSynth",InstrumentCategory::synth,InstrumentScreenKind::monk,destMonk,COUNT(destMonk),fxMonk,COUNT(fxMonk),{10,modNameMonk,initMonkInstrument,freeNoneInstrument,1,0}},
+  {"SOUNDFONT",InstrumentCategory::sample,InstrumentScreenKind::soundfont,destOPLL,COUNT(destOPLL),NULL,0,{2,modNameOPLL,initSoundFontInstrument,freeNoneInstrument,0,0}},
 };
 #undef COUNT
 

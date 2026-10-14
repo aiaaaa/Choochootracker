@@ -448,6 +448,19 @@ Each instrument has a default table with the same number in the `00-7F` range. Y
 - **SHIFT + OPT**: copy the instrument
 - **SHIFT + EDIT**: paste the instrument
 
+### SOUNDFONT (experimental)
+
+Copy original SF2/SF3 banks, SFZ/EXS instruments with their samples, or ZIP archives
+into `SoundBanks`. Select **SOUNDFONT** on Instrument, then use **BANK MANAGER**
+and **PRESET BROWSER**. EDIT loads a preset; EDIT + PLAY previews the loaded
+selection. Existing tracker note entry, note-off, volume/pitch MODs and pan apply.
+Projects save stable bank/preset references; libraries remain external.
+
+All banks are USER banks. Large instruments may exceed the default 64 MiB PCM
+cache, and unsupported source parameters produce warnings. See the
+[SoundBanks guide](soundbanks/README.md) for platform paths, browser import,
+cache configuration, format coverage and current validation limits.
+
 ### AY Classic, AY Plus and AY Sample
 
 These are the original ChipNomad AY/YM engines. AY Classic exposes hardware-style tone, noise and envelope controls. AY Plus adds software oscillators and richer modulation. AY Sample reproduces a sample through AY-style volume levels and is distinct from the Sampler engine.
@@ -2187,3 +2200,16 @@ refactor, plus the revised SID home controls and SQ80 EDIT styling. Phrase and
 Table FX slot counts and 00–FF value editing are unchanged. Trance Gate uses the
 stock module number; old personal Beads songs are converted with the update,
 with originals retained for rollback. User presets and settings are preserved.
+
+### Combined SoundFont and SONG waveform evaluation
+
+The personal evaluation combines the SID home layout with the SONG-only waveform
+and experimental SoundFont instrument. The saved Song waveform preference is
+retained; Instrument and other editors use their full layouts. ESQ stays experimental
+and is excluded from the planned SID layout contribution.
+
+Use SAMPLE → SOUNDFONT → BANK MANAGER, then PRESET BROWSER. Sound banks remain
+external user data under SoundBanks; web adds Import sound banks and Import bank
+folder. Existing SQ80 and Monk instrument identities remain 28 and 29; SoundFont
+uses 30 in this personal evaluation. Keep the original bank beside saved projects.
+See docs/soundbanks/validation.md for format and memory limits.

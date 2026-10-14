@@ -40,6 +40,7 @@ enum class InstrumentType : uint8_t {
   SID = 27,
   SQ80ESQ = 28, // Reserved even in builds without the experimental engine.
   Monk = 29,
+  SoundFont = 30, // Preserve installed SQ80 and Monk song identities.
   totalCount,
 };
 
@@ -442,8 +443,15 @@ struct InstrumentSQ80 {
   uint8_t raw[102];
   uint8_t wheel, pedal, factory; // tracker performance defaults and browser source
 };
+struct InstrumentSoundFont {
+  char bank[512]; // root-relative source, optionally ZIP::member
+  char preset[128]; // stable program identity, never a browser index
+  uint32_t prepared; // session-only generation-checked handle
+};
+
 union InstrumentChipData {
   InstrumentSQ80 sq80;
+  InstrumentSoundFont soundfont;
   InstrumentSID sid;
   InstrumentFourOp fourOp;
   InstrumentDX7 dx7;
@@ -491,7 +499,7 @@ struct InstrumentFunctions {
 // This is metadata, not an audio abstraction: renderers keep their typed
 // paths while screens, validation and motion routing share this one catalogue.
 enum class InstrumentCategory : uint8_t { none, chip, sample, synth, drums, midi, fm };
-enum class InstrumentScreenKind : uint8_t { none, ay1, ay2, aySample, braids, sample, scwf, byowtbl, plaits, achchid, drumSynth, mme, sintered, midi, opll, opl, simpleChip, dx7, sq80, monk };
+enum class InstrumentScreenKind : uint8_t { none, ay1, ay2, aySample, braids, sample, scwf, byowtbl, plaits, achchid, drumSynth, mme, sintered, midi, opll, opl, simpleChip, dx7, sq80, monk, soundfont };
 enum class InstrumentMotionValue : uint8_t { raw, speed, cutoff };
 
 static constexpr FXId instrumentNoFX = FX_ID_EMPTY;

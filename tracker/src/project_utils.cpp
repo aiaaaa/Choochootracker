@@ -72,6 +72,7 @@ const char* instrumentTypeName(InstrumentType type) {
       return "AY Sample";
     case InstrumentType::Braids:
       return "Braids";
+    case InstrumentType::SoundFont: return "SOUNDFONT";
     case InstrumentType::Sample:
       return "Sampler";
     case InstrumentType::SCWF:

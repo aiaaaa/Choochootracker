@@ -1,0 +1,32 @@
+{
+  "date": "2026-10-14",
+  "platforms": [
+    "macOS x86_64 desktop",
+    "WebAssembly Emscripten",
+    "R36H ArkOS aarch64 native GCC 9.2.1"
+  ],
+  "runtime_browser_test": "unavailable: no browser surface connected",
+  "installed_on_handheld": false,
+  "artifacts": [
+    {
+      "path": "tracker/build/desktop/choochootracker",
+      "bytes": 5384096,
+      "sha256": "42beaa248ad216e24adb1f07f3d5b547485b8ef4dea7373a9b833783fd479a4c"
+    },
+    {
+      "path": "web/dist/choochootracker.wasm",
+      "bytes": 27643535,
+      "sha256": "910c7919311caf86b1f0036a43e56af783a96e4409b8a0d10725482498f15117"
+    },
+    {
+      "path": "web/dist/choochootracker.js",
+      "bytes": 531149,
+      "sha256": "27a5b52f3b7ed0da0c30310d1605ad86ba6ee42e1731b3fc52bd4f0acb316f4d"
+    },
+    {
+      "path": "web/dist/choochootracker.data",
+      "bytes": 17745207,
+      "sha256": "347136f750fb439d4916a59ada94e40e5d448d1d50c192833c37f8cc926b1ef3"
+    }
+  ]
+}

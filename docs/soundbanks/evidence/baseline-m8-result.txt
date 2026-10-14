@@ -1,0 +1,14 @@
+[doctest] doctest version is "2.5.0"
+[doctest] run with "--help" for options
+===============================================================================
+tests/test_import_m8s.cpp:189:
+TEST SUITE: import_m8s
+TEST CASE:  sampler finds its WAV near the song or in the sample folder
+
+tests/test_import_m8s.cpp:214: ERROR: CHECK( (strstr(p.instruments[0].chip.sample.path, "samples/Pack/Kick_4.wav") != nullptr) == true ) is NOT correct!
+  values: CHECK( false == true )
+
+===============================================================================
+[doctest] test cases:   8 |   7 passed | 1 failed | 2 skipped
+[doctest] assertions: 135 | 134 passed | 1 failed |
+[doctest] Status: FAILURE!

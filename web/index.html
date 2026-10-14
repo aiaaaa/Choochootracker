@@ -87,6 +87,10 @@
         <button id="import-sq80" disabled title="Import SQ80/ESQ .hwb wave banks, SysEx presets, or ZIPs. Saved only in this browser.">Import SQ80/ESQ</button>
         <input id="sq80-input" type="file" accept=".hwb,.syx,.raw,.cni,.zip" multiple hidden>
         <button id="import-presets" disabled title="Choose an instruments or USER folder. Existing files are kept. Stored only in this browser.">Import presets</button>
+        <button id="import-banks" disabled>Import sound banks</button>
+        <button id="import-bank-folder" disabled>Import bank folder</button>
+        <input id="bank-input" type="file" accept=".sf2,.sf3,.sfz,.exs,.zip,.wav,.aif,.aiff,.ogg" multiple hidden>
+        <input id="bank-folder-input" type="file" webkitdirectory multiple hidden>
         <input id="project-input" type="file" accept=".cct,.lsdsng,.sav" hidden>
         <input id="sample-input" type="file" accept=".wav,audio/wav" multiple hidden>
         <input id="sample-folder-input" type="file" accept=".wav,audio/wav" webkitdirectory multiple hidden>
@@ -210,6 +214,7 @@
     const ensureUserDirectories = (fs) => {
       fs.mkdirTree('/user/projects');
       fs.mkdirTree('/user/samples');
+      fs.mkdirTree('/user/SoundBanks');
       fs.mkdirTree('/user/exports');
       fs.mkdirTree('/user/instruments/USER');
       fs.mkdirTree('/user/instruments/banks');
@@ -528,6 +533,14 @@
       if (event.target.files.length) await importFiles(event.target.files, '/user/samples');
       event.target.value = '';
     };
+    document.querySelector('#import-banks').addEventListener('click', () => document.querySelector('#bank-input').click());
+    document.querySelector('#import-bank-folder').addEventListener('click', () => document.querySelector('#bank-folder-input').click());
+    const importBanks = async (event) => {
+      if (event.target.files.length) await importFiles(event.target.files, '/user/SoundBanks');
+      event.target.value = '';
+    };
+    document.querySelector('#bank-input').addEventListener('change', importBanks);
+    document.querySelector('#bank-folder-input').addEventListener('change', importBanks);
     document.querySelector('#sample-input').addEventListener('change', importSamples);
     document.querySelector('#sample-folder-input').addEventListener('change', importSamples);
     const presetEngines = new Set(['arcade', 'dx7', 'gb-noise', 'gb-pulse', 'genesis',

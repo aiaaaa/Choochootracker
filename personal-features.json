@@ -682,5 +682,34 @@
     "validation": "Exact results recorded in daily receipts",
     "beads_pr": "Held",
     "vita": "Paused"
+  },
+  "evaluation_20261014": {
+    "status": "Combined candidate; validation in progress",
+    "base_daily": "d0c3202",
+    "selected": {
+      "sid_layout": "dacc21e",
+      "song_only_waveform": "61994d2",
+      "soundfont": "dd4fc00"
+    },
+    "upstream_pr_scope": [
+      "SID layout only",
+      "SONG-only waveform",
+      "SoundFont support"
+    ],
+    "experimental_only": [
+      "SQ80/ESQ",
+      "MonkSynth",
+      "Beads"
+    ],
+    "instrument_ids": {
+      "SQ80ESQ": 28,
+      "Monk": 29,
+      "SoundFont": 30
+    },
+    "targets": [
+      "R36H device personal build",
+      "personal web"
+    ],
+    "validation": "Exact results in evaluation receipts"
   }
 }

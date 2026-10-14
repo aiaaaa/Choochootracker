@@ -1,6 +1,7 @@
 #ifdef CHOOCHOO_EXPERIMENTAL_MOD_LUCKY
 #include "experimental/mod_lucky/service.h"
 #endif
+#include "soundbank_library.h"
 #include <string.h>
 #include "corelib_gfx.h"
 #include "corelib_font.h"
@@ -496,6 +497,7 @@ extern "C" EMSCRIPTEN_KEEPALIVE int webSaveBrowserState() {
 */
 void appCleanup(void) {
   audioManager.stop();
+  soundbankShutdown();
   // Explicitly flush and close MIDI I/O rather than relying on process exit:
   // the output port owns a worker thread that must be stopped and joined
   // cleanly, and any still-sounding note must get a Note Off while the port
@@ -757,6 +759,7 @@ void appOnEvent(MainLoopEventData eventData) {
                               eventData.data.axes[2], eventData.data.axes[3]);
     break;
   case MainLoopEvent::tick: {
+    soundbankPoll();
     int motionRecordChanged = 0;
     MotionRecordEvent motionRecordEvent;
     while (chipnomadConsumeMotionRecordEvent(&motionRecordEvent))

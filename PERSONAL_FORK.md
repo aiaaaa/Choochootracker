@@ -691,3 +691,13 @@ production UI routing, touch and lane FX checks also pass. The Emscripten web
 build passes with SQ80 and Lucky enabled. Captures and build logs are local
 under `.tmp/song-waveform/`. Prepared for daily integration;
 no device or public web deployment.
+
+## Combined evaluation: SID, SONG waveform and SoundFont
+
+Includes SID home cleanup dacc21e, SONG-only waveform 61994d2, and native
+SoundBanks dd4fc00. SID layout, SONG waveform and SoundFont are intended as
+separate upstream contributions after owner evaluation. SQ80/ESQ, Monk and Beads
+remain personal experiments. Preserve SQ80=28 and Monk=29; SoundFont=30 avoids
+reinterpreting existing songs. Generated SoundBank branch web assets are excluded;
+the personal pipeline builds fresh output. Source library originals remain private.
+Combined build and runtime results are recorded in the evaluation receipt.
