@@ -100,7 +100,8 @@ with sync_playwright() as p:
   # Exercise background save/pause/wake and gesture recovery without reloading.
   page.locator('#canvas').click()
   assert page.evaluate("Module.ccall('webLoadProject','number',['string'],['/projects/native-chip-audition.cct'])")==0
-  page.evaluate("window.probe={callbacks:0,peak:0};const node=Module.SDL2.audio.scriptProcessorNode;const original=node.onaudioprocess;node.onaudioprocess=e=>{original(e);probe.callbacks++;for(const value of e.outputBuffer.getChannelData(0))probe.peak=Math.max(probe.peak,Math.abs(value));};void 0;")
+  # Recovery may replace SDL's output node; measure the currently active output.
+  page.evaluate("window.probe={callbacks:0,peak:0};window.probeNodes=new WeakSet();window.observeProbe=()=>{const node=Module.SDL2.audio.scriptProcessorNode;if(probeNodes.has(node))return;probeNodes.add(node);node.addEventListener('audioprocess',e=>{probe.callbacks++;for(const value of e.outputBuffer.getChannelData(0))probe.peak=Math.max(probe.peak,Math.abs(value));});};observeProbe();void 0;")
   key('Space');page.wait_for_timeout(600);assert page.evaluate('probe.peak')>0
   for cycle in range(3):
    page.keyboard.down('ArrowRight');page.wait_for_timeout(100)
@@ -110,7 +111,7 @@ with sync_playwright() as p:
    page.evaluate("testHidden=false;document.dispatchEvent(new Event('visibilitychange'));")
    page.keyboard.up('ArrowRight');page.locator('#canvas').click()
    page.wait_for_function("Module.SDL2.audioContext.state==='running'")
-   page.wait_for_timeout(300);page.evaluate('probe.peak=0');key('Space');page.wait_for_timeout(600)
+   page.wait_for_timeout(300);page.evaluate('observeProbe();probe.peak=0');key('Space');page.wait_for_timeout(600)
    assert page.evaluate('probe.peak')>0,('no playback after wake',cycle)
   page.evaluate("delete document.hidden")
   page.evaluate("Module.SDL2.audioContext.suspend()")
