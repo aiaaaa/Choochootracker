@@ -22,5 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 If you would like to incorporate Link into a proprietary software application,
 please contact <link-devs@ableton.com>.
 
-The full license text and the GNU GPL v2 text are vendored with the source
-under chipnomad_lib/external/ableton_link/ (LICENSE.md, GNU-GPL-v2.0.md).
+Link is consumed as a git submodule pinned to the revision listed above; its
+source is not redistributed in this package. The full license text and the GNU
+GPL v2 text are available in the upstream repository (LICENSE.md,
+GNU-GPL-v2.0.md) and are reproduced in this package's license directory.

@@ -35,7 +35,7 @@ BUILD = $(BUILD_BASE)/$(PLATFORM)
 # would shadow the C standard header. Plaits includes it from the mutable root.
 INCLUDE_LIBS = $(filter-out ../chipnomad_lib/external/mutable/plaits/dsp/physical_modelling ../chipnomad_lib/external/mutable/plaits_alt/dsp/physical_modelling,$(LIBS))
 INCLUDES = $(addprefix -I, $(INCLUDE_LIBS)) -I../chipnomad_lib -I../chipnomad_lib/external/mutable -I../chipnomad_lib/external/signalsmith \
-	-I../chipnomad_lib/external/ableton_link/include -I../chipnomad_lib/external/asio/asio_include
+	-I../chipnomad_lib/external/ableton_link/include -I../chipnomad_lib/external/asio/asio/include
 # Open303's Fourier wrapper includes fft4g.c directly.
 C_SOURCES = $(filter-out ../chipnomad_lib/external/open303/Source/DSPCode/fft4g.c,$(foreach dir, $(LIBS), $(wildcard $(dir)/*.c)))
 # The Plaits-Alt checkout also contains the STM32 module application. Tracker
