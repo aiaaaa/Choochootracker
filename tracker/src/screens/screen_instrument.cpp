@@ -848,7 +848,9 @@ int instrumentKeyJazzHandleRawKey(InputCode input, int isDown) {
     keyJazzReleaseAll();
     return 0;
   }
-  if (inputIsCtrlHeld()) return 0;
+  // Ctrl shortcuts only bypass key-down: a note held before Ctrl was pressed
+  // must still be released by its key-up, or the preview would stay on.
+  if (isDown && inputIsCtrlHeld()) return 0;
 
   int octaveDelta = inputKeyJazzOctaveDelta(input);
   if (octaveDelta != 0) {
