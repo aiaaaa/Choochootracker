@@ -10,7 +10,7 @@ and the [library compatibility report](compatibility.md) before packaging it.
 1. Copy an original SF2, SF3, SFZ or EXS instrument, a WAV/AIFF sample, or a ZIP
    containing those files into `instruments/USER/soundfont`. Retain relative sample directories.
 2. In Instrument, select **SOUNDFONT**. Open **BANK MANAGER**, select a collection
-   and instrument, then open **PRESET BROWSER** and select a preset with EDIT.
+   and instrument, then open the **Preset** row and select a preset with EDIT.
 3. Wait for “Preset ready”. Existing note entry plays the prepared instrument;
    EDIT + PLAY previews the selected, loaded preset in the browser.
 4. Save the project normally. It records a root-relative bank/member path and a
@@ -103,8 +103,13 @@ routing. Voices are fixed per tracker/chord slot, with eight sample layers per
 voice. Retriggering steals that slot deterministically. Preparation rejects
 instruments that can exceed the layer bound; there are no note-time allocations,
 file operations, archive decoding or format parsing. Pitch/volume MOD sources and
-instrument/track pan use existing routes. Filter/envelope source parameters are
-imported; a new editable filter/envelope MOD interface is not implemented.
+instrument/track pan use existing routes. **Edit** beside the active Preset opens
+the direct instrument editor for tuning, cutoff, resonance and envelope
+delay/attack/hold/decay/sustain/release. **Bank** retains each zone's original value;
+explicit overrides apply to all layers and save with the instrument/project.
+Tone and tuning apply live; envelopes apply on the next trigger. Clear restores
+the selected default. Source banks are unchanged. No new Lane FX commands or
+filter/envelope MOD destinations are added by this editor.
 
 ## Reproducing acquisition and checks
 
