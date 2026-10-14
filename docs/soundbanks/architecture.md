@@ -63,3 +63,14 @@ Run parser/playback tests after each component, then the existing Makefile.test
 suite, desktop and web builds. R36H measurements require actual hardware and
 must be labeled separately. Real-library reports distinguish indexed, prepared,
 rendered and untested presets. No claim of complete SFZ/EXS support is intended.
+
+## Daily-build integration identity
+
+The existing personal/r36h and experimental/sq80esq branches persist SQ80ESQ as
+instrument type 28. SOUNDFONT therefore uses **29**, leaving a hidden reserved
+catalogue slot at 28 in this upstream-based branch. Loading 28 is rejected while
+its catalogue entry is unavailable; it is never interpreted as a SoundFont.
+When combining with the personal branch, keep its SQ80 enum/definition and
+replace the reserved catalogue entry with that existing definition. Keep
+SOUNDFONT at 29 and run persistence tests on both engines before a daily build.
+No SoundFont project from the intermediate development commits was distributed.

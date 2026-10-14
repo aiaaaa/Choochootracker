@@ -37,7 +37,8 @@ enum class InstrumentType : uint8_t {
   GenesisFM = 25,
   ArcadeFM = 26,
   SID = 27,
-  SoundFont = 28,
+  // 28 belongs to SQ80ESQ in the device personal build; do not reuse its saved ID.
+  SoundFont = 29,
   totalCount,
 };
 

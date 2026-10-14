@@ -1,6 +1,8 @@
 #include <cmath>
 #include <cstring>
 #include <filesystem>
+#include <fstream>
+#include <iterator>
 #include <memory>
 
 #include "chipnomad_lib.h"
@@ -33,6 +35,15 @@ TEST_CASE("SoundFont project and instrument files retain identities without runt
   REQUIRE(instrumentLoad(q.get(), path.c_str(), 3) == 0);
   CHECK(std::string(q->instruments[3].chip.soundfont.bank) == i.chip.soundfont.bank);
   CHECK(q->instruments[3].chip.soundfont.prepared == 0);
+  CHECK(int(InstrumentType::SoundFont) == 29);
+  std::ifstream saved(path);
+  std::string text((std::istreambuf_iterator<char>(saved)), {});
+  saved.close();
+  auto typeLine = text.find("- Type: 29");
+  REQUIRE(typeLine != std::string::npos);
+  text.replace(typeLine, 10, "- Type: 28");
+  { std::ofstream rewritten(path); rewritten << text; }
+  CHECK(instrumentLoad(q.get(), path.c_str(), 4) != 0);
   std::filesystem::remove(path);
   projectFree(p.get());
   projectFree(q.get());

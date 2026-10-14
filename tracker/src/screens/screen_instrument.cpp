@@ -49,10 +49,10 @@ static SelectionItem instrumentTypeDrums[] = {
   {NULL, (int)InstrumentType::Sintered, NULL, 0},
 };
 static SelectionItem instrumentTypeSample[] = {
-  {NULL, (int)InstrumentType::SoundFont, NULL, 0},
   {NULL, (int)InstrumentType::Sample, NULL, 0},
   {NULL, (int)InstrumentType::SCWF, NULL, 0},
   {NULL, (int)InstrumentType::BYOWTBL, NULL, 0},
+  {NULL, (int)InstrumentType::SoundFont, NULL, 0},
 };
 static SelectionItem instrumentTypeFM[] = {
   {"OPLL / YM2413", (int)InstrumentType::OPLL, NULL, 0},
@@ -303,7 +303,7 @@ static void init(void) {
   screenInstrumentNone.cursorRow = 0;
   screenInstrumentNone.cursorCol = 0;
   SelectionItem* groups[] = {instrumentTypeChip, instrumentTypeSample, instrumentTypeSynth, instrumentTypeDrums, instrumentTypeMidi};
-  const int counts[] = {7, 3, 5, 2, 1};
+  const int counts[] = {7, 4, 5, 2, 1};
   for (int group = 0; group < 5; ++group)
     for (int item = 0; item < counts[group]; ++item)
       groups[group][item].label = getInstrumentDefinition((InstrumentType)groups[group][item].value)->uiName;

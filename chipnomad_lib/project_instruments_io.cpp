@@ -580,6 +580,8 @@ int instrumentLoadData(FILE* file, Instrument* instrument, Project* p) {
     } else if (strncmp(line, "- Type: ", 8) == 0) {
       int type; char extra;
       if (sscanf(line + 8, "%d %c", &type, &extra) != 1 || type < 0 || type >= (int)InstrumentType::totalCount) return 1;
+      // Reject an unavailable personal-engine slot instead of misreading it as SoundFont.
+      if (type == 28 && getInstrumentDefinition((InstrumentType)type)->category == InstrumentCategory::none) return 1;
       instrument->type = (InstrumentType)type;
     } else if (strncmp(line, "- Table speed: ", 15) == 0) {
       sscanf(line, "- Table speed: %hhu", &instrument->tableSpeed);
