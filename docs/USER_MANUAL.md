@@ -2273,3 +2273,11 @@ Browser audio recovery waits for clock progress and a real output callback withi
 a bounded timeout before reporting success or failure.
 
 The SoundFont Instrument page identifies its private library as `USER/soundfont`.
+
+
+### SoundFont evaluation daily follow-up
+
+This personal daily includes the expanded SoundFont Edit page and its eight
+Lane FX. Use Rescan after changing USER/soundfont, select presets through their
+folders, or hold EDIT with Left/Right on Preset to cycle. The full controls and
+FX value ranges are documented in the SOUNDFONT section above.

@@ -165,7 +165,7 @@
       "title": "SoundFont direct instrument editor",
       "branch": "experimental/soundfont-edit",
       "upstream_status": "Experimental evaluation, not submitted",
-      "integration_policy": "Bank defaults preserved; instrument-owned tune, filter and full supported amplitude envelope plus volume/pan. Eight contextual Lane FX, scan status and one folder-based preset browser with wrapping cycling. FX IDs appended; source banks unchanged. Integrate and deploy only with a requested daily."
+      "integration_policy": "Integrated for the requested SoundFont evaluation daily; preserve bank defaults, eight appended Lane FX IDs, USER libraries and existing songs."
     }
   ],
   "personal_assets": [
@@ -720,5 +720,23 @@
     "validation": "Exact results in evaluation receipts",
     "soundfont_user_root": "instruments/USER/soundfont",
     "browser_user_zip_import": "Preserve existing USER files; retain relative bank/sample paths"
+  },
+  "soundfont_daily_20261014": {
+    "status": "Authorized daily; building and verifying",
+    "base_daily": "9fb81492d9cb6e2f7fcc4f2e87f4d18111cb6907",
+    "selected_commit": "c95918e520991fe9d824baf47aa6e25a8e492fee",
+    "targets": [
+      "R36H device personal build",
+      "personal web"
+    ],
+    "changes": [
+      "11-control SoundFont Edit page",
+      "Eight Lane FX",
+      "Scan status and one folder browser",
+      "Wrapping preset cycling"
+    ],
+    "preservation": "Existing songs, USER banks, settings and regular launcher; verified rollback",
+    "validation": "Exact commit and results in daily receipts",
+    "vita": "Paused"
   }
 }

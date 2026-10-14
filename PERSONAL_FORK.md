@@ -719,3 +719,13 @@ The duplicate Bank Manager flow is replaced by scan status/Rescan and one folder
 browser. Preset cycling wraps across indexed presets; asynchronous preparation
 keeps the latest selection and retains playable audio on failure. The branch
 remains isolated until a requested daily integration; no deployment is included.
+
+
+### SoundFont evaluation daily follow-up (2026-10-14)
+
+The owner authorized integrating experimental/soundfont-edit through c95918e
+onto the installed 9fb8149 personal baseline for both web and R36H. This includes
+the direct editor, eight Lane FX, scan status/Rescan, one folder browser and
+wrapping preset cycling. Existing personal experiments and upstream baseline
+remain present. Daily build receipts record the exact commit, verification and
+deployment; private USER banks, songs and settings stay external and preserved.
