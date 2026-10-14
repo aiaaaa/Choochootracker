@@ -9,6 +9,7 @@
 
 class BraidsVoice;
 class SampleVoice;
+class SoundbankVoice;
 class SCWFVoice;
 class PlaitsVoice;
 class PlaitsAltVoice;
@@ -93,6 +94,7 @@ struct ChipNomadState {
   int mixBufferSize;
   int aySampleDithering;
   BraidsVoice* braidsVoices[PROJECT_MAX_TRACKS][CHORD_MAX_VOICES];
+  SoundbankVoice* soundbankVoices[PROJECT_MAX_TRACKS][CHORD_MAX_VOICES];
   SampleVoice* sampleVoices[PROJECT_MAX_TRACKS][CHORD_MAX_VOICES];
   SCWFVoice* scwfVoices[PROJECT_MAX_TRACKS][CHORD_MAX_VOICES];
   PlaitsVoice* plaitsVoices[PROJECT_MAX_TRACKS][CHORD_MAX_VOICES];
@@ -155,6 +157,8 @@ int chipnomadReserveRenderBuffers(ChipNomadState* state, int frames);
 // Configure persistent workers for real-time rendering while audio is stopped.
 // Returns the number of workers actually enabled; 0 is the serial fallback.
 int chipnomadQueueTrackEnabled(ChipNomadState* state, const uint8_t enabled[PROJECT_MAX_TRACKS]);
+// Offline only, with the audio device paused.
+void chipnomadCollectSoundbanks(ChipNomadState* state);
 int chipnomadQueueProjectRefresh(ChipNomadState* state);
 int chipnomadQueuePlaybackScale(ChipNomadState* state, uint8_t root, ScalePreset preset);
 void chipnomadDiscardQueuedProject(ChipNomadState* state);

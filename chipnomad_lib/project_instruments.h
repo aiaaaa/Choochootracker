@@ -37,6 +37,7 @@ enum class InstrumentType : uint8_t {
   GenesisFM = 25,
   ArcadeFM = 26,
   SID = 27,
+  SoundFont = 28,
   totalCount,
 };
 
@@ -429,7 +430,14 @@ struct InstrumentSID {
   ChipProgram program;
 };
 
+struct InstrumentSoundFont {
+  char bank[512]; // root-relative source, optionally ZIP::member
+  char preset[128]; // stable program identity, never a browser index
+  uint32_t prepared; // session-only generation-checked handle
+};
+
 union InstrumentChipData {
+  InstrumentSoundFont soundfont;
   InstrumentSID sid;
   InstrumentFourOp fourOp;
   InstrumentDX7 dx7;
@@ -476,7 +484,7 @@ struct InstrumentFunctions {
 // This is metadata, not an audio abstraction: renderers keep their typed
 // paths while screens, validation and motion routing share this one catalogue.
 enum class InstrumentCategory : uint8_t { none, chip, sample, synth, drums, midi, fm };
-enum class InstrumentScreenKind : uint8_t { none, ay1, ay2, aySample, braids, sample, scwf, byowtbl, plaits, achchid, drumSynth, mme, sintered, midi, opll, opl, simpleChip, dx7 };
+enum class InstrumentScreenKind : uint8_t { none, ay1, ay2, aySample, braids, sample, scwf, byowtbl, plaits, achchid, drumSynth, mme, sintered, midi, opll, opl, simpleChip, dx7, soundfont };
 enum class InstrumentMotionValue : uint8_t { raw, speed, cutoff };
 
 static constexpr uint8_t instrumentNoFX = 0xff;

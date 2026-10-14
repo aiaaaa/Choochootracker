@@ -47,6 +47,12 @@ static int initNoneInstrument(Instrument* instrument) {
   return 0;
 }
 
+static int initSoundFontInstrument(Instrument* instrument) {
+  initCommon(instrument);
+  instrument->type = InstrumentType::SoundFont;
+  return 0;
+}
+
 static int freeNoneInstrument(Instrument* instrument) {
   freeCommon(instrument);
   return 0;
@@ -411,6 +417,7 @@ static const InstrumentDefinition instrumentDefinitions[] = {
   {"Genesis FM",InstrumentCategory::fm,InstrumentScreenKind::opl,destOPLL,COUNT(destOPLL),NULL,0,{2,modNameOPLL,initGenesisInstrument,freeNoneInstrument,1,0}},
   {"Arcade FM",InstrumentCategory::fm,InstrumentScreenKind::opl,destOPLL,COUNT(destOPLL),NULL,0,{2,modNameOPLL,initArcadeInstrument,freeNoneInstrument,1,0}},
   {"SID",InstrumentCategory::chip,InstrumentScreenKind::opl,destOPLL,COUNT(destOPLL),NULL,0,{2,modNameOPLL,initSIDInstrument,freeNoneInstrument,0,0}},
+  {"SOUNDFONT",InstrumentCategory::sample,InstrumentScreenKind::soundfont,destOPLL,COUNT(destOPLL),NULL,0,{2,modNameOPLL,initSoundFontInstrument,freeNoneInstrument,0,0}},
 };
 #undef COUNT
 
