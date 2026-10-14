@@ -2221,3 +2221,5 @@ files are kept. Import only the collection you need: each import supports up to
 
 Browser audio recovery waits for clock progress and a real output callback within
 a bounded timeout before reporting success or failure.
+
+The SoundFont Instrument page identifies its private library as `USER/soundfont`.

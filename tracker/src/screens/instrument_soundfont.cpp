@@ -99,7 +99,7 @@ void show() {
   collectionIds.clear();
   bankIndices.clear();
   labels.push_back("< Instrument");
-  labels.push_back(page == Page::collections ? "Rescan SoundBanks"
+  labels.push_back(page == Page::collections ? "Rescan USER banks"
                    : page == Page::banks     ? (showAssets ? "< Instruments" : "< Collections")
                                              : "< Bank Manager");
   int selected = -2;
@@ -195,7 +195,7 @@ int columns(int row) { return row < 3 ? instrumentCommonColumnCount(row) : 1; }
 void drawStatic() {
   instrumentCommonDrawStatic();
   gfxSetFgColor(appSettings.colorScheme.textInfo);
-  gfxPrint(0, 10, "Copy libraries to SoundBanks");
+  gfxPrint(0, 10, "Library: USER/soundfont");
 }
 void drawCursor(int col, int row) {
   if (row < 3)
