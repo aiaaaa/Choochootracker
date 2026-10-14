@@ -4,8 +4,11 @@
 #include "project_instruments.h"
 #include "utils.h"
 
-FXName fxNames[256];
+FXName fxNames[fxTotalCount];
 static FXName instrumentGroupNames[(int)InstrumentType::totalCount][fxTotalCount];
+#ifdef TEST
+static FXName fxNamesTest[100];
+#endif
 
 // FX Names organized by groups (in the order as they appear in FX select screen)
 
@@ -90,16 +93,25 @@ FXGroup fxGroups[] = {
   {"MIDI FX", NULL, 0, 4, InstrumentType::Midi},
   {"TF1", fxNamesInsert, 8, 8, InstrumentType::none},
   {"TF2", fxNamesInsert + 8, 8, 8, InstrumentType::none},
+#ifdef TEST
+  {"Test FX", fxNamesTest, 100, 10, InstrumentType::none},
+#endif
 };
 int fxGroupCount = sizeof(fxGroups) / sizeof(FXGroup);
 
 // Fill FX names
 void fillFXNames() {
   // Initialize all FX names to "---"
-  for (int c = 0; c < 256; c++) {
+  for (int c = 0; c < fxTotalCount; c++) {
     strcpy(fxNames[c].name, "---");
-    fxNames[c].fx = (enum FX)c;
+    fxNames[c].fx = (FXId)c;
   }
+#ifdef TEST
+  for (int i = 0; i < 100; ++i) {
+    fxNamesTest[i].fx = (FXId)(fxTestDummy00 + i);
+    snprintf(fxNamesTest[i].name, sizeof(fxNamesTest[i].name), "D%02d", i);
+  }
+#endif
 
   // Fill counts in fxGroups array
   fxGroups[0].count = fxSequencerCount;
@@ -166,7 +178,7 @@ void fillFXNames() {
 
   for (int g = 0; g < fxGroupCount; g++) {
     for (int i = 0; i < fxGroups[g].count; i++) {
-      enum FX fx = fxGroups[g].fxList[i].fx;
+      FXId fx = fxGroups[g].fxList[i].fx;
       strcpy(fxNames[fx].name, fxGroups[g].fxList[i].name);
       fxNames[fx].fx = fx;
     }
@@ -276,8 +288,8 @@ int8_t phraseIsEmpty(Project* project, int phrase) {
     if (project->phrases[phrase].rows[c].instrument != EMPTY_VALUE_8) return 0;
     if (project->phrases[phrase].rows[c].volume != EMPTY_VALUE_16) return 0;
     for (int d = 0; d < 3; d++) {
-      if (project->phrases[phrase].rows[c].fx[d][0] != EMPTY_VALUE_8) return 0;
-      if (project->phrases[phrase].rows[c].fx[d][1] != 0) return 0;
+      if (project->phrases[phrase].rows[c].fx[d].command != FX_ID_EMPTY) return 0;
+      if (project->phrases[phrase].rows[c].fx[d].value != 0) return 0;
     }
   }
 
@@ -297,8 +309,8 @@ int8_t tableIsEmpty(Project* project, int table) {
     if (project->tables[table].rows[c].pitchOffset != 0) return 0;
     if (project->tables[table].rows[c].volume != EMPTY_VALUE_8) return 0;
     for (int d = 0; d < 4; d++) {
-      if (project->tables[table].rows[c].fx[d][0] != EMPTY_VALUE_8) return 0;
-      if (project->tables[table].rows[c].fx[d][1] != 0) return 0;
+      if (project->tables[table].rows[c].fx[d].command != FX_ID_EMPTY) return 0;
+      if (project->tables[table].rows[c].fx[d].value != 0) return 0;
     }
   }
 
@@ -353,8 +365,7 @@ void phraseClear(Phrase* phrase) {
     phrase->rows[d].instrument = EMPTY_VALUE_8;
     phrase->rows[d].volume = EMPTY_VALUE_16;
     for (int e = 0; e < 3; e++) {
-      phrase->rows[d].fx[e][0] = EMPTY_VALUE_8;
-      phrase->rows[d].fx[e][1] = 0;
+      phrase->rows[d].fx[e] = {FX_ID_EMPTY, 0};
     }
   }
 }
@@ -381,8 +392,7 @@ void tableClear(Table* table) {
     table->rows[d].pitchOffset = 0;
     table->rows[d].volume = EMPTY_VALUE_8;
     for (int e = 0; e < 4; e++) {
-      table->rows[d].fx[e][0] = EMPTY_VALUE_8;
-      table->rows[d].fx[e][1] = 0;
+      table->rows[d].fx[e] = {FX_ID_EMPTY, 0};
     }
   }
 }

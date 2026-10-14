@@ -486,7 +486,7 @@ static void motionRecordFrame(ChipNomadState* state) {
         if(instrumentNativeFXInfo(instrument,fx,&info,std::max(0,operators[target]-1)))fxValue=clampInt(fxValue,info.minimum,info.maximum);
       }
       if (mode == 1 && motionRecordLast[trackIdx][fx][operators[target]] == fxValue) continue;
-      MotionRecordEvent event = {phrase, row, (uint8_t)fx, (uint8_t)fxValue, (uint8_t)(mode == 2)};
+      MotionRecordEvent event = {phrase, row, (FXId)fx, (uint8_t)fxValue, (uint8_t)(mode == 2)};
       if (!chipnomadMotionPushEvent(event)) {
         chipnomadMotionSetOverflow();
         continue;

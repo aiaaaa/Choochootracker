@@ -196,11 +196,31 @@ int editCharacter(CellEditAction action, char* str, int idx, int maxLen);
 char charEditInput(int keys, int tapCount, char* str, int idx, int maxLen);
 
 // FX edit
-int editFX(CellEditAction action, uint8_t* fx, uint8_t* lastFX, int isTable, uint8_t instrumentIdx);
-void selectInstrumentFX(uint8_t* fx, uint8_t selected, uint8_t instrumentIdx);
-int editFXValue(CellEditAction action, uint8_t* fx, uint8_t* lastFX, int isTable, uint8_t instrumentIdx);
-int fxEditInput(int keys, int tapCount, uint8_t* fx, uint8_t* lastFX);
-void fxEditFullDraw(uint8_t currentFX, uint8_t instrumentIdx, int isTable);
+int editFX(CellEditAction action, FXCell* fx, FXCell* lastFX, int isTable, uint8_t instrumentIdx);
+void selectInstrumentFX(FXCell* fx, FXId selected, uint8_t instrumentIdx);
+int editFXValue(CellEditAction action, FXCell* fx, FXCell* lastFX, int isTable, uint8_t instrumentIdx);
+int fxEditInput(int keys, int tapCount, FXCell* fx, FXCell* lastFX);
+#ifdef TEST
+// Legacy test fixtures use byte pairs; production callers use FXCell.
+inline FXCell testFXCell(const uint8_t* fx) { return {(FXId)fx[0], fx[1]}; }
+inline void testFXStore(uint8_t* out, const FXCell& fx) { out[0] = (uint8_t)fx.command; out[1] = fx.value; }
+inline int editFX(CellEditAction action, uint8_t* fx, uint8_t* last, int table, uint8_t instrument) {
+  FXCell cell = testFXCell(fx), previous = testFXCell(last);
+  int result = editFX(action, &cell, &previous, table, instrument);
+  testFXStore(fx, cell); testFXStore(last, previous); return result;
+}
+inline int editFXValue(CellEditAction action, uint8_t* fx, uint8_t* last, int table, uint8_t instrument) {
+  FXCell cell = testFXCell(fx), previous = testFXCell(last);
+  int result = editFXValue(action, &cell, &previous, table, instrument);
+  testFXStore(fx, cell); testFXStore(last, previous); return result;
+}
+inline int fxEditInput(int keys, int taps, uint8_t* fx, uint8_t* last) {
+  FXCell cell = testFXCell(fx), previous = testFXCell(last);
+  int result = fxEditInput(keys, taps, &cell, &previous);
+  testFXStore(fx, cell); testFXStore(last, previous); return result;
+}
+#endif
+void fxEditFullDraw(FXId currentFX, uint8_t instrumentIdx, int isTable);
 
 // Key jazz (desktop): lets screen_phrase.cpp own its toggle/note-entry state
 // while app.cpp only needs to route raw keyboard events to it. Returns 1 if

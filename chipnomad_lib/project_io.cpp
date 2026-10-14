@@ -243,7 +243,7 @@ static uint8_t scanNote(char* str, Project* p) {
   return EMPTY_VALUE_8;
 }
 
-static uint8_t scanFX(char* str, Project* p) {
+static FXId scanFX(char* str, Project* p) {
   // Silly linear search through the list of FX. To replace with a simple hash
   static char buf[4];
   buf[0] = str[0];
@@ -251,7 +251,7 @@ static uint8_t scanFX(char* str, Project* p) {
   buf[2] = str[2];
   buf[3] = 0;
 
-  if (!strcmp(buf, "---")) return EMPTY_VALUE_8;
+  if (!strcmp(buf, "---")) return FX_ID_EMPTY;
 
   // Legacy file spelling of the sample playback FX (shown as SPL in the
   // UI). The AY2 Pulse Low Level FX owns the "SPL" name in this flat
@@ -267,7 +267,7 @@ static uint8_t scanFX(char* str, Project* p) {
     }
   }
 
-  return EMPTY_VALUE_8;
+  return FX_ID_EMPTY;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1111,14 +1111,14 @@ static int projectLoadInternal(FILE* file, Project* project) {
           if (p.phrases[phrase].rows[row].fx[fx][0] == fxSLP &&
               p.phrases[phrase].rows[row].fx[fx][1] >= 1 &&
               p.phrases[phrase].rows[row].fx[fx][1] <= 2)
-            p.phrases[phrase].rows[row].fx[fx][1] += 1;
+            p.phrases[phrase].rows[row].fx[fx].value += 1;
     for (int table = 0; table < PROJECT_MAX_TABLES; ++table)
       for (int row = 0; row < 16; ++row)
         for (int fx = 0; fx < 4; ++fx)
           if (p.tables[table].rows[row].fx[fx][0] == fxSLP &&
               p.tables[table].rows[row].fx[fx][1] >= 1 &&
               p.tables[table].rows[row].fx[fx][1] <= 2)
-            p.tables[table].rows[row].fx[fx][1] += 1;
+            p.tables[table].rows[row].fx[fx].value += 1;
   }
   projectFree(project);
   *project = p;
@@ -1487,7 +1487,8 @@ static int projectSaveGrooves(FILE* file, Project* project) {
 // "SLP" spelling: the AY2 Pulse Low Level FX already owns "SPL" in the
 // flat FX namespace scanFX resolves, so writing "SPL" for the sample FX
 // would hijack loads of both old and new files.
-static const char* fxSaveName(uint8_t fx) {
+static const char* fxSaveName(FXId fx) {
+  if (fx == FX_ID_EMPTY || fx >= fxTotalCount) return "---";
   return fx == fxSLP ? "SLP" : fxNames[fx].name;
 }
 
@@ -1503,11 +1504,11 @@ static int projectSavePhrases(FILE* file, Project* project) {
           noteName(project, project->phrases[c].rows[d].note),
           byteToHexOrEmpty(project->phrases[c].rows[d].instrument),
           volumeToHexOrEmpty(project->phrases[c].rows[d].volume),
-          fxSaveName(project->phrases[c].rows[d].fx[0][0]),
+          fxSaveName(project->phrases[c].rows[d].fx[0].command),
           byteToHex(project->phrases[c].rows[d].fx[0][1]),
-          fxSaveName(project->phrases[c].rows[d].fx[1][0]),
+          fxSaveName(project->phrases[c].rows[d].fx[1].command),
           byteToHex(project->phrases[c].rows[d].fx[1][1]),
-          fxSaveName(project->phrases[c].rows[d].fx[2][0]),
+          fxSaveName(project->phrases[c].rows[d].fx[2].command),
           byteToHex(project->phrases[c].rows[d].fx[2][1])
         );
       }
@@ -1526,10 +1527,10 @@ int saveTable(FILE* file, int idx, Table* table) {
       table->rows[d].pitchFlag ? '=' : '~',
       byteToHex(table->rows[d].pitchOffset),
       byteToHexOrEmpty(table->rows[d].volume),
-      fxSaveName(table->rows[d].fx[0][0]), byteToHex(table->rows[d].fx[0][1]),
-      fxSaveName(table->rows[d].fx[1][0]), byteToHex(table->rows[d].fx[1][1]),
-      fxSaveName(table->rows[d].fx[2][0]), byteToHex(table->rows[d].fx[2][1]),
-      fxSaveName(table->rows[d].fx[3][0]), byteToHex(table->rows[d].fx[3][1]));
+      fxSaveName(table->rows[d].fx[0].command), byteToHex(table->rows[d].fx[0][1]),
+      fxSaveName(table->rows[d].fx[1].command), byteToHex(table->rows[d].fx[1][1]),
+      fxSaveName(table->rows[d].fx[2].command), byteToHex(table->rows[d].fx[2][1]),
+      fxSaveName(table->rows[d].fx[3].command), byteToHex(table->rows[d].fx[3][1]));
   }
   fprintf(file, "```\n");
   return 0;
@@ -1584,8 +1585,8 @@ static int projectSaveAYWavetables(FILE* file, Project* project) {
 static int projectSaveInternal(FILE* file, Project* project) {
   bool nativeChips = false;
   for (const auto& instrument : project->instruments) nativeChips |= (instrument.type==InstrumentType::SID || instrument.type==InstrumentType::DX7 || isOPLL(instrument.type) || (isOPL(instrument.type) || isFourOp(instrument.type)) || isSimpleChip(instrument.type));
-  for (const auto& phrase : project->phrases) for (const auto& row : phrase.rows) for (const auto& fx : row.fx) nativeChips |= fx[0] >= fxFBR && fx[0] < fxTotalCount;
-  for (const auto& table : project->tables) for (const auto& row : table.rows) for (const auto& fx : row.fx) nativeChips |= fx[0] >= fxFBR && fx[0] < fxTotalCount;
+  for (const auto& phrase : project->phrases) for (const auto& row : phrase.rows) for (const auto& fx : row.fx) nativeChips |= fx.command >= fxFBR && fx.command < fxTotalCount;
+  for (const auto& table : project->tables) for (const auto& row : table.rows) for (const auto& fx : row.fx) nativeChips |= fx.command >= fxFBR && fx.command < fxTotalCount;
   bool sourcePrograms=false;
   for(const auto& i:project->instruments)sourcePrograms |= i.type==InstrumentType::SID?bool(i.chip.sid.program.format):isSimpleChip(i.type)?bool(i.chip.simpleChip.program.format):false;
   // Native formats 6-8 predate upstream's expanded phrase volume. Format 9
@@ -1834,9 +1835,9 @@ int instrumentSave(Project* project, const char* path, int instrumentIdx) {
   }
 
   bool nativeFormat = (project->instruments[instrumentIdx].type==InstrumentType::SID || project->instruments[instrumentIdx].type==InstrumentType::DX7 || isOPLL(project->instruments[instrumentIdx].type) || (isOPL(project->instruments[instrumentIdx].type) || isFourOp(project->instruments[instrumentIdx].type)) || isSimpleChip(project->instruments[instrumentIdx].type));
-  for (const auto& row : project->tables[instrumentIdx].rows) for (const auto& fx : row.fx) nativeFormat |= fx[0] >= fxFBR && fx[0] < fxTotalCount;
+  for (const auto& row : project->tables[instrumentIdx].rows) for (const auto& fx : row.fx) nativeFormat |= fx.command >= fxFBR && fx.command < fxTotalCount;
   bool absoluteLevels=false;
-  for(const auto& row:project->tables[instrumentIdx].rows)for(const auto& fx:row.fx)absoluteLevels |= fx[0]>=fxOL1&&fx[0]<=fxFBK;
+  for(const auto& row:project->tables[instrumentIdx].rows)for(const auto& fx:row.fx)absoluteLevels |= fx.command>=fxOL1&&fx.command<=fxFBK;
   const auto& inst=project->instruments[instrumentIdx];
   bool sourceProgram=inst.type==InstrumentType::SID?bool(inst.chip.sid.program.format):isSimpleChip(inst.type)?bool(inst.chip.simpleChip.program.format):false;
   fprintf(file, "# ChipNomad Instrument %d.0\n\n", sourceProgram ? 9 : absoluteLevels ? 8 : nativeFormat ? 7 : 5);
