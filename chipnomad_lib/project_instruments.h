@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include "sq80_config.h"
+#include "soundbank_controls.h"
 #include <stdint.h>
 #include "project_constants.h"
 
@@ -447,6 +448,7 @@ struct InstrumentSoundFont {
   char bank[512]; // root-relative source, optionally ZIP::member
   char preset[128]; // stable program identity, never a browser index
   uint32_t prepared; // session-only generation-checked handle
+  SoundbankControls controls;
 };
 
 union InstrumentChipData {

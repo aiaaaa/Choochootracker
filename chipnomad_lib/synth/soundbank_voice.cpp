@@ -31,7 +31,7 @@ float SoundbankVoice::envelopeLevel() const {
   return v;
 }
 void SoundbankVoice::configure(uint32_t handle, float cents, float gain, int velocity,
-                               float cutoff) {
+                               float cutoff, const SoundbankControls& controls) {
   if (handle_ != handle) {
     kill();
     handle_ = handle;
@@ -41,6 +41,7 @@ void SoundbankVoice::configure(uint32_t handle, float cents, float gain, int vel
   gain_ = std::max(0.f, gain);
   velocity_ = std::clamp(velocity, 0, 127);
   cutoff_ = cutoff;
+  controls_ = controls;
   for (auto& l : layers_)
     if (l.zone) updateLayer(l);
 }
@@ -58,10 +59,12 @@ bool SoundbankVoice::matches(const soundbank::Zone& z, bool release) const {
 void SoundbankVoice::updateLayer(Layer& l) {
   auto& z = l.zone->zone;
   l.step = l.zone->audio->sampleRate / rate_ *
-           pow(2.0, ((cents_ - z.root * 100) * z.keytrack / 100 + z.tune + l.tune) / 1200.0);
+           pow(2.0, ((cents_ - z.root * 100) * z.keytrack / 100 + z.tune + l.tune + controls_.tuneCents) / 1200.0);
   l.step = std::clamp(l.step, 1.0 / 65536, 65536.0);
-  l.filter.configure(std::min(z.cutoff, cutoff_) < 19999, 0, 0, false, std::min(z.cutoff, cutoff_),
-                     std::clamp(z.resonance / 40.f, 0.f, 1.f));
+  const float cutoff = std::min(controls_.cutoffHz < 0 ? z.cutoff : float(controls_.cutoffHz), cutoff_);
+  const float resonance = controls_.resonanceTenths < 0 ? z.resonance : controls_.resonanceTenths / 10.f;
+  l.filter.configure(cutoff < 19999, 0, 0, false, cutoff,
+                     std::clamp(resonance / 40.f, 0.f, 1.f));
 }
 void SoundbankVoice::startLayer(Layer& l, const soundbank::PreparedZone& z, size_t index) {
   l.zone = &z;
@@ -69,11 +72,15 @@ void SoundbankVoice::startLayer(Layer& l, const soundbank::PreparedZone& z, size
   l.released = false;
   l.holding = false;
   l.attacking = true;
-  l.delay = uint32_t(z.zone.envelope.delay * rate_);
-  l.hold = uint32_t(z.zone.envelope.hold * rate_);
+  auto time = [](int ms, float bank) { return ms < 0 ? bank : ms / 1000.f; };
+  l.delay = uint32_t(time(controls_.delayMs, z.zone.envelope.delay) * rate_);
+  l.hold = uint32_t(time(controls_.holdMs, z.zone.envelope.hold) * rate_);
+  l.decay = time(controls_.decayMs, z.zone.envelope.decay);
+  l.sustain = controls_.sustainPercent < 0 ? z.zone.envelope.sustain : controls_.sustainPercent / 100.f;
+  l.release = time(controls_.releaseMs, z.zone.envelope.release);
   l.filter.reset();
   l.envelope.kill();
-  l.envelope.configure(z.zone.envelope.attack, 0, 1, z.zone.envelope.release, 128);
+  l.envelope.configure(time(controls_.attackMs, z.zone.envelope.attack), 0, 1, l.release, 128);
   l.envelope.noteOn();
   float v = noteVelocity_ / 127.f;
   if (z.zone.velocityTrack < 0) v = 1 - v;
@@ -181,7 +188,7 @@ void SoundbankVoice::render(float* out, size_t frames) {
           env = 1;
         } else {
           l.holding = false;
-          l.envelope.configure(0, z.envelope.decay, z.envelope.sustain, z.envelope.release, 128);
+          l.envelope.configure(0, l.decay, l.sustain, l.release, 128);
           l.envelope.noteOn();
           env = l.envelope.next();
         }

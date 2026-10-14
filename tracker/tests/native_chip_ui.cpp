@@ -57,10 +57,29 @@ int main(int argc,char** argv){
     require(energy>0.01,"SoundFont audible signal");chipnomadQueuePlaybackStopPreview(chipnomadState,0);
     screenSetup(&screenInstrument,0);screenInstrumentSoundFont.cursorRow=4;appDraw();capture("soundfont-instrument");
     tapEdit();require(currentScreen!=&screenInstrument,"SoundFont Preset Browser opens");capture("soundfont-presets");
+    screenSetup(&screenInstrument,0);appDraw();
+    require(screenTouchTap(29,7),"SoundFont Edit touch");
+    require(screenInstrumentSoundFont.cursorRow==4&&screenInstrumentSoundFont.cursorCol==1,"SoundFont Edit selected");
+    tapEdit();require(currentScreen==&screenSoundFontEdit,"SoundFont editor opens");capture("soundfont-edit-bank");
+    require(screenTouchTap(22,4),"Cutoff editor touch");
+    key(1,keyEdit|keyRight);key(0,0);
+    require(instrument.chip.soundfont.controls.cutoffHz==20,"Cutoff enters valid Hz range");
+    require(screenTouchTap(22,3),"Tuning editor touch");
+    key(1,keyEdit|keyUp);key(0,0);
+    require(instrument.chip.soundfont.controls.tuneCents==100,"Tune coarse edit is one semitone");
+    require(screenTouchTap(22,11),"Last envelope row accessible");
+    key(1,keyEdit|keyRight);key(0,0);
+    require(instrument.chip.soundfont.controls.releaseMs==0,"Release overrides Bank");
+    capture("soundfont-edit-values");
+    key(1,keyOpt);key(0,0);require(currentScreen==&screenInstrument,"Editor returns to instrument");
+    require(screenTouchTap(12,7),"Active preset touch");tapEdit();
+    require(currentScreen!=&screenSoundFontEdit&&currentScreen!=&screenInstrument,"Preset picker remains separate from Edit");
     char path[2048];snprintf(path,sizeof(path),"%s/soundfont-roundtrip.cct",output);
     require(!projectSave(&chipnomadState->project,path),"SoundFont saves");
     auto loaded=std::make_unique<Project>();projectInit(loaded.get());require(!projectLoad(loaded.get(),path),"SoundFont reloads");
     require(loaded->instruments[0].type==InstrumentType::SoundFont&&!strcmp(loaded->instruments[0].chip.soundfont.bank,bank.id.c_str()),"SoundFont saved identity");
+    require(loaded->instruments[0].chip.soundfont.controls.tuneCents==100 &&
+      loaded->instruments[0].chip.soundfont.controls.cutoffHz==20,"Editor settings survive song reload");
     projectFree(loaded.get());soundbankShutdown();chipnomadDestroy(chipnomadState);SDL_Quit();
     printf("SoundFont: bank discovery, asynchronous preset load, Instrument/browser routes, finite audio and save/reload passed\n");return 0;
   }

@@ -159,6 +159,13 @@
         "hardware": "ARM64 build, six engine tests, UI checks and isolated voice benchmark passed",
         "deployment": "Installed with verified rollback; settings and user assets preserved"
       }
+    },
+    {
+      "id": "soundfont-direct-editor",
+      "title": "SoundFont direct instrument editor",
+      "branch": "experimental/soundfont-edit",
+      "upstream_status": "Experimental evaluation, not submitted",
+      "integration_policy": "Bank defaults preserved; instrument-owned tune, filter and envelope overrides. No new Lane FX commands. Integrate and deploy only with a requested daily."
     }
   ],
   "personal_assets": [

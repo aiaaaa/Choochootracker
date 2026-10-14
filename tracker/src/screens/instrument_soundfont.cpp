@@ -7,6 +7,8 @@
 #include "screen_instrument.h"
 #include "selection_popup.h"
 #include "soundbank_library.h"
+#include "project_utils.h"
+#include <iterator>
 
 namespace {
 enum class Page { collections, banks, presets };
@@ -191,7 +193,7 @@ void open(bool banks) {
   if (soundbankEntries().empty() && !soundbankBusy()) soundbankRescan();
   show();
 }
-int columns(int row) { return row < 3 ? instrumentCommonColumnCount(row) : 1; }
+int columns(int row) { return row < 3 ? instrumentCommonColumnCount(row) : row == 4 ? 2 : 1; }
 void drawStatic() {
   instrumentCommonDrawStatic();
   gfxSetFgColor(appSettings.colorScheme.textInfo);
@@ -201,7 +203,7 @@ void drawCursor(int col, int row) {
   if (row < 3)
     instrumentCommonDrawCursor(col, row);
   else
-    gfxCursor(0, row + 3, 23);
+    gfxCursor(row == 4 && col ? 28 : 0, row + 3, row == 4 && col ? 4 : 26);
 }
 void drawField(int col, int row, CellState state) {
   if (row < 3) {
@@ -210,13 +212,23 @@ void drawField(int col, int row, CellState state) {
   }
   gfxSetFgColor(state == CellState::focus ? appSettings.colorScheme.textValue
                                           : appSettings.colorScheme.textDefault);
-  gfxPrint(0, row + 3, row == 3 ? "BANK MANAGER       >" : "PRESET BROWSER     >");
+  if (row == 3) gfxPrint(0, row + 3, "BANK MANAGER       >");
+  else if (col) gfxPrint(28, 7, "Edit");
+  else {
+    std::string name = current().chip.soundfont.preset;
+    for (const auto& bank : soundbankEntries()) if (bank.id == current().chip.soundfont.bank)
+      for (const auto& preset : bank.presets) if (preset.first == name) { name = preset.second; break; }
+    gfxClearRect(0, 7, 27, 1);
+    gfxPrintf(0, 7, "Preset: %.18s", name.empty() ? "Select..." : name.c_str());
+  }
 }
 int edit(int col, int row, CellEditAction action) {
+  if (row == 4 && col == 1) { screenSetup(&screenSoundFontEdit, cInstrument); return 1; }
   return row < 3 ? instrumentCommonOnEdit(col, row, action) : 0;
 }
 int onInput(int down, int keys, int) {
-  if (screenInstrumentSoundFont.cursorRow < 3) {
+  if (screenInstrumentSoundFont.cursorRow < 3 ||
+      (screenInstrumentSoundFont.cursorRow == 4 && screenInstrumentSoundFont.cursorCol == 1)) {
     buttonDown = 0;
     return 0;
   }
@@ -251,3 +263,98 @@ ScreenData screenInstrumentSoundFont = {.rows = 5,
                                         .onRawInput = nullptr,
                                         .isCellValid = nullptr,
                                         .getLoopRange = nullptr};
+
+
+namespace {
+namespace soundfontEditor {
+ScreenData data;
+struct Field {
+  const char* name;
+  int16_t SoundbankControls::*member;
+  int minimum, maximum, coarse, reset;
+  const char* unit;
+};
+const Field fields[] = {
+  {"Tune", &SoundbankControls::tuneCents, -2400, 2400, 100, 0, "ct"},
+  {"Cutoff", &SoundbankControls::cutoffHz, 20, 20000, 100, -1, "Hz"},
+  {"Resonance", &SoundbankControls::resonanceTenths, 0, 400, 10, -1, "dB"},
+  {"Env delay", &SoundbankControls::delayMs, 0, 20000, 100, -1, "ms"},
+  {"Attack", &SoundbankControls::attackMs, 0, 20000, 100, -1, "ms"},
+  {"Hold", &SoundbankControls::holdMs, 0, 20000, 100, -1, "ms"},
+  {"Decay", &SoundbankControls::decayMs, 0, 20000, 100, -1, "ms"},
+  {"Sustain", &SoundbankControls::sustainPercent, 0, 100, 10, -1, "%"},
+  {"Release", &SoundbankControls::releaseMs, 0, 20000, 100, -1, "ms"},
+};
+int columns(int) { return 1; }
+void drawStatic() {
+  gfxSetFgColor(appSettings.colorScheme.textTitles);
+  gfxPrintf(0, 0, "SOUNDFONT EDIT %02X", cInstrument);
+  gfxSetFgColor(appSettings.colorScheme.textInfo);
+  gfxPrint(0, 1, current().name);
+  gfxPrint(0, 14, "Bank = original preset settings");
+  gfxPrint(0, 15, "Envelope edits: next note");
+  gfxPrint(0, 16, "Clear: restore selected default");
+}
+void rowHeader(int row, CellState) {
+  gfxSetFgColor(appSettings.colorScheme.textInfo);
+  gfxPrint(0, row + 3, fields[row].name);
+}
+void field(int, int row, CellState state) {
+  const auto& f = fields[row];
+  const int v = current().chip.soundfont.controls.*(f.member);
+  gfxSetFgColor(state == CellState::focus ? appSettings.colorScheme.textValue : appSettings.colorScheme.textDefault);
+  gfxClearRect(20, row + 3, 12, 1);
+  if (row && v < 0) gfxPrint(20, row + 3, "Bank");
+  else if (row == 2) gfxPrintf(20, row + 3, "%d.%d dB", v / 10, v % 10);
+  else gfxPrintf(20, row + 3, "%d %s", v, f.unit);
+}
+void cursor(int, int row) { gfxCursor(20, row + 3, 9); }
+void colHeader(int, CellState) {}
+int edit(int, int row, CellEditAction action) {
+  if (row < 0 || row >= int(std::size(fields))) return 0;
+  const auto& f = fields[row];
+  auto& stored = current().chip.soundfont.controls.*(f.member);
+  int value = stored;
+  action = convertMultiAction(action);
+  if (action == CellEditAction::clear) value = f.reset;
+  else if (action == CellEditAction::increase || action == CellEditAction::increaseBig)
+    value = row && value < 0 ? f.minimum : std::min(f.maximum, value + (action == CellEditAction::increase ? 1 : f.coarse));
+  else if (action == CellEditAction::decrease || action == CellEditAction::decreaseBig) {
+    value -= action == CellEditAction::decrease ? 1 : f.coarse;
+    if (value < f.minimum) value = row ? -1 : f.minimum;
+  } else return 0;
+  if (value != stored) { stored = value; projectModified = 1; }
+  return 1;
+}
+void setup(int) { data.cursorRow = data.cursorCol = data.topRow = 0; }
+void redraw() { screenFullRedraw(&data); }
+void draw() {}
+int input(int down, int keys, int taps) {
+  if (!keys) chipnomadQueuePlaybackStopPreview(chipnomadState, *pSongTrack);
+  if (keys == keyOpt || keys == (keyLeft | keyShift)) {
+    chipnomadQueuePlaybackStopPreview(chipnomadState, *pSongTrack);
+    screenSetup(&screenInstrument, cInstrument); return 1;
+  }
+  if (keys == (keyEdit | keyPlay)) {
+    if (down && !chipnomadGetPlaybackStatus(chipnomadState)->isPlaying)
+      chipnomadQueuePlaybackPreviewNote(chipnomadState, *pSongTrack,
+        instrumentFirstNote(&chipnomadState->project, cInstrument), cInstrument);
+    return 1;
+  }
+  return screenInput(&data, down, keys, taps);
+}
+ScreenPlaybackLevel level() { return ScreenPlaybackLevel::phrase; }
+struct Initializer {
+  Initializer() {
+    data = {}; data.rows = std::size(fields); data.selectMode = -1;
+    data.getColumnCount = columns; data.drawStatic = drawStatic;
+    data.drawRowHeader = rowHeader; data.drawColHeader = colHeader;
+    data.drawField = field; data.drawCursor = cursor; data.onEdit = edit;
+  }
+} initializer;
+} // namespace soundfontEditor
+} // namespace
+const AppScreen screenSoundFontEdit = {
+  nullptr, soundfontEditor::setup, soundfontEditor::redraw, soundfontEditor::draw,
+  soundfontEditor::input, soundfontEditor::level
+};

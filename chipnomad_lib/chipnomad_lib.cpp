@@ -1668,7 +1668,8 @@ static void updateSoundbankVoices(ChipNomadState* state) {
                                               track->note.fineOffset + pitch;
       int velocity = std::clamp(int(track->note.volume) * 127 / PHRASE_VOLUME_MAX, 0, 127);
       voices[v]->configure(instrument->chip.soundfont.prepared, cents,
-                           gain / std::max(1, int(track->chordVoiceCount)), velocity);
+                           gain / std::max(1, int(track->chordVoiceCount)), velocity, 20000,
+                           instrument->chip.soundfont.controls);
     }
   }
 }

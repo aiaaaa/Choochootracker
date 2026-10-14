@@ -103,6 +103,7 @@ extern const AppScreen screenInstrument;
 extern const AppScreen screenSampleSettings;
 extern const AppScreen screenFMEdit;
 extern const AppScreen screenSIDEdit;
+extern const AppScreen screenSoundFontEdit;
 #if CHOOCHOO_EXPERIMENTAL_SQ80ESQ
 extern const AppScreen screenSQ80Edit;
 #endif

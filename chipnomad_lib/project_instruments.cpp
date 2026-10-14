@@ -51,6 +51,7 @@ static int initNoneInstrument(Instrument* instrument) {
 static int initSoundFontInstrument(Instrument* instrument) {
   initCommon(instrument);
   instrument->type = InstrumentType::SoundFont;
+  instrument->chip.soundfont.controls = soundbankDefaultControls();
   return 0;
 }
 

@@ -452,9 +452,26 @@ Each instrument has a default table with the same number in the `00-7F` range. Y
 
 Copy original SF2/SF3 banks, SFZ/EXS instruments with their samples, or ZIP archives
 into `instruments/USER/soundfont`. Select **SOUNDFONT** on Instrument, then use **BANK MANAGER**
-and **PRESET BROWSER**. EDIT loads a preset; EDIT + PLAY previews the loaded
+and the **Preset** row. The row displays the active preset; EDIT opens its picker. EDIT loads a preset; EDIT + PLAY previews the loaded
 selection. Existing tracker note entry, note-off, volume/pitch MODs and pan apply.
 Projects save stable bank/preset references; libraries remain external.
+
+**Edit**, to the right of Preset, opens the experimental SoundFont editor.
+Tune spans −2400 to +2400 cents, cutoff 20–20000 Hz, resonance 0–40 dB,
+envelope delay/attack/hold/decay/release 0–20000 ms, and sustain 0–100%.
+Tone and envelope fields default to **Bank**, retaining each layer's authored
+value. An explicit value overrides that parameter across the preset's layers.
+Clear restores **Bank** (or zero cents for Tune). EDIT+Left/Right makes fine
+changes; EDIT+Up/Down makes larger changes. OPT returns to Instrument;
+EDIT+PLAY auditions the instrument at its song note or the usual default.
+
+Tuning, cutoff and resonance apply live. Envelope changes apply to the next
+trigger, preserving the current note's envelope. A release time cannot extend
+a sample past its available audio, and bank-authored one-shot behavior remains.
+Edits save in instrument and project files without modifying the source bank;
+older songs without overrides retain their original bank settings. These are
+direct instrument controls, with no new Lane FX commands.
+
 
 All banks are USER banks. Large instruments may exceed the default 64 MiB PCM
 cache, and unsupported source parameters produce warnings. See the
@@ -2208,7 +2225,7 @@ and experimental SoundFont instrument. The saved Song waveform preference is
 retained; Instrument and other editors use their full layouts. ESQ stays experimental
 and is excluded from the planned SID layout contribution.
 
-Use SAMPLE → SOUNDFONT → BANK MANAGER, then PRESET BROWSER. Sound banks remain
+Use SAMPLE → SOUNDFONT → BANK MANAGER, then the Preset row. Sound banks remain
 external user data under instruments/USER/soundfont; web adds Import sound banks and Import bank
 folder. Existing SQ80 and Monk instrument identities remain 28 and 29; SoundFont
 uses 30 in this personal evaluation. Keep the original bank beside saved projects.

@@ -705,3 +705,10 @@ Combined build and runtime results are recorded in the evaluation receipt.
 SoundFont banks share the private USER library at `instruments/USER/soundfont/`
 (browser: `/user/instruments/USER/soundfont/`), preserving collection folders
 and relative sample references.
+
+### SoundFont direct editor (2026-10-14)
+
+The isolated experimental/soundfont-edit branch adds instrument-owned tuning,
+filter and envelope overrides, defaulting to the bank-authored sound. The active
+preset row has an Edit action. No new Lane FX commands, bank files, deployment
+or library-manager selection changes are included.

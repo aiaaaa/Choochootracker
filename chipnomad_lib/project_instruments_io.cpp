@@ -256,6 +256,7 @@ static int loadInstrumentBraids(FILE* file, Instrument* instrument) {
 static int loadInstrumentSoundFont(FILE* file, Instrument* instrument) {
   auto& sf = instrument->chip.soundfont;
   memset(&sf, 0, sizeof(sf));
+  sf.controls = soundbankDefaultControls();
   const char* line;
   while ((line = peekLine(file)) != NULL && strncmp(line, "- ", 2) == 0) {
     if (strncmp(line, "- Sound bank: ", 14) == 0) {
@@ -266,6 +267,14 @@ static int loadInstrumentSoundFont(FILE* file, Instrument* instrument) {
       if (strlen(line + 16) >= sizeof(sf.preset)) return 1;
       strcpy(sf.preset, line + 16);
       sf.preset[strcspn(sf.preset, "\r\n")] = 0;
+    } else if (strncmp(line, "- Sound controls: ", 18) == 0) {
+      int t,c,r,d,a,h,dc,s,rl;
+      if (sscanf(line + 18, "%d %d %d %d %d %d %d %d %d", &t,&c,&r,&d,&a,&h,&dc,&s,&rl) != 9 ||
+          t < -2400 || t > 2400 || c < -1 || (c >= 0 && c < 20) || c > 20000 || r < -1 || r > 400 ||
+          d < -1 || d > 20000 || a < -1 || a > 20000 || h < -1 || h > 20000 ||
+          dc < -1 || dc > 20000 || s < -1 || s > 100 || rl < -1 || rl > 20000) return 1;
+      sf.controls = {int16_t(t),int16_t(c),int16_t(r),int16_t(d),int16_t(a),
+                     int16_t(h),int16_t(dc),int16_t(s),int16_t(rl)};
     }
     consumeLine(file);
   }
@@ -1034,6 +1043,12 @@ int instrumentSaveData(FILE* file, int idx, Instrument* instrument) {
       break;
     case InstrumentType::SoundFont:
       fprintf(file,"- Sound bank: %s\n- Sound preset: %s\n",instrument->chip.soundfont.bank,instrument->chip.soundfont.preset);
+      {
+        const auto& c = instrument->chip.soundfont.controls;
+        fprintf(file,"- Sound controls: %d %d %d %d %d %d %d %d %d\n",
+                c.tuneCents,c.cutoffHz,c.resonanceTenths,c.delayMs,c.attackMs,
+                c.holdMs,c.decayMs,c.sustainPercent,c.releaseMs);
+      }
       break;
     case InstrumentType::Sample:
       saveInstrumentSample(file, instrument);
