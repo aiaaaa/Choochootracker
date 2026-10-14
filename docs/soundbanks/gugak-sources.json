@@ -1,0 +1,146 @@
+{
+  "source": "https://www.catseoul.com/gugak-library/",
+  "checked": "2026-10-14",
+  "license": "LicenseRef-CATSeoul-Personal-Noncommercial",
+  "redistribution": "Not granted by published use notice; exclude from public and Factory packages.",
+  "instruments": [
+    {
+      "name": "단소",
+      "download_url": "https://www.dropbox.com/sh/3j711c8d8vg2jvy/AABzmB8jrm-qXbSrxmF0cKeca?dl=1",
+      "id": "Danso",
+      "family": "Wind"
+    },
+    {
+      "name": "소금",
+      "download_url": "https://www.dropbox.com/sh/udfrd4mb0im14wp/AAD-TppR9Kkh_lSPmYmlHOmFa?dl=1",
+      "id": "Sogeum",
+      "family": "Wind"
+    },
+    {
+      "name": "대금(통합)",
+      "download_url": "https://www.dropbox.com/sh/ibvsowox7ctaukt/AAA-Rd-Rn_4n6_1ual2PZdXUa?dl=1",
+      "id": "Daegeum-Combined",
+      "family": "Wind"
+    },
+    {
+      "name": "산조 대금",
+      "download_url": "https://www.dropbox.com/sh/9fu2i3zuaqzv1cn/AAAEcXsCaKCfShheJlaqnCAFa?dl=1",
+      "id": "Sanjo-Daegeum",
+      "family": "Wind"
+    },
+    {
+      "name": "정악 대금",
+      "download_url": "https://www.dropbox.com/sh/dnt4bfd6ns6t6nt/AADSY7l7pZGXEp_N7i_zQl76a?dl=1",
+      "id": "Jeongak-Daegeum",
+      "family": "Wind"
+    },
+    {
+      "name": "세피리",
+      "download_url": "https://www.dropbox.com/sh/30cmedhlc26xklk/AABjx_zZbPXnCrmfYAtMyumka?dl=1",
+      "id": "Sepiri",
+      "family": "Wind"
+    },
+    {
+      "name": "향피리",
+      "download_url": "https://www.dropbox.com/sh/z7s1op37dl6xg5f/AADt-Id8puWNrDcyEfB35oepa?dl=1",
+      "id": "Hyangpiri",
+      "family": "Wind"
+    },
+    {
+      "name": "당피리",
+      "download_url": "https://www.dropbox.com/sh/95yadf8kdhogbue/AACUUE8bEXsLfqKdaFJDX-Boa?dl=1",
+      "id": "Dangpiri",
+      "family": "Wind"
+    },
+    {
+      "name": "훈",
+      "download_url": "https://www.dropbox.com/sh/djjib5bpayln515/AABpA7RkwBSNuYWMX4biBqHMa?dl=1",
+      "id": "Hun",
+      "family": "Wind"
+    },
+    {
+      "name": "태평소",
+      "download_url": "https://www.dropbox.com/sh/sa9n9o938em6sh4/AABrFcZR4hX4zKRKV6n89olea?dl=1",
+      "id": "Taepyeongso",
+      "family": "Wind"
+    },
+    {
+      "name": "해금",
+      "download_url": "https://www.dropbox.com/sh/i5gmdvtv11ubvw1/AABdZdyDHbFCs0Tbsf3TO8Rsa?dl=1",
+      "id": "Haegeum",
+      "family": "Strings"
+    },
+    {
+      "name": "산조 아쟁",
+      "download_url": "https://www.dropbox.com/sh/y9sz4dxoqacg4b2/AABjv3Odh6mwPg2S3QiBlcl3a?dl=1",
+      "id": "Sanjo-Ajaeng",
+      "family": "Strings"
+    },
+    {
+      "name": "정악 아쟁(개나리활)",
+      "download_url": "https://www.dropbox.com/sh/afbe3c9u67ze1co/AABw7dAB06z86j_7C5QKgUi4a?dl=1",
+      "id": "Jeongak-Ajaeng-Forsythia",
+      "family": "Strings"
+    },
+    {
+      "name": "정악 아쟁(말꼬리활)",
+      "download_url": "https://www.dropbox.com/sh/70viyrwx0ucrt9h/AAC7I2te3REfP72DYqcoposDa?dl=1",
+      "id": "Jeongak-Ajaeng-Horsehair",
+      "family": "Strings"
+    },
+    {
+      "name": "산조 가야금",
+      "download_url": "https://www.dropbox.com/sh/yef5erxvbowu9al/AAAi9NtEx_o7OQ90VTKNL75ta?dl=1",
+      "id": "Sanjo-Gayageum",
+      "family": "Strings"
+    },
+    {
+      "name": "정악 가야금",
+      "download_url": "https://www.dropbox.com/sh/bso79gygbqst06k/AABcY2NLuxERIQIXaqoGVh9Ca?dl=1",
+      "id": "Jeongak-Gayageum",
+      "family": "Strings"
+    },
+    {
+      "name": "25현금",
+      "download_url": "https://www.dropbox.com/sh/cn1vg27166hix3y/AADFOZRCmdl2IJsGLBrcDUGMa?dl=1",
+      "id": "25-String-Gayageum",
+      "family": "Strings"
+    },
+    {
+      "name": "18현금",
+      "download_url": "https://www.dropbox.com/sh/am5dgksuaumc5a9/AAAjxgFxc-1hQ3lP2ohzrmd5a?dl=1",
+      "id": "18-String-Gayageum",
+      "family": "Strings"
+    },
+    {
+      "name": "거문고",
+      "download_url": "https://www.dropbox.com/sh/jbxhusjguabb19a/AAA5hcqRos1WYouRmS4aIOSsa?dl=1",
+      "id": "Geomungo",
+      "family": "Strings"
+    },
+    {
+      "name": "양금",
+      "download_url": "https://www.dropbox.com/sh/5wl4642i3l4kroc/AABfVztIkb1cC8_GGtpB7ibXa?dl=1",
+      "id": "Yanggeum",
+      "family": "Strings"
+    },
+    {
+      "name": "장구",
+      "download_url": "https://www.dropbox.com/sh/dawitog0qot6xnu/AADM2Hgdq1M9jPKwp8r8SP2fa?dl=1",
+      "id": "Janggu",
+      "family": "Percussion"
+    },
+    {
+      "name": "편종",
+      "download_url": "https://www.dropbox.com/sh/2j5fqj0vc2hrwg4/AABDfgd5b0go0zUs-SqKJkVua?dl=1",
+      "id": "Pyeonjong",
+      "family": "Percussion"
+    },
+    {
+      "name": "편경",
+      "download_url": "https://www.dropbox.com/sh/uvzno31ppesp25j/AADqLBP4S6vesmdnDC62SBJpa?dl=1",
+      "id": "Pyeongyeong",
+      "family": "Percussion"
+    }
+  ]
+}

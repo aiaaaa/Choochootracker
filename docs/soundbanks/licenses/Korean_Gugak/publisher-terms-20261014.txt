@@ -1,0 +1,11 @@
+Source: https://www.catseoul.com/gugak-library/
+Captured: 2026-10-14
+Publisher notice summary: personal users may use these free virtual instruments
+for noncommercial purposes; derivative compositions/edits must include the
+acknowledgement below. No library redistribution grant was found in this notice.
+The complete captured original HTML is retained externally as
+soundbank-data/gugak-publisher-20261014.html.
+
+Required acknowledgement (original Korean):
+
+“이 2차 저작물은 서울예술과학센터에서 개발한 국악 가상악기 음원 라이브러리를 사용하였습니다. (서울예술과학센터: catsnu.com, 문의: catantsnu@gmail.com)”

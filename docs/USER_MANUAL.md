@@ -435,6 +435,19 @@ Each instrument has a default table with the same number in the `00-7F` range. Y
 - **SHIFT + OPT**: copy the instrument
 - **SHIFT + EDIT**: paste the instrument
 
+### SOUNDFONT (experimental)
+
+Copy original SF2/SF3 banks, SFZ/EXS instruments with their samples, or ZIP archives
+into `SoundBanks`. Select **SOUNDFONT** on Instrument, then use **BANK MANAGER**
+and **PRESET BROWSER**. EDIT loads a preset; EDIT + PLAY previews the loaded
+selection. Existing tracker note entry, note-off, volume/pitch MODs and pan apply.
+Projects save stable bank/preset references; libraries remain external.
+
+All banks are USER banks. Large instruments may exceed the default 64 MiB PCM
+cache, and unsupported source parameters produce warnings. See the
+[SoundBanks guide](soundbanks/README.md) for platform paths, browser import,
+cache configuration, format coverage and current validation limits.
+
 ### AY Classic, AY Plus and AY Sample
 
 These are the original ChipNomad AY/YM engines. AY Classic exposes hardware-style tone, noise and envelope controls. AY Plus adds software oscillators and richer modulation. AY Sample reproduces a sample through AY-style volume levels and is distinct from the Sampler engine.

@@ -1,0 +1,4 @@
+{"voices":1,"frames_per_voice":240128,"render_wall_seconds":0.070257,"render_cpu_seconds":0.070135,"peak_rss_bytes":1380352,"parse_ms":0.555042,"prepare_ms":22.2265,"pcm_bytes":512,"energy":108043}
+{"voices":8,"frames_per_voice":240128,"render_wall_seconds":0.560311,"render_cpu_seconds":0.560217,"peak_rss_bytes":1380352,"parse_ms":0.555042,"prepare_ms":22.2265,"pcm_bytes":512,"energy":864346}
+{"voices":16,"frames_per_voice":240128,"render_wall_seconds":1.12079,"render_cpu_seconds":1.12057,"peak_rss_bytes":1380352,"parse_ms":0.555042,"prepare_ms":22.2265,"pcm_bytes":512,"energy":1.72869e+06}
+{"voices":32,"frames_per_voice":240128,"render_wall_seconds":2.24697,"render_cpu_seconds":2.24651,"peak_rss_bytes":3821568,"parse_ms":0.555042,"prepare_ms":22.2265,"pcm_bytes":512,"energy":3.45738e+06}
