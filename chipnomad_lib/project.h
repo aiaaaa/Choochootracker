@@ -11,7 +11,7 @@
 
 // FX
 
-enum FX {
+enum FX : FXId {
   // Sequencer FX
   fxARP, // Arpeggio
   fxARC, // Arpeggio config
@@ -234,7 +234,6 @@ enum FX {
   fxTotalCount
 };
 
-static_assert(fxTotalCount < 255, "FX identifiers must not collide with FF");
 static_assert(fxF28 - fxF11 == 15, "Contiguous insert commands");
 
 struct NativeFXInfo {
@@ -272,7 +271,7 @@ uint8_t scaleQuantizeNote(uint8_t note, uint8_t root, uint16_t mask, uint16_t pi
 uint8_t scaleSnapNoteUp(uint8_t note, uint8_t root, uint16_t mask, uint16_t pitchCount);
 
 struct FXName {
-  enum FX fx;
+  FXId fx;
   char name[4];
 };
 
@@ -284,7 +283,7 @@ struct FXGroup {
   InstrumentType instType;  // InstrumentType::none for non-instrument groups
 };
 
-extern FXName fxNames[256]; // All names
+extern FXName fxNames[fxTotalCount]; // All names
 extern FXGroup fxGroups[]; // FX groups
 extern int fxGroupCount; // Number of FX groups
 
@@ -315,11 +314,29 @@ union ChipSetup {
 
 // Tables
 
+struct FXCell {
+  FXId command;
+  uint8_t value;
+  // Indexed access is retained temporarily for the column-oriented UI.
+  struct Component {
+    FXCell* cell;
+    bool isCommand;
+    operator int() const { return isCommand && cell->command == FX_ID_EMPTY ? EMPTY_VALUE_8 : (isCommand ? cell->command : cell->value); }
+    Component& operator=(FXId v) {
+      if (isCommand) cell->command = v;
+      else cell->value = (uint8_t)v;
+      return *this;
+    }
+  };
+  Component operator[](int index) { return {this, index == 0}; }
+  FXId operator[](int index) const { return index == 0 ? command : value; }
+};
+
 struct TableRow {
   uint8_t pitchFlag;
   uint8_t pitchOffset;
   uint8_t volume;
-  uint8_t fx[4][2];
+  FXCell fx[4];
 };
 
 enum class TableRetriggerMode : uint8_t { instrument, phrase, chain, free };
@@ -342,7 +359,7 @@ struct PhraseRow {
   uint8_t instrument;
   // Phrase volume is 00-7F; FFFF means an omitted/inherited volume in memory.
   uint16_t volume;
-  uint8_t fx[3][2];
+  FXCell fx[3];
 };
 
 struct Phrase {

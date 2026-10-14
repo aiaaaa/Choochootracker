@@ -494,7 +494,7 @@ enum class InstrumentCategory : uint8_t { none, chip, sample, synth, drums, midi
 enum class InstrumentScreenKind : uint8_t { none, ay1, ay2, aySample, braids, sample, scwf, byowtbl, plaits, achchid, drumSynth, mme, sintered, midi, opll, opl, simpleChip, dx7, sq80, monk };
 enum class InstrumentMotionValue : uint8_t { raw, speed, cutoff };
 
-static constexpr uint8_t instrumentNoFX = 0xff;
+static constexpr FXId instrumentNoFX = FX_ID_EMPTY;
 
 // Reserved destinations shared by all instruments for MIDI CC mappings.
 // 0 is the explicit "no destination" option; keep the other values below
@@ -515,13 +515,13 @@ enum MidiCCDestination : uint8_t {
 
 struct InstrumentModDestination {
   const char* name;
-  uint8_t fx;                 // FX enum value, or instrumentNoFX.
+  FXId fx;                    // Lane FX identifier, or instrumentNoFX.
   uint16_t range;             // Native modulation range.
   InstrumentMotionValue value;
 };
 
 struct InstrumentFX {
-  uint8_t fx;                 // FX enum value (kept byte-sized to avoid a project.h cycle).
+  FXId fx;
   const char* name;
 };
 
@@ -540,13 +540,13 @@ InstrumentFunctions getInstrumentFunctions(InstrumentType type);
 const InstrumentDefinition* getInstrumentDefinition(InstrumentType type);
 const InstrumentModDestination* instrumentModDestination(InstrumentType type, int destination);
 int instrumentMotionDestination(const Instrument* instrument, int destination,
-                                uint8_t* fx, int* base, int* range,
+                                FXId* fx, int* base, int* range,
                                 InstrumentMotionValue* value);
 int instrumentCCDestinationAvailable(const Instrument* instrument, int destination);
 int instrumentCCDestinationValue(const Instrument* instrument, int destination, uint8_t cc);
 int instrumentSetCCDestination(Instrument* instrument, int destination, uint8_t cc);
-int instrumentFXAvailable(InstrumentType type, uint8_t fx);
-int instrumentFXAvailableForInstrument(const Instrument* instrument, uint8_t fx);
+int instrumentFXAvailable(InstrumentType type, FXId fx);
+int instrumentFXAvailableForInstrument(const Instrument* instrument, FXId fx);
 int instrumentModDestinationAvailable(const Instrument* instrument, int destination);
 int drumSynthMacroUsed(DrumSynthEngine engine, int macro);
 InstrumentVoicePostSettings* instrumentVoicePostSettings(Instrument* instrument);

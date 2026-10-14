@@ -82,15 +82,15 @@ int main(int argc,char** argv){
           require(strstr(help,descriptor.name),"popup names selected insert module");
           require(strstr(help,parameter<descriptor.count?descriptor.parameters[parameter].name:"no effect"),"popup describes active or unused parameter");
           fxEditFullDraw(fx,0,0);
-          uint8_t selected[]={uint8_t(fx),91},last[]={0,0};
-          fxEditInput(0,1,selected,last);
-          if(parameter<descriptor.count) require(selected[0]==fx,"active control selectable");
-          else require(selected[0]!=fx,"unused control is not selectable");
-          if(selected[0]>=fxF11&&selected[0]<=fxF28) {
-            const int a=selected[0]-fxF11;
+          FXCell selected{FXId(fx),91},last{0,0};
+          fxEditInput(0,1,&selected,&last);
+          if(parameter<descriptor.count) require(selected.command==fx,"active control selectable");
+          else require(selected.command!=fx,"unused control is not selectable");
+          if(selected.command>=fxF11&&selected.command<=fxF28) {
+            const int a=selected.command-fxF11;
             require(a%8<insertDescriptor(project.trackInserts[0][a/8].module).count,"fallback is active");
           }
-          require(selected[1]==91,"selection preserves automation value");
+          require(selected.value==91,"selection preserves automation value");
           if((module==insertRotary && (parameter==0||parameter==4)) ||
              (module==insertCompressor && slot==0 && parameter==5)) {
             char name[100];snprintf(name,sizeof(name),"insert-%d-slot-%d-param-%d-header-%d",module,slot,parameter,header);capture(name);
@@ -316,8 +316,8 @@ int main(int argc,char** argv){
       auto& inst=chipnomadState->project.instruments[0];getInstrumentFunctions(type).init(&inst);
       require(!instrumentFXAvailableForInstrument(&inst,fxFBK+1),"selector removed");
       for(int command=fxOAR;command<=fxLEN;++command) {
-        uint8_t fx[]={EMPTY_VALUE_8,0};selectInstrumentFX(fx,command,0);
-        require((fx[0]==command)==bool(instrumentFXAvailableForInstrument(&inst,command)),"selection follows compact list");
+        FXCell fx{FX_ID_EMPTY,0};selectInstrumentFX(&fx,command,0);
+        require((fx.command==command)==bool(instrumentFXAvailableForInstrument(&inst,command)),"selection follows compact list");
       }
       *pSongTrack=0;*pSongRow=0;*pChainRow=0;
       chipnomadState->project.song[0][0]=0;
@@ -411,7 +411,7 @@ int main(int argc,char** argv){
   for(int fx=fxFBR;fx<=fxFBK;++fx) {
     const char* description=helpFXDescription((FX)fx,0);
     require(description&&description[0]&&strchr(description,'\n'),"native FX has title and description");
-    uint8_t value[]={uint8_t(fx),0};require(helpFXHint(value,0,0)[0],"native FX has value hint");
+    FXCell value{FXId(fx),0};require(helpFXHint(&value,0,0)[0],"native FX has value hint");
   }
   for(auto type:{InstrumentType::SegaPSG,InstrumentType::GBPulse,InstrumentType::GBNoise}) {
     getInstrumentFunctions(type).init(&chipnomadState->project.instruments[0]);
@@ -422,16 +422,16 @@ int main(int argc,char** argv){
     auto& inst=chipnomadState->project.instruments[0];getInstrumentFunctions(type).init(&inst);
     for(int command=fxFBR;command<fxTotalCount;++command) {
       NativeFXInfo info{};if(!instrumentFXAvailableForInstrument(&inst,command)||!instrumentNativeFXInfo(&inst,command,&info))continue;
-      uint8_t fx[]={EMPTY_VALUE_8,255},last[]={uint8_t(command),255};
-      selectInstrumentFX(fx,command,0);require(fx[1]==info.preset,"new native FX starts at instrument value");
-      fx[1]=info.minimum;selectInstrumentFX(fx,command,0);require(fx[1]==info.minimum,"existing native FX value preserved");
+      FXCell fx{FX_ID_EMPTY,255},last{FXId(command),255};
+      selectInstrumentFX(&fx,command,0);require(fx.value==info.preset,"new native FX starts at instrument value");
+      fx.value=info.minimum;selectInstrumentFX(&fx,command,0);require(fx.value==info.minimum,"existing native FX value preserved");
       for(auto action:{CellEditAction::increase,CellEditAction::increaseBig,CellEditAction::multiIncreaseBig}) {
-        fx[1]=info.maximum;editFXValue(action,fx,last,0,0);require(fx[1]==info.maximum,"native upper bound");
+        fx.value=info.maximum;editFXValue(action,&fx,&last,0,0);require(fx.value==info.maximum,"native upper bound");
       }
       for(auto action:{CellEditAction::decrease,CellEditAction::decreaseBig}) {
-        fx[1]=info.minimum;editFXValue(action,fx,last,1,0);require(fx[1]==info.minimum,"native lower bound in table");
+        fx.value=info.minimum;editFXValue(action,&fx,&last,1,0);require(fx.value==info.minimum,"native lower bound in table");
       }
-      fx[1]=255;editFXValue(CellEditAction::tap,fx,last,0,0);require(fx[1]<=info.maximum,"out of range cached FX repaired on edit");
+      fx.value=255;editFXValue(CellEditAction::tap,&fx,&last,0,0);require(fx.value<=info.maximum,"out of range cached FX repaired on edit");
     }
   }
   getInstrumentFunctions(InstrumentType::DX7).init(&chipnomadState->project.instruments[0]);
@@ -444,11 +444,11 @@ int main(int argc,char** argv){
   fxProject.instruments[1].chip.opl.operators[0].level=20;
   fxProject.phrases[0].rows[1].instrument=1;
   require(lookupInstrument(&fxProject,0,0,0,0)==0&&lookupInstrument(&fxProject,0,0,2,0)==1,"FX lookup follows explicit and inherited I column");
-  uint8_t inherited[]={EMPTY_VALUE_8,255};selectInstrumentFX(inherited,fxOL1,lookupInstrument(&fxProject,0,0,2,0));
-  require(inherited[1]==43,"inherited instrument supplies its own operator level");
+  FXCell inherited{FX_ID_EMPTY,255};selectInstrumentFX(&inherited,fxOL1,lookupInstrument(&fxProject,0,0,2,0));
+  require(inherited.value==43,"inherited instrument supplies its own operator level");
   for(int header:{0,1}) {
     appSettings.persistentWaveform=header;screenSetup(&screenPhrase,-1);appDraw();
-    fxProject.phrases[0].rows[0].fx[0][0]=EMPTY_VALUE_8;
+    fxProject.phrases[0].rows[0].fx[0].command=FX_ID_EMPTY;
     screenPhrase.init();
     for(int col=0;col<3;++col)key(1,keyRight);
     key(1,keyEdit|keyUp);
@@ -456,7 +456,7 @@ int main(int argc,char** argv){
     fxEditFullDraw(fxFBK,0,0);capture(header?"fx-native-last-header-on":"fx-native-last-header-off");
     fxEditFullDraw(fxOL1,0,0);
     screenPhrase.onInput(0,0,1);
-    auto* fx=fxProject.phrases[0].rows[0].fx[0];require(fx[0]==fxOL1&&fx[1]==42,"popup commit reads instrument preset");
+    auto& fx=fxProject.phrases[0].rows[0].fx[0];require(fx.command==fxOL1&&fx.value==42,"popup commit reads instrument preset");
   }
   getInstrumentFunctions(InstrumentType::GBPulse).init(&chipnomadState->project.instruments[0]);
   screenSetup(&screenPhrase,-1);appDraw();screenPhrase.init();

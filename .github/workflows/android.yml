@@ -40,6 +40,23 @@ jobs:
           export ANDROID_NDK_ROOT="$ANDROID_HOME/ndk/30.0.16248370"
           make -C tracker -f Makefile.android android ARCH=arm64-v8a
           make -C tracker -f Makefile.android android ARCH=armeabi-v7a
+      - name: Configure release signing
+        if: github.event_name != 'pull_request'
+        env:
+          CCT_KEYSTORE_B64: ${{ secrets.CCT_KEYSTORE_B64 }}
+          CCT_KEYSTORE_PASSWORD: ${{ secrets.CCT_KEYSTORE_PASSWORD }}
+          CCT_KEY_ALIAS: ${{ secrets.CCT_KEY_ALIAS }}
+          CCT_KEY_PASSWORD: ${{ secrets.CCT_KEY_PASSWORD }}
+        run: |
+          test -n "$CCT_KEYSTORE_B64"
+          printf '%s' "$CCT_KEYSTORE_B64" | base64 --decode > "$RUNNER_TEMP/choochootracker.keystore"
+          test -s "$RUNNER_TEMP/choochootracker.keystore"
+          {
+            echo "CCT_KEYSTORE_FILE=$RUNNER_TEMP/choochootracker.keystore"
+            echo "CCT_KEYSTORE_PASSWORD=$CCT_KEYSTORE_PASSWORD"
+            echo "CCT_KEY_ALIAS=$CCT_KEY_ALIAS"
+            echo "CCT_KEY_PASSWORD=$CCT_KEY_PASSWORD"
+          } >> "$GITHUB_ENV"
       - name: Build APK and bundle
         working-directory: tracker/platforms/android
         run: |

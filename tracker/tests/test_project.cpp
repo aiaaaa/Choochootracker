@@ -392,7 +392,7 @@ TEST_CASE("instrument catalogue covers every family and its routable motion FX")
   }
 
   Instrument instrument;
-  uint8_t fx; int base, range; InstrumentMotionValue value;
+  FXId fx; int base, range; InstrumentMotionValue value;
   getInstrumentFunctions(InstrumentType::Sample).init(&instrument);
   CHECK(instrumentMotionDestination(&instrument, 3, &fx, &base, &range, &value));
   CHECK(fx == fxSST); CHECK(base == 0); CHECK(range == 255);
@@ -431,7 +431,7 @@ TEST_CASE("instrument catalogue covers every family and its routable motion FX")
   for (int destination = 0; destination < drumSynth->destinationCount; ++destination)
     CHECK(std::strcmp(drumSynth->destinations[destination].name, drumSynthDestinations[destination]) == 0);
   getInstrumentFunctions(InstrumentType::DrumSynth).init(&instrument);
-  uint8_t expectedFX[] = {fxDDC, fxDTO, fxDSW, fxDNO, fxDFM, fxDDR, fxDCF, fxDRS};
+  FXId expectedFX[] = {fxDDC, fxDTO, fxDSW, fxDNO, fxDFM, fxDDR, fxDCF, fxDRS};
   int expectedBase[] = {72, 128, 150, 24, 32, 28, 20000, 0};
   int expectedRange[] = {255, 255, 255, 255, 255, 255, 20000, 255};
   for (int destination = 3; destination <= 10; ++destination) {
@@ -756,7 +756,7 @@ TEST_CASE("fillFXNames ay") {
 
 TEST_CASE("fillFXNames unknown") {
   fillFXNames();
-  CHECK(std::strcmp(fxNames[255].name, "---") == 0);
+  CHECK(std::strcmp(fxNames[fxFBK + 1].name, "---") == 0);
 }
 
 } // TEST_SUITE("project")

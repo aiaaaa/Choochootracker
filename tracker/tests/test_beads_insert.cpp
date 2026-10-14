@@ -122,14 +122,14 @@ TEST_CASE("eight existing addresses include independently packed shape and freez
   insertSelect(&project->trackInserts[0][1], insertBeads);
   auto state = std::make_unique<PlaybackState>();
   playbackInit(state.get(), project.get());
-  uint8_t fx[] = {fxF27, 0xC0};
-  initFX(state.get(), 0, fx, nullptr, 0);
+  FXCell fx{fxF27, 0xC0};
+  initFX(state.get(), 0, &fx, nullptr, 0);
   CHECK(state->tracks[0].inserts.values[1][6] == 0xC0);
   CHECK(state->tracks[0].inserts.valid[1] == 64);
   CHECK(state->tracks[0].inserts.valid[0] == 0);
   CHECK(project->trackInserts[0][1].values[6] == 38);
-  fx[1] = 0x40;
-  initFX(state.get(), 0, fx, nullptr, 0);
+  fx.value = 0x40;
+  initFX(state.get(), 0, &fx, nullptr, 0);
   CHECK(state->tracks[0].inserts.values[1][6] == 0x40);
 }
 TEST_CASE("continuous wet grains sound at supported host rates without FX automation") {

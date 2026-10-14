@@ -134,22 +134,20 @@ static int applyMotionRecordEvent(const MotionRecordEvent& event) {
   if (event.phrase >= PROJECT_MAX_PHRASES || event.row >= 16 || event.fx >= fxTotalCount) return 0;
   PhraseRow* row = &chipnomadState->project.phrases[event.phrase].rows[event.row];
   int column = -1;
-  for (int i = 2; i >= 0; --i) if (row->fx[i][0] == event.fx) { column = i; break; }
+  for (int i = 2; i >= 0; --i) if (row->fx[i].command == event.fx) { column = i; break; }
   if (event.erase) {
     if (column < 0) return 0;
-    row->fx[column][0] = EMPTY_VALUE_8;
-    row->fx[column][1] = 0;
+    row->fx[column] = {FX_ID_EMPTY, 0};
     return 1;
   }
   if (column < 0)
-    for (int i = 2; i >= 0; --i) if (row->fx[i][0] == EMPTY_VALUE_8) { column = i; break; }
+    for (int i = 2; i >= 0; --i) if (row->fx[i].command == FX_ID_EMPTY) { column = i; break; }
   if (column < 0) {
     chipnomadSetMotionRecordOverflow();
     return 0;
   }
-  if (row->fx[column][0] == event.fx && row->fx[column][1] == event.value) return 0;
-  row->fx[column][0] = event.fx;
-  row->fx[column][1] = event.value;
+  if (row->fx[column].command == event.fx && row->fx[column].value == event.value) return 0;
+  row->fx[column] = {event.fx, event.value};
   return 1;
 }
 
@@ -616,6 +614,7 @@ void appOnEvent(MainLoopEventData eventData) {
     if (currentScreen == &screenPhrase && phraseKeyJazzHandleRawKey(eventData.data.input, 1)) break;
     if (currentScreen == &screenSong && songKeyJazzHandleRawKey(eventData.data.input, 1)) break;
     if (currentScreen == &screenChain && chainKeyJazzHandleRawKey(eventData.data.input, 1)) break;
+    if (currentScreen == &screenInstrument && instrumentKeyJazzHandleRawKey(eventData.data.input, 1)) break;
     if (keyJazzTextHandleRawKey(eventData.data.input, 1, currentScreen)) break;
 #endif
 
@@ -698,6 +697,7 @@ void appOnEvent(MainLoopEventData eventData) {
     if (currentScreen == &screenPhrase && phraseKeyJazzHandleRawKey(eventData.data.input, 0)) break;
     if (currentScreen == &screenSong && songKeyJazzHandleRawKey(eventData.data.input, 0)) break;
     if (currentScreen == &screenChain && chainKeyJazzHandleRawKey(eventData.data.input, 0)) break;
+    if (currentScreen == &screenInstrument && instrumentKeyJazzHandleRawKey(eventData.data.input, 0)) break;
     if (keyJazzTextHandleRawKey(eventData.data.input, 0, currentScreen)) break;
 #endif
     int value = inputCodeToKey(eventData.data.input);

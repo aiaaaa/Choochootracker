@@ -19,7 +19,10 @@ enum InsertModule : uint8_t {
   insertBitcrusher,
   insertDestruction,
   insertParametricEQ,
-  insertBeads,
+  // Personal saved projects already use 14 for Beads. Stock Trance Gate (14)
+  // requires explicit conversion to the personal catalogue before import.
+  insertBeads = 14,
+  insertTranceGate = 15,
   insertModuleCount
 };
 enum class InsertMapping : uint8_t { linear, exponential, bipolar, discrete };
@@ -62,6 +65,10 @@ class InsertChain {
   // Audio-thread attachment of a producer-prepared lease, before sync().
   void attachBeads(int slot, const BeadsPool::Handle&);
   void reset();
+  // The tracker clock is 24 ticks per quarter note. Tempo is updated at its
+  // frame boundary, while trigger() aligns track gates with note-on events.
+  void setTempo(float tickRate);
+  void trigger();
   uint16_t sync(const InsertConfig config[2], InsertAutomation*, bool rendered = true);
   bool active() const;
   void process(float* interleaved, int frames, const uint8_t effective[2][8]);

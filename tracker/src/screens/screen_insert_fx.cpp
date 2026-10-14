@@ -162,6 +162,7 @@ static const SelectionItem modulation[] = {
   {"Chorus", insertChorus, nullptr, 0, nullptr},
   {"Phaser", insertPhaser, nullptr, 0, nullptr},
   {"Flanger", insertFlanger, nullptr, 0, nullptr},
+  {"Trance Gate", insertTranceGate, nullptr, 0, nullptr},
 };
 static const SelectionItem tape[] = {
   {"TAPESCAM", insertTape, nullptr, 0, nullptr},

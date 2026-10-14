@@ -639,6 +639,19 @@ TEST_CASE_FIXTURE(PlaybackFixture, "PRO 00 suppresses a row and PRO 64 always tr
   CHECK(state->playbackState.tracks[0].note.pitchBase == 48);
 }
 
+TEST_CASE_FIXTURE(PlaybackFixture, "wide unknown FX cannot alias byte-sized row conditions") {
+  setInstrument(0, 0, 0, 15, 0);
+  auto& row = state->project.phrases[0].rows[0];
+  row.note = 48;
+  row.instrument = 0;
+  row.fx[0] = {FXId(0x100 + fxPRO), 0};
+  state->project.chains[0].rows[0].phrase = 0;
+  state->project.song[0][0] = 0;
+  playbackStartSong(&state->playbackState, 0, 0, 0);
+  advanceFrames(1);
+  CHECK(state->playbackState.tracks[0].note.pitchBase == 48);
+}
+
 TEST_CASE_FIXTURE(PlaybackFixture, "MOD 22 triggers on the second visit") {
   setInstrument(0, 0, 0, 15, 0);
   PhraseRow* row = &state->project.phrases[0].rows[0];

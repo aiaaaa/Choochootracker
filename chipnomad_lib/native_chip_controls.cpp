@@ -321,7 +321,7 @@ static const InstrumentModDestination* directModDestination(InstrumentType type,
           if(n>=78)snprintf(name,16,"OP%d Level",op+1);
           else if(n<72)snprintf(name,16,"OP%d %s",op+1,directFMName(fx));
           else snprintf(name,16,"%s",directFMName(fx));
-          values[int(t)][n]={name,uint8_t(fx),uint16_t(info.maximum),InstrumentMotionValue::raw};
+          values[int(t)][n]={name,FXId(fx),uint16_t(info.maximum),InstrumentMotionValue::raw};
         }
       }
     }

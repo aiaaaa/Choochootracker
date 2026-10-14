@@ -467,7 +467,7 @@ static bool trackerDirectFMAvailable(InstrumentType type, int fx) {
   }
 }
 
-int instrumentFXAvailable(InstrumentType type, uint8_t fx) {
+int instrumentFXAvailable(InstrumentType type, FXId fx) {
 #if CHOOCHOO_EXPERIMENTAL_SQ80ESQ
   if(type==InstrumentType::SQ80ESQ)return (fx>=fxQCF&&fx<=fxEXT)||fx==fxLFR;
 #endif
@@ -483,7 +483,7 @@ int instrumentFXAvailable(InstrumentType type, uint8_t fx) {
   return 0;
 }
 
-int instrumentFXAvailableForInstrument(const Instrument* instrument, uint8_t fx) {
+int instrumentFXAvailableForInstrument(const Instrument* instrument, FXId fx) {
   if(instrument&&instrument->type==InstrumentType::SQ80ESQ)return instrumentFXAvailable(instrument->type,fx);
   if(instrument && fx>=fxOAR&&fx<=fxLEN) { if(!trackerDirectFMAvailable(instrument->type,fx))return 0; NativeFXInfo info{}; return instrumentDirectFMInfo(instrument,fx,&info); }
   if (!instrument || !instrumentFXAvailable(instrument->type, fx)) return 0;
@@ -547,7 +547,7 @@ InstrumentVoicePostSettings* instrumentVoicePostSettings(Instrument* instrument)
   }
 }
 
-int instrumentMotionDestination(const Instrument* instrument, int destination, uint8_t* fx, int* base, int* range, InstrumentMotionValue* value) {
+int instrumentMotionDestination(const Instrument* instrument, int destination, FXId* fx, int* base, int* range, InstrumentMotionValue* value) {
   if(!instrument || !instrumentModDestinationAvailable(instrument,destination))return 0;
   int generic = instrumentGenericModDestination(instrument->type, destination);
   if (generic == genericModInstrumentPan || generic == genericModTrackPan) {

@@ -43,7 +43,7 @@ static uint8_t convertPan(uint8_t bits) {
 enum { CMD_NONE, CMD_A, CMD_C, CMD_D, CMD_E, CMD_F, CMD_G, CMD_H, CMD_K, CMD_L, CMD_M, CMD_O, CMD_P, CMD_R, CMD_S, CMD_T, CMD_V, CMD_W, CMD_Z };
 
 static void setFx(PhraseRow* row, int slot, enum FX fx, uint8_t value) {
-  row->fx[slot][0] = (uint8_t)fx;
+  row->fx[slot].command = (FXId)fx;
   row->fx[slot][1] = value;
 }
 

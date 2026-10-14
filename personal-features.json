@@ -1,7 +1,7 @@
 {
   "upstream": "paiheulevrai/Choochootracker",
   "upstream_branch": "main",
-  "upstream_commit": "7ab92323b1e4aa61314f1baae565e0ff19a328e0",
+  "upstream_commit": "583702d68ee6badf7ad37f7264a1ba9f2b87ab46",
   "personal_branch": "personal/r36h",
   "update_policy": "Personal combines upstream main, my additions not yet incorporated upstream, and my experiments. Keep unmerged additions, including pending or declined submissions. Once incorporated upstream, replace my earlier implementation with the maintainer's merged version, including his fixes and changes; remove duplicate code and controls. Test, preserve user data, record commit, and retain rollback before installation.",
   "features": [
@@ -630,6 +630,28 @@
     "lsdj_export": "Upstream desktop and Android targets only; no web/PortMaster export row",
     "status": "Authorized combined daily; exact-source validation and deployment recorded in receipts",
     "beads_pr": "Held; no PR edits",
+    "vita": "Paused; excluded"
+  },
+  "alpha_preparation_20261014": {
+    "branch": "candidate/personal-alpha-20261014",
+    "release": "v1.0.16-alpha",
+    "release_commit": "3ae1364af6b37344aa031b5c3ba8505ba87b430e",
+    "upstream_commit": "583702d68ee6badf7ad37f7264a1ba9f2b87ab46",
+    "personal_baseline": "adc8069c75191dc2fb89893c55359dcc88ceb44f",
+    "monksynth_checkpoint": "af12cff",
+    "status": "Source preparation only; awaiting possible additional branch; builds, runtime tests, push and deployment held",
+    "targets": [
+      "R36H personal",
+      "web personal"
+    ],
+    "personal_insert_ids": {
+      "Beads": 14,
+      "Trance Gate": 15
+    },
+    "compatibility": "Stock Trance Gate songs require explicit conversion. Old personal Beads songs retain their saved module ID. No song migration performed.",
+    "review": "docs/personal-alpha-20261014-review.txt",
+    "validation": "Static source checks only; no compiled/runtime validation",
+    "beads_pr": "Held; unchanged",
     "vita": "Paused; excluded"
   }
 }

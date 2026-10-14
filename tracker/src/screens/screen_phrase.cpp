@@ -16,7 +16,7 @@ static uint8_t lastNote = 48;
 static uint8_t lastInstrument = 0;
 
 static uint16_t lastVolume = PHRASE_VOLUME_MAX;
-static uint8_t lastFX[2] = {0, 0};
+static FXCell lastFX = {FX_ID_EMPTY, 0};
 
 // Selection fill/mutate/arp cycle positions (see the fill section below).
 static int fillCycleIndex = 0;
@@ -82,8 +82,7 @@ static void init(void) {
   lastNote = 48;
   lastInstrument = 0;
   lastVolume = PHRASE_VOLUME_MAX;
-  lastFX[0] = 0;
-  lastFX[1] = 0;
+  lastFX = {FX_ID_EMPTY, 0};
   screen.cursorRow = 0;
   screen.cursorCol = 0;
   screen.topRow = 0;
@@ -146,13 +145,13 @@ static void drawField(int col, int row, CellState state) {
     gfxPrint(x, y, col == 1 ? byteToHexOrEmpty((uint8_t)value) : volumeToHexOrEmpty(value));
   } else if (col == 3 || col == 5 || col == 7) {
     // FX name
-    uint8_t fx = phraseRows[row].fx[(col - 3) / 2][0];
-    setCellColor(state, fx == EMPTY_VALUE_8, 1);
-    gfxPrint(x, y, fxNames[fx].name);
+    FXId fx = phraseRows[row].fx[(col - 3) / 2].command;
+    setCellColor(state, fx == FX_ID_EMPTY, 1);
+    gfxPrint(x, y, fx >= fxTotalCount ? "---" : fxNames[fx].name);
   } else if (col == 4 || col == 6 || col == 8) {
     // FX value
     uint8_t value = phraseRows[row].fx[(col - 4) / 2][1];
-    setCellColor(state, 0, phraseRows[row].fx[(col - 3) / 2][0] != EMPTY_VALUE_8);
+    setCellColor(state, 0, phraseRows[row].fx[(col - 3) / 2].command != FX_ID_EMPTY);
     gfxPrint(x, y, byteToHex(value));
   }
 }
@@ -929,7 +928,7 @@ static int editCell(int col, int row, CellEditAction action) {
     int fxIdx = (col - 3) / 2;
     // Get instrument number from current phrase row or traverse back
     uint8_t instrumentNum = lookupInstrument(&chipnomadState->project, *pSongRow, *pChainRow, row, *pSongTrack);
-    int result = editFX(action, phraseRows[row].fx[fxIdx], lastFX, 0, instrumentNum);
+    int result = editFX(action, &phraseRows[row].fx[fxIdx], &lastFX, 0, instrumentNum);
     if (result == 2) {
       drawField(col + 1, row, CellState::normal);
       handled = 1;
@@ -940,9 +939,9 @@ static int editCell(int col, int row, CellEditAction action) {
   } else if (col == 4 || col == 6 || col == 8) {
     // FX value
     int fxIdx = (col - 4) / 2;
-    if (phraseRows[row].fx[fxIdx][0] != EMPTY_VALUE_8) {
+    if (phraseRows[row].fx[fxIdx].command != FX_ID_EMPTY) {
       uint8_t instrumentNum = lookupInstrument(&chipnomadState->project, *pSongRow, *pChainRow, row, *pSongTrack);
-      handled = editFXValue(action, phraseRows[row].fx[fxIdx], lastFX, 0, instrumentNum);
+      handled = editFXValue(action, &phraseRows[row].fx[fxIdx], &lastFX, 0, instrumentNum);
     }
   }
 
@@ -977,7 +976,7 @@ static int onEdit(int col, int row, CellEditAction action) {
         int fxIdx = (startCol - 3) / 2;
         // Get instrument index from current phrase row or traverse back
         uint8_t instrumentNum = lookupInstrument(&chipnomadState->project, *pSongRow, *pChainRow, screen.cursorRow, *pSongTrack);
-        fxEditFullDraw(phraseRows[screen.cursorRow].fx[fxIdx][0], instrumentNum, 0);
+        fxEditFullDraw(phraseRows[screen.cursorRow].fx[fxIdx].command, instrumentNum, 0);
         isFxEdit = 1;
       } else {
         // Regular big increase/decrease for note, volume, instrument, FX value
@@ -1025,7 +1024,7 @@ static int inputScreenNavigation(int keys, int tapCount) {
     if (screen.cursorCol > 2) {
       // If we currently on the table command, go to this table
       int fxIdx = (screen.cursorCol - 3) / 2;
-      uint8_t fxType = phraseRows[screen.cursorRow].fx[fxIdx][0];
+      FXId fxType = phraseRows[screen.cursorRow].fx[fxIdx].command;
       uint8_t fxValue = phraseRows[screen.cursorRow].fx[fxIdx][1];
       if ((fxType == fxTBL || fxType == fxTBX) && fxValue != 0xff) {
         table = fxValue;
@@ -1055,7 +1054,7 @@ static int inputScreenNavigation(int keys, int tapCount) {
     if (screen.cursorCol > 2) {
       // If we currently on the groove command, go to this groove
       int fxIdx = (screen.cursorCol - 3) / 2;
-      uint8_t fxType = phraseRows[screen.cursorRow].fx[fxIdx][0];
+      FXId fxType = phraseRows[screen.cursorRow].fx[fxIdx].command;
       if (fxType == fxGRV || fxType == fxGGR) {
         groove = phraseRows[screen.cursorRow].fx[fxIdx][1] & (PROJECT_MAX_GROOVES - 1);
       }
@@ -1119,7 +1118,7 @@ static int inputScreenNavigation(int keys, int tapCount) {
 static int onInput(int isKeyDown, int keys, int tapCount) {
   if (isFxEdit) {
     int fxIdx = (screen.cursorCol - 3) / 2;
-    int result = fxEditInput(keys, tapCount, phraseRows[screen.cursorRow].fx[fxIdx], lastFX);
+    int result = fxEditInput(keys, tapCount, &phraseRows[screen.cursorRow].fx[fxIdx], &lastFX);
     if (result) {
       isFxEdit = 0;
 
@@ -1129,9 +1128,9 @@ static int onInput(int isKeyDown, int keys, int tapCount) {
         getSelectionBounds(&screen, &startCol, &startRow, &endCol, &endRow);
 
         if (isSingleColumnSelection(&screen)) {
-          uint8_t selectedFX = phraseRows[screen.cursorRow].fx[fxIdx][0];
+          FXId selectedFX = phraseRows[screen.cursorRow].fx[fxIdx].command;
           for (int r = startRow; r <= endRow; r++) {
-            selectInstrumentFX(phraseRows[r].fx[fxIdx],selectedFX,
+            selectInstrumentFX(&phraseRows[r].fx[fxIdx],selectedFX,
               lookupInstrument(&chipnomadState->project,*pSongRow,*pChainRow,r,*pSongTrack));
           }
         }
@@ -1243,7 +1242,7 @@ static void keyJazzClearRow(int row, int includeFx) {
   phraseRows[row].volume = EMPTY_VALUE_16;
   if (includeFx) {
     for (int i = 0; i < 3; i++) {
-      phraseRows[row].fx[i][0] = EMPTY_VALUE_8;
+      phraseRows[row].fx[i].command = FX_ID_EMPTY;
       phraseRows[row].fx[i][1] = 0;
     }
   }

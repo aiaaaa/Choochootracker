@@ -434,7 +434,7 @@ static int motionDestinationFX(ChipNomadState* state, int trackIdx, const Instru
     *value = InstrumentMotionValue::raw;
     return 1;
   }
-  uint8_t rawFX;
+  FXId rawFX;
   if (!instrumentMotionDestination(instrument, destination, &rawFX, base, range, value)) return 0;
   *fx = (FX)rawFX;
   if (*fx == fxTPN) *base = state->audioProject.trackPan[trackIdx];
@@ -564,7 +564,7 @@ static void motionRecordFrame(ChipNomadState* state) {
         if(instrumentNativeFXInfo(instrument,fx,&info,std::max(0,operators[target]-1)))fxValue=clampInt(fxValue,info.minimum,info.maximum);
       }
       if (mode == 1 && motionRecordLast[trackIdx][fx][operators[target]] == fxValue) continue;
-      MotionRecordEvent event = {phrase, row, (uint8_t)fx, (uint8_t)fxValue, (uint8_t)(mode == 2)};
+      MotionRecordEvent event = {phrase, row, (FXId)fx, (uint8_t)fxValue, (uint8_t)(mode == 2)};
       if (!chipnomadMotionPushEvent(event)) {
         chipnomadMotionSetOverflow();
         continue;
@@ -1130,6 +1130,7 @@ static void updateAudioRateModulations(ChipNomadState* state) {
 }
 
 static int advancePlaybackFrame(ChipNomadState* state, uint64_t dueMicros) {
+  const int wasPlaying = playbackIsPlaying(&state->playbackState);
   state->audioCommands->applyProject(state);
   state->playbackState.p = &state->audioProject;
   if (state->audioCommands->takeStopRequest()) {
@@ -1140,6 +1141,7 @@ static int advancePlaybackFrame(ChipNomadState* state, uint64_t dueMicros) {
   for (int t = 0; t < PROJECT_MAX_TRACKS; ++t) {
     if (!state->insertChains[t]) continue;
     auto& track = state->playbackState.tracks[t];
+    state->insertChains[t]->setTempo(state->audioProject.tickRate);
     uint16_t cleared = state->insertChains[t]->sync(state->audioProject.trackInserts[t], &track.inserts,
         t < state->audioProject.tracksCount && state->playbackState.trackEnabled[t]);
     for (int address = 0; address < 16; ++address) if (cleared & (1u << address)) {
@@ -1148,9 +1150,12 @@ static int advancePlaybackFrame(ChipNomadState* state, uint64_t dueMicros) {
     }
   }
   if (state->masterInsertChain)
+    state->masterInsertChain->setTempo(state->audioProject.tickRate);
+  if (state->masterInsertChain)
     state->masterInsertChain->sync(state->audioProject.masterInserts, &state->masterInsertAutomation);
   state->audioCommands->applySettings(&state->playbackState);
   state->audioCommands->applyCommands(state);
+  if (!wasPlaying && playbackIsPlaying(&state->playbackState)) state->masterEffects->reset();
   for (int t = 0; t < PROJECT_MAX_TRACKS; ++t) {
     auto& track = state->playbackState.tracks[t];
     if (track.insertReset != state->insertResetSeen[t]) {
@@ -1165,6 +1170,11 @@ static int advancePlaybackFrame(ChipNomadState* state, uint64_t dueMicros) {
   playbackUpdateLiveStickModulation(&state->playbackState, axes, enabled);
   state->frameSampleCounter += state->sampleRate / state->audioProject.tickRate;
   int allTracksStopped = playbackNextFrame(state);
+  if (!wasPlaying && playbackIsPlaying(&state->playbackState) && state->masterInsertChain)
+    state->masterInsertChain->reset();
+  for (int t = 0; t < state->audioProject.tracksCount; ++t)
+    if (state->playbackState.tracks[t].note.noteTriggered && state->insertChains[t])
+      state->insertChains[t]->trigger();
   motionRecordFrame(state);
   if (allTracksStopped) playbackUpdateLiveStickModulation(&state->playbackState, axes, enabled);
   updateSampleVoices(state); updateSCWFVoices(state); updateBraidsVoices(state);
@@ -1182,7 +1192,7 @@ static int advancePlaybackFrame(ChipNomadState* state, uint64_t dueMicros) {
   if (playbackIsPlaying(&state->playbackState) && state->opllPreviewTrack >= 0) {
     stopSQ80Preview(state);state->sidPreview->kill();state->fourOpPreview->kill();state->dx7Preview->kill();state->opllPreview->kill(); state->oplPreview->kill();state->simpleChipPreview->kill(); state->opllPreviewTrack = -1;
   }
-  return allTracksStopped && state->opllPreviewTrack < 0;
+  return allTracksStopped && state->opllPreviewTrack < 0 && !state->masterEffects->tailActive();
 }
 
 static int prepareRenderChunk(ChipNomadState* state, float* output, int frames) {

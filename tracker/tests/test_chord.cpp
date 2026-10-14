@@ -61,7 +61,7 @@ TEST_CASE("CRD is same-row only and quantizes every chord note") {
   state.tracks[0].mode = PlaybackMode::phraseRow;
   PhraseRow row = {};
   row.note = 36; row.instrument = EMPTY_VALUE_8; row.volume = EMPTY_VALUE_16;
-  for (int i = 0; i < 3; ++i) row.fx[i][0] = EMPTY_VALUE_8;
+  for (int i = 0; i < 3; ++i) row.fx[i].command = FX_ID_EMPTY;
   row.fx[0][0] = fxCRD; row.fx[0][1] = 0x00;
   readPhraseRowDirect(&state, 0, &row, 0);
   CHECK(row.note == 36);
@@ -70,7 +70,7 @@ TEST_CASE("CRD is same-row only and quantizes every chord note") {
   CHECK(state.tracks[0].chordPitchBase[1] == 39);
   CHECK(state.tracks[0].chordPitchBase[2] == 43);
 
-  row.note = 38; row.fx[0][0] = EMPTY_VALUE_8;
+  row.note = 38; row.fx[0].command = FX_ID_EMPTY;
   readPhraseRowDirect(&state, 0, &row, 0);
   CHECK(state.tracks[0].chordVoiceCount == 1);
   CHECK(state.tracks[0].chordPitchBase[0] == 38);
@@ -87,7 +87,7 @@ TEST_CASE("CRD is ignored by AY instruments") {
   state.tracks[0].mode = PlaybackMode::phraseRow;
   PhraseRow row = {};
   row.note = 36; row.instrument = 0; row.volume = EMPTY_VALUE_16;
-  for (int i = 0; i < 3; ++i) row.fx[i][0] = EMPTY_VALUE_8;
+  for (int i = 0; i < 3; ++i) row.fx[i].command = FX_ID_EMPTY;
   row.fx[0][0] = fxCRD; row.fx[0][1] = 0x00;
   readPhraseRowDirect(&state, 0, &row, 0);
   CHECK(state.tracks[0].chordVoiceCount == 1);
@@ -98,8 +98,8 @@ TEST_CASE("STA aliases SST") {
   projectInit(&project);
   PlaybackState state = {};
   playbackInit(&state, &project);
-  uint8_t fx[] = {fxSTA, 0x42};
-  initFX(&state, 0, fx, NULL, 0);
+  FXCell fx = {fxSTA, 0x42};
+  initFX(&state, 0, &fx, NULL, 0);
   CHECK(state.tracks[0].note.fx[fxSST].isOn);
   CHECK(state.tracks[0].note.fx[fxSST].fxValue == 0x42);
   CHECK(!state.tracks[0].note.fx[fxSTA].isOn);

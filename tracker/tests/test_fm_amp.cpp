@@ -84,7 +84,7 @@ TEST_CASE("FM tone extension rejects out of range and duplicate controls") {
 }
 TEST_CASE("Native macros append IDs and expose only supported controls") {
  CHECK(genericModFirstInsert==29);CHECK(genericModFMBrightness==45);
- CHECK(fxSLI==fxF28+1);CHECK(fxFBR==fxSLI+1);CHECK(fxTotalCount<255); /* merged: our fxSLI keeps its pre-merge ID between fxF28 and upstream's native FX block */fillFXNames();
+ CHECK(fxSLI==fxF28+1);CHECK(fxFBR==fxSLI+1);CHECK(sizeof(FXId)==2); /* merged: our fxSLI keeps its pre-merge ID between fxF28 and upstream's native FX block */fillFXNames();
  for(int type=0;type<int(InstrumentType::totalCount);++type) {
   Instrument i{};getInstrumentFunctions(InstrumentType(type)).init(&i);
   for(int g=genericModFMBrightness;g<genericModInstrumentPan;++g) {
@@ -108,7 +108,7 @@ TEST_CASE("Native macros append IDs and expose only supported controls") {
     }
     if(d->fx<fxOAR||d->fx>fxLEN)CHECK(instrumentFXAvailableForInstrument(&i,d->fx));
     if(instrumentFXAvailableForInstrument(&i,d->fx))CHECK(strcmp(fxNames[d->fx].name,"---"));
-    uint8_t fx;int base,range;InstrumentMotionValue encoding;
+    FXId fx;int base,range;InstrumentMotionValue encoding;
     REQUIRE(instrumentMotionDestination(&i,dest,&fx,&base,&range,&encoding));
     CHECK(fx==d->fx);CHECK(base>=0);CHECK(base<=range);
    }
@@ -125,7 +125,7 @@ TEST_CASE("Pan modulation destinations map to pan FX") {
    const bool available=i.type!=InstrumentType::Midi;
    CHECK(bool(instrumentModDestinationAvailable(&i,dest))==available);
    if(!available)continue;
-   uint8_t fx;int base,range;InstrumentMotionValue encoding;
+   FXId fx;int base,range;InstrumentMotionValue encoding;
    REQUIRE(instrumentMotionDestination(&i,dest,&fx,&base,&range,&encoding));
    CHECK(fx==(g==genericModInstrumentPan?fxPAN:fxTPN));
    CHECK(base==128);CHECK(range==255);CHECK(encoding==InstrumentMotionValue::raw);

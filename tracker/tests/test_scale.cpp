@@ -46,7 +46,7 @@ TEST_CASE("SCL changes runtime scale without changing phrase data") {
   row.note = 3; // D#
   row.instrument = EMPTY_VALUE_8;
   row.volume = EMPTY_VALUE_16;
-  for (int i = 0; i < 3; ++i) row.fx[i][0] = EMPTY_VALUE_8;
+  for (int i = 0; i < 3; ++i) row.fx[i].command = FX_ID_EMPTY;
   row.fx[0][0] = fxSCL;
   row.fx[0][1] = 0x10; // Major, C
 
@@ -75,7 +75,7 @@ TEST_CASE("sliced sample notes skip scale quantization") {
   row.note = 3;
   row.instrument = 0;
   row.volume = EMPTY_VALUE_16;
-  for (int i = 0; i < 3; ++i) row.fx[i][0] = EMPTY_VALUE_8;
+  for (int i = 0; i < 3; ++i) row.fx[i].command = FX_ID_EMPTY;
   readPhraseRowDirect(&state, 0, &row, 0);
   CHECK(state.tracks[0].note.pitchBase == 3);
 
@@ -97,7 +97,7 @@ TEST_CASE("track scale mask leaves excluded tracks chromatic") {
   state.tracks[1].mode = PlaybackMode::phraseRow;
   PhraseRow row = {};
   row.note = 3; row.instrument = EMPTY_VALUE_8; row.volume = EMPTY_VALUE_16;
-  for (int i = 0; i < 3; ++i) row.fx[i][0] = EMPTY_VALUE_8;
+  for (int i = 0; i < 3; ++i) row.fx[i].command = FX_ID_EMPTY;
   readPhraseRowDirect(&state, 1, &row, 0);
   CHECK(state.tracks[1].note.pitchBase == 3);
 }
@@ -113,7 +113,7 @@ TEST_CASE("lowest track SCL command wins during a playback frame") {
   state.tracks[0].mode = state.tracks[1].mode = PlaybackMode::phraseRow;
 
   PhraseRow first = {}, second = {};
-  for (int i = 0; i < 3; ++i) { first.fx[i][0] = EMPTY_VALUE_8; second.fx[i][0] = EMPTY_VALUE_8; }
+  for (int i = 0; i < 3; ++i) { first.fx[i].command = FX_ID_EMPTY; second.fx[i].command = FX_ID_EMPTY; }
   first.fx[0][0] = fxSCL; first.fx[0][1] = 0x10;
   second.fx[0][0] = fxSCL; second.fx[0][1] = 0x2b;
   readPhraseRowDirect(&state, 0, &first, 0);
@@ -138,7 +138,7 @@ TEST_CASE("note lock mode bypasses playback quantization of plain notes") {
   row.note = 3; // D# would be snapped to D by the quantizer
   row.instrument = EMPTY_VALUE_8;
   row.volume = EMPTY_VALUE_8;
-  for (int i = 0; i < 3; ++i) row.fx[i][0] = EMPTY_VALUE_8;
+  for (int i = 0; i < 3; ++i) row.fx[i].command = FX_ID_EMPTY;
   readPhraseRowDirect(&state, 0, &row, 0);
   CHECK(state.tracks[0].note.pitchBase == 3);
 }
@@ -160,7 +160,7 @@ TEST_CASE("note lock mode still quantizes CRD chord notes") {
   row.note = 36;
   row.instrument = EMPTY_VALUE_8;
   row.volume = EMPTY_VALUE_8;
-  for (int i = 0; i < 3; ++i) row.fx[i][0] = EMPTY_VALUE_8;
+  for (int i = 0; i < 3; ++i) row.fx[i].command = FX_ID_EMPTY;
   row.fx[0][0] = fxCRD;
   row.fx[0][1] = 0x01; // Minor, root position
   readPhraseRowDirect(&state, 0, &row, 0);
@@ -206,7 +206,7 @@ TEST_CASE("SCL command is inert in note lock mode") {
   row.note = 3; // D#
   row.instrument = EMPTY_VALUE_8;
   row.volume = EMPTY_VALUE_8;
-  for (int i = 0; i < 3; ++i) row.fx[i][0] = EMPTY_VALUE_8;
+  for (int i = 0; i < 3; ++i) row.fx[i].command = FX_ID_EMPTY;
   row.fx[0][0] = fxSCL;
   row.fx[0][1] = 0x10; // Major, C
 

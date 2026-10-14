@@ -64,6 +64,17 @@ void write(const char* path, const std::string& text) {
 }
 }  // namespace
 TEST_SUITE("track inserts") {
+  TEST_CASE("personal insert numbers preserve existing Beads songs") {
+    CHECK(insertBeads == 14);
+    CHECK(insertTranceGate == 15);
+    CHECK(std::string(insertDescriptor(14).name) == "Beads");
+    CHECK(std::string(insertDescriptor(15).name) == "Trance Gate");
+  }
+  TEST_CASE("wide unknown FX hints do not alias ARP") {
+    FXCell cell{0x100, 0x37};
+    CHECK(std::string(helpFXHint(&cell, 0, EMPTY_VALUE_8)).empty());
+  }
+
   TEST_CASE("Rotary speed spans slow LFO rates through the existing maximum") {
     float previous = 0;
     for (int value = 0; value <= 255; ++value) {
@@ -155,9 +166,9 @@ TEST_SUITE("track inserts") {
       }
     }
     insertSelect(&chipnomadState->project.trackInserts[3][1], insertRotary);
-    uint8_t fx[] = {fxF21, 254}, last[] = {fxF21, 0};
-    editFXValue(CellEditAction::increase, fx, last, 0, EMPTY_VALUE_8);
-    CHECK(fx[1] == 255);
+    FXCell fx = {fxF21, 254}, last = {fxF21, 0};
+    editFXValue(CellEditAction::increase, &fx, &last, 0, EMPTY_VALUE_8);
+    CHECK(fx.value == 255);
     CHECK(std::string(screenGetActiveMessage()) == "Rotary Speed: 25 Hz");
     chipnomadDestroy(chipnomadState);
     chipnomadState = previous;
@@ -185,16 +196,16 @@ TEST_SUITE("track inserts") {
             expected.push_back(fxF11 + slot * 8 + p);
         for (int table : {0, 1}) {
           for (int direction : {-1, 1}) {
-            uint8_t fx[] = {uint8_t(direction > 0 ? fxF11 - 1 : fxF28 + 1), 73};
-            uint8_t last[] = {fx[0], fx[1]};
+            FXCell fx = {(FXId)(direction > 0 ? fxF11 - 1 : fxF28 + 1), 73};
+            FXCell last = fx;
             std::vector<int> seen;
             for (int attempts = 0; attempts < fxTotalCount; ++attempts) {
-              const int before = fx[0];
+              const int before = fx.command;
               editFX(direction > 0 ? CellEditAction::increase : CellEditAction::decrease,
-                     fx, last, table, EMPTY_VALUE_8);
-              if (fx[0] == before || fx[0] < fxF11 || fx[0] > fxF28) break;
-              seen.push_back(fx[0]);
-              CHECK(fx[1] == 73);
+                     &fx, &last, table, EMPTY_VALUE_8);
+              if (fx.command == before || fx.command < fxF11 || fx.command > fxF28) break;
+              seen.push_back(fx.command);
+              CHECK(fx.value == 73);
             }
             if (direction < 0) std::reverse(seen.begin(), seen.end());
             CHECK(seen == expected);
@@ -210,20 +221,20 @@ TEST_SUITE("track inserts") {
           std::vector<int> seen;
           int before = -1;
           for (int attempts = 0; attempts < fxTotalCount; ++attempts) {
-            uint8_t selected[] = {EMPTY_VALUE_8, 73}, last[] = {0, 0};
-            fxEditInput(0, 1, selected, last);
-            if (selected[0] == before) break;
-            before = selected[0];
-            if (selected[0] >= fxF11 && selected[0] <= fxF28) seen.push_back(selected[0]);
-            fxEditInput(keyEdit | keyRight, 1, selected, last);
+            FXCell selected = {FX_ID_EMPTY, 73}, last = {};
+            fxEditInput(0, 1, &selected, &last);
+            if (selected.command == before) break;
+            before = selected.command;
+            if (selected.command >= fxF11 && selected.command <= fxF28) seen.push_back(selected.command);
+            fxEditInput(keyEdit | keyRight, 1, &selected, &last);
           }
           CHECK(seen == expected);
           // Cached FX from another track cannot insert an unused address.
-          uint8_t stale[] = {fxF28, 73}, cell[] = {EMPTY_VALUE_8, 0};
-          editFX(CellEditAction::tap, cell, stale, table, EMPTY_VALUE_8);
-          CHECK(cell[1] == 73);
-          if (cell[0] >= fxF11 && cell[0] <= fxF28)
-            CHECK(std::find(expected.begin(), expected.end(), cell[0]) != expected.end());
+          FXCell stale = {fxF28, 73}, cell = {FX_ID_EMPTY, 0};
+          editFX(CellEditAction::tap, &cell, &stale, table, EMPTY_VALUE_8);
+          CHECK(cell.value == 73);
+          if (cell.command >= fxF11 && cell.command <= fxF28)
+            CHECK(std::find(expected.begin(), expected.end(), cell.command) != expected.end());
           else CHECK(expected.empty());
         }
       }
@@ -253,6 +264,41 @@ TEST_SUITE("track inserts") {
       CHECK(insertClamp(m, 8, 255) == 0);
     }
     CHECK(insertDescriptor(999).count == 0);
+  }
+  TEST_CASE("trance gate has named patterns, deterministic cycles and smooth dry/wet control") {
+    InsertConfig c[2]{};
+    insertSelect(&c[0], insertTranceGate);
+    CHECK(std::string(insertDescriptor(insertTranceGate).name) == "Trance Gate");
+    char described[64];
+    insertDescribe(described, sizeof(described), insertTranceGate, 0, 14);
+    CHECK(std::string(described) == "0E Gate Sweep");
+    insertDescribe(described, sizeof(described), insertTranceGate, 5, 3);
+    CHECK(std::string(described) == "Chaos");
+    c[0].values[0] = 1;   // Four Floor
+    c[0].values[1] = 12;  // 1/32 = 3 ticks
+    c[0].values[2] = 15;
+    c[0].values[3] = 255;
+    c[0].values[6] = 0;
+    c[0].values[7] = 255;
+    InsertAutomation a{};
+    InsertChain whole(48000), split(48000);
+    whole.setTempo(2400); split.setTempo(2400); // 60 frames per 1/32 step
+    whole.sync(c, &a); split.sync(c, &a);
+    uint8_t v[2][8]; values(c, v);
+    std::vector<float> x(960 * 2, .25f), y = x;
+    whole.process(x.data(), 960, v);
+    for (int frame = 0; frame < 960; ++frame) split.process(y.data() + frame * 2, 1, v);
+    for (size_t i = 0; i < x.size(); ++i) CHECK(x[i] == doctest::Approx(y[i]).epsilon(1e-6));
+    CHECK(x[200] < .2f); // The 1st 1/32 is open; the following seven fade closed.
+    whole.trigger();
+    std::vector<float> retrigger(120 * 2, .25f);
+    whole.process(retrigger.data(), 120, v);
+    CHECK(retrigger[0] < retrigger[100]);
+    c[0].values[7] = 0;
+    values(c, v);
+    std::vector<float> dry(240 * 2, .25f);
+    split.process(dry.data(), 240, v);
+    for (float sample : dry) CHECK(sample == doctest::Approx(.25f).epsilon(1e-6));
   }
   TEST_CASE("all DSP modules handle both slots, silence, stereo and variable blocks") {
     for (float rate : {32000.f, 44100.f, 48000.f, 96000.f})
@@ -460,24 +506,24 @@ TEST_SUITE("track inserts") {
     insertSelect(&p->trackInserts[0][0], insertCompressor);
     auto s = std::make_unique<PlaybackState>();
     playbackInit(s.get(), p.get());
-    uint8_t fx[] = {fxF11, 255};
-    initFX(s.get(), 0, fx, nullptr, 0);
+    FXCell fx = {fxF11, 255};
+    initFX(s.get(), 0, &fx, nullptr, 0);
     CHECK(s->tracks[0].inserts.values[0][0] == 255);
-    fx[1] = 0;
+    fx.value = 0;
     PlaybackTableState table{};
-    initFX(s.get(), 0, fx, &table, 3);
+    initFX(s.get(), 0, &fx, &table, 3);
     CHECK(s->tracks[0].inserts.values[0][0] == 0);
     CHECK(s->tracks[0].inserts.valid[0] == 1);
-    fx[0] = fxF15;
-    fx[1] = 255;
-    initFX(s.get(), 0, fx, nullptr, 2);
+    fx.command = fxF15;
+    fx.value = 255;
+    initFX(s.get(), 0, &fx, nullptr, 2);
     CHECK(s->tracks[0].inserts.values[0][4] == 7);
-    fx[0] = fxF21;
-    initFX(s.get(), 0, fx, nullptr, 0);
+    fx.command = fxF21;
+    initFX(s.get(), 0, &fx, nullptr, 0);
     CHECK(s->tracks[0].inserts.valid[1] == 0);
     p->trackInserts[0][0].bypass = 1;
-    fx[0] = fxF18;
-    initFX(s.get(), 0, fx, nullptr, 0);
+    fx.command = fxF18;
+    initFX(s.get(), 0, &fx, nullptr, 0);
     CHECK(s->tracks[0].inserts.values[0][7] == 255);
     playbackStop(s.get());
     CHECK(s->tracks[0].inserts.valid[0] == 0);
@@ -1028,6 +1074,7 @@ TEST_CASE("insert tips, CPU readout and reviewed category chooser work together"
       insertOff, insertCompressor, insertOTT,
       insertDistortion, insertSaturation, insertBitcrusher, insertDestruction,
       insertChorus, insertPhaser, insertFlanger,
+      insertTranceGate,
       insertDoubler, insertRotary, insertTape, insertParametricEQ, insertBeads,
   };
   for (int i = 1; i < (int)(sizeof(popupOrder) / sizeof(popupOrder[0])); ++i) {

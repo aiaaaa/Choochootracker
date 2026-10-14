@@ -1062,9 +1062,9 @@ static void settingsSlicePreviewCurrent(InstrumentSample* sample) {
   row.volume = PHRASE_VOLUME_MAX;
   row.fx[0][0] = fxSLP;
   row.fx[0][1] = 0; // one-shot
-  row.fx[1][0] = EMPTY_VALUE_8;
+  row.fx[1].command = FX_ID_EMPTY;
   row.fx[1][1] = EMPTY_VALUE_8;
-  row.fx[2][0] = EMPTY_VALUE_8;
+  row.fx[2].command = FX_ID_EMPTY;
   row.fx[2][1] = EMPTY_VALUE_8;
   chipnomadQueuePlaybackStopPreview(chipnomadState, *pSongTrack);
   chipnomadQueuePlaybackStartPhraseRow(chipnomadState, *pSongTrack, &row);
@@ -1809,9 +1809,9 @@ static int onInput(int isKeyDown, int keys, int tapCount) {
         row.volume = PHRASE_VOLUME_MAX;
         row.fx[0][0] = fxSLP;
         row.fx[0][1] = 0; // one-shot
-        row.fx[1][0] = EMPTY_VALUE_8;
+        row.fx[1].command = FX_ID_EMPTY;
         row.fx[1][1] = EMPTY_VALUE_8;
-        row.fx[2][0] = EMPTY_VALUE_8;
+        row.fx[2].command = FX_ID_EMPTY;
         row.fx[2][1] = EMPTY_VALUE_8;
         chipnomadQueuePlaybackStopPreview(chipnomadState, *pSongTrack);
         chipnomadQueuePlaybackStartPhraseRowFull(chipnomadState, *pSongTrack, &row);

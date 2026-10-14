@@ -168,9 +168,9 @@ TEST_CASE("SQ80 roll commands have native ranges and do not modify stored instru
  auto state=std::make_unique<PlaybackState>();state->p=p.get();state->tracks[0].note.instrument=0;
  for(int fx:{fxQCF,fxQRS,fxWHL,fxPED,fxSUS,fxAFT,fxNPR,fxLFR,fxGLI,fxVEL,fxEXT}){
   NativeFXInfo info{};REQUIRE(instrumentNativeFXInfo(&i,fx,&info));CHECK(instrumentFXAvailableForInstrument(&i,fx));CHECK_FALSE(instrumentFXAvailable(InstrumentType::AY1,fx));
-  uint8_t command[]={uint8_t(fx),255};initFX(state.get(),0,command,nullptr,0);CHECK(state->tracks[0].note.fx[fx].isOn);CHECK(state->tracks[0].note.fx[fx].fxValue==info.maximum);
+  FXCell command{FXId(fx),255};initFX(state.get(),0,&command,nullptr,0);CHECK(state->tracks[0].note.fx[fx].isOn);CHECK(state->tracks[0].note.fx[fx].fxValue==info.maximum);
  }
- CHECK(memcmp(&before,&i,sizeof(i))==0);CHECK(std::string(instrumentTypeName(i.type))=="SQ80/ESQ");CHECK(fxTPN==243);CHECK(fxQCF==244);CHECK(fxTotalCount<255);
+ CHECK(memcmp(&before,&i,sizeof(i))==0);CHECK(std::string(instrumentTypeName(i.type))=="SQ80/ESQ");CHECK(fxTPN==243);CHECK(fxQCF==244);CHECK(fxTotalCount<FX_ID_EMPTY);
  projectFree(p.get());
 }
 TEST_CASE("SQ80 browsing preserves velocity but resets performance controllers"){

@@ -1,0 +1,84 @@
+Personal alpha source preparation — October 14, 2026
+
+Scope and cutoffs
+- Release v1.0.16-alpha: 3ae1364af6b37344aa031b5c3ba8505ba87b430e,
+  published 2026-10-14 09:18:32 UTC according to the GitHub release API.
+  https://github.com/paiheulevrai/Choochootracker/releases/tag/v1.0.16-alpha
+- MAIN cutoff: 583702d68ee6badf7ad37f7264a1ba9f2b87ab46.
+- Personal base: adc8069c75191dc2fb89893c55359dcc88ceb44f.
+- Installed but uncommitted MonkSynth work copied into isolated checkpoint
+  af12cff. Original personal worktree preserved, including unrelated files.
+- Candidate: candidate/personal-alpha-20261014. Both personal targets use it.
+- No build, compiled test, push, CI trigger, deployment or song migration.
+
+What is actually new relative to the last personal daily
+The alpha rolls up a much broader set of changes than this daily needs to add.
+Sample slicing, MIDI, stereo/pan, native editors, master inserts, LSDj support,
+Night and browser recovery were largely already in the personal baseline.
+New in this integration: natural master reverb/delay tails after stop, desktop
+Instrument-screen key jazz (PR #71 and Ctrl-release fix), Trance Gate,
+continuous MME wave-pair morphing, the FXCell/16-bit command refactor and its
+follow-up fixes, Raspberry Pi packaging and Android signing workflow updates.
+Trance Gate and the FXCell refactor landed AFTER the release tag; this is the
+alpha plus pinned post-release MAIN, not a reproduction of the release binary.
+MME waveform morphing deliberately changes the sound of intermediate Waves
+values; existing MME songs deserve an A/B listening pass. Monk uses a separate
+voice implementation and retains its contextual MME command names.
+
+Lane FX layout and compatibility review
+- Visible structure remains three Phrase slots, four Table slots, three-letter
+  names and byte-sized values. Sequencer/Track/active-engine groups and contextual
+  insert controls remain. Personal SQ80 and Monk groups are retained.
+- Structural layout becomes FXCell { uint16_t command; uint8_t value; }.
+  Empty command is 0xffff; value FF remains a valid maximum.
+- Phrase/Table, editor, clipboard, audio snapshot and motion-record command IDs
+  now use the wider type. On-disk lane FX remain named commands plus byte values.
+  This does not by itself add new visible commands or extra automation resolution.
+- Existing personal command numbers, including SQ80, remain unchanged. There are
+  254 allocated command positions; expansion past the old byte boundary is near.
+- Finding fixed: mixed-column Phrase/Table paste still assigned FXCell indexed
+  proxy objects. Implicit proxy copy assignment changes the temporary proxy,
+  not the destination cell. All eight paste assignments now use command/value.
+- Finding fixed: playback condition/table/row dispatch retained byte locals;
+  a future high command could alias a low command such as PRO. Use FXId.
+- Finding fixed: motion-destination API, native metadata and the help adapter
+  retained byte IDs. These now preserve the full command width.
+- Finding fixed: Phrase/Table display indexed fxNames without a range guard;
+  unknown commands now display --- safely. Serializer already guards them.
+- Personal SQ80 dispatch, editor availability, native chip harness and tests
+  adapted to FXCell; legacy test adapters now map byte-empty to 0xffff.
+- Upstream's temporary indexed FXCell compatibility layer remains. New code
+  should use named fields; do not introduce proxy-to-proxy assignments.
+
+Insert catalogue collision
+Both old personal Beads and new stock Trance Gate use module number 14 on disk.
+Unlike lane FX, inserts are serialized numerically. These unmarked files cannot
+be safely auto-detected. The preservation-first candidate keeps Beads=14 and
+assigns Trance Gate=15, including both track and master slots. Other module IDs
+stay unchanged. Existing personal Beads data is not rewritten.
+Stock Trance Gate songs MUST be explicitly converted before import here;
+personal Beads/Trance Gate songs are not directly interchangeable with stock.
+No conversion tool or automatic song migration is included in this preparation.
+The choice is documented and can be changed before the owner's build release.
+Trance Gate joins Modulation in the picker; personal Beads retains its category.
+The merge preserves Beads pooled ownership and muted-track cleanup while adding
+Trance Gate tempo updates, note triggers and transport reset behavior.
+
+Source-only validation and next authorized build
+Static checks cover conflict markers, whitespace, JSON, enum stability,
+descriptor order, and hashes of the original 29 MonkSynth-related files.
+Regression sources added for wide FX cross-screen clipboard, mixed-row paste,
+empty commands with nonzero values, high command/PRO aliasing, high command help,
+and stable personal module numbers. These have NOT been compiled or executed.
+When the owner selects the final extra branch and authorizes building:
+1. Integrate it here and record the final source commit.
+2. Run the full native suite with personal SQ80 and Lucky enabled, Beads lifetime
+   checks, and the existing browser/UI tests against freshly built artifacts.
+3. Check SQ80 Rev4 Edit placement, all FX group navigation, selection, cut/paste,
+   empty and FF values, motion recording and old personal song round trips.
+4. Listen on R36H/web: Beads pitch/lifetime, Trance Gate tempo/retrigger/master,
+   MME morph and stop tails. Master reverb/delay tail tracking is not evidence
+   that every arbitrary insert tail now behaves identically.
+5. Preserve songs/settings/USER banks and create rollback receipts before install.
+Do not push the preparation branch while the hold remains: CI may build on push.
+Beads PR follow-up and Vita work remain held.

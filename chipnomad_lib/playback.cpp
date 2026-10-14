@@ -31,7 +31,7 @@ static uint32_t nextConditionRandom(PlaybackTrackState* track) {
 static int phraseRowConditionsPass(PlaybackTrackState* track, PhraseRow* row, int rowIdx) {
   uint32_t visit = ++track->conditionVisits[rowIdx & 15];
   for (int i = 0; i < 3; ++i) {
-    uint8_t type = row->fx[i][0];
+    FXId type = row->fx[i].command;
     uint8_t value = row->fx[i][1];
     if (type == fxPRO) {
       if (value > 100) value = 100;
@@ -172,13 +172,13 @@ void tableReadFX(PlaybackState* state, int trackIdx, struct PlaybackTableState* 
   Project* p = state->p;
 
   int tableRow = table->rows[fxIdx];
-  uint8_t fxType = p->tables[tableIdx].rows[tableRow].fx[fxIdx][0];
+  FXId fxType = p->tables[tableIdx].rows[tableRow].fx[fxIdx].command;
   if (fxType == fxTBL) {
     tableInit(state, trackIdx, &state->tracks[trackIdx].note.instrumentTable, p->tables[tableIdx].rows[tableRow].fx[fxIdx][1], 0, 1);
   } else if (fxType == fxTBX) {
     tableInit(state, trackIdx, &state->tracks[trackIdx].note.auxTable, p->tables[tableIdx].rows[tableRow].fx[fxIdx][1], 0, 1);
   } else {
-    initFX(state, trackIdx, p->tables[tableIdx].rows[tableRow].fx[fxIdx], table, fxIdx);
+    initFX(state, trackIdx, &p->tables[tableIdx].rows[tableRow].fx[fxIdx], table, fxIdx);
   }
 }
 
@@ -209,7 +209,7 @@ static void tableProgress(PlaybackState* state, int trackIdx, struct PlaybackTab
       }
 
       // Check HOP on current row pointing to same row
-      uint8_t fxType = p->tables[table->tableIdx].rows[row].fx[i][0];
+      FXId fxType = p->tables[table->tableIdx].rows[row].fx[i].command;
       uint8_t fxValue = p->tables[table->tableIdx].rows[row].fx[i][1];
 
       if (fxType == fxHOP && (fxValue & 0xf) == row) {
@@ -256,7 +256,7 @@ static void tableProgress(PlaybackState* state, int trackIdx, struct PlaybackTab
       }
 
       // Check HOP on new row
-      fxType = p->tables[table->tableIdx].rows[row].fx[i][0];
+      fxType = p->tables[table->tableIdx].rows[row].fx[i].command;
       fxValue = p->tables[table->tableIdx].rows[row].fx[i][1];
 
       if (fxType == fxHOP) {
@@ -389,9 +389,9 @@ static void restartStructuralLFOs(PlaybackState* state, int trackIdx, int entere
   }
 }
 
-static int rowHasFX(const PhraseRow* row, uint8_t fx) {
+static int rowHasFX(const PhraseRow* row, FXId fx) {
   for (int i = 0; i < 3; ++i)
-    if (row->fx[i][0] == fx) return 1;
+    if (row->fx[i].command == fx) return 1;
   return 0;
 }
 
@@ -467,7 +467,7 @@ void readPhraseRowDirect(PlaybackState* state, int trackIdx, PhraseRow* phraseRo
 
   // Pre-scan FX for special commands
   for (int i = 0; i < 3; i++) {
-    uint8_t fxType = phraseRow->fx[i][0];
+    FXId fxType = phraseRow->fx[i].command;
     uint8_t fxValue = phraseRow->fx[i][1];
 
     if (fxType == fxSCL) {
@@ -488,7 +488,7 @@ void readPhraseRowDirect(PlaybackState* state, int trackIdx, PhraseRow* phraseRo
     } else if (fxType == fxSLE) {
       track->slewTicks = fxValue;
     } else if (!skipDelCheck && (fxType == fxDEL && fxValue != 0)) {
-      initFX(state, trackIdx, phraseRow->fx[i], NULL, -1);
+      initFX(state, trackIdx, &phraseRow->fx[i], NULL, -1);
       return;
     } else if (fxType == fxTBL) {
       instrumentTable = fxValue;
@@ -562,7 +562,7 @@ void readPhraseRowDirect(PlaybackState* state, int trackIdx, PhraseRow* phraseRo
   for (int i = 0; i < 3; i++) {
     if (phraseRow->fx[i][0] != fxDEL && phraseRow->fx[i][0] != fxSLE &&
         phraseRow->fx[i][0] != fxSCL && phraseRow->fx[i][0] != fxCRD) {
-      initFX(state, trackIdx, phraseRow->fx[i], NULL, -1);
+      initFX(state, trackIdx, &phraseRow->fx[i], NULL, -1);
     }
   }
 
@@ -1429,8 +1429,8 @@ void playbackPreviewNote(PlaybackState* state, int trackIdx, uint8_t note, uint8
 
   // Set up empty FX
   for (int i = 0; i < 3; i++) {
-    phraseRow.fx[i][0] = EMPTY_VALUE_8;
-    phraseRow.fx[i][1] = EMPTY_VALUE_8;
+    phraseRow.fx[i].command = FX_ID_EMPTY;
+    phraseRow.fx[i].value = EMPTY_VALUE_8;
   }
 
   // Use unified phrase row playback

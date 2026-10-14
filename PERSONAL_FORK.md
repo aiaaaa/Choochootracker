@@ -1,5 +1,28 @@
 # My R36H build
 
+## October 14 alpha preparation — build and deployment held
+
+Local candidate `candidate/personal-alpha-20261014` combines v1.0.16-alpha
+(`3ae1364`) and post-release MAIN through `583702d` with the personal daily.
+The post-release commits include the 16-bit lane FX refactor and Trance Gate.
+Installed MonkSynth work is preserved in its own checkpoint (`af12cff`); the
+original personal worktree, device installation and deployed web app are untouched.
+SQ80 Rev4, Beads, Lucky and the accepted Song copy fix remain included.
+
+The FX integration repairs mixed-row copy/paste and remaining byte-sized
+playback, modulation and hint paths. Personal insert numbers remain Beads=14,
+Trance Gate=15. Stock songs using Trance Gate=14 need explicit conversion;
+unmarked stock Trance Gate and old personal Beads files cannot be distinguished
+reliably. No songs have been migrated. Existing personal Beads files keep their
+meaning. This choice remains reviewable before the held build.
+
+No compilation, runtime tests, push, CI trigger, build or deployment is authorized
+by this preparation. Add the owner's next selected branch here before releasing
+the hold. The review and required later validation are recorded in
+`docs/personal-alpha-20261014-review.txt`; preparation metadata is in
+`docs/personal-alpha-20261014-preparation.json`. Earlier receipts below describe
+previous builds, not validation of this candidate.
+
 ## October 13 Rev4 combined personal daily
 
 Selected on personal baseline `98c82dc`: upstream MAIN `7ab9232` (merged PRs

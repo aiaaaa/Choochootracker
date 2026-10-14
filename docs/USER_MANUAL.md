@@ -423,6 +423,12 @@ Key jazz also works, independently toggled with Esc, on:
   name, create folder). Backspace works like a normal text field; Shift
   types uppercase letters. Esc toggles it on all of these screens at once,
   and the virtual keyboard still opens normally when key jazz is off.
+- **Instrument**: with key jazz on, the note keys play the instrument on the
+  current track to audition it, without entering any note (the same piano
+  layout as the Phrase screen; the last key pressed sounds, and the sound is
+  released with the keys). The octave keys shift the octave, starting from
+  the octave of the instrument's first note. On the **Name** field the keys
+  type text instead. Nothing is played while the song is playing that track.
 
 ## 5. Instruments
 
@@ -963,6 +969,10 @@ Track FX force sequencer or sound-engine values on individual steps. Other groov
 
 Each FX has a 3-letter command and a hexadecimal value. The in-app help panel gives a short description of the selected command.
 
+The personal alpha candidate retains three Phrase FX slots and four Table FX
+slots. Values remain 00–FF. The wider internal command catalogue does not add
+extra columns or require changing existing command names.
+
 ### Scale automation
 
 `SCL XY` changes the global playback scale and root without changing the notes stored in phrases. `X` selects a scale (`0` Chromatic, `1` Major, `2` Minor, through `C` Custom); `Y` selects the root (`0` C through `B` B). The command applies to phrase FX only, not tables. If several tracks issue `SCL` on the same tick, the lowest-numbered track wins.
@@ -1384,6 +1394,7 @@ the current screen.
 | Destruction | Mode, Amount, Tone, Mix |
 | Parametric EQ | Low gain, Low frequency, Mid gain, Mid frequency, High gain, High frequency |
 | Beads (Mutable Instruments) | Time, Size, Density, Pitch, Scatter, Feedback, Shape/Freeze, Mix |
+| Trance Gate | Pattern, Rate, Length, Gate, Phase, Mode, Smooth, Mix |
 
 Continuous controls use 00–FF, including valid zero and maximum FF. Bipolar
 controls have an exact neutral at 80. Distortion modes are 00 Density, 01 Drive,
@@ -1406,6 +1417,13 @@ Parametric EQ has 24 dB boost/cut shelves at 60–500 Hz and 2–14 kHz, plus a
 fixed-Q 0.9 bell at 250 Hz–5 kHz. Its gain controls are neutral at 80; with all
 three neutral it is an exact bypass. Active EQ uses a transparent soft knee above
 full scale and reaches a maximum of 1.5 to contain extreme boosts.
+
+**Personal alpha compatibility:** existing personal songs retain Beads at saved
+module number 14; this candidate assigns Trance Gate number 15. Stock MAIN uses
+14 for Trance Gate, so songs using that effect require explicit conversion before
+opening here. Conversely, personal songs using either module need conversion
+before exchange with stock builds. The files do not identify which catalogue
+wrote module 14; automatic detection is unsafe. Other insert numbers are unchanged.
 
 **Beads** uses the original Mutable Instruments granular DSP as a stereo insert.
 Choose Beads in either track or master insert slot. Its eight controls also use
@@ -1448,6 +1466,18 @@ workload: evaluate handheld CPU headroom in the device personal build before
 stacking instances. Its source pin and adaptation notes are in
 `chipnomad_lib/external/mutable/beads/SOURCES.txt`; the MIT notice ships in
 `licenses/BEADS.txt`.
+
+Trance Gate is a tempo-synchronised amplitude sequencer for pads, leads and
+stabs. Pattern values 00–3F select named musical motifs; 00–1F are core grooves
+and 20–3F are experimental variations. Their binary masks are
+intentionally not shown. Rate offers straight, triplet and dotted values from
+1/2 to 1/32. Length truncates the independently rotated 16-step motif to 1–16
+steps. Every track note-on restarts the sequence; note-off leaves it running
+through the release. Forward, Reverse and Ping-Pong define traversal; Chaos
+uses a repeatable density-preserving mutation every four loops. On the master
+insert it follows transport time without note retriggers. Gate sets each open
+step's width, Smooth rounds its edges while retaining a click-safe minimum fade,
+and Mix crossfades between dry and gated audio.
 
 Track level and tilt EQ precede the inserts, so both affect the signal entering
 compression and distortion. All voices/chord notes on the track feed one insert
