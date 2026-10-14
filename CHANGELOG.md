@@ -1,6 +1,6 @@
 # ChooChooTracker changelog
 
-## Unreleased
+## v1.0.16-alpha (October 14, 2026)
 
 - Expanded the Sample Edit Slice row into three modes: **EQUAL** divides the
   Start/End window evenly, **AUTO** places slices on transients found by a
