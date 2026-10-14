@@ -26,8 +26,10 @@ void offlineYield() {
   static double previous = 0;
   double now = emscripten_get_now();
   if (now - previous >= 4) {
-    previous = now;
+    // Asyncify re-enters this branch while rewinding. Updating the timestamp
+    // before sleeping can skip the matching sleep and strand the main loop.
     emscripten_sleep(0);
+    previous = emscripten_get_now();
   }
 #endif
 }
