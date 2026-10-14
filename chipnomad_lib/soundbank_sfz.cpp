@@ -29,7 +29,9 @@ int note(const std::string& s) {
   int n = keys[letter];
   size_t p = 1;
   if (p < s.size() && (s[p] == '#' || s[p] == 'b')) n += s[p++] == '#' ? 1 : -1;
-  return n + 12 * (int(number(s.substr(p))) + 1);
+  int octave = int(number(s.substr(p)));
+  require(octave >= -1 && octave <= 9, "SFZ note octave out of MIDI range");
+  return n + 12 * (octave + 1);
 }
 std::string preprocess(const Location& location, std::map<std::string, std::string>& macros,
                        std::set<std::string>& stack, int depth = 0) {

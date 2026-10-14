@@ -49,6 +49,10 @@ TEST_CASE("soundbank bad inputs and bounded sample cache fail explicitly") {
   SampleCache small(128);
   CHECK_THROWS(small.prepare(b, "0:0"));
   CHECK_THROWS(cache.prepare(b, "missing-program"));
+  auto path = std::filesystem::temp_directory_path() / "choochoo-invalid-octave.sfz";
+  { std::ofstream out(path); out << "<region> sample=missing.wav key=c999999999"; }
+  CHECK_THROWS(parseBank({path.string(), ""}));
+  std::filesystem::remove(path);
 }
 TEST_CASE("soundbank selection, round robin, pan and note-off use fixed voices") {
   auto b = parseBank({fixtures + "layers.sfz", ""});
