@@ -179,6 +179,52 @@ TEST_CASE("soundbank zero release and rapid retriggers remain continuous across 
   collect([](uint32_t) { return false; });
 }
 
+TEST_CASE("soundbank vendor WAV loops do not reject playable PCM or invent loop behavior") {
+  auto source = openFile(fixtures + "tone.wav");
+  auto bytes = source->bytes(0, source->size());
+  size_t smpl = 0;
+  for (size_t pos = 12; pos + 8 <= bytes.size();) {
+    if (std::string(reinterpret_cast<char*>(bytes.data() + pos), 4) == "smpl") {
+      smpl = pos + 8;
+      break;
+    }
+    auto size = read32(bytes.data() + pos + 4);
+    pos += 8 + size + (size & 1);
+  }
+  REQUIRE(smpl > 0);
+  REQUIRE(smpl + 60 <= bytes.size());
+  auto path = std::filesystem::temp_directory_path() / "choochoo-vendor-loop.wav";
+  for (uint32_t type : {0u, 1u, 2u, 3u, 31u, 32u, 1024u}) {
+    CAPTURE(type);
+    for (int n = 0; n < 4; ++n) bytes[smpl + 40 + n] = uint8_t(type >> (8 * n));
+    { std::ofstream out(path, std::ios::binary);
+      out.write(reinterpret_cast<const char*>(bytes.data()), bytes.size()); }
+    SampleCache cache;
+    auto bank = parseBank({path.string(), ""});
+    if (type > 0 && type < 32) {
+      CHECK_THROWS(cache.prepare(bank, "sample"));
+      continue;
+    }
+    auto p = cache.prepare(bank, "sample");
+    REQUIRE(p->zones.size() == 1);
+    CHECK(p->zones[0].audio->frames() == 256);
+    CHECK(p->zones[0].zone.loop == (type == 0 ? Loop::continuous : Loop::off));
+    CHECK(p->warnings.empty() == (type == 0));
+    if (type >= 32) {
+      CHECK(p->warnings[0].find(std::to_string(type)) != std::string::npos);
+      // An explicit SFZ/EXS zone loop is independent of optional WAV metadata.
+      auto& zone = bank.presets[0].zones[0];
+      zone.loopExplicit = true; zone.loop = Loop::continuous;
+      zone.loopStart = 16; zone.loopEnd = 64;
+      auto mapped = cache.prepare(bank, "sample");
+      CHECK(mapped->zones[0].zone.loop == Loop::continuous);
+      CHECK(mapped->zones[0].zone.loopStart == 16);
+      CHECK(mapped->zones[0].zone.loopEnd == 64);
+    }
+  }
+  std::filesystem::remove(path);
+}
+
 TEST_CASE("soundbank authored one-shot ignores note OFF without adding a transition") {
   auto bank = parseBank({fixtures + "tone.wav", ""});
   auto& zone = bank.presets[0].zones[0];

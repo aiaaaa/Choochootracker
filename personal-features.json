@@ -774,7 +774,8 @@
     "baseline": "2a119c6",
     "status": "Local review fix; not deployed; handheld audition pending",
     "changes": [
-      "3 ms output smoothing at retrigger, KILL and zero-length release, including removed chord slots"
+      "3 ms output smoothing at retrigger, KILL and zero-length release, including removed chord slots",
+      "Unknown sampler-specific WAV loop types warn and play without that embedded loop; explicit mapped loops retained"
     ],
     "private_assets_in_public_build": false
   }

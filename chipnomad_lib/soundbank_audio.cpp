@@ -107,11 +107,21 @@ std::shared_ptr<Audio> decodeAudio(const Asset& asset, size_t maxBytes) {
       a->tune = float(read32(d.data() + 16)) * 100.0f / 4294967296.0f;
       if (read32(d.data() + 28)) {
         require(d.size() >= 60, "Truncated WAV loop");
-        require(read32(d.data() + 40) == 0, "Unsupported WAV alternating/backward loop");
-        a->loopStart = read32(d.data() + 44);
-        auto last = read32(d.data() + 48);
-        require(last < UINT32_MAX, "Invalid WAV loop end");
-        a->loopEnd = last + 1;
+        const auto type = read32(d.data() + 40);
+        if (type >= 32) {
+          // RIFF reserves these for sampler-specific semantics. The PCM is still
+          // usable; do not invent a forward loop from an unknown vendor mode.
+          a->loopStart = a->loopEnd = 0;
+          a->warnings.push_back("WAV sampler loop type " + std::to_string(type) +
+                                " ignored; sample plays without this loop");
+        } else {
+          require(type == 0, type <= 2 ? "Unsupported WAV alternating/backward loop"
+                                      : "Unsupported reserved WAV loop type");
+          a->loopStart = read32(d.data() + 44);
+          auto last = read32(d.data() + 48);
+          require(last < UINT32_MAX, "Invalid WAV loop end");
+          a->loopEnd = last + 1;
+        }
       }
     } else if (aiff && is("COMM")) {
       auto d = s->bytes(start, len, 1024);
