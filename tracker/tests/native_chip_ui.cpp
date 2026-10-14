@@ -71,6 +71,9 @@ int main(int argc,char** argv){
     require(energy>0.01,"SoundFont audible signal");chipnomadQueuePlaybackStopPreview(chipnomadState,0);
     screenSetup(&screenInstrument,0);screenInstrumentSoundFont.cursorRow=4;appDraw();capture("soundfont-instrument");
     tapEdit();require(currentScreen!=&screenInstrument,"SoundFont Preset Browser opens");capture("soundfont-presets");
+    auto selectedBank=std::string(instrument.chip.soundfont.bank),selectedPreset=std::string(instrument.chip.soundfont.preset);
+    tapEdit();require(soundbankBusy(),"Browser opens directly on active preset");finish();
+    require(selectedBank==instrument.chip.soundfont.bank && selectedPreset==instrument.chip.soundfont.preset,"Browser retains exact active preset");
     screenSetup(&screenInstrument,0);appDraw();
     require(screenTouchTap(29,7),"SoundFont Edit touch");
     require(screenInstrumentSoundFont.cursorRow==4&&screenInstrumentSoundFont.cursorCol==1,"SoundFont Edit selected");

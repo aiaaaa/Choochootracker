@@ -455,20 +455,28 @@ into `instruments/USER/soundfont`. Select **SOUNDFONT** on Instrument. The scan
 row shows **Not scanned**, **Scanning...**, or **Scanned**, with a **Rescan** action.
 Scanning reads metadata; it does not load every preset's samples into memory.
 
-The **Preset** row shows the active preset. Tap and release EDIT to open the one
-preset browser, then follow collections, bank files and presets. Redundant
-download-wrapper folders are skipped and filenames are cleaned for display;
-the original files and saved paths stay unchanged. ZIPs remain browseable. EDIT selects a preset; EDIT+PLAY previews the
-loaded selection. Raw WAV/AIFF assets in mapped collections are available under
-**Raw WAV/AIFF samples**, keeping source samples out of the instrument list.
-Hold EDIT and press Left/Right on Preset to cycle through discovered instruments,
-wrapping at either end. Rapid cycling prepares the latest requested selection.
-The current preset stays playable until a replacement succeeds; a failed load
-keeps it intact. Rescan after importing or changing library files. Preset status
-appears directly below Preset with a fixed color; compatibility warnings appear
-on a separate row only when needed. Loading a preset does not post messages on
-SONG or other pages. Custom SoundFont modulator graphs are not implemented;
-that warning means the bank may sound different, not that loading failed.
+The **Preset** row shows the active preset. Tap and release EDIT to open the
+browser at that preset: collections appear on the left and their presets on the
+right. Each collection presents a flat list, including presets inside bank files
+and ZIP archives. Supporting WAV/AIFF files stay with their mapped instruments;
+collections containing only individual samples list those samples as presets.
+Download IDs and archive hashes are removed from display labels; musical note,
+BPM and take numbers are retained. EDIT selects a preset; EDIT+PLAY previews the
+loaded selection.
+
+Hold EDIT and press Left/Right on Preset to move sequentially in the same order
+as the browser, continuing into the next collection and wrapping at either end
+of the library. Rapid cycling prepares the latest requested selection. The
+current preset stays playable until a replacement succeeds; a failed load keeps
+it intact. Rescan after importing or changing library files. Preset status appears
+directly below Preset with a fixed color. Loading does not post messages on SONG
+or other pages.
+
+**Native keys** shows the selected preset's authored note-on range, using C4 for
+MIDI note 60. **(gaps)** means some notes inside those bounds have no mapped zone.
+It is the union across velocity layers; not every velocity or articulation must
+sound at every displayed key. Release-only samples do not extend the range.
+Tuning and pitch FX do not change this display or extend the authored mapping.
 
 **Edit**, to the right of Preset, opens the experimental SoundFont editor:
 tune (−2400 to +2400 cents), cutoff (20–20000 Hz), resonance (0–40 dB), envelope
@@ -526,6 +534,52 @@ All banks are USER banks. Large instruments may exceed the default 64 MiB PCM
 cache, and unsupported source parameters produce warnings. See the
 [SoundBanks guide](soundbanks/README.md) for platform paths, browser import,
 cache configuration, format coverage and current validation limits.
+
+#### SoundFont compatibility: banks, presets and modulation
+
+One SF2 or SF3 **bank file** can contain many **presets**, together with their
+samples. A library **collection** is the folder used to group those files in the
+browser. These are different levels: a preset can have unsupported behavior even
+when other presets in the same file translate well.
+
+**Preset modulation** means programmed links from inputs such as velocity, key,
+mod wheel or pressure to a sound parameter. Those links can belong to a preset
+or to an underlying instrument layer shared by several presets. They are not
+necessarily a setting that affects every sound in the bank.
+
+| Preset feature | Current translation |
+| --- | --- |
+| Sample/key/velocity mapping, root pitch and tuning | Implemented; authored ranges are retained. Velocity zones and ordinary tracker velocity still work. |
+| Sample offsets, supported loops, gain/pan and exclusive groups | Implemented within the parser and voice limits. |
+| Static low-pass cutoff/resonance and volume envelope | Implemented through the tracker renderer; not a guarantee of identical response to another SoundFont player. |
+| Custom preset/instrument modulation routes (`pmod` / `imod`) | Not implemented. Authored controller-to-parameter mappings, amounts and response curves are ignored. |
+| SoundFont modulation/vibrato LFOs and modulation envelope routing | Not implemented; programmed movement of pitch, filter or volume may be missing. |
+| Key-scaled volume-envelope hold/decay, fixed-key/fixed-velocity generators | Not implemented. |
+| SoundFont chorus/reverb sends | Not implemented. Tracker effects can be set manually but do not reproduce the preset's settings automatically. |
+
+The older message **“Custom bank modulation ignored”** describes a file-level
+check: the parser found custom modulation records somewhere in the bank. It does
+**not** establish that the selected preset uses them, or that the whole bank is
+unusable. This general limitation is documented here instead of repeating that
+message under every preset. Detailed parser diagnostics retain the records;
+other load errors and compatibility warnings still appear when applicable.
+The engine does not claim complete SoundFont default-modulator behavior either.
+Tracker PBN, vibrato, Edit and Lane FX are independent controls, not automatic
+translations of omitted preset programming.
+
+For choosing a library, start with presets based mainly on sample mappings,
+loops and static envelopes. Sounds whose character depends on controller
+articulations, animated filters or programmed LFOs need closer comparison in a
+full SoundFont player. **Loads and plays** does not mean **fully reproduces the
+preset**. Compare useful notes and velocities as well as held notes and note OFF.
+Changing SF2 to SF3 (or back) does not by itself remove these modulation needs.
+A conversion must translate the mappings and behavior into features this engine
+supports; rendering an effect into a sample preserves only that rendered result,
+not its interactive controller response. See the [format coverage and limits](soundbanks/README.md#format-coverage)
+and [measured library results](soundbanks/compatibility.md) before choosing or
+converting a bank. These limits describe the current experimental implementation,
+not restrictions inherent to all SoundFont players.
+
 
 ### AY Classic, AY Plus and AY Sample
 

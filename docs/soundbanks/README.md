@@ -2,8 +2,8 @@
 
 The SoundBanks implementation originated on `experimental/native-soundbanks`,
 based on upstream main `583702d`. The direct editor, eight Lane FX and unified
-folder browser are being evaluated on `experimental/soundfont-edit`. Those updates
-remain separate from the installed device personal build until a requested daily. See [validation](validation.md)
+collection browser are evaluated in the personal builds. Collection-browser updates
+are developed separately before integration into a requested daily. See [validation](validation.md)
 and the [library compatibility report](compatibility.md) before packaging it.
 
 ## Using a bank
@@ -12,22 +12,23 @@ and the [library compatibility report](compatibility.md) before packaging it.
    containing those files into `instruments/USER/soundfont`. Retain relative sample directories.
 2. In Instrument, select **SOUNDFONT**. **Rescan** indexes the library; the row
    reports not scanned/scanning/scanned. **Preset** opens one browser following
-   actual folders, bank files and presets, including ZIP member directories.
+   collections on the left and their flattened preset lists on the right, including
+   presets in bank files and ZIPs. It opens on the active preset.
 3. Select a preset with EDIT and wait for “Preset ready”. EDIT+PLAY previews the
    loaded preset. EDIT+Left/Right on the home Preset row cycles across indexed
-   presets and wraps. A newer request supersedes an unfinished decode on the same
+   presets in browser order, continuing to the next collection and wrapping the library. A newer request supersedes an unfinished decode on the same
    instrument; failures preserve the existing playable selection.
 4. **Edit** beside Preset exposes tuning, filter, the complete supported amplitude
    envelope, volume and pan. These are playback overrides, not bank-layer authoring.
-5. Eight contextual Lane FX expose pitch, volume, pan, cutoff, resonance, attack,
-   decay and release. See the SoundFont section of the user manual for units and
-   reset values. Delay, hold and sustain remain in Edit.
+5. Eight contextual Lane FX expose pitch, cutoff, resonance, attack, hold,
+   sustain, decay and release. Volume and pan use the common controls. See the SoundFont section of the user manual for units and
+   reset values. Delay remains in Edit.
 6. Save normally. The project records root-relative bank/member paths, stable
    preset IDs, controls and FX; decoded samples remain external.
 
 The browser uses the existing scrolling selection popup and controller mappings.
-Mapped collections hide their source WAV/AIFF assets behind a separate raw-sample
-view. There is no enabled-bank list or second bank manager. Scanning discovers
+Mapped collections hide their supporting WAV/AIFF assets from the preset list;
+standalone sample collections show their samples directly. There is no enabled-bank list or second bank manager. Scanning discovers
 metadata; only a selected preset is prepared for playback. All collections are USER banks.
 
 Keep Korean instruments under `instruments/USER/soundfont/Korean_Gugak/`, retaining `Wind/` and
@@ -94,7 +95,7 @@ relocation hints, never as permission to open the original absolute path.
 
 | Format | Implemented | Explicit limits |
 | --- | --- | --- |
-| SF2 | Bank/program IDs, zones, key/velocity ranges, root/tuning, offsets, gain/pan, stereo sides, loops, amp ADSR/delay/hold, low-pass filter, exclusive classes | Custom modulators, modulation envelopes/LFOs and other unhandled generators warn. 24-bit extensions play at 16-bit precision. ROM samples fail. |
+| SF2 | Bank/program IDs, zones, key/velocity ranges, root/tuning, offsets, gain/pan, stereo sides, loops, amp ADSR/delay/hold, low-pass filter, exclusive classes | Custom preset/instrument modulation routes, modulation envelopes/LFOs, key-scaled envelope times, fixed key/velocity and chorus/reverb sends are not implemented; diagnostics retain unsupported-feature warnings. 24-bit extensions play at 16-bit precision. ROM samples fail. |
 | SF3 | SoundFont version 3 mono Ogg Vorbis sample streams, including tested inclusive/exclusive sample-end conventions | Compressed stereo-per-record and Opus fail. No assumption that arbitrary SF2-compatible compression is supported. |
 | SFZ | control/global/master/group/region inheritance, bounded includes/macros, default_path, key/velocity mappings, pitch/gain/pan, offsets, loops/one-shot/reverse, amp envelope, low-pass filter, choke, round-robin, random selection, velocity curves/fades, attack/release regions | Default channel/articulation only. Live keyswitches, CC-triggered regions, sustain-pedal logic, dynamic envelopes, non-low-pass filters and additional opcodes warn. Unsupported trigger/loop types fail. Not full SFZ. |
 | EXS24 | Legacy endian variants, instrument name, zone/sample records (336/592/600), key/velocity/root/tuning, gain/pan, offsets, loops/reverse, sample ordinal references | Group synthesis/envelopes, instrument parameter blocks, fades, loop crossfades and routing warn. Gugak validates 130 presets across current and older releases; Akai remains limited by missing publisher samples. |
@@ -115,9 +116,25 @@ instrument/track pan use existing routes. **Edit** beside the active Preset open
 the direct instrument editor for tuning, cutoff, resonance and envelope
 delay/attack/hold/decay/sustain/release. **Bank** retains each zone's original value;
 explicit overrides apply to all layers and save with the instrument/project.
-Tone and tuning apply live; envelopes apply on the next trigger. Clear restores
+Tone and tuning apply live; delay/attack/hold apply at note-on. Decay, sustain and
+release can update active voices; note OFF starts release. Clear restores
 the selected default. Source banks are unchanged. No new Lane FX commands or
 filter/envelope MOD destinations are added by this editor.
+
+### Choosing and translating SoundFonts
+
+An SF2/SF3 file can contain a complete bank of presets. A custom modulation route
+can affect one preset or a shared instrument layer, rather than every preset.
+The current `pmod`/`imod` detection is file-wide; it cannot establish that the
+selected preset is affected. The generic warning is therefore explained in the
+manual instead of repeated on every Instrument page. Unsupported routes remain
+unimplemented and detailed diagnostics retain them.
+
+See the [SoundFont compatibility table in the user manual](../USER_MANUAL.md#soundfont-compatibility-banks-presets-and-modulation)
+for supported mappings, omitted programming, practical selection/conversion
+advice and the distinction between loading successfully and reproducing the
+original sound. This applies to both SF2 and SF3. Renaming or recompressing a bank
+does not translate unsupported modulation into supported behavior.
 
 ## Reproducing acquisition and checks
 

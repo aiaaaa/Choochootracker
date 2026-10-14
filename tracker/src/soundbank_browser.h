@@ -1,13 +1,16 @@
 #pragma once
 #include <algorithm>
 #include <map>
+#include <cctype>
+#include <tuple>
 #include <set>
 #include "soundbank_index.h"
 namespace soundbank {
 inline std::string browserLabel(std::string name) {
   auto dot=name.rfind('.');
   if (dot!=std::string::npos) {
-    const auto ext=name.substr(dot);
+    auto ext=name.substr(dot);
+    for(auto& c:ext)c=char(std::tolower(static_cast<unsigned char>(c)));
     if (ext==".zip" || ext==".sf2" || ext==".sf3" || ext==".sfz" ||
         ext==".exs" || ext==".wav" || ext==".aif" || ext==".aiff") name.resize(dot);
   }
@@ -15,6 +18,10 @@ inline std::string browserLabel(std::string name) {
   if (dash!=std::string::npos && name.size()-dash-1==40 &&
       name.find_first_not_of("0123456789abcdefABCDEF",dash+1)==std::string::npos)
     name.resize(dash);
+  // Freesound transport names: numeric ID__uploader__descriptive-name.
+  auto first=name.find("__"), second=first==std::string::npos?first:name.find("__",first+2);
+  if(first>0 && first!=std::string::npos && second!=std::string::npos &&
+     name.find_first_not_of("0123456789",0)==first) name.erase(0,second+2);
   std::replace(name.begin(),name.end(),'_',' ');
   return name;
 }
@@ -36,40 +43,48 @@ inline std::set<std::string> mappedCollections(const std::vector<BankEntry>& ban
   for (const auto& bank:banks) if (!rawSample(bank)) result.insert(bankFolders(bank.id).front());
   return result;
 }
-inline bool hasHiddenSamples(const std::vector<BankEntry>& banks) {
-  auto mapped=mappedCollections(banks);
-  for (const auto& bank:banks) if (rawSample(bank) && mapped.count(bankFolders(bank.id).front())) return true;
-  return false;
+struct PresetReference { int bank, preset; std::string label; };
+struct Collection { std::string name; std::vector<PresetReference> presets; };
+inline std::string sortLabel(std::string value) {
+  for(auto& c:value)c=char(std::tolower(static_cast<unsigned char>(c)));
+  return value;
 }
-struct BrowserEntry { std::string name; int bank; }; // -1 means a folder.
-inline std::vector<BrowserEntry> folderEntries(const std::vector<BankEntry>& banks,
-    const std::vector<std::string>& folder, bool raw=false) {
-  std::map<std::string,int> children;
-  auto mapped=mappedCollections(banks);
-  for (size_t i=0;i<banks.size();++i) {
-    const auto& b=banks[i];
-    if (raw ? !rawSample(b) : rawSample(b) && mapped.count(bankFolders(b.id).front())) continue;
-    auto parts=bankFolders(b.id);
-    if (parts.size()<=folder.size() || !std::equal(folder.begin(),folder.end(),parts.begin())) continue;
-    children[parts[folder.size()]]=parts.size()==folder.size()+1 ? int(i) : -1;
+inline std::vector<Collection> collections(const std::vector<BankEntry>& banks) {
+  std::map<std::string,std::set<std::string>> formats;
+  const auto mapped=mappedCollections(banks);
+  for(const auto& b:banks) if(!rawSample(b)) formats[bankFolders(b.id).front()].insert(b.format);
+  std::map<std::string,Collection> groups;
+  for(size_t n=0;n<banks.size();++n) {
+    const auto& b=banks[n]; if(!b.error.empty())continue;
+    auto parts=bankFolders(b.id); auto top=parts.front();
+    if(rawSample(b) && mapped.count(top)) continue; // Supporting recordings stay with their mapped preset.
+    auto name=parts.size()>1 || !rawSample(b)?browserLabel(top):std::string("Loose samples");
+    if(formats[top].size()>1 && !rawSample(b))name+=" ("+b.format+")";
+    auto& group=groups[sortLabel(name)];group.name=name;
+    for(size_t p=0;p<b.presets.size();++p)
+      group.presets.push_back({int(n),int(p),browserLabel(b.presets[p].second)});
   }
-  std::vector<BrowserEntry> result;
-  for (const auto& child:children) result.push_back({child.first,child.second});
+  std::vector<Collection> result;
+  for(auto& entry:groups) {
+    auto& g=entry.second;
+    std::sort(g.presets.begin(),g.presets.end(),[&](const auto& a,const auto& b){
+      return std::make_tuple(sortLabel(a.label),banks[a.bank].id,banks[a.bank].presets[a.preset].first)<
+             std::make_tuple(sortLabel(b.label),banks[b.bank].id,banks[b.bank].presets[b.preset].first);
+    });
+    if(!g.presets.empty())result.push_back(std::move(g));
+  }
   return result;
 }
 inline std::pair<int,int> cyclePreset(const std::vector<BankEntry>& banks,
     const std::string& bank, const std::string& preset, int direction) {
-  std::vector<std::pair<int,int>> presets; int current=-1;
-  auto mapped=mappedCollections(banks);
-  for (size_t b=0;b<banks.size();++b) {
-    if (!banks[b].error.empty() || (rawSample(banks[b]) && mapped.count(bankFolders(banks[b].id).front()))) continue;
-    for (size_t p=0;p<banks[b].presets.size();++p) {
-      if (banks[b].id==bank && banks[b].presets[p].first==preset) current=int(presets.size());
-      presets.emplace_back(b,p);
-    }
+  std::vector<std::pair<int,int>> sequence; int current=-1;
+  for(const auto& group:collections(banks)) for(const auto& ref:group.presets) {
+    if(banks[ref.bank].id==bank && banks[ref.bank].presets[ref.preset].first==preset)
+      current=int(sequence.size());
+    sequence.emplace_back(ref.bank,ref.preset);
   }
-  if (presets.empty()) return {-1,-1};
-  int n=int(presets.size());
-  return presets[current<0 ? (direction>0 ? 0 : n-1) : (current+(direction>0 ? 1 : n-1))%n];
+  if(sequence.empty())return {-1,-1};
+  int n=int(sequence.size());
+  return sequence[current<0?(direction>0?0:n-1):(current+(direction>0?1:n-1))%n];
 }
 } // namespace soundbank

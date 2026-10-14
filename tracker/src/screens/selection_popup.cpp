@@ -37,7 +37,7 @@ static void selectCurrentValue() {
 
 void selectionPopupSetup(const char* popupTitle, const SelectionItem* items,
                          int count, int selectedValue,
-                         void (*selected)(int), void (*cancelled)(void), bool wide, void (*preview)(int, bool), bool collections) {
+                         void (*selected)(int), void (*cancelled)(void), bool wide, void (*preview)(int, bool), bool collections, bool focusPreset) {
   collectionLayout=collections;
   onPreview = preview; previewHeld = editPending = false;
   fullWidth = wide;
@@ -50,6 +50,7 @@ void selectionPopupSetup(const char* popupTitle, const SelectionItem* items,
   onSelected = selected;
   onCancelled = cancelled;
   selectCurrentValue();
+  if(focusPreset && rootCount>0 && currentCategory()->childCount)activePanel=1;
 }
 
 bool selectionPopupIsFullWidth(void) { return fullWidth; }

@@ -741,3 +741,19 @@ Add a per-instrument PBN bend step (new instruments 1 cent; older files Stock),
 replace menu duplicates FVL/FPN with Hold/Sustain while preserving old IDs and
 playback, and update active-voice decay/sustain/release controls. Both web and
 R36H require verified daily builds; private songs/banks/settings remain external.
+
+### SoundFont collections and compatibility review (2026-10-14)
+
+The collection browser opens directly on the active preset and presents one
+collection column and one flattened preset column. EDIT+Left/Right follows that
+same sorted order across collection boundaries. Native keys shows the authored
+note-on range without changing playback mappings. Generic custom-modulation
+warnings move to manual guidance that distinguishes a bank file from its presets
+and lists supported and unsupported programming.
+
+The private Dropbox library is the canonical collection reference. Clean names
+retain meaningful musical numbers; source audio and definitions remain unchanged.
+Original downloads/support files belong under documents. The owner confirmed
+there are no existing SoundFont songs to migrate, so this update uses the new
+paths directly without a compatibility map. No private assets enter Git or the
+public web deployment. Exact test/deployment results belong in the daily receipts.

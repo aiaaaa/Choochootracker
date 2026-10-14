@@ -91,7 +91,6 @@ try:
             tap(4)  # One preset browser, scanning automatically on its first use.
             page.wait_for_timeout(1200)
             page.screenshot(path=str(work / 'preset-folders.png'))
-            tap(4)  # tone.sf2 -> preset list
             tap(4)  # Select Test.
             page.wait_for_timeout(750)
             tap(5)  # Return to Instrument.

@@ -91,8 +91,22 @@ std::string soundbankInstrumentWarning(int instrument) {
   if (!p || p->warnings.empty()) return {};
   for (const auto& warning : p->warnings)
     if (warning.find("custom modulators unsupported") != std::string::npos)
-      return "Custom bank modulation ignored";
-  return p->warnings.front();
+      continue; // Explained in the manual; do not repeat a bank-wide limitation on every preset.
+    else return warning;
+  return {};
+}
+std::string soundbankInstrumentRange(int instrument) {
+  if(!chipnomadState || instrument<0 || instrument>=PROJECT_MAX_INSTRUMENTS)return {};
+  const auto* preset=soundbank::prepared(chipnomadState->project.instruments[instrument].chip.soundfont.prepared);
+  if(!preset)return {};
+  bool keys[128]={};
+  for(const auto& layer:preset->zones) if(!layer.zone.releaseTrigger && layer.zone.hiVel>0)
+    for(int k=std::max(0,layer.zone.loKey);k<=std::min(127,layer.zone.hiKey);++k)keys[k]=true;
+  int low=0,high=127;while(low<128&&!keys[low])++low;while(high>=low&&!keys[high])--high;
+  if(low>high)return "Native keys: none";
+  auto note=[](int key){static const char* names[]={"C","C#","D","D#","E","F","F#","G","G#","A","A#","B"};return std::string(names[key%12])+std::to_string(key/12-1);};
+  bool gaps=false;for(int k=low;k<=high;++k)if(!keys[k])gaps=true;
+  return "Native keys: "+note(low)+" to "+note(high)+(gaps?" (gaps)":"");
 }
 void soundbankRescan(bool force) {
   if (soundbankBusy()) return;

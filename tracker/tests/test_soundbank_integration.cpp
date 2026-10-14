@@ -195,7 +195,7 @@ TEST_CASE("SoundFont overrides shape audio without mutating bank zones or retarg
 #include "soundbank_fx.h"
 #include "playback_internal.h"
 
-TEST_CASE("SoundFont folder browser preserves nested paths archives and wrapped preset order") {
+TEST_CASE("SoundFont collections flatten folders and cycle in visible order across boundaries") {
   using namespace soundbank;
   std::vector<BankEntry> banks(5);
   banks[0].id="Gugak/Wind/Flute.exs"; banks[0].format="exs"; banks[0].presets={{"exs","Flute"}};
@@ -203,16 +203,19 @@ TEST_CASE("SoundFont folder browser preserves nested paths archives and wrapped 
   banks[2].id="Fluid/Piano.zip::Banks/Piano.sf2";banks[2].format="sf2";banks[2].presets={{"0:0","Piano"},{"0:1","Bright"}};
   banks[3].id="broken.sf2";banks[3].format="sf2";banks[3].error="Invalid bank";
   banks[4].id="Solo.wav";banks[4].format="wav";banks[4].presets={{"wav","Solo"}};
-  auto root=folderEntries(banks,{});REQUIRE(root.size()==4);
-  CHECK(root[0].name=="Fluid");CHECK(root[0].bank==-1);
-  auto wind=folderEntries(banks,{"Gugak","Wind"});REQUIRE(wind.size()==1);
-  CHECK(wind[0].name=="Flute.exs");CHECK(wind[0].bank==0);
-  auto raw=folderEntries(banks,{"Gugak","Wind"},true);REQUIRE(raw.size()==1);CHECK(raw[0].name=="Samples");
-  auto zip=folderEntries(banks,{"Fluid","Piano.zip","Banks"});REQUIRE(zip.size()==1);CHECK(zip[0].bank==2);
-  CHECK(cyclePreset(banks,"Gugak/Wind/Flute.exs","exs",1)==std::make_pair(2,0));
-  CHECK(cyclePreset(banks,banks[2].id,"0:1",1)==std::make_pair(4,0));
-  CHECK(cyclePreset(banks,"Solo.wav","wav",1)==std::make_pair(0,0));
-  CHECK(cyclePreset(banks,banks[0].id,"exs",-1)==std::make_pair(4,0));
+  auto groups=collections(banks);REQUIRE(groups.size()==3);
+  CHECK(groups[0].name=="Fluid");REQUIRE(groups[0].presets.size()==2);
+  CHECK(groups[0].presets[0].label=="Bright");CHECK(groups[0].presets[1].label=="Piano");
+  CHECK(groups[1].name=="Gugak");REQUIRE(groups[1].presets.size()==1);
+  CHECK(groups[1].presets[0].label=="Flute");
+  CHECK(groups[2].name=="Loose samples");
+  CHECK(cyclePreset(banks,banks[2].id,"0:1",1)==std::make_pair(2,0));
+  CHECK(cyclePreset(banks,banks[2].id,"0:0",1)==std::make_pair(0,0));
+  CHECK(cyclePreset(banks,"Gugak/Wind/Flute.exs","exs",1)==std::make_pair(4,0));
+  CHECK(cyclePreset(banks,"Solo.wav","wav",1)==std::make_pair(2,1));
+  CHECK(cyclePreset(banks,banks[2].id,"0:1",-1)==std::make_pair(4,0));
+  CHECK(cyclePreset(banks,banks[0].id,"exs",-1)==std::make_pair(2,0));
+  CHECK(cyclePreset(banks,"missing","",1)==std::make_pair(2,1));
   CHECK(cyclePreset({},"","",1)==std::make_pair(-1,-1));
 }
 
@@ -347,6 +350,8 @@ TEST_CASE("SoundFont folder display removes archive hashes without changing iden
   CHECK(soundbank::browserLabel("stargate-sample-pack-dbfd6ec52d4ed53b60bdbea5fc6adf295127c027.zip")=="stargate-sample-pack");
   CHECK(soundbank::browserLabel("Korean_Gugak")=="Korean Gugak");
   CHECK(soundbank::browserLabel("Flute.exs")=="Flute");
+  CHECK(soundbank::browserLabel("219157__jagadamba__bongo01.WAV")=="bongo01");
+  CHECK(soundbank::browserLabel("Chord_Eb_Natural_Minor_77BPM.wav")=="Chord Eb Natural Minor 77BPM");
   CHECK(soundbank::browserLabel("v1.3.1")=="v1.3.1");
   CHECK_FALSE(instrumentFXAvailable(InstrumentType::SoundFont,fxFVL));
   CHECK_FALSE(instrumentFXAvailable(InstrumentType::SoundFont,fxFPN));
@@ -384,4 +389,43 @@ TEST_CASE("SoundFont live envelope edits preserve exclusive group choke fades") 
   voice.configure(h,6000,1,127,20000,controls);voice.noteOn();float audio[960];voice.render(audio,480);
   voice.choke(1,h);voice.configure(h,6000,1,127,20000,controls);
   voice.render(audio,480);CHECK_FALSE(voice.active());collect([](uint32_t){return false;});
+}
+
+TEST_CASE("SoundFont native range uses note-on mappings and keeps generic modulation in diagnostics") {
+  using namespace soundbank;
+  auto* saved=chipnomadState;chipnomadState=chipnomadCreate();
+  auto& i=chipnomadState->project.instruments[0];getInstrumentFunctions(InstrumentType::SoundFont).init(&i);
+  CHECK(soundbankInstrumentRange(0).empty());CHECK(soundbankInstrumentRange(-1).empty());
+  auto bank=parseBank({"tests/fixtures/soundbanks/tone.sf2",""});
+  auto& zones=bank.presets[0].zones;zones[0].loKey=60;zones[0].hiKey=62;
+  auto high=zones[0];high.loKey=65;high.hiKey=67;zones.push_back(high);
+  auto release=zones[0];release.loKey=0;release.hiKey=127;release.releaseTrigger=true;zones.push_back(release);
+  bank.warnings={"SoundFont custom modulators unsupported: pmod"};
+  SampleCache cache;auto preparedPreset=cache.prepare(bank,"0:0");i.chip.soundfont.prepared=publish(preparedPreset);
+  CHECK(soundbankInstrumentRange(0)=="Native keys: C4 to G4 (gaps)");
+  CHECK(soundbankInstrumentWarning(0).empty());CHECK_FALSE(preparedPreset->warnings.empty());
+  i.chip.soundfont.controls.tuneCents=1200;
+  CHECK(soundbankInstrumentRange(0)=="Native keys: C4 to G4 (gaps)");
+  zones[0].hiKey=67;bank.warnings.push_back("Other compatibility warning");
+  i.chip.soundfont.prepared=publish(cache.prepare(bank,"0:0"));
+  CHECK(soundbankInstrumentRange(0)=="Native keys: C4 to G4");
+  CHECK(soundbankInstrumentWarning(0)=="Other compatibility warning");
+  for(auto& z:zones)z.releaseTrigger=true;
+  i.chip.soundfont.prepared=publish(cache.prepare(bank,"0:0"));
+  CHECK(soundbankInstrumentRange(0)=="Native keys: none");
+  chipnomadDestroy(chipnomadState);chipnomadState=saved;collect([](uint32_t){return false;});
+}
+
+#include "selection_popup.h"
+TEST_CASE("SoundFont collection popup opens on the active preset without an extra folder step") {
+  auto* prior=chipnomadState;chipnomadState=chipnomadCreate();
+  static int selected;selected=-1;
+  SelectionItem children[]={{"First",10,nullptr,0,nullptr},{"Active",11,nullptr,0,nullptr}};
+  SelectionItem roots[]={{"< Instrument",-2,nullptr,0,nullptr},{"Collection",-100,children,2,nullptr}};
+  selectionPopupSetup("Presets",roots,2,11,[](int value){selected=value;},nullptr,false,[](int,bool){},true,true);
+  screenSelectionPopup.onInput(1,keyEdit,0);CHECK(selected==-1);
+  screenSelectionPopup.onInput(0,0,0);CHECK(selected==11);
+  screenSelectionPopup.onInput(1,keyDown,0);
+  screenSelectionPopup.onInput(1,keyEdit,0);screenSelectionPopup.onInput(0,0,0);CHECK(selected==10);
+  chipnomadDestroy(chipnomadState);chipnomadState=prior;
 }

@@ -755,5 +755,19 @@
       "Live decay/sustain/release edits"
     ],
     "compatibility": "Existing FX IDs and legacy PBN scaling retained; private libraries unchanged"
+  },
+  "soundfont_collections_20261014": {
+    "baseline": "d50c818",
+    "status": "Collection browser review; exact validation and installation recorded in daily receipts",
+    "changes": [
+      "Two-column collections and presets, focused on the active preset",
+      "Sequential cycling across collections in browser order",
+      "Authored native note range, including gaps",
+      "Preset modulation compatibility documented in the manual",
+      "Canonical cleaned private Dropbox collections; originals under documents"
+    ],
+    "migration": "Owner confirmed no existing SoundFont songs; use new paths directly, without old-path compatibility",
+    "private_library_root": "instruments/USER/soundfont",
+    "private_assets_in_public_build": false
   }
 }

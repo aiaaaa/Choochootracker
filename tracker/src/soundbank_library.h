@@ -12,6 +12,7 @@ void soundbankCycle(int instrument, int direction);
 const std::string& soundbankStatus();
 std::string soundbankInstrumentStatus(int instrument);
 std::string soundbankInstrumentWarning(int instrument);
+std::string soundbankInstrumentRange(int instrument);
 std::string soundbankRoot();
 
 void soundbankShutdown();

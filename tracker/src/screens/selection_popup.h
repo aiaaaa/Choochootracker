@@ -14,7 +14,7 @@ struct SelectionItem {
 void selectionPopupSetup(const char* title, const SelectionItem* items,
                          int count, int currentValue,
                          void (*selected)(int), void (*cancelled)(void),
-                         bool fullWidth = false, void (*preview)(int, bool) = nullptr, bool collections = false);
+                         bool fullWidth = false, void (*preview)(int, bool) = nullptr, bool collections = false, bool focusPreset = false);
 
 bool selectionPopupIsFullWidth(void);
 
