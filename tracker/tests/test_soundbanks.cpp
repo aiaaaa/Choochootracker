@@ -363,3 +363,20 @@ TEST_CASE("soundbank EXS original directory suffix disambiguates duplicate sampl
   CHECK_NOTHROW(cache.prepare(bank, "exs"));
   fs::remove_all(root);
 }
+
+TEST_CASE("SoundFont linked sample flags do not override the authored pan generator") {
+  std::ifstream in(fixtures+"tone.sf2",std::ios::binary);std::string bytes((std::istreambuf_iterator<char>(in)),{});
+  auto shdr=bytes.find("shdr");REQUIRE(shdr!=std::string::npos);
+  const auto path=std::filesystem::temp_directory_path()/"soundbank-linked-pan.sf2";
+  for(int type:{2,4}) {
+    bytes[shdr+8+44]=char(type);
+    {std::ofstream out(path,std::ios::binary);out.write(bytes.data(),bytes.size());}
+    auto bank=parseBank({path.string(),""});REQUIRE(bank.presets.size()==1);REQUIRE(bank.presets[0].zones.size()==1);
+    CHECK(bank.presets[0].zones[0].pan==0);
+    SampleCache cache;auto h=publish(cache.prepare(bank,"0:0"));SoundbankVoice voice;voice.init(48000);voice.configure(h,6000,1,127);voice.noteOn();
+    float audio[2048];voice.render(audio,1024);double energy=0;
+    for(int n=0;n<1024;++n){CHECK(audio[n*2]==audio[n*2+1]);energy+=audio[n*2]*audio[n*2];}
+    CHECK(energy>0);voice.kill();collect([](uint32_t){return false;});
+  }
+  std::filesystem::remove(path);
+}

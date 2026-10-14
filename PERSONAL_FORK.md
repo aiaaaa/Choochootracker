@@ -729,3 +729,15 @@ the direct editor, eight Lane FX, scan status/Rescan, one folder browser and
 wrapping preset cycling. Existing personal experiments and upstream baseline
 remain present. Daily build receipts record the exact commit, verification and
 deployment; private USER banks, songs and settings stay external and preserved.
+
+
+### SoundFont device review follow-up (2026-10-14)
+
+Based on the verified 5e8679e daily. Keep preset notifications on Instrument,
+separate compatibility warnings, remove the library path label, and clean
+collection display without renaming private assets. Follow the SoundFont pan
+generator instead of forcing header-flag panning. Preserve authored key ranges.
+Add a per-instrument PBN bend step (new instruments 1 cent; older files Stock),
+replace menu duplicates FVL/FPN with Hold/Sustain while preserving old IDs and
+playback, and update active-voice decay/sustain/release controls. Both web and
+R36H require verified daily builds; private songs/banks/settings remain external.

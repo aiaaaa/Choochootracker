@@ -33,6 +33,8 @@ bool instrumentNativeFXInfo(const Instrument* i,int fx,NativeFXInfo* out,int op)
       case fxFAT: label="Attack"; break;
       case fxFDC: label="Decay"; break;
       case fxFRL: label="Release"; break;
+      case fxFHD: label="Hold"; break;
+      case fxFSU: label="Sustain"; break;
       default: return false;
     }
     *out = {255, value, false, 0, label}; return true;

@@ -108,6 +108,9 @@ void fillFXNames() {
     strcpy(fxNames[c].name, "---");
     fxNames[c].fx = (FXId)c;
   }
+  // Retain legacy spellings for saved songs, without offering duplicate controls.
+  strcpy(fxNames[fxFVL].name, "FVL");
+  strcpy(fxNames[fxFPN].name, "FPN");
   // Fill counts in fxGroups array
   fxGroups[0].count = fxSequencerCount;
   fxGroups[1].count = fxTrackCount;

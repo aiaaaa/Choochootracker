@@ -76,7 +76,6 @@ void parseSoundFont(Bank& b, const SourcePtr& source) {
     while (n < 20 && p[n]) ++n;
     return std::string(reinterpret_cast<const char*>(p), n);
   };
-  std::vector<uint16_t> sampleType;
   std::vector<uint32_t> frameCount;
   for (size_t i = 0; i + 46 < sh.size(); i += 46) {
     auto p = sh.data() + i;
@@ -110,7 +109,6 @@ void parseSoundFont(Bank& b, const SourcePtr& source) {
       }
     }
     b.assets.push_back(a);
-    sampleType.push_back(type);
     frameCount.push_back(compressed ? 0 : stop - start);
   }
   using Gens = std::map<int, int>;
@@ -229,10 +227,8 @@ void parseSoundFont(Bank& b, const SourcePtr& source) {
                               20.f, 20000.f);
         z.resonance = std::clamp(value(9) / 10.f, 0.f, 40.f);
         z.group = z.offBy = std::max(0, value(57));
-        if ((sampleType[sample] & 15) == 2 && z.pan == 0)
-          z.pan = 1;
-        else if ((sampleType[sample] & 15) == 4 && z.pan == 0)
-          z.pan = -1;
+        // The pan generator controls placement, including linked samples.
+        // Header left/right flags describe sample links, not an implicit pan.
         require(preset.zones.size() < maxZones, "SoundFont preset zone limit exceeded");
         require(++totalZones <= 65536, "SoundFont bank metadata zone limit exceeded");
         preset.zones.push_back(z);

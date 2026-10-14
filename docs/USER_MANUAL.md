@@ -451,23 +451,32 @@ Each instrument has a default table with the same number in the `00-7F` range. Y
 ### SOUNDFONT (experimental)
 
 Copy original SF2/SF3 banks, SFZ/EXS instruments with their samples, or ZIP archives
-into `instruments/USER/soundfont`. Select **SOUNDFONT** on Instrument. The library
+into `instruments/USER/soundfont`. Select **SOUNDFONT** on Instrument. The scan
 row shows **Not scanned**, **Scanning...**, or **Scanned**, with a **Rescan** action.
 Scanning reads metadata; it does not load every preset's samples into memory.
 
 The **Preset** row shows the active preset. Tap and release EDIT to open the one
-preset browser, then follow the actual folders, bank files and presets. ZIPs
-retain their internal folder paths. EDIT selects a preset; EDIT+PLAY previews the
+preset browser, then follow collections, bank files and presets. Redundant
+download-wrapper folders are skipped and filenames are cleaned for display;
+the original files and saved paths stay unchanged. ZIPs remain browseable. EDIT selects a preset; EDIT+PLAY previews the
 loaded selection. Raw WAV/AIFF assets in mapped collections are available under
 **Raw WAV/AIFF samples**, keeping source samples out of the instrument list.
 Hold EDIT and press Left/Right on Preset to cycle through discovered instruments,
 wrapping at either end. Rapid cycling prepares the latest requested selection.
 The current preset stays playable until a replacement succeeds; a failed load
-keeps it intact. Rescan after importing or changing library files.
+keeps it intact. Rescan after importing or changing library files. Preset status
+appears directly below Preset with a fixed color; compatibility warnings appear
+on a separate row only when needed. Loading a preset does not post messages on
+SONG or other pages. Custom SoundFont modulator graphs are not implemented;
+that warning means the bank may sound different, not that loading failed.
 
 **Edit**, to the right of Preset, opens the experimental SoundFont editor:
 tune (−2400 to +2400 cents), cutoff (20–20000 Hz), resonance (0–40 dB), envelope
-delay/attack/hold/decay/release (0–20000 ms), sustain (0–100%), volume and pan.
+delay/attack/hold/decay/release (0–20000 ms), sustain (0–100%), volume, pan, and
+**Bend step** (1–100 cents per PBN unit). New instruments use a 1-cent bend step.
+Older files show **Stock**, retaining their previous PBN scale (25 cents in linear
+pitch mode, 1 in period mode); set Bend step to 1 for finer bends. Clear restores
+a 1-cent bend step. This affects SoundFont PBN only; FPT remains fixed tuning.
 Volume and pan are the same instrument values shown on the home page.
 Tone and envelope fields default to **Bank**, retaining each layer's authored
 value. An explicit value overrides that parameter across the preset's layers.
@@ -477,9 +486,14 @@ to Instrument; EDIT+PLAY auditions the instrument at its song note or the defaul
 This edits instrument playback controls, not the bank's per-sample mappings,
 key/velocity zones or loop points.
 
-Tuning, cutoff and resonance apply live. Envelope changes apply to the next
-trigger, preserving the current note's envelope. A release time cannot extend
-a sample past its available audio, and bank-authored one-shot behavior remains.
+Tuning, cutoff and resonance apply live. Attack, delay and hold are set at
+note-on. Decay, sustain and release can update a playing voice; release begins
+with a note OFF, not just on an empty row. Decay is inaudible at 100% sustain.
+A release time cannot extend a sample past its available audio. An explicit
+release override also makes a one-shot sample respond to note OFF. With Bank
+settings, its authored one-shot behavior remains. The preset's key and velocity
+ranges remain authoritative; notes outside them are silent. FPT can pitch an
+already selected sample beyond that range without changing its mapping.
 Edits save in instrument and project files without modifying the source bank;
 older songs without overrides retain their original bank settings.
 
@@ -491,16 +505,18 @@ the instrument settings, then applies commands on its row and subsequent rows.
 | FX | Control | Values |
 | --- | --- | --- |
 | FPT | Pitch | `00` = −24 semitones, `18` = zero, `30` = +24; exact semitone steps |
-| FVL | Volume | `00` silent to `FF` full instrument volume; phrase volume still applies |
-| FPN | Pan | `00` left, `80` center, `FF` right; takes precedence over PAN |
 | FCF | Cutoff | `00`–`FE`: 20 Hz–20 kHz, logarithmic |
 | FRS | Resonance | `00`–`FE`: 0–40 dB |
 | FAT | Attack | `00`–`FE`: 0–20 seconds, finer spacing at short times |
+| FHD | Hold | `00`–`FE`: 0–20 seconds before decay, set on the note row |
+| FSU | Sustain | `00`–`FE`: 0–100% held level |
 | FDC | Decay | `00`–`FE`: 0–20 seconds, finer spacing at short times |
 | FRL | Release | `00`–`FE`: 0–20 seconds, finer spacing at short times |
 
-For FCF/FRS/FAT/FDC/FRL, `FF` returns to the Edit setting (including **Bank**).
-Envelope FX apply when a note is triggered: put them on the note's row. Pitch FX
+For FCF/FRS/FAT/FHD/FDC/FSU/FRL, `FF` returns to the Edit setting (including **Bank**).
+Put Attack/Hold on the note row. Decay/Sustain/Release can change the active
+note; use OFF to hear its release. Volume and pan use the common controls;
+legacy FVL/FPN commands still load and play but are no longer offered. Pitch FX
 change tuning without changing the bank's selected key zone. Existing sequencer
 pitch/fine-pitch commands, MODs and track effects remain available. Projects save
 stable bank/preset references and FX commands; sample libraries remain external.
@@ -2258,7 +2274,7 @@ and experimental SoundFont instrument. The saved Song waveform preference is
 retained; Instrument and other editors use their full layouts. ESQ stays experimental
 and is excluded from the planned SID layout contribution.
 
-Use SAMPLE → SOUNDFONT → BANK MANAGER, then the Preset row. Sound banks remain
+Use SAMPLE → SOUNDFONT → Preset; Rescan refreshes the collection list. Sound banks remain
 external user data under instruments/USER/soundfont; web adds Import sound banks and Import bank
 folder. Existing SQ80 and Monk instrument identities remain 28 and 29; SoundFont
 uses 30 in this personal evaluation. Keep the original bank beside saved projects.
@@ -2272,7 +2288,7 @@ files are kept. Import only the collection you need: each import supports up to
 Browser audio recovery waits for clock progress and a real output callback within
 a bounded timeout before reporting success or failure.
 
-The SoundFont Instrument page identifies its private library as `USER/soundfont`.
+SoundFont status and compatibility warnings stay on its Instrument page.
 
 
 ### SoundFont evaluation daily follow-up

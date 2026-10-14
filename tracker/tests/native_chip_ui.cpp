@@ -58,7 +58,7 @@ int main(int argc,char** argv){
     screenSetup(&screenInstrument,0);screenInstrumentSoundFont.cursorRow=4;
     key(1,keyEdit|keyRight);key(0,0);finish();
     require(currentScreen==&screenInstrument,"Preset cycling does not open browser on release");
-    for(int command=fxFPT;command<=fxFRL;++command) {
+    for(int command : {fxFPT,fxFCF,fxFRS,fxFAT,fxFHD,fxFDC,fxFSU,fxFRL}) {
       FXCell cell{FX_ID_EMPTY,0};selectInstrumentFX(&cell,FXId(command),0);
       require(cell.command==command,"All eight SoundFont Lane FX selectable");
       require(cell.value==(command==fxFPT ? 24 : command==fxFVL ? 255 : command==fxFPN ? 128 : 255),"Lane FX starts at preset value");
@@ -88,6 +88,8 @@ int main(int argc,char** argv){
     key(1,keyEdit|keyLeft);key(0,0);require(instrument.volume==254,"Edit volume changes common volume");
     require(screenTouchTap(22,13),"Pan editor touch");
     key(1,keyEdit|keyRight);key(0,0);require(instrument.pan==129,"Edit pan changes common pan");
+    require(screenTouchTap(22,14),"Bend step editor touch");
+    key(1,keyEdit|keyRight);key(0,0);require(instrument.chip.soundfont.controls.bendStepCents==2,"Per-instrument bend step changes");
     capture("soundfont-edit-values");
     key(1,keyOpt);key(0,0);require(currentScreen==&screenInstrument,"Editor returns to instrument");
     require(screenTouchTap(12,7),"Active preset touch");tapEdit();
@@ -99,7 +101,7 @@ int main(int argc,char** argv){
     require(loaded->instruments[0].chip.soundfont.controls.tuneCents==100 &&
       loaded->instruments[0].chip.soundfont.controls.cutoffHz==20,"Editor settings survive song reload");
     screenSetup(&screenPhrase,-1);appDraw();
-    for(int command=fxFPT;command<=fxFRL;++command) {
+    for(int command : {fxFPT,fxFCF,fxFRS,fxFAT,fxFHD,fxFDC,fxFSU,fxFRL}) {
       fxEditFullDraw(FXId(command),0,0);
       char name[40];snprintf(name,sizeof(name),"soundfont-fx-%d",command);capture(name,false);
     }

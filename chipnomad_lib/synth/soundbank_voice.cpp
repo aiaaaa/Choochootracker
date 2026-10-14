@@ -65,11 +65,18 @@ void SoundbankVoice::updateLayer(Layer& l) {
   const float resonance = controls_.resonanceTenths < 0 ? z.resonance : controls_.resonanceTenths / 10.f;
   l.filter.configure(cutoff < 19999, 0, 0, false, cutoff,
                      std::clamp(resonance / 40.f, 0.f, 1.f));
+  if (l.choked) return; // Exclusive-group fades keep their authored choke time.
+  l.decay = controls_.decayMs < 0 ? z.envelope.decay : controls_.decayMs / 1000.f;
+  l.sustain = controls_.sustainPercent < 0 ? z.envelope.sustain : controls_.sustainPercent / 100.f;
+  l.release = controls_.releaseMs < 0 ? z.envelope.release : controls_.releaseMs / 1000.f;
+  l.envelope.updateRelease(l.release);
+  if (!l.attacking && !l.holding) l.envelope.updateDecaySustain(l.decay,l.sustain);
 }
 void SoundbankVoice::startLayer(Layer& l, const soundbank::PreparedZone& z, size_t index) {
   l.zone = &z;
   l.position = z.zone.reverse ? z.zone.end - 1 : z.zone.start;
   l.released = false;
+  l.choked = false;
   l.holding = false;
   l.attacking = true;
   auto time = [](int ms, float bank) { return ms < 0 ? bank : ms / 1000.f; };
@@ -125,7 +132,7 @@ void SoundbankVoice::noteOff() {
   if (!noteHeld_) return;
   noteHeld_ = false;
   for (auto& l : layers_)
-    if (l.zone && l.zone->zone.loop != soundbank::Loop::oneShot) {
+    if (l.zone && (l.zone->zone.loop != soundbank::Loop::oneShot || controls_.releaseMs >= 0)) {
       l.released = true;
       l.attacking = l.holding = false;
       l.delay = l.hold = 0;
@@ -147,6 +154,7 @@ void SoundbankVoice::choke(int group, uint32_t handle) {
   if (!group || handle_ != handle) return;
   for (auto& l : layers_)
     if (l.zone && l.zone->zone.offBy == group) {
+      l.choked = true;
       l.released = true;
       l.attacking = false;
       l.delay = l.hold = 0;

@@ -738,5 +738,22 @@
     "preservation": "Existing songs, USER banks, settings and regular launcher; verified rollback",
     "validation": "Exact commit and results in daily receipts",
     "vita": "Paused"
+  },
+  "soundfont_review_20261014": {
+    "base_daily": "5e8679e9391703594b7f943bda88dcbfdf6b5e5e",
+    "status": "SoundFont review implementation; exact build and deployment results recorded in daily validation receipts",
+    "targets": [
+      "R36H",
+      "personal web"
+    ],
+    "changes": [
+      "Instrument-only status and conditional warnings",
+      "Readable collection display with original paths preserved",
+      "Authored SoundFont pan and key ranges",
+      "SoundFont-specific PBN bend step",
+      "Hold/Sustain replace duplicate menu volume/pan",
+      "Live decay/sustain/release edits"
+    ],
+    "compatibility": "Existing FX IDs and legacy PBN scaling retained; private libraries unchanged"
   }
 }

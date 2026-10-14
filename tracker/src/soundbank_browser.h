@@ -4,6 +4,20 @@
 #include <set>
 #include "soundbank_index.h"
 namespace soundbank {
+inline std::string browserLabel(std::string name) {
+  auto dot=name.rfind('.');
+  if (dot!=std::string::npos) {
+    const auto ext=name.substr(dot);
+    if (ext==".zip" || ext==".sf2" || ext==".sf3" || ext==".sfz" ||
+        ext==".exs" || ext==".wav" || ext==".aif" || ext==".aiff") name.resize(dot);
+  }
+  auto dash=name.rfind('-');
+  if (dash!=std::string::npos && name.size()-dash-1==40 &&
+      name.find_first_not_of("0123456789abcdefABCDEF",dash+1)==std::string::npos)
+    name.resize(dash);
+  std::replace(name.begin(),name.end(),'_',' ');
+  return name;
+}
 inline bool rawSample(const BankEntry& bank) {
   return bank.format == "wav" || bank.format == "aif" || bank.format == "aiff";
 }

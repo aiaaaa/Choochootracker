@@ -102,6 +102,7 @@ try:
                 tap(1)
             edit_step(2)  # Volume FF -> FE.
             tap(1); edit_step(3)  # Pan 80 -> 81.
+            tap(1); edit_step(3)  # Legacy Stock bend step -> 1 cent.
             page.screenshot(path=str(work / 'soundfont-edit.png'))
             assert page.evaluate("Module.ccall('webSaveProject','number',['string'],['/user/projects/roundtrip.cct'])") == 0
             saved = page.evaluate("FS.readFile('/user/projects/roundtrip.cct',{encoding:'utf8'})")
@@ -109,6 +110,7 @@ try:
             assert '- Sound controls: 100 20 -1 -1 -1 -1 -1 -1 -1' in saved, saved[saved.index('### Instrument 0'):saved.index('### Instrument 1')]
             saved_instrument = saved[saved.index('### Instrument 0'):saved.index('### Instrument 1')]
             assert '- Volume: 254' in saved_instrument and '- Pan: 129' in saved_instrument, saved_instrument
+            assert '- Sound bend step: 1' in saved_instrument, saved_instrument
             assert page.evaluate("Module.ccall('webLoadProject','number',['string'],['/user/projects/roundtrip.cct'])") == 0
             page.wait_for_timeout(1000)
             page.wait_for_function('Asyncify.state===0 && Asyncify.currData===null', timeout=15000)

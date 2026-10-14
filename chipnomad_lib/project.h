@@ -232,6 +232,7 @@ enum FX : FXId {
   fxQCF, fxQRS, fxWHL, fxPED, fxSUS, fxAFT, fxNPR, fxGLI, fxVEL, fxEXT,
   // Append only: saved FX identifiers remain stable.
   fxFPT, fxFVL, fxFPN, fxFCF, fxFRS, fxFAT, fxFDC, fxFRL,
+  fxFHD, fxFSU,
 
   // Total count - must be last
   fxTotalCount

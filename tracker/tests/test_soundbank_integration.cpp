@@ -25,7 +25,7 @@ TEST_CASE("SoundFont project and instrument files retain identities without runt
   strcpy(i.chip.soundfont.bank, "Korean_Gugak/Wind/Flute.exs");
   strcpy(i.chip.soundfont.preset, "exs");
   i.chip.soundfont.prepared = 12345;
-  const SoundbankControls controls{-125, 2400, 55, 20, 150, 30, 250, 65, 900};
+  const SoundbankControls controls{-125, 2400, 55, 20, 150, 30, 250, 65, 900, 1};
   i.chip.soundfont.controls = controls;
   auto path =
       (std::filesystem::temp_directory_path() / "choochoo-soundbank-roundtrip.cct").string();
@@ -176,8 +176,8 @@ TEST_CASE("SoundFont overrides shape audio without mutating bank zones or retarg
   changed=defaults;changed.attackMs=1000;changed.releaseMs=200;
   auto slow=render(changed);CHECK(energy(slow)<energy(original)*.1);
   CHECK(voice.envelopeLevel()==doctest::Approx(.1).epsilon(.01));
-  // Envelope changes on a held note wait for the next trigger.
-  voice.configure(handle,6000,1,127,20000,defaults);
+  // The explicit release lasts 200 ms after note-off.
+  voice.configure(handle,6000,1,127,20000,changed);
   voice.noteOff();std::vector<float> tail(4800);voice.render(tail.data(),2400);
   CHECK(voice.active());voice.render(tail.data(),2400);voice.render(tail.data(),2400);
   voice.render(tail.data(),2400);voice.render(tail.data(),1);CHECK_FALSE(voice.active());
@@ -279,6 +279,8 @@ static std::vector<float> renderSoundFontFX(int command,int value,bool useFX) {
       case fxFAT:i.chip.soundfont.controls.attackMs=soundbankFXTime(value);break;
       case fxFDC:i.chip.soundfont.controls.decayMs=soundbankFXTime(value);break;
       case fxFRL:i.chip.soundfont.controls.releaseMs=soundbankFXTime(value);break;
+      case fxFHD:i.chip.soundfont.controls.holdMs=soundbankFXTime(value);break;
+      case fxFSU:i.chip.soundfont.controls.sustainPercent=(value*100+127)/254;break;
     }
   }
   auto saved=std::make_unique<Project>(p);
@@ -290,10 +292,10 @@ static std::vector<float> renderSoundFontFX(int command,int value,bool useFX) {
   for(float sample:audio)REQUIRE(std::isfinite(sample));
   return audio;
 }
-TEST_CASE("SoundFont all eight Lane FX reach real playback and match instrument edits") {
-  for(int fx=fxFPT;fx<=fxFRL;++fx) {
+TEST_CASE("SoundFont current and legacy Lane FX reach playback and match instrument edits") {
+  for(int fx=fxFPT;fx<=fxFSU;++fx) {
     CAPTURE(fx);
-    int value=fx==fxFPT ? 36 : fx==fxFCF ? 80 : 32;
+    int value=fx==fxFPT ? 36 : fx==fxFCF ? 80 : fx==fxFHD ? 4 : 32;
     auto direct=renderSoundFontFX(fx,value,false), lane=renderSoundFontFX(fx,value,true);
     CHECK(direct==lane);
     double energy=0;for(float v:lane)energy+=v*v;CHECK(energy>0);
@@ -301,4 +303,85 @@ TEST_CASE("SoundFont all eight Lane FX reach real playback and match instrument 
   auto muted=renderSoundFontFX(fxFVL,0,true);
   double energy=0;for(float v:muted)energy+=v*v;CHECK(energy==0);
   soundbank::collect([](uint32_t){return false;});
+}
+
+TEST_CASE("SoundFont bend resolution is per instrument and legacy files keep stock scale") {
+  auto p=std::make_unique<Project>();projectInitAY(p.get());initFXHandlers();
+  auto& i=p->instruments[0];getInstrumentFunctions(InstrumentType::SoundFont).init(&i);
+  CHECK(i.chip.soundfont.controls.bendStepCents==1);
+  auto playback=std::make_unique<PlaybackState>();playback->p=p.get();
+  auto& t=playback->tracks[0];t.note.instrument=0;t.grooveIdx=t.grooveRow=0;
+  p->grooves[0].speed[0]=4;p->linearPitch=1;
+  auto bend=[&](int value){t.note.fx[fxPBN]={};FXCell f{fxPBN,uint8_t(value)};initFX(playback.get(),0,&f,nullptr,-1);for(int k=0;k<4;++k){t.note.fineOffset=0;handleFX(playback.get(),0,0);}return t.note.fineOffset;};
+  CHECK(bend(1)==1);CHECK(bend(255)==-1);
+  i.chip.soundfont.controls.bendStepCents=5;CHECK(bend(1)==5);
+  i.chip.soundfont.controls.bendStepCents=0;CHECK(bend(1)==25);
+  p->linearPitch=0;CHECK(bend(1)==1);
+  p->linearPitch=1;getInstrumentFunctions(InstrumentType::AY1).init(&p->instruments[1]);t.note.instrument=1;CHECK(bend(1)==25);
+  auto path=(std::filesystem::temp_directory_path()/"soundfont-legacy-bend.cni").string();
+  REQUIRE(instrumentSave(p.get(),path.c_str(),0)==0);
+  std::ifstream in(path);std::string text((std::istreambuf_iterator<char>(in)),{});in.close();
+  auto pos=text.find("- Sound bend step: ");REQUIRE(pos!=std::string::npos);text.erase(pos,text.find('\n',pos)-pos+1);
+  {std::ofstream out(path);out<<text;}
+  REQUIRE(instrumentLoad(p.get(),path.c_str(),2)==0);CHECK(p->instruments[2].chip.soundfont.controls.bendStepCents==0);
+  std::filesystem::remove(path);projectFree(p.get());
+}
+
+TEST_CASE("SoundFont live decay sustain and release edits reach an existing voice") {
+  using namespace soundbank;
+  auto b=parseBank({"tests/fixtures/soundbanks/tone.sf2",""});auto& z=b.presets[0].zones[0];
+  z.loop=Loop::continuous;z.envelope={0,0,2,.2f,2,0};
+  SampleCache cache;auto h=publish(cache.prepare(b,"0:0"));SoundbankVoice voice;voice.init(48000);
+  auto controls=soundbankDefaultControls();voice.configure(h,6000,1,127,20000,controls);voice.noteOn();
+  float audio[960];for(int n=0;n<10;++n)voice.render(audio,480);
+  CHECK(voice.envelopeLevel()>.9f);
+  controls.decayMs=10;controls.sustainPercent=25;
+  voice.configure(h,6000,1,127,20000,controls);for(int n=0;n<3;++n)voice.render(audio,480);
+  CHECK(voice.envelopeLevel()==doctest::Approx(.25));
+  controls.releaseMs=10;voice.configure(h,6000,1,127,20000,controls);voice.noteOff();
+  for(int n=0;n<3;++n)voice.render(audio,480);
+  CHECK_FALSE(voice.active());collect([](uint32_t){return false;});
+}
+
+TEST_CASE("SoundFont folder display removes archive hashes without changing identifiers") {
+  CHECK(soundbank::browserLabel("stargate-sample-pack-dbfd6ec52d4ed53b60bdbea5fc6adf295127c027.zip")=="stargate-sample-pack");
+  CHECK(soundbank::browserLabel("Korean_Gugak")=="Korean Gugak");
+  CHECK(soundbank::browserLabel("Flute.exs")=="Flute");
+  CHECK(soundbank::browserLabel("v1.3.1")=="v1.3.1");
+  CHECK_FALSE(instrumentFXAvailable(InstrumentType::SoundFont,fxFVL));
+  CHECK_FALSE(instrumentFXAvailable(InstrumentType::SoundFont,fxFPN));
+  fillFXNames();CHECK(std::string(fxNames[fxFVL].name)=="FVL");CHECK(std::string(fxNames[fxFPN].name)=="FPN");
+}
+
+#include "soundbank_library.h"
+#include <chrono>
+#include <thread>
+TEST_CASE("SoundFont preset completion stays local to its instrument page") {
+  auto* saved=chipnomadState;std::string savedMessage=screenGetActiveMessage();chipnomadState=chipnomadCreate();
+  soundbankShutdown();auto& i=chipnomadState->project.instruments[0];
+  getInstrumentFunctions(InstrumentType::SoundFont).init(&i);
+  // Use the real library's working root so this also runs on Windows.
+  const auto root=std::filesystem::path(soundbankRoot());std::filesystem::create_directories(root);
+  const auto file=root/"__test_local_status.sf2";
+  REQUIRE_FALSE(std::filesystem::exists(file));
+  std::filesystem::copy_file("tests/fixtures/soundbanks/tone.sf2",file);
+  screenMessage(1,"Existing unrelated message");
+  soundbankLoad(0,file.filename().string(),"0:0",true);
+  auto until=std::chrono::steady_clock::now()+std::chrono::seconds(10);
+  while(soundbankBusy() && std::chrono::steady_clock::now()<until){soundbankPoll();std::this_thread::sleep_for(std::chrono::milliseconds(1));}
+  REQUIRE_FALSE(soundbankBusy());CHECK(i.chip.soundfont.prepared!=0);
+  CHECK(soundbankInstrumentStatus(0)=="Preset ready");CHECK(soundbankInstrumentWarning(0).empty());
+  CHECK(std::string(screenGetActiveMessage())=="Existing unrelated message");
+  soundbankShutdown();chipnomadDestroy(chipnomadState);chipnomadState=saved;std::filesystem::remove(file);screenMessage(1,"%s",savedMessage.c_str());
+}
+
+TEST_CASE("SoundFont live envelope edits preserve exclusive group choke fades") {
+  using namespace soundbank;
+  auto b=parseBank({"tests/fixtures/soundbanks/tone.sf2",""});auto& z=b.presets[0].zones[0];
+  z.loop=Loop::continuous;z.offBy=1;z.offTime=.005f;
+  SampleCache cache;auto h=publish(cache.prepare(b,"0:0"));SoundbankVoice voice;voice.init(48000);
+  auto controls=soundbankDefaultControls();controls.releaseMs=10000;
+  voice.configure(h,6000,1,127,20000,controls);voice.noteOn();float audio[960];voice.render(audio,480);
+  voice.choke(1,h);voice.configure(h,6000,1,127,20000,controls);
+  voice.render(audio,480);CHECK_FALSE(voice.active());collect([](uint32_t){return false;});
 }

@@ -27,7 +27,7 @@ class SoundbankVoice {
     double position = 0, step = 1;
     float gain = 1, left = 1, right = 1, tune = 0;
     uint32_t delay = 0, hold = 0;
-    bool released = false, holding = false, attacking = false;
+    bool released = false, holding = false, attacking = false, choked = false;
     Envelope envelope;
     float decay = 0, sustain = 1, release = 0;
     MultimodeFilter filter;

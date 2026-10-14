@@ -20,5 +20,7 @@ inline SoundbankControls soundbankFXControls(const SoundbankControls& base,
   if (active(fxFAT)) result.attackMs = soundbankFXTime(fx[fxFAT].fxValue);
   if (active(fxFDC)) result.decayMs = soundbankFXTime(fx[fxFDC].fxValue);
   if (active(fxFRL)) result.releaseMs = soundbankFXTime(fx[fxFRL].fxValue);
+  if (active(fxFHD)) result.holdMs = soundbankFXTime(fx[fxFHD].fxValue);
+  if (active(fxFSU)) result.sustainPercent = (fx[fxFSU].fxValue * 100 + 127) / 254;
   return result;
 }

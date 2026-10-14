@@ -21,6 +21,18 @@ class Envelope {
   // creates a full-scale step when a monophonic voice receives consecutive notes.
   void noteOn() { enter(Stage::attack); }
   void noteOff() { if (stage_ != Stage::idle) enter(Stage::release); }
+  // Used by live sample-envelope controls; keep the current level on retiming.
+  void updateDecaySustain(float decay, float sustain) {
+    if (decay_==decay && sustain_==sustain) return;
+    decay_=decay; sustain_=sustain;
+    if (stage_==Stage::decay) enter(Stage::decay);
+    else if (stage_==Stage::sustain) level_=sustain_;
+  }
+  void updateRelease(float release) {
+    if (release_==release) return;
+    release_=release;
+    if (stage_==Stage::release) enter(Stage::release);
+  }
   void kill() { stage_ = Stage::idle; level_ = 0.0f; start_ = 0.0f; samplesLeft_ = 0; }
   float next() {
     if (samplesLeft_) {

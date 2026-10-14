@@ -10,6 +10,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <future>
+#include <map>
 #include <set>
 
 #include "app.h"
@@ -44,6 +45,8 @@ size_t cacheLimit() {
 }
 soundbank::SampleCache cache(cacheLimit());
 std::set<std::string> failed;
+std::map<int, std::string> instrumentErrors;
+std::string scanError;
 #ifdef __EMSCRIPTEN__
 constexpr auto launchPolicy = std::launch::deferred;
 #else
@@ -72,10 +75,30 @@ bool soundbankBusy() { return job.valid(); }
 bool soundbankScanned() { return scanned; }
 bool soundbankScanning() { return job.valid() && target < 0; }
 const std::string& soundbankStatus() { return status; }
+std::string soundbankInstrumentStatus(int instrument) {
+  if (!chipnomadState || instrument < 0 || instrument >= PROJECT_MAX_INSTRUMENTS) return {};
+  if (job.valid() && target == instrument) return "Preparing preset...";
+  auto error = instrumentErrors.find(instrument);
+  if (error != instrumentErrors.end()) return error->second;
+  const auto& s = chipnomadState->project.instruments[instrument].chip.soundfont;
+  if (soundbank::prepared(s.prepared)) return "Preset ready";
+  return s.bank[0] ? "Preset not ready" : "Select a preset";
+}
+std::string soundbankInstrumentWarning(int instrument) {
+  if (!chipnomadState || instrument < 0 || instrument >= PROJECT_MAX_INSTRUMENTS) return {};
+  if (!scanError.empty()) return "Scan failed: " + scanError;
+  const auto* p = soundbank::prepared(chipnomadState->project.instruments[instrument].chip.soundfont.prepared);
+  if (!p || p->warnings.empty()) return {};
+  for (const auto& warning : p->warnings)
+    if (warning.find("custom modulators unsupported") != std::string::npos)
+      return "Custom bank modulation ignored";
+  return p->warnings.front();
+}
 void soundbankRescan(bool force) {
   if (soundbankBusy()) return;
   target = -1;
   status = "Indexing SoundBanks...";
+  scanError.clear();
   failed.clear();
   auto root = soundbankRoot();
   preparationFrames = 2;
@@ -112,6 +135,7 @@ void soundbankLoad(int instrument, const std::string& bank, const std::string& p
   audioManager.resume();
   cache.trim();
   target = instrument;
+  instrumentErrors.erase(instrument);
   restoringProject = restoring;
   bankId = bank;
   presetId = preset;
@@ -167,7 +191,8 @@ void soundbankPoll() {
     if (!r.error.empty()) {
       status = r.error;
       if (target >= 0) failed.insert(bankId + "|" + presetId);
-      screenMessage(MESSAGE_TIME_ERROR, "%.100s", status.c_str());
+      if (target >= 0) instrumentErrors[target] = status;
+      else scanError = status;
       return;
     }
     if (target < 0) {
@@ -193,12 +218,11 @@ void soundbankPoll() {
       refreshPending = !chipnomadQueueProjectRefresh(chipnomadState);
       audioManager.resume();
       if (!restoringProject) projectModified = 1;
-      status = r.preset->warnings.empty() ? "Preset ready" : r.preset->warnings.front();
-      screenMessage(MESSAGE_TIME_ERROR, "%.100s", status.c_str());
+      status = "Preset ready";
     } catch (const std::exception& e) {
       audioManager.resume();
       status = e.what();
-      screenMessage(MESSAGE_TIME_ERROR, "%.100s", status.c_str());
+      instrumentErrors[target] = status;
     }
     return;
   }
@@ -220,7 +244,7 @@ void soundbankPoll() {
 
 void soundbankShutdown() {
   if (job.valid()) job.get();
-  pendingInstrument=-1; entries.clear(); scanned=false; status.clear();
+  pendingInstrument=-1; entries.clear(); scanned=false; status.clear(); instrumentErrors.clear(); scanError.clear();
   soundbank::collect([](uint32_t) { return false; });
   cache.trim();
 }

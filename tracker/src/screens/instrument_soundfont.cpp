@@ -13,6 +13,7 @@
 
 namespace {
 std::vector<std::string> labels, folder;
+std::vector<std::vector<std::string>> folderHistory;
 std::vector<soundbank::BrowserEntry> children;
 std::vector<SelectionItem> choices;
 std::string selectedBank, lastStatus;
@@ -24,10 +25,10 @@ void back() { screenSetup(&screenInstrument, cInstrument); }
 void show();
 void select(int value) {
   if (value == -2) { back(); return; }
-  if (value == -3) { showAssets=true; folder.clear(); show(); return; }
+  if (value == -3) { showAssets=true; folder.clear(); folderHistory.clear(); show(); return; }
   if (value == -1) {
     if (!selectedBank.empty()) selectedBank.clear();
-    else if (!folder.empty()) folder.pop_back();
+    else if (!folder.empty()) { folder=folderHistory.back(); folderHistory.pop_back(); }
     else if (showAssets) showAssets=false;
     else soundbankRescan(true);
     show(); return;
@@ -37,7 +38,15 @@ void select(int value) {
   if (selectedBank.empty()) {
     if (size_t(value)>=children.size()) return;
     const auto child=children[value];
-    if (child.bank<0) folder.push_back(child.name);
+    if (child.bank<0) {
+      folderHistory.push_back(folder); folder.push_back(child.name);
+      // Skip download/package wrappers that contain only another folder.
+      for (;;) {
+        auto next=soundbank::folderEntries(banks,folder,showAssets);
+        if (next.size()!=1 || next.front().bank>=0) break;
+        folder.push_back(next.front().name);
+      }
+    }
     else {
       const auto& bank=banks[child.bank];
       if (!bank.error.empty()) { screenMessage(MESSAGE_TIME_ERROR,"%.100s",bank.error.c_str()); return; }
@@ -69,14 +78,14 @@ void show() {
   if (selectedBank.empty()) {
     children=soundbank::folderEntries(soundbankEntries(),folder,showAssets);
     for (const auto& child:children) {
-      labels.push_back(child.name+(child.bank<0 ? " >" : ""));
+      labels.push_back(soundbank::browserLabel(child.name)+(child.bank<0 ? " >" : ""));
       if (child.bank>=0 && soundbankEntries()[child.bank].id==current().chip.soundfont.bank)
         selected=int(labels.size())-3;
     }
   } else {
     for (const auto& bank:soundbankEntries()) if (bank.id==selectedBank) {
       for (const auto& preset:bank.presets) {
-        labels.push_back(preset.second);
+        labels.push_back(soundbank::browserLabel(preset.second));
         if (bank.id==current().chip.soundfont.bank && preset.first==current().chip.soundfont.preset)
           selected=int(labels.size())-3;
       }
@@ -93,6 +102,7 @@ void show() {
     choices.push_back({labels[n].c_str(),rawOption && n+1==labels.size() ? -3 : int(n-2),nullptr,0,nullptr});
   std::string title=!selectedBank.empty() ? soundbank::bankFolders(selectedBank).back() :
                     folder.empty() ? "USER/soundfont" : folder.back();
+  title=soundbank::browserLabel(title);
   if (soundbankBusy()) title=soundbankStatus();
   selectionPopupSetup(title.c_str(),choices.data(),int(choices.size()),selected,select,back,true,preview);
   screenSetup(&screenSoundbankBrowser,0);
@@ -108,15 +118,13 @@ int input(int down,int keys,int taps) { return screenSelectionPopup.onInput(down
 ScreenPlaybackLevel level() { return ScreenPlaybackLevel::none; }
 const AppScreen screenSoundbankBrowser={nullptr,setup,screenSelectionPopup.fullRedraw,draw,input,level};
 void open() {
-  selectedBank.clear(); folder.clear(); showAssets=false;
+  selectedBank.clear(); folder.clear(); folderHistory.clear(); showAssets=false;
   if (!soundbankScanned() && !soundbankBusy()) soundbankRescan();
   show();
 }
 int columns(int row) { return row < 3 ? instrumentCommonColumnCount(row) : row == 4 ? 2 : 1; }
 void drawStatic() {
   instrumentCommonDrawStatic();
-  gfxSetFgColor(appSettings.colorScheme.textInfo);
-  gfxPrint(0, 10, "Library: USER/soundfont");
 }
 void drawCursor(int col, int row) {
   if (row < 3)
@@ -132,10 +140,12 @@ void drawField(int col, int row, CellState state) {
   gfxSetFgColor(state == CellState::focus ? appSettings.colorScheme.textValue
                                           : appSettings.colorScheme.textDefault);
   if (row == 3) {
-    gfxClearRect(0,9,32,1);
-    gfxPrintf(0,9,"%.32s",soundbankStatus().c_str());
     gfxClearRect(0,6,32,1);
     gfxPrintf(0,6,"%s  Rescan",soundbankScanning() ? "Scanning..." : soundbankScanned() ? "Scanned" : "Not scanned");
+    gfxSetFgColor(appSettings.colorScheme.textInfo);
+    gfxClearRect(0,8,32,2);
+    gfxPrintf(0,8,"%.32s",soundbankInstrumentStatus(cInstrument).c_str());
+    gfxPrintf(0,9,"%.32s",soundbankInstrumentWarning(cInstrument).c_str());
   }
   else if (col) gfxPrint(28, 7, "Edit");
   else {
@@ -143,6 +153,7 @@ void drawField(int col, int row, CellState state) {
     for (const auto& bank : soundbankEntries()) if (bank.id == current().chip.soundfont.bank)
       for (const auto& preset : bank.presets) if (preset.first == name) { name = preset.second; break; }
     gfxClearRect(0, 7, 27, 1);
+    name=soundbank::browserLabel(name);
     gfxPrintf(0, 7, "Preset: %.18s", name.empty() ? "Select..." : name.c_str());
   }
 }
@@ -220,15 +231,22 @@ void drawStatic() {
   gfxPrintf(0, 0, "SOUNDFONT EDIT %02X", cInstrument);
   gfxSetFgColor(appSettings.colorScheme.textInfo);
   gfxPrint(0, 1, current().name);
-  gfxPrint(0, 15, "Bank = original preset settings");
-  gfxPrint(0, 16, "Envelope edits: next note");
-  gfxPrint(0, 17, "Clear: restore selected default");
+  gfxPrint(0, 16, "Bank = preset; Clear = reset");
+  gfxPrint(0, 17, "Atk/Hold: next note; Rel: OFF");
+  gfxPrint(0, 18, "Decay needs Sustain below 100%");
 }
 void rowHeader(int row, CellState) {
   gfxSetFgColor(appSettings.colorScheme.textInfo);
-  gfxPrint(0, row + 3, row<9 ? fields[row].name : row==9 ? "Volume" : "Pan");
+  gfxPrint(0, row + 3, row<9 ? fields[row].name : row==9 ? "Volume" : row==10 ? "Pan" : "Bend step");
 }
 void field(int, int row, CellState state) {
+  if (row==11) {
+    gfxSetFgColor(state==CellState::focus ? appSettings.colorScheme.textValue : appSettings.colorScheme.textDefault);
+    gfxClearRect(20,row+3,12,1);
+    int step=current().chip.soundfont.controls.bendStepCents;
+    if (step) gfxPrintf(20,row+3,"%d ct",step); else gfxPrint(20,row+3,"Stock");
+    return;
+  }
   if (row>=9) {
     gfxSetFgColor(state==CellState::focus ? appSettings.colorScheme.textValue : appSettings.colorScheme.textDefault);
     gfxClearRect(20,row+3,12,1);
@@ -245,6 +263,19 @@ void field(int, int row, CellState state) {
 void cursor(int, int row) { gfxCursor(20, row + 3, 9); }
 void colHeader(int, CellState) {}
 int edit(int, int row, CellEditAction action) {
+  if (row==11) {
+    auto& step=current().chip.soundfont.controls.bendStepCents;
+    action=convertMultiAction(action);int value=step;
+    if (action==CellEditAction::clear) value=1;
+    else if (action==CellEditAction::increase) ++value;
+    else if (action==CellEditAction::decrease) --value;
+    else if (action==CellEditAction::increaseBig) value+=5;
+    else if (action==CellEditAction::decreaseBig) value-=5;
+    else return 0;
+    value=std::clamp(value,0,100);
+    if (value!=step) { step=value; projectModified=1; }
+    return 1;
+  }
   if (row>=9 && row<=10) {
     auto& stored=row==9 ? current().volume : current().pan;
     int value=stored; action=convertMultiAction(action);
@@ -293,7 +324,7 @@ int input(int down, int keys, int taps) {
 ScreenPlaybackLevel level() { return ScreenPlaybackLevel::phrase; }
 struct Initializer {
   Initializer() {
-    data = {}; data.rows = std::size(fields)+2; data.selectMode = -1;
+    data = {}; data.rows = std::size(fields)+3; data.selectMode = -1;
     data.getColumnCount = columns; data.drawStatic = drawStatic;
     data.drawRowHeader = rowHeader; data.drawColHeader = colHeader;
     data.drawField = field; data.drawCursor = cursor; data.onEdit = edit;
