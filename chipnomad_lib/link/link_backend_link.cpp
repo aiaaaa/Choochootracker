@@ -93,14 +93,22 @@ int linkBackendNumPeers(void*, void* state) {
   return (int)s->link.numPeers();
 }
 
-int linkBackendCaptureAudioSessionState(void*, void* state, double* tempo, uint64_t* peers, int* isPlaying) {
+int linkBackendCaptureAudioSessionState(void*, void* state, double* tempo, double* beat,
+                                        uint64_t* capturedAtMicros, uint64_t* peers, int* isPlaying) {
   RealLinkState* s = (RealLinkState*)state;
   if (!s->link.isEnabled()) return 0;
   // App-thread variant: thread-safe (mutex-guarded), so this is legal
   // from the UI thread. The realtime-only captureAudioSessionState must
   // only be called from the audio thread.
   const auto sessionState = s->link.captureAppSessionState();
+  // Sample Link's phase and the app clock together. The caller can then
+  // interpolate that phase back to an audio tick without UI-frame jitter.
+  const auto steadyNow = std::chrono::duration_cast<std::chrono::microseconds>(
+    std::chrono::steady_clock::now().time_since_epoch());
+  const auto rawNow = s->link.clock().micros();
   if (tempo) *tempo = sessionState.tempo();
+  if (beat) *beat = sessionState.beatAtTime(rawNow, 4.0);
+  if (capturedAtMicros) *capturedAtMicros = (uint64_t)steadyNow.count();
   if (peers) *peers = (uint64_t)s->link.numPeers();
   if (isPlaying) *isPlaying = sessionState.isPlaying() ? 1 : 0;
   return 1;

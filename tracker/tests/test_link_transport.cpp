@@ -69,10 +69,13 @@ int fakeIsEnabled(void* userdata, void*) {
 int fakeNumPeers(void* userdata, void*) {
   return ((TransportFakeState*)userdata)->peers;
 }
-int fakeCapture(void* userdata, void*, double* tempo, uint64_t* peers, int* isPlaying) {
+int fakeCapture(void* userdata, void*, double* tempo, double* beat,
+                uint64_t* capturedAtMicros, uint64_t* peers, int* isPlaying) {
   TransportFakeState* fake = (TransportFakeState*)userdata;
   if (!fake->enabled) return 0;
   if (tempo) *tempo = fake->sessionTempo;
+  if (beat) *beat = 0.0;
+  if (capturedAtMicros) *capturedAtMicros = nowMicros();
   if (peers) *peers = (uint64_t)fake->peers;
   if (isPlaying) *isPlaying = fake->sessionIsPlaying;
   return 1;

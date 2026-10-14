@@ -69,6 +69,11 @@ int        linkClientGetPeerCount(const LinkClientState*);  // 0 if not connecte
 float      linkClientGetSessionTempo(const LinkClientState*, uint32_t* serial);
 // 0 if not connected
 
+// Latest Link beat phase and the app-clock timestamp at which it was
+// captured. The value is read-only session state, suitable for following
+// phase without publishing a tempo or transport change to peers.
+double     linkClientGetSessionBeat(const LinkClientState*, uint64_t* capturedAtMicros);
+
 // Session transport state (start/stop sync). *isPlaying is 1 while the
 // Link session reports playing, 0 otherwise; *serial bumps only when the
 // value changes, so callers comparing serials apply each transition
