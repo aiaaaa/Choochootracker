@@ -757,3 +757,14 @@ Original downloads/support files belong under documents. The owner confirmed
 there are no existing SoundFont songs to migrate, so this update uses the new
 paths directly without a compatibility map. No private assets enter Git or the
 public web deployment. Exact test/deployment results belong in the daily receipts.
+
+### SoundFont note-transition review (2026-10-14)
+
+Follow-up to installed 2a119c6: smooth retriggers, KILL and immediate note release
+with a 3 ms output correction, including removed chord voices. The correction
+retains no old sample pointers and does not alter authored note ranges or source
+audio.
+
+Local reproduction uses the private Stargate sounds without adding assets to Git.
+Validation receipts are under `.tmp/soundfont-retrigger-20261014/`. This follow-up
+is not deployed; the owner cannot check the handheld today.

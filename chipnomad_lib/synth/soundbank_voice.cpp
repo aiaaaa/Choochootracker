@@ -5,6 +5,10 @@
 void SoundbankVoice::init(float rate) {
   rate_ = rate;
   kill();
+  lastOutput_ = transitionOffset_ = {};
+  transitionFrames_ = 0;
+  transitionPending_ = false;
+  transitionLength_ = std::max(2u, uint32_t(rate * .003f));
   for (auto& l : layers_) {
     l.envelope.init(rate);
     l.filter.init(rate);
@@ -15,11 +19,14 @@ void SoundbankVoice::init(float rate) {
 void SoundbankVoice::kill() {
   noteHeld_ = false;
   for (auto& l : layers_) {
+    if (l.zone) transitionPending_ = true;
     l.zone = nullptr;
     l.envelope.kill();
   }
 }
 bool SoundbankVoice::active() const {
+  if (transitionFrames_ || (transitionPending_ &&
+                           (lastOutput_[0] != 0 || lastOutput_[1] != 0))) return true;
   for (auto& l : layers_)
     if (l.zone) return true;
   return false;
@@ -112,6 +119,7 @@ void SoundbankVoice::startLayer(Layer& l, const soundbank::PreparedZone& z, size
 }
 void SoundbankVoice::noteOn() {
   kill();
+  transitionPending_ = true;
   auto p = soundbank::prepared(handle_);
   if (!p) return;
   noteHeld_ = true;
@@ -133,6 +141,7 @@ void SoundbankVoice::noteOff() {
   noteHeld_ = false;
   for (auto& l : layers_)
     if (l.zone && (l.zone->zone.loop != soundbank::Loop::oneShot || controls_.releaseMs >= 0)) {
+      if (l.release <= 0) transitionPending_ = true;
       l.released = true;
       l.attacking = l.holding = false;
       l.delay = l.hold = 0;
@@ -146,6 +155,7 @@ void SoundbankVoice::noteOff() {
     if (!z.zone.releaseTrigger || !matches(z.zone, true)) continue;
     while (index < maxLayers && layers_[index].zone) ++index;
     if (index == maxLayers) break;
+    transitionPending_ = true;
     startLayer(layers_[index], z, index + 1);
     ++index;
   }
@@ -234,6 +244,19 @@ void SoundbankVoice::render(float* out, size_t frames) {
           l.position = z.loopEnd - 1 - fmod(z.loopStart - l.position - 1, length);
       }
     }
+    if (transitionPending_) {
+      transitionOffset_ = {lastOutput_[0] - left, lastOutput_[1] - right};
+      transitionFrames_ = (transitionOffset_[0] != 0 || transitionOffset_[1] != 0)
+                              ? transitionLength_ : 0;
+      transitionPending_ = false;
+    }
+    if (transitionFrames_) {
+      const float weight = float(transitionFrames_ - 1) / (transitionLength_ - 1);
+      left += transitionOffset_[0] * weight;
+      right += transitionOffset_[1] * weight;
+      --transitionFrames_;
+    }
+    lastOutput_ = {left, right};
     out[f * 2] = left;
     out[f * 2 + 1] = right;
   }

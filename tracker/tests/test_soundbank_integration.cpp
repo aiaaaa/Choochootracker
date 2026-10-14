@@ -160,7 +160,9 @@ TEST_CASE("SoundFont overrides shape audio without mutating bank zones or retarg
   SampleCache cache;auto preset=cache.prepare(bank,"0:0");auto handle=publish(preset);
   SoundbankVoice voice;voice.init(48000);
   auto render = [&](const SoundbankControls& controls) {
-    voice.kill();voice.configure(handle,6000,1,127,20000,controls);voice.noteOn();
+    // Compare independent settings from silence. KILL now preserves a short
+    // outgoing de-click tail, which belongs in the transition tests instead.
+    voice.init(48000);voice.configure(handle,6000,1,127,20000,controls);voice.noteOn();
     std::vector<float> out(9600);voice.render(out.data(),out.size()/2);
     for (float sample:out) REQUIRE(std::isfinite(sample));
     return out;
@@ -306,6 +308,45 @@ TEST_CASE("SoundFont current and legacy Lane FX reach playback and match instrum
   auto muted=renderSoundFontFX(fxFVL,0,true);
   double energy=0;for(float v:muted)energy+=v*v;CHECK(energy==0);
   soundbank::collect([](uint32_t){return false;});
+}
+
+TEST_CASE("SoundFont tracker drains removed chord slots and KILL tails") {
+  auto state = std::unique_ptr<ChipNomadState, decltype(&chipnomadDestroy)>(
+      chipnomadCreate(), chipnomadDestroy);
+  auto& p = state->project;
+  REQUIRE(projectLoad(&p, "packaging/common/projects/gm-midi-demo.cct") == 0);
+  p.tracksCount = 1; p.tickRate = 50; p.linearPitch = 1;
+  calculateLinearPitchTable12TET(&p);
+  for (auto& groove : p.grooves) for (auto& speed : groove.speed) speed = 5;
+  p.song[0][0] = 0; p.chains[0].rows[0].phrase = 0; p.chains[0].rows[0].transpose = 0;
+  phraseClear(&p.phrases[0]);
+  auto& instrument = p.instruments[0];
+  getInstrumentFunctions(InstrumentType::SoundFont).init(&instrument);
+  soundbank::SampleCache cache;
+  auto bank = soundbank::parseBank({"tests/fixtures/soundbanks/tone.wav", ""});
+  instrument.chip.soundfont.prepared = soundbank::publish(cache.prepare(bank, "sample"));
+  auto& first = p.phrases[0].rows[0];
+  first.note = 48; first.instrument = 0; first.volume = PHRASE_VOLUME_MAX;
+  first.fx[0] = {fxCRD, 0};
+  auto& second = p.phrases[0].rows[1];
+  second.note = 36; second.instrument = 0; second.volume = PHRASE_VOLUME_MAX;
+  p.phrases[0].rows[2].fx[0] = {fxKIL, 0};
+  chipnomadInitChips(state.get(), 48000, nullptr);
+  chipnomadReserveRenderBuffers(state.get(), 480);
+  REQUIRE(chipnomadQueueProjectRefresh(state.get()));
+  REQUIRE(chipnomadQueuePlaybackStartSong(state.get(), 0, 0, 1));
+  float audio[960];
+  for (int block = 0; block < 5; ++block) REQUIRE(chipnomadRender(state.get(), audio, 480) == 480);
+  CHECK(state->soundbankVoices[0][1]->active());
+  CHECK(state->soundbankVoices[0][2]->active());
+  for (int block = 0; block < 10; ++block) REQUIRE(chipnomadRender(state.get(), audio, 480) == 480);
+  CHECK(state->soundbankVoices[0][0]->active());
+  CHECK_FALSE(state->soundbankVoices[0][1]->active());
+  CHECK_FALSE(state->soundbankVoices[0][2]->active());
+  for (int block = 0; block < 10; ++block) REQUIRE(chipnomadRender(state.get(), audio, 480) == 480);
+  CHECK_FALSE(state->soundbankVoices[0][0]->active());
+  state.reset();
+  soundbank::collect([](uint32_t) { return false; });
 }
 
 TEST_CASE("SoundFont bend resolution is per instrument and legacy files keep stock scale") {

@@ -769,5 +769,13 @@
     "migration": "Owner confirmed no existing SoundFont songs; use new paths directly, without old-path compatibility",
     "private_library_root": "instruments/USER/soundfont",
     "private_assets_in_public_build": false
+  },
+  "soundfont_transitions_20261014": {
+    "baseline": "2a119c6",
+    "status": "Local review fix; not deployed; handheld audition pending",
+    "changes": [
+      "3 ms output smoothing at retrigger, KILL and zero-length release, including removed chord slots"
+    ],
+    "private_assets_in_public_build": false
   }
 }

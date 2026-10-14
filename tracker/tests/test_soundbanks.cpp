@@ -78,7 +78,9 @@ TEST_CASE("soundbank selection, round robin, pan and note-off use fixed voices")
   v.noteOn();
   v.render(out, 1024);
   left = right = 0;
-  for (int i = 0; i < 1024; ++i) {
+  // The outgoing pan has a short de-click tail; the new round-robin region
+  // must remain right-only after that transition.
+  for (int i = 192; i < 1024; ++i) {
     left += fabs(out[2 * i]);
     right += fabs(out[2 * i + 1]);
   }
@@ -106,6 +108,94 @@ TEST_CASE("soundbank cache reuses pinned samples and releases unused samples") {
   c.reset();
   cache.trim();
   CHECK(cache.bytes() == 0);
+}
+
+TEST_CASE("soundbank retrigger and kill join the previous output and finish their tails") {
+  for (float rate : {44100.f, 48000.f, 96000.f}) {
+    CAPTURE(rate);
+    SampleCache cache;
+    auto p = cache.prepare(parseBank({fixtures + "tone.wav", ""}), "sample");
+    auto h = publish(p);
+    SoundbankVoice voice;
+    voice.init(rate);
+    voice.configure(h, 6000, 1, 127);
+    voice.noteOn();
+    float out[2048];
+    voice.render(out, 501);
+    const float last = out[1000];
+    REQUIRE(std::abs(last) > .01f);
+    voice.configure(h, 4800, 1, 127);
+    voice.noteOn();
+    voice.render(out, 1);
+    CHECK(out[0] == doctest::Approx(last));
+    voice.render(out, 501);
+    const float beforeKill = out[1000];
+    REQUIRE(std::abs(beforeKill) > .01f);
+    voice.kill();
+    CHECK(voice.active());
+    // A tail holds only output values; collecting the old preset is safe.
+    collect([](uint32_t) { return false; });
+    voice.render(out, 1);
+    CHECK(out[0] == doctest::Approx(beforeKill));
+    for (int frame = 0; frame < int(rate * .004f); ++frame) {
+      voice.kill(); // Repeated track updates must not restart the fade.
+      voice.render(out, 1);
+      CHECK(std::abs(out[0]) <= std::abs(beforeKill) + 1e-6f);
+    }
+    CHECK(out[0] == 0);
+    CHECK_FALSE(voice.active());
+    voice.init(rate);
+    voice.render(out, 1);
+    CHECK(out[0] == 0);
+  }
+}
+
+TEST_CASE("soundbank zero release and rapid retriggers remain continuous across render blocks") {
+  SampleCache cache;
+  auto p = cache.prepare(parseBank({fixtures + "tone.wav", ""}), "sample");
+  auto h = publish(p);
+  SoundbankVoice whole, split;
+  auto controls = soundbankDefaultControls();
+  controls.releaseMs = 0;
+  for (auto* voice : {&whole, &split}) {
+    voice->init(48000);
+    voice->configure(h, 6000, 1, 127, 20000, controls);
+    voice->noteOn();
+  }
+  float a[1024], b[1024], previous = 0;
+  for (int event = 0; event < 8; ++event) {
+    if (event == 7) { whole.noteOff(); split.noteOff(); }
+    else if (event) { whole.noteOn(); split.noteOn(); }
+    whole.render(a, 31);
+    for (int i = 0; i < 31; ++i) split.render(b + 2 * i, 1);
+    if (event) CHECK(a[0] == doctest::Approx(previous));
+    for (int i = 0; i < 62; ++i) CHECK(a[i] == b[i]);
+    previous = a[60];
+  }
+  whole.render(a, 512);
+  CHECK_FALSE(whole.active());
+  CHECK(a[1022] == 0);
+  split.kill();
+  collect([](uint32_t) { return false; });
+}
+
+TEST_CASE("soundbank authored one-shot ignores note OFF without adding a transition") {
+  auto bank = parseBank({fixtures + "tone.wav", ""});
+  auto& zone = bank.presets[0].zones[0];
+  zone.loopExplicit = true; zone.loop = Loop::oneShot;
+  SampleCache cache;
+  auto h = publish(cache.prepare(bank, "sample"));
+  SoundbankVoice normal, released;
+  float a[256], b[256];
+  for (auto* voice : {&normal, &released}) {
+    voice->init(48000); voice->configure(h, 4800, 1, 127); voice->noteOn();
+    voice->render(a, 100);
+  }
+  released.noteOff();
+  normal.render(a, 128); released.render(b, 128);
+  for (int n = 0; n < 256; ++n) CHECK(a[n] == b[n]);
+  normal.kill(); released.kill();
+  collect([](uint32_t) { return false; });
 }
 
 TEST_CASE("soundbank loop may begin before initial playback offset") {

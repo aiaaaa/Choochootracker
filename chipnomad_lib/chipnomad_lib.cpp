@@ -1386,7 +1386,8 @@ int chipnomadRender(ChipNomadState* state, float* buffer, int samples) {
     if (!prepareRenderChunk(state, output, frames)) return 0;
     renderChipTracks(state, output, frames);
     renderMonoVoiceTracks(state, state->braidsVoices, output, frames);
-    renderStereoVoiceTracks(state, state->soundbankVoices, output, frames);
+    // Removed chord slots may still have a short de-click tail after KILL.
+    renderStereoVoiceTracks(state, state->soundbankVoices, output, frames, true);
     renderStereoVoiceTracks(state, state->sampleVoices, output, frames);
     renderStereoVoiceTracks(state, state->scwfVoices, output, frames);
     renderMonoVoiceTracks(state, state->plaitsVoices, output, frames);

@@ -505,6 +505,11 @@ already selected sample beyond that range without changing its mapping.
 Edits save in instrument and project files without modifying the source bank;
 older songs without overrides retain their original bank settings.
 
+SoundFont retriggers and KILL use a short 3 ms smoothing transition to reduce
+clicks when a sample is interrupted away from zero. KILL still cuts the note;
+it does not play the preset's release envelope. This does not repair clicks
+already recorded in a sample or mismatched authored loop points.
+
 **SoundFont FX** exposes eight controls in the contextual Lane FX picker. All
 values below use tracker hexadecimal notation. The FX affect their track only
 and leave the instrument's saved controls unchanged. Each new note starts from

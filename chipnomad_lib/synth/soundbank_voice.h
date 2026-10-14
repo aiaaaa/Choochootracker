@@ -42,5 +42,9 @@ class SoundbankVoice {
   bool noteHeld_ = false;
   int noteKey_ = 60, noteVelocity_ = 127;
   uint32_t noteSequence_ = 0;
+  // A short output correction joins retriggers/cuts without retaining old assets.
+  std::array<float, 2> lastOutput_{}, transitionOffset_{};
+  uint32_t transitionFrames_ = 0, transitionLength_ = 144;
+  bool transitionPending_ = false;
   void updateLayer(Layer& layer);
 };
