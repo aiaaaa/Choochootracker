@@ -275,6 +275,8 @@ void charEditFullDraw(char startChar) {
 
 static int keyJazzTextEnabled = 0;
 
+int keyJazzTextIsEnabled(void) { return keyJazzTextEnabled; }
+
 static int keyJazzTextFieldFor(const AppScreen* current, KeyJazzTextField* field) {
   if (current == &screenProject) return projectKeyJazzTextField(field);
   if (current == &screenInstrument) return instrumentKeyJazzTextField(field);

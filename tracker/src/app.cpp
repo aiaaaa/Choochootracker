@@ -598,6 +598,7 @@ void appOnEvent(MainLoopEventData eventData) {
     if (currentScreen == &screenPhrase && phraseKeyJazzHandleRawKey(eventData.data.input, 1)) break;
     if (currentScreen == &screenSong && songKeyJazzHandleRawKey(eventData.data.input, 1)) break;
     if (currentScreen == &screenChain && chainKeyJazzHandleRawKey(eventData.data.input, 1)) break;
+    if (currentScreen == &screenInstrument && instrumentKeyJazzHandleRawKey(eventData.data.input, 1)) break;
     if (keyJazzTextHandleRawKey(eventData.data.input, 1, currentScreen)) break;
 #endif
 
@@ -680,6 +681,7 @@ void appOnEvent(MainLoopEventData eventData) {
     if (currentScreen == &screenPhrase && phraseKeyJazzHandleRawKey(eventData.data.input, 0)) break;
     if (currentScreen == &screenSong && songKeyJazzHandleRawKey(eventData.data.input, 0)) break;
     if (currentScreen == &screenChain && chainKeyJazzHandleRawKey(eventData.data.input, 0)) break;
+    if (currentScreen == &screenInstrument && instrumentKeyJazzHandleRawKey(eventData.data.input, 0)) break;
     if (keyJazzTextHandleRawKey(eventData.data.input, 0, currentScreen)) break;
 #endif
     int value = inputCodeToKey(eventData.data.input);

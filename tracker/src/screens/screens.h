@@ -235,6 +235,11 @@ int enterNameKeyJazzTextField(KeyJazzTextField* field);
 int createFolderKeyJazzTextField(KeyJazzTextField* field);
 int pitchTableKeyJazzTextField(KeyJazzTextField* field);
 int bounceKeyJazzTextField(KeyJazzTextField* field);
+
+// The text key jazz toggle (Esc) is also what turns on note play on the
+// Instrument screen: see instrumentKeyJazzHandleRawKey.
+int keyJazzTextIsEnabled(void);
+int instrumentKeyJazzHandleRawKey(InputCode input, int isDown);
 #endif
 
 // Manage screen functions
