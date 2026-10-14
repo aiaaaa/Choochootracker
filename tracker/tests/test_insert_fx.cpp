@@ -185,16 +185,16 @@ TEST_SUITE("track inserts") {
             expected.push_back(fxF11 + slot * 8 + p);
         for (int table : {0, 1}) {
           for (int direction : {-1, 1}) {
-            uint8_t fx[] = {uint8_t(direction > 0 ? fxF11 - 1 : fxF28 + 1), 73};
-            uint8_t last[] = {fx[0], fx[1]};
+            FXCell fx = {(FXId)(direction > 0 ? fxF11 - 1 : fxF28 + 1), 73};
+            FXCell last = fx;
             std::vector<int> seen;
             for (int attempts = 0; attempts < fxTotalCount; ++attempts) {
-              const int before = fx[0];
+              const int before = fx.command;
               editFX(direction > 0 ? CellEditAction::increase : CellEditAction::decrease,
-                     fx, last, table, EMPTY_VALUE_8);
-              if (fx[0] == before || fx[0] < fxF11 || fx[0] > fxF28) break;
-              seen.push_back(fx[0]);
-              CHECK(fx[1] == 73);
+                     &fx, &last, table, EMPTY_VALUE_8);
+              if (fx.command == before || fx.command < fxF11 || fx.command > fxF28) break;
+              seen.push_back(fx.command);
+              CHECK(fx.value == 73);
             }
             if (direction < 0) std::reverse(seen.begin(), seen.end());
             CHECK(seen == expected);
@@ -210,20 +210,20 @@ TEST_SUITE("track inserts") {
           std::vector<int> seen;
           int before = -1;
           for (int attempts = 0; attempts < fxTotalCount; ++attempts) {
-            uint8_t selected[] = {EMPTY_VALUE_8, 73}, last[] = {0, 0};
-            fxEditInput(0, 1, selected, last);
-            if (selected[0] == before) break;
-            before = selected[0];
-            if (selected[0] >= fxF11 && selected[0] <= fxF28) seen.push_back(selected[0]);
-            fxEditInput(keyEdit | keyRight, 1, selected, last);
+            FXCell selected = {FX_ID_EMPTY, 73}, last = {};
+            fxEditInput(0, 1, &selected, &last);
+            if (selected.command == before) break;
+            before = selected.command;
+            if (selected.command >= fxF11 && selected.command <= fxF28) seen.push_back(selected.command);
+            fxEditInput(keyEdit | keyRight, 1, &selected, &last);
           }
           CHECK(seen == expected);
           // Cached FX from another track cannot insert an unused address.
-          uint8_t stale[] = {fxF28, 73}, cell[] = {EMPTY_VALUE_8, 0};
-          editFX(CellEditAction::tap, cell, stale, table, EMPTY_VALUE_8);
-          CHECK(cell[1] == 73);
-          if (cell[0] >= fxF11 && cell[0] <= fxF28)
-            CHECK(std::find(expected.begin(), expected.end(), cell[0]) != expected.end());
+          FXCell stale = {fxF28, 73}, cell = {FX_ID_EMPTY, 0};
+          editFX(CellEditAction::tap, &cell, &stale, table, EMPTY_VALUE_8);
+          CHECK(cell.value == 73);
+          if (cell.command >= fxF11 && cell.command <= fxF28)
+            CHECK(std::find(expected.begin(), expected.end(), cell.command) != expected.end());
           else CHECK(expected.empty());
         }
       }

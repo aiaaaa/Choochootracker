@@ -146,8 +146,8 @@ TEST_CASE("imports commands and grooves") {
   CHECK(r[3].fx[0][0] == fxARP); CHECK(r[3].fx[0][1] == 0x37);
   CHECK(r[4].fx[0][0] == fxDEL); CHECK(r[4].fx[0][1] == 2);
   CHECK(r[5].fx[0][0] == fxPVB); CHECK(r[5].fx[0][1] == 0x44);
-  CHECK(r[6].fx[0][0] == EMPTY_VALUE_8);
-  CHECK(p.phrases[8].rows[0].fx[0][0] == EMPTY_VALUE_8);
+  CHECK(r[6].fx[0].command == FX_ID_EMPTY);
+  CHECK(p.phrases[8].rows[0].fx[0].command == FX_ID_EMPTY);
   CHECK(p.grooves[2].speed[0] == 9);
   CHECK(p.grooves[2].speed[1] == 3);
   CHECK(p.grooves[2].speed[4] == EMPTY_VALUE_8);
