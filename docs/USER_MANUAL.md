@@ -969,7 +969,7 @@ Track FX force sequencer or sound-engine values on individual steps. Other groov
 
 Each FX has a 3-letter command and a hexadecimal value. The in-app help panel gives a short description of the selected command.
 
-The personal alpha candidate retains three Phrase FX slots and four Table FX
+The personal build candidate retains three Phrase FX slots and four Table FX
 slots. Values remain 00–FF. The wider internal command catalogue does not add
 extra columns or require changing existing command names.
 
@@ -1418,12 +1418,17 @@ fixed-Q 0.9 bell at 250 Hz–5 kHz. Its gain controls are neutral at 80; with al
 three neutral it is an exact bypass. Active EQ uses a transparent soft knee above
 full scale and reaches a maximum of 1.5 to contain extreme boosts.
 
-**Personal alpha compatibility:** existing personal songs retain Beads at saved
-module number 14; this candidate assigns Trance Gate number 15. Stock MAIN uses
-14 for Trance Gate, so songs using that effect require explicit conversion before
-opening here. Conversely, personal songs using either module need conversion
-before exchange with stock builds. The files do not identify which catalogue
-wrote module 14; automatic detection is unsafe. Other insert numbers are unchanged.
+**Personal build compatibility:** stock Trance Gate retains its saved module
+number 14. Experimental Beads is appended at 15. Stock Trance Gate songs load
+without conversion. Songs saved by the old personal build with Beads at 14
+need a one-time conversion to 15; all control values and embedded samples stay
+the same. Converted copies must be used with the updated personal build, while
+originals remain available for the old installed build. A stock build cannot
+play experimental Beads. Other insert numbers and lane FX names are unchanged.
+
+The preparation includes `tools/migrate_legacy_beads.py`. Only use its
+`--legacy-personal` option for songs known to come from the old personal build.
+It cannot infer whether an unmarked 14 means old Beads or stock Trance Gate.
 
 **Beads** uses the original Mutable Instruments granular DSP as a stereo insert.
 Choose Beads in either track or master insert slot. Its eight controls also use

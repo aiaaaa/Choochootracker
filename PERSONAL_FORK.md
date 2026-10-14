@@ -10,13 +10,25 @@ original personal worktree, device installation and deployed web app are untouch
 SQ80 Rev4, Beads, Lucky and the accepted Song copy fix remain included.
 
 The FX integration repairs mixed-row copy/paste and remaining byte-sized
-playback, modulation and hint paths. Personal insert numbers remain Beads=14,
-Trance Gate=15. Stock songs using Trance Gate=14 need explicit conversion;
-unmarked stock Trance Gate and old personal Beads files cannot be distinguished
-reliably. No songs have been migrated. Existing personal Beads files keep their
-meaning. This choice remains reviewable before the held build.
+playback, modulation and hint paths. Follow stock numbering and formats first:
+Trance Gate retains upstream ID 14; experimental Beads is appended at 15.
+Experiments adapt to stock refactors; old personal songs are migrated as needed
+instead of changing stock IDs. No remapping is needed for stock Trance Gate songs.
 
-No compilation, runtime tests, push, CI trigger, build or deployment is authorized
+`tools/migrate_legacy_beads.py` converts explicitly identified old personal songs
+from Beads=14 to Beads=15, including track/master slots and stored ZIP projects.
+It writes separate copies and preserves embedded audio and all other project data.
+Low Water R3's held web bundle has been converted; a local converted copy and
+original are staged in `../song-migrations/20261014-stock/`. Of 62 local song
+paths checked, two copies of this one song needed conversion. The connected device
+inventory covers 38 projects including autosave; only its matching Low Water
+Draft 2 needs conversion, now staged. No browser surface is connected, so
+browser user saves still need capture at rollout.
+Live songs stay on the old numbering until the matching build is installed.
+Do not run legacy conversion on stock Trance Gate files: the old number is
+ambiguous without source provenance. Re-check this catalogue at future MAIN merges.
+
+No compilation, app runtime tests, push, CI trigger, build or deployment is authorized
 by this preparation. Add the owner's next selected branch here before releasing
 the hold. The review and required later validation are recorded in
 `docs/personal-alpha-20261014-review.txt`; preparation metadata is in

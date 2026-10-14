@@ -1,4 +1,4 @@
-Personal alpha source preparation — October 14, 2026
+Personal daily source preparation for upstream alpha — October 14, 2026
 
 Scope and cutoffs
 - Release v1.0.16-alpha: 3ae1364af6b37344aa031b5c3ba8505ba87b430e,
@@ -9,7 +9,7 @@ Scope and cutoffs
 - Installed but uncommitted MonkSynth work copied into isolated checkpoint
   af12cff. Original personal worktree preserved, including unrelated files.
 - Candidate: candidate/personal-alpha-20261014. Both personal targets use it.
-- No build, compiled test, push, CI trigger, deployment or song migration.
+- No build, compiled test, push, CI trigger or deployment. Song copies migrated as described below.
 
 What is actually new relative to the last personal daily
 The alpha rolls up a much broader set of changes than this daily needs to add.
@@ -50,26 +50,44 @@ Lane FX layout and compatibility review
 - Upstream's temporary indexed FXCell compatibility layer remains. New code
   should use named fields; do not introduce proxy-to-proxy assignments.
 
-Insert catalogue collision
-Both old personal Beads and new stock Trance Gate use module number 14 on disk.
-Unlike lane FX, inserts are serialized numerically. These unmarked files cannot
-be safely auto-detected. The preservation-first candidate keeps Beads=14 and
-assigns Trance Gate=15, including both track and master slots. Other module IDs
-stay unchanged. Existing personal Beads data is not rewritten.
-Stock Trance Gate songs MUST be explicitly converted before import here;
-personal Beads/Trance Gate songs are not directly interchangeable with stock.
-No conversion tool or automatic song migration is included in this preparation.
-The choice is documented and can be changed before the owner's build release.
-Trance Gate joins Modulation in the picker; personal Beads retains its category.
-The merge preserves Beads pooled ownership and muted-track cleanup while adding
-Trance Gate tempo updates, note triggers and transport reset behavior.
+Insert catalogue follows stock (corrected per owner direction)
+Stock Trance Gate keeps ID 14. Experimental Beads appends ID 15. Stock songs
+need no Trance Gate remapping. Existing personal Beads songs are converted
+14 -> 15, preserving bypass, all eight control bytes and embedded audio.
+This replaces the earlier preservation-first candidate policy in 12d0193.
+Experiments must integrate into stock refactors; migrate personal data when IDs
+collide, rather than changing the upstream catalogue. Beads remains experimental;
+stock apps do not gain Beads support just because the song has been converted.
+
+The migration helper requires explicit legacy-personal provenance. It handles
+text and uncompressed CCT ZIP archives, rejects duplicate archive entries and
+already-converted/newer insert IDs, verifies CRC and member payloads, and writes
+new files exclusively. It does not guess the meaning of unmarked ID 14.
+Seven Python migration tests passed, without building or running the tracker.
+Of 62 local song paths checked, only two copies of Low Water R3 used old Beads.
+The candidate web demo was converted and its collection checksum updated.
+A converted local copy and original are staged outside Git at
+../song-migrations/20261014-stock/. No live songs or installed apps changed.
+The connected R36H has 38 project files including autosave. Only Low Water
+Draft 2 needs conversion; its SHA-256 matches the original preserved locally.
+The installed binary still matches the recorded old personal build. Its converted
+copy is staged with the target path and required original-hash precondition.
+No browser surface is connected; browser user saves require capture and conversion
+at rollout. Bundled demos are separate from those saved edits.
+Fresh capture/hash verification is required before applying staged migrations,
+since the owner can keep editing songs while the build is held.
+
+Trance Gate joins Modulation in the picker; Beads retains its personal category.
+Beads pooled ownership and muted-track cleanup remain alongside gate tempo,
+note-trigger and transport-reset behavior. New tests pin stock module 14 and
+exercise stock Trance Gate plus experimental Beads save/load; not compiled yet.
 
 Source-only validation and next authorized build
 Static checks cover conflict markers, whitespace, JSON, enum stability,
 descriptor order, and hashes of the original 29 MonkSynth-related files.
 Regression sources added for wide FX cross-screen clipboard, mixed-row paste,
 empty commands with nonzero values, high command/PRO aliasing, high command help,
-and stable personal module numbers. These have NOT been compiled or executed.
+and stock-compatible module numbers. These have NOT been compiled or executed.
 When the owner selects the final extra branch and authorizes building:
 1. Integrate it here and record the final source commit.
 2. Run the full native suite with personal SQ80 and Lucky enabled, Beads lifetime
@@ -79,6 +97,8 @@ When the owner selects the final extra branch and authorizes building:
 4. Listen on R36H/web: Beads pitch/lifetime, Trance Gate tempo/retrigger/master,
    MME morph and stop tails. Master reverb/delay tail tracking is not evidence
    that every arbitrary insert tail now behaves identically.
-5. Preserve songs/settings/USER banks and create rollback receipts before install.
+5. Capture current device/browser saves; convert known old Beads files, preserving
+   originals. Apply app and matching song copies together after tests pass; retain
+   rollback for songs, settings and USER banks.
 Do not push the preparation branch while the hold remains: CI may build on push.
 Beads PR follow-up and Vita work remain held.

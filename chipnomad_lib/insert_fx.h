@@ -19,10 +19,9 @@ enum InsertModule : uint8_t {
   insertBitcrusher,
   insertDestruction,
   insertParametricEQ,
-  // Personal saved projects already use 14 for Beads. Stock Trance Gate (14)
-  // requires explicit conversion to the personal catalogue before import.
-  insertBeads = 14,
-  insertTranceGate = 15,
+  insertTranceGate, // Keep the upstream catalogue and saved IDs unchanged.
+  // Experimental extension; migrate old personal Beads=14 songs before loading.
+  insertBeads,
   insertModuleCount
 };
 enum class InsertMapping : uint8_t { linear, exponential, bipolar, discrete };

@@ -105,15 +105,6 @@ static const InsertDescriptor descriptors[] = {
       {"Mid F", "Mid frequency", "Hz", 250, 5000, 118, M::exponential},
       {"High G", "High gain", "dB", -24, 24, 128, M::bipolar},
       {"High F", "High frequency", "Hz", 2000, 14000, 182, M::exponential}}},
-    {"Beads", 8,
-     {{"Time", "Grain position", "%", 0, 1, 26, M::linear},
-      {"Size", "Grain size/direction", "%", 0, 1, 191, M::linear},
-      {"Density", "Grain density", "%", 0, 1, 179, M::linear},
-      {"Pitch", "Grain pitch", "st", -24, 24, 128, M::bipolar},
-      {"Scatter", "Grain scatter", "%", 0, 1, 0, M::linear},
-      {"Feedback", "Feedback", "%", 0, 1, 0, M::linear},
-      {"Shp/Frz", "Shape / Freeze", "", 0, 255, 38, M::discrete},
-      {"Mix", "Mix", "%", 0, 1, 128, M::linear}}},
     {"Trance Gate",
      8,
      {{"Pattern", "Pattern", "", 0, 63, 0, M::discrete},
@@ -123,7 +114,16 @@ static const InsertDescriptor descriptors[] = {
       {"Phase", "Phase", "", 0, 15, 0, M::discrete},
       {"Mode", "Mode", "", 0, 3, 0, M::discrete},
       {"Smooth", "Smooth", "%", 0, 1, 20, M::linear},
-      {"Mix", "Mix", "%", 0, 1, 255, M::linear}}}};
+      {"Mix", "Mix", "%", 0, 1, 255, M::linear}}},
+    {"Beads", 8,
+     {{"Time", "Grain position", "%", 0, 1, 26, M::linear},
+      {"Size", "Grain size/direction", "%", 0, 1, 191, M::linear},
+      {"Density", "Grain density", "%", 0, 1, 179, M::linear},
+      {"Pitch", "Grain pitch", "st", -24, 24, 128, M::bipolar},
+      {"Scatter", "Grain scatter", "%", 0, 1, 0, M::linear},
+      {"Feedback", "Feedback", "%", 0, 1, 0, M::linear},
+      {"Shp/Frz", "Shape / Freeze", "", 0, 255, 38, M::discrete},
+      {"Mix", "Mix", "%", 0, 1, 128, M::linear}}}};
 static_assert(sizeof(descriptors) / sizeof(descriptors[0]) == insertModuleCount,
               "Stable module catalogue");
 const InsertDescriptor& insertDescriptor(int m) {

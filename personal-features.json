@@ -645,13 +645,28 @@
       "web personal"
     ],
     "personal_insert_ids": {
-      "Beads": 14,
-      "Trance Gate": 15
+      "Trance Gate": 14,
+      "Beads": 15
     },
-    "compatibility": "Stock Trance Gate songs require explicit conversion. Old personal Beads songs retain their saved module ID. No song migration performed.",
+    "compatibility": "Stock insert IDs retained. Old personal Beads songs migrate 14 -> 15; stock Trance Gate needs no conversion. Experiments use stock FXCell format.",
     "review": "docs/personal-alpha-20261014-review.txt",
-    "validation": "Static source checks only; no compiled/runtime validation",
+    "validation": "Static source checks and 7 Python migration tests; no compiled/app runtime validation",
     "beads_pr": "Held; unchanged",
-    "vita": "Paused; excluded"
+    "vita": "Paused; excluded",
+    "song_migration": {
+      "tool": "tools/migrate_legacy_beads.py",
+      "local_paths_scanned": 62,
+      "unique_affected_songs": 1,
+      "song": "Low_Water_R3.cct",
+      "changed_slots": 1,
+      "original_sha256": "9812ed9d98b8093134bf8a14364d5803d6ab8c0712345448eb0851fb5e600d84",
+      "converted_sha256": "c986aa99f1ade3fc4c8e928599d05508b7088ad42cae12b70cc1bb053204ac5e",
+      "bundled_demo": "Converted in candidate source",
+      "local_staging": "../song-migrations/20261014-stock/",
+      "live_device": "38 projects including autosave checked; one affected song matches staged conversion; live files unchanged",
+      "live_browser": "No connected browser surface available; user saves need capture at rollout; live storage unchanged",
+      "migration_tests_passed": 7,
+      "device_files_scanned": 38
+    }
   }
 }

@@ -64,11 +64,39 @@ void write(const char* path, const std::string& text) {
 }
 }  // namespace
 TEST_SUITE("track inserts") {
-  TEST_CASE("personal insert numbers preserve existing Beads songs") {
-    CHECK(insertBeads == 14);
-    CHECK(insertTranceGate == 15);
-    CHECK(std::string(insertDescriptor(14).name) == "Beads");
-    CHECK(std::string(insertDescriptor(15).name) == "Trance Gate");
+  TEST_CASE("stock insert numbers remain unchanged with experimental Beads appended") {
+    CHECK(insertBeads == 15);
+    CHECK(insertTranceGate == 14);
+    CHECK(std::string(insertDescriptor(15).name) == "Beads");
+    CHECK(std::string(insertDescriptor(14).name) == "Trance Gate");
+  }
+  TEST_CASE("stock Trance Gate and experimental Beads retain their modules across save load") {
+    auto p = std::make_unique<Project>();
+    projectInit(p.get());
+    p->chipsCount = 1;
+    p->tickRate = 50;
+    calculateLinearPitchTable12TET(p.get());
+    fillFXNames();
+    insertSelect(&p->trackInserts[0][0], 14); // Literal stock file ID.
+    insertSelect(&p->masterInserts[0], 14);
+    insertSelect(&p->trackInserts[0][1], insertBeads);
+    insertSelect(&p->masterInserts[1], insertBeads);
+    const char* path = "build/tests/stock-experimental-inserts.cct";
+    REQUIRE(projectSave(p.get(), path) == 0);
+    const auto text = read(path);
+    CHECK(text.find("- Insert: 0,0,14,0,") != std::string::npos);
+    CHECK(text.find("- Insert: 0,1,15,0,") != std::string::npos);
+    CHECK(text.find("- Master insert: 0,14,0,") != std::string::npos);
+    CHECK(text.find("- Master insert: 1,15,0,") != std::string::npos);
+    auto loaded = std::make_unique<Project>();
+    projectInit(loaded.get());
+    REQUIRE(projectLoad(loaded.get(), path) == 0);
+    CHECK(loaded->trackInserts[0][0].module == insertTranceGate);
+    CHECK(loaded->masterInserts[0].module == insertTranceGate);
+    CHECK(loaded->trackInserts[0][1].module == insertBeads);
+    CHECK(loaded->masterInserts[1].module == insertBeads);
+    projectFree(p.get());
+    projectFree(loaded.get());
   }
   TEST_CASE("wide unknown FX hints do not alias ARP") {
     FXCell cell{0x100, 0x37};

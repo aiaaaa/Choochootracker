@@ -17,18 +17,19 @@
     "feature_manifest_json": "passed",
     "existing_lane_fx_ids": "unchanged",
     "fx_total_count": 254,
-    "existing_personal_insert_ids": "unchanged",
+    "existing_personal_insert_ids": "Beads intentionally moved 14 -> 15; old personal songs require migration",
     "descriptor_order": "passed",
     "original_worktree_file_hashes_verified": 29,
     "SQ80_Rev4_UI_Lucky_settings_web_controls": "unchanged from personal checkpoint",
     "in_app_help_strings": "unchanged",
-    "current_device_build_receipt": "unchanged"
+    "current_device_build_receipt": "unchanged",
+    "upstream_insert_ids": "All upstream module IDs retained; experimental Beads appended at 15"
   },
   "personal_insert_ids": {
-    "Beads": 14,
-    "Trance Gate": 15
+    "Trance Gate": 14,
+    "Beads": 15
   },
-  "interchange_limit": "Stock Trance Gate=14 requires explicit conversion; old unmarked personal Beads=14 is ambiguous. No songs migrated.",
+  "interchange_limit": "Stock Trance Gate unchanged; experimental Beads requires the personal build. Legacy personal songs migrate 14 -> 15 using verified provenance.",
   "compiled_tests_run": false,
   "builds_run": false,
   "deployed": false,
@@ -64,5 +65,20 @@
     "tracker/src/screens/instrument_monk.cpp": "bfd4194bd7f5114d951a2ad4ab4f60a8a27c173b5812502466d7fe253645f77e",
     "tracker/tests/test_monk.cpp": "6209b85e6e65d3ca5dc839090129118dd23273e2e6b13b5a158b4cfa902f1bea"
   },
-  "review": "docs/personal-alpha-20261014-review.txt"
+  "review": "docs/personal-alpha-20261014-review.txt",
+  "song_migration": {
+    "tool": "tools/migrate_legacy_beads.py",
+    "local_paths_scanned": 62,
+    "unique_affected_songs": 1,
+    "song": "Low_Water_R3.cct",
+    "changed_slots": 1,
+    "original_sha256": "9812ed9d98b8093134bf8a14364d5803d6ab8c0712345448eb0851fb5e600d84",
+    "converted_sha256": "c986aa99f1ade3fc4c8e928599d05508b7088ad42cae12b70cc1bb053204ac5e",
+    "bundled_demo": "Converted in candidate source",
+    "local_staging": "../song-migrations/20261014-stock/",
+    "live_device": "38 projects including autosave checked; one affected song matches staged conversion; live files unchanged",
+    "live_browser": "No connected browser surface available; user saves need capture at rollout; live storage unchanged",
+    "migration_tests_passed": 7,
+    "device_files_scanned": 38
+  }
 }
