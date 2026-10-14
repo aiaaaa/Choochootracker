@@ -1019,7 +1019,6 @@ static int advancePlaybackFrame(ChipNomadState* state, uint64_t dueMicros) {
   const int wasPlaying = playbackIsPlaying(&state->playbackState);
   state->audioCommands->applyProject(&state->audioProject);
   state->playbackState.p = &state->audioProject;
-  const bool wasPlaying = playbackIsPlaying(&state->playbackState);
   if (state->audioCommands->takeStopRequest()) {
     chipnomadMidiPanic(state);
     playbackStop(&state->playbackState);
