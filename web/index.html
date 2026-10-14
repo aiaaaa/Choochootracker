@@ -87,6 +87,8 @@
         <button id="import-sq80" disabled title="Import SQ80/ESQ .hwb wave banks, SysEx presets, or ZIPs. Saved only in this browser.">Import SQ80/ESQ</button>
         <input id="sq80-input" type="file" accept=".hwb,.syx,.raw,.cni,.zip" multiple hidden>
         <button id="import-presets" disabled title="Choose an instruments or USER folder. Existing files are kept. Stored only in this browser.">Import presets</button>
+        <button id="import-user-zip" disabled title="Import a ZIP containing instruments/USER or USER. Existing files are kept.">Import USER ZIP</button>
+        <input id="user-zip-input" type="file" accept=".zip" hidden>
         <button id="import-banks" disabled>Import sound banks</button>
         <button id="import-bank-folder" disabled>Import bank folder</button>
         <input id="bank-input" type="file" accept=".sf2,.sf3,.sfz,.exs,.zip,.wav,.aif,.aiff,.ogg" multiple hidden>
@@ -214,7 +216,7 @@
     const ensureUserDirectories = (fs) => {
       fs.mkdirTree('/user/projects');
       fs.mkdirTree('/user/samples');
-      fs.mkdirTree('/user/SoundBanks');
+      fs.mkdirTree('/user/instruments/USER/soundfont');
       fs.mkdirTree('/user/exports');
       fs.mkdirTree('/user/instruments/USER');
       fs.mkdirTree('/user/instruments/banks');
@@ -536,7 +538,22 @@
     document.querySelector('#import-banks').addEventListener('click', () => document.querySelector('#bank-input').click());
     document.querySelector('#import-bank-folder').addEventListener('click', () => document.querySelector('#bank-folder-input').click());
     const importBanks = async (event) => {
-      if (event.target.files.length) await importFiles(event.target.files, '/user/SoundBanks');
+      const fs = getFs();
+      if (!fs) return;
+      let imported = 0, kept = 0;
+      for (const file of event.target.files) {
+        let relative = userPath(file.webkitRelativePath || file.name);
+        relative = relative.replace(/^(?:instruments\/USER\/soundfont|USER\/soundfont|soundfont)\//, '');
+        if (!relative) continue;
+        const path = '/user/instruments/USER/soundfont/' + relative;
+        if (fs.analyzePath(path).exists) { kept++; continue; }
+        fs.mkdirTree(path.slice(0, path.lastIndexOf('/')));
+        fs.writeFile(path, new Uint8Array(await file.arrayBuffer()));
+        imported++;
+      }
+      const error = await new Promise(resolve => syncUserStorage(resolve));
+      status.textContent = imported + ' bank files imported; ' + kept + ' existing files kept.' +
+        (error ? ' Browser storage failed; keep your originals.' : '');
       event.target.value = '';
     };
     document.querySelector('#bank-input').addEventListener('change', importBanks);
@@ -544,7 +561,7 @@
     document.querySelector('#sample-input').addEventListener('change', importSamples);
     document.querySelector('#sample-folder-input').addEventListener('change', importSamples);
     const presetEngines = new Set(['arcade', 'dx7', 'gb-noise', 'gb-pulse', 'genesis',
-      'opl2', 'opl3', 'opll', 'sega', 'sid', 'vrc7', 'sq80esq']);
+      'opl2', 'opl3', 'opll', 'sega', 'sid', 'vrc7', 'sq80esq', 'soundfont']);
     const presetPath = (relative) => {
       const parts = relative.split('/');
       if (parts.some((part) => !part || part.startsWith('.') || part.includes('\\'))) return null;
@@ -621,6 +638,28 @@
         imported + ' preset files saved in this browser; ' + kept + ' existing files kept, ' + ignored + ' files skipped. Reopen Bank → USER to browse.';
       event.target.value = '';
       button.disabled = false;
+    });
+    document.querySelector('#import-user-zip').addEventListener('click', () => document.querySelector('#user-zip-input').click());
+    document.querySelector('#user-zip-input').addEventListener('change', async (event) => {
+      const file = event.target.files[0], fs = getFs();
+      if (!file || !fs) return;
+      fileControls.forEach(button => { button.disabled = true; });
+      const path = '/user/.user-library-import.zip';
+      let result = 'Import interrupted. Existing files kept.';
+      try {
+        status.textContent = 'Importing USER collection…';
+        fs.writeFile(path, new Uint8Array(await file.arrayBuffer()));
+        result = await window.Module.ccall('webImportUserZip', 'string', ['string'], [path], {async: true});
+        window.Module.ccall('webLoadSQ80Banks', 'number', [], []);
+      } catch (error) {
+        result = 'Import interrupted. Existing files kept. ' + (error.message || error);
+      } finally {
+        if (fs.analyzePath(path).exists) fs.unlink(path);
+        const error = await new Promise(resolve => syncUserStorage(resolve));
+        status.textContent = error ? result + ' Browser storage failed; keep your original ZIP.' : result;
+        event.target.value = '';
+        fileControls.forEach(button => { button.disabled = false; });
+      }
     });
     document.querySelector('#export-project').addEventListener('click', () => {
       const path = '/user/exports/choochootracker.cct';

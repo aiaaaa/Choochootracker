@@ -14,7 +14,7 @@ def main():
     parser.add_argument('results_root', type=Path)
     parser.add_argument('--probe', type=Path, default=REPO / 'tracker/build/soundbanks/probe')
     args = parser.parse_args()
-    root = args.bundle_root.resolve() / 'SoundBanks'
+    root = args.bundle_root.resolve() / 'instruments/USER/soundfont'
     base = root / 'Korean_Gugak'
     args.results_root.mkdir(parents=True, exist_ok=True)
     packaging, legacy = [], []

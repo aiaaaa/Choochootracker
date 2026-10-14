@@ -451,7 +451,7 @@ Each instrument has a default table with the same number in the `00-7F` range. Y
 ### SOUNDFONT (experimental)
 
 Copy original SF2/SF3 banks, SFZ/EXS instruments with their samples, or ZIP archives
-into `SoundBanks`. Select **SOUNDFONT** on Instrument, then use **BANK MANAGER**
+into `instruments/USER/soundfont`. Select **SOUNDFONT** on Instrument, then use **BANK MANAGER**
 and **PRESET BROWSER**. EDIT loads a preset; EDIT + PLAY previews the loaded
 selection. Existing tracker note entry, note-off, volume/pitch MODs and pan apply.
 Projects save stable bank/preset references; libraries remain external.
@@ -2209,7 +2209,12 @@ retained; Instrument and other editors use their full layouts. ESQ stays experim
 and is excluded from the planned SID layout contribution.
 
 Use SAMPLE → SOUNDFONT → BANK MANAGER, then PRESET BROWSER. Sound banks remain
-external user data under SoundBanks; web adds Import sound banks and Import bank
+external user data under instruments/USER/soundfont; web adds Import sound banks and Import bank
 folder. Existing SQ80 and Monk instrument identities remain 28 and 29; SoundFont
 uses 30 in this personal evaluation. Keep the original bank beside saved projects.
 See docs/soundbanks/validation.md for format and memory limits.
+
+Browser **Import USER ZIP** accepts a ZIP rooted at `instruments/USER/` or
+`USER/`, including `soundfont` banks and their relative sample folders. Existing
+files are kept. Import only the collection you need: each import supports up to
+1 GiB of new uncompressed files, with a 512 MiB per-file limit.

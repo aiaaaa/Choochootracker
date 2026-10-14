@@ -84,7 +84,7 @@ with sync_playwright() as p:
   page.locator('#canvas').click();key('x');page.wait_for_timeout(500)
   # Personal keeps its established toolbar, including private preset import.
   assert page.locator('#web-buttons button').evaluate_all("nodes=>nodes.map(n=>n.id)")==[
-   'import-project','export-project','restart-audio','reload-app','import-samples','import-folder','import-sq80','import-presets','import-banks','import-bank-folder']
+   'import-project','export-project','restart-audio','reload-app','import-samples','import-folder','import-sq80','import-presets','import-user-zip','import-banks','import-bank-folder']
   assert page.evaluate("document.querySelector('#canvas').compareDocumentPosition(document.querySelector('#web-buttons')) & Node.DOCUMENT_POSITION_FOLLOWING")
   assert page.locator('main').evaluate("e=>getComputedStyle(e).padding")=='8px'
   assert page.locator('#canvas').evaluate("e=>getComputedStyle(e).width")=='640px'

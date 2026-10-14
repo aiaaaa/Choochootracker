@@ -1,7 +1,7 @@
 """Copy verified Gugak downloads into an existing private sideload bundle.
 
-Retains complete Dropbox transport archives under Original downloads and exposes
-the unchanged publisher distribution ZIPs under SoundBanks. No audio is decoded
+Retains complete Dropbox transport archives under documents/Original downloads and exposes
+the unchanged publisher distribution ZIPs under instruments/USER/soundfont. No audio is decoded
 or extracted from distribution ZIPs. Existing different files are never replaced.
 """
 import argparse
@@ -69,7 +69,7 @@ def main():
     for item in acquisition['artifacts']:
         source = data / item['relative_path']
         folder = Path(item['family']) / item['id']
-        target = bundle / 'Original downloads/Korean_Gugak' / folder / source.name
+        target = bundle / 'documents/Original downloads/Korean_Gugak' / folder / source.name
         with source.open('rb') as stream:
             record = preserve(stream, target, item['sha256'])
         record.update(path=target.relative_to(bundle).as_posix(), role='original_transport_archive', download_url=item['download_url'])
@@ -85,7 +85,7 @@ def main():
                     raise ValueError('Unexpected transport member: ' + entry.filename)
                 if entry.file_size > 2 * 1024**3:
                     raise ValueError('Oversized transport member: ' + entry.filename)
-                target = bundle / 'SoundBanks/Korean_Gugak' / folder / str(name)
+                target = bundle / 'instruments/USER/soundfont/Korean_Gugak' / folder / str(name)
                 with archive.open(entry) as stream:
                     record = preserve(stream, target)
                 record.update(path=target.relative_to(bundle).as_posix(), role='original_publisher_file', transport_path=item['relative_path'], original_member=entry.filename)
@@ -98,7 +98,7 @@ def main():
         print(item['id'], 'copied and SHA-256 verified', flush=True)
     result = dict(schema_version=1, collection='Korean_Gugak', bank_type='USER', source=acquisition['source'], license=acquisition['license'], redistribution=acquisition['redistribution'], files=records,
                   note='Complete transport archives plus unchanged original share files. Older versions retained. No converted or extracted audio. Duplicate transport/member storage is intentional preservation, not required playback storage.')
-    target = bundle / 'SoundBanks/Korean_Gugak/acquisition-manifest.json'
+    target = bundle / 'instruments/USER/soundfont/Korean_Gugak/acquisition-manifest.json'
     content = (json.dumps(result, indent=2, ensure_ascii=False) + '\n').encode()
     import io
     preserve(io.BytesIO(content), target)

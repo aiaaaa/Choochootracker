@@ -8,7 +8,7 @@ and the [library compatibility report](compatibility.md) before packaging it.
 ## Using a bank
 
 1. Copy an original SF2, SF3, SFZ or EXS instrument, a WAV/AIFF sample, or a ZIP
-   containing those files into `SoundBanks`. Retain relative sample directories.
+   containing those files into `instruments/USER/soundfont`. Retain relative sample directories.
 2. In Instrument, select **SOUNDFONT**. Open **BANK MANAGER**, select a collection
    and instrument, then open **PRESET BROWSER** and select a preset with EDIT.
 3. Wait for “Preset ready”. Existing note entry plays the prepared instrument;
@@ -22,7 +22,7 @@ folder, or their ZIP filename. Mappings appear before a separate raw WAV/AIFF
 sample list. This small extra collection level keeps thousands of source samples
 from burying the actual instruments. All collections are USER banks.
 
-Keep Korean instruments under `SoundBanks/Korean_Gugak/`, retaining `Wind/` and
+Keep Korean instruments under `instruments/USER/soundfont/Korean_Gugak/`, retaining `Wind/` and
 other original family directories. This preserves a dedicated Gugak identity in
 the same USER bank infrastructure. All 23 publisher EXS24 folders have been
 acquired into private external storage, including older versions. Recent Gugak
@@ -32,7 +32,7 @@ See the attribution record before considering any redistribution.
 
 ## Storage and configuration
 
-Portable desktop/PortMaster builds use `SoundBanks` relative to their normal
+Portable desktop/PortMaster builds use `instruments/USER/soundfont` relative to their normal
 working data directory. AppImage, Android and Windows use the existing default
 application data-directory helper. Set `CHOOCHOO_SOUNDBANKS` to override the root.
 The sample cache defaults to 64 MiB of decoded PCM; set
@@ -41,7 +41,10 @@ change it. This is a memory policy, not a download-size limit. Allow room for th
 rest of the tracker, compressed buffers and temporary preparation data.
 
 The web wrapper has **Import sound banks** and **Import bank folder** controls.
-They retain selected relative paths under `/user/SoundBanks` and use existing
+**Import USER ZIP** accepts archives rooted at `instruments/USER/` or `USER/`,
+keeps existing files and preserves relative bank/sample paths. It accepts up to
+1 GiB of new uncompressed files per import and 512 MiB per file.
+They retain selected relative paths under `/user/instruments/USER/soundfont` and use existing
 persistent browser storage. ZIP import is convenient where folder picking is not
 available. Rescan in Bank Manager after importing. Browser storage quotas apply;
 its virtual filesystem can keep imported archives and temporary files in memory,
@@ -135,7 +138,7 @@ Factory category, downloader, online dependency or Factory packaging is added.
 `python3 tools/soundbanks/acquire_gugak.py /external/soundbank-data` downloads
 all 23 publisher-linked EXS24 folders. `bundle_gugak.py DATA_ROOT PRIVATE_BUNDLE`
 retains the complete transport ZIPs under `Original downloads/Korean_Gugak/`
-and copies their unchanged original share files to `SoundBanks/Korean_Gugak/`.
+and copies their unchanged original share files to `instruments/USER/soundfont/Korean_Gugak/`.
 It preserves older-version paths, checks SHA-256 and refuses to replace different
 existing files. It does not extract or convert sample audio, run installers,
 or make disk-image releases directly playable. The private bundle is outside

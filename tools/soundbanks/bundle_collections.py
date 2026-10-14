@@ -1,7 +1,7 @@
 """Preserve acquired reference collections in a private sideload bundle.
 
-Copies verified original ZIPs into SoundBanks, other transport archives into
-Original downloads, and the already-extracted unchanged FluidR3Mono/Salamander
+Copies verified original ZIPs into instruments/USER/soundfont, other transport archives into
+documents/Original downloads, and the already-extracted unchanged FluidR3Mono/Salamander
 source trees. Never modifies or replaces different existing preset files.
 """
 import argparse
@@ -31,7 +31,7 @@ def main():
             if artifact['status'] != 'acquired_archive_verified':
                 raise ValueError('Unverified artifact: ' + artifact['filename'])
             source = data / artifact['filename']
-            parent = 'SoundBanks' if source.suffix.lower() == '.zip' else 'Original downloads'
+            parent = 'instruments/USER/soundfont' if source.suffix.lower() == '.zip' else 'documents/Original downloads'
             target = bundle / parent / cid / source.name
             with source.open('rb') as stream:
                 record = preserve(stream, target, artifact['sha256'])
@@ -45,13 +45,13 @@ def main():
                     continue  # Original package retains this redundant compatibility link.
                 if not source.is_file():
                     continue
-                target = bundle / 'SoundBanks' / source.relative_to(data)
+                target = bundle / 'instruments/USER/soundfont' / source.relative_to(data)
                 with source.open('rb') as stream:
                     record = preserve(stream, target)
                 record.update(path=target.relative_to(bundle).as_posix(), collection=cid, role='original_distribution_file')
                 records.append(record)
     result = dict(schema_version=1, files=records, package_links_not_followed=package_links, note='Original complete collections, no audio conversion. Includes alternate distributions. Package symlinks are recorded, not followed; originals remain in source packages. Acquisition is not a claim of compatibility or redistribution approval.')
-    preserve(io.BytesIO((json.dumps(result, indent=2, ensure_ascii=False)+'\n').encode()), bundle / 'SoundBanks/reference-collection-files.json')
+    preserve(io.BytesIO((json.dumps(result, indent=2, ensure_ascii=False)+'\n').encode()), bundle / 'instruments/USER/soundfont/reference-collection-files.json')
     print('Verified files:', len(records), 'bytes:', sum(r['bytes'] for r in records))
 
 

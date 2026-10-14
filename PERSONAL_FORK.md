@@ -701,3 +701,7 @@ remain personal experiments. Preserve SQ80=28 and Monk=29; SoundFont=30 avoids
 reinterpreting existing songs. Generated SoundBank branch web assets are excluded;
 the personal pipeline builds fresh output. Source library originals remain private.
 Combined build and runtime results are recorded in the evaluation receipt.
+
+SoundFont banks share the private USER library at `instruments/USER/soundfont/`
+(browser: `/user/instruments/USER/soundfont/`), preserving collection folders
+and relative sample references.

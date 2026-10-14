@@ -20,7 +20,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('bundle_root', type=Path)
     args = parser.parse_args()
-    base = args.bundle_root.resolve() / 'SoundBanks/Korean_Gugak'
+    base = args.bundle_root.resolve() / 'instruments/USER/soundfont/Korean_Gugak'
     records = []
     installer_links = []
     archives = sorted(base.glob('*/*/*v.1.3.1.zip'))

@@ -162,7 +162,7 @@
         }
       ],
       "bank_type": "USER",
-      "suggested_directory": "SoundBanks/VSCO_2_Community",
+      "suggested_directory": "instruments/USER/soundfont/VSCO_2_Community",
       "factory_status": "license_candidate_pending_compatibility_review",
       "redistribution_conditions": "Not required by CC0; retain Versilian Studios and contributor credits.",
       "collection_status": "listed_distributions_acquired",
@@ -413,7 +413,7 @@
         }
       ],
       "bank_type": "USER",
-      "suggested_directory": "SoundBanks/VCSL",
+      "suggested_directory": "instruments/USER/soundfont/VCSL",
       "factory_status": "license_candidate_pending_compatibility_review",
       "redistribution_conditions": "Not required by CC0; retain contributor credits and original documentation.",
       "collection_status": "listed_distributions_acquired",
@@ -609,7 +609,7 @@
         }
       ],
       "bank_type": "USER",
-      "suggested_directory": "SoundBanks/Meta_Open_Sound",
+      "suggested_directory": "instruments/USER/soundfont/Meta_Open_Sound",
       "factory_status": "license_candidate_pending_compatibility_review",
       "redistribution_conditions": "Not required by CC0; retain Meta Creative Audio attribution and LICENSE.",
       "collection_status": "listed_distributions_acquired",
@@ -767,7 +767,7 @@
         }
       ],
       "bank_type": "USER",
-      "suggested_directory": "SoundBanks/Stargate",
+      "suggested_directory": "instruments/USER/soundfont/Stargate",
       "factory_status": "requires_provenance_review",
       "redistribution_conditions": "Retain the original source-specific README and attribution records, including Freesound authors.",
       "collection_status": "listed_distributions_acquired",
@@ -866,7 +866,7 @@
         }
       ],
       "bank_type": "USER",
-      "suggested_directory": "SoundBanks/FluidR3Mono",
+      "suggested_directory": "instruments/USER/soundfont/FluidR3Mono",
       "factory_status": "license_candidate_pending_compatibility_review",
       "redistribution_conditions": "Preserve all copyright acknowledgements and the complete FluidR3Mono_License.md; see original license.",
       "collection_status": "listed_distributions_acquired",
@@ -950,7 +950,7 @@
         }
       ],
       "bank_type": "USER",
-      "suggested_directory": "SoundBanks/Salamander",
+      "suggested_directory": "instruments/USER/soundfont/Salamander",
       "factory_status": "license_candidate_pending_compatibility_review",
       "redistribution_conditions": "Credit Alexander Holm, link CC BY 3.0 and preserve README and license. Acquired recordings and mappings are unchanged.",
       "collection_status": "listed_distributions_acquired",
@@ -1056,7 +1056,7 @@
         }
       ],
       "bank_type": "USER",
-      "suggested_directory": "SoundBanks/GeneralUser_GS",
+      "suggested_directory": "instruments/USER/soundfont/GeneralUser_GS",
       "factory_status": "requires_provenance_review",
       "redistribution_conditions": "Preserve original LICENSE.txt, README and all acknowledgements; consult custom license before redistribution.",
       "collection_status": "listed_distributions_acquired",
@@ -1162,7 +1162,7 @@
         }
       ],
       "bank_type": "USER",
-      "suggested_directory": "SoundBanks/Akai_S612_Modular",
+      "suggested_directory": "instruments/USER/soundfont/Akai_S612_Modular",
       "factory_status": "license_candidate_pending_compatibility_review",
       "redistribution_conditions": "Publisher public-domain dedication (Unlicense wording adapted to content); retain original LICENSE and publisher identity.",
       "collection_status": "repository_acquired_original_collection_incomplete",
@@ -1205,7 +1205,7 @@
       "source": "https://www.catseoul.com/gugak-library/",
       "original_source": "http://en.catsnu.com/Project/GugakVSTi.aspx",
       "bank_type": "USER",
-      "suggested_directory": "SoundBanks/Korean_Gugak/",
+      "suggested_directory": "instruments/USER/soundfont/Korean_Gugak",
       "dedicated_collection": true,
       "license": "LicenseRef-CATSeoul-Personal-Noncommercial",
       "factory_status": "excluded_restricted_personal_use",
@@ -3849,9 +3849,9 @@
     "name": "ChooChoo-Sideloaded-and-Non-attributable-Presets",
     "verified_original_and_prepared_bytes": 31548217308,
     "inventories": [
-      "SoundBanks/reference-collection-files.json",
-      "SoundBanks/Korean_Gugak/acquisition-manifest.json",
-      "SoundBanks/Korean_Gugak/disk-image-files.json"
+      "instruments/USER/soundfont/reference-collection-files.json",
+      "instruments/USER/soundfont/Korean_Gugak/acquisition-manifest.json",
+      "instruments/USER/soundfont/Korean_Gugak/disk-image-files.json"
     ],
     "note": "Includes unchanged original transport archives, older versions, and extracted original regular files. This preservation footprint is larger than playback storage and is separate from the existing private synth preset packs."
   }

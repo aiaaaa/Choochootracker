@@ -110,7 +110,7 @@ def inventory(c, path, data_root):
                     unpacked_bytes=total, formats=dict(formats), license_documents=docs)
 
 def gugak_collection(data, private_bundle=None):
-    c = dict(id="Korean_Gugak", name="Gugak EXS24 — Korean Instruments", publisher="Seoul Center for Arts & Technology (formerly CATSNU / Seoul National University)", source="https://www.catseoul.com/gugak-library/", original_source="http://en.catsnu.com/Project/GugakVSTi.aspx", bank_type="USER", suggested_directory="SoundBanks/Korean_Gugak/", dedicated_collection=True, license="LicenseRef-CATSeoul-Personal-Noncommercial", factory_status="excluded_restricted_personal_use", attribution="Preserve the original Korean acknowledgement in docs/soundbanks/licenses/Korean_Gugak/publisher-terms-20261014.txt on derivative compositions/edits, as required by the publisher.", redistribution_conditions="Personal noncommercial use only. Published notice does not grant library redistribution; never put these archives/samples in Git, public releases or Factory packages.", provenance="Original successor publisher identifies itself as former Seoul National University Center for Arts and Technologies and provides 23 original EXS24 folders.", rank=9, artifacts=[], collection_status="not_acquired")
+    c = dict(id="Korean_Gugak", name="Gugak EXS24 — Korean Instruments", publisher="Seoul Center for Arts & Technology (formerly CATSNU / Seoul National University)", source="https://www.catseoul.com/gugak-library/", original_source="http://en.catsnu.com/Project/GugakVSTi.aspx", bank_type="USER", suggested_directory="instruments/USER/soundfont/Korean_Gugak/", dedicated_collection=True, license="LicenseRef-CATSeoul-Personal-Noncommercial", factory_status="excluded_restricted_personal_use", attribution="Preserve the original Korean acknowledgement in docs/soundbanks/licenses/Korean_Gugak/publisher-terms-20261014.txt on derivative compositions/edits, as required by the publisher.", redistribution_conditions="Personal noncommercial use only. Published notice does not grant library redistribution; never put these archives/samples in Git, public releases or Factory packages.", provenance="Original successor publisher identifies itself as former Seoul National University Center for Arts and Technologies and provides 23 original EXS24 folders.", rank=9, artifacts=[], collection_status="not_acquired")
     c['license_scope_note'] = 'The National Gugak Center digital-sample service separately announces KOGL Type 1. That notice has not been verified as applying to these CATSNU/CATSeoul EXS24 files; retain their own notice and attribution.'
     c['separate_type1_source'] = 'https://www.gugak.go.kr/site/program/board/basicboard/view?boardid=42216&boardtypeid=60&currentpage=22&lang=ko&menuid=001005006002&pagesize=10'
     acquisition = data / "Korean_Gugak/acquisition.json"
@@ -126,10 +126,10 @@ def gugak_collection(data, private_bundle=None):
         c["artifacts"].append(a)
     c["collection_status"] = "all_23_publisher_EXS24_folders_acquired" if len(c["artifacts"])==23 and all(a["status"]=="acquired_archive_verified" for a in c["artifacts"]) else "acquisition_incomplete"
     if private_bundle:
-        base = Path(private_bundle) / 'SoundBanks/Korean_Gugak'
+        base = Path(private_bundle) / 'instruments/USER/soundfont/Korean_Gugak'
         acquired = json.loads((base / 'acquisition-manifest.json').read_text())
         prepared = json.loads((base / 'disk-image-files.json').read_text())
-        c['publisher_files'] = [{**x, 'path': x['path'].split('SoundBanks/', 1)[-1]} for x in acquired['files'] if x['role'] == 'original_publisher_file']
+        c['publisher_files'] = [{**x, 'path': x['path'].replace('SoundBanks/', 'instruments/USER/soundfont/', 1).split('instruments/USER/soundfont/', 1)[-1]} for x in acquired['files'] if x['role'] == 'original_publisher_file']
         c['disk_image_preparation'] = dict(method=prepared['note'], file_inventory='Korean_Gugak/disk-image-files.json', files=len(prepared['files']), bytes=sum(x['bytes'] for x in prepared['files']), exs_definitions=sum(x['path'].lower().endswith('.exs') for x in prepared['files']))
         packaging = data / 'results/gugak-packaging.json'
         if packaging.exists():c['packaging_inventory'] = json.loads(packaging.read_text())
@@ -147,7 +147,7 @@ def main():
                       "Loaded means offline preparation plus a short finite-render smoke test, not full format fidelity."])
     for definition in CANDIDATES:
         c = dict(definition); specs = c.pop("artifacts"); c["artifacts"] = []
-        c["bank_type"] = "USER"; c["suggested_directory"] = "SoundBanks/" + c["id"]
+        c["bank_type"] = "USER"; c["suggested_directory"] = "instruments/USER/soundfont/" + c["id"]
         c["factory_status"] = "requires_provenance_review" if c["id"] in ("GeneralUser_GS", "Stargate") else "license_candidate_pending_compatibility_review"
         c["redistribution_conditions"] = c["attribution"]
         for filename, version, variant in specs:

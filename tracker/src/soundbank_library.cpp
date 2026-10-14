@@ -49,7 +49,7 @@ std::string soundbankRoot() {
   if (const char* root = getenv("CHOOCHOO_SOUNDBANKS"))
     if (*root) return root;
 #ifdef __EMSCRIPTEN__
-  return "/user/SoundBanks";
+  return "/user/instruments/USER/soundfont";
 #endif
   bool external = fileIsRunningFromAppImage();
 #if defined(ANDROID_BUILD) || defined(_WIN32)
@@ -58,9 +58,9 @@ std::string soundbankRoot() {
   if (external) {
     char directory[1024];
     if (!fileGetDefaultDirectory(directory, sizeof(directory)))
-      return std::string(directory) + "/SoundBanks";
+      return std::string(directory) + "/instruments/USER/soundfont";
   }
-  return "SoundBanks";
+  return "instruments/USER/soundfont";
 }
 const std::vector<soundbank::BankEntry>& soundbankEntries() { return entries; }
 bool soundbankBusy() { return job.valid(); }

@@ -710,6 +710,8 @@
       "R36H device personal build",
       "personal web"
     ],
-    "validation": "Exact results in evaluation receipts"
+    "validation": "Exact results in evaluation receipts",
+    "soundfont_user_root": "instruments/USER/soundfont",
+    "browser_user_zip_import": "Preserve existing USER files; retain relative bank/sample paths"
   }
 }
