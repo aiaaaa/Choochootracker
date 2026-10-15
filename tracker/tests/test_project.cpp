@@ -521,7 +521,7 @@ TEST_CASE("v3 projects default the LFO wavetable index to zero") {
 TEST_CASE("phrase FX groups put the active engine after Track FX") {
   CHECK(std::strcmp(fxGroups[0].name, "Sequencer FX") == 0);
   CHECK(std::strcmp(fxGroups[1].name, "Track FX") == 0);
-  CHECK(fxGroups[1].columns == 4);
+  CHECK(fxGroups[1].columns == 8);
   CHECK(fxGroups[1].fxList[3].fx == fxCRD);
   // Merged sample FX order keeps SPL/SLI first (our fork's saved-project
   // numeric values); SST is the sample-start control, STA a legacy alias.

@@ -224,6 +224,8 @@ An asterisk (`*`) appears next to a phrase that is reused in the project. You ca
 
 The FX selector shows common commands plus those supported by the instrument on that row. This avoids a long global list of engine-specific commands. ChooChooTracker supports more FX than ChipNomad.
 
+The selector keeps its compact help panel and group spacing consistent as you browse. Commands use three-character labels; the help above shows their meaning and, where available, the saved value and range. Long groups scroll to keep the selected command visible, with arrows indicating more entries.
+
 ### Controls
 
 - **OPT + EDIT** on an empty note: insert `NOTE OFF`
@@ -1307,6 +1309,10 @@ Tables `00-7F` are reserved for default instrument tables. Tables `80-FE` are in
 
 - **EDIT + [UP/DOWN]** on an FX name column: open the FX selection screen
 - **OPT + [DIRECTION]**: move between tables
+
+The FX picker leaves a blank row between its four-row help area and the group list.
+Command groups use up to eight columns; Modulation keeps five commands per row,
+one row for each modulation slot.
 
 ## 9. Instrument Pool and AY Wavetable
 
