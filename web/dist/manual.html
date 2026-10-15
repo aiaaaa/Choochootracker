@@ -1264,6 +1264,13 @@ control. Existing parameter ranges and fine/coarse adjustment behavior are retai
 EDIT+direction controls. OPT or Left+Shift returns; EDIT+PLAY auditions the
 instrument. The page edits the existing stored patch directly, so changes are
 saved with the instrument and project.</p>
+<p>Imported SID programs can own a waveform, pulse, filter or pitch control. A
+<code>*</code> marks such a control; select it to see which imported macro or table owns
+it. Change the source program to alter it. Controls without <code>*</code>, and Phrase or
+Table FX, remain editable.</p>
+<p>SID USER shows one collection per ZIP and keeps model variants such as <code>6581</code>
+and <code>8580</code> in the sound name. A single imported SID file uses its filename,
+which is often clearer than its embedded name.</p>
 <p>SID EDIT groups waveform, ring/sync, ADSR, pulse width, filter, motion,
 arpeggio, pitch sweep and vibrato. The status bar identifies each control and
 its range. Ring and sync each use two of the four available SID voices, so a

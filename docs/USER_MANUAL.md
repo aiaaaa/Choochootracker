@@ -1114,6 +1114,15 @@ EDIT+direction controls. OPT or Left+Shift returns; EDIT+PLAY auditions the
 instrument. The page edits the existing stored patch directly, so changes are
 saved with the instrument and project.
 
+Imported SID programs can own a waveform, pulse, filter or pitch control. A
+`*` marks such a control; select it to see which imported macro or table owns
+it. Change the source program to alter it. Controls without `*`, and Phrase or
+Table FX, remain editable.
+
+SID USER shows one collection per ZIP and keeps model variants such as `6581`
+and `8580` in the sound name. A single imported SID file uses its filename,
+which is often clearer than its embedded name.
+
 SID EDIT groups waveform, ring/sync, ADSR, pulse width, filter, motion,
 arpeggio, pitch sweep and vibrato. The status bar identifies each control and
 its range. Ring and sync each use two of the four available SID voices, so a
