@@ -237,7 +237,7 @@ TEST_SUITE("track inserts") {
     CHECK(fxF11 > fxATY);
     CHECK(fxF28 < 255);
     CHECK(genericModFirstInsert == 29);
-      const int counts[] = {0, 8, 4, 2, 6, 6, 5, 4, 5, 4, 4, 4, 4, 6, 8};
+      const int counts[] = {0, 8, 4, 2, 6, 6, 5, 4, 5, 4, 4, 4, 4, 6, 8, 8};
     for (int m = 0; m < insertModuleCount; ++m) {
       CHECK(insertDescriptor(m).count == counts[m]);
       InsertConfig c{};
@@ -990,7 +990,7 @@ TEST_CASE("insert tips return after real key release and categorized chooser sel
       insertDistortion, insertSaturation, insertBitcrusher, insertDestruction,
       insertChorus, insertPhaser, insertFlanger,
       insertTranceGate,
-      insertDoubler, insertRotary, insertTape, insertParametricEQ,
+      insertDoubler, insertRotary, insertTape, insertParametricEQ, insertBeads,
   };
   for (int i = 1; i < (int)(sizeof(popupOrder) / sizeof(popupOrder[0])); ++i) {
     screenInsertFX.onInput(1, keyEdit | keyRight, 0);
@@ -999,7 +999,7 @@ TEST_CASE("insert tips return after real key release and categorized chooser sel
   screenInsertFX.onInput(1, keyEdit | keyRight, 0);
   CHECK(insert.module == insertOff);
   screenInsertFX.onInput(1, keyEdit | keyLeft, 0);
-  CHECK(insert.module == insertParametricEQ);
+  CHECK(insert.module == insertBeads);
   insertSelect(&insert, insertDistortion);
   screenInsertFX.onInput(1, keyEdit, 1);
   screenInsertFX.onInput(0, 0, 1);

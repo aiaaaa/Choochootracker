@@ -7,6 +7,8 @@
 
 #include "clouds/dsp/frame.h"
 #include "clouds/dsp/fx/reverb.h"
+#include "beads/dsp/frame.h"
+#include "beads/dsp/fx/reverb.h"
 
 struct Project;
 
@@ -26,16 +28,22 @@ class MasterEffects {
 
   float sampleRate_;
   uint16_t reverbMemory_[65536];
+  uint16_t beadsReverbMemory_[32768];
   clouds::Reverb reverb_;
+  beads::Reverb beadsReverb_;
   std::vector<clouds::FloatFrame> reverbFrames_;
+  std::vector<beads::FloatFrame> beadsReverbFrames_;
   std::vector<float> delayLine_;
   size_t delayWrite_;
   float reverbFilterState_[2];
   float reverbHighpassInputState_[2];
   float reverbHighpassOutputState_[2];
+  float beadsReverbHighpassInputState_[2];
+  float beadsReverbHighpassOutputState_[2];
   float delayFilterState_[2];
   size_t reverbTailFrames_;
   size_t delayTailFrames_;
+  uint8_t activeReverbAlgorithm_;
 };
 
 #endif

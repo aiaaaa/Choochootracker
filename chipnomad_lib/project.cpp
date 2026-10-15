@@ -217,6 +217,10 @@ void projectInit(Project* p) {
   p->reverbDamping = 160;
   p->reverbFilterCutoffHz = 16000;
   p->reverbHighpassCutoffHz = 150;
+  p->reverbAlgorithm = 0;
+  p->beadsReverbTime = 180;
+  p->beadsReverbTone = 153;
+  p->beadsReverbHighpassCutoffHz = 150;
   p->delayReturn = 100;
   p->delayReverbSend = 0;
   p->delayTicks = 9;

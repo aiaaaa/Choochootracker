@@ -65,6 +65,29 @@ TEST_CASE_FIXTURE(ProjectFixture, "projectInit default track tilt") {
   for (int i = 0; i < PROJECT_MAX_TRACKS; ++i) CHECK(p.trackTilt[i] == 0x80);
 }
 
+TEST_CASE_FIXTURE(ProjectFixture, "projectInit defaults to Clouds with usable Beads settings") {
+  CHECK(p.reverbAlgorithm == 0);
+  CHECK(p.beadsReverbTime == 180);
+  CHECK(p.beadsReverbTone == 153);
+  CHECK(p.beadsReverbHighpassCutoffHz == 150);
+}
+
+TEST_CASE("Beads reverb settings survive save and load") {
+  Project saved, loaded;
+  projectInit(&saved); projectInit(&loaded);
+  saved.reverbAlgorithm = 1;
+  saved.beadsReverbTime = 77;
+  saved.beadsReverbTone = 201;
+  saved.beadsReverbHighpassCutoffHz = 900;
+  const char* path = "build/tests/beads_reverb_io.cct";
+  REQUIRE(projectSave(&saved, path) == 0);
+  REQUIRE(projectLoad(&loaded, path) == 0);
+  CHECK(loaded.reverbAlgorithm == 1);
+  CHECK(loaded.beadsReverbTime == 77);
+  CHECK(loaded.beadsReverbTone == 201);
+  CHECK(loaded.beadsReverbHighpassCutoffHz == 900);
+}
+
 TEST_CASE_FIXTURE(ProjectFixture, "projectInit enables MIDI CC mapping rows") {
   for (int i = 0; i < PROJECT_MAX_MIDI_CC_MAPPINGS; ++i)
     CHECK(p.midiCCMappings[i].enabled == 1);
