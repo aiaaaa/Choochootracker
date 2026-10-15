@@ -243,9 +243,10 @@ static void handleClockTick(MidiRouterState* router, uint64_t arrival) {
       router->clockBpmEma = router->haveClockBpm
         ? router->clockBpmEma + (bpm - router->clockBpmEma) * 0.2f
         : bpm;
-      // A USB MIDI pulse is far too noisy a rate for retiming a sequencer and
-      // its tempo-synchronised effects directly. Publish once per beat.
-      if ((router->clockPulseCount % 24) == 0) {
+      // Start following as soon as the first interval is known. After that,
+      // a USB MIDI pulse is far too noisy a rate for retiming a sequencer and
+      // its tempo-synchronised effects directly, so publish once per beat.
+      if (!router->haveClockBpm || (router->clockPulseCount % 24) == 0) {
         router->clockBpm = router->clockBpmEma;
         router->clockBpmSerial++;
       }
