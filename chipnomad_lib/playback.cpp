@@ -67,6 +67,7 @@ static void resetNoteFX(PlaybackState* state, int trackIdx) {
 }
 
 static void resetInstrumentFX(PlaybackTrackState* track) {
+  for (int i=fxFPT; i<=fxFSU; ++i) track->note.fx[i].isOn=0;
   track->note.nativeFM = {};
   track->note.nativeFMCurrent = {};
   track->note.nativeFMRemaining = {};
@@ -304,7 +305,7 @@ void handleNoteOff(PlaybackState* state, int trackIdx) {
   track->note.noteReleased = 1;
 
   int isModernVoice = instType == InstrumentType::Braids ||
-    instType == InstrumentType::Plaits || instType == InstrumentType::PlaitsAlt || instType == InstrumentType::Sample ||
+    instType == InstrumentType::SoundFont || instType == InstrumentType::Plaits || instType == InstrumentType::PlaitsAlt || instType == InstrumentType::Sample ||
     instType == InstrumentType::DrumSynth || instType == InstrumentType::MME || instType == InstrumentType::Sintered;
 
   int hasVolumeADSR = 0;
@@ -912,6 +913,7 @@ static void handleInstrument(PlaybackState* state, int trackIdx) {
   case InstrumentType::Braids:
   case InstrumentType::Plaits:
   case InstrumentType::PlaitsAlt:
+  case InstrumentType::SoundFont:
   case InstrumentType::Sample:
   case InstrumentType::SCWF:
   case InstrumentType::BYOWTBL:

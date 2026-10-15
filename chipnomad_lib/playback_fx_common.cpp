@@ -1,6 +1,7 @@
 #include "playback.h"
 #include "playback_internal.h"
 #include <stdio.h>
+#include <algorithm>
 #include <string.h>
 
 PlaybackFXHandler fxHandlers[fxTotalCount] = {};
@@ -124,8 +125,13 @@ static void initFX_PBN(PlaybackState* state, PlaybackTrackState* track, int trac
     speed = state->p->grooves[track->grooveIdx].speed[track->grooveRow];
   }
   if (speed == 0) speed = 1;
-  int value = (int8_t)(fx->fxValue) << 8; // Use 24.8 fixed point math
-  if (state->p->linearPitch) {
+  int value = int(int8_t(fx->fxValue)) * 256; // Use 24.8 fixed point math
+  const auto* instrument = track->note.instrument == EMPTY_VALUE_8 ? nullptr :
+    &state->p->instruments[track->note.instrument];
+  if (instrument && instrument->type==InstrumentType::SoundFont &&
+      instrument->chip.soundfont.controls.bendStepCents>0) {
+    value *= std::clamp(int(instrument->chip.soundfont.controls.bendStepCents),1,100);
+  } else if (state->p->linearPitch) {
     // Linear pitch mode: multiply by 25 for cents
     value *= 25;
   }
@@ -405,6 +411,14 @@ void initFX(PlaybackState* state, int trackIdx, const FXCell* fx, PlaybackTableS
       track->inserts.values[slot][parameter] = insertClamp(module, parameter, fx->value);
       track->inserts.valid[slot] |= 1 << parameter;
     }
+    return;
+  }
+  if (fx->command >= fxFPT && fx->command <= fxFSU) {
+    if (track->note.instrument == EMPTY_VALUE_8 ||
+        state->p->instruments[track->note.instrument].type != InstrumentType::SoundFont) return;
+    auto& f = track->note.fx[fx->command];
+    f.isOn = 1;
+    f.fxValue = fx->command == fxFPT ? std::min(int(fx->value), 48) : fx->value;
     return;
   }
   if (fx->command >= fxOAR && fx->command <= fxLEN) {

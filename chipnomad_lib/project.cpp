@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <initializer_list>
 #include <string.h>
 #include "project.h"
 #include "project_instruments.h"
@@ -90,6 +91,7 @@ FXGroup fxGroups[] = {
   {"MIDI FX", NULL, 0, 4, InstrumentType::Midi},
   {"TF1", fxNamesInsert, 8, 8, InstrumentType::none},
   {"TF2", fxNamesInsert + 8, 8, 8, InstrumentType::none},
+  {"SoundFont FX", NULL, 0, 4, InstrumentType::SoundFont},
 };
 int fxGroupCount = sizeof(fxGroups) / sizeof(FXGroup);
 
@@ -100,6 +102,9 @@ void fillFXNames() {
     strcpy(fxNames[c].name, "---");
     fxNames[c].fx = (FXId)c;
   }
+  // Retain legacy spellings for saved songs, without offering duplicate controls.
+  strcpy(fxNames[fxFVL].name, "FVL");
+  strcpy(fxNames[fxFPN].name, "FPN");
   // Fill counts in fxGroups array
   fxGroups[0].count = fxSequencerCount;
   fxGroups[1].count = fxTrackCount;
@@ -140,6 +145,18 @@ void fillFXNames() {
     FXName* names = instrumentGroupNames[(int)type];
     fxGroups[group].fxList = names; fxGroups[group].count = definition->fxCount;
     for (int i = 0; i < definition->fxCount; ++i) { names[i].fx = (FX)definition->fxList[i].fx; strcpy(names[i].name, definition->fxList[i].name); }
+  }
+
+  {
+    auto type = InstrumentType::SoundFont;
+    const auto* definition = getInstrumentDefinition(type);
+    auto* names = instrumentGroupNames[(int)type];
+    auto& group = fxGroups[fxGroupCount - 1];
+    group.fxList = names; group.count = definition->fxCount;
+    for (int i = 0; i < definition->fxCount; ++i) {
+      names[i].fx = (FX)definition->fxList[i].fx;
+      strcpy(names[i].name, definition->fxList[i].name);
+    }
   }
 
   for(int group=14;group<25;++group) {

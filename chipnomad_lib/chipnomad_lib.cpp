@@ -1,9 +1,11 @@
 #include "audio_monitor.h"
 #include "chipnomad_lib.h"
+#include "soundbank_fx.h"
 #include "chipnomad_lib_live_stick.h"
 #include "playback.h"
 #include "synth/braids_voice.h"
 #include "synth/sample_voice.h"
+#include "synth/soundbank_voice.h"
 #include "synth/scwf_voice.h"
 #undef LUT_FM_FREQUENCY_QUANTIZER
 #undef LUT_FM_FREQUENCY_QUANTIZER_SIZE
@@ -26,6 +28,7 @@
 #include "synth/master_effects.h"
 #include "midi/midi_router.h"
 #include <math.h>
+#include <algorithm>
 #include <atomic>
 #include <new>
 #include <limits.h>
@@ -35,6 +38,7 @@
 static void detectAYPitchConflicts(ChipNomadState* state);
 static void updateBraidsVoices(ChipNomadState* state);
 static void updateSampleVoices(ChipNomadState* state);
+static void updateSoundbankVoices(ChipNomadState* state);
 static void updateSCWFVoices(ChipNomadState* state);
 static void updatePlaitsVoices(ChipNomadState* state);
 static void updatePlaitsAltVoices(ChipNomadState* state);
@@ -58,6 +62,14 @@ static void updateInsertValues(ChipNomadState*);
 
 class AudioCommandQueue {
  public:
+  bool hasSoundbank(uint32_t handle) const {
+    for (const auto& slot : projectSlots_)
+      if (slot.state.load() != kFree)
+        for (const auto& i : slot.value.instruments)
+          if (i.type == InstrumentType::SoundFont && i.chip.soundfont.prepared == handle)
+            return true;
+    return false;
+  }
   void requestStop() { stopRequested_.store(1, std::memory_order_release); }
 
   int takeStopRequest() { return stopRequested_.exchange(0, std::memory_order_acq_rel); }
@@ -586,6 +598,8 @@ static int effectivePan(ChipNomadState* state, int trackIdx, bool instrumentPan)
   }
   FX fx = instrumentPan ? fxPAN : fxTPN;
   if (track->note.fx[fx].isOn) value = track->note.fx[fx].fxValue;
+  if (instrumentPan && type == InstrumentType::SoundFont && track->note.fx[fxFPN].isOn)
+    value = track->note.fx[fxFPN].fxValue;
   for (const auto& mod : track->note.modulation) {
     if (!mod.modulation) continue;
     int destination = instrumentGenericModDestination(type, mod.modulation->destination);
@@ -732,6 +746,8 @@ ChipNomadState* chipnomadCreate(void) {
     for (int voice = 0; voice < CHORD_MAX_VOICES; ++voice) {
       state->braidsVoices[i][voice] = new BraidsVoice();
       state->braidsVoices[i][voice]->init();
+      state->soundbankVoices[i][voice] = new SoundbankVoice();
+      state->soundbankVoices[i][voice]->init(96000.0f);
       state->sampleVoices[i][voice] = new SampleVoice();
       state->sampleVoices[i][voice]->init(96000.0f);
       state->scwfVoices[i][voice] = new SCWFVoice();
@@ -782,6 +798,7 @@ void chipnomadDestroy(ChipNomadState* state) {
   for (int i = 0; i < PROJECT_MAX_TRACKS; i++) {
     for (int voice = 0; voice < CHORD_MAX_VOICES; ++voice) {
       delete state->braidsVoices[i][voice];
+      delete state->soundbankVoices[i][voice];
       delete state->sampleVoices[i][voice];
       delete state->scwfVoices[i][voice];
       delete state->plaitsVoices[i][voice];
@@ -853,6 +870,7 @@ void chipnomadInitChips(ChipNomadState* state, int sampleRate, ChipFactory facto
     state->insertResetSeen[i] = state->playbackState.tracks[i].insertReset;
     for (int voice = 0; voice < CHORD_MAX_VOICES; ++voice) {
       state->braidsVoices[i][voice]->init((float)sampleRate);
+      state->soundbankVoices[i][voice]->init((float)sampleRate);
       state->sampleVoices[i][voice]->init((float)sampleRate);
       state->scwfVoices[i][voice]->init((float)sampleRate);
       state->plaitsVoices[i][voice]->init((float)sampleRate);
@@ -1003,6 +1021,7 @@ static void updateAudioRateModulations(ChipNomadState* state) {
     for (int i = 0; i < 4; ++i)
       playbackModNextAudio(&track->note.modulation[i], (float)state->sampleRate);
   }
+  updateSoundbankVoices(state);
   updateSampleVoices(state);
   updateSCWFVoices(state);
   updateBraidsVoices(state);
@@ -1062,6 +1081,7 @@ static int advancePlaybackFrame(ChipNomadState* state, uint64_t dueMicros) {
       state->insertChains[t]->trigger();
   motionRecordFrame(state);
   if (allTracksStopped) playbackUpdateLiveStickModulation(&state->playbackState, axes, enabled);
+  updateSoundbankVoices(state);
   updateSampleVoices(state); updateSCWFVoices(state); updateBraidsVoices(state);
   updatePlaitsVoices(state); updatePlaitsAltVoices(state); updateAChChidVoices(state); updateDrumSynthVoices(state); updateMMEVoices(state); updateSinteredVoices(state); updateOPLLVoices(state); updateOPLVoices(state); updateFourOpVoices(state); updateSimpleChipVoices(state); updateSIDVoices(state); updateDX7Voices(state); applyVoiceEvents(state, dueMicros);
   if (state->audioOverload > 0) state->audioOverload--;
@@ -1144,10 +1164,10 @@ static void renderMonoVoiceTracks(ChipNomadState* state, Voice* const voices[][C
 }
 
 template <typename Voice>
-static void renderStereoVoiceTracks(ChipNomadState* state, Voice* const voices[][CHORD_MAX_VOICES], float* output, int frames) {
+static void renderStereoVoiceTracks(ChipNomadState* state, Voice* const voices[][CHORD_MAX_VOICES], float* output, int frames, bool includeReleaseSlots = false) {
   for (int trackIdx = 0; trackIdx < state->audioProject.tracksCount; ++trackIdx) {
     if (!state->playbackState.trackEnabled[trackIdx]) continue;
-    for (int slot = 0; slot < state->playbackState.tracks[trackIdx].chordVoiceCount; ++slot) {
+    for (int slot = 0; slot < (includeReleaseSlots ? CHORD_MAX_VOICES : state->playbackState.tracks[trackIdx].chordVoiceCount); ++slot) {
       Voice* voice = voices[trackIdx][slot];
       if (!voice->active()) continue;
       float* rendered = state->mixBuffer;
@@ -1247,6 +1267,8 @@ int chipnomadRender(ChipNomadState* state, float* buffer, int samples) {
     if (!prepareRenderChunk(state, output, frames)) return 0;
     renderChipTracks(state, output, frames);
     renderMonoVoiceTracks(state, state->braidsVoices, output, frames);
+    // Removed chord slots may still have a short de-click tail after KILL.
+    renderStereoVoiceTracks(state, state->soundbankVoices, output, frames, true);
     renderStereoVoiceTracks(state, state->sampleVoices, output, frames);
     renderStereoVoiceTracks(state, state->scwfVoices, output, frames);
     renderMonoVoiceTracks(state, state->plaitsVoices, output, frames);
@@ -1354,6 +1376,15 @@ static void applyVoiceEvents(ChipNomadState* state, uint64_t dueMicros) {
       }
     };
     switch (project->instruments[track->note.instrument].type) {
+      case InstrumentType::SoundFont:
+        if (track->note.noteTriggered)
+          for (int incoming = 0; incoming < track->chordVoiceCount; ++incoming)
+            for (int t = 0; t < project->tracksCount; ++t)
+              for (int v = 0; v < CHORD_MAX_VOICES; ++v)
+                state->soundbankVoices[t][v]->chokeFrom(
+                    *state->soundbankVoices[trackIdx][incoming]);
+        applyEvent(state->soundbankVoices[trackIdx]);
+        break;
       case InstrumentType::Sample:
         applyEvent(state->sampleVoices[trackIdx]);
         break;
@@ -1457,6 +1488,59 @@ static void applyVoiceEvents(ChipNomadState* state, uint64_t dueMicros) {
 void chipnomadMidiPanic(ChipNomadState* state) {
   if (!state) return;
   midiRouterPanic(state->midiRouter);
+}
+
+void chipnomadCollectSoundbanks(ChipNomadState* state) {
+  if (!state) return;
+  soundbank::collect([&](uint32_t h) {
+    for (const Project* p : {&state->project, &state->audioProject})
+      for (const auto& i : p->instruments)
+        if (i.type == InstrumentType::SoundFont && i.chip.soundfont.prepared == h) return true;
+    if (state->audioCommands->hasSoundbank(h)) return true;
+    for (int t = 0; t < PROJECT_MAX_TRACKS; ++t)
+      for (int v = 0; v < CHORD_MAX_VOICES; ++v)
+        if (state->soundbankVoices[t][v]->active() && state->soundbankVoices[t][v]->handle() == h)
+          return true;
+    return false;
+  });
+}
+static void updateSoundbankVoices(ChipNomadState* state) {
+  auto* project = &state->audioProject;
+  auto* playback = &state->playbackState;
+  for (int t = 0; t < project->tracksCount; ++t) {
+    auto* track = &playback->tracks[t];
+    auto voices = state->soundbankVoices[t];
+    if (track->note.instrument == EMPTY_VALUE_8 ||
+        project->instruments[track->note.instrument].type != InstrumentType::SoundFont) {
+      for (int v = 0; v < CHORD_MAX_VOICES; ++v) voices[v]->kill();
+      continue;
+    }
+    auto* instrument = &project->instruments[track->note.instrument];
+    const auto controls = soundbankFXControls(instrument->chip.soundfont.controls, track->note.fx);
+    float gain = (track->note.fx[fxFVL].isOn ? track->note.fx[fxFVL].fxValue : instrument->volume)
+      * playbackVolumeGain(playback, track) / 255.f;
+    int pitch = 0;
+    for (int m = 0; m < 4; ++m) {
+      auto& mod = track->note.modulation[m];
+      if (!mod.modulation) continue;
+      if (mod.modulation->destination == 1) {
+        auto value = playbackModScaleToRange(mod.outValue, 255);
+        gain = modulationIsAdditive(mod.modulation->type) ? gain + value / 255.f : value / 255.f;
+      } else if (mod.modulation->destination == 2)
+        pitch += playbackModScaleToRange(mod.outValue, 1200);
+    }
+    for (int v = 0; v < track->chordVoiceCount; ++v) {
+      int note = track->chordPitchFinal[v];
+      int cents = note == EMPTY_VALUE_8 ? 6000
+                                        : (project->linearPitch ? project->pitchTable.values[note]
+                                                                : (note + 12) * 100) +
+                                              track->note.fineOffset + pitch;
+      int velocity = std::clamp(int(track->note.volume) * 127 / PHRASE_VOLUME_MAX, 0, 127);
+      voices[v]->configure(instrument->chip.soundfont.prepared, cents,
+                           gain / std::max(1, int(track->chordVoiceCount)), velocity, 20000,
+                           controls);
+    }
+  }
 }
 
 static void updateSampleVoices(ChipNomadState* state) {
