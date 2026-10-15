@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.Locale;
+import android.view.KeyEvent;
 import org.libsdl.app.SDLActivity;
 
 public final class ChooChooTrackerActivity extends SDLActivity {
@@ -158,6 +159,23 @@ public final class ChooChooTrackerActivity extends SDLActivity {
     };
 
     public static native void nativeMidiMessage(byte[] data, long timestamp);
+
+    // Pads in "extra buttons" mode report KEYCODE_BUTTON_1..16, which SDL
+    // does not turn into usable controller buttons. Hand them to the native
+    // side ourselves.
+    public static native void nativeExtraButton(int keyCode, boolean down);
+
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        int keyCode = event.getKeyCode();
+        if (keyCode >= KeyEvent.KEYCODE_BUTTON_1 && keyCode <= KeyEvent.KEYCODE_BUTTON_16) {
+            if (event.getRepeatCount() == 0) {
+                nativeExtraButton(keyCode, event.getAction() == KeyEvent.ACTION_DOWN);
+            }
+            return true;
+        }
+        return super.dispatchKeyEvent(event);
+    }
 
     @Override protected String[] getLibraries() {
         return new String[] { "SDL2", "chipnomad" };

@@ -7,6 +7,9 @@
 #include "corelib_input.h"
 #include "../../src/corelib/corelib_assets.h"
 #include "../../src/common.h"
+#ifdef ANDROID_BUILD
+#include "../android/extra_buttons_android.h"
+#endif
 
 #ifdef MIYOOPORTS_BUILD
 // MMIYOO is a software framebuffer backend. The tracker state and audio run
@@ -52,6 +55,15 @@ static const int fallbackButtonCodes[] = {
   SDL_CONTROLLER_BUTTON_LEFTSHOULDER, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER,
   SDL_CONTROLLER_BUTTON_BACK, SDL_CONTROLLER_BUTTON_START,
 };
+
+#ifdef ANDROID_BUILD
+// Pads in "extra buttons" mode report KEYCODE_BUTTON_1..16: each one is its
+// own gamepad input, mappable in Settings > Controls > Key mapping.
+static int extraButtonCode(int keyCode) {
+  int index = keyCode - ANDROID_KEYCODE_BUTTON_1;
+  return index >= 0 && index < gamepadExtraButtonCount ? gamepadExtraButton + index : -1;
+}
+#endif
 
 static void closeFallbackJoystick(void) {
   if (!fallbackJoystick) return;
@@ -443,6 +455,16 @@ void mainLoopRun(void (*draw)(void), void (*onEvent)(MainLoopEventData eventData
           fallbackSendDpad(onEvent);
         }
       }
+#ifdef ANDROID_BUILD
+      else if (event.type == SDL_USEREVENT && event.user.code == EXTRA_BUTTON_EVENT_CODE) {
+        int code = extraButtonCode((int)(intptr_t)event.user.data1);
+        if (code >= 0) {
+          eventData.type = event.user.data2 ? MainLoopEvent::keyDown : MainLoopEvent::keyUp;
+          eventData.data.input = (InputCode){InputDeviceType::gamepad, code};
+          onEvent(eventData);
+        }
+      }
+#else
       else if (fallbackJoystick && (event.type == SDL_JOYBUTTONDOWN || event.type == SDL_JOYBUTTONUP) &&
                event.jbutton.which == SDL_JoystickInstanceID(fallbackJoystick)) {
         SDL_Log("CCT joy button %d %s", event.jbutton.button, event.type == SDL_JOYBUTTONDOWN ? "down" : "up");
@@ -452,6 +474,7 @@ void mainLoopRun(void (*draw)(void), void (*onEvent)(MainLoopEventData eventData
           onEvent(eventData);
         }
       }
+#endif
       else if (fallbackJoystick && event.type == SDL_JOYHATMOTION &&
                event.jhat.which == SDL_JoystickInstanceID(fallbackJoystick)) {
         SDL_Log("CCT joy hat %d value %d", event.jhat.hat, event.jhat.value);
