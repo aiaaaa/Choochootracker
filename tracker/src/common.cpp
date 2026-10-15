@@ -82,6 +82,11 @@ void initDefaultAppSettings(void) {
   appSettings.midiOutputDeviceName[0] = '\0';
   for (int i = 0; i < MIDI_CHANNEL_COUNT; i++) appSettings.midiChannelInstrument[i] = -1;
   appSettings.persistentWaveform = 0;
+#ifdef ANDROID_BUILD
+  appSettings.hideTouchPadWithGamepad = 0; // phones have no built-in pad: keep touch controls
+#else
+  appSettings.hideTouchPadWithGamepad = 1; // handhelds: their built-in pad replaces it
+#endif
   appSettings.bootScreenNight = 0;
 
   // Zero out key mapping (platform-specific defaults applied later)
@@ -217,6 +222,7 @@ int settingsSave(void) {
     appSettings.stickLiveMode == StickLiveMode::toggle ? "TOGGLE" : "HOLD";
   fprintf(file, "stickLiveMode: %s\n", stickLiveMode);
   fprintf(file, "persistentWaveform: %d\n", appSettings.persistentWaveform);
+  fprintf(file, "hideTouchPadWithGamepad: %d\n", appSettings.hideTouchPadWithGamepad);
   fprintf(file, "bootScreenNight: %d\n", appSettings.bootScreenNight);
   for (int track = 0; track < PROJECT_MAX_TRACKS; ++track)
     fprintf(file, "trackVisuals%d: %d\n", track + 1, (int)appSettings.trackVisuals[track].mode);
@@ -319,6 +325,10 @@ int settingsLoad(void) {
       int enabled;
       if (sscanf(line + 20, "%d", &enabled) == 1 && (enabled == 0 || enabled == 1))
         appSettings.persistentWaveform = (uint8_t)enabled;
+    } else if (strncmp(line, "hideTouchPadWithGamepad: ", 25) == 0) {
+      int enabled;
+      if (sscanf(line + 25, "%d", &enabled) == 1 && (enabled == 0 || enabled == 1))
+        appSettings.hideTouchPadWithGamepad = (uint8_t)enabled;
     } else if (strncmp(line, "trackVisuals", 11) == 0) {
       int track, mode;
       if (sscanf(line, "trackVisuals%d: %d", &track, &mode) == 2 &&
