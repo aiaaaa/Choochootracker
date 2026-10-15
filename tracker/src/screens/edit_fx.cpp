@@ -1,3 +1,4 @@
+#include "soundbank_fx.h"
 #include "screens.h"
 #include "corelib_gfx.h"
 #include "help.h"
@@ -54,6 +55,15 @@ static bool nativeInfo(uint8_t instrumentIdx,int fx,NativeFXInfo& info) {
 
 static const char* nativeControlDescription(int fx) {
   switch(fx) {
+    case fxFPT:return "00=-24st 18=0 30=+24st";
+    case fxFVL:return "Instrument volume: 00 silent, FF full";
+    case fxFPN:return "00 left, 80 center, FF right";
+    case fxFCF:return "20Hz-20kHz; FF uses Edit/Bank";
+    case fxFRS:return "0-40dB; FF uses Edit/Bank";
+    case fxFAT:case fxFHD:return "Next note: 0-20s; FF uses Edit/Bank";
+    case fxFDC:return "Decay to Sustain; FF uses Edit/Bank";
+    case fxFRL:return "After note OFF; FF uses Edit/Bank";
+    case fxFSU:return "Held level 0-100%; FF uses Edit/Bank";
     case fxOAR:return "How quickly the operator attacks";
     case fxODR:return "How quickly the operator decays";
     case fxORR:return "Decay rate after note release";
@@ -75,7 +85,7 @@ void selectInstrumentFX(FXCell* fx, FXId selected, uint8_t instrumentIdx) {
   if (!insertFXAvailable(selected)) return;
   NativeFXInfo info{};
   bool native=nativeInfo(instrumentIdx,selected,info);
-  if(selected>=fxFBR&&selected<=fxLEN&&!native)return;
+  if(((selected>=fxFBR&&selected<=fxLEN)||(selected>=fxFPT&&selected<=fxFSU))&&!native)return;
   if(fx->command==selected) {
     if(native)fx->value=std::clamp(int(fx->value),info.minimum,info.maximum);
     return; // Preserve legal edits; repair values from a different engine.
@@ -85,9 +95,28 @@ void selectInstrumentFX(FXCell* fx, FXId selected, uint8_t instrumentIdx) {
 }
 
 static const char* contextualFXHint(const FXCell* fx,int table,uint8_t instrument) {
+  if (fx->command==fxPBN && instrument!=EMPTY_VALUE_8 &&
+      chipnomadState->project.instruments[instrument].type==InstrumentType::SoundFont) {
+    static char bend[80];
+    int step=chipnomadState->project.instruments[instrument].chip.soundfont.controls.bendStepCents;
+    if (!step) step=chipnomadState->project.linearPitch ? 25 : 1;
+    snprintf(bend,sizeof(bend),"Bend: %+d cents/row (%d ct step)",int(int8_t(fx->value))*step,step);
+    return bend;
+  }
   NativeFXInfo native{};
   if(nativeInfo(instrument,fx->command,native) && native.label) {
     static char text[80];
+    if (fx->command >= fxFPT && fx->command <= fxFSU) {
+      int cmd=fx->command, value=fx->value;
+      if (value==255 && cmd>=fxFCF) snprintf(text,sizeof(text),"%s: Edit/Bank",native.label);
+      else if (cmd==fxFPT) snprintf(text,sizeof(text),"Pitch: %+d semitones",std::min(value,48)-24);
+      else if (cmd==fxFCF) snprintf(text,sizeof(text),"Cutoff: %d Hz",soundbankFXCutoff(value));
+      else if (cmd==fxFRS) snprintf(text,sizeof(text),"Resonance: %.1f dB",value*40.0/254);
+      else if (cmd==fxFSU) snprintf(text,sizeof(text),"Sustain: %d%%",(value*100+127)/254);
+      else if (cmd>=fxFAT) snprintf(text,sizeof(text),"%s: %d ms",native.label,soundbankFXTime(value));
+      else snprintf(text,sizeof(text),"%s: %02X",native.label,value);
+      return text;
+    }
     if(fx->command>=fxOAR&&fx->command<=fxOE4)snprintf(text,sizeof(text),"OP1 %s: %02X",native.label,fx->value);
     else snprintf(text,sizeof(text),"%s: %02X",native.label,fx->value);
     return text;
@@ -114,7 +143,7 @@ static bool isFXAvailable(FXId fx, uint8_t instrumentIdx, int isTable) {
   InstrumentType instrumentType = getInstrumentType(instrumentIdx);
   const Instrument* instrument = instrumentIdx != EMPTY_VALUE_8 && instrumentIdx < PROJECT_MAX_INSTRUMENTS
     ? &chipnomadState->project.instruments[instrumentIdx] : NULL;
-  if(fx>=fxFBR&&fx<=fxLEN)return instrument && instrumentFXAvailableForInstrument(instrument,fx);
+  if((fx>=fxFBR&&fx<=fxLEN)||(fx>=fxFPT&&fx<=fxFSU))return instrument && instrumentFXAvailableForInstrument(instrument,fx);
   if (instrument && instrumentFXAvailableForInstrument(instrument, fx)) return true;
   for (int groupIdx = 0; groupIdx < fxGroupCount; groupIdx++) {
     FXGroup* group = &fxGroups[groupIdx];

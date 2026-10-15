@@ -228,6 +228,10 @@ enum FX : FXId {
   // Absolute panorama controls. Appended to preserve project FX IDs.
   fxPAN, // Instrument pan
   fxTPN, // Track pan
+  // Append only: saved FX identifiers remain stable.
+  fxFPT, fxFVL, fxFPN, fxFCF, fxFRS, fxFAT, fxFDC, fxFRL,
+  fxFHD, fxFSU,
+
   // Total count - must be last
   fxTotalCount
 };

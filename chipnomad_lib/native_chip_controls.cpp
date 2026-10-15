@@ -1,6 +1,7 @@
 #include "project.h"
 #include "sid_patch.h"
 #include <cstdio>
+#include <algorithm>
 #include <cstring>
 #include <initializer_list>
 
@@ -19,6 +20,24 @@ int instrumentFMOperatorCount(const Instrument* i) {
 
 bool instrumentNativeFXInfo(const Instrument* i,int fx,NativeFXInfo* out,int op) {
   if(!i||!out)return false;
+  if (i->type == InstrumentType::SoundFont) {
+    const char* label = nullptr;
+    int value = 255;
+    switch (fx) {
+      case fxFPT: *out={48, std::clamp(int(i->chip.soundfont.controls.tuneCents)/100+24,0,48), false,0,"Pitch"}; return true;
+      case fxFVL: label="Volume"; value=i->volume; break;
+      case fxFPN: label="Pan"; value=i->pan; break;
+      case fxFCF: label="Cutoff"; break;
+      case fxFRS: label="Resonance"; break;
+      case fxFAT: label="Attack"; break;
+      case fxFDC: label="Decay"; break;
+      case fxFRL: label="Release"; break;
+      case fxFHD: label="Hold"; break;
+      case fxFSU: label="Sustain"; break;
+      default: return false;
+    }
+    *out = {255, value, false, 0, label}; return true;
+  }
   if(fx>=fxOAR&&fx<=fxLEN)return instrumentDirectFMInfo(i,fx,out,op);
   if(fx==fxFBK) {
     if(!instrumentFMOperatorCount(i))return false;
