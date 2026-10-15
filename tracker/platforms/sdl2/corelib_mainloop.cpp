@@ -34,6 +34,58 @@ int mainLoopGetFrameTimeUs(void) { return frameTimeUs; }
 static SDL_GameController* gameController = NULL;
 static int gamepadTriggerDown[2] = {};
 
+// Fallback for pads SDL has no controller mapping for (cheap generic USB
+// SNES-style pads): use the raw joystick, mapped onto controller buttons so
+// the key mapping screen can still remap them.
+static SDL_Joystick* fallbackJoystick = NULL;
+static int fallbackAxisDir[4] = {};
+static int fallbackHatDir[4] = {};
+static int fallbackSentDir[4] = {};
+static const int fallbackDpadCodes[4] = {
+  SDL_CONTROLLER_BUTTON_DPAD_UP, SDL_CONTROLLER_BUTTON_DPAD_DOWN,
+  SDL_CONTROLLER_BUTTON_DPAD_LEFT, SDL_CONTROLLER_BUTTON_DPAD_RIGHT,
+};
+static const int fallbackButtonCodes[] = {
+  SDL_CONTROLLER_BUTTON_A, SDL_CONTROLLER_BUTTON_B,
+  SDL_CONTROLLER_BUTTON_X, SDL_CONTROLLER_BUTTON_Y,
+  SDL_CONTROLLER_BUTTON_LEFTSHOULDER, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER,
+  SDL_CONTROLLER_BUTTON_BACK, SDL_CONTROLLER_BUTTON_START,
+};
+
+static void closeFallbackJoystick(void) {
+  if (!fallbackJoystick) return;
+  SDL_JoystickClose(fallbackJoystick);
+  fallbackJoystick = NULL;
+  for (int i = 0; i < 4; ++i) fallbackAxisDir[i] = fallbackHatDir[i] = 0;
+}
+
+static void openFallbackJoystick(void) {
+  if (fallbackJoystick || gameController) return;
+  for (int i = 0; i < SDL_NumJoysticks(); i++) {
+    if (SDL_IsGameController(i)) continue;
+    fallbackJoystick = SDL_JoystickOpen(i);
+    if (fallbackJoystick) {
+#ifdef TOUCH_INPUT
+      extern int vpadEnabled;
+      vpadEnabled = 0;
+#endif
+      break;
+    }
+  }
+}
+
+static void fallbackSendDpad(void (*onEvent)(MainLoopEventData)) {
+  MainLoopEventData eventData;
+  for (int dir = 0; dir < 4; ++dir) {
+    int down = fallbackAxisDir[dir] || fallbackHatDir[dir];
+    if (down == fallbackSentDir[dir]) continue;
+    fallbackSentDir[dir] = down;
+    eventData.type = down ? MainLoopEvent::keyDown : MainLoopEvent::keyUp;
+    eventData.data.input = (InputCode){InputDeviceType::gamepad, fallbackDpadCodes[dir]};
+    onEvent(eventData);
+  }
+}
+
 static void initGamepad(void) {
 #ifdef TOUCH_INPUT
   extern int vpadEnabled;
@@ -50,6 +102,7 @@ static void initGamepad(void) {
       }
     }
   }
+  openFallbackJoystick();
 }
 #endif
 
@@ -261,6 +314,7 @@ void mainLoopRun(void (*draw)(void), void (*onEvent)(MainLoopEventData eventData
           SDL_GameControllerClose(gameController);
           gameController = NULL;
         }
+        closeFallbackJoystick();
 #endif
         return;
       }
@@ -271,6 +325,7 @@ void mainLoopRun(void (*draw)(void), void (*onEvent)(MainLoopEventData eventData
           SDL_GameControllerClose(gameController);
           gameController = NULL;
         }
+        closeFallbackJoystick();
 #endif
       }
       else if (event.type == SDL_APP_WILLENTERBACKGROUND) {
@@ -377,6 +432,47 @@ void mainLoopRun(void (*draw)(void), void (*onEvent)(MainLoopEventData eventData
             }
           }
         }
+      }
+      else if (event.type == SDL_JOYDEVICEADDED) {
+        // Controllers get SDL_CONTROLLERDEVICEADDED instead; this catches the rest.
+        if (!gameController && !fallbackJoystick) {
+          openFallbackJoystick();
+#ifdef TOUCH_INPUT
+          if (fallbackJoystick) releaseFingers();
+#endif
+        }
+      }
+      else if (event.type == SDL_JOYDEVICEREMOVED) {
+        if (fallbackJoystick && event.jdevice.which == SDL_JoystickInstanceID(fallbackJoystick)) {
+          closeFallbackJoystick();
+          fallbackSendDpad(onEvent);
+#ifdef TOUCH_INPUT
+          vpadEnabled = 1;
+#endif
+        }
+      }
+      else if (fallbackJoystick && (event.type == SDL_JOYBUTTONDOWN || event.type == SDL_JOYBUTTONUP) &&
+               event.jbutton.which == SDL_JoystickInstanceID(fallbackJoystick)) {
+        if (event.jbutton.button < sizeof(fallbackButtonCodes) / sizeof(fallbackButtonCodes[0])) {
+          eventData.type = event.type == SDL_JOYBUTTONDOWN ? MainLoopEvent::keyDown : MainLoopEvent::keyUp;
+          eventData.data.input = (InputCode){InputDeviceType::gamepad, fallbackButtonCodes[event.jbutton.button]};
+          onEvent(eventData);
+        }
+      }
+      else if (fallbackJoystick && event.type == SDL_JOYHATMOTION &&
+               event.jhat.which == SDL_JoystickInstanceID(fallbackJoystick)) {
+        fallbackHatDir[0] = (event.jhat.value & SDL_HAT_UP) != 0;
+        fallbackHatDir[1] = (event.jhat.value & SDL_HAT_DOWN) != 0;
+        fallbackHatDir[2] = (event.jhat.value & SDL_HAT_LEFT) != 0;
+        fallbackHatDir[3] = (event.jhat.value & SDL_HAT_RIGHT) != 0;
+        fallbackSendDpad(onEvent);
+      }
+      else if (fallbackJoystick && event.type == SDL_JOYAXISMOTION &&
+               event.jaxis.which == SDL_JoystickInstanceID(fallbackJoystick) && event.jaxis.axis < 2) {
+        int neg = event.jaxis.value < -16384, pos = event.jaxis.value > 16384;
+        if (event.jaxis.axis == 0) { fallbackAxisDir[2] = neg; fallbackAxisDir[3] = pos; }
+        else { fallbackAxisDir[0] = neg; fallbackAxisDir[1] = pos; }
+        fallbackSendDpad(onEvent);
       }
       else if (event.type == SDL_CONTROLLERDEVICEREMOVED) {
         if (gameController && event.cdevice.which == SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(gameController))) {
