@@ -1,23 +1,38 @@
-"""Build the static web manual from docs/USER_MANUAL.md."""
+"""Build the readable web manual from docs/USER_MANUAL.md."""
+from html import escape
+from pathlib import Path
 import re
 import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / ".tmp" / "manual-web-build"))
-import markdown
 
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / ".tmp" / "manual-web-build"))
+import markdown
+
+
+def slug(text):
+    return re.sub(r"[^a-z0-9]+", "-", re.sub(r"<.*?>", "", text).lower()).strip("-")
+
+
 source = (ROOT / "docs" / "USER_MANUAL.md").read_text(encoding="utf-8")
 body = markdown.markdown(source, extensions=["tables", "fenced_code", "sane_lists"])
-slides = re.split(r"(?=<h2(?: |>))", body)
-titles = [re.sub(r"<[^>]+>", "", slide.split("</h2>", 1)[0]) if "<h2" in slide else "Cover" for slide in slides]
-slides = "".join(f'<section class="slide">{slide}</section>' for slide in slides)
-toc = "".join(f'<button data-slide="{i}">{title}</button>' for i, title in enumerate(titles))
+
+
+def anchor(match):
+    level, title = match.groups()
+    return f'<h{level} id="{escape(slug(title), quote=True)}">{title}</h{level}>'
+
+
+body = re.sub(r"<h([234])>(.*?)</h\1>", anchor, body)
+chapters = re.findall(r'<h2 id="([^"]+)">(.*?)</h2>', body)
+toc = "".join(f'<a href="#{ident}">{re.sub(r"<.*?>", "", title)}</a>' for ident, title in chapters)
+assert chapters and "<h1>" in body
 
 style = """
-html,body{margin:0;height:100%;overflow:hidden;background:#050c1f;color:#d7d1c0;font:16px system-ui,sans-serif}#deck{height:100%;display:grid;place-items:center}.slide{display:none;width:min(1000px,78vw);height:min(88vh,760px);overflow:auto;padding:3rem 4rem;box-sizing:border-box;background:#0b1930;border:1px solid #245072;box-shadow:0 0 35px #020611}.slide.active{display:block}.slide h1{margin:8vh 0 1rem;text-align:center;color:#ffd665;font-size:clamp(2rem,5vw,4rem)}.slide h1+p{text-align:center;color:#9ab1c4;font-size:1.2rem}.slide h2{color:#ffd665;font-size:clamp(1.5rem,3vw,2.3rem);border-bottom:1px solid #52799b;padding-bottom:.35rem}.slide h3{color:#65d8ff}.slide h4{color:#ff9e8a}.slide p,.slide li{line-height:1.5}.slide table{border-collapse:collapse;width:100%;font-size:.9rem}.slide th,.slide td{border:1px solid #52799b;padding:.4rem .55rem;text-align:left;vertical-align:top}.slide th{background:#10284a;color:#ffd665}.slide code{background:#10284a;color:#9fe8ff;padding:.1rem .25rem}.slide pre{background:#050c1f;padding:1rem;overflow:auto}a{color:#65d8ff}#toc{position:fixed;left:1rem;top:1rem;bottom:4rem;width:16vw;min-width:150px;overflow:auto}#toc button{display:block;width:100%;margin:.2rem 0;text-align:left;font-size:.76rem;background:#10284a;color:#9ab1c4}#toc button.active{background:#ffd665;color:#050c1f}#nav{position:fixed;bottom:1rem;left:50%;transform:translateX(-50%);display:flex;gap:.6rem;align-items:center}button{background:#ffd665;color:#050c1f;border:0;border-radius:.3rem;padding:.45rem .8rem;font-weight:700;cursor:pointer}#count{color:#9ab1c4;min-width:4rem;text-align:center}@media(max-width:700px){#toc{z-index:2;inset:.5rem .5rem auto;width:auto;min-width:0;display:flex;gap:.3rem;overflow-x:auto;white-space:nowrap;scrollbar-width:none}#toc button{display:inline-block;width:auto;flex:0 0 auto;margin:0;font-size:.7rem;padding:.4rem .55rem}#deck{display:block;padding-top:3.25rem;box-sizing:border-box}.slide{width:auto;max-width:none;height:calc(100dvh - 7rem);margin:0 .5rem;padding:1rem;font-size:14px}.slide h1{margin:4vh 0 1rem;overflow-wrap:anywhere}.slide table{display:block;overflow-x:auto}#nav{z-index:2;bottom:.5rem}}
+:root{color-scheme:dark;font:16px/1.55 system-ui,sans-serif;background:#07101f;color:#d7dce8}
+*{box-sizing:border-box}body{margin:0}a{color:#83d9ff}header{border-bottom:1px solid #294560;background:#0b1930;padding:1.2rem max(1.25rem,calc((100vw - 1160px)/2));position:sticky;top:0;z-index:2}header a{color:#ffd665;text-decoration:none;font-weight:700}.menu-toggle{display:none}.layout{max-width:1160px;margin:auto;display:grid;grid-template-columns:13rem minmax(0,1fr);gap:3rem;padding:2rem 1.25rem 5rem}nav{position:sticky;top:5rem;align-self:start;max-height:calc(100vh - 6rem);overflow:auto}nav a{display:block;padding:.25rem 0;text-decoration:none;font-size:.85rem}main{max-width:52rem;min-width:0}h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.1;color:#ffd665;margin:0 0 2rem}h2{font-size:clamp(1.6rem,3vw,2.2rem);line-height:1.2;color:#ffd665;border-bottom:1px solid #294560;margin:4rem 0 1.25rem;padding-bottom:.45rem;scroll-margin-top:5rem}h3{font-size:1.35rem;color:#83d9ff;margin:2.5rem 0 .75rem;scroll-margin-top:5rem}h4{font-size:1.1rem;color:#ffb199;margin:2rem 0 .5rem;scroll-margin-top:5rem}p,li{max-width:75ch}table{border-collapse:collapse;display:block;max-width:100%;overflow:auto;margin:1rem 0}th,td{border:1px solid #294560;padding:.45rem .6rem;text-align:left;vertical-align:top}th{background:#10284a;color:#ffd665}code{background:#10284a;color:#b9efff;padding:.08rem .25rem}pre{background:#030814;padding:1rem;overflow:auto}blockquote{border-left:3px solid #83d9ff;margin:1rem 0;padding-left:1rem;color:#b6c5d8}@media(max-width:760px){header{position:sticky;display:flex;align-items:center;justify-content:space-between;padding:.8rem 1rem}.menu-toggle{display:block;border:1px solid #52799b;border-radius:.25rem;background:#10284a;color:#d7dce8;padding:.35rem .55rem;font:inherit;font-size:.85rem}.layout{display:block;padding:1rem}.layout nav{display:none}.menu-open .layout nav{display:block;position:fixed;z-index:3;top:3.7rem;bottom:0;left:0;width:min(20rem,88vw);max-height:none;margin:0;padding:1rem;background:#0b1930;border-right:1px solid #294560;box-shadow:1rem 0 2rem #0008;columns:1}.menu-open .layout nav a{padding:.45rem 0}h2{margin-top:3rem}}
 """
-script = """const slides=[...document.querySelectorAll('.slide')],buttons=[...document.querySelectorAll('#toc button')],count=document.querySelector('#count');let n=0;function show(i){n=(i+slides.length)%slides.length;slides.forEach((s,j)=>s.classList.toggle('active',j===n));buttons.forEach((b,j)=>b.classList.toggle('active',j===n));count.textContent=(n+1)+' / '+slides.length}buttons.forEach((b,i)=>b.onclick=()=>show(i));document.querySelector('#prev').onclick=()=>show(n-1);document.querySelector('#next').onclick=()=>show(n+1);document.onkeydown=e=>{if(['ArrowRight',' ','PageDown'].includes(e.key))show(n+1);if(['ArrowLeft','PageUp'].includes(e.key))show(n-1);if(e.key==='Home')show(0);if(e.key==='End')show(slides.length-1)};show(0)"""
-html = f'<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ChooChooTracker User Manual</title><style>{style}</style></head><body><nav id="toc" aria-label="Contents">{toc}</nav><main id="deck">{slides}</main><nav id="nav"><button id="prev" aria-label="Previous slide">◀</button><span id="count"></span><button id="next" aria-label="Next slide">▶</button></nav><script>{script}</script></body></html>'
+
+script = """const button=document.querySelector('.menu-toggle'),menu=document.querySelector('#toc');button.onclick=()=>{const open=document.body.classList.toggle('menu-open');button.setAttribute('aria-expanded',open)};menu.querySelectorAll('a').forEach(link=>link.onclick=()=>{document.body.classList.remove('menu-open');button.setAttribute('aria-expanded','false')});"""
+html = f"""<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>ChooChooTracker User Manual</title><style>{style}</style></head><body><header><a href=\"#top\">ChooChooTracker — User Manual</a><button class=\"menu-toggle\" aria-controls=\"toc\" aria-expanded=\"false\">&#9776; Contents</button></header><div class=\"layout\"><nav id=\"toc\" aria-label=\"Chapters\">{toc}</nav><main id=\"top\">{body}</main></div><script>{script}</script></body></html>"""
 (ROOT / "web" / "dist" / "manual.html").write_text(html, encoding="utf-8")
