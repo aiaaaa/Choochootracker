@@ -231,6 +231,9 @@ class AudioCommandQueue {
       const AudioCommand& command = commands_[tail];
       switch (command.type) {
         case kStartSong: playbackStartSong(playback, command.a, command.b, command.c); break;
+        case kStartSongIfStopped:
+          if (!playbackIsPlaying(playback)) playbackStartSong(playback, command.a, command.b, command.c);
+          break;
         case kStartChain: playbackStartChain(playback, command.a, command.b, command.c, command.d); break;
         case kStartPhrase: playbackStartPhrase(playback, command.a, command.b, command.c, command.d); break;
         case kStartPhraseRow: playbackStartPhraseRow(playback, command.a, const_cast<PhraseRow*>(&command.row)); break;
@@ -336,7 +339,7 @@ class AudioCommandQueue {
   struct AudioCommand { uint8_t type; int a, b, c, d; PhraseRow row; InstrumentOPLL patch; InstrumentOPL opl; InstrumentSimpleChip simple; InstrumentDX7 dx7; InstrumentFourOp fourOp; InstrumentSID sid; };
   // kStartPhraseRowFull is appended after upstream's preview commands so the
   // raw command IDs 14/15/16 used by applyCommands keep their meaning.
-  enum CommandType { kStartSong, kStartChain, kStartPhrase, kStartPhraseRow, kQueuePhrase, kPreviewNote, kStopPreview, kClearTrackFX, kStartLiveChain, kQueueLiveChain, kSetScale, kChipPreview, kOPLPreview, kSimplePreview, kStartPhraseRowFull = 17 };
+  enum CommandType { kStartSong, kStartChain, kStartPhrase, kStartPhraseRow, kQueuePhrase, kPreviewNote, kStopPreview, kClearTrackFX, kStartLiveChain, kQueueLiveChain, kSetScale, kChipPreview, kOPLPreview, kSimplePreview, kStartPhraseRowFull = 17, kStartSongIfStopped };
   static constexpr unsigned int kSlotCount = 3;
   static constexpr unsigned int kCommandCapacity = 64;
 
@@ -1069,7 +1072,9 @@ void chipnomadQueuePlaybackStop(ChipNomadState* state) {
 int chipnomadQueuePlaybackStartSong(ChipNomadState* state, int songRow, int chainRow, int loop) {
   return state && state->audioCommands ? state->audioCommands->pushCommand(0, songRow, chainRow, loop) : 0;
 }
-
+int chipnomadQueuePlaybackStartSongIfStopped(ChipNomadState* state, int songRow, int chainRow, int loop) {
+  return state && state->audioCommands ? state->audioCommands->pushCommand(18, songRow, chainRow, loop) : 0;
+}
 int chipnomadQueuePlaybackStartSongAtTime(ChipNomadState* state, int songRow, int chainRow, int loop, uint64_t waitUntilMicros) {
   // Timed start (T40): playback begins once the audio thread observes
   // waitUntilMicros on its monotonic clock. waitUntilMicros == 0 fires

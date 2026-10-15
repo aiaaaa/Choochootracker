@@ -185,6 +185,9 @@ int midiRouterGetClockTransport(const MidiRouterState* router, int* running, uin
 // the smoothed tempo (24 clocks/beat) and *serial bumped whenever the
 // quantized (whole BPM) value changes.
 int midiRouterGetClockBpm(const MidiRouterState* router, float* bpm, uint32_t* serial);
+// Monotonic MIDI-clock pulse count. Start/Continue reset the musical phase to
+// zero; callers can compare it with their own 24-ticks-per-beat phase.
+uint64_t midiRouterGetClockPulseCount(const MidiRouterState* router);
 
 // Polls the backend and applies the active input mode (only auto_ is
 // implemented: last-note-priority legato, channel-mapped or

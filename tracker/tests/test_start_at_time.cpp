@@ -122,6 +122,22 @@ TEST_CASE("stop request cancels a held timed start") {
   CHECK(chipnomadGetPlaybackStatus(state)->isPlaying == 0);
 }
 
+TEST_CASE("conditional start survives a pending stop") {
+  StartAtTimeFixture fixture;
+  ChipNomadState* state = fixture.state;
+  float buffer[2] = {};
+  REQUIRE(chipnomadQueuePlaybackStartSong(state, 0, 0, 1));
+  chipnomadRender(state, buffer, 1);
+  CHECK(chipnomadGetPlaybackStatus(state)->isPlaying == 1);
+
+  // This mirrors a MIDI Stop followed immediately by Start. The decision to
+  // restart belongs to the audio thread, after it has consumed Stop.
+  chipnomadQueuePlaybackStop(state);
+  REQUIRE(chipnomadQueuePlaybackStartSongIfStopped(state, 0, 0, 1));
+  chipnomadRender(state, buffer, 1);
+  CHECK(chipnomadGetPlaybackStatus(state)->isPlaying == 1);
+}
+
 TEST_CASE("a newer timed start replaces an older pending one") {
   StartAtTimeFixture fixture;
   ChipNomadState* state = fixture.state;

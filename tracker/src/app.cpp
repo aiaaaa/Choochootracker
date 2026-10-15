@@ -74,6 +74,8 @@ static uint32_t midiCCAppliedSerial[PROJECT_MAX_MIDI_CC_MAPPINGS];
 // pattern as midiCCAppliedSerial above.
 static uint32_t clockTransportAppliedSerial;
 static uint32_t clockBpmAppliedSerial;
+static float midiClockBaseTickRate;
+static uint64_t midiClockPhaseLastPulse;
 // Ableton Link mode: last-applied serials for the session tempo and
 // transport state published by the Link client (same exactly-once
 // pattern as clockBpmAppliedSerial/clockTransportAppliedSerial).
@@ -91,6 +93,40 @@ static void resetLinkPhaseFollowing(void) {
   linkPhaseBaseTickRate = 0.0f;
   linkPhaseLastCorrectionTick = 0;
   linkPhaseFollowing = 0;
+}
+
+static void resetMidiClockPhaseFollowing(void) {
+  midiClockBaseTickRate = 0.0f;
+  midiClockPhaseLastPulse = 0;
+}
+
+static double wrapMidiClockPhaseTicks(double ticks) {
+  ticks = fmod(ticks, 96.0);
+  if (ticks > 48.0) ticks -= 96.0;
+  if (ticks < -48.0) ticks += 96.0;
+  return ticks;
+}
+
+// MIDI Clock and tracker playback both advance at 24 ticks per beat. Correct
+// phase once per bar with a small bounded slew, matching the Link follower
+// while avoiding jitter-driven retiming of delay/reverb on every F8 byte.
+static void updateMidiClockPhaseFollowing(void) {
+  if (appSettings.clockSource != ClockSource::midiClock) {
+    resetMidiClockPhaseFollowing();
+    return;
+  }
+  const PlaybackStatus* playback = chipnomadGetPlaybackStatus(chipnomadState);
+  if (!playback->isPlaying) return;
+  const uint64_t pulses = midiRouterGetClockPulseCount(chipnomadState->midiRouter);
+  if (pulses < 96 || pulses - midiClockPhaseLastPulse < 96) return;
+  if (midiClockBaseTickRate <= 0.0f) return;
+  const double phaseError = wrapMidiClockPhaseTicks((double)pulses - (double)playback->linkPhaseTicks);
+  double correction = phaseError / 96.0;
+  if (correction > 0.02) correction = 0.02;
+  if (correction < -0.02) correction = -0.02;
+  chipnomadState->project.tickRate = midiClockBaseTickRate * (float)(1.0 + correction);
+  audioProjectDirty = 1;
+  midiClockPhaseLastPulse = pulses;
 }
 
 static double wrapLinkPhaseTicks(double ticks) {
@@ -571,6 +607,7 @@ void appSetup(void) {
     linkClientDeselect(chipnomadState->linkClient);
   }
   resetLinkPhaseFollowing();
+  resetMidiClockPhaseFollowing();
 
   screenSetup(&screenTitle, 0);
 }
@@ -918,19 +955,24 @@ void appOnEvent(MainLoopEventData eventData) {
       if (midiRouterGetClockTransport(chipnomadState->midiRouter, &clockRunning, &clockTransportSerial) &&
           clockTransportSerial != clockTransportAppliedSerial) {
         clockTransportAppliedSerial = clockTransportSerial;
-        if (clockRunning && !chipnomadGetPlaybackStatus(chipnomadState)->isPlaying)
-          chipnomadQueuePlaybackStartSong(chipnomadState, *pSongRow, 0, 1);
-        else if (!clockRunning && chipnomadGetPlaybackStatus(chipnomadState)->isPlaying)
+        if (clockRunning) {
+          chipnomadQueuePlaybackStartSongIfStopped(chipnomadState, *pSongRow, 0, 1);
+          resetMidiClockPhaseFollowing();
+        } else {
           chipnomadQueuePlaybackStop(chipnomadState);
+          resetMidiClockPhaseFollowing();
+        }
       }
       float clockBpm = 0; uint32_t clockBpmSerial = 0;
       if (midiRouterGetClockBpm(chipnomadState->midiRouter, &clockBpm, &clockBpmSerial) &&
           clockBpmSerial != clockBpmAppliedSerial) {
         clockBpmAppliedSerial = clockBpmSerial;
         // BPM -> Hz: 24 ticks/beat, so tickRate = BPM * 24 / 60 = BPM * 0.4.
-        chipnomadState->project.tickRate = clockBpm * 0.4f;
+        midiClockBaseTickRate = clockBpm * 0.4f;
+        chipnomadState->project.tickRate = midiClockBaseTickRate;
         audioProjectDirty = 1;
       }
+      updateMidiClockPhaseFollowing();
 
       // Ableton Link mode: follow the session tempo published by the Link
       // client (receiver-only - we never push tempo back). Same
