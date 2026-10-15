@@ -3,6 +3,7 @@
 #include <stddef.h>
 #include <stdint.h>
 extern "C++" {
+#include "beads_pool.h"
 enum InsertModule : uint8_t {
   insertOff,
   insertCompressor,
@@ -19,6 +20,7 @@ enum InsertModule : uint8_t {
   insertDestruction,
   insertParametricEQ,
   insertTranceGate,
+  insertBeads,
   insertModuleCount
 };
 enum class InsertMapping : uint8_t { linear, exponential, bipolar, discrete };
@@ -56,12 +58,14 @@ class InsertChain {
   InsertChain(const InsertChain&) = delete;
   InsertChain& operator=(const InsertChain&) = delete;
   bool ready() const;
+  // Audio-thread attachment of a producer-prepared lease, before sync().
+  void attachBeads(int slot, const BeadsPool::Handle&);
   void reset();
   // The tracker clock is 24 ticks per quarter note. Tempo is updated at its
   // frame boundary, while trigger() aligns track gates with note-on events.
   void setTempo(float tickRate);
   void trigger();
-  uint16_t sync(const InsertConfig config[2], InsertAutomation*);
+  uint16_t sync(const InsertConfig config[2], InsertAutomation*, bool rendered = true);
   bool active() const;
   void process(float* interleaved, int frames, const uint8_t effective[2][8]);
 

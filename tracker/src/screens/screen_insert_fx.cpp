@@ -84,7 +84,10 @@ static int edit(int col, int row, CellEditAction action) {
     int p = parameter(col, row);
     uint8_t v = c.values[p];
     const auto& a = insertDescriptor(c.module).parameters[p];
-    handled = edit8noLast(action, &v, a.mapping == InsertMapping::discrete ? 1 : 16, 0,
+    // Shape/Freeze is a packed byte, discrete for DSP slew rather than an enum.
+    const bool packedShapeFreeze = c.module == insertBeads && p == 6;
+    handled = edit8noLast(action, &v,
+                          a.mapping == InsertMapping::discrete && !packedShapeFreeze ? 1 : 16, 0,
                           a.mapping == InsertMapping::discrete ? (int)a.maximum : 255);
     if (handled) insertEdit(&c, p, v);
   }
@@ -163,6 +166,7 @@ static const SelectionItem insertCategories[] = {
   {"Stereo", -1, stereo, (int)(sizeof(stereo) / sizeof(stereo[0])), nullptr},
   {"Tape", -1, tape, (int)(sizeof(tape) / sizeof(tape[0])), nullptr},
   {"EQ", insertParametricEQ, nullptr, 0, nullptr},
+  {"Beads", insertBeads, nullptr, 0, nullptr},
 };
 
 static int cycleInsertModule(int module, int direction) {
