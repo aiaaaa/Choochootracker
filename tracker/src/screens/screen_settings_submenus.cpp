@@ -75,23 +75,38 @@ static int audioCellValid(int, int row) { return row == 0; }
 static ScreenData audioData = {2, 0, 0, 0, -1, 0, 0, 0, 0, ScreenPlaybackLevel::none, columnCount, audioStatic, audioCursor, NULL, noHeader, noHeader, audioField, audioEdit, NULL, NULL, audioCellValid, NULL};
 
 static void controlsStatic(void) { gfxSetFgColor(appSettings.colorScheme.textTitles); gfxPrint(0, 0, "CONTROLS"); }
-static void controlsCursor(int, int row) { gfxCursor(row < 2 ? 23 : row == 2 ? 23 : 0, 2 + row, row < 2 ? 3 : row == 2 ? 6 : 11); }
+#ifdef TOUCH_INPUT
+static const int controlsKeyMappingRow = 4;
+#else
+static const int controlsKeyMappingRow = 3;
+#endif
+static void controlsCursor(int, int row) { gfxCursor(row < 3 && (row < 2 || row == 2) ? 23 : row == 3 && controlsKeyMappingRow == 4 ? 23 : 0, 2 + row, row < 2 ? 3 : row == 2 ? 6 : row == 3 && controlsKeyMappingRow == 4 ? 3 : 11); }
 static void controlsField(int, int row, CellState state) {
   const ColorScheme cs = appSettings.colorScheme;
   gfxSetFgColor(cs.textDefault);
   if (row == 0) { gfxPrint(0, 2, "Repeat delay"); gfxSetFgColor(state == CellState::focus ? cs.textValue : cs.textDefault); gfxPrintf(23, 2, "%03d", appSettings.keyRepeatDelay); }
   else if (row == 1) { gfxPrint(0, 3, "Repeat speed"); gfxSetFgColor(state == CellState::focus ? cs.textValue : cs.textDefault); gfxPrintf(23, 3, "%03d", appSettings.keyRepeatSpeed); }
   else if (row == 2) { gfxPrint(0, 4, "Stick live mode"); gfxSetFgColor(state == CellState::focus ? cs.textValue : cs.textDefault); gfxPrint(23, 4, appSettings.stickLiveMode == StickLiveMode::free ? "FREE  " : appSettings.stickLiveMode == StickLiveMode::toggle ? "TOGGLE" : "HOLD  "); }
-  else { gfxSetFgColor(state == CellState::focus ? cs.textValue : cs.textDefault); gfxPrint(0, 5, "Key mapping"); }
+  else if (row == controlsKeyMappingRow) { gfxSetFgColor(state == CellState::focus ? cs.textValue : cs.textDefault); gfxPrint(0, 2 + row, "Key mapping"); }
+  else { gfxPrint(0, 5, "Hide pad w/ gamepad"); gfxSetFgColor(state == CellState::focus ? cs.textValue : cs.textDefault); gfxPrint(23, 5, appSettings.hideTouchPadWithGamepad ? "ON " : "OFF"); }
 }
 static int controlsEdit(int, int row, CellEditAction action) {
   if (row == 0) { uint8_t value = appSettings.keyRepeatDelay; int handled = edit8noLast(action, &value, 4, 4, 30); if (handled) appSettings.keyRepeatDelay = value; return handled; }
   if (row == 1) { uint8_t value = appSettings.keyRepeatSpeed; int handled = edit8noLast(action, &value, 2, 1, 12); if (handled) appSettings.keyRepeatSpeed = value; return handled; }
   if (row == 2) { uint8_t value = (uint8_t)appSettings.stickLiveMode; int handled = edit8noLast(action, &value, 1, 0, 2); if (handled) appSetStickLiveMode((StickLiveMode)value); return handled; }
-  if (action == CellEditAction::tap) { screenSetup(&screenKeyMapping, 0); return 1; }
-  return 0;
+  if (row == controlsKeyMappingRow) { if (action == CellEditAction::tap) { screenSetup(&screenKeyMapping, 0); return 1; } return 0; }
+  uint8_t value = appSettings.hideTouchPadWithGamepad;
+  if (action == CellEditAction::tap || action == CellEditAction::doubleTap) value ^= 1;
+  else if (!edit8noLast(action, &value, 1, 0, 1)) return 0;
+  appSettings.hideTouchPadWithGamepad = value;
+  if (settingsSave() != 0) screenMessage(MESSAGE_TIME, "Could not save setting");
+  return 1;
 }
+#ifdef TOUCH_INPUT
+static ScreenData controlsData = {5, 0, 0, 0, -1, 0, 0, 0, 0, ScreenPlaybackLevel::none, columnCount, controlsStatic, controlsCursor, NULL, noHeader, noHeader, controlsField, controlsEdit, NULL, NULL, NULL, NULL};
+#else
 static ScreenData controlsData = {4, 0, 0, 0, -1, 0, 0, 0, 0, ScreenPlaybackLevel::none, columnCount, controlsStatic, controlsCursor, NULL, noHeader, noHeader, controlsField, controlsEdit, NULL, NULL, NULL, NULL};
+#endif
 
 static void synthStatic(void) { gfxSetFgColor(appSettings.colorScheme.textTitles); gfxPrint(0, 0, "SYNTHS"); }
 static void synthCursor(int, int row) { gfxCursor(23, 2 + row, row == 0 ? 6 : row == 1 ? 3 : row == 2 ? 6 : 4); }

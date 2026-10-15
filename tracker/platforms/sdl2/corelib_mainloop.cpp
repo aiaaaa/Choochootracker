@@ -6,6 +6,7 @@
 #include "corelib_keymap.h"
 #include "corelib_input.h"
 #include "../../src/corelib/corelib_assets.h"
+#include "../../src/common.h"
 
 #ifdef MIYOOPORTS_BUILD
 // MMIYOO is a software framebuffer backend. The tracker state and audio run
@@ -88,19 +89,10 @@ static void fallbackSendDpad(void (*onEvent)(MainLoopEventData)) {
 }
 
 static void initGamepad(void) {
-#ifdef TOUCH_INPUT
-  extern int vpadEnabled;
-  vpadEnabled = 1;
-#endif
   for (int i = 0; i < SDL_NumJoysticks(); i++) {
     if (SDL_IsGameController(i)) {
       gameController = SDL_GameControllerOpen(i);
-      if (gameController) {
-#ifdef TOUCH_INPUT
-        vpadEnabled = 0;
-#endif
-        break;
-      }
+      if (gameController) break;
     }
   }
   openFallbackJoystick();
@@ -291,6 +283,17 @@ void mainLoopRun(void (*draw)(void), void (*onEvent)(MainLoopEventData eventData
 #endif
 
   while (1) {
+#if defined(TOUCH_INPUT) && defined(GAMEPAD_SUPPORT)
+    {
+      // The virtual pad hides only if the user asked for it (Settings >
+      // Controls) and a gamepad is connected.
+      int wanted = !(appSettings.hideTouchPadWithGamepad && (gameController || fallbackJoystick));
+      if (wanted != vpadEnabled) {
+        if (!wanted) releaseFingers();
+        vpadEnabled = wanted;
+      }
+    }
+#endif
     start = SDL_GetTicks();
 
     while (SDL_PollEvent(&event)) {
@@ -423,13 +426,7 @@ void mainLoopRun(void (*draw)(void), void (*onEvent)(MainLoopEventData eventData
           for (int i = 0; i < SDL_NumJoysticks(); i++) {
             if (SDL_IsGameController(i)) {
               gameController = SDL_GameControllerOpen(i);
-              if (gameController) {
-#ifdef TOUCH_INPUT
-                releaseFingers();
-                vpadEnabled = 0;
-#endif
-                break;
-              }
+              if (gameController) break;
             }
           }
         }
@@ -476,9 +473,6 @@ void mainLoopRun(void (*draw)(void), void (*onEvent)(MainLoopEventData eventData
         if (gameController && event.cdevice.which == SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(gameController))) {
           SDL_GameControllerClose(gameController);
           gameController = NULL;
-#ifdef TOUCH_INPUT
-          vpadEnabled = 1;
-#endif
         }
       }
 #endif
