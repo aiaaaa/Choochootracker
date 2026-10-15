@@ -22,8 +22,9 @@ this policy update requires no application rebuild or device installation.
 
 ## October 15 SID preset cleanup
 
-The device personal build identifies editable SID sounds and imported programs
-on Instrument. Source-controlled fields show an asterisk and explain their owner;
+The device personal build keeps SID source details in EDIT. On Instrument,
+source-controlled fields show an asterisk and explain their owner; the legend
+appears only when a visible home-page control is source-controlled.
 Instrument and EDIT prevent changes to unused base values, while ordinary
 controls and Phrase/Table overrides retain their existing semantics. Preset
 selection shows the full sound name. SID USER presents one collection per ZIP

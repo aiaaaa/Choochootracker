@@ -210,8 +210,10 @@ void drawStatic(){instrumentCommonDrawStatic();gfxSetFgColor(appSettings.colorSc
  gfxPrint(0,14,"ADSR:");
  gfxPrint(6,14,"A");gfxPrint(11,14,"D");gfxPrint(16,14,"S");gfxPrint(21,14,"R");
  gfxSetFgColor(appSettings.colorScheme.textInfo);
- gfxPrint(0,10,current()->chip.sid.program.format==2?"Program: GoatTracker tables":current()->chip.sid.program.format==1?"Program: Furnace macros":"Sound: editable synthesis");
- gfxPrint(0,15,current()->chip.sid.program.format?"* = program controlled":"Max 4 notes (ring/sync uses 2)");
+ bool programControlled=false;
+ for(int row=5;row<=8;++row)for(int col=0;col<columns(row);++col)
+  programControlled|=sidImportedControlReason(current()->chip.sid,sidField(col,row))!=nullptr;
+ gfxPrint(0,15,programControlled?"* = program controlled":"Max 4 notes (ring/sync uses 2)");
  if(!sidWaveformBitmap)sidWaveformBitmap=gfxBitmapCreate(32,3);gfxClearRect(0,16,32,3);renderFMPreview(sidWaveformBitmap,current());gfxDrawBitmap(sidWaveformBitmap,0,16);return;
  }gfxPrint(0,9,"Fine ct");gfxPrint(0,11,"Mode");const char* mode=isOPLL(current()->type)?"2 operator":fourOp()?"4 operator":dx7()?"6 operator":current()->chip.opl.topology==OPLTopology::fourOperator?"4 operator":current()->chip.opl.topology==OPLTopology::dualVoice?"Dual voice":"2 operator";gfxPrint(9,11,mode);instrumentFMAmpDrawStatic();}
 void drawCursor(int col,int row){if(sid()&&row==4){gfxCursor(col?28:9,7,col?4:18);return;}if(sid()&&row>=5){gfxCursor(sidX(col,row),sidY(row),sidWidth(col,row));return;}if(row==6){instrumentFMToneDrawCursor(col);return;}if(row>=7){instrumentFMAmpDrawCursor(col,row-7);return;}if(row<3)instrumentCommonDrawCursor(col,row);else if(row==5&&col==1)gfxCursor(16,9,4);else gfxCursor(9,row==3?6:row==4?7:9,row==5?4:28);}

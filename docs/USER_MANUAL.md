@@ -2133,10 +2133,11 @@ Furnace `.fui` instruments, including their supported embedded sequences.
 A `.cni` can save either an editable sound or an imported program; its extension
 alone does not tell you which controls govern playback.
 
-The home page identifies **Sound: editable synthesis**, **Program: Furnace
-macros**, or **Program: GoatTracker tables**. Asterisks beside the quick controls
-mark imported program ownership. Selecting a control explains its source or
-units; selecting Preset shows its full name in the message bar.
+Source details live in **SID EDIT**. On the home page, asterisks beside the quick
+controls mark imported program ownership; the `* = program controlled` note
+appears only when at least one of those visible controls is program-controlled.
+Selecting a control explains its source or units; selecting Preset shows its
+full name in the message bar.
 
 SID USER groups each ZIP into one named collection, retaining model and variant
 suffixes in the sound names. Single-file SID imports use their filenames rather
