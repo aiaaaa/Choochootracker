@@ -19,8 +19,8 @@ static int samplePreviewWidth, samplePreviewHeight;
 static const char* stretchLabels[] = {"Off", "1 beat", "2 beats", "1 bar", "2 bars", "4 bars", "8 bars"};
 
 static void updateSamplePreview(const InstrumentSample* sample) {
-  int width = appSettings.persistentWaveform ? 15 : 32;
-  int height = appSettings.persistentWaveform ? 2 : 3;
+  int width = 32;
+  int height = 3;
   if (width != samplePreviewWidth || height != samplePreviewHeight) {
     gfxBitmapFree(samplePreviewBitmap);
     samplePreviewBitmap = gfxBitmapCreate(width, height);
@@ -37,7 +37,7 @@ static void updateSamplePreview(const InstrumentSample* sample) {
 static void drawSamplePreview(void) {
   if (!samplePreviewBitmap) return;
   gfxSetFgColor(appSettings.colorScheme.textInfo);
-  gfxDrawBitmap(samplePreviewBitmap, 0, appSettings.persistentWaveform ? 15 : 16);
+  gfxDrawBitmap(samplePreviewBitmap, 0, 16);
 }
 
 static void onSampleCancelled(void) {

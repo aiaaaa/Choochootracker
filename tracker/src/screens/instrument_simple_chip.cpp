@@ -11,7 +11,7 @@
 namespace {
 int buttonDown=0;Bitmap* staticWaveformBitmap=nullptr;
 Instrument* current(){return &chipnomadState->project.instruments[cInstrument];}
-void refreshStaticWaveform(){int row=appSettings.persistentWaveform?15:16;if(!staticWaveformBitmap)staticWaveformBitmap=gfxBitmapCreate(32,3);gfxClearRect(0,row,32,3);renderSimpleChipPreview(staticWaveformBitmap,current()->type,&current()->chip.simpleChip);gfxSetFgColor(appSettings.colorScheme.textInfo);gfxDrawBitmap(staticWaveformBitmap,0,row);auto& p=current()->chip.simpleChip;instrumentCommonDrawEnvelopePreview(p.attack,p.decay,p.sustain,p.release,p.envelopeShape);}
+void refreshStaticWaveform(){int row=16;if(!staticWaveformBitmap)staticWaveformBitmap=gfxBitmapCreate(32,3);gfxClearRect(0,row,32,3);renderSimpleChipPreview(staticWaveformBitmap,current()->type,&current()->chip.simpleChip);gfxSetFgColor(appSettings.colorScheme.textInfo);gfxDrawBitmap(staticWaveformBitmap,0,row);auto& p=current()->chip.simpleChip;instrumentCommonDrawEnvelopePreview(p.attack,p.decay,p.sustain,p.release,p.envelopeShape);}
 void open(){instrumentPresetOpenSounds();}
 int presetColumns(int row){if(row<3)return instrumentCommonColumnCount(row);if(row==7)return 4;if(row==5)return current()->type==InstrumentType::SegaPSG?1:3;if(row==6)return current()->type==InstrumentType::GBPulse?3:current()->type==InstrumentType::GBNoise?2:1;return 1;}
 int valid(int,int){return 1;}
