@@ -365,6 +365,35 @@ TEST_SUITE("track inserts") {
         insertDescribe(text, sizeof(text), insertDestruction, 0, 2);
         CHECK(std::string(text) == "Crush");
   }
+  TEST_CASE("chorus and phaser extend from subtle to extreme modulation") {
+    for (int module : {insertChorus, insertPhaser}) {
+      InsertConfig c[2]{};
+      insertSelect(&c[0], module);
+      InsertAutomation automation{};
+      InsertChain chain(48000);
+      REQUIRE(chain.ready());
+      uint8_t v[2][8];
+      values(c, v);
+      auto dry = signal(12000), subtle = dry;
+      chain.sync(c, &automation);
+      chain.process(subtle.data(), 12000, v);
+      float subtleDifference = 0;
+      for (size_t i = 4096; i < dry.size(); ++i) subtleDifference += fabsf(subtle[i] - dry[i]);
+
+      for (int parameter = 0; parameter < insertDescriptor(module).count; ++parameter)
+        insertEdit(&c[0], parameter, 255);
+      InsertChain extremeChain(48000);
+      REQUIRE(extremeChain.ready());
+      extremeChain.sync(c, &automation);
+      values(c, v);
+      auto extreme = dry;
+      extremeChain.process(extreme.data(), 12000, v);
+      float extremeDifference = 0;
+      for (size_t i = 4096; i < dry.size(); ++i) extremeDifference += fabsf(extreme[i] - dry[i]);
+      CHECK(subtleDifference > 1);
+      CHECK(extremeDifference > subtleDifference * 2);
+    }
+  }
   TEST_CASE("OFF and fully bypassed slots are exactly transparent") {
     InsertConfig c[2]{};
     InsertAutomation a{};
