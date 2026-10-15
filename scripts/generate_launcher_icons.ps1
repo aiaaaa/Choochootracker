@@ -91,11 +91,17 @@ foreach ($entry in @{
     Save-Png "tracker/packaging/macos/ChipNomad.iconset/$($entry.Key)" $entry.Value
 }
 $windowsImage = New-IconBitmap 256
-$windowsIcon = [System.Drawing.Icon]::FromHandle($windowsImage.GetHicon())
-$stream = [System.IO.File]::Create((Join-Path $root 'tracker/packaging/windows/choochootracker.ico'))
-$windowsIcon.Save($stream)
-$stream.Dispose()
-$windowsIcon.Dispose()
+$pngStream = [System.IO.MemoryStream]::new()
+$windowsImage.Save($pngStream, [System.Drawing.Imaging.ImageFormat]::Png)
+$png = $pngStream.ToArray()
+$pngStream.Dispose()
+$icoStream = [System.IO.File]::Create((Join-Path $root 'tracker/packaging/windows/choochootracker.ico'))
+$writer = [System.IO.BinaryWriter]::new($icoStream)
+$writer.Write([UInt16]0); $writer.Write([UInt16]1); $writer.Write([UInt16]1)
+$writer.Write([Byte]0); $writer.Write([Byte]0); $writer.Write([Byte]0); $writer.Write([Byte]0)
+$writer.Write([UInt16]1); $writer.Write([UInt16]32); $writer.Write([UInt32]$png.Length); $writer.Write([UInt32]22)
+$writer.Write($png)
+$writer.Dispose()
 $windowsImage.Dispose()
 $train.Dispose()
 $sourceImage.Dispose()
