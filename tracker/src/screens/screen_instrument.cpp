@@ -28,6 +28,18 @@ static Bitmap* envelopePreviewBitmap = NULL;
 static Bitmap* livePreviewBitmap = NULL;
 static int livePreviewWasActive = 0;
 static std::chrono::steady_clock::time_point livePreviewRefresh;
+static std::chrono::steady_clock::time_point livePreviewLastActivity;
+static int livePreviewInstrument = -1;
+static InstrumentType livePreviewType = InstrumentType::none;
+static int livePreviewTrack = -1;
+
+static void resetLivePreview() {
+  livePreviewWasActive = 0;
+  livePreviewRefresh = {};
+  livePreviewLastActivity = {};
+  livePreviewInstrument = -1;
+  livePreviewTrack = -1;
+}
 
 static SelectionItem instrumentTypeChip[] = {
   {"SID / C64", (int)InstrumentType::SID, NULL, 0},
@@ -316,6 +328,7 @@ static void keyJazzReleaseAll(void);
 
 static void setup(int input) {
   isCharEdit = 0;
+  resetLivePreview();
 #ifdef DESKTOP_BUILD
   keyJazzReleaseAll(); // a key held while leaving the screen never sends its release here
 #endif
@@ -330,14 +343,16 @@ static void fullRedraw(void) {
 }
 
 static void draw(void) {
-  instrumentCommonDrawLivePreview();
-  instrumentSIDDrawHints();
   if (chipnomadState->project.instruments[cInstrument].type==InstrumentType::SoundFont) {
     auto& d=screenInstrumentSoundFont;
     for (int row : {3,4}) for (int col=0; col<d.getColumnCount(row); ++col)
       d.drawField(col,row,d.cursorRow==row && d.cursorCol==col ? CellState::focus : CellState::normal);
     d.drawCursor(d.cursorCol,d.cursorRow);
   }
+  instrumentSIDDrawHints();
+  // Field redraws may paint their static preview. The live scope owns this
+  // region for the frame, including frames between waveform refreshes.
+  instrumentCommonDrawLivePreview();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -578,7 +593,14 @@ void instrumentCommonDrawEnvelopePreview(uint8_t attack, uint8_t decay, uint8_t 
 }
 
 void instrumentCommonDrawLivePreview(void) {
+  const auto type = chipnomadState->project.instruments[cInstrument].type;
+  if (livePreviewInstrument != cInstrument || livePreviewType != type) {
+    resetLivePreview();
+    livePreviewInstrument = cInstrument;
+    livePreviewType = type;
+  }
   const PlaybackStatus* playback = chipnomadGetPlaybackStatus(chipnomadState);
+  const auto now = std::chrono::steady_clock::now();
   int track = -1;
   for (int i = 0; i < chipnomadState->project.tracksCount; ++i) {
     if (playback->tracks[i].note.instrument == cInstrument &&
@@ -586,22 +608,39 @@ void instrumentCommonDrawLivePreview(void) {
         (track < 0 || i == *pSongTrack)) track = i;
   }
   if (track < 0) {
-    if (livePreviewWasActive) currentScreen->fullRedraw();
-    livePreviewWasActive = 0;
-    livePreviewRefresh = {};
-    return;
+    if (!livePreviewWasActive) return;
+    // Audio monitors are briefly inactive while a render chunk is assembled.
+    // Hold through those gaps and short note gaps instead of flashing static.
+    const bool quiet = now - livePreviewLastActivity >= std::chrono::milliseconds(250);
+    if (quiet && !playback->isPlaying) {
+      resetLivePreview();
+      currentScreen->fullRedraw();
+      return;
+    }
+    if (quiet) {
+      // Stay in live mode across song rests, showing silence rather than an
+      // indefinitely frozen note. Resume immediately when a voice returns.
+      const float silence = 0.0f;
+      renderFloatPreview(livePreviewBitmap, &silence, 1);
+      livePreviewRefresh = {};
+    }
+  } else {
+    if (!livePreviewBitmap) livePreviewBitmap = gfxBitmapCreate(32, 3);
+    if (!livePreviewBitmap) return;
+    livePreviewLastActivity = now;
+    int hz = appSettings.waveformRefreshHz;
+    if (hz < 1 || hz > 60) hz = 30;
+    if (track != livePreviewTrack || livePreviewRefresh == std::chrono::steady_clock::time_point() ||
+        std::chrono::duration<float>(now - livePreviewRefresh).count() >= 1.0f / hz) {
+      renderFloatPreview(livePreviewBitmap, chipnomadState->voiceMonitors[track].samples,
+                         VOICE_MONITOR_SAMPLES);
+      livePreviewRefresh = now;
+      livePreviewTrack = track;
+    }
   }
-  if (!livePreviewBitmap) livePreviewBitmap = gfxBitmapCreate(32, 3);
-  const auto now = std::chrono::steady_clock::now();
-  int hz = appSettings.waveformRefreshHz;
-  if (hz < 1 || hz > 60) hz = 30;
-  if (livePreviewRefresh == std::chrono::steady_clock::time_point() ||
-      std::chrono::duration<float>(now - livePreviewRefresh).count() >= 1.0f / hz) {
-    gfxClearRect(0, 16, 32, 3);
-    renderFloatPreview(livePreviewBitmap, chipnomadState->voiceMonitors[track].samples,
-                       VOICE_MONITOR_SAMPLES);
-    livePreviewRefresh = now;
-  }
+  // Cached bitmap pixels are transparent; clear on every draw, not only when
+  // resampling, so a control's static preview cannot show through underneath.
+  gfxClearRect(0, 16, 32, 3);
   gfxSetFgColor(appSettings.colorScheme.textInfo);
   gfxDrawBitmap(livePreviewBitmap, 0, 16);
   Instrument* instrument = &chipnomadState->project.instruments[cInstrument];
