@@ -1323,7 +1323,7 @@ Use it to balance the 8 tracks, shape each track with Tilt EQ, and send audio to
 | Field | Meaning |
 |---|---|
 | LVL | Post-engine track level, `000-100` |
-| REV | Send to the shared Clouds reverb, `000-100` |
+| REV | Send to the shared Clouds or Beads reverb, `000-100` |
 | DLY | Send to the shared ping-pong delay, `000-100` |
 | TLT | Per-track Tilt EQ, `00-FF`; `80` is neutral, low values favour bass and high values favour treble. Low values will introduce a soft overdrive. |
 | M | `*` mutes this track |
@@ -1339,16 +1339,16 @@ volume. Select a module, edit its parameters or bypass it exactly as for a
 track insert; press **OPT** to return to Mixer. Master FX settings are saved
 with the project and are not automated by phrase, table or modulation.
 
-### Clouds Reverb
+### Reverb
 
 Use **SELECT + [UP]** from Mixer to open the reverb settings screen.
 
+- **Algorithm**: selects Clouds or Beads. Each algorithm keeps its own controls.
 - **Return**: wet reverb level in the master mix.
-- **Time**: decay/time control, `00-FF`.
-- **Damping**: high-frequency absorption, `00-FF`.
-- **Filter**: low-pass filter applied before the reverb.
+- **Clouds**: **Time**, **Damping**, plus pre-reverb **LP** and **HP** filters.
+- **Beads**: **Time**, native feedback-filter **Tone**, and a pre-reverb **HP** filter.
 
-This is the Clouds reverb section, not the complete Clouds granular processor.
+This is the send reverb section, not the Clouds or Beads granular processor.
 
 ### Ping-pong Delay
 

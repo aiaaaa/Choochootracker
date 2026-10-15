@@ -97,7 +97,8 @@ static void drawAnalyzers(void) {
 
 int screenMixerGetPage(void) { return mixerPage; }
 
-static int effectRows() { return mixerPage == 0 ? 0 : 5; }
+static bool beadsReverb() { return chipnomadState->project.reverbAlgorithm == 1; }
+static int effectRows() { return mixerPage == 0 ? 0 : mixerPage == 1 ? (beadsReverb() ? 5 : 6) : 5; }
 static int columnCount(int row) { return mixerPage == 0 ? (row == PROJECT_MAX_TRACKS ? 1 : 7) : 1; }
 static void drawRowHeader(int row, CellState state) {}
 static void drawColHeader(int col, CellState state) {}
@@ -110,9 +111,10 @@ static void drawStatic(void) {
     gfxPrint(19, 2, "TLT"); gfxPrint(24, 2, "PAN"); gfxPrint(29, 2, "M"); gfxPrint(32, 2, "S");
     gfxPrint(0, 12, "MASTER FX");
   } else if (mixerPage == 1) {
-    gfxPrint(0, 0, "CLOUDS REVERB");
-    gfxPrint(0, 3, "Return"); gfxPrint(0, 4, "Time");
-    gfxPrint(0, 5, "Damping"); gfxPrint(0, 6, "LP filter"); gfxPrint(0, 7, "HP filter");
+    gfxPrint(0, 0, beadsReverb() ? "BEADS REVERB" : "CLOUDS REVERB");
+    gfxPrint(0, 3, "Algorithm"); gfxPrint(0, 4, "Return"); gfxPrint(0, 5, "Time");
+    if (beadsReverb()) { gfxPrint(0, 6, "Tone"); gfxPrint(0, 7, "HP filter"); }
+    else { gfxPrint(0, 6, "Damping"); gfxPrint(0, 7, "LP filter"); gfxPrint(0, 8, "HP filter"); }
   } else {
     gfxPrint(0, 0, "PING-PONG DELAY");
     gfxPrint(0, 3, "Return"); gfxPrint(0, 4, "To Reverb");
@@ -128,12 +130,13 @@ static void drawCursor(int col, int row) {
     if (col < 0 || col >= 7 || row < 0 || row >= PROJECT_MAX_TRACKS) return;
     gfxCursor(x[col], 3 + row, width[col]);
   } else if (row >= 0 && row < effectRows()) {
-    int filterRow = mixerPage == 2 ? 4 : 3;
-    int width = 2;
+    int filterRow = mixerPage == 2 ? 4 : beadsReverb() ? 4 : 4;
+    int width = mixerPage == 1 && row == 0 ? (beadsReverb() ? 5 : 6) : 2;
     if (row >= filterRow) {
       char value[12];
-      unsigned int cutoff = row == 4 ? chipnomadState->project.reverbHighpassCutoffHz
-        : mixerPage == 1 ? chipnomadState->project.reverbFilterCutoffHz : chipnomadState->project.delayFilterCutoffHz;
+      unsigned int cutoff = mixerPage == 2 ? chipnomadState->project.delayFilterCutoffHz
+        : beadsReverb() ? chipnomadState->project.beadsReverbHighpassCutoffHz
+        : row == 5 ? chipnomadState->project.reverbHighpassCutoffHz : chipnomadState->project.reverbFilterCutoffHz;
       snprintf(value, sizeof(value), "%u Hz", cutoff);
       width = (int)strlen(value);
     }
@@ -165,15 +168,14 @@ static void drawField(int col, int row, CellState state) {
   if (row < 0 || row >= effectRows()) return;
   Project* p = &chipnomadState->project;
   if (mixerPage == 1) {
-    if (row == 0) gfxPrint(12, 3, byteToHex(controlFromRange(p->reverbReturn, 100)));
-    else if (row == 1) gfxPrint(12, 4, byteToHex(p->reverbTime));
-    else if (row == 2) gfxPrint(12, 5, byteToHex(p->reverbDamping));
-    else if (row == 3) {
-      gfxClearRect(12, 6, 8, 1);
-      gfxPrintf(12, 6, "%u Hz", p->reverbFilterCutoffHz);
-    } else {
-      gfxClearRect(12, 7, 8, 1);
-      gfxPrintf(12, 7, "%u Hz", p->reverbHighpassCutoffHz);
+    if (row == 0) gfxPrint(12, 3, beadsReverb() ? "BEADS" : "CLOUDS");
+    else if (row == 1) gfxPrint(12, 4, byteToHex(controlFromRange(p->reverbReturn, 100)));
+    else if (row == 2) gfxPrint(12, 5, byteToHex(beadsReverb() ? p->beadsReverbTime : p->reverbTime));
+    else if (row == 3) gfxPrint(12, 6, byteToHex(beadsReverb() ? p->beadsReverbTone : p->reverbDamping));
+    else {
+      unsigned int cutoff = beadsReverb() ? p->beadsReverbHighpassCutoffHz : row == 4 ? p->reverbFilterCutoffHz : p->reverbHighpassCutoffHz;
+      gfxClearRect(12, 3 + row, 8, 1);
+      gfxPrintf(12, 3 + row, "%u Hz", cutoff);
     }
   } else {
     if (row == 0) gfxPrint(12, 3, byteToHex(controlFromRange(p->delayReturn, 100)));
@@ -212,11 +214,12 @@ static int onEdit(int col, int row, CellEditAction action) {
     }
   } else if (row >= 0 && row < effectRows()) {
     if (mixerPage == 1) {
-      if (row == 0) handled = edit8noLast(action, &p->reverbReturn, 10, 0, 100);
-      else if (row == 1) handled = edit8noLast(action, &p->reverbTime, 16, 0, 255);
-      else if (row == 2) handled = edit8noLast(action, &p->reverbDamping, 16, 0, 255);
-      else if (row == 3) handled = editFilterCutoff(action, &p->reverbFilterCutoffHz);
-      else handled = editFilterCutoff(action, &p->reverbHighpassCutoffHz);
+      if (row == 0) handled = edit8noLast(action, &p->reverbAlgorithm, 1, 0, 1);
+      else if (row == 1) handled = edit8noLast(action, &p->reverbReturn, 10, 0, 100);
+      else if (row == 2) handled = edit8noLast(action, beadsReverb() ? &p->beadsReverbTime : &p->reverbTime, 16, 0, 255);
+      else if (row == 3) handled = edit8noLast(action, beadsReverb() ? &p->beadsReverbTone : &p->reverbDamping, 16, 0, 255);
+      else if (beadsReverb()) handled = editFilterCutoff(action, &p->beadsReverbHighpassCutoffHz);
+      else handled = editFilterCutoff(action, row == 4 ? &p->reverbFilterCutoffHz : &p->reverbHighpassCutoffHz);
     } else {
       if (row == 0) handled = edit8noLast(action, &p->delayReturn, 10, 0, 100);
       else if (row == 1) handled = edit8noLast(action, &p->delayReverbSend, 10, 0, 100);
@@ -227,7 +230,7 @@ static int onEdit(int col, int row, CellEditAction action) {
   }
   if (handled) {
     projectModified = 1;
-    if (mixerPage == 0 && col >= 5) fullRedraw();
+    if ((mixerPage == 0 && col >= 5) || (mixerPage == 1 && row == 0)) fullRedraw();
   }
   return handled;
 }

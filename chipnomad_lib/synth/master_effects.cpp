@@ -21,13 +21,17 @@ void MasterEffects::init(float sampleRate) {
 
 void MasterEffects::reset() {
   reverb_.Init(reverbMemory_, sampleRate_);
+  beadsReverb_.Init(beadsReverbMemory_, sampleRate_);
   std::fill(delayLine_.begin(), delayLine_.end(), 0.0f);
   delayWrite_ = 0;
   reverbFilterState_[0] = reverbFilterState_[1] = 0.0f;
   reverbHighpassInputState_[0] = reverbHighpassInputState_[1] = 0.0f;
   reverbHighpassOutputState_[0] = reverbHighpassOutputState_[1] = 0.0f;
+  beadsReverbHighpassInputState_[0] = beadsReverbHighpassInputState_[1] = 0.0f;
+  beadsReverbHighpassOutputState_[0] = beadsReverbHighpassOutputState_[1] = 0.0f;
   delayFilterState_[0] = delayFilterState_[1] = 0.0f;
   reverbTailFrames_ = delayTailFrames_ = 0;
+  activeReverbAlgorithm_ = 0xff;
 }
 
 bool MasterEffects::tailActive() const {
@@ -94,6 +98,41 @@ void MasterEffects::process(float* reverbBus, float* delayBus, float* output,
   }
 
   if (reverbBus) {
+    uint8_t algorithm = project->reverbAlgorithm == 1 ? 1 : 0;
+    if (algorithm != activeReverbAlgorithm_) {
+      reverbTailFrames_ = 0;
+      if (algorithm) {
+        beadsReverb_.Init(beadsReverbMemory_, sampleRate_);
+        beadsReverbHighpassInputState_[0] = beadsReverbHighpassInputState_[1] = 0.0f;
+        beadsReverbHighpassOutputState_[0] = beadsReverbHighpassOutputState_[1] = 0.0f;
+      } else {
+        reverb_.Init(reverbMemory_, sampleRate_);
+        reverbFilterState_[0] = reverbFilterState_[1] = 0.0f;
+        reverbHighpassInputState_[0] = reverbHighpassInputState_[1] = 0.0f;
+        reverbHighpassOutputState_[0] = reverbHighpassOutputState_[1] = 0.0f;
+      }
+      activeReverbAlgorithm_ = algorithm;
+    }
+    float gain = project->perceptualEffects ? mixerGain(project->reverbReturn) : project->reverbReturn / 100.0f;
+    if (algorithm) {
+      beadsReverbFrames_.resize(frames);
+      float highpassCoeff = highpassCoefficient(project->beadsReverbHighpassCutoffHz);
+      for (size_t i = 0; i < frames; ++i) {
+        beadsReverbFrames_[i].l = highpass(reverbBus[i * 2], highpassCoeff, beadsReverbHighpassInputState_[0], beadsReverbHighpassOutputState_[0]);
+        beadsReverbFrames_[i].r = highpass(reverbBus[i * 2 + 1], highpassCoeff, beadsReverbHighpassInputState_[1], beadsReverbHighpassOutputState_[1]);
+      }
+      float time = project->beadsReverbTime / 255.0f;
+      beadsReverb_.set_mix(1.0f);
+      beadsReverb_.set_time(0.3f + 0.6f * time * time * time);
+      beadsReverb_.set_lp(project->beadsReverbTone / 255.0f);
+      beadsReverb_.Process(beadsReverbFrames_.data(), frames);
+      for (size_t i = 0; i < frames; ++i) {
+        output[i * 2] += beadsReverbFrames_[i].l * gain;
+        output[i * 2 + 1] += beadsReverbFrames_[i].r * gain;
+        if (fabsf(beadsReverbFrames_[i].l) > tailThreshold || fabsf(beadsReverbFrames_[i].r) > tailThreshold) reverbTailFrames_ = (size_t)sampleRate_;
+      }
+      return;
+    }
     reverbFrames_.resize(frames);
     float filterCoefficient = lowpassCoefficient(project->reverbFilterCutoffHz);
     float highpassCoeff = highpassCoefficient(project->reverbHighpassCutoffHz);
@@ -117,7 +156,6 @@ void MasterEffects::process(float* reverbBus, float* delayBus, float* output,
       ? 0.02f + 0.96f * damping * damping
       : 0.02f + damping * 0.96f);
     reverb_.Process(reverbFrames_.data(), frames);
-    float gain = project->perceptualEffects ? mixerGain(project->reverbReturn) : project->reverbReturn / 100.0f;
     for (size_t i = 0; i < frames; ++i) {
       output[i * 2] += reverbFrames_[i].l * gain;
       output[i * 2 + 1] += reverbFrames_[i].r * gain;

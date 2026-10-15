@@ -52,6 +52,25 @@ TEST_CASE("Reverb high-pass removes low-frequency send energy") {
   CHECK(lowEnergy > highEnergy * 3.0f);
 }
 
+TEST_CASE("Beads reverb has its own high-pass send filter") {
+  Project project;
+  projectInit(&project);
+  project.reverbAlgorithm = 1;
+  project.reverbReturn = 100;
+  project.beadsReverbTime = 180;
+  project.beadsReverbTone = 255;
+  std::vector<float> bus(12000 * 2, 1.0f), lowOutput(12000 * 2, 0.0f), highOutput(12000 * 2, 0.0f);
+  MasterEffects low{}, high{};
+  low.init(48000.0f); high.init(48000.0f);
+  project.beadsReverbHighpassCutoffHz = 20;
+  low.process(bus.data(), nullptr, lowOutput.data(), 12000, &project);
+  project.beadsReverbHighpassCutoffHz = 2000;
+  high.process(bus.data(), nullptr, highOutput.data(), 12000, &project);
+  float lowEnergy = 0.0f, highEnergy = 0.0f;
+  for (int i = 7000 * 2; i < 12000 * 2; ++i) { lowEnergy += fabsf(lowOutput[i]); highEnergy += fabsf(highOutput[i]); }
+  CHECK(lowEnergy > highEnergy * 3.0f);
+}
+
 TEST_CASE("Reset clears an existing delay tail") {
   MasterEffects effects;
   effects.init(1000.0f);
