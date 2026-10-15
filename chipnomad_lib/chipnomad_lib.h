@@ -182,6 +182,10 @@ void chipnomadQueuePlaybackStop(ChipNomadState* state);
 // application shutdown, in addition to the automatic call on playback stop.
 void chipnomadMidiPanic(ChipNomadState* state);
 int chipnomadQueuePlaybackStartSong(ChipNomadState* state, int songRow, int chainRow, int loop);
+// Audio-thread conditional start. Unlike checking a UI playback snapshot,
+// this remains correct when a MIDI Stop and the following Start cross the
+// UI/audio thread boundary in the same render block.
+int chipnomadQueuePlaybackStartSongIfStopped(ChipNomadState* state, int songRow, int chainRow, int loop);
 // Timed start (T40): playback begins on the first audio tick frame at or
 // after waitUntilMicros on the monotonic host clock (same scale as
 // midiRouterNowMicros / linkClientNowMicros). waitUntilMicros == 0 fires

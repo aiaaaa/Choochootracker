@@ -54,6 +54,7 @@ struct MidiRouterState {
   int haveClockBpm;
   float clockBpm;
   uint32_t clockBpmSerial;
+  uint64_t clockPulseCount;
 };
 
 static const MidiBackend* g_backend = nullptr;
@@ -207,6 +208,7 @@ void midiRouterSetClockMode(MidiRouterState* router, MidiClockMode mode) {
   router->clockBpmEma = 0;
   router->haveClockBpm = 0;
   router->clockBpm = 0;
+  router->clockPulseCount = 0;
 }
 
 int midiRouterGetClockTransport(const MidiRouterState* router, int* running, uint32_t* serial) {
@@ -223,9 +225,14 @@ int midiRouterGetClockBpm(const MidiRouterState* router, float* bpm, uint32_t* s
   return router->haveClockBpm;
 }
 
+uint64_t midiRouterGetClockPulseCount(const MidiRouterState* router) {
+  return router ? router->clockPulseCount : 0;
+}
+
 // One incoming Clock byte (0xF8) in slave mode: measure the interval since
-// the previous clock, smooth it, and publish a quantized BPM.
+// the previous clock, smooth it, and publish the result once per beat.
 static void handleClockTick(MidiRouterState* router, uint64_t arrival) {
+  router->clockPulseCount++;
   if (router->haveLastClockArrival) {
     uint64_t interval = arrival - router->lastClockArrival;
     // Clamp to a sane musical range (~8.3-625 BPM): the first clock after a
@@ -236,12 +243,10 @@ static void handleClockTick(MidiRouterState* router, uint64_t arrival) {
       router->clockBpmEma = router->haveClockBpm
         ? router->clockBpmEma + (bpm - router->clockBpmEma) * 0.2f
         : bpm;
-      // Quantize to whole BPM before publishing so the serial only moves
-      // on a musically meaningful change. The first valid interval always
-      // publishes (haveClockBpm is still 0 here).
-      float quantized = (float)(int)(router->clockBpmEma + 0.5f);
-      if (!router->haveClockBpm || quantized != router->clockBpm) {
-        router->clockBpm = quantized;
+      // A USB MIDI pulse is far too noisy a rate for retiming a sequencer and
+      // its tempo-synchronised effects directly. Publish once per beat.
+      if ((router->clockPulseCount % 24) == 0) {
+        router->clockBpm = router->clockBpmEma;
         router->clockBpmSerial++;
       }
       router->haveClockBpm = 1;
@@ -273,6 +278,7 @@ int midiRouterTick(MidiRouterState* router, int fallbackInstrument, MidiPreviewI
             router->clockRunning = 1;
             router->clockTransportSerial++;
             router->haveLastClockArrival = 0;
+            router->clockPulseCount = 0;
             break;
           case 0xfc: // Stop
             router->clockRunning = 0;
