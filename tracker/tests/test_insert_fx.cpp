@@ -299,7 +299,9 @@ TEST_SUITE("track inserts") {
           InsertConfig c[2]{};
           insertSelect(&c[slot], m);
           InsertAutomation a{};
+          BeadsPool pool;
           InsertChain chain(rate);
+          if (m == insertBeads) chain.attachBeads(slot, pool.prepare(slot, rate));
           REQUIRE(chain.ready());
           chain.sync(c, &a);
           uint8_t v[2][8];
@@ -811,7 +813,12 @@ TEST_CASE("insert delay and control smoothing are independent of callback block 
       c[0].values[4] = 200;
     }
     InsertAutomation a{}, b{};
+    BeadsPool pool;
     InsertChain whole(48000), singles(48000);
+    if (module == insertBeads) {
+      whole.attachBeads(0, pool.prepare(0, 48000));
+      singles.attachBeads(0, pool.prepare(1, 48000));
+    }
     whole.sync(c, &a);
     singles.sync(c, &b);
     uint8_t v[2][8];
@@ -1021,4 +1028,53 @@ TEST_CASE("insert tips return after real key release and categorized chooser sel
   CHECK(currentScreen == &screenMixer);
   screenMessage(0, "");
   chipnomadDestroy(chipnomadState); chipnomadState = previous; currentScreen = previousScreen;
+}
+
+TEST_CASE("Beads Shape Freeze has coarse byte edits in both track and master slots") {
+  auto* previous = chipnomadState;
+  auto* previousScreen = currentScreen;
+  chipnomadState = chipnomadCreate();
+  screensInitAll();
+  *pSongTrack = 0;
+  for (bool master : {false, true}) {
+    if (master) screenInsertFXOpenMaster();
+    else screenInsertFXOpenTrack();
+    for (int slot = 0; slot < 2; ++slot) {
+      auto& c = master ? chipnomadState->project.masterInserts[slot] :
+                        chipnomadState->project.trackInserts[0][slot];
+      insertSelect(&c, insertBeads);
+      screenInsertFX.fullRedraw();
+      auto* d = mockScreenData;
+      REQUIRE(d);
+      const int row = slot * 5 + 3;
+      c.values[6] = 0x78;
+      d->onEdit(1, row, CellEditAction::increaseBig);
+      CHECK(c.values[6] == 0x88);
+      d->onEdit(1, row, CellEditAction::decreaseBig);
+      CHECK(c.values[6] == 0x78);
+      d->onEdit(1, row, CellEditAction::increase);
+      CHECK(c.values[6] == 0x79);
+      d->onEdit(1, row, CellEditAction::decrease);
+      CHECK(c.values[6] == 0x78);
+      c.values[6] = 0xf8;
+      d->onEdit(1, row, CellEditAction::increaseBig);
+      CHECK(c.values[6] == 0xff);
+      c.values[6] = 0x08;
+      d->onEdit(1, row, CellEditAction::decreaseBig);
+      CHECK(c.values[6] == 0x00);
+      // The packed freeze bit must still bypass DSP parameter slew.
+      CHECK(insertDescriptor(insertBeads).parameters[6].mapping == InsertMapping::discrete);
+      insertSelect(&c, insertCompressor);
+      c.values[4] = 0;
+      REQUIRE(insertDescriptor(c.module).parameters[4].mapping == InsertMapping::discrete);
+      d->onEdit(1, slot * 5 + 1, CellEditAction::increaseBig);
+      CHECK(c.values[4] == 1);
+      d->onEdit(1, slot * 5 + 1, CellEditAction::decreaseBig);
+      CHECK(c.values[4] == 0);
+    }
+  }
+  screenInsertFXOpenTrack();
+  chipnomadDestroy(chipnomadState);
+  chipnomadState = previous;
+  currentScreen = previousScreen;
 }

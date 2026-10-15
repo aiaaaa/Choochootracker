@@ -1,4 +1,5 @@
 #include "insert_fx.h"
+#include "beads_insert.h"
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
@@ -113,7 +114,16 @@ static const InsertDescriptor descriptors[] = {
       {"Phase", "Phase", "", 0, 15, 0, M::discrete},
       {"Mode", "Mode", "", 0, 3, 0, M::discrete},
       {"Smooth", "Smooth", "%", 0, 1, 20, M::linear},
-      {"Mix", "Mix", "%", 0, 1, 255, M::linear}}}};
+      {"Mix", "Mix", "%", 0, 1, 255, M::linear}}},
+    {"Beads", 8,
+     {{"Time", "Grain position", "%", 0, 1, 26, M::linear},
+      {"Size", "Grain size/direction", "%", 0, 1, 191, M::linear},
+      {"Density", "Grain density", "%", 0, 1, 179, M::linear},
+      {"Pitch", "Grain pitch", "st", -24, 24, 128, M::bipolar},
+      {"Scatter", "Grain scatter", "%", 0, 1, 0, M::linear},
+      {"Feedback", "Feedback", "%", 0, 1, 0, M::linear},
+      {"Shp/Frz", "Shape / Freeze", "", 0, 255, 38, M::discrete},
+      {"Mix", "Mix", "%", 0, 1, 128, M::linear}}}};
 static_assert(sizeof(descriptors) / sizeof(descriptors[0]) == insertModuleCount,
               "Stable module catalogue");
 const InsertDescriptor& insertDescriptor(int m) {
@@ -158,7 +168,16 @@ void insertDescribe(char* text, size_t size, int m, int p, int value) {
     return;
   }
   float v = insertMap(m, p, value);
-  if (m == insertDistortion && p == 1) {
+  if (m == insertBeads && p == 6) {
+    int packed = (int)v;
+    snprintf(text, size, "%03d%% %s", (packed & 127) * 100 / 127,
+             packed & 128 ? "Frozen" : "Recording");
+  } else if (m == insertBeads && p == 1 && value == 255) {
+    snprintf(text, size, "Delay mode");
+  } else if (m == insertBeads && p == 2) {
+    snprintf(text, size, "%s %.0f%%", v < .48f ? "Regular" : v > .52f ? "Random" : "Stopped",
+             v * 100);
+  } else if (m == insertDistortion && p == 1) {
     static const char* n[] = {"Density", "Drive", "Spiral", "Mojo", "Dyno"};
     snprintf(text, size, "%s", n[(int)v]);
   } else if (m == insertRotary && p == 0) {
@@ -264,6 +283,7 @@ struct InsertChain::Impl {
     int module = 0, pending = 0;
     float wet = 0;
     bool switching = false;
+    BeadsPool::Handle beads;
     WorkCompressor work;
     insert_dsp::Distortion distortion;
     insert_dsp::StereoDoubler doubler;
@@ -291,14 +311,19 @@ struct InsertChain::Impl {
     }
   }
   ~Impl() {
-    for (auto& s : slots)
+    for (auto& s : slots) {
       for (auto* o : s.ott) ott_dsp_free(o);
+    }
   }
   void resetDSP(Slot& s, int m) {
+    if (m != insertBeads) s.beads = {};
     s.module = m;
     s.pending = m;
     s.dirty = true;
     switch (m) {
+      case insertBeads:
+        if (s.beads) s.beads->reset();
+        break;
       case insertCompressor:
         s.work = WorkCompressor{};
         s.work.rate = rate;
@@ -518,6 +543,9 @@ struct InsertChain::Impl {
         p[i] = insertMap(s.module, i, s.switching ? s.previous[i] : values[i]);
       float* channels[] = {l, r};
       switch (s.module) {
+        case insertBeads:
+          if (s.beads) s.beads->process(l, r, n, p);
+          break;
         case insertCompressor:
           s.work.process(l, r, n);
           break;
@@ -713,6 +741,9 @@ bool InsertChain::ready() const {
   return impl_ && impl_->slots[0].ott[0] && impl_->slots[0].ott[1] && impl_->slots[1].ott[0] &&
          impl_->slots[1].ott[1];
 }
+void InsertChain::attachBeads(int slot, const BeadsPool::Handle& beads) {
+  if (impl_ && slot >= 0 && slot < 2) impl_->slots[slot].beads = beads;
+}
 void InsertChain::reset() {
   if (!ready()) return;
   for (auto& s : impl_->slots) {
@@ -731,11 +762,14 @@ void InsertChain::trigger() {
     s.gateLevel = 0;
   }
 }
-uint16_t InsertChain::sync(const InsertConfig c[2], InsertAutomation* a) {
+uint16_t InsertChain::sync(const InsertConfig c[2], InsertAutomation* a, bool rendered) {
   if (!ready()) return 0;
   uint16_t cleared = 0;
   for (int slot = 0; slot < 2; ++slot) {
     auto& s = impl_->slots[slot];
+    // Muted/hidden tracks do not run process(), so a removed instance cannot
+    // wait for a fade there. Keep selected/bypassed Beads and its history intact.
+    if (c[slot].module != insertBeads && (!rendered || s.wet == 0)) s.beads = {};
     if (c[slot].module != s.config.module || c[slot].selection != s.config.selection) {
       a->valid[slot] = 0;
       cleared |= 0xffu << (slot * 8);

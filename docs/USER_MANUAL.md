@@ -1491,6 +1491,7 @@ the current screen.
 | Destruction | Mode, Amount, Tone, Mix |
 | Parametric EQ | Low gain, Low frequency, Mid gain, Mid frequency, High gain, High frequency |
 | Trance Gate | Pattern, Rate, Length, Gate, Phase, Mode, Smooth, Mix |
+| Beads (Mutable Instruments) | Time, Size, Density, Pitch, Scatter, Feedback, Shape/Freeze, Mix |
 
 Continuous controls use 00–FF, including valid zero and maximum FF. Bipolar
 controls have an exact neutral at 80. Distortion modes are 00 Density, 01 Drive,
@@ -1525,6 +1526,45 @@ uses a repeatable density-preserving mutation every four loops. On the master
 insert it follows transport time without note retriggers. Gate sets each open
 step's width, Smooth rounds its edges while retaining a click-safe minimum fade,
 and Mix crossfades between dry and gated audio.
+
+**Beads** uses the original Mutable Instruments granular DSP as a stereo insert.
+Choose Beads in either track or master insert slot. Its eight controls also use
+existing F11–F18 / F21–F28 commands and insert MOD destinations; no new FX IDs
+or project format are needed. Grains run continuously without additional events.
+
+- **Time:** position in the four-second recording buffer.
+- **Size:** long reverse grains at 00, shortest grains around 55, then progressively
+  longer forward grains. FF enters the original delay mode after its transition.
+- **Density:** regular grains below the center, random timing above it; the center
+  dead zone stops new grains. Moving away from center increases the rate.
+- **Pitch:** −24 to +24 semitones; 80 is exact unison.
+- **Scatter:** 00 is no parameter randomness. Increasing it applies Beads' internal
+  uniform Time randomness at full amount and Size randomness at half amount,
+  independently for each grain. Pitch and Shape remain at their set values.
+- **Feedback:** returns processed grains into the recording path.
+- **Shape/Freeze:** 00–7F records, 80–FF freezes. Within either range, the low seven
+  bits sweep the same envelope from rectangular through decay and bell to reverse.
+  Add/subtract 80 to toggle freeze without changing Shape: 40 and C0 have the same
+  envelope. The value hint shows envelope position and Recording/Frozen status.
+  Hold EDIT with Up/Down to change by 10 hex (16); Left/Right changes by 1.
+  This packed control is discrete so slew does not sweep through the freeze bit;
+  modulation of its whole byte can intentionally cross between the two states.
+- **Mix:** 00 is exact dry, FF is fully processed. Changes are smoothed.
+
+This eight-control adaptation uses digital stereo quality and latched Seed.
+Internal reverb, other recording qualities, external clock/trigger inputs and the
+unpatched-input wavetable synth are not exposed. Track reverb sends remain
+available. Freeze holds runtime audio, not a sample saved with the project;
+resetting/reselecting the module clears its buffer. Recording memory is allocated
+only for slots selecting Beads, including bypassed slots, before the audio thread
+receives the edit. Multiple track and master instances remain independent. Removed
+instances are reclaimed after their fade-out; allocation failure leaves that
+Beads slot dry and does not disable the chain's other effects. A later project
+edit retries preparation. Beads is a substantial DSP
+workload: evaluate handheld CPU headroom in the device personal build before
+stacking instances. Its source pin and adaptation notes are in
+`chipnomad_lib/external/mutable/beads/SOURCES.txt`; the MIT notice ships in
+`licenses/BEADS.txt`.
 
 Track level and tilt EQ precede the inserts, so both affect the signal entering
 compression and distortion. All voices/chord notes on the track feed one insert
