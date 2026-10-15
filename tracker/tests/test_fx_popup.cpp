@@ -30,7 +30,8 @@ void checkPopup(FXId command, int table, int offset) {
   // Adjacent track information must survive the popup draw.
   mockGfxCells[8][36] = '#';
   fxEditFullDraw(command, 0, table);
-  REQUIRE(mockCursorY >= 5);
+  REQUIRE(mockCursorY >= 6);
+  CHECK(std::string(mockGfxCells[5], 35) == std::string(35, ' '));
   REQUIRE(mockCursorY <= 18 - offset);
   REQUIRE(mockCursorX >= 1);
   REQUIRE(mockCursorX + mockCursorWidth <= 34);
@@ -88,9 +89,9 @@ TEST_CASE("Lane FX group spacing stays compact when switching help types") {
     CAPTURE(fx);
     getInstrumentFunctions(fx == fxOAR ? InstrumentType::OPL2 : InstrumentType::DX7).init(&project.instruments[0]);
     checkPopup(fx, 0, 0);
-    CHECK(std::string(mockGfxCells[5], 13) == " Sequencer FX");
+    CHECK(std::string(mockGfxCells[6], 13) == " Sequencer FX");
     bool end = false;
-    for (int row = 5; row <= 18; ++row) {
+    for (int row = 6; row <= 18; ++row) {
       bool blank = std::string(mockGfxCells[row], 34) == std::string(34, ' ');
       if (blank) end = true;
       else CHECK_FALSE(end);
@@ -140,7 +141,7 @@ TEST_CASE("Lane FX long groups scroll and use the same grid for drawing and navi
   checkPopup(fxARP, 0, 0);
   CHECK(mockGfxCells[18][34] == 'v');
   checkPopup(fxPAN, 0, 0);
-  CHECK(mockGfxCells[5][34] == '^');
+  CHECK(mockGfxCells[6][34] == '^');
   fxEditInput(keyEdit | keyUp, 1, &selected, &last);
   fxEditInput(0, 1, &selected, &last);
   CHECK(selected.command == fxSLE);
@@ -149,5 +150,26 @@ TEST_CASE("Lane FX long groups scroll and use the same grid for drawing and navi
   fxEditInput(keyEdit | keyRight, 1, &selected, &last);
   fxEditInput(0, 1, &selected, &last);
   CHECK(selected.command == fxRSN);
-  CHECK(mockGfxCells[5][34] == ' '); // New group returns to the compact origin.
+  CHECK(mockGfxCells[6][34] == ' '); // New group returns to the compact origin.
+}
+
+TEST_CASE("Lane FX uses the available width while keeping modulation slots together") {
+  PopupSession session;
+  getInstrumentFunctions(InstrumentType::SoundFont).init(&chipnomadState->project.instruments[0]);
+  for (int offset : {0, 2}) {
+    gfxSetContentRowOffset(offset);
+    checkPopup(fxRSN, 0, offset);
+    const int trackRow = mockCursorY;
+    checkPopup(fxTPN, 0, offset);
+    CHECK(mockCursorY == trackRow);
+    CHECK(mockCursorX == 17);
+    checkPopup(fxM1A, 0, offset);
+    const int modRow = mockCursorY;
+    checkPopup(fxM14, 0, offset);
+    CHECK(mockCursorY == modRow);
+    CHECK(mockCursorX == 17);
+    checkPopup(fxM2A, 0, offset);
+    CHECK(mockCursorY == modRow + 1);
+    CHECK(mockCursorX == 1);
+  }
 }

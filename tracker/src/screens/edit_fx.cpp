@@ -407,7 +407,8 @@ void collapseGroup(int groupIdx) {
 // Keep the picker clear of the track sidebar and bottom message row. Help
 // has a fixed footprint, so changing commands never changes group spacing.
 static constexpr int fxHelpWidth = 33;
-static constexpr int fxListTop = 5;
+// One blank row separates the fixed help block from the groups.
+static constexpr int fxListTop = 6;
 static int fxListBottom() { return 18 - gfxGetContentRowOffset(); }
 static int fxColumns(const FXGroup* group) {
   return group ? std::clamp(group->columns, 1, 8) : 1;

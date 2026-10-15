@@ -1310,6 +1310,10 @@ Tables `00-7F` are reserved for default instrument tables. Tables `80-FE` are in
 - **EDIT + [UP/DOWN]** on an FX name column: open the FX selection screen
 - **OPT + [DIRECTION]**: move between tables
 
+The FX picker leaves a blank row between its four-row help area and the group list.
+Command groups use up to eight columns; Modulation keeps five commands per row,
+one row for each modulation slot.
+
 ## 9. Instrument Pool and AY Wavetable
 
 ### Instrument Pool
