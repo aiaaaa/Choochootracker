@@ -13,8 +13,11 @@ show Error plus the reason at the bottom of Instrument. Cycling continues from
 the failed item in either direction. Stale async failures cannot overwrite a
 replacement instrument; healthy presets retain the live waveform.
 
-This review is not deployed. The R36H remains on daily `50f3832`; personal web
-work remains paused for handheld review. Existing songs and banks are preserved.
+The owner selected `dcbbc87` and `6ef8508` for a handheld-only daily over
+`50f3832`. Exact build and installation results are recorded in daily receipts.
+Personal web remains paused; this integration commit skips automatic workflows.
+Native and device validation gate installation. Existing songs, banks, settings
+and the regular launcher are preserved with a verified application rollback.
 
 ## October 14 combined personal daily
 
