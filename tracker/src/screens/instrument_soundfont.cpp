@@ -19,6 +19,7 @@ std::vector<SelectionItem> choices;
 std::string lastStatus;
 int buttonDown = 0;
 bool lastBusy = false;
+bool footerErrorDisplayed = false;
 extern const AppScreen screenSoundbankBrowser;
 Instrument& current() { return chipnomadState->project.instruments[cInstrument]; }
 void back() { chipnomadQueuePlaybackStopPreview(chipnomadState,*pSongTrack); screenSetup(&screenInstrument, cInstrument); }
@@ -98,14 +99,33 @@ void drawField(int col, int row, CellState state) {
     const auto warning=soundbankInstrumentWarning(cInstrument);
     if(!warning.empty())gfxPrintf(0,9,"%.32s",warning.c_str());
     gfxPrintf(0,warning.empty()?9:10,"%.32s",soundbankInstrumentRange(cInstrument).c_str());
+    // Keep errors at the bottom of this page, above the global message row.
+    // Two detail rows also keep common decoder errors from being cut mid-word.
+    auto error=soundbankInstrumentError(cInstrument);
+    if(!error.empty() || footerErrorDisplayed)gfxClearRect(0,16,32,3);
+    footerErrorDisplayed=!error.empty();
+    if(!error.empty()) {
+      gfxPrint(0,16,"Error:");
+      // The selected preset is already named above. Prefer the reason over a
+      // long filesystem path appended by sample preparation.
+      const auto path=error.find(": " + soundbankRoot());
+      if(path!=std::string::npos)error.resize(path);
+      for(int row=17;row<=18 && !error.empty();++row) {
+        size_t count=std::min<size_t>(32,error.size());
+        if(error.size()>count) {
+          const auto space=error.rfind(' ',count);
+          if(space!=std::string::npos && space>0)count=space;
+        }
+        gfxPrintf(0,row,"%.*s",int(count),error.c_str());
+        error.erase(0,count);
+        while(!error.empty() && error.front()==' ')error.erase(0,1);
+      }
+    }
   }
   else if (col) gfxPrint(28, 7, "Edit");
   else {
-    std::string name = current().chip.soundfont.preset;
-    for (const auto& bank : soundbankEntries()) if (bank.id==current().chip.soundfont.bank)
-      for (const auto& preset : bank.presets) if (preset.first == name) { name = preset.second; break; }
+    const auto name = soundbankPresetName(current().chip.soundfont.bank, current().chip.soundfont.preset);
     gfxClearRect(0, 7, 27, 1);
-    name=soundbank::browserLabel(name);
     gfxPrintf(0, 7, "Preset: %.18s", name.empty() ? "Select..." : name.c_str());
   }
 }

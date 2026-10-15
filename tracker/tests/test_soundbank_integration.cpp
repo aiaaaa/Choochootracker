@@ -1,5 +1,6 @@
 #include <cmath>
 #include <cstring>
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <iterator>
@@ -14,6 +15,7 @@
 #include "soundbank_runtime.h"
 #include "synth/soundbank_voice.h"
 #include "mocks/app_ui_mock.h"
+#include "corelib_gfx.h"
 
 TEST_CASE("SoundFont project and instrument files retain identities without runtime handles") {
   auto p = std::make_unique<Project>(), q = std::make_unique<Project>();
@@ -419,6 +421,96 @@ TEST_CASE("SoundFont preset completion stays local to its instrument page") {
   CHECK(soundbankInstrumentStatus(0)=="Preset ready");CHECK(soundbankInstrumentWarning(0).empty());
   CHECK(std::string(screenGetActiveMessage())=="Existing unrelated message");
   soundbankShutdown();chipnomadDestroy(chipnomadState);chipnomadState=saved;std::filesystem::remove(file);screenMessage(1,"%s",savedMessage.c_str());
+}
+
+TEST_CASE("SoundFont failed selections stay silent and preserve cycling and error layout") {
+  struct Fixture {
+    ChipNomadState* saved = chipnomadState;
+    int savedInstrument = cInstrument, modified = projectModified;
+    std::filesystem::path base, folder;
+    bool hadRoot = std::getenv("CHOOCHOO_SOUNDBANKS") != nullptr;
+    std::string previousRoot = hadRoot ? std::getenv("CHOOCHOO_SOUNDBANKS") : "";
+    static void root(const char* value) {
+#ifdef _WIN32
+      _putenv_s("CHOOCHOO_SOUNDBANKS",value ? value : "");
+#else
+      if(value)setenv("CHOOCHOO_SOUNDBANKS",value,1);else unsetenv("CHOOCHOO_SOUNDBANKS");
+#endif
+    }
+    Fixture() {
+      soundbankShutdown();chipnomadState=chipnomadCreate();projectInitAY(&chipnomadState->project);
+      cInstrument=0;getInstrumentFunctions(InstrumentType::SoundFont).init(&chipnomadState->project.instruments[0]);
+      base=std::filesystem::temp_directory_path()/"choochoo-failed-selection-library";
+      REQUIRE_FALSE(std::filesystem::exists(base));folder=base/"__test_failed_selection";
+      std::filesystem::create_directories(folder);root(base.string().c_str());
+    }
+    ~Fixture() {
+      soundbankShutdown();chipnomadDestroy(chipnomadState);chipnomadState=saved;
+      cInstrument=savedInstrument;projectModified=modified;std::filesystem::remove_all(base);
+      root(hadRoot ? previousRoot.c_str() : nullptr);
+    }
+  } fixture;
+  for (const char* name : {"01 Good.wav","02 Failed.wav","03 Good.wav"})
+    std::filesystem::copy_file("tests/fixtures/soundbanks/tone.wav",fixture.folder/name);
+  auto source=soundbank::openFile((fixture.folder/"02 Failed.wav").string());
+  auto bytes=source->bytes(0,source->size());source.reset();
+  for(size_t pos=12;pos+8<=bytes.size();) {
+    if(!memcmp(bytes.data()+pos,"smpl",4)){bytes[pos+8+12]=128;break;}
+    auto len=soundbank::read32(bytes.data()+pos+4);pos+=8+len+(len&1);
+  }
+  {std::ofstream out(fixture.folder/"02 Failed.wav",std::ios::binary);out.write((const char*)bytes.data(),bytes.size());}
+  auto settle=[] {
+    const auto until=std::chrono::steady_clock::now()+std::chrono::seconds(10);
+    do {soundbankPoll();std::this_thread::sleep_for(std::chrono::milliseconds(1));}
+    while(soundbankBusy() && std::chrono::steady_clock::now()<until);
+    REQUIRE_FALSE(soundbankBusy());
+  };
+  soundbankRescan(true);settle();
+  auto& i=chipnomadState->project.instruments[0];
+  auto id=[](const char* name){return std::string("__test_failed_selection/")+name;};
+  soundbankLoad(0,id("01 Good.wav"),"sample");settle();REQUIRE(i.chip.soundfont.prepared!=0);
+  chipnomadInitChips(chipnomadState,48000,nullptr);chipnomadReserveRenderBuffers(chipnomadState,480);
+  REQUIRE(chipnomadQueuePlaybackPreviewNote(chipnomadState,0,48,0));
+  float audio[960];REQUIRE(chipnomadRender(chipnomadState,audio,480));
+  REQUIRE(chipnomadState->soundbankVoices[0][0]->active());
+  projectModified=0;
+  soundbankCycle(0,1);settle();
+  CHECK(std::string(i.chip.soundfont.bank)==id("02 Failed.wav"));
+  CHECK(std::string(i.chip.soundfont.preset)=="sample");CHECK(std::string(i.name)=="02 Failed");
+  CHECK(i.chip.soundfont.prepared==0);CHECK(projectModified==1);
+  CHECK(soundbankInstrumentError(0).find("Invalid audio root note: ")==0);
+  gfxClear();screenInstrumentSoundFont.drawField(0,3,CellState::normal);
+  screenInstrumentSoundFont.drawField(0,4,CellState::normal);
+  CHECK(std::string(mockGfxCells[7],17)=="Preset: 02 Failed");
+  CHECK(std::string(mockGfxCells[8],32)==std::string(32,' '));
+  CHECK(std::string(mockGfxCells[16],6)=="Error:");
+  CHECK(std::string(mockGfxCells[17],23)=="Invalid audio root note");
+  REQUIRE(chipnomadQueuePlaybackPreviewNote(chipnomadState,0,48,0));
+  for(int n=0;n<10;++n)REQUIRE(chipnomadRender(chipnomadState,audio,480));
+  CHECK_FALSE(chipnomadState->soundbankVoices[0][0]->active());
+  for(float x:audio)CHECK(std::abs(x)<.00001f);
+  // No automatic retry loop, and both directions move from the failed item.
+  for(int n=0;n<3;++n){soundbankPoll();CHECK_FALSE(soundbankBusy());}
+  soundbankCycle(0,1);settle();CHECK(std::string(i.chip.soundfont.bank)==id("03 Good.wav"));
+  CHECK(i.chip.soundfont.prepared!=0);CHECK(soundbankInstrumentError(0).empty());
+  screenInstrumentSoundFont.drawField(0,3,CellState::normal);
+  CHECK(std::string(mockGfxCells[16],32)==std::string(32,' '));
+  mockGfxCells[16][31]='X'; // The healthy instrument's live waveform owns the footer.
+  screenInstrumentSoundFont.drawField(0,3,CellState::normal);
+  CHECK(mockGfxCells[16][31]=='X');
+  soundbankCycle(0,-1);settle();CHECK(std::string(i.chip.soundfont.bank)==id("02 Failed.wav"));
+  soundbankCycle(0,-1);settle();CHECK(std::string(i.chip.soundfont.bank)==id("01 Good.wav"));
+  // A later request supersedes a failure even when decoding finishes between taps.
+  soundbankCycle(0,1);soundbankCycle(0,1);settle();
+  CHECK(std::string(i.chip.soundfont.bank)==id("03 Good.wav"));CHECK(soundbankInstrumentError(0).empty());
+  // A stale worker must not overwrite an instrument that was replaced meanwhile.
+  soundbankLoad(0,id("02 Failed.wav"),"sample");
+  strcpy(i.chip.soundfont.preset,"replacement");settle();
+  CHECK(std::string(i.chip.soundfont.preset)=="replacement");CHECK(soundbankInstrumentError(0).empty());
+  // Parse / missing-file failures follow the same selection and silence path.
+  soundbankLoad(0,id("Missing.wav"),"sample");settle();
+  CHECK(std::string(i.chip.soundfont.bank)==id("Missing.wav"));CHECK(i.chip.soundfont.prepared==0);
+  CHECK_FALSE(soundbankInstrumentError(0).empty());
 }
 
 TEST_CASE("SoundFont live envelope edits preserve exclusive group choke fades") {

@@ -44,8 +44,7 @@ size_t cacheLimit() {
   return n >= 8 && n <= 1024 && end && !*end ? size_t(n) * 1024 * 1024 : 64 * 1024 * 1024;
 }
 soundbank::SampleCache cache(cacheLimit());
-std::set<std::string> failed;
-std::map<int, std::string> instrumentErrors;
+std::map<std::string, std::string> failed;
 std::string scanError;
 #ifdef __EMSCRIPTEN__
 constexpr auto launchPolicy = std::launch::deferred;
@@ -75,18 +74,32 @@ bool soundbankBusy() { return job.valid(); }
 bool soundbankScanned() { return scanned; }
 bool soundbankScanning() { return job.valid() && target < 0; }
 const std::string& soundbankStatus() { return status; }
+std::string soundbankPresetName(const std::string& bank, const std::string& preset) {
+  for (const auto& entry : entries) if (entry.id == bank)
+    for (const auto& item : entry.presets) if (item.first == preset)
+      return soundbank::browserLabel(item.second);
+  return soundbank::browserLabel(preset == "sample" || preset == "sfz" || preset == "exs"
+    ? soundbank::bankFolders(bank).back() : preset);
+}
+std::string soundbankInstrumentError(int instrument) {
+  if (!chipnomadState || instrument < 0 || instrument >= PROJECT_MAX_INSTRUMENTS) return {};
+  const auto& i = chipnomadState->project.instruments[instrument];
+  if (i.type != InstrumentType::SoundFont) return {};
+  const auto& s = i.chip.soundfont;
+  auto error = failed.find(std::string(s.bank) + "|" + s.preset);
+  if (!soundbank::prepared(s.prepared) && error != failed.end()) return error->second;
+  return scanError;
+}
 std::string soundbankInstrumentStatus(int instrument) {
   if (!chipnomadState || instrument < 0 || instrument >= PROJECT_MAX_INSTRUMENTS) return {};
   if (job.valid() && target == instrument) return "Preparing preset...";
-  auto error = instrumentErrors.find(instrument);
-  if (error != instrumentErrors.end()) return error->second;
   const auto& s = chipnomadState->project.instruments[instrument].chip.soundfont;
   if (soundbank::prepared(s.prepared)) return "Preset ready";
+  if (failed.count(std::string(s.bank) + "|" + s.preset)) return {};
   return s.bank[0] ? "Preset not ready" : "Select a preset";
 }
 std::string soundbankInstrumentWarning(int instrument) {
   if (!chipnomadState || instrument < 0 || instrument >= PROJECT_MAX_INSTRUMENTS) return {};
-  if (!scanError.empty()) return "Scan failed: " + scanError;
   const auto* p = soundbank::prepared(chipnomadState->project.instruments[instrument].chip.soundfont.prepared);
   if (!p || p->warnings.empty()) return {};
   for (const auto& warning : p->warnings)
@@ -149,7 +162,7 @@ void soundbankLoad(int instrument, const std::string& bank, const std::string& p
   audioManager.resume();
   cache.trim();
   target = instrument;
-  instrumentErrors.erase(instrument);
+  failed.erase(bank + "|" + preset);
   restoringProject = restoring;
   bankId = bank;
   presetId = preset;
@@ -189,6 +202,20 @@ static void loadPending() {
       pendingExpectedPreset==i.chip.soundfont.preset && pendingExpectedHandle==i.chip.soundfont.prepared)
     soundbankLoad(next,pendingBank,pendingPreset);
 }
+static void failPreset(const std::string& error) {
+  auto& i = chipnomadState->project.instruments[target];
+  audioManager.pause();
+  strcpy(i.chip.soundfont.bank, bankId.c_str());
+  strcpy(i.chip.soundfont.preset, presetId.c_str());
+  i.chip.soundfont.prepared = 0;
+  if (!restoringProject || !i.name[0])
+    snprintf(i.name, sizeof(i.name), "%s", soundbankPresetName(bankId, presetId).c_str());
+  refreshPending = !chipnomadQueueProjectRefresh(chipnomadState);
+  audioManager.resume();
+  if (!restoringProject) projectModified = 1;
+  failed[bankId + "|" + presetId] = error;
+  status = error;
+}
 void soundbankPoll() {
   if (refreshPending && chipnomadState && chipnomadQueueProjectRefresh(chipnomadState))
     refreshPending = false;
@@ -202,25 +229,21 @@ void soundbankPoll() {
       loadPending();
       return;
     }
-    if (!r.error.empty()) {
-      status = r.error;
-      if (target >= 0) failed.insert(bankId + "|" + presetId);
-      if (target >= 0) instrumentErrors[target] = status;
-      else scanError = status;
-      return;
-    }
     if (target < 0) {
+      if (!r.error.empty()) { status = scanError = r.error; return; }
       entries = std::move(r.banks);
       scanned = true;
       status = std::to_string(entries.size()) + " USER banks";
       return;
     }
+    if (!chipnomadState) return;
     auto& i = chipnomadState->project.instruments[target];
     if (i.type != InstrumentType::SoundFont || expectedBank != i.chip.soundfont.bank ||
         expectedPreset != i.chip.soundfont.preset || expectedHandle != i.chip.soundfont.prepared) {
       status = "Preset request superseded";
       return;
     }
+    if (!r.error.empty()) { failPreset(r.error); return; }
     try {
       audioManager.pause();
       uint32_t handle = soundbank::publish(r.preset);
@@ -235,8 +258,7 @@ void soundbankPoll() {
       status = "Preset ready";
     } catch (const std::exception& e) {
       audioManager.resume();
-      status = e.what();
-      instrumentErrors[target] = status;
+      failPreset(e.what());
     }
     return;
   }
@@ -258,7 +280,8 @@ void soundbankPoll() {
 
 void soundbankShutdown() {
   if (job.valid()) job.get();
-  pendingInstrument=-1; entries.clear(); scanned=false; status.clear(); instrumentErrors.clear(); scanError.clear();
+  pendingInstrument=-1; entries.clear(); scanned=false; status.clear(); scanError.clear();
+  failed.clear(); refreshPending=false;
   soundbank::collect([](uint32_t) { return false; });
   cache.trim();
 }

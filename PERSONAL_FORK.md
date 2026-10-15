@@ -8,6 +8,11 @@ The private collection scan covers 1,670 WAV/AIFF files: no load failures and
 seven compatibility warnings, including the earlier sampler-specific loop fix.
 Original assets and authored SFZ/EXS loop mappings remain unchanged.
 
+Failed loads keep the requested preset selected, clear its playable handle, and
+show Error plus the reason at the bottom of Instrument. Cycling continues from
+the failed item in either direction. Stale async failures cannot overwrite a
+replacement instrument; healthy presets retain the live waveform.
+
 This review is not deployed. The R36H remains on daily `50f3832`; personal web
 work remains paused for handheld review. Existing songs and banks are preserved.
 

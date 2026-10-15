@@ -51,7 +51,9 @@ int main(int argc,char** argv){
     require(!strcmp(instrument.chip.soundfont.bank,bank.id.c_str()),"SoundFont bank identity retained");
     auto originalHandle=instrument.chip.soundfont.prepared;
     soundbankLoad(0,"missing.sf2","0:0");finish();
-    require(instrument.chip.soundfont.prepared==originalHandle,"Failed selection preserves playable preset");
+    require(instrument.chip.soundfont.prepared==0 && !strcmp(instrument.chip.soundfont.bank,"missing.sf2"),"Failed selection keeps requested identity and clears sound");
+    require(!soundbankInstrumentError(0).empty(),"Failed selection exposes its error");
+    capture("soundfont-failed-preset");
     soundbankLoad(0,"missing.sf2","0:0");
     soundbankLoad(0,bank.id,bank.presets.front().first);finish();
     require(instrument.chip.soundfont.prepared!=originalHandle,"Latest queued selection wins");

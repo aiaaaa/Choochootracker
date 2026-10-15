@@ -467,8 +467,10 @@ loaded selection.
 Hold EDIT and press Left/Right on Preset to move sequentially in the same order
 as the browser, continuing into the next collection and wrapping at either end
 of the library. Rapid cycling prepares the latest requested selection. The
-current preset stays playable until a replacement succeeds; a failed load keeps
-it intact. Rescan after importing or changing library files. Preset status appears
+current preset stays playable while a replacement prepares. If loading fails, the
+requested preset remains selected and the instrument becomes silent. **Error:**
+and the reason appear at the bottom of Instrument; cycling continues from that
+preset in either direction. Rescan after importing or changing library files. Preset status appears
 directly below Preset with a fixed color. Loading does not post messages on SONG
 or other pages.
 

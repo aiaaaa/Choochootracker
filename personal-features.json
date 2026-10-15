@@ -787,12 +787,16 @@
     "baseline": "50f3832",
     "status": "Implemented for review; not deployed; web remains paused",
     "changes": [
-      "Accept exact WAV exclusive-end boundary and counted zero alignment byte with warnings; source files unchanged"
+      "Accept exact WAV exclusive-end boundary and counted zero alignment byte with warnings; source files unchanged",
+      "Failed presets remain selected and silent; show Error and reason at the bottom of Instrument; cycling continues"
     ],
     "validation": {
       "native_audio_collection_files": 1670,
       "load_failures": 0,
-      "compatibility_warnings": 7
+      "compatibility_warnings": 7,
+      "native_tests_passed": 740,
+      "focused_soundfont_tests_passed": 40,
+      "final_ui_regression_assertions": 1013
     },
     "private_assets_in_public_build": false
   }
