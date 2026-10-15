@@ -2003,6 +2003,10 @@ listed in `docs/chip-preset-auditions.tsv`; subjective listening remains pending
 Native instrument waveform previews refresh when their controls are redrawn.
 FM instruments can overlay their optional Amp env curve; SID keeps its waveform
 preview without that FM-only overlay, including when browsing banks and presets.
+While an instrument sounds, its live waveform takes precedence over control
+redraws. Brief monitor gaps hold the last trace; song rests show a flat live
+trace. Once playback and the release tail stop, the static preview returns after
+a short pause. Changing instruments or reopening the page resets the live view.
 
 All seven FM engines offer **Bright**, **Feedback**, and **Amp env**. Bright
 ranges from -63 to +63, with zero preserving the patch; it changes modulation

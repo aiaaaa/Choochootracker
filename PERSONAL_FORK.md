@@ -20,6 +20,14 @@ choice, not an independently verified legal conclusion. The older
 to implement Link. The current personal source contains no Link implementation;
 this policy update requires no application rebuild or device installation.
 
+## October 15 Instrument live waveform stability
+
+The shared Instrument view holds its live trace through brief monitor gaps and
+draws it after control refreshes. Song rests remain in live mode with a flat
+trace; stopping playback and the release tail restores the static preview after
+250 ms of inactivity. Instrument changes and page reentry reset the live view.
+This changes display state only. Audio rendering and preset values are unchanged.
+
 ## October 15 SID preset cleanup
 
 The device personal build keeps SID source details in EDIT. On Instrument,
