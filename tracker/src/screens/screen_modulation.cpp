@@ -10,7 +10,7 @@
 #include <string.h>
 
 // Two adjacent columns, each with two eight-field blocks. Content rows
-// 1..8 and 9..16 fit between the two-row scope and the message footer.
+// 2..9 and 11..18 leave a gap between blocks and keep the message footer free.
 // Column 0 edits Mod1/Mod2; column 1 edits Mod3/Mod4.
 
 #define COL_LEFT_X    0
