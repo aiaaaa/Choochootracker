@@ -79,6 +79,57 @@ int main(int argc,char** argv){
       }
     }
     printf("Song-only waveform: transitions, full editor rows, bottom Phrase edits and Modulation touch passed in both modes\n");
+  if(argc==3 && !strcmp(argv[2],"--sid-home-only")) {
+    screensInitAll();waveformDisplayInit();monitorDisplayInit();
+    static_assert(sizeof(FXId)==2,"Current lane commands must remain 16-bit");
+    struct Control { int x,y,col,row,parameter; FXId command; };
+    const Control controls[]={
+      {9,9,0,5,sidWave,fxSWV},{24,9,1,5,sidPulse,fxSCP},
+      {9,12,0,6,sidFilterMode,fxSFTY},{9,13,0,7,sidCutoff,fxSCT},
+      {26,13,1,7,sidResonance,fxSRN},{7,14,0,8,sidAttack,fxSAT},
+      {12,14,1,8,sidDecay,fxSDE},{17,14,2,8,sidSustain,fxSSU},
+      {22,14,3,8,sidRelease,fxSRL}};
+    for(int header:{0,1}) {
+      auto& project=chipnomadState->project;auto& instrument=project.instruments[0];
+      getInstrumentFunctions(InstrumentType::SID).init(&instrument);
+      std::snprintf(instrument.chip.sid.presetName,sizeof(instrument.chip.sid.presetName),"Long preset name beside EDIT");
+      project.phrases[0].rows[0].fx[0]={fxSCT,200};
+      project.phrases[0].rows[0].fx[1]={FX_ID_EMPTY,17};
+      const auto lane=project.phrases[0].rows[0];
+      appSettings.persistentWaveform=header;screenSetup(&screenInstrument,0);appDraw();
+      require(screenInstrumentOPL.rows==9,"SID logical row count");
+      int offset=screenScopeRows(currentScreen);
+      for(const auto& c:controls){
+        instrument.chip.sid.value[c.parameter]=1;
+        require(screenTouchTap(c.x,c.y+offset),"SID field touch");
+        require(screenInstrumentOPL.cursorCol==c.col&&screenInstrumentOPL.cursorRow==c.row,"SID exact field mapping");
+        require(screenTouchAdjust(c.x,c.y+offset)==touchAdjustCoarse,"SID selected value adjusts");
+        require(screenInstrumentOPL.onEdit(c.col,c.row,CellEditAction::increase),"SID field edits");
+        require(instrument.chip.sid.value[c.parameter]==2,"SID edit reaches correct native parameter");
+        NativeFXInfo info{};require(instrumentNativeFXInfo(&instrument,c.command,&info),"SID lane FX metadata");
+        FXCell fx{FX_ID_EMPTY,0},last{FX_ID_EMPTY,0};
+        selectInstrumentFX(&fx,c.command,0);
+        require(fx.command==c.command&&fx.value==info.preset,"Lane FX starts from saved native value");
+        for(int table:{0,1}){
+          fx.value=info.maximum;editFXValue(CellEditAction::increase,&fx,&last,table,0);
+          require(fx.value==info.maximum,"Phrase/Table native FX upper bound");
+          fx.value=info.minimum;editFXValue(CellEditAction::decrease,&fx,&last,table,0);
+          require(fx.value==info.minimum,"Phrase/Table native FX lower bound");
+        }
+      }
+      require(!std::memcmp(&lane,&project.phrases[0].rows[0],sizeof(lane)),"Preset edits preserve lane commands, values and 16-bit empty sentinel");
+      require(!screenTouchTap(9,11+offset),"Filter heading not editable");
+      require(!screenTouchTap(16,13+offset),"Filter column gap not editable");
+      require(screenTouchTap(9,13+offset),"Cutoff selected");
+      require(screenTouchAdjust(26,13+offset)==touchAdjustNone,"Resonance drag must not change cutoff");
+      require(screenTouchTap(30,7+offset),"SID EDIT touch");
+      require(screenInstrumentOPL.cursorRow==4&&screenInstrumentOPL.cursorCol==1,"EDIT is beside preset");
+      tapEdit();require(currentScreen==&screenSIDEdit,"Real EDIT input opens SID editor, not preset browser");
+      key(1,keyOpt);key(0,0);require(currentScreen==&screenInstrument,"SID editor returns home");
+      screenMessage(0,"");screenSetup(&screenInstrument,0);appDraw();
+      char name[64];snprintf(name,sizeof(name),"sid-home-header-%d",header);capture(name);
+    }
+    printf("SID home: both headers, nine native controls, exact touch/drag, EDIT routing and 16-bit Phrase/Table FX semantics passed\n");
     chipnomadDestroy(chipnomadState);SDL_Quit();return 0;
   }
   if(argc==3 && !strcmp(argv[2],"--insert-popup-only")) {
@@ -475,10 +526,10 @@ int main(int argc,char** argv){
   printf("Native FX popup preset values, selection defaults and engine bounds passed\n");
   for(int header:{0,1}){
     appSettings.persistentWaveform=header;getInstrumentFunctions(InstrumentType::SID).init(&chipnomadState->project.instruments[0]);screenSetup(&screenInstrument,0);appDraw();
-    for(int row=5;row<=7;++row)for(int col=0;col<screenInstrumentOPL.getColumnCount(row);++col){screenInstrumentOPL.onEdit(col,row,CellEditAction::increase);screenInstrumentOPL.drawField(col,row,CellState::normal);appDraw();}
+    for(int row=5;row<=8;++row)for(int col=0;col<screenInstrumentOPL.getColumnCount(row);++col){screenInstrumentOPL.onEdit(col,row,CellEditAction::increase);screenInstrumentOPL.drawField(col,row,CellState::normal);appDraw();}
     auto incremental=pixels();currentScreen->fullRedraw();appDraw();auto clean=pixels();int start=(8+gfxGetContentRowOffset())*gfxGetCharHeight()*640;
     require(std::equal(incremental.begin()+start,incremental.end(),clean.begin()+start),"SID controls incremental pixels match full redraw");capture(header?"sid-controls-header-on":"sid-controls-header-off");
-    require(screenInstrumentOPL.rows==8,"SID has only implemented synthesis controls");
+    require(screenInstrumentOPL.rows==9,"SID has only implemented synthesis controls");
   }
 
   printf("SID controls passed: native waveform, pulse width, filter and ADSR; no alternate model options\n");

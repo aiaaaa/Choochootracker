@@ -71,10 +71,10 @@ TEST_CASE("SID editor entry and return preserve quick controls and patch") {
   Editor e;
   auto before = e.patch();
   instrumentFMSetContext(0, InstrumentType::SID);
-  CHECK(screenInstrumentOPL.getColumnCount(5) == 3);
-  screenInstrumentOPL.drawField(2, 5, CellState::focus);
-  CHECK(std::string(mockGfxCells[9] + 29, 4) == "EDIT");
-  screenInstrumentOPL.onEdit(2, 5, CellEditAction::tap);
+  CHECK(screenInstrumentOPL.getColumnCount(4) == 2);
+  screenInstrumentOPL.drawField(1, 4, CellState::focus);
+  CHECK(std::string(mockGfxCells[7] + 28, 4) == "EDIT");
+  screenInstrumentOPL.onEdit(1, 4, CellEditAction::tap);
   CHECK(currentScreen == &screenSIDEdit);
   CHECK(memcmp(&before, &e.patch(), sizeof(before)) == 0);
   CHECK(projectModified == 0);
@@ -211,7 +211,7 @@ TEST_CASE("SID editor FX markers follow matching active tracks without blocking 
   CHECK(mockGfxCells[7][19] == '*');
   auto before = e.patch();
   e.table->onEdit(1, 4, CellEditAction::increase);
-  screenInstrumentOPL.onEdit(1, 6, CellEditAction::increase);
+  screenInstrumentOPL.onEdit(0, 7, CellEditAction::increase);
   CHECK(e.patch().value[sidCutoff] == before.value[sidCutoff] + 2);
   CHECK(projectModified == 1);
   CHECK(track.note.fx[fxSCT].fxValue == 200);
@@ -242,7 +242,7 @@ TEST_CASE("SID editor observes real audio FX snapshots while editing the preset"
   phraseClear(&project.phrases[0]);
   auto& row = project.phrases[0].rows[0];
   row.note = 45; row.instrument = 0; row.volume = PHRASE_VOLUME_MAX;
-  row.fx[0][0] = fxSCT; row.fx[0][1] = 200;
+  row.fx[0] = {fxSCT, 200};
   getInstrumentFunctions(InstrumentType::SID).init(&project.instruments[0]);
   auto before = e.patch();
   chipnomadInitChips(chipnomadState, 48000, nullptr);
@@ -254,7 +254,8 @@ TEST_CASE("SID editor observes real audio FX snapshots while editing the preset"
   CHECK(memcmp(&before, &e.patch(), sizeof(before)) == 0);
   e.table->onEdit(1, 4, CellEditAction::increase);
   CHECK(e.patch().value[sidCutoff] == before.value[sidCutoff] + 1);
-  CHECK(row.fx[0][1] == 200);
+  CHECK(row.fx[0].command == fxSCT);
+  CHECK(row.fx[0].value == 200);
   chipnomadQueuePlaybackStop(chipnomadState);
   chipnomadRender(chipnomadState, audio.data(), 960);
   CHECK(e.hint(1, 4) == "Filter cutoff: 000-7FF");
