@@ -272,7 +272,8 @@ TEST_CASE("SID home marks and protects imported controls") {
   screenInstrumentOPL.drawStatic();
   screenInstrumentOPL.drawField(1, 5, CellState::focus);
   CHECK(mockGfxCells[9][27] == '*');
-  CHECK(std::string(mockGfxCells[10], 32).find("Program: Furnace macros") == 0);
+  CHECK(std::string(mockGfxCells[10], 32).find("Program:") == std::string::npos);
+  CHECK(std::string(mockGfxCells[15], 32).find("* = program controlled") == 0);
   screenInstrumentOPL.onEdit(1, 5, CellEditAction::increase);
   CHECK(memcmp(&before, &e.patch(), sizeof(before)) == 0);
   CHECK(projectModified == 0);
@@ -282,4 +283,9 @@ TEST_CASE("SID home marks and protects imported controls") {
   e.patch().program = {};
   screenInstrumentOPL.drawField(1, 5, CellState::normal);
   CHECK(mockGfxCells[9][27] == ' ');
+  screenInstrumentOPL.drawStatic();
+  CHECK(std::string(mockGfxCells[15], 32).find("* = program controlled") == std::string::npos);
+  e.macro(1, 12); // Pitch is owned only in EDIT, not among the home controls.
+  screenInstrumentOPL.drawStatic();
+  CHECK(std::string(mockGfxCells[15], 32).find("* = program controlled") == std::string::npos);
 }
