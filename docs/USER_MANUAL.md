@@ -1237,120 +1237,39 @@ The navigation display keeps the full F–M–I–P column visible throughout th
 instrument screens, including Insert FX and the instrument pool, and highlights
 the current screen.
 
-| Module | Parameters in order |
-| --- | --- |
-| Work Compressor | Threshold, Attack, Release, Makeup, Ratio, Detector source, Detector filter, Mix |
-| Airwindows Distortion | Input, Mode, Output, Mix |
-| Airwindows StereoDoubler | Detune, Mix |
-| TAPESCAM | Input, Drive, Color, Wobble, Tone, Output |
-| OTT (Rui-727) | Depth, Time, Upward, Downward, Input, Output |
-| Chorus | Rate, Depth, Tone, Mix, Feedback |
-| Flanger | Rate, Depth, Feedback, Mix |
-| Phaser | Rate, Depth, Feedback, Mix, Stages |
-| Rotary | Speed, Depth, Drive, Mix |
-| Saturation | Drive, Tone, Level, Mix |
-| Bitcrusher | Bit depth, Rate reduction, Tone, Mix |
-| Destruction | Mode, Amount, Tone, Mix |
-| Parametric EQ | Low gain, Low frequency, Mid gain, Mid frequency, High gain, High frequency |
-| Trance Gate | Pattern, Rate, Length, Gate, Phase, Mode, Smooth, Mix |
-| Beads (Mutable Instruments) | Time, Size, Density, Pitch, Scatter, Feedback, Shape/Freeze, Mix |
+| Effect | Use it for | Parameters |
+| --- | --- | --- |
+| Compressor | Even out a track or make it punchier. | **Threshold** starts compression; **Attack** lets transients through; **Release** sets recovery; **Makeup** restores level; **Ratio** sets strength; **Detect** listens to stereo, left or right; **DetFilt** filters that detector; **Mix** blends dry and compressed sound. |
+| Distortion | Add aggressive digital drive. | **Input** drives the effect; **Mode** selects Density, Drive, Spiral, Mojo or Dyno; **Output** compensates level; **Mix** blends it in. |
+| Doubler | Widen a mono sound. | **Detune** spreads the doubled voices; **Mix** sets the width. |
+| TAPESCAM | Add tape colour and instability. | **Input** feeds the tape stage; **Drive** adds saturation; **Color** changes its character; **Wobble** adds pitch drift; **Tone** darkens or brightens it; **Output** sets level. |
+| OTT | Apply the bright, dense multiband compression often heard in bass music. | **Depth** is the overall OTT amount; **Time** is how fast it reacts; **Upward** raises quiet detail; **Downward** controls peaks; **Input** and **Output** trim level. |
+| Chorus | Thicken and widen a sound. | **Rate** is the movement speed; **Depth** is pitch movement; **Tone** darkens the delayed voice; **Mix** sets wet level; **Feedback** makes the effect more resonant. |
+| Flanger | Add a moving comb-filter sweep. | **Rate** is sweep speed; **Depth** is sweep range; **Feedback** adds the metallic resonance; **Mix** sets wet level. |
+| Phaser | Sweep notches through a sound. | **Rate** is sweep speed; **Depth** is sweep range; **Feedback** sharpens the sweep; **Mix** sets wet level; **Stages** chooses 4 to 8 notches. |
+| Rotary | Make a rotating-speaker stereo movement. | **Speed** is rotation rate; **Depth** is stereo movement; **Drive** adds speaker grit; **Mix** sets wet level. |
+| Saturation | Warm, round or thicken a sound. | **Drive** adds saturation; **Tone** darkens or brightens it; **Level** matches output; **Mix** blends it in. |
+| Bitcrusher | Make lo-fi, sampled-digital texture. | **Bit depth** lowers resolution; **Rate reduction** holds samples longer; **Tone** filters the result; **Mix** blends it in. |
+| Destruction | Break a sound more radically. | **Mode** selects Fold, Clip or Crush; **Amount** sets severity; **Tone** filters it; **Mix** blends it in. |
+| Parametric EQ | Carve room or rebalance a track. | **Low/Mid/High gain** cut or boost each band; the matching **frequency** chooses where that band works. Gain `80` is neutral. |
+| Trance Gate | Turn sustained sound into a rhythmic pattern. | **Pattern** chooses the rhythm; **Rate** sets its note division; **Length** shortens it; **Gate** sets open-step length; **Phase** rotates it; **Mode** changes direction; **Smooth** softens edges; **Mix** blends it in. |
+| Beads | Granulate, freeze or delay captured audio. | **Time** selects the captured audio; **Size** changes grain length and direction; **Density** sets grain rate/randomness; **Pitch** tunes grains; **Scatter** randomises them; **Feedback** recaptures output; **Shape/Freeze** changes the grain window or freezes audio; **Mix** sets wet level. |
 
-Continuous controls use 00–FF, including valid zero and maximum FF. Bipolar
-controls have an exact neutral at 80. Distortion modes are 00 Density, 01 Drive,
-02 Spiral, 03 Mojo, 04 Dyno. Compressor ratios 00–07 are 1.5, 2, 3, 4, 6, 8, 16,
-20:1; detector sources 00–02 are stereo input, left, right. Detector filter 80 is
-neutral, below is low-pass, above is high-pass. No external/cross-track sidechain
-is provided. Either slot can contain any module; repeated modules are independent.
-Chorus and Phaser start with an audible but controlled modulation. Reduce Mix,
-Depth or Feedback for a near-transparent effect; high Depth, Feedback and Mix
-settings become intentionally extreme. Flanger and Rotary use gentle modulation
-defaults. Rotary Speed
-uses the full **00-FF** range: **00 = 0.01 Hz** (one rotation per 100 seconds),
-**FF = 25 Hz** (the former Chaos maximum). Exponential spacing gives finer
-control over slow LFO movement. New Rotary inserts default to **8F**, about
-0.8 Hz. This replaces the four discrete speed values; existing Rotary settings
-and F11/F21 speed automation need retuning to the new scale (old Slow/Fast/Hyper/
-Chaos correspond approximately to **8F/CB/E7/FF**). Other parameters are unchanged.
-Bitcrusher bit depth ranges from 4 to 16 bits and
-rate reduction from 1x to 32x. Destruction modes are Fold, Clip and Crush.
-Saturation and distortion include output level or mix controls for balancing them
-against the unprocessed signal.
-Parametric EQ has 24 dB boost/cut shelves at 60–500 Hz and 2–14 kHz, plus a
-fixed-Q 0.9 bell at 250 Hz–5 kHz. Its gain controls are neutral at 80; with all
-three neutral it is an exact bypass. Active EQ uses a transparent soft knee above
-full scale and reaches a maximum of 1.5 to contain extreme boosts.
-
-Trance Gate is a tempo-synchronised amplitude sequencer for pads, leads and
-stabs. Pattern values 00–3F select named musical motifs; 00–1F are core grooves
-and 20–3F are experimental variations. Rate offers straight, triplet and dotted values from 1/2 to 1/32. Length truncates the independently rotated 16-step motif to 1–16
-steps. Every track note-on restarts the sequence; note-off leaves it running
-through the release. Forward, Reverse and Ping-Pong define traversal; Chaos
-uses a repeatable density-preserving mutation every four loops. On the master
-insert it follows transport time without note retriggers. Gate sets each open
-step's width, Smooth rounds its edges while retaining a click-safe minimum fade,
-and Mix crossfades between dry and gated audio.
-
-**Beads** uses the original Mutable Instruments granular DSP as a stereo insert.
-Choose Beads in either track or master insert slot. Its eight controls also use
-existing F11–F18 / F21–F28 commands and insert MOD destinations; no new FX IDs
-or project format are needed. Grains run continuously without additional events.
-
-- **Time:** position in the four-second recording buffer.
-- **Size:** long reverse grains at 00, shortest grains around 55, then progressively
-  longer forward grains. FF enters the original delay mode after its transition.
-- **Density:** regular grains below the center, random timing above it; the center
-  dead zone stops new grains. Moving away from center increases the rate.
-- **Pitch:** −24 to +24 semitones; 80 is exact unison.
-- **Scatter:** 00 is no parameter randomness. Increasing it applies Beads' internal
-  uniform Time randomness at full amount and Size randomness at half amount,
-  independently for each grain. Pitch and Shape remain at their set values.
-- **Feedback:** returns processed grains into the recording path.
-- **Shape/Freeze:** 00–7F records, 80–FF freezes. Within either range, the low seven
-  bits sweep the same envelope from rectangular through decay and bell to reverse.
-  Add/subtract 80 to toggle freeze without changing Shape: 40 and C0 have the same
-  envelope. The value hint shows envelope position and Recording/Frozen status.
-  Hold EDIT with Up/Down to change by 10 hex (16); Left/Right changes by 1.
-  This packed control is discrete so slew does not sweep through the freeze bit;
-  modulation of its whole byte can intentionally cross between the two states.
-- **Mix:** 00 is exact dry, FF is fully processed. Changes are smoothed.
-
-Freeze holds the audio currently captured by the effect; selecting another
-module or resetting Beads clears it. Track reverb sends remain available.
+**Quick starting points.** `Mix` is dry at `00` and fully processed at `FF`.
+For bipolar controls, `80` is neutral. Start modulation effects with modest
+Depth and Mix; raise Feedback for a stronger, more resonant sound. Use Output,
+Level or Makeup to match the bypassed level before deciding whether an effect
+really helps the track.
 
 ### Lane FX for Inserts
 
-Insert commands use **F11–F18** for TF1 and **F21–F28** for TF2. The roll's
-FX selection and Phrase/Table popup offer only parameters used by the selected
-track's configured inserts. The popup groups them as **TF1: effect name** and
-**TF2: effect name**; OFF slots are hidden. Bypassed inserts remain editable.
-In the Phrase and Table FX popup, the description follows the selected track's
-insert slot: it shows the module, parameter name, decoded range endpoints and
-saved base value. Existing song commands are preserved if a module change makes
-them unused; opening their picker starts at an available control.
-While editing a value, the bottom hint shows its decoded value and units.
-Any Phrase or Table FX column can address either slot; the Phrase grid keeps its
-three columns. These absolute runtime values persist across notes, instruments,
-phrases, chains and ordinary loops. Fresh playback/hard stop resets them. Editing
-a base value on the F page clears only that parameter's override. MOD acts on the
-effective base/automation value without saving its offsets. Selecting a new
-module restores defaults and clears that slot's overrides. Bypass retains
-existing automation while suspending processing after a short fade.
+Use **F11–F18** for TF1 and **F21–F28** for TF2. The Phrase and Table FX
+picker only shows parameters used by the inserts on that track; choose the
+effect first, then automate its numbered controls. MOD can move those same
+controls while the instrument plays.
 
-**Addresses refer to track slots/parameter positions, not named effects.** A
-Phrase reused on another track uses that track's modules. Changing modules can
-change a command's meaning; commands are not rewritten. OFF/unused addresses
-are safe no-ops and remain intact in saved Phrase/Table data.
-
-The instrument MOD chooser adds an Insert FX category. Each instrument's sources
-control inserts on whichever track plays it, including the combined chord signal.
-The same instrument on two tracks affects independent chains. Existing source
-timing, signed amounts, source-combination rules, stick modes and motion recording
-apply. Discrete controls are quantized and clamped to valid choices. There is no
-new track-owned modulation bank.
-
-Start with a few inserts, watch for overload or crackles, and bypass effects
-that are not helping the song. Drive and gain settings can clip the mix, so use
-the Mixer clip indicator as you adjust them.
+Start with one effect, set its Mix, then level-match it against bypass. Drive,
+makeup and EQ boosts can clip the mix, so watch the Mixer clip indicator.
 
 
 ## 8. Tables
