@@ -1,7 +1,7 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ChooChooTracker User Manual</title><style>
 :root{color-scheme:dark;font:16px/1.55 system-ui,sans-serif;background:#07101f;color:#d7dce8}
-*{box-sizing:border-box}body{margin:0}a{color:#83d9ff}header{border-bottom:1px solid #294560;background:#0b1930;padding:1.2rem max(1.25rem,calc((100vw - 1160px)/2));position:sticky;top:0;z-index:2}header a{color:#ffd665;text-decoration:none;font-weight:700}.menu-toggle{display:none}.layout{max-width:1160px;margin:auto;display:grid;grid-template-columns:13rem minmax(0,1fr);gap:3rem;padding:2rem 1.25rem 5rem}nav{position:sticky;top:5rem;align-self:start;max-height:calc(100vh - 6rem);overflow:auto}nav details{margin-bottom:.25rem}nav summary{cursor:pointer;color:#ffd665;font-size:.85rem}nav summary a{color:inherit;text-decoration:none}nav a{display:block;padding:.25rem 0;text-decoration:none;font-size:.85rem}.level-3{margin-left:1rem}.level-4{margin-left:2rem;color:#b6c5d8;font-size:.78rem}main{max-width:52rem;min-width:0}h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.1;color:#ffd665;margin:0 0 2rem}h2{font-size:clamp(1.6rem,3vw,2.2rem);line-height:1.2;color:#ffd665;border-bottom:1px solid #294560;margin:4rem 0 1.25rem;padding-bottom:.45rem;scroll-margin-top:5rem}h3{font-size:1.35rem;color:#83d9ff;margin:2.5rem 0 .75rem;scroll-margin-top:5rem}h4{font-size:1.1rem;color:#ffb199;margin:2rem 0 .5rem;scroll-margin-top:5rem}p,li{max-width:75ch}table{border-collapse:collapse;display:block;max-width:100%;overflow:auto;margin:1rem 0}th,td{border:1px solid #294560;padding:.45rem .6rem;text-align:left;vertical-align:top}th{background:#10284a;color:#ffd665}code{background:#10284a;color:#b9efff;padding:.08rem .25rem}pre{background:#030814;padding:1rem;overflow:auto}blockquote{border-left:3px solid #83d9ff;margin:1rem 0;padding-left:1rem;color:#b6c5d8}@media(max-width:760px){header{position:sticky;display:flex;align-items:center;justify-content:space-between;padding:.8rem 1rem}.menu-toggle{display:block;border:1px solid #52799b;border-radius:.25rem;background:#10284a;color:#d7dce8;padding:.35rem .55rem;font:inherit;font-size:.85rem}.layout{display:block;padding:1rem}.layout nav{display:none}.menu-open .layout nav{display:block;position:fixed;z-index:3;top:3.7rem;bottom:0;left:0;width:min(20rem,88vw);max-height:none;margin:0;padding:1rem;background:#0b1930;border-right:1px solid #294560;box-shadow:1rem 0 2rem #0008;columns:1}.menu-open .layout nav a{padding:.45rem 0}h2{margin-top:3rem}}
-</style></head><body><header><a href="#top">ChooChooTracker — User Manual</a><button class="menu-toggle" aria-controls="toc" aria-expanded="false">&#9776; Contents</button></header><div class="layout"><nav id="toc" aria-label="Chapters"><details><summary><a href="#1-installation-and-files">1. Installation and files</a></summary><a class="level-3" href="#arkos-portmaster">ArkOS / PortMaster</a><a class="level-3" href="#miyoo-mini-mini-plus-onion-os">Miyoo Mini / Mini Plus (Onion OS)</a><a class="level-3" href="#windows">Windows</a><a class="level-3" href="#web">Web</a><a class="level-3" href="#directory-configuration">Directory configuration</a></details><details><summary><a href="#2-controls">2. Controls</a></summary><a class="level-3" href="#navigation">Navigation</a><a class="level-3" href="#selection-and-clipboard">Selection and clipboard</a><a class="level-3" href="#playback">Playback</a><a class="level-3" href="#global-bounce">Global Bounce</a></details><details><summary><a href="#3-song-structure-and-screen-map">3. Song structure and screen map</a></summary></details><details><summary><a href="#4-song-chain-and-phrase">4. Song, Chain and Phrase</a></summary><a class="level-3" href="#song">Song</a><a class="level-4" href="#live-mode">Live Mode</a><a class="level-4" href="#controls">Controls</a><a class="level-3" href="#chain">Chain</a><a class="level-4" href="#controls">Controls</a><a class="level-3" href="#phrase">Phrase</a><a class="level-3" href="#controls">Controls</a><a class="level-3" href="#key-jazz-desktop-only">Key jazz (desktop only)</a></details><details><summary><a href="#5-instruments">5. Instruments</a></summary><a class="level-3" href="#controls">Controls</a><a class="level-3" href="#soundfont-experimental">SOUNDFONT (experimental)</a><a class="level-4" href="#soundfont-compatibility-banks-presets-and-modulation">SoundFont compatibility: banks, presets and modulation</a><a class="level-3" href="#ay-classic-ay-plus-and-ay-sample">AY Classic, AY Plus and AY Sample</a><a class="level-4" href="#ay-classic">AY Classic</a><a class="level-4" href="#ay-plus">AY Plus</a><a class="level-4" href="#ay-sample">AY Sample</a><a class="level-3" href="#braids">Braids</a><a class="level-4" href="#parameters">Parameters</a><a class="level-4" href="#vcf-and-vca">VCF and VCA</a><a class="level-4" href="#settings">Settings</a><a class="level-3" href="#achchid">aChChid</a><a class="level-3" href="#bogie">Bogie</a><a class="level-3" href="#sintered">Sintered</a><a class="level-3" href="#mme">MME</a><a class="level-3" href="#midi-out">MIDI Out</a><a class="level-3" href="#classic-architecture-engines">Classic architecture engines</a><a class="level-4" href="#plaits-and-plaits-alt">Plaits and Plaits-Alt</a><a class="level-4" href="#sampler">Sampler</a><a class="level-4" href="#2xscwf">2xSCWF</a><a class="level-4" href="#byowtbl">BYOWTBL</a><a class="level-3" href="#fm-instruments-family">FM instruments family</a><a class="level-4" href="#native-opll-and-vrc7-instruments">Native OPLL and VRC7 instruments</a><a class="level-4" href="#adlib-opl2-and-opl3">AdLib / OPL2 and OPL3</a><a class="level-4" href="#sega-psg-and-game-boy-native-instruments">Sega PSG and Game Boy native instruments</a><a class="level-4" href="#dx7-fm">DX7 FM</a><a class="level-4" href="#fm-operator-editor">FM operator editor</a><a class="level-4" href="#fm-factory-and-user-presets">FM factory and USER presets</a><a class="level-4" href="#native-chip-controls">Native chip controls</a><a class="level-4" href="#sid-instruments-and-phrase-fx">SID instruments and Phrase FX</a><a class="level-4" href="#sid-and-native-chip-factory-and-user-presets">SID and native-chip factory and USER presets</a></details><details><summary><a href="#6-modulation-and-motion-recording">6. Modulation and motion recording</a></summary><a class="level-3" href="#motion-recording">Motion recording</a></details><details><summary><a href="#7-track-insert-effects">7. Track insert effects</a></summary><a class="level-3" href="#lane-fx-for-inserts">Lane FX for Inserts</a></details><details><summary><a href="#8-tables">8. Tables</a></summary><a class="level-3" href="#retrigger-mode">Retrigger mode</a><a class="level-3" href="#controls">Controls</a></details><details><summary><a href="#9-instrument-pool-and-ay-wavetable">9. Instrument Pool and AY Wavetable</a></summary><a class="level-3" href="#instrument-pool">Instrument Pool</a><a class="level-4" href="#controls">Controls</a><a class="level-3" href="#ay-wavetable">AY Wavetable</a><a class="level-4" href="#controls">Controls</a></details><details><summary><a href="#10-tracker-fx">10. Tracker FX</a></summary><a class="level-3" href="#sequencer-fx">Sequencer FX</a><a class="level-3" href="#audio-fx-sends">Audio FX sends</a><a class="level-3" href="#adsr-trigger-fx">ADSR / Trigger FX</a><a class="level-4" href="#conditions">Conditions</a><a class="level-4" href="#playback-speed">Playback speed</a><a class="level-3" href="#scale-amp-chords-fx">Scale &amp; chords FX</a><a class="level-4" href="#scale-automation">Scale automation</a><a class="level-4" href="#chords">Chords</a><a class="level-3" href="#modulation-fx">Modulation FX</a><a class="level-3" href="#braids-fx">Braids FX</a><a class="level-3" href="#achchid-fx">aChChid FX</a><a class="level-3" href="#bogie-fx">Bogie FX</a><a class="level-3" href="#sintered-fx">Sintered FX</a><a class="level-3" href="#midi-out-fx">MIDI Out FX</a><a class="level-3" href="#plaits-fx">Plaits FX</a><a class="level-3" href="#sample-fx">Sample FX</a><a class="level-3" href="#ay-fx-shared-by-ay-instruments">AY FX shared by AY instruments</a><a class="level-3" href="#ay-classic-only-fx">AY Classic-only FX</a><a class="level-3" href="#ay-plus-fx">AY Plus FX</a><a class="level-3" href="#ay-sample-fx">AY Sample FX</a></details><details><summary><a href="#11-mixer-reverb-and-delay">11. Mixer, Reverb and Delay</a></summary><a class="level-3" href="#master-fx">Master FX</a><a class="level-3" href="#reverb">Reverb</a><a class="level-3" href="#ping-pong-delay">Ping-pong Delay</a></details><details><summary><a href="#12-project-screen">12. Project screen</a></summary><a class="level-3" href="#export-location">Export location</a><a class="level-3" href="#scale-quantize">Scale / Quantize</a></details><details><summary><a href="#13-settings">13. Settings</a></summary><a class="level-3" href="#controls">Controls</a><a class="level-3" href="#audio">Audio</a><a class="level-3" href="#midi">MIDI</a><a class="level-3" href="#synths">Synths</a><a class="level-3" href="#mixer">Mixer</a><a class="level-3" href="#graphics">Graphics</a><a class="level-3" href="#support-report-and-quit">Support report and quit</a><a class="level-3" href="#song-waveform">Song waveform</a></details><details><summary><a href="#14-troubleshooting">14. Troubleshooting</a></summary><a class="level-3" href="#cpu">CPU</a><a class="level-3" href="#no-sound">No sound</a><a class="level-3" href="#input-feels-wrong">Input feels wrong</a></details><details><summary><a href="#15-midi">15. MIDI</a></summary></details><details><summary><a href="#16-credits-and-licensing">16. Credits and licensing</a></summary></details></nav><main id="top"><h1>ChooChooTracker User Manual</h1>
+*{box-sizing:border-box}body{margin:0}a{color:#83d9ff}header{border-bottom:1px solid #294560;background:#0b1930;padding:1.2rem max(1.25rem,calc((100vw - 1160px)/2));position:sticky;top:0;z-index:2}header a{color:#ffd665;text-decoration:none;font-weight:700}.menu-toggle{display:none}.layout{max-width:1160px;margin:auto;display:grid;grid-template-columns:13rem minmax(0,1fr);gap:3rem;padding:2rem 1.25rem 5rem}nav{position:sticky;top:5rem;align-self:start;max-height:calc(100vh - 6rem);overflow:auto}nav details{margin-bottom:.25rem}nav summary{cursor:pointer;color:#ffd665;font-size:.85rem}nav summary a{color:inherit;text-decoration:none}nav a{display:block;padding:.25rem 0;text-decoration:none;font-size:.85rem}.level-3{margin-left:1rem}main{max-width:52rem;min-width:0}h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.1;color:#ffd665;margin:0 0 2rem}h2{font-size:clamp(1.6rem,3vw,2.2rem);line-height:1.2;color:#ffd665;border-bottom:1px solid #294560;margin:4rem 0 1.25rem;padding-bottom:.45rem;scroll-margin-top:5rem}h3{font-size:1.35rem;color:#83d9ff;margin:2.5rem 0 .75rem;scroll-margin-top:5rem}h4{font-size:1.1rem;color:#ffb199;margin:2rem 0 .5rem;scroll-margin-top:5rem}p,li{max-width:75ch}table{border-collapse:collapse;display:block;max-width:100%;overflow:auto;margin:1rem 0}th,td{border:1px solid #294560;padding:.45rem .6rem;text-align:left;vertical-align:top}th{background:#10284a;color:#ffd665}code{background:#10284a;color:#b9efff;padding:.08rem .25rem}pre{background:#030814;padding:1rem;overflow:auto}blockquote{border-left:3px solid #83d9ff;margin:1rem 0;padding-left:1rem;color:#b6c5d8}@media(max-width:760px){header{position:sticky;display:flex;align-items:center;justify-content:space-between;padding:.8rem 1rem}.menu-toggle{display:block;border:1px solid #52799b;border-radius:.25rem;background:#10284a;color:#d7dce8;padding:.35rem .55rem;font:inherit;font-size:.85rem}.layout{display:block;padding:1rem}.layout nav{display:none}.menu-open .layout nav{display:block;position:fixed;z-index:3;top:3.7rem;bottom:0;left:0;width:min(20rem,88vw);max-height:none;margin:0;padding:1rem;background:#0b1930;border-right:1px solid #294560;box-shadow:1rem 0 2rem #0008;columns:1}.menu-open .layout nav a{padding:.45rem 0}h2{margin-top:3rem}}
+</style></head><body><header><a href="#top">ChooChooTracker — User Manual</a><button class="menu-toggle" aria-controls="toc" aria-expanded="false">&#9776; Contents</button></header><div class="layout"><nav id="toc" aria-label="Chapters"><details><summary><a href="#1-installation-and-files">1. Installation and files</a></summary><a class="level-3" href="#arkos-portmaster">ArkOS / PortMaster</a><a class="level-3" href="#miyoo-mini-mini-plus-onion-os">Miyoo Mini / Mini Plus (Onion OS)</a><a class="level-3" href="#windows">Windows</a><a class="level-3" href="#web">Web</a><a class="level-3" href="#directory-configuration">Directory configuration</a></details><details><summary><a href="#2-controls">2. Controls</a></summary><a class="level-3" href="#navigation">Navigation</a><a class="level-3" href="#selection-and-clipboard">Selection and clipboard</a><a class="level-3" href="#playback">Playback</a><a class="level-3" href="#global-bounce">Global Bounce</a></details><details><summary><a href="#3-song-structure-and-screen-map">3. Song structure and screen map</a></summary></details><details><summary><a href="#4-song-chain-and-phrase">4. Song, Chain and Phrase</a></summary><a class="level-3" href="#song">Song</a><a class="level-3" href="#chain">Chain</a><a class="level-3" href="#phrase">Phrase</a><a class="level-3" href="#controls">Controls</a><a class="level-3" href="#key-jazz-desktop-only">Key jazz (desktop only)</a></details><details><summary><a href="#5-instruments">5. Instruments</a></summary><a class="level-3" href="#controls">Controls</a><a class="level-3" href="#soundfont-experimental">SOUNDFONT (experimental)</a><a class="level-3" href="#ay-classic-ay-plus-and-ay-sample">AY Classic, AY Plus and AY Sample</a><a class="level-3" href="#braids">Braids</a><a class="level-3" href="#achchid">aChChid</a><a class="level-3" href="#bogie">Bogie</a><a class="level-3" href="#sintered">Sintered</a><a class="level-3" href="#mme">MME</a><a class="level-3" href="#midi-out">MIDI Out</a><a class="level-3" href="#classic-architecture-engines">Classic architecture engines</a><a class="level-3" href="#fm-instruments-family">FM instruments family</a></details><details><summary><a href="#6-modulation-and-motion-recording">6. Modulation and motion recording</a></summary><a class="level-3" href="#motion-recording">Motion recording</a></details><details><summary><a href="#7-track-insert-effects">7. Track insert effects</a></summary><a class="level-3" href="#lane-fx-for-inserts">Lane FX for Inserts</a></details><details><summary><a href="#8-tables">8. Tables</a></summary><a class="level-3" href="#retrigger-mode">Retrigger mode</a><a class="level-3" href="#controls">Controls</a></details><details><summary><a href="#9-instrument-pool-and-ay-wavetable">9. Instrument Pool and AY Wavetable</a></summary><a class="level-3" href="#instrument-pool">Instrument Pool</a><a class="level-3" href="#ay-wavetable">AY Wavetable</a></details><details><summary><a href="#10-tracker-fx">10. Tracker FX</a></summary><a class="level-3" href="#sequencer-fx">Sequencer FX</a><a class="level-3" href="#audio-fx-sends">Audio FX sends</a><a class="level-3" href="#adsr-trigger-fx">ADSR / Trigger FX</a><a class="level-3" href="#scale-amp-chords-fx">Scale &amp; chords FX</a><a class="level-3" href="#modulation-fx">Modulation FX</a><a class="level-3" href="#braids-fx">Braids FX</a><a class="level-3" href="#achchid-fx">aChChid FX</a><a class="level-3" href="#bogie-fx">Bogie FX</a><a class="level-3" href="#sintered-fx">Sintered FX</a><a class="level-3" href="#midi-out-fx">MIDI Out FX</a><a class="level-3" href="#plaits-fx">Plaits FX</a><a class="level-3" href="#sample-fx">Sample FX</a><a class="level-3" href="#ay-fx-shared-by-ay-instruments">AY FX shared by AY instruments</a><a class="level-3" href="#ay-classic-only-fx">AY Classic-only FX</a><a class="level-3" href="#ay-plus-fx">AY Plus FX</a><a class="level-3" href="#ay-sample-fx">AY Sample FX</a></details><details><summary><a href="#11-mixer-reverb-and-delay">11. Mixer, Reverb and Delay</a></summary><a class="level-3" href="#master-fx">Master FX</a><a class="level-3" href="#reverb">Reverb</a><a class="level-3" href="#ping-pong-delay">Ping-pong Delay</a></details><details><summary><a href="#12-project-screen">12. Project screen</a></summary><a class="level-3" href="#export-location">Export location</a><a class="level-3" href="#scale-quantize">Scale / Quantize</a></details><details><summary><a href="#13-settings">13. Settings</a></summary><a class="level-3" href="#controls">Controls</a><a class="level-3" href="#audio">Audio</a><a class="level-3" href="#midi">MIDI</a><a class="level-3" href="#synths">Synths</a><a class="level-3" href="#mixer">Mixer</a><a class="level-3" href="#graphics">Graphics</a><a class="level-3" href="#support-report-and-quit">Support report and quit</a><a class="level-3" href="#song-waveform">Song waveform</a></details><details><summary><a href="#14-troubleshooting">14. Troubleshooting</a></summary><a class="level-3" href="#cpu">CPU</a><a class="level-3" href="#no-sound">No sound</a><a class="level-3" href="#input-feels-wrong">Input feels wrong</a></details><details><summary><a href="#15-midi">15. MIDI</a></summary></details><details><summary><a href="#16-credits-and-licensing">16. Credits and licensing</a></summary></details></nav><main id="top"><h1>ChooChooTracker User Manual</h1>
 <p>ChooChooTracker is an 8-track music tracker for handheld consoles.</p>
 <p>It follows the classic LSDj workflow and navigation system, with several sound design options:</p>
 <ul>
@@ -1409,162 +1409,101 @@ the current screen.</p>
 <table>
 <thead>
 <tr>
-<th>Module</th>
-<th>Parameters in order</th>
+<th>Effect</th>
+<th>Use it for</th>
+<th>Parameters</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Work Compressor</td>
-<td>Threshold, Attack, Release, Makeup, Ratio, Detector source, Detector filter, Mix</td>
+<td>Compressor</td>
+<td>Even out a track or make it punchier.</td>
+<td><strong>Threshold</strong> starts compression; <strong>Attack</strong> lets transients through; <strong>Release</strong> sets recovery; <strong>Makeup</strong> restores level; <strong>Ratio</strong> sets strength; <strong>Detect</strong> listens to stereo, left or right; <strong>DetFilt</strong> filters that detector; <strong>Mix</strong> blends dry and compressed sound.</td>
 </tr>
 <tr>
-<td>Airwindows Distortion</td>
-<td>Input, Mode, Output, Mix</td>
+<td>Distortion</td>
+<td>Add aggressive digital drive.</td>
+<td><strong>Input</strong> drives the effect; <strong>Mode</strong> selects Density, Drive, Spiral, Mojo or Dyno; <strong>Output</strong> compensates level; <strong>Mix</strong> blends it in.</td>
 </tr>
 <tr>
-<td>Airwindows StereoDoubler</td>
-<td>Detune, Mix</td>
+<td>Doubler</td>
+<td>Widen a mono sound.</td>
+<td><strong>Detune</strong> spreads the doubled voices; <strong>Mix</strong> sets the width.</td>
 </tr>
 <tr>
 <td>TAPESCAM</td>
-<td>Input, Drive, Color, Wobble, Tone, Output</td>
+<td>Add tape colour and instability.</td>
+<td><strong>Input</strong> feeds the tape stage; <strong>Drive</strong> adds saturation; <strong>Color</strong> changes its character; <strong>Wobble</strong> adds pitch drift; <strong>Tone</strong> darkens or brightens it; <strong>Output</strong> sets level.</td>
 </tr>
 <tr>
-<td>OTT (Rui-727)</td>
-<td>Depth, Time, Upward, Downward, Input, Output</td>
+<td>OTT</td>
+<td>Apply the bright, dense multiband compression often heard in bass music.</td>
+<td><strong>Depth</strong> is the overall OTT amount; <strong>Time</strong> is how fast it reacts; <strong>Upward</strong> raises quiet detail; <strong>Downward</strong> controls peaks; <strong>Input</strong> and <strong>Output</strong> trim level.</td>
 </tr>
 <tr>
 <td>Chorus</td>
-<td>Rate, Depth, Tone, Mix, Feedback</td>
+<td>Thicken and widen a sound.</td>
+<td><strong>Rate</strong> is the movement speed; <strong>Depth</strong> is pitch movement; <strong>Tone</strong> darkens the delayed voice; <strong>Mix</strong> sets wet level; <strong>Feedback</strong> makes the effect more resonant.</td>
 </tr>
 <tr>
 <td>Flanger</td>
-<td>Rate, Depth, Feedback, Mix</td>
+<td>Add a moving comb-filter sweep.</td>
+<td><strong>Rate</strong> is sweep speed; <strong>Depth</strong> is sweep range; <strong>Feedback</strong> adds the metallic resonance; <strong>Mix</strong> sets wet level.</td>
 </tr>
 <tr>
 <td>Phaser</td>
-<td>Rate, Depth, Feedback, Mix, Stages</td>
+<td>Sweep notches through a sound.</td>
+<td><strong>Rate</strong> is sweep speed; <strong>Depth</strong> is sweep range; <strong>Feedback</strong> sharpens the sweep; <strong>Mix</strong> sets wet level; <strong>Stages</strong> chooses 4 to 8 notches.</td>
 </tr>
 <tr>
 <td>Rotary</td>
-<td>Speed, Depth, Drive, Mix</td>
+<td>Make a rotating-speaker stereo movement.</td>
+<td><strong>Speed</strong> is rotation rate; <strong>Depth</strong> is stereo movement; <strong>Drive</strong> adds speaker grit; <strong>Mix</strong> sets wet level.</td>
 </tr>
 <tr>
 <td>Saturation</td>
-<td>Drive, Tone, Level, Mix</td>
+<td>Warm, round or thicken a sound.</td>
+<td><strong>Drive</strong> adds saturation; <strong>Tone</strong> darkens or brightens it; <strong>Level</strong> matches output; <strong>Mix</strong> blends it in.</td>
 </tr>
 <tr>
 <td>Bitcrusher</td>
-<td>Bit depth, Rate reduction, Tone, Mix</td>
+<td>Make lo-fi, sampled-digital texture.</td>
+<td><strong>Bit depth</strong> lowers resolution; <strong>Rate reduction</strong> holds samples longer; <strong>Tone</strong> filters the result; <strong>Mix</strong> blends it in.</td>
 </tr>
 <tr>
 <td>Destruction</td>
-<td>Mode, Amount, Tone, Mix</td>
+<td>Break a sound more radically.</td>
+<td><strong>Mode</strong> selects Fold, Clip or Crush; <strong>Amount</strong> sets severity; <strong>Tone</strong> filters it; <strong>Mix</strong> blends it in.</td>
 </tr>
 <tr>
 <td>Parametric EQ</td>
-<td>Low gain, Low frequency, Mid gain, Mid frequency, High gain, High frequency</td>
+<td>Carve room or rebalance a track.</td>
+<td><strong>Low/Mid/High gain</strong> cut or boost each band; the matching <strong>frequency</strong> chooses where that band works. Gain <code>80</code> is neutral.</td>
 </tr>
 <tr>
 <td>Trance Gate</td>
-<td>Pattern, Rate, Length, Gate, Phase, Mode, Smooth, Mix</td>
+<td>Turn sustained sound into a rhythmic pattern.</td>
+<td><strong>Pattern</strong> chooses the rhythm; <strong>Rate</strong> sets its note division; <strong>Length</strong> shortens it; <strong>Gate</strong> sets open-step length; <strong>Phase</strong> rotates it; <strong>Mode</strong> changes direction; <strong>Smooth</strong> softens edges; <strong>Mix</strong> blends it in.</td>
 </tr>
 <tr>
-<td>Beads (Mutable Instruments)</td>
-<td>Time, Size, Density, Pitch, Scatter, Feedback, Shape/Freeze, Mix</td>
+<td>Beads</td>
+<td>Granulate, freeze or delay captured audio.</td>
+<td><strong>Time</strong> selects the captured audio; <strong>Size</strong> changes grain length and direction; <strong>Density</strong> sets grain rate/randomness; <strong>Pitch</strong> tunes grains; <strong>Scatter</strong> randomises them; <strong>Feedback</strong> recaptures output; <strong>Shape/Freeze</strong> changes the grain window or freezes audio; <strong>Mix</strong> sets wet level.</td>
 </tr>
 </tbody>
 </table>
-<p>Continuous controls use 00–FF, including valid zero and maximum FF. Bipolar
-controls have an exact neutral at 80. Distortion modes are 00 Density, 01 Drive,
-02 Spiral, 03 Mojo, 04 Dyno. Compressor ratios 00–07 are 1.5, 2, 3, 4, 6, 8, 16,
-20:1; detector sources 00–02 are stereo input, left, right. Detector filter 80 is
-neutral, below is low-pass, above is high-pass. No external/cross-track sidechain
-is provided. Either slot can contain any module; repeated modules are independent.
-Chorus and Phaser start with an audible but controlled modulation. Reduce Mix,
-Depth or Feedback for a near-transparent effect; high Depth, Feedback and Mix
-settings become intentionally extreme. Flanger and Rotary use gentle modulation
-defaults. Rotary Speed
-uses the full <strong>00-FF</strong> range: <strong>00 = 0.01 Hz</strong> (one rotation per 100 seconds),
-<strong>FF = 25 Hz</strong> (the former Chaos maximum). Exponential spacing gives finer
-control over slow LFO movement. New Rotary inserts default to <strong>8F</strong>, about
-0.8 Hz. This replaces the four discrete speed values; existing Rotary settings
-and F11/F21 speed automation need retuning to the new scale (old Slow/Fast/Hyper/
-Chaos correspond approximately to <strong>8F/CB/E7/FF</strong>). Other parameters are unchanged.
-Bitcrusher bit depth ranges from 4 to 16 bits and
-rate reduction from 1x to 32x. Destruction modes are Fold, Clip and Crush.
-Saturation and distortion include output level or mix controls for balancing them
-against the unprocessed signal.
-Parametric EQ has 24 dB boost/cut shelves at 60–500 Hz and 2–14 kHz, plus a
-fixed-Q 0.9 bell at 250 Hz–5 kHz. Its gain controls are neutral at 80; with all
-three neutral it is an exact bypass. Active EQ uses a transparent soft knee above
-full scale and reaches a maximum of 1.5 to contain extreme boosts.</p>
-<p>Trance Gate is a tempo-synchronised amplitude sequencer for pads, leads and
-stabs. Pattern values 00–3F select named musical motifs; 00–1F are core grooves
-and 20–3F are experimental variations. Rate offers straight, triplet and dotted values from 1/2 to 1/32. Length truncates the independently rotated 16-step motif to 1–16
-steps. Every track note-on restarts the sequence; note-off leaves it running
-through the release. Forward, Reverse and Ping-Pong define traversal; Chaos
-uses a repeatable density-preserving mutation every four loops. On the master
-insert it follows transport time without note retriggers. Gate sets each open
-step's width, Smooth rounds its edges while retaining a click-safe minimum fade,
-and Mix crossfades between dry and gated audio.</p>
-<p><strong>Beads</strong> uses the original Mutable Instruments granular DSP as a stereo insert.
-Choose Beads in either track or master insert slot. Its eight controls also use
-existing F11–F18 / F21–F28 commands and insert MOD destinations; no new FX IDs
-or project format are needed. Grains run continuously without additional events.</p>
-<ul>
-<li><strong>Time:</strong> position in the four-second recording buffer.</li>
-<li><strong>Size:</strong> long reverse grains at 00, shortest grains around 55, then progressively
-  longer forward grains. FF enters the original delay mode after its transition.</li>
-<li><strong>Density:</strong> regular grains below the center, random timing above it; the center
-  dead zone stops new grains. Moving away from center increases the rate.</li>
-<li><strong>Pitch:</strong> −24 to +24 semitones; 80 is exact unison.</li>
-<li><strong>Scatter:</strong> 00 is no parameter randomness. Increasing it applies Beads' internal
-  uniform Time randomness at full amount and Size randomness at half amount,
-  independently for each grain. Pitch and Shape remain at their set values.</li>
-<li><strong>Feedback:</strong> returns processed grains into the recording path.</li>
-<li><strong>Shape/Freeze:</strong> 00–7F records, 80–FF freezes. Within either range, the low seven
-  bits sweep the same envelope from rectangular through decay and bell to reverse.
-  Add/subtract 80 to toggle freeze without changing Shape: 40 and C0 have the same
-  envelope. The value hint shows envelope position and Recording/Frozen status.
-  Hold EDIT with Up/Down to change by 10 hex (16); Left/Right changes by 1.
-  This packed control is discrete so slew does not sweep through the freeze bit;
-  modulation of its whole byte can intentionally cross between the two states.</li>
-<li><strong>Mix:</strong> 00 is exact dry, FF is fully processed. Changes are smoothed.</li>
-</ul>
-<p>Freeze holds the audio currently captured by the effect; selecting another
-module or resetting Beads clears it. Track reverb sends remain available.</p>
+<p><strong>Quick starting points.</strong> <code>Mix</code> is dry at <code>00</code> and fully processed at <code>FF</code>.
+For bipolar controls, <code>80</code> is neutral. Start modulation effects with modest
+Depth and Mix; raise Feedback for a stronger, more resonant sound. Use Output,
+Level or Makeup to match the bypassed level before deciding whether an effect
+really helps the track.</p>
 <h3 id="lane-fx-for-inserts">Lane FX for Inserts</h3>
-<p>Insert commands use <strong>F11–F18</strong> for TF1 and <strong>F21–F28</strong> for TF2. The roll's
-FX selection and Phrase/Table popup offer only parameters used by the selected
-track's configured inserts. The popup groups them as <strong>TF1: effect name</strong> and
-<strong>TF2: effect name</strong>; OFF slots are hidden. Bypassed inserts remain editable.
-In the Phrase and Table FX popup, the description follows the selected track's
-insert slot: it shows the module, parameter name, decoded range endpoints and
-saved base value. Existing song commands are preserved if a module change makes
-them unused; opening their picker starts at an available control.
-While editing a value, the bottom hint shows its decoded value and units.
-Any Phrase or Table FX column can address either slot; the Phrase grid keeps its
-three columns. These absolute runtime values persist across notes, instruments,
-phrases, chains and ordinary loops. Fresh playback/hard stop resets them. Editing
-a base value on the F page clears only that parameter's override. MOD acts on the
-effective base/automation value without saving its offsets. Selecting a new
-module restores defaults and clears that slot's overrides. Bypass retains
-existing automation while suspending processing after a short fade.</p>
-<p><strong>Addresses refer to track slots/parameter positions, not named effects.</strong> A
-Phrase reused on another track uses that track's modules. Changing modules can
-change a command's meaning; commands are not rewritten. OFF/unused addresses
-are safe no-ops and remain intact in saved Phrase/Table data.</p>
-<p>The instrument MOD chooser adds an Insert FX category. Each instrument's sources
-control inserts on whichever track plays it, including the combined chord signal.
-The same instrument on two tracks affects independent chains. Existing source
-timing, signed amounts, source-combination rules, stick modes and motion recording
-apply. Discrete controls are quantized and clamped to valid choices. There is no
-new track-owned modulation bank.</p>
-<p>Start with a few inserts, watch for overload or crackles, and bypass effects
-that are not helping the song. Drive and gain settings can clip the mix, so use
-the Mixer clip indicator as you adjust them.</p>
+<p>Use <strong>F11–F18</strong> for TF1 and <strong>F21–F28</strong> for TF2. The Phrase and Table FX
+picker only shows parameters used by the inserts on that track; choose the
+effect first, then automate its numbered controls. MOD can move those same
+controls while the instrument plays.</p>
+<p>Start with one effect, set its Mix, then level-match it against bypass. Drive,
+makeup and EQ boosts can clip the mix, so watch the Mixer clip indicator.</p>
 <h2 id="8-tables">8. Tables</h2>
 <p>Tables are a core sound design tool in trackers. In Vortex Tracker terms, they combine instruments and ornaments, but they can do much more. If you know LSDj or NerdSEQ, the idea should already feel familiar.</p>
 <p>The Pitch column accepts relative (<code>~</code>) or absolute (<code>=</code>) pitch values in semitones. The Volume column is <code>00</code>-<code>0F</code>, applies to every engine on top of its envelope, and can be used for a gate: alternate <code>0F</code> and <code>00</code> then loop with <code>HOP 00</code>. The 4 FX lanes mostly match the lanes in a phrase, although a few FX behave differently in tables.</p>
