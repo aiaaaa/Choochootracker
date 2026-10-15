@@ -17,6 +17,7 @@
 #include <strings.h>
 #include <math.h>
 #include <chrono>
+#include <initializer_list>
 
 extern const AppScreen screenInstrumentPool;
 
