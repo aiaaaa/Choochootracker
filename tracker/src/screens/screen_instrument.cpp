@@ -348,6 +348,7 @@ static void fullRedraw(void) {
 
 static void draw(void) {
   instrumentCommonDrawLivePreview();
+  instrumentSIDDrawHints();
   if (chipnomadState->project.instruments[cInstrument].type==InstrumentType::SoundFont) {
     auto& d=screenInstrumentSoundFont;
     for (int row : {3,4}) for (int col=0; col<d.getColumnCount(row); ++col)

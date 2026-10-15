@@ -229,3 +229,25 @@ TEST_CASE("USER references restore nested ZIP and bank location for seamless ste
   const auto label=b.label();auto missing=refs.front();missing.path="Missing/absent.cni";
   CHECK_FALSE(b.focus(missing,error));CHECK(b.label()==label);
 }
+
+TEST_CASE("SID single-file names retain model suffixes and ignore stale source names") {
+  Fixture f;
+  std::vector<uint8_t> goat(33);memcpy(goat.data(),"GTI5",4);
+  memcpy(goat.data()+13,"Wrong name",10);
+  write(f.root/"Violin_8580.ins",goat);
+  write(f.root/"Violin_6581.ins",goat);
+  UserPresets library;std::string error;library.setup(f.root.string(),InstrumentType::SID);
+  REQUIRE(library.refresh(error));
+  auto p=std::make_unique<Project>();projectInit(p.get());
+  for(const char* label:{"Violin 6581","Violin 8580"}) {
+    auto index=find(library,label);
+    REQUIRE(library.load(index,p.get(),0,error));
+    CHECK(std::string(p->instruments[0].chip.sid.presetName)==label);
+    CHECK(std::string(p->instruments[0].name)==label);
+    CHECK(memcmp(p->instruments[0].chip.sid.program.data,goat.data(),goat.size())==0);
+    REQUIRE(library.focus(library.reference(index),error));
+    CHECK(library.items()[0].name==label);
+    REQUIRE(library.back(error));
+  }
+  projectFree(p.get());
+}

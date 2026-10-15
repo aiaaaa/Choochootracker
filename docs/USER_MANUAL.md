@@ -2128,8 +2128,20 @@ programs) and **SIDkit Effects** (24 MIT-licensed effects). Both use the same
 preset browser and save their complete selected program inside the instrument
 and song. No external bank is required when sharing the song. These are native
 SID parameter programs with envelopes and motion recipes, not sampled audio or
-complete C64 songs. The separate twelve GoatTracker research candidates are
-not shipped; their wave/pulse/filter tables need a dedicated importer/player.
+complete C64 songs. USER also accepts compatible GoatTracker `.ins` and
+Furnace `.fui` instruments, including their supported embedded sequences.
+A `.cni` can save either an editable sound or an imported program; its extension
+alone does not tell you which controls govern playback.
+
+The home page identifies **Sound: editable synthesis**, **Program: Furnace
+macros**, or **Program: GoatTracker tables**. Asterisks beside the quick controls
+mark imported program ownership. Selecting a control explains its source or
+units; selecting Preset shows its full name in the message bar.
+
+SID USER groups each ZIP into one named collection, retaining model and variant
+suffixes in the sound names. Single-file SID imports use their filenames rather
+than potentially duplicated or truncated internal names. Original source bytes
+and embedded tables remain intact.
 
 The instrument home page shows **Bank:** and **Preset:**, with **EDIT** at the
 right of the preset name beneath PAN/VOL. **Wave:** and **PW:** share a row.
@@ -2161,8 +2173,9 @@ Imported source sequences remain intact. The source notice identifies embedded
 instrument macros or GoatTracker tables, not the song's Phrase/Table sequence.
 An asterisk marks a field whose base value is overridden; selecting it names
 the controlling waveform, pulse, filter or arpeggio macro in the message bar.
-All fields remain editable: this page edits the saved preset, not its embedded
-sequences. Changing an overridden base value may not change what you hear.
+Program-controlled fields are read-only on both Instrument and SID EDIT.
+An attempted edit explains which source table or macro owns the field, without
+changing the patch or marking the song modified. Other fields remain editable.
 Pulse macros also override recipe pulse depth/rate, and filter macros override
 the cutoff target. GoatTracker tables drive the voice directly, so editing the
 base recipe does not edit those tables. Source clock shows the imported tick
@@ -2172,7 +2185,7 @@ sweep lengths advance at the source clock.
 An active SID parameter FX command also marks its base field while a track
 plays this instrument. Selecting it identifies the track and command, for
 example `Track 2: SCT active; editing preset`. The marker clears when playback
-stops or the override ends. Editing is never blocked, and the displayed number
+stops or the override ends. Active Phrase/Table FX do not block base edits, and the displayed number
 always remains the saved patch value, not a live meter. Edits do not change the
 Phrase/Table FX command. Unrelated insert FX do not mark SID controls.
 

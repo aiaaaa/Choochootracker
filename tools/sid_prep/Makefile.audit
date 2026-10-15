@@ -1,0 +1,9 @@
+# Run from tracker: make -f ../tools/sid_prep/Makefile.audit -j4 sid-audit
+include Makefile.test
+SID_AUDIT_SOURCES = ../tools/sid_prep/audit_library.cpp $(filter-out src/copy_paste.cpp,$(COMMON_SOURCES)) $(MOCK_SOURCES)
+SID_AUDIT_OBJECTS = $(foreach source,$(SID_AUDIT_SOURCES),$(call object_for,$(source)))
+$(eval $(call compile_source,../tools/sid_prep/audit_library.cpp))
+.PHONY: sid-audit
+sid-audit: $(BUILD_DIR)/sid_audit
+$(BUILD_DIR)/sid_audit: $(SID_AUDIT_OBJECTS)
+	$(CXX) $(SID_AUDIT_OBJECTS) $(LDFLAGS) -o $@

@@ -20,6 +20,25 @@ choice, not an independently verified legal conclusion. The older
 to implement Link. The current personal source contains no Link implementation;
 this policy update requires no application rebuild or device installation.
 
+## October 15 SID preset cleanup
+
+The device personal build identifies editable SID sounds and imported programs
+on Instrument. Source-controlled fields show an asterisk and explain their owner;
+Instrument and EDIT prevent changes to unused base values, while ordinary
+controls and Phrase/Table overrides retain their existing semantics. Preset
+selection shows the full sound name. SID USER presents one collection per ZIP
+and uses single-file import filenames to retain model suffixes and avoid stale
+embedded names. Existing source programs and Factory sounds are unchanged.
+
+The private master library gains 64 original editable sounds in eight Studio
+collections. Generated USER files remain outside Git and factory packaging.
+The 18 existing sideload sounds remain intact. `tools/sid_prep/build_studio.py`
+reproduces the additions; `Makefile.audit` builds the real-loader/audio auditor.
+Local validation includes the native suite, focused SID/library regressions,
+offscreen SDL captures, and all 82 sounds at 44.1/48 kHz and three pitches.
+Exact hardware build, installation and rollback results are in task receipts.
+Web deployment remains unchanged; no Link implementation or dependency is added.
+
 ## October 14 SoundFont preset-error review
 
 The loader accepts the exact one-sample WAV loop-end boundary mismatch and a

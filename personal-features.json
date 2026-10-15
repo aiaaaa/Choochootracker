@@ -183,6 +183,12 @@
       "branch": "experimental/soundfont-edit",
       "upstream_status": "Experimental evaluation, not submitted",
       "integration_policy": "Integrated for the requested SoundFont evaluation daily; preserve bank defaults, eight appended Lane FX IDs, USER libraries and existing songs."
+    },
+    {
+      "id": "sid-preset-cleanup",
+      "title": "SID sound/program controls and organized USER library",
+      "upstream_status": "Personal cleanup",
+      "integration_policy": "Preserve source programs and Factory; mark program-owned controls, retain readable imported names and one collection per SID archive. Keep generated Studio USER sounds private and separate from app packages."
     }
   ],
   "personal_assets": [

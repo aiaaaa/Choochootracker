@@ -35,7 +35,9 @@ static void capture(const char* name,bool redraw=true){if(redraw)appDraw();auto*
 static void key(int down,int keys){appDraw();currentScreen->onInput(down,keys,1);appDraw();}
 static void tapEdit(){key(1,keyEdit);key(0,0);}
 int main(int argc,char** argv){
-  if(argc!=2&&argc!=3)return 1;output=argv[1];initDefaultAppSettings();appSettings.screenWidth=640;appSettings.screenHeight=480;fontSetCurrent(fontGetDefault());require(!gfxSetup(&appSettings.screenWidth,&appSettings.screenHeight),"SDL dummy setup");
+  if(argc!=2&&argc!=3)return 1;output=argv[1];initDefaultAppSettings();
+  fontSetCurrent(fontGetDefault());
+  appSettings.screenWidth=640;appSettings.screenHeight=480;require(!gfxSetup(&appSettings.screenWidth,&appSettings.screenHeight),"SDL dummy setup");
   chipnomadState=chipnomadCreate();require(chipnomadState,"state");require(!projectLoad(&chipnomadState->project,"projects/gm-midi-demo.cct"),"fixture");
   if(argc==3 && !strcmp(argv[2],"--soundfont-only")) {
     screensInitAll();waveformDisplayInit();monitorDisplayInit();cInstrument=0;
@@ -157,6 +159,37 @@ int main(int argc,char** argv){
       }
     }
     printf("Song-only waveform: transitions, full editor rows, bottom Phrase edits and Modulation touch passed in both modes\n");
+    chipnomadDestroy(chipnomadState);SDL_Quit();return 0;
+  }
+  if(argc==3 && !strcmp(argv[2],"--sid-library-only")) {
+    screensInitAll();waveformDisplayInit();monitorDisplayInit();cInstrument=0;
+    auto& project=chipnomadState->project;auto& instrument=project.instruments[0];
+    UserPresets library;library.setup("instruments/USER/sid",InstrumentType::SID);
+    std::string error;auto presets=library.scan(error);
+    require(error.empty()&&presets.size()>=64,"SID library scans without skipped files");
+    int goat=0,studio=0;
+    for(const auto& preset:presets) {
+      require(library.load(preset,&project,0,error),"SID preset materializes");
+      if(preset.path.find("Studio Bass/")==0&&!studio++) {
+        screenSetup(&screenInstrument,0);instrumentPresetCycleCollection(-1);
+        screenClearMessage();appDraw();capture("sid-studio-sound");
+      }
+      if(instrument.chip.sid.program.format==2&&!goat++) {
+        screenSetup(&screenInstrument,0);screenClearMessage();appDraw();
+        auto before=instrument.chip.sid;
+        for(int row=5;row<=8;++row)for(int col=0;col<screenInstrumentOPL.getColumnCount(row);++col)
+          screenInstrumentOPL.onEdit(col,row,CellEditAction::increase);
+        require(!memcmp(&before,&instrument.chip.sid,sizeof(before)),"Goat home edits preserve source and unused values");
+        screenClearMessage();screenInstrumentOPL.cursorRow=5;screenInstrumentOPL.cursorCol=0;
+        currentScreen->fullRedraw();appDraw();capture("sid-goat-program");
+        screenSetup(&screenSIDEdit,0);appDraw();capture("sid-goat-editor");
+      }
+    }
+    require(goat&&studio,"SID originals and imported programs covered");
+    getInstrumentFunctions(InstrumentType::SID).init(&instrument);
+    screenSetup(&screenInstrument,0);screenClearMessage();openUserPresetBrowser();appDraw();capture("sid-user-collections");
+    require(currentScreen==&screenSelectionPopup,"SID USER browser opens");
+    printf("SID library: %zu sounds load; imported controls protected; collections captured\n",presets.size());
     chipnomadDestroy(chipnomadState);SDL_Quit();return 0;
   }
   if(argc==3 && !strcmp(argv[2],"--sid-home-only")) {

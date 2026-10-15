@@ -108,6 +108,10 @@ void showUserColumns(){
     std::string path=bank?r.path:std::filesystem::path(r.path).parent_path().generic_string();
     std::string key=(r.legacy?"Previous banks/":"")+r.archive;
     if(!path.empty())key+=(key.empty()?"":"/")+path;
+    // SID archives often nest individual sounds under 6581/8580.
+    // Keep one named collection per archive instead of repeated model labels.
+    if(type==InstrumentType::SID&&!r.archive.empty())
+      key=(r.legacy?"Previous banks/":"")+r.archive;
     if(key.empty())key="Loose presets";
     groups[key].push_back(int(n));
   }
@@ -117,6 +121,8 @@ void showUserColumns(){
   size_t group=0;int selected=userReferences.empty()?backValue:0;
   for(const auto& entry:groups){
     collectionPaths.push_back(entry.first);auto label=std::filesystem::path(entry.first).filename().string();
+    if(type==InstrumentType::SID&&std::filesystem::path(label).extension()==".zip")
+      label=std::filesystem::path(label).stem().string();
     if(label.empty())label=entry.first;labels.push_back(label);
     auto&children=collectionSounds[group];children.reserve(entry.second.size());
     for(int n:entry.second){const auto&r=userReferences[n];children.push_back({r.name.c_str(),n,nullptr,0,r.name.c_str()});if(cursor().valid&&samePreset(r,cursor().selected))selected=n;}
