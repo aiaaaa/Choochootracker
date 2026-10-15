@@ -17,6 +17,7 @@ Please do not turn it into a conventional DAW. Features that need a mouse-first 
 - Preserve the MIT license wherever possible. Do not copy code or assets with incompatible terms.
 - Add or update tests for behavior changes. Run `make -f Makefile.test -j4` from `tracker` for engine or playback changes.
 - Update `docs/USER_MANUAL.md` when a user-facing behavior changes.
+- When changing the user manual, use the `choochootracker-user-manual` skill so it stays clear and useful to musicians.
 - Explain what changed, how you tested it, and any limitations in the pull request description.
 - Test your changes on real hardware. Windows is good, Portmaster/Android are better. Try to break your own code in controlled environment before users do it in the wild.
 
