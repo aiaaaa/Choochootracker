@@ -512,7 +512,13 @@ already recorded in a sample or mismatched authored loop points.
 
 A WAV with an unknown sampler-specific loop type can play its audio without that
 loop. The Instrument warning names the ignored loop type; the source file is
-unchanged. Standard alternating/backward WAV loops are still unsupported.
+unchanged. A forward WAV loop ending exactly one sample beyond the audio is
+accepted as an exclusive end at the sample boundary, with a warning; the PCM and
+explicit SFZ/EXS loop mappings are unchanged. Other invalid loop bounds and root
+notes report specific errors. A single zero RIFF alignment byte mistakenly
+counted in an odd-sized PCM frame layout is ignored with a warning; other partial
+PCM frames remain errors. Standard alternating/backward WAV loops are still
+unsupported.
 
 **SoundFont FX** exposes eight controls in the contextual Lane FX picker. All
 values below use tracker hexadecimal notation. The FX affect their track only

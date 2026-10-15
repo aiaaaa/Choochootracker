@@ -193,6 +193,14 @@ std::shared_ptr<Audio> decodeAudio(const Asset& asset, size_t maxBytes) {
               a->sampleRate <= 384000 && dataOffset,
           "Unsupported or missing audio format/data");
   size_t width = bits / 8;
+  const size_t frameBytes = channels * width;
+  // A few PCM WAV writers include the RIFF alignment byte in data's size.
+  // Recognize only a single zero pad after an odd number of complete frames.
+  if (wav && encoding == 1 && (frameBytes & 1) && !(dataSize & 1) &&
+      dataSize % frameBytes == 1 && s->bytes(dataOffset + dataSize - 1, 1)[0] == 0) {
+    --dataSize;
+    a->warnings.push_back("WAV data size included alignment padding");
+  }
   uint64_t frames = dataSize / (channels * width);
   require(dataSize % (channels * width) == 0, "Audio asset contains a partial PCM frame");
   require(frames > 0 && frames <= UINT32_MAX, "Invalid audio frame count");
@@ -232,8 +240,16 @@ std::shared_ptr<Audio> decodeAudio(const Asset& asset, size_t maxBytes) {
     a->loopStart = markers[beginMarker];
     a->loopEnd = markers[endMarker];
   }
-  require(a->root >= 0 && a->root <= 127 && a->loopStart <= a->loopEnd && a->loopEnd <= frames,
-          "Invalid audio pitch/loop metadata");
+  // Some WAV writers store an exclusive loop end at the sample count instead
+  // of RIFF's inclusive final sample. Accept that exact boundary only: never
+  // extend the PCM or clamp an otherwise out-of-range loop into validity.
+  if (wav && a->loopStart < frames && uint64_t(a->loopEnd) == frames + 1) {
+    a->loopEnd = uint32_t(frames);
+    a->warnings.push_back("WAV loop end corrected to sample boundary");
+  }
+  require(a->root >= 0 && a->root <= 127, "Invalid audio root note");
+  require(a->loopStart <= a->loopEnd && a->loopEnd <= frames,
+          "Audio loop outside sample range");
   return a;
 }
 }  // namespace soundbank

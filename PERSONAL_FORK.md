@@ -1,5 +1,16 @@
 # My R36H build
 
+## October 14 SoundFont preset-error review
+
+The loader accepts the exact one-sample WAV loop-end boundary mismatch and a
+counted zero alignment byte in an odd-sized PCM frame layout, with warnings.
+The private collection scan covers 1,670 WAV/AIFF files: no load failures and
+seven compatibility warnings, including the earlier sampler-specific loop fix.
+Original assets and authored SFZ/EXS loop mappings remain unchanged.
+
+This review is not deployed. The R36H remains on daily `50f3832`; personal web
+work remains paused for handheld review. Existing songs and banks are preserved.
+
 ## October 14 combined personal daily
 
 The owner released the build/deployment hold and selected `dacc21e` on the

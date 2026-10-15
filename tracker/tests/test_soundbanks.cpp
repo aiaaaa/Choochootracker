@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cmath>
+#include <cstring>
 #include <filesystem>
 #include <fstream>
 
@@ -221,6 +222,80 @@ TEST_CASE("soundbank vendor WAV loops do not reject playable PCM or invent loop 
       CHECK(mapped->zones[0].zone.loopStart == 16);
       CHECK(mapped->zones[0].zone.loopEnd == 64);
     }
+  }
+  std::filesystem::remove(path);
+}
+
+TEST_CASE("soundbank WAV accepts only the exact exclusive-end compatibility boundary") {
+  auto source = openFile(fixtures + "tone.wav");
+  const auto original = source->bytes(0, source->size());
+  size_t smpl = 0;
+  for (size_t pos = 12; pos + 8 <= original.size();) {
+    if (!memcmp(original.data() + pos, "smpl", 4)) { smpl = pos + 8; break; }
+    const auto length = read32(original.data() + pos + 4);
+    pos += 8 + length + (length & 1);
+  }
+  REQUIRE(smpl > 0);
+  const auto path = std::filesystem::temp_directory_path() / "choochoo-loop-boundary.wav";
+  const auto reference = decodeAudio(Asset{{fixtures + "tone.wav", ""}}, 65536);
+  for (uint32_t last : {255u, 256u, 257u, UINT32_MAX}) {
+    CAPTURE(last);
+    auto bytes = original;
+    for (int n = 0; n < 4; ++n) bytes[smpl + 48 + n] = uint8_t(last >> (8 * n));
+    { std::ofstream out(path, std::ios::binary); out.write((const char*)bytes.data(), bytes.size()); }
+    SampleCache cache;
+    auto bank = parseBank({path.string(), ""});
+    if (last > 256) { CHECK_THROWS(cache.prepare(bank, "sample")); continue; }
+    auto preset = cache.prepare(bank, "sample");
+    REQUIRE(preset->zones.size() == 1);
+    const auto& layer = preset->zones[0];
+    CHECK(layer.audio->pcm == reference->pcm);
+    CHECK(layer.zone.loop == Loop::continuous);
+    CHECK(layer.zone.loopEnd == 256);
+    CHECK(preset->warnings.empty() == (last == 255));
+    // The file on disk is never rewritten by preparation.
+    CHECK(openFile(path.string())->bytes(0, bytes.size()) == bytes);
+    auto& zone = bank.presets[0].zones[0];
+    zone.loopExplicit = true; zone.loop = Loop::continuous;
+    zone.loopStart = 16; zone.loopEnd = 64;
+    auto mapped = cache.prepare(bank, "sample");
+    CHECK(mapped->zones[0].zone.loopEnd == 64);
+  }
+  // A reversed loop and invalid root remain actionable errors, not repairs.
+  for (bool badRoot : {false, true}) {
+    auto bytes = original;
+    auto offset = smpl + (badRoot ? 12 : 44);
+    uint32_t value = badRoot ? 128 : 258;
+    for (int n = 0; n < 4; ++n) bytes[offset + n] = uint8_t(value >> (8 * n));
+    { std::ofstream out(path, std::ios::binary); out.write((const char*)bytes.data(), bytes.size()); }
+    CHECK_THROWS_WITH(decodeAudio(Asset{{path.string(), ""}}, 65536),
+                      badRoot ? "Invalid audio root note" : "Audio loop outside sample range");
+  }
+  std::filesystem::remove(path);
+}
+
+TEST_CASE("soundbank WAV tolerates a counted zero alignment byte but rejects partial PCM") {
+  auto path=std::filesystem::temp_directory_path()/"choochoo-counted-padding.wav";
+  std::vector<int16_t> reference;
+  for(int malformed : {0,1,2,3}) {
+    CAPTURE(malformed);
+    std::vector<uint8_t> bytes;
+    auto id=[&](const char* s){bytes.insert(bytes.end(),s,s+4);};
+    auto word=[&](uint32_t n,int width){for(int k=0;k<width;++k)bytes.push_back(uint8_t(n>>(8*k)));};
+    id("RIFF");word(0,4);id("WAVE");id("fmt ");word(16,4);
+    word(1,2);word(1,2);word(48000,4);word(144000,4);word(3,2);word(24,2);
+    id("data");word(malformed==0?765:malformed==3?767:766,4);
+    for(int n=0;n<255;++n)word(uint32_t((n-127)*65536),3);
+    bytes.push_back(malformed==2?1:0);
+    if(malformed==3){bytes.push_back(0);bytes.push_back(0);}
+    id("JUNK");word(2,4);word(0,2);
+    for(int k=0;k<4;++k)bytes[4+k]=uint8_t((bytes.size()-8)>>(8*k));
+    {std::ofstream out(path,std::ios::binary);out.write((const char*)bytes.data(),bytes.size());}
+    if(malformed>=2){CHECK_THROWS_WITH(decodeAudio(Asset{{path.string(),""}},65536),"Audio asset contains a partial PCM frame");continue;}
+    auto audio=decodeAudio(Asset{{path.string(),""}},65536);
+    CHECK(audio->frames()==255);
+    if(malformed==0)reference=audio->pcm;
+    else {CHECK(audio->pcm==reference);REQUIRE(audio->warnings.size()==1);CHECK(audio->warnings[0]=="WAV data size included alignment padding");}
   }
   std::filesystem::remove(path);
 }

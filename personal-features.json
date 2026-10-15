@@ -782,5 +782,18 @@
       "7934432",
       "588cfbf"
     ]
+  },
+  "soundfont_preset_errors_20261014": {
+    "baseline": "50f3832",
+    "status": "Implemented for review; not deployed; web remains paused",
+    "changes": [
+      "Accept exact WAV exclusive-end boundary and counted zero alignment byte with warnings; source files unchanged"
+    ],
+    "validation": {
+      "native_audio_collection_files": 1670,
+      "load_failures": 0,
+      "compatibility_warnings": 7
+    },
+    "private_assets_in_public_build": false
   }
 }
