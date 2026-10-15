@@ -136,7 +136,7 @@ Find bugs or anything? Come discuss on Discord: https://discord.gg/Ut9vM6zgKU
 - there can still be some crashes and bugs
 - Visual identity is not final
 - Feature set isn't frozen
-- need to tweak the scaling of various controls (like linear vs expo, that kind of stuff)
+- Engines and stuff may still require tweaking to sound as good as they should
 
 ## Why the train name?
 
@@ -172,9 +172,3 @@ Mad respects to the people I stole ideas from:
 - the Noise Engineering team, who inspired the MME engine
 - All musicians who I saw playing live sets on gameboys and other constrained hardware rigs.
 
-## Native chip and FM instruments
-
-This contribution adds SID, OPLL/VRC7, AdLib/OPL2, OPL3, Sega PSG, Game Boy
-Pulse/Noise, Genesis/Arcade FM and DX7 instruments with preset browsing.
-See [the instrument notes](docs/native-chip-instruments.md) and
-[the user manual](docs/USER_MANUAL.md) for controls, banks and limitations.
