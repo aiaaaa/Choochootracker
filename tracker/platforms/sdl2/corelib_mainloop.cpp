@@ -65,10 +65,11 @@ static void openFallbackJoystick(void) {
     if (SDL_IsGameController(i)) continue;
     fallbackJoystick = SDL_JoystickOpen(i);
     if (fallbackJoystick) {
-#ifdef TOUCH_INPUT
-      extern int vpadEnabled;
-      vpadEnabled = 0;
-#endif
+      // The virtual pad stays visible: the raw mapping is a guess, and the
+      // touch controls are needed to open the key mapping screen.
+      SDL_Log("CCT fallback joystick '%s': %d buttons, %d hats, %d axes",
+              SDL_JoystickName(fallbackJoystick), SDL_JoystickNumButtons(fallbackJoystick),
+              SDL_JoystickNumHats(fallbackJoystick), SDL_JoystickNumAxes(fallbackJoystick));
       break;
     }
   }
@@ -437,22 +438,17 @@ void mainLoopRun(void (*draw)(void), void (*onEvent)(MainLoopEventData eventData
         // Controllers get SDL_CONTROLLERDEVICEADDED instead; this catches the rest.
         if (!gameController && !fallbackJoystick) {
           openFallbackJoystick();
-#ifdef TOUCH_INPUT
-          if (fallbackJoystick) releaseFingers();
-#endif
         }
       }
       else if (event.type == SDL_JOYDEVICEREMOVED) {
         if (fallbackJoystick && event.jdevice.which == SDL_JoystickInstanceID(fallbackJoystick)) {
           closeFallbackJoystick();
           fallbackSendDpad(onEvent);
-#ifdef TOUCH_INPUT
-          vpadEnabled = 1;
-#endif
         }
       }
       else if (fallbackJoystick && (event.type == SDL_JOYBUTTONDOWN || event.type == SDL_JOYBUTTONUP) &&
                event.jbutton.which == SDL_JoystickInstanceID(fallbackJoystick)) {
+        SDL_Log("CCT joy button %d %s", event.jbutton.button, event.type == SDL_JOYBUTTONDOWN ? "down" : "up");
         if (event.jbutton.button < sizeof(fallbackButtonCodes) / sizeof(fallbackButtonCodes[0])) {
           eventData.type = event.type == SDL_JOYBUTTONDOWN ? MainLoopEvent::keyDown : MainLoopEvent::keyUp;
           eventData.data.input = (InputCode){InputDeviceType::gamepad, fallbackButtonCodes[event.jbutton.button]};
@@ -461,6 +457,7 @@ void mainLoopRun(void (*draw)(void), void (*onEvent)(MainLoopEventData eventData
       }
       else if (fallbackJoystick && event.type == SDL_JOYHATMOTION &&
                event.jhat.which == SDL_JoystickInstanceID(fallbackJoystick)) {
+        SDL_Log("CCT joy hat %d value %d", event.jhat.hat, event.jhat.value);
         fallbackHatDir[0] = (event.jhat.value & SDL_HAT_UP) != 0;
         fallbackHatDir[1] = (event.jhat.value & SDL_HAT_DOWN) != 0;
         fallbackHatDir[2] = (event.jhat.value & SDL_HAT_LEFT) != 0;
@@ -469,6 +466,7 @@ void mainLoopRun(void (*draw)(void), void (*onEvent)(MainLoopEventData eventData
       }
       else if (fallbackJoystick && event.type == SDL_JOYAXISMOTION &&
                event.jaxis.which == SDL_JoystickInstanceID(fallbackJoystick) && event.jaxis.axis < 2) {
+        SDL_Log("CCT joy axis %d value %d", event.jaxis.axis, event.jaxis.value);
         int neg = event.jaxis.value < -16384, pos = event.jaxis.value > 16384;
         if (event.jaxis.axis == 0) { fallbackAxisDir[2] = neg; fallbackAxisDir[3] = pos; }
         else { fallbackAxisDir[0] = neg; fallbackAxisDir[1] = pos; }
