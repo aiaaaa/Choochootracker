@@ -120,6 +120,10 @@ void screenDraw() {
     pendingScreen = NULL;
   }
 
+  // The character picker owns the whole canvas.  Live screen updates (for
+  // example an instrument waveform during playback) must not paint over it.
+  if (charEditIsOpen()) return;
+
   currentScreen->draw();
   if (currentScreen != &screenTitle)
     drawScreenMap();
@@ -323,31 +327,6 @@ static int screenTouchCellAt(int col, int row, int* targetCol, int* targetRow) {
     return 1;
   }
   if (currentScreen == &screenInstrument &&
-      chipnomadState->project.instruments[cInstrument].type == InstrumentType::SID && row >= 5) {
-    int field = -1, column = 0;
-    if (row == 6 && col >= 9 && col <= 36) field = 3;
-    if (row == 7 && col >= 9 && col <= 31) {
-      if (col == 27) return 0;
-      field = 4; column = col >= 28 ? 1 : 0;
-    }
-    if (row == 9 && col >= 0 && col <= 26) {
-      if (col >= 14 && col < 20) return 0;
-      field = 5; column = col >= 20 ? 1 : 0;
-    }
-    if (row == 12 && col >= 0 && col <= 11) field = 6;
-    if (row == 13 && col >= 0 && col <= 27) {
-      if (col >= 12 && col < 20) return 0;
-      field = 7; column = col >= 20 ? 1 : 0;
-    }
-    if (row == 14 && col >= 6 && col <= 23) {
-      field = 8; column = col <= 10 ? 0 : col <= 15 ? 1 : col <= 20 ? 2 : 3;
-    }
-    if (field < 0) return 0;
-    if (targetCol) *targetCol = column;
-    if (targetRow) *targetRow = field;
-    return 1;
-  }
-  if (currentScreen == &screenInstrument &&
       chipnomadState->project.instruments[cInstrument].type == InstrumentType::Monk && row >= 5) {
     int field = row == 6 ? 3 : row >= 8 && row <= 12 ? row - 4 : -1;
     int column = row >= 8 && col >= 18 ? 1 : 0;
@@ -369,6 +348,31 @@ static int screenTouchCellAt(int col, int row, int* targetCol, int* targetRow) {
       else if (col >= 15 && col < 24) column = 1;
     } else if (col >= 0 && col < 4) column = 0;
     if (column < 0) return 0;
+    if (targetCol) *targetCol = column;
+    if (targetRow) *targetRow = field;
+    return 1;
+  }
+  if (currentScreen == &screenInstrument &&
+      chipnomadState->project.instruments[cInstrument].type == InstrumentType::SID && row >= 5) {
+    int field = -1, column = 0;
+    if (row == 6 && col >= 9 && col <= 36) field = 3;
+    if (row == 7 && col >= 9 && col <= 31) {
+      if (col == 27) return 0;
+      field = 4; column = col >= 28 ? 1 : 0;
+    }
+    if (row == 9 && col >= 0 && col <= 26) {
+      if (col >= 14 && col < 20) return 0;
+      field = 5; column = col >= 20 ? 1 : 0;
+    }
+    if (row == 12 && col >= 0 && col <= 11) field = 6;
+    if (row == 13 && col >= 0 && col <= 27) {
+      if (col >= 12 && col < 20) return 0;
+      field = 7; column = col >= 20 ? 1 : 0;
+    }
+    if (row == 14 && col >= 6 && col <= 23) {
+      field = 8; column = col <= 10 ? 0 : col <= 15 ? 1 : col <= 20 ? 2 : 3;
+    }
+    if (field < 0) return 0;
     if (targetCol) *targetCol = column;
     if (targetRow) *targetRow = field;
     return 1;

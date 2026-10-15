@@ -55,11 +55,14 @@ void stop() {
 void preview(int value, bool held) {
   stop();
   if (!held || value < 0) return;
-  if(userColumns){if(size_t(value)>=userReferences.size())return;}
-  else if(size_t(value)>=library->items().size()||library->items()[value].kind!=UserPresets::Kind::preset)return;
+  if (userColumns) {
+    if (size_t(value) >= userReferences.size()) return;
+  } else if (size_t(value) >= library->items().size() ||
+             library->items()[value].kind != UserPresets::Kind::preset) return;
   audition = std::make_unique<Project>(); projectInit(audition.get()); std::string error;
-  if(type==InstrumentType::SQ80ESQ)audition->instruments[0]=chipnomadState->project.instruments[cInstrument];
-  if (!(userColumns?library->load(userReferences[value],audition.get(),0,error):library->load(value,audition.get(),0,error))) { screenMessage(MESSAGE_TIME_ERROR, "%s", error.c_str()); return; }
+  if (type == InstrumentType::SQ80ESQ) audition->instruments[0] = chipnomadState->project.instruments[cInstrument];
+  if (!(userColumns ? library->load(userReferences[value], audition.get(), 0, error) :
+                      library->load(value, audition.get(), 0, error))) { screenMessage(MESSAGE_TIME_ERROR, "%s", error.c_str()); return; }
   const auto& i = audition->instruments[0];
 #if CHOOCHOO_EXPERIMENTAL_SQ80ESQ
   if(type==InstrumentType::SQ80ESQ)chipnomadQueueSQ80Preview(chipnomadState,*pSongTrack,&i.chip.sq80);
@@ -82,10 +85,16 @@ void back() {
 void select(int value) {
   stop();
   if (value == backValue) { back(); return; }
-  if(userColumns){
-    if(value<0||size_t(value)>=userReferences.size())return;std::string error;
-    if(library->load(userReferences[value],&chipnomadState->project,cInstrument,error)){rememberUserPreset(userReferences[value]);projectModified=1;screenSetup(&screenInstrument,cInstrument);}
-    if(!error.empty())screenMessage(MESSAGE_TIME_ERROR,"%s",error.c_str());return;
+  if (userColumns) {
+    if (value < 0 || size_t(value) >= userReferences.size()) return;
+    std::string error;
+    if (library->load(userReferences[value], &chipnomadState->project, cInstrument, error)) {
+      rememberUserPreset(userReferences[value]);
+      projectModified = 1;
+      screenSetup(&screenInstrument, cInstrument);
+    }
+    if (!error.empty()) screenMessage(MESSAGE_TIME_ERROR, "%s", error.c_str());
+    return;
   }
   if (value < 0 || size_t(value) >= library->items().size()) return;
   std::string error;
@@ -97,46 +106,64 @@ void select(int value) {
   }
   if (!error.empty()) screenMessage(MESSAGE_TIME_ERROR, "%s", error.c_str());
 }
-void showUserColumns(){
-  std::string error;userReferences=library->scan(error);
-  using FileKey=std::tuple<bool,std::string,std::string>;
-  std::map<FileKey,int> fileCounts;
-  for(const auto&r:userReferences)++fileCounts[{r.legacy,r.archive,r.path}];
-  std::map<std::string,std::vector<int>> groups;
-  for(size_t n=0;n<userReferences.size();++n){const auto&r=userReferences[n];
-    const bool bank=fileCounts[{r.legacy,r.archive,r.path}]>1;
-    std::string path=bank?r.path:std::filesystem::path(r.path).parent_path().generic_string();
-    std::string key=(r.legacy?"Previous banks/":"")+r.archive;
-    if(!path.empty())key+=(key.empty()?"":"/")+path;
-    // SID archives often nest individual sounds under 6581/8580.
-    // Keep one named collection per archive instead of repeated model labels.
-    if(type==InstrumentType::SID&&!r.archive.empty())
-      key=(r.legacy?"Previous banks/":"")+r.archive;
-    if(key.empty())key="Loose presets";
+void showUserColumns() {
+  std::string error;
+  userReferences = library->scan(error);
+  using FileKey = std::tuple<bool, std::string, std::string>;
+  std::map<FileKey, int> fileCounts;
+  for (const auto& ref : userReferences) ++fileCounts[{ref.legacy, ref.archive, ref.path}];
+  std::map<std::string, std::vector<int>> groups;
+  for (size_t n = 0; n < userReferences.size(); ++n) {
+    const auto& ref = userReferences[n];
+    const bool bank = fileCounts[{ref.legacy, ref.archive, ref.path}] > 1;
+    const auto path = bank ? ref.path : std::filesystem::path(ref.path).parent_path().generic_string();
+    std::string key = ref.legacy ? "Previous banks/" : "";
+    // An archive is one collection even when it nests sounds under 6581/8580.
+    key += ref.archive;
+    if (type != InstrumentType::SID || ref.archive.empty()) {
+      if (!path.empty()) key += (key.empty() ? "" : "/") + path;
+    }
+    if (key.empty()) key = "Loose presets";
     groups[key].push_back(int(n));
   }
-  choices.clear();labels.clear();collectionPaths.clear();collectionSounds.clear();
-  labels.reserve(groups.size());collectionPaths.reserve(groups.size());collectionSounds.resize(groups.size());
-  choices.push_back({"< Back",backValue,nullptr,0,nullptr});
-  size_t group=0;int selected=userReferences.empty()?backValue:0;
-  for(const auto& entry:groups){
-    collectionPaths.push_back(entry.first);auto label=std::filesystem::path(entry.first).filename().string();
-    if(type==InstrumentType::SID&&std::filesystem::path(label).extension()==".zip")
-      label=std::filesystem::path(label).stem().string();
-    if(label.empty())label=entry.first;labels.push_back(label);
-    auto&children=collectionSounds[group];children.reserve(entry.second.size());
-    for(int n:entry.second){const auto&r=userReferences[n];children.push_back({r.name.c_str(),n,nullptr,0,r.name.c_str()});if(cursor().valid&&samePreset(r,cursor().selected))selected=n;}
-    choices.push_back({labels.back().c_str(),-100-int(group),children.data(),int(children.size()),collectionPaths.back().c_str()});++group;
+  choices.clear();
+  labels.clear();
+  collectionPaths.clear();
+  collectionSounds.clear();
+  labels.reserve(groups.size());
+  collectionPaths.reserve(groups.size());
+  collectionSounds.resize(groups.size());
+  choices.push_back({"< Back", backValue, nullptr, 0, nullptr});
+  size_t group = 0;
+  int selected = userReferences.empty() ? backValue : 0;
+  for (const auto& entry : groups) {
+    collectionPaths.push_back(entry.first);
+    auto label = std::filesystem::path(entry.first).filename().string();
+    if (type == InstrumentType::SID && std::filesystem::path(label).extension() == ".zip")
+      label = std::filesystem::path(label).stem().string();
+    if (label.empty()) label = entry.first;
+    labels.push_back(label);
+    auto& children = collectionSounds[group];
+    children.reserve(entry.second.size());
+    for (int n : entry.second) {
+      const auto& ref = userReferences[n];
+      children.push_back({ref.name.c_str(), n, nullptr, 0, ref.name.c_str()});
+      if (cursor().valid && samePreset(ref, cursor().selected)) selected = n;
+    }
+    choices.push_back({labels.back().c_str(), -100-int(group), children.data(),
+                       int(children.size()), collectionPaths.back().c_str()});
+    ++group;
   }
-  if(groups.empty())choices.push_back({"(No presets)",emptyValue,nullptr,0,nullptr});
-  char title[32];snprintf(title,sizeof(title),"%s USER",instrumentTypeName(type));
-  selectionPopupSetup(title,choices.data(),int(choices.size()),selected,select,back,false,preview,true);
-  screenSetup(&screenSelectionPopup,0);
-  if(!error.empty())screenMessage(MESSAGE_TIME_ERROR,"%s",error.c_str());
+  if (groups.empty()) choices.push_back({"(No presets)", emptyValue, nullptr, 0, nullptr});
+  char title[32];
+  snprintf(title, sizeof(title), "%s USER", instrumentTypeName(type));
+  selectionPopupSetup(title, choices.data(), int(choices.size()), selected,
+                      select, back, false, preview, true);
+  screenSetup(&screenSelectionPopup, 0);
+  if (!error.empty()) screenMessage(MESSAGE_TIME_ERROR, "%s", error.c_str());
 }
 void show() {
-  if(userColumns){showUserColumns();return;}
-
+  if (userColumns) { showUserColumns(); return; }
   labels.clear(); choices.clear();
   labels.push_back(library->atRoot() ? "< Back to instrument" : "../");
   for (const auto& i : library->items())

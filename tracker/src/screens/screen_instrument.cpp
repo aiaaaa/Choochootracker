@@ -360,7 +360,6 @@ static void fullRedraw(void) {
 }
 
 static void draw(void) {
-  instrumentSIDDrawHints();
   if (chipnomadState->project.instruments[cInstrument].type==InstrumentType::SoundFont) {
     auto& d=screenInstrumentSoundFont;
     for (int row : {3,4}) for (int col=0; col<d.getColumnCount(row); ++col)
@@ -370,6 +369,7 @@ static void draw(void) {
 #if CHOOCHOO_EXPERIMENTAL_SQ80ESQ
   if(chipnomadState->project.instruments[cInstrument].type==InstrumentType::SQ80ESQ){auto&d=screenInstrumentSQ80;for(int r:{5,6,7})for(int c=0;c<d.getColumnCount(r);++c)d.drawField(c,r,d.cursorRow==r&&d.cursorCol==c?CellState::focus:CellState::normal);d.drawCursor(d.cursorCol,d.cursorRow);}
 #endif
+  instrumentSIDDrawHints();
   // Field redraws may paint their static preview. The live scope owns this
   // region for the frame, including frames between waveform refreshes.
   instrumentCommonDrawLivePreview();

@@ -102,7 +102,7 @@ appimage: linux
 	@chmod +x $(BUILD)/$(APPNAME).AppDir/AppRun
 	@cp packaging/linux-appimage/choochootracker.desktop $(BUILD)/$(APPNAME).AppDir/
 	@sed -i 's/\r$$//' $(BUILD)/$(APPNAME).AppDir/choochootracker.desktop
-	@cp ../docs/play-store-assets/ChooChooTracker-play-icon-512.png $(BUILD)/$(APPNAME).AppDir/choochootracker.png
+	@cp packaging/linux-appimage/choochootracker.png $(BUILD)/$(APPNAME).AppDir/
 	@mkdir -p ../releases
 	@command -v appimagetool >/dev/null 2>&1 || { \
 		echo "Error: appimagetool not found on PATH."; \
@@ -112,7 +112,7 @@ appimage: linux
 		echo "See docs/build-notes.md for details."; \
 		exit 1; \
 	}
-	ARCH=x86_64 appimagetool $(BUILD)/$(APPNAME).AppDir ../releases/$(APPNAME)-$$(date +%Y-%m-%d)-$(VERSION)-x86_64.AppImage
+	ARCH=x86_64 appimagetool $(if $(APPIMAGE_RUNTIME),--runtime-file $(APPIMAGE_RUNTIME)) $(BUILD)/$(APPNAME).AppDir ../releases/$(APPNAME)-$$(date +%Y-%m-%d)-$(VERSION)-x86_64.AppImage
 	@echo "AppImage created in ../releases/"
 
 .PHONY: clean

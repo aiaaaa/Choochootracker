@@ -92,6 +92,13 @@ curl -L -o /usr/local/bin/appimagetool https://github.com/AppImage/AppImageKit/r
 chmod +x /usr/local/bin/appimagetool
 ```
 
+To use the modern statically linked Type 2 runtime (no host libfuse2 needed),
+pass it to `make`: `make -f Makefile.linux appimage APPIMAGE_RUNTIME=/path/to/runtime-x86_64`
+(needs appimagetool 1.9 or newer, which has `--runtime-file`). CI pins both:
+appimagetool 1.9.1 and type2-runtime `20251108`, each checked by SHA-256
+(see the workflow). On systems without FUSE the AppImage still starts with
+`APPIMAGE_EXTRACT_AND_RUN=1 ./ChooChooTracker-*.AppImage`.
+
 The GitHub Actions workflow `.github/workflows/appimage.yml` builds the
 AppImage inside a `debian:10` container (glibc 2.28, packages from
 `archive.debian.org`) so it runs on Debian 10+ and Ubuntu 20.04+ including

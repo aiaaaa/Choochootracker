@@ -405,6 +405,35 @@ TEST_SUITE("track inserts") {
         insertDescribe(text, sizeof(text), insertDestruction, 0, 2);
         CHECK(std::string(text) == "Crush");
   }
+  TEST_CASE("chorus and phaser extend from subtle to extreme modulation") {
+    for (int module : {insertChorus, insertPhaser}) {
+      InsertConfig c[2]{};
+      insertSelect(&c[0], module);
+      InsertAutomation automation{};
+      InsertChain chain(48000);
+      REQUIRE(chain.ready());
+      uint8_t v[2][8];
+      values(c, v);
+      auto dry = signal(12000), subtle = dry;
+      chain.sync(c, &automation);
+      chain.process(subtle.data(), 12000, v);
+      float subtleDifference = 0;
+      for (size_t i = 4096; i < dry.size(); ++i) subtleDifference += fabsf(subtle[i] - dry[i]);
+
+      for (int parameter = 0; parameter < insertDescriptor(module).count; ++parameter)
+        insertEdit(&c[0], parameter, 255);
+      InsertChain extremeChain(48000);
+      REQUIRE(extremeChain.ready());
+      extremeChain.sync(c, &automation);
+      values(c, v);
+      auto extreme = dry;
+      extremeChain.process(extreme.data(), 12000, v);
+      float extremeDifference = 0;
+      for (size_t i = 4096; i < dry.size(); ++i) extremeDifference += fabsf(extreme[i] - dry[i]);
+      CHECK(subtleDifference > 1);
+      CHECK(extremeDifference > subtleDifference * 2);
+    }
+  }
   TEST_CASE("OFF and fully bypassed slots are exactly transparent") {
     InsertConfig c[2]{};
     InsertAutomation a{};
@@ -1155,4 +1184,53 @@ TEST_CASE("insert tips, CPU readout and reviewed category chooser work together"
   CHECK(currentScreen == &screenMixer);
   screenMessage(0, "");
   chipnomadDestroy(chipnomadState); chipnomadState = previous; currentScreen = previousScreen;
+}
+
+TEST_CASE("Beads Shape Freeze has coarse byte edits in both track and master slots") {
+  auto* previous = chipnomadState;
+  auto* previousScreen = currentScreen;
+  chipnomadState = chipnomadCreate();
+  screensInitAll();
+  *pSongTrack = 0;
+  for (bool master : {false, true}) {
+    if (master) screenInsertFXOpenMaster();
+    else screenInsertFXOpenTrack();
+    for (int slot = 0; slot < 2; ++slot) {
+      auto& c = master ? chipnomadState->project.masterInserts[slot] :
+                        chipnomadState->project.trackInserts[0][slot];
+      insertSelect(&c, insertBeads);
+      screenInsertFX.fullRedraw();
+      auto* d = mockScreenData;
+      REQUIRE(d);
+      const int row = slot * 5 + 3;
+      c.values[6] = 0x78;
+      d->onEdit(1, row, CellEditAction::increaseBig);
+      CHECK(c.values[6] == 0x88);
+      d->onEdit(1, row, CellEditAction::decreaseBig);
+      CHECK(c.values[6] == 0x78);
+      d->onEdit(1, row, CellEditAction::increase);
+      CHECK(c.values[6] == 0x79);
+      d->onEdit(1, row, CellEditAction::decrease);
+      CHECK(c.values[6] == 0x78);
+      c.values[6] = 0xf8;
+      d->onEdit(1, row, CellEditAction::increaseBig);
+      CHECK(c.values[6] == 0xff);
+      c.values[6] = 0x08;
+      d->onEdit(1, row, CellEditAction::decreaseBig);
+      CHECK(c.values[6] == 0x00);
+      // The packed freeze bit must still bypass DSP parameter slew.
+      CHECK(insertDescriptor(insertBeads).parameters[6].mapping == InsertMapping::discrete);
+      insertSelect(&c, insertCompressor);
+      c.values[4] = 0;
+      REQUIRE(insertDescriptor(c.module).parameters[4].mapping == InsertMapping::discrete);
+      d->onEdit(1, slot * 5 + 1, CellEditAction::increaseBig);
+      CHECK(c.values[4] == 1);
+      d->onEdit(1, slot * 5 + 1, CellEditAction::decreaseBig);
+      CHECK(c.values[4] == 0);
+    }
+  }
+  screenInsertFXOpenTrack();
+  chipnomadDestroy(chipnomadState);
+  chipnomadState = previous;
+  currentScreen = previousScreen;
 }

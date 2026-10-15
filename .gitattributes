@@ -3,4 +3,4 @@
 tracker/packaging/linux-appimage/AppRun text eol=lf
 # Preserve acquired attribution documents byte-for-byte on every checkout.
 docs/soundbanks/licenses/** -text
-tracker/tests/fixtures/soundbanks/FluidR3Mono-LICENSE.txt -text
+tracker/tests/fixtures/soundbanks/FluidR3Mono-LICENSE.txt -text -diff

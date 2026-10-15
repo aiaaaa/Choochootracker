@@ -436,6 +436,10 @@ struct Project {
   uint8_t reverbDamping;
   uint16_t reverbFilterCutoffHz;
   uint16_t reverbHighpassCutoffHz;
+  uint8_t reverbAlgorithm; // 0 Clouds, 1 Beads
+  uint8_t beadsReverbTime;
+  uint8_t beadsReverbTone;
+  uint16_t beadsReverbHighpassCutoffHz;
   uint8_t delayReturn;
   uint8_t delayReverbSend;
   uint8_t delayTicks;

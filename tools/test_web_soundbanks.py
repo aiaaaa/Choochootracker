@@ -31,7 +31,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         pass
 
 server = http.server.ThreadingHTTPServer(('127.0.0.1', 0),
-    functools.partial(Handler, directory=str(root / 'web/dist')))
+    functools.partial(Handler, directory=os.environ.get('WEB_TEST_DIRECTORY', str(root / 'web/dist'))))
 threading.Thread(target=server.serve_forever, daemon=True).start()
 try:
     with sync_playwright() as playwright:

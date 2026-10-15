@@ -1,5 +1,16 @@
 # My R36H build
 
+## October 15 handheld upstream reconciliation
+
+The handheld candidate integrates upstream `1cf6141`, including the accepted
+SID preset cleanup, waveform stability, SoundFont and Beads changes. SQ80,
+MONK, Lucky and the private-library workflow remain personal additions.
+Personal song IDs and all existing user data are retained. The upstream
+manual is canonical for accepted features; personal controls are retained in
+`docs/personal-controls.md`. Web deployment and Vita are outside this update.
+The native build and 57 focused SID/SoundFont/Beads/MONK cases passed
+(11,817,154 assertions). Full integration and hardware validation are pending.
+
 ## Permanent scope exclusion: Ableton Link
 
 Owner decision, 2026-10-15: exclude Ableton Link and Link Audio from the personal

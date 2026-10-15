@@ -1,95 +1,46 @@
-# Experimental native SoundBanks
+# SoundFont instruments
 
-The SoundBanks implementation originated on `experimental/native-soundbanks`,
-based on upstream main `583702d`. The direct editor, eight Lane FX and unified
-collection browser are evaluated in the personal builds. Collection-browser updates
-are developed separately before integration into a requested daily. See [validation](validation.md)
-and the [library compatibility report](compatibility.md) before packaging it.
+Choose SAMPLE → SOUNDFONT and place banks in `instruments/USER/soundfont`.
+The engine reads SF2/SF3, SFZ and legacy EXS24 instruments, standalone WAV/AIFF
+samples, and ZIP collections containing those formats. Sample libraries are
+external user files; none are included in this contribution.
 
-## Using a bank
+Rescan indexes metadata. Preset opens the current sound in a two-column
+collection/preset browser. EDIT+Left/Right cycles in the same order across the
+library, wrapping at either end. EDIT+PLAY auditions. Edit opens the supported
+playback controls. See [the manual](../USER_MANUAL.md#soundfont-experimental)
+for all controls, native key ranges and eight Lane FX.
 
-1. Copy an original SF2, SF3, SFZ or EXS instrument, a WAV/AIFF sample, or a ZIP
-   containing those files into `instruments/USER/soundfont`. Retain relative sample directories.
-2. In Instrument, select **SOUNDFONT**. **Rescan** indexes the library; the row
-   reports not scanned/scanning/scanned. **Preset** opens one browser following
-   collections on the left and their flattened preset lists on the right, including
-   presets in bank files and ZIPs. It opens on the active preset.
-3. Select a preset with EDIT and wait for “Preset ready”. EDIT+PLAY previews the
-   loaded preset. EDIT+Left/Right on the home Preset row cycles across indexed
-   presets in browser order, continuing to the next collection and wrapping the library. A newer request supersedes an unfinished decode on the same
-   instrument; failures preserve the existing playable selection.
-4. **Edit** beside Preset exposes tuning, filter, the complete supported amplitude
-   envelope, volume and pan. These are playback overrides, not bank-layer authoring.
-5. Eight contextual Lane FX expose pitch, cutoff, resonance, attack, hold,
-   sustain, decay and release. Volume and pan use the common controls. See the SoundFont section of the user manual for units and
-   reset values. Delay remains in Edit.
-6. Save normally. The project records root-relative bank/member paths, stable
-   preset IDs, controls and FX; decoded samples remain external.
+Only the selected preset is decoded. Failed presets remain selected and silent,
+showing Error and its reason at the bottom of Instrument; cycling can continue.
+Changing source files requires Rescan. The source audio and mappings are never
+rewritten. Renaming bank paths requires reselecting the preset in saved songs.
 
-The browser uses the existing scrolling selection popup and controller mappings.
-Mapped collections hide their supporting WAV/AIFF assets from the preset list;
-standalone sample collections show their samples directly. There is no enabled-bank list or second bank manager. Scanning discovers
-metadata; only a selected preset is prepared for playback. All collections are USER banks.
+## Storage and limits
 
-Keep Korean instruments under `instruments/USER/soundfont/Korean_Gugak/`, retaining `Wind/` and
-other original family directories. This preserves a dedicated Gugak identity in
-the same USER bank infrastructure. All 23 publisher EXS24 folders have been
-acquired into private external storage, including older versions. Recent Gugak
-releases contain Mac disk images inside ZIPs: these are preserved originals,
-not directly playable ZIP banks. Older EXS/WAV ZIPs are tested separately.
-See the attribution record before considering any redistribution.
+Portable builds use `instruments/USER/soundfont` relative to their data directory.
+Other platforms use the existing application data-directory helper.
+`CHOOCHOO_SOUNDBANKS` overrides that root. The default decoded PCM cache budget
+is 64 MiB; `CHOOCHOO_SOUNDBANK_CACHE_MB` accepts 8–1024 MiB. Budget headroom is
+also needed for the tracker and temporary decode data. There is no disk streaming.
+Metadata indexing can succeed for an instrument too large to prepare for playback.
 
-## Storage and configuration
+Native preparation uses one background worker. Web preparation yields through
+Asyncify; imported files persist through the existing browser storage mechanism.
+Import sound banks accepts files/ZIPs; Import bank folder preserves relative sample
+paths. Import USER ZIP accepts `instruments/USER/` or `USER/`, preserves existing
+files, and limits new uncompressed imports to 1 GiB total and 512 MiB per file.
+Browser quota and memory limits still apply. Keep independent song/library backups.
 
-Portable desktop/PortMaster builds use `instruments/USER/soundfont` relative to their normal
-working data directory. AppImage, Android and Windows use the existing default
-application data-directory helper. Set `CHOOCHOO_SOUNDBANKS` to override the root.
-The sample cache defaults to 64 MiB of decoded PCM; set
-`CHOOCHOO_SOUNDBANK_CACHE_MB` to an integer from 8 through 1024 before launch to
-change it. This is a memory policy, not a download-size limit. Allow room for the
-rest of the tracker, compressed buffers and temporary preparation data.
+The disposable `.choochoo-index-v3` metadata cache tracks source and dependency
+changes. ZIP members are read individually; compressed members use temporary
+files deleted after use. Limits: 2 GiB uncompressed member, 64 MiB central
+directory, 200,000 members. ZIP64 is supported; encrypted archives, invalid CRCs,
+escaping paths and nested ZIP traversal are rejected or excluded.
 
-The web wrapper has **Import sound banks** and **Import bank folder** controls.
-**Import USER ZIP** accepts archives rooted at `instruments/USER/` or `USER/`,
-keeps existing files and preserves relative bank/sample paths. It accepts up to
-1 GiB of new uncompressed files per import and 512 MiB per file.
-They retain selected relative paths under `/user/instruments/USER/soundfont` and use existing
-persistent browser storage. ZIP import is convenient where folder picking is not
-available. Use Rescan on Instrument after importing. Browser storage quotas apply;
-its virtual filesystem can keep imported archives and temporary files in memory,
-so the native disk-backed memory profile does not apply to large web imports.
-
-Metadata enumeration does not decode sample audio. The `.choochoo-index-v3` cache
-uses source size/mtime, archive member CRC and dependency size/mtime. Changed
-entries are rebuilt. Unsupported-feature warnings persist in the index; failed
-entries and missing references are retried on rescan. Deleting the index is safe.
-
-Native preparation runs on one background worker. Web preparation is deferred
-until a loading state has been drawn and yields through existing Asyncify support;
-full browser interaction during long preparation has not yet been playtested.
-Only the selected preset's samples are decoded. Active presets and voices pin
-shared samples; unpinned samples are released before another preparation. A load
-that exceeds the budget fails and retains the previous playable preset. Clear
-unused instruments or increase the budget before retrying. There is no disk
-streaming yet, so large pianos may be indexed successfully but cannot be loaded
-within handheld memory limits.
-
-ZIP entries are read individually. Deflated members use a bounded-memory temporary
-file deleted on close; originals are never changed and no permanent duplicate
-collection is produced. A compressed SF2/SF3 member must be inflated in full to
-make its RIFF data seekable, even for metadata enumeration. There is a 2 GiB
-uncompressed member limit, a 64 MiB central-directory limit and a 200,000 member
-limit. ZIP64 is supported; encryption, unsupported compression, invalid CRCs,
-escaping paths and ZIP-inside-ZIP traversal are rejected or excluded.
-
-Missing banks produce a visible error, never an unrelated substitute. References
-survive cache rebuilding and moving the entire SoundBanks root. Renaming the bank
-or its relative directories requires reselecting it. Relative sample lookup
-repairs case differences, searches the nearest enclosing collection first, and
-uses original EXS directory suffixes to distinguish reused sample filenames.
-Lookup stays inside the configured root/archive; equally good matches fail
-explicitly. Windows drive paths and legacy HFS separators are supported as
-relocation hints, never as permission to open the original absolute path.
+Relative sample lookup stays within the configured root/archive, handles case and
+legacy EXS path hints, and rejects equally good ambiguous matches. A missing bank
+or sample produces an error instead of substituting a different instrument.
 
 ## Format coverage
 
@@ -98,8 +49,8 @@ relocation hints, never as permission to open the original absolute path.
 | SF2 | Bank/program IDs, zones, key/velocity ranges, root/tuning, offsets, gain/pan, stereo sides, loops, amp ADSR/delay/hold, low-pass filter, exclusive classes | Custom preset/instrument modulation routes, modulation envelopes/LFOs, key-scaled envelope times, fixed key/velocity and chorus/reverb sends are not implemented; diagnostics retain unsupported-feature warnings. 24-bit extensions play at 16-bit precision. ROM samples fail. |
 | SF3 | SoundFont version 3 mono Ogg Vorbis sample streams, including tested inclusive/exclusive sample-end conventions | Compressed stereo-per-record and Opus fail. No assumption that arbitrary SF2-compatible compression is supported. |
 | SFZ | control/global/master/group/region inheritance, bounded includes/macros, default_path, key/velocity mappings, pitch/gain/pan, offsets, loops/one-shot/reverse, amp envelope, low-pass filter, choke, round-robin, random selection, velocity curves/fades, attack/release regions | Default channel/articulation only. Live keyswitches, CC-triggered regions, sustain-pedal logic, dynamic envelopes, non-low-pass filters and additional opcodes warn. Unsupported trigger/loop types fail. Not full SFZ. |
-| EXS24 | Legacy endian variants, instrument name, zone/sample records (336/592/600), key/velocity/root/tuning, gain/pan, offsets, loops/reverse, sample ordinal references | Group synthesis/envelopes, instrument parameter blocks, fades, loop crossfades and routing warn. Gugak validates 130 presets across current and older releases; Akai remains limited by missing publisher samples. |
-| WAV | PCM 8/16/24/32, float32, supported extensible PCM/float, mono/stereo, smpl root/fraction/forward loop | Standard ping-pong/backward loops and inconsistent metadata fail. Unknown sampler-specific loop types (32+) warn and leave the embedded loop disabled; an explicit SFZ/EXS zone loop remains authoritative. Diagnoses a narrowly recognized omitted odd-chunk pad. |
+| EXS24 | Legacy endian variants, instrument name, zone/sample records (336/592/600), key/velocity/root/tuning, gain/pan, offsets, loops/reverse, sample ordinal references | Group synthesis/envelopes, instrument parameter blocks, fades, loop crossfades and routing warn. Missing referenced samples fail explicitly. |
+| WAV | PCM 8/16/24/32, float32, supported extensible PCM/float, mono/stereo, smpl root/fraction/forward loop | Standard ping-pong/backward loops fail. Exactly one-past-end forward loops and a narrowly recognized zero byte counted as PCM padding are accepted with warnings; other invalid boundaries fail. Unknown sampler-specific loop types (32+) warn and leave the embedded loop disabled; an explicit SFZ/EXS zone loop remains authoritative. Diagnoses a narrowly recognized omitted odd-chunk pad. |
 | AIFF/AIF | PCM and AIFC NONE/twos/sowt, rate/channels, INST root/detune and MARK sustain loop | Other compression and ping-pong loops fail. Release-loop and advanced instrument metadata are not mapped. |
 
 Referenced Ogg Vorbis samples are also decoded for SFZ. Standalone OGG, FLAC and
@@ -118,8 +69,7 @@ delay/attack/hold/decay/sustain/release. **Bank** retains each zone's original v
 explicit overrides apply to all layers and save with the instrument/project.
 Tone and tuning apply live; delay/attack/hold apply at note-on. Decay, sustain and
 release can update active voices; note OFF starts release. Clear restores
-the selected default. Source banks are unchanged. No new Lane FX commands or
-filter/envelope MOD destinations are added by this editor.
+the selected default. Source banks are unchanged. Eight contextual Lane FX are described in the user manual.
 
 ### Choosing and translating SoundFonts
 
@@ -135,6 +85,30 @@ for supported mappings, omitted programming, practical selection/conversion
 advice and the distinction between loading successfully and reproducing the
 original sound. This applies to both SF2 and SF3. Renaming or recompressing a bank
 does not translate unsupported modulation into supported behavior.
+
+
+## Build and verification
+
+The normal native and Web build recipes discover the new sources automatically.
+Run `make -C tracker -f Makefile.test -j4` for the native suite.
+`make -C tracker -f Makefile.soundbanks soundbanks-test` runs the parser/voice
+fixtures under address and undefined-behavior sanitizers.
+`tools/test_web_soundbanks.py` uses Playwright against a rebuilt `web/dist` or
+`WEB_TEST_URL` to check import preservation, playback, controls and save/reload.
+See [validation](validation.md) for the exact evidence and remaining limitations.
+
+## Dependencies and fixtures
+
+The renderer uses existing tracker envelopes, filters and mixer code. ZIP handling
+reuses miniz. `stb_vorbis.c` is pinned to `nothings/stb` commit
+`f58f558c120e9b32c217290b80bad1a0729fbb2c` under its MIT option; its notice is
+packaged in `licenses/stb_vorbis.txt`. EXS offset research used Matt Allan's MIT
+renoise-exs24 parser; its notice is in [EXS-parser-LICENSE.md](EXS-parser-LICENSE.md)
+and the packaged licenses. No external SoundFont synth is required.
+
+Fixtures are generated by `tools/soundbanks/make_fixtures.py`. SF3 fixtures include
+a small MIT-licensed FluidR3Mono sample with provenance and full license alongside
+them. These are test inputs, not a bundled preset collection.
 
 ## Reproducing acquisition and checks
 

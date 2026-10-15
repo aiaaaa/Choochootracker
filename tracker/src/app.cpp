@@ -521,6 +521,8 @@ void appDraw(void) {
   monitorDisplayUpdate();
   screenDraw();
 
+  if (charEditIsOpen()) return;
+
   if (currentScreen == &screenTitle ||
       currentScreen == &screenSelectionPopup) return;
 
@@ -915,7 +917,9 @@ void appOnEvent(MainLoopEventData eventData) {
     // Force full screen redraw
     gfxSetBgColor(appSettings.colorScheme.background);
     gfxClear();
-    if (currentScreen) {
+    if (charEditIsOpen()) {
+      charEditRedraw();
+    } else if (currentScreen) {
       currentScreen->fullRedraw();
       if (currentScreen != &screenTitle)
         drawScreenMap();

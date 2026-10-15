@@ -861,7 +861,11 @@ static int projectLoadInternal(FILE* file, Project* project) {
     consumeLine(file);
   }
   line = peekLine(file);
-  if (line && sscanf(line, "- Reverb: %hhu,%hhu,%hhu,%hu,%hu", &p.reverbReturn, &p.reverbTime,
+  if (line && sscanf(line, "- Reverb: %hhu,%hhu,%hhu,%hu,%hu,%hhu,%hhu,%hhu,%hu", &p.reverbReturn, &p.reverbTime,
+                     &p.reverbDamping, &p.reverbFilterCutoffHz, &p.reverbHighpassCutoffHz,
+                     &p.reverbAlgorithm, &p.beadsReverbTime, &p.beadsReverbTone, &p.beadsReverbHighpassCutoffHz) == 9) {
+    consumeLine(file);
+  } else if (line && sscanf(line, "- Reverb: %hhu,%hhu,%hhu,%hu,%hu", &p.reverbReturn, &p.reverbTime,
                      &p.reverbDamping, &p.reverbFilterCutoffHz, &p.reverbHighpassCutoffHz) == 5) {
     consumeLine(file);
   } else if (line && sscanf(line, "- Reverb: %hhu,%hhu,%hhu,%hu", &p.reverbReturn, &p.reverbTime,
@@ -917,6 +921,8 @@ static int projectLoadInternal(FILE* file, Project* project) {
   if (p.delayTicks == 0) p.delayTicks = 1;
   if (p.reverbFilterCutoffHz < 20) p.reverbFilterCutoffHz = 20;
   if (p.reverbHighpassCutoffHz < 20) p.reverbHighpassCutoffHz = 20;
+  if (p.reverbAlgorithm > 1) p.reverbAlgorithm = 0;
+  if (p.beadsReverbHighpassCutoffHz < 20) p.beadsReverbHighpassCutoffHz = 20;
   if (p.delayFilterCutoffHz < 20) p.delayFilterCutoffHz = 20;
   if (p.tiltPivotHz < 250) p.tiltPivotHz = 250;
   if (p.tiltPivotHz > 4000) p.tiltPivotHz = 4000;
@@ -1632,8 +1638,9 @@ static int projectSaveInternal(FILE* file, Project* project) {
   fprintf(file, "- Track tilts: %hhu,%hhu,%hhu,%hhu,%hhu,%hhu,%hhu,%hhu\n",
     project->trackTilt[0], project->trackTilt[1], project->trackTilt[2], project->trackTilt[3],
     project->trackTilt[4], project->trackTilt[5], project->trackTilt[6], project->trackTilt[7]);
-  fprintf(file, "- Reverb: %hhu,%hhu,%hhu,%hu,%hu\n", project->reverbReturn, project->reverbTime,
-    project->reverbDamping, project->reverbFilterCutoffHz, project->reverbHighpassCutoffHz);
+  fprintf(file, "- Reverb: %hhu,%hhu,%hhu,%hu,%hu,%hhu,%hhu,%hhu,%hu\n", project->reverbReturn, project->reverbTime,
+    project->reverbDamping, project->reverbFilterCutoffHz, project->reverbHighpassCutoffHz,
+    project->reverbAlgorithm, project->beadsReverbTime, project->beadsReverbTone, project->beadsReverbHighpassCutoffHz);
   fprintf(file, "- Delay: %hhu,%hhu,%hhu,%hhu,%hu\n", project->delayReturn, project->delayReverbSend,
     project->delayTicks, project->delayFeedback, project->delayFilterCutoffHz);
   fprintf(file, "- Tilt pivot: %hu\n", project->tiltPivotHz);

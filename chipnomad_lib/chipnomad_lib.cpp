@@ -1283,10 +1283,10 @@ static void renderMonoVoiceTracks(ChipNomadState* state, Voice* const voices[][C
 }
 
 template <typename Voice>
-static void renderStereoVoiceTracks(ChipNomadState* state, Voice* const voices[][CHORD_MAX_VOICES], float* output, int frames, bool includeReleaseSlots=false) {
+static void renderStereoVoiceTracks(ChipNomadState* state, Voice* const voices[][CHORD_MAX_VOICES], float* output, int frames, bool includeReleaseSlots = false) {
   for (int trackIdx = 0; trackIdx < state->audioProject.tracksCount; ++trackIdx) {
     if (!state->playbackState.trackEnabled[trackIdx]) continue;
-    for (int slot = 0; slot < (includeReleaseSlots?CHORD_MAX_VOICES:state->playbackState.tracks[trackIdx].chordVoiceCount); ++slot) {
+    for (int slot = 0; slot < (includeReleaseSlots ? CHORD_MAX_VOICES : state->playbackState.tracks[trackIdx].chordVoiceCount); ++slot) {
       Voice* voice = voices[trackIdx][slot];
       if (!voice->active()) continue;
       float* rendered = state->mixBuffer;

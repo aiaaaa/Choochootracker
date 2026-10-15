@@ -1,7 +1,7 @@
 {
   "upstream": "paiheulevrai/Choochootracker",
   "upstream_branch": "main",
-  "upstream_commit": "583702d68ee6badf7ad37f7264a1ba9f2b87ab46",
+  "upstream_commit": "1cf6141269eec0e0b94624b2ff891d2b9b1a2d97",
   "personal_branch": "personal/r36h",
   "update_policy": "Personal combines upstream main, my additions not yet incorporated upstream, and my experiments. Keep unmerged additions, including pending or declined submissions. Once incorporated upstream, replace my earlier implementation with the maintainer's merged version, including his fixes and changes; remove duplicate code and controls. Test, preserve user data, record commit, and retain rollback before installation.",
   "excluded_features": {
@@ -181,13 +181,13 @@
       "id": "soundfont-direct-editor",
       "title": "SoundFont direct instrument editor",
       "branch": "experimental/soundfont-edit",
-      "upstream_status": "Experimental evaluation, not submitted",
+      "upstream_status": "Merged upstream; accepted implementation retained with personal instrument ID 30",
       "integration_policy": "Integrated for the requested SoundFont evaluation daily; preserve bank defaults, eight appended Lane FX IDs, USER libraries and existing songs."
     },
     {
       "id": "sid-preset-cleanup",
       "title": "SID sound/program controls and organized USER library",
-      "upstream_status": "Personal cleanup",
+      "upstream_status": "Merged upstream via PR #81; accepted code retained, private Studio USER sounds remain external",
       "integration_policy": "Preserve source programs and Factory; mark program-owned controls, retain readable imported names and one collection per SID archive. Keep generated Studio USER sounds private and separate from app packages."
     }
   ],
@@ -827,5 +827,17 @@
       "6ef8508"
     ],
     "web": "Paused by owner; no web build or deployment"
+  },
+  "handheld_reconciliation_20261015": {
+    "upstream_commit": "1cf6141269eec0e0b94624b2ff891d2b9b1a2d97",
+    "installed_baseline": "a8101e3ded42ca749802b069db552a02e2068e27",
+    "target": "R36H only",
+    "validation": "Native build passed; 57 focused SID/SoundFont/Beads/MONK cases and 11,817,154 assertions passed; hardware validation pending",
+    "preserved_instrument_ids": {
+      "SQ80": 28,
+      "MONK": 29,
+      "SoundFont": 30
+    },
+    "excluded": "Ableton Link; Vita and web deployment unchanged"
   }
 }
