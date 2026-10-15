@@ -194,6 +194,8 @@ PopupEditInput popupEditInput(int isKeyDown, int keys, int* buttonDown);
 // Character edit
 int editCharacter(CellEditAction action, char* str, int idx, int maxLen);
 char charEditInput(int keys, int tapCount, char* str, int idx, int maxLen);
+int charEditIsOpen(void);
+void charEditRedraw(void);
 
 // FX edit
 int editFX(CellEditAction action, FXCell* fx, FXCell* lastFX, int isTable, uint8_t instrumentIdx);

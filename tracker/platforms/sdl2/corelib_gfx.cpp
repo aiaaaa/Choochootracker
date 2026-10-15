@@ -1071,7 +1071,6 @@ void gfxHandleResize(int width, int height) {
   screenW = 640;
   screenH = 480;
 #else
-  if (width == screenW && height == screenH) return;
   screenW = width;
   screenH = height;
 #endif
@@ -1081,10 +1080,11 @@ void gfxHandleResize(int width, int height) {
   SDL_RenderSetLogicalSize(renderer, logicalW, logicalH);
 #endif
 #ifndef WEB_BUILD
-  if (compositionTexture && (compositionW != logicalW || compositionH != logicalH)) {
-    destroyCompositionTexture();
-    if (!createCompositionTexture()) return;
-  }
+  // A fullscreen transition can invalidate SDL render targets even when its
+  // reported client size is unchanged.  Recreate our cached frame for every
+  // desktop resize event rather than presenting the old target.
+  destroyCompositionTexture();
+  if (!createCompositionTexture()) return;
 #endif
   gfxReloadFont();
 #ifdef TOUCH_INPUT
