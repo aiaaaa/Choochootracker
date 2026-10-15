@@ -5,6 +5,8 @@
 #include "chord.h"
 #include "synth/sample_voice.h"
 #include <algorithm>
+#include <string>
+#include <cstring>
 
 // State for FX selection screen
 int currentGroup;      // Current group being navigated
@@ -402,11 +404,51 @@ void collapseGroup(int groupIdx) {
   }
 }
 
+// Keep the picker clear of the track sidebar and bottom message row. Help
+// has a fixed footprint, so changing commands never changes group spacing.
+static constexpr int fxHelpWidth = 33;
+static constexpr int fxListTop = 5;
+static int fxListBottom() { return 18 - gfxGetContentRowOffset(); }
+static int fxColumns(const FXGroup* group) {
+  return group ? std::clamp(group->columns, 1, 8) : 1;
+}
+
+static void printFXLine(int y, const std::string& text) {
+  std::string line = text;
+  if (line.size() > fxHelpWidth) line = line.substr(0, fxHelpWidth - 3) + "...";
+  gfxPrint(1, y, line.c_str());
+}
+
+// Keep the title separate and reflow existing help at word boundaries.
+// The compact summary never draws into the list or adjacent track sidebar.
+static void drawPickerHelp(const char* text, int firstRow, int lastRow) {
+  std::string remaining = text ? text : "";
+  for (int row = firstRow; row <= lastRow && !remaining.empty(); ++row) {
+    size_t end = remaining.find('\n');
+    if (end == std::string::npos) end = remaining.size();
+    if (end > fxHelpWidth) {
+      end = remaining.rfind(' ', fxHelpWidth);
+      if (end == std::string::npos || end == 0) end = fxHelpWidth;
+    }
+    std::string line = remaining.substr(0, end);
+    remaining.erase(0, end);
+    if (row == 1) {
+      // Body line breaks are formatting, not extra rows in the picker.
+      std::replace(remaining.begin(), remaining.end(), '\n', ' ');
+    }
+    if (!remaining.empty() && (remaining[0] == ' ' || remaining[0] == '\n')) remaining.erase(0, 1);
+    if (row == lastRow && !remaining.empty()) line = line.substr(0, fxHelpWidth - 3) + "...";
+    gfxSetFgColor(row == 1 ? appSettings.colorScheme.textValue : appSettings.colorScheme.textDefault);
+    printFXLine(row, line);
+  }
+}
+
 // Draw a group header at specified Y position
 // Returns the Y position after the header (for next element)
 int drawGroupHeader(int visibleGroupIdx, int y, int isCurrent) {
   FXGroup* group = getVisibleGroup(visibleGroupIdx, getCurrentInstrumentType());
   if (!group) return y;
+  if (y < fxListTop || y > fxListBottom()) return y + 1;
 
   // Highlight current group header
   if (isCurrent) {
@@ -432,7 +474,7 @@ int drawFXList(int visibleGroupIdx, int y) {
   FXGroup* group = getVisibleGroup(visibleGroupIdx, getCurrentInstrumentType());
   if (!group) return y;
 
-  int cols = group->columns;  // Use group-specific column count
+  int cols = fxColumns(group);
 
   // Draw FX in grid with group-specific column count
   int count = visibleFXCount(group);
@@ -442,6 +484,7 @@ int drawFXList(int visibleGroupIdx, int y) {
     int row = idx / cols;
     int col = idx % cols;
     int fxY = y + row;
+    if (fxY < fxListTop || fxY > fxListBottom()) continue;
 
     // Highlight current FX if this is the current group
     int isCurrent = (visibleGroupIdx == currentGroup && idx == currentIdx);
@@ -515,52 +558,64 @@ void fxEditFullDraw(FXId currentFX, uint8_t instrumentIdx, int isTable) {
     if (first) currentFX = first->fx;
   }
 
-  // Draw help for current FX at top (with instrument context)
-  NativeFXInfo direct{};
-  int presetRow=6;
-  if(nativeInfo(instrumentIdx,currentFX,direct) && direct.label) {
-    gfxSetFgColor(appSettings.colorScheme.textValue);gfxPrint(1,1,direct.label);
-    gfxSetFgColor(appSettings.colorScheme.textDefault);
-    gfxPrint(1,2,nativeControlDescription(currentFX));
-    int nextRow=3;
-    if(currentFX>=fxOAR&&currentFX<=fxOE4)gfxPrint(1,nextRow++,"Operator 1");
-    gfxPrint(1,nextRow++,"Absolute native value");
-    presetRow=nextRow;
-  } else drawFXHelp((enum FX)currentFX, instrumentIdx);
   NativeFXInfo info{};
-  if(nativeInfo(instrumentIdx,currentFX,info)) {
+  if (nativeInfo(instrumentIdx, currentFX, info) && info.label) {
+    gfxSetFgColor(appSettings.colorScheme.textValue);
+    std::string title = info.label;
+    if (currentFX >= fxOAR && currentFX <= fxOE4) title += " (OP1)";
+    printFXLine(1, title);
+    drawPickerHelp(nativeControlDescription(currentFX), 2, 3);
+    if (!nativeControlDescription(currentFX)[0]) {
+      gfxSetFgColor(appSettings.colorScheme.textDefault);
+      printFXLine(2, info.relative ? "Relative to instrument setting" : "Absolute native value");
+    }
     gfxSetFgColor(appSettings.colorScheme.textInfo);
-    gfxPrintf(1,presetRow,"%s %02X   Range %02X-%02X",info.relative?"Preset FX":"Preset",info.preset,info.minimum,info.maximum);
-  } else if(currentFX>=fxF11 && currentFX<=fxF28) {
-    const int address=currentFX-fxF11, parameter=address%8;
-    const auto& config=chipnomadState->project.trackInserts[*pSongTrack][address/8];
-    if(parameter<insertDescriptor(config.module).count) {
-      char decoded[32];
-      insertDescribe(decoded,sizeof(decoded),config.module,parameter,config.values[parameter]);
-      gfxSetFgColor(appSettings.colorScheme.textInfo);
-      gfxPrintf(1,presetRow,"Saved %02X: %s",config.values[parameter],decoded);
-    }
+    gfxPrintf(1, 4, "%s %02X   Range %02X-%02X",
+      info.relative ? "Preset FX" : "Preset", info.preset, info.minimum, info.maximum);
+  } else if (currentFX >= fxF11 && currentFX <= fxF28) {
+    const int address = currentFX - fxF11, parameter = address % 8;
+    const auto& config = chipnomadState->project.trackInserts[*pSongTrack][address / 8];
+    const auto& descriptor = insertDescriptor(config.module);
+    char line[128], decoded[32];
+    gfxSetFgColor(appSettings.colorScheme.textValue);
+    snprintf(line, sizeof(line), "TF%d %s: %s", address / 8 + 1,
+      descriptor.name, descriptor.parameters[parameter].name);
+    printFXLine(1, line);
+    gfxSetFgColor(appSettings.colorScheme.textDefault);
+    snprintf(line, sizeof(line), "%s Absolute; holds until reset", fxNames[currentFX].name);
+    printFXLine(2, line);
+    char low[32], high[32];
+    int maximum = insertClamp(config.module, parameter, 255);
+    insertDescribe(low, sizeof(low), config.module, parameter, 0);
+    insertDescribe(high, sizeof(high), config.module, parameter, maximum);
+    snprintf(line, sizeof(line), "00: %s  %02X: %s", low, maximum, high);
+    // Keep both numeric bounds when decoded endpoints cannot fit together.
+    if (strlen(line) > fxHelpWidth) snprintf(line, sizeof(line), "Range 00-%02X", maximum);
+    printFXLine(3, line);
+    insertDescribe(decoded, sizeof(decoded), config.module, parameter, config.values[parameter]);
+    snprintf(line, sizeof(line), "Saved %02X: %s", config.values[parameter], decoded);
+    gfxSetFgColor(appSettings.colorScheme.textInfo);
+    printFXLine(4, line);
+  } else {
+    drawPickerHelp(helpFXDescription((FX)currentFX, instrumentIdx), 1, 4);
   }
 
-  // Draw all visible groups (headers + expanded group's FX list)
-  int y = presetRow+1;
-  FXGroup* expanded = getVisibleGroup(expandedGroup, getCurrentInstrumentType());
-  int expandedRows = expanded ? (visibleFXCount(expanded) + expanded->columns - 1) / expanded->columns : 0;
-  bool separateGroups = !screenScopeRows(currentScreen) &&
-    y + visibleGroupCount + expandedRows + visibleGroupCount - 1 <= 20 - gfxGetContentRowOffset();
-  for (int g = 0; g < visibleGroupCount; g++) {
-    // Draw group header
-    int isCurrent = (g == currentGroup);
-    y = drawGroupHeader(g, y, isCurrent);
-
-    // Draw FX list only if this group is expanded
-    if (g == expandedGroup) {
-      y = drawFXList(g, y);
-    }
-
-    // Spend blank rows only when the entire expanded group fits on screen.
-    if (separateGroups) y++;
+  FXGroup* expanded = getVisibleGroup(expandedGroup, instType);
+  int expandedRows = expanded ? (visibleFXCount(expanded) + fxColumns(expanded) - 1) / fxColumns(expanded) : 0;
+  const int totalRows = visibleGroupCount + expandedRows;
+  const int availableRows = fxListBottom() - fxListTop + 1;
+  const int selectedRow = currentGroup + 1 + currentIdx / fxColumns(expanded);
+  // Scroll only when necessary, always keeping the selected command visible.
+  const int scroll = std::clamp(selectedRow - availableRows + 1, 0,
+                                std::max(0, totalRows - availableRows));
+  int y = fxListTop - scroll;
+  for (int g = 0; g < visibleGroupCount; ++g) {
+    y = drawGroupHeader(g, y, g == currentGroup);
+    if (g == expandedGroup) y = drawFXList(g, y);
   }
+  gfxSetFgColor(appSettings.colorScheme.textInfo);
+  if (scroll) gfxPrint(34, fxListTop, "^");
+  if (totalRows - scroll > availableRows) gfxPrint(34, fxListBottom(), "v");
 }
 
 
@@ -614,7 +669,7 @@ int fxEditInput(int keys, int tapCount, FXCell* fx, FXCell* lastFX) {
       }
     } else if (keys & keyUp) {
       // Move up one row in grid (using group-specific column count)
-      currentIdx -= group->columns;
+      currentIdx -= fxColumns(group);
       if (currentIdx < 0) {
         // Reached top of current group - move to previous group
         if (currentGroup > 0) {
@@ -634,7 +689,7 @@ int fxEditInput(int keys, int tapCount, FXCell* fx, FXCell* lastFX) {
       }
     } else if (keys & keyDown) {
       // Move down one row in grid (using group-specific column count)
-      currentIdx += group->columns;
+      currentIdx += fxColumns(group);
       if (currentIdx >= visibleFXCount(group)) {
         // Reached bottom of current group - move to next group
         if (currentGroup < visibleGroupCount - 1) {
