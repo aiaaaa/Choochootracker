@@ -4,6 +4,23 @@
   "upstream_commit": "583702d68ee6badf7ad37f7264a1ba9f2b87ab46",
   "personal_branch": "personal/r36h",
   "update_policy": "Personal combines upstream main, my additions not yet incorporated upstream, and my experiments. Keep unmerged additions, including pending or declined submissions. Once incorporated upstream, replace my earlier implementation with the maintainer's merged version, including his fixes and changes; remove duplicate code and controls. Test, preserve user data, record commit, and retain rollback before installation.",
+  "excluded_features": {
+    "ableton-link": {
+      "status": "hard-excluded",
+      "decision_date": "2026-10-15",
+      "scope": [
+        "all personal fork targets",
+        "R36H",
+        "web",
+        "Ableton Link",
+        "Link Audio"
+      ],
+      "policy": "Do not vendor or fetch the SDK, compile/link its implementation, expose controls, or package its runtime. Disabled-by-default is insufficient. Omit/remove Link and its dependencies during upstream integration; preserve the upstream main mirror.",
+      "overrides": "Normal upstream-feature adoption and retention policy",
+      "reason": "Owner reports project-specific licensing does not cover this fork and does not use Link; recorded as owner policy, not an independently verified legal conclusion.",
+      "reconsideration": "Requires a new explicit owner instruction; upstream adoption or licensing changes do not reopen scope."
+    }
+  },
   "features": [
     {
       "id": "night-title",

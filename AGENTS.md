@@ -2,6 +2,17 @@
 
 ## Personal branch targets
 
+- Hard exclusion: Ableton Link (including Link Audio) must not be included in
+  the personal fork or any personal build, including R36H and web. Do not vendor
+  or fetch its SDK, compile/link its implementation, expose its controls, or
+  package its runtime. This overrides the normal upstream-feature retention
+  policy: when merging upstream, omit/remove Link and its build dependencies
+  before building or deploying personal. Disabled-by-default is not sufficient.
+  Keep `main` as the upstream mirror; apply this exclusion in personal integration.
+  The owner explicitly excluded Link on 2026-10-15, citing project-specific
+  licensing and no personal need for the feature. Do not assume an upstream
+  licensing agreement covers this fork. Only a new explicit owner instruction
+  may reopen this scope; upstream adoption or a license change alone does not.
 - `main` remains the clean upstream mirror. `personal/r36h` is the shared source
   for both the device personal build (R36H) and the independently deployed web app.
 - Integrate upstream/main updates into personal while retaining personal

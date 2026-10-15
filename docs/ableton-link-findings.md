@@ -2,7 +2,12 @@
 
 Date: 2026-09-28
 
-Status: research only. Do not add Link code from this note.
+Status: historical research, superseded for the personal fork on 2026-10-15.
+Ableton Link and Link Audio are hard-excluded from all personal targets, including
+R36H and web, even if upstream adopts them. Do not add the SDK, implementation,
+controls, build dependencies or packaged runtime. See `../PERSONAL_FORK.md` and
+`../personal-features.json`. Only a new explicit owner instruction can reopen
+this scope; the technical possibilities below are not an implementation plan.
 
 This document maps Ableton Link onto ChooChooTracker's clock, threads, licenses, and platforms. It is not a promise to ship Link.
 

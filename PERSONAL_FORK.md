@@ -1,5 +1,25 @@
 # My R36H build
 
+## Permanent scope exclusion: Ableton Link
+
+Owner decision, 2026-10-15: exclude Ableton Link and Link Audio from the personal
+fork on every target, including R36H and web. This is a hard exception to the
+normal policy of adopting accepted upstream features. Do not vendor/fetch the
+SDK, compile or link its implementation, expose controls, or ship its runtime.
+Turning the feature off by default does not satisfy this exclusion.
+
+For every upstream integration, inspect Link-related changes and omit/remove the
+implementation and dependencies before a personal build or deployment. Keep the
+upstream `main` mirror intact. Reopening this scope requires an explicit new
+owner instruction; upstream adoption or licensing changes do not reopen it.
+
+The owner reports that the licensing arrangement covers the original project,
+not this fork, and does not use the feature. This records the owner's scope
+choice, not an independently verified legal conclusion. The older
+`docs/ableton-link-findings.md` research is historical and is not authorization
+to implement Link. The current personal source contains no Link implementation;
+this policy update requires no application rebuild or device installation.
+
 ## October 14 SoundFont preset-error review
 
 The loader accepts the exact one-sample WAV loop-end boundary mismatch and a
