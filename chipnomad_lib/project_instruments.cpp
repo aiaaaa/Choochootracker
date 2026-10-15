@@ -47,6 +47,13 @@ static int initNoneInstrument(Instrument* instrument) {
   return 0;
 }
 
+static int initSoundFontInstrument(Instrument* instrument) {
+  initCommon(instrument);
+  instrument->type = InstrumentType::SoundFont;
+  instrument->chip.soundfont.controls = soundbankDefaultControls();
+  return 0;
+}
+
 static int freeNoneInstrument(Instrument* instrument) {
   freeCommon(instrument);
   return 0;
@@ -377,6 +384,7 @@ static const InstrumentFX fxPlaits[]={F(fxPMD,"PMD"),F(fxPHA,"PHA"),F(fxPTM,"PTM
 static const InstrumentFX fxAChChid[]={F(fxASL,"ASL"),F(fxATY,"ATY"),F(fxADC,"ADC"),F(fxAAC,"AAC"),F(fxATM,"ATM"),F(fxACL,"ACL"),F(fxACF,"ACF"),F(fxARS,"ARS"),F(fxAEM,"AEM")};
 static const InstrumentFX fxDrumSynth[]={F(fxDMD,"DMD"),F(fxDDC,"DDC"),F(fxDTO,"DTO"),F(fxDSW,"DSW"),F(fxDNO,"DNO"),F(fxDFM,"DFM"),F(fxDDR,"DDR"),F(fxDCF,"DCF"),F(fxDRS,"DRS")};
 static const InstrumentFX fxMME[]={F(fxMMD,"MMD"),F(fxMWV,"MWV"),F(fxMIN,"MIN"),F(fxMAM,"MAM"),F(fxMFL,"MFL"),F(fxMFB,"MFB"),F(fxMSH,"MSH"),F(fxMCF,"MCF"),F(fxMRS,"MRS")};
+static const InstrumentFX fxSoundFont[]={F(fxFPT,"FPT"),F(fxFCF,"FCF"),F(fxFRS,"FRS"),F(fxFAT,"FAT"),F(fxFHD,"FHD"),F(fxFDC,"FDC"),F(fxFSU,"FSU"),F(fxFRL,"FRL")};
 static const InstrumentFX fxSintered[]={F(fxSMDL,"SMD"),F(fxSDC,"SDC"),F(fxSMD,"SMP"),F(fxSA,"SMA"),F(fxSB,"SMB"),F(fxSMO,"SMO"),F(fxSC,"SMC"),F(fxSCF3,"SCF"),F(fxSRS3,"SRS")};
 static const InstrumentFX fxMidi[]={F(fxMC1,"MC1"),F(fxMC2,"MC2"),F(fxMC3,"MC3"),F(fxMC4,"MC4")};
 #undef F
@@ -411,6 +419,7 @@ static const InstrumentDefinition instrumentDefinitions[] = {
   {"Genesis FM",InstrumentCategory::fm,InstrumentScreenKind::opl,destOPLL,COUNT(destOPLL),NULL,0,{2,modNameOPLL,initGenesisInstrument,freeNoneInstrument,1,0}},
   {"Arcade FM",InstrumentCategory::fm,InstrumentScreenKind::opl,destOPLL,COUNT(destOPLL),NULL,0,{2,modNameOPLL,initArcadeInstrument,freeNoneInstrument,1,0}},
   {"SID",InstrumentCategory::chip,InstrumentScreenKind::opl,destOPLL,COUNT(destOPLL),NULL,0,{2,modNameOPLL,initSIDInstrument,freeNoneInstrument,0,0}},
+  {"SOUNDFONT",InstrumentCategory::sample,InstrumentScreenKind::soundfont,destOPLL,COUNT(destOPLL),fxSoundFont,COUNT(fxSoundFont),{2,modNameOPLL,initSoundFontInstrument,freeNoneInstrument,0,0}},
 };
 #undef COUNT
 

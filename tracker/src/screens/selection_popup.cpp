@@ -6,7 +6,7 @@
 
 static char title[32];
 static const SelectionItem* rootItems;
-static bool fullWidth;
+static bool fullWidth, collectionLayout;
 static int rootCount, categoryIndex, itemIndex, activePanel, currentValue;
 static void (*onSelected)(int);
 static void (*onCancelled)(void);
@@ -37,7 +37,8 @@ static void selectCurrentValue() {
 
 void selectionPopupSetup(const char* popupTitle, const SelectionItem* items,
                          int count, int selectedValue,
-                         void (*selected)(int), void (*cancelled)(void), bool wide, void (*preview)(int, bool)) {
+                         void (*selected)(int), void (*cancelled)(void), bool wide, void (*preview)(int, bool), bool collections, bool focusPreset) {
+  collectionLayout=collections;
   onPreview = preview; previewHeld = editPending = false;
   fullWidth = wide;
   strncpy(title, popupTitle, sizeof(title) - 1);
@@ -49,6 +50,7 @@ void selectionPopupSetup(const char* popupTitle, const SelectionItem* items,
   onSelected = selected;
   onCancelled = cancelled;
   selectCurrentValue();
+  if(focusPreset && rootCount>0 && currentCategory()->childCount)activePanel=1;
 }
 
 bool selectionPopupIsFullWidth(void) { return fullWidth; }
@@ -60,6 +62,7 @@ static void fullRedraw() {
   gfxSetFgColor(appSettings.colorScheme.textTitles);
   gfxPrint(0, 0, title);
   if (!fullWidth) gfxPrint(18, 1, "|");
+  if(collectionLayout){gfxPrint(0,1,"COLLECTION");gfxPrint(20,1,"PRESET");}
   const SelectionItem* category = currentCategory();
   int categoryStart = categoryIndex > 7 ? categoryIndex - 7 : 0;
   int itemStart = itemIndex > 7 ? itemIndex - 7 : 0;
@@ -81,13 +84,15 @@ static void fullRedraw() {
         item->value == currentValue ? '*' : ' ', item->label);
     }
   }
-  if (activePanel == 1 && itemIndex < category->childCount && category->children[itemIndex].helper) {
+  if(collectionLayout&&category->helper){gfxSetFgColor(appSettings.colorScheme.textInfo);const char*path=category->helper;size_t length=strlen(path);gfxPrintf(0,18,"%-40.40s",length>40?path+length-40:path);}
+  else if (activePanel == 1 && itemIndex < category->childCount && category->children[itemIndex].helper) {
     gfxSetFgColor(appSettings.colorScheme.textInfo);
     gfxPrintf(0, 18, "%-40.40s", category->children[itemIndex].helper);
   }
   gfxSetFgColor(appSettings.colorScheme.textInfo);
   const bool playing = chipnomadState && chipnomadGetPlaybackStatus(chipnomadState)->isPlaying;
   gfxPrint(0, 19, onPreview && playing ? "STOP SONG TO HEAR  EDIT SELECT  OPT EXIT" :
+    collectionLayout ? "L/R PANEL  EDIT+PLAY HEAR  OPT EXIT" :
     onPreview ? "EDIT SELECT  EDIT+PLAY HEAR  OPT EXIT" :
     fullWidth ? "U/D MOVE EDIT SELECT OPT EXIT" :
     "L/R PANEL U/D MOVE EDIT SELECT OPT EXIT");

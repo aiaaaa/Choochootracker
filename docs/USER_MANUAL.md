@@ -435,6 +435,156 @@ Each instrument has a default table with the same number in the `00-7F` range. Y
 - **SHIFT + OPT**: copy the instrument
 - **SHIFT + EDIT**: paste the instrument
 
+### SOUNDFONT (experimental)
+
+Copy original SF2/SF3 banks, SFZ/EXS instruments with their samples, or ZIP archives
+into `instruments/USER/soundfont`. Select **SOUNDFONT** on Instrument. The scan
+row shows **Not scanned**, **Scanning...**, or **Scanned**, with a **Rescan** action.
+Scanning reads metadata; it does not load every preset's samples into memory.
+
+The **Preset** row shows the active preset. Tap and release EDIT to open the
+browser at that preset: collections appear on the left and their presets on the
+right. Each collection presents a flat list, including presets inside bank files
+and ZIP archives. Supporting WAV/AIFF files stay with their mapped instruments;
+collections containing only individual samples list those samples as presets.
+Download IDs and archive hashes are removed from display labels; musical note,
+BPM and take numbers are retained. EDIT selects a preset; EDIT+PLAY previews the
+loaded selection.
+
+Hold EDIT and press Left/Right on Preset to move sequentially in the same order
+as the browser, continuing into the next collection and wrapping at either end
+of the library. Rapid cycling prepares the latest requested selection. The
+current preset stays playable while a replacement prepares. If loading fails, the
+requested preset remains selected and the instrument becomes silent. **Error:**
+and the reason appear at the bottom of Instrument; cycling continues from that
+preset in either direction. Rescan after importing or changing library files. Preset status appears
+directly below Preset with a fixed color. Loading does not post messages on SONG
+or other pages.
+
+**Native keys** shows the selected preset's authored note-on range, using C4 for
+MIDI note 60. **(gaps)** means some notes inside those bounds have no mapped zone.
+It is the union across velocity layers; not every velocity or articulation must
+sound at every displayed key. Release-only samples do not extend the range.
+Tuning and pitch FX do not change this display or extend the authored mapping.
+
+**Edit**, to the right of Preset, opens the experimental SoundFont editor:
+tune (−2400 to +2400 cents), cutoff (20–20000 Hz), resonance (0–40 dB), envelope
+delay/attack/hold/decay/release (0–20000 ms), sustain (0–100%), volume, pan, and
+**Bend step** (1–100 cents per PBN unit). New instruments use a 1-cent bend step.
+Older files show **Stock**, retaining their previous PBN scale (25 cents in linear
+pitch mode, 1 in period mode); set Bend step to 1 for finer bends. Clear restores
+a 1-cent bend step. This affects SoundFont PBN only; FPT remains fixed tuning.
+Volume and pan are the same instrument values shown on the home page.
+Tone and envelope fields default to **Bank**, retaining each layer's authored
+value. An explicit value overrides that parameter across the preset's layers.
+Clear restores **Bank**, zero cents for Tune, full volume, or centered pan.
+EDIT+Left/Right makes fine changes; EDIT+Up/Down makes larger changes. OPT returns
+to Instrument; EDIT+PLAY auditions the instrument at its song note or the default.
+This edits instrument playback controls, not the bank's per-sample mappings,
+key/velocity zones or loop points.
+
+Tuning, cutoff and resonance apply live. Attack, delay and hold are set at
+note-on. Decay, sustain and release can update a playing voice; release begins
+with a note OFF, not just on an empty row. Decay is inaudible at 100% sustain.
+A release time cannot extend a sample past its available audio. An explicit
+release override also makes a one-shot sample respond to note OFF. With Bank
+settings, its authored one-shot behavior remains. The preset's key and velocity
+ranges remain authoritative; notes outside them are silent. FPT can pitch an
+already selected sample beyond that range without changing its mapping.
+Edits save in instrument and project files without modifying the source bank;
+older songs without overrides retain their original bank settings.
+
+SoundFont retriggers and KILL use a short 3 ms smoothing transition to reduce
+clicks when a sample is interrupted away from zero. KILL still cuts the note;
+it does not play the preset's release envelope. This does not repair clicks
+already recorded in a sample or mismatched authored loop points.
+
+A WAV with an unknown sampler-specific loop type can play its audio without that
+loop. The Instrument warning names the ignored loop type; the source file is
+unchanged. A forward WAV loop ending exactly one sample beyond the audio is
+accepted as an exclusive end at the sample boundary, with a warning; the PCM and
+explicit SFZ/EXS loop mappings are unchanged. Other invalid loop bounds and root
+notes report specific errors. A single zero RIFF alignment byte mistakenly
+counted in an odd-sized PCM frame layout is ignored with a warning; other partial
+PCM frames remain errors. Standard alternating/backward WAV loops are still
+unsupported.
+
+**SoundFont FX** exposes eight controls in the contextual Lane FX picker. All
+values below use tracker hexadecimal notation. The FX affect their track only
+and leave the instrument's saved controls unchanged. Each new note starts from
+the instrument settings, then applies commands on its row and subsequent rows.
+
+| FX | Control | Values |
+| --- | --- | --- |
+| FPT | Pitch | `00` = −24 semitones, `18` = zero, `30` = +24; exact semitone steps |
+| FCF | Cutoff | `00`–`FE`: 20 Hz–20 kHz, logarithmic |
+| FRS | Resonance | `00`–`FE`: 0–40 dB |
+| FAT | Attack | `00`–`FE`: 0–20 seconds, finer spacing at short times |
+| FHD | Hold | `00`–`FE`: 0–20 seconds before decay, set on the note row |
+| FSU | Sustain | `00`–`FE`: 0–100% held level |
+| FDC | Decay | `00`–`FE`: 0–20 seconds, finer spacing at short times |
+| FRL | Release | `00`–`FE`: 0–20 seconds, finer spacing at short times |
+
+For FCF/FRS/FAT/FHD/FDC/FSU/FRL, `FF` returns to the Edit setting (including **Bank**).
+Put Attack/Hold on the note row. Decay/Sustain/Release can change the active
+note; use OFF to hear its release. Volume and pan use the common controls;
+legacy FVL/FPN commands still load and play but are no longer offered. Pitch FX
+change tuning without changing the bank's selected key zone. Existing sequencer
+pitch/fine-pitch commands, MODs and track effects remain available. Projects save
+stable bank/preset references and FX commands; sample libraries remain external.
+
+
+All banks are USER banks. Large instruments may exceed the default 64 MiB PCM
+cache, and unsupported source parameters produce warnings. See the
+[SoundBanks guide](soundbanks/README.md) for platform paths, browser import,
+cache configuration, format coverage and current validation limits.
+
+#### SoundFont compatibility: banks, presets and modulation
+
+One SF2 or SF3 **bank file** can contain many **presets**, together with their
+samples. A library **collection** is the folder used to group those files in the
+browser. These are different levels: a preset can have unsupported behavior even
+when other presets in the same file translate well.
+
+**Preset modulation** means programmed links from inputs such as velocity, key,
+mod wheel or pressure to a sound parameter. Those links can belong to a preset
+or to an underlying instrument layer shared by several presets. They are not
+necessarily a setting that affects every sound in the bank.
+
+| Preset feature | Current translation |
+| --- | --- |
+| Sample/key/velocity mapping, root pitch and tuning | Implemented; authored ranges are retained. Velocity zones and ordinary tracker velocity still work. |
+| Sample offsets, supported loops, gain/pan and exclusive groups | Implemented within the parser and voice limits. |
+| Static low-pass cutoff/resonance and volume envelope | Implemented through the tracker renderer; not a guarantee of identical response to another SoundFont player. |
+| Custom preset/instrument modulation routes (`pmod` / `imod`) | Not implemented. Authored controller-to-parameter mappings, amounts and response curves are ignored. |
+| SoundFont modulation/vibrato LFOs and modulation envelope routing | Not implemented; programmed movement of pitch, filter or volume may be missing. |
+| Key-scaled volume-envelope hold/decay, fixed-key/fixed-velocity generators | Not implemented. |
+| SoundFont chorus/reverb sends | Not implemented. Tracker effects can be set manually but do not reproduce the preset's settings automatically. |
+
+The older message **“Custom bank modulation ignored”** describes a file-level
+check: the parser found custom modulation records somewhere in the bank. It does
+**not** establish that the selected preset uses them, or that the whole bank is
+unusable. This general limitation is documented here instead of repeating that
+message under every preset. Detailed parser diagnostics retain the records;
+other load errors and compatibility warnings still appear when applicable.
+The engine does not claim complete SoundFont default-modulator behavior either.
+Tracker PBN, vibrato, Edit and Lane FX are independent controls, not automatic
+translations of omitted preset programming.
+
+For choosing a library, start with presets based mainly on sample mappings,
+loops and static envelopes. Sounds whose character depends on controller
+articulations, animated filters or programmed LFOs need closer comparison in a
+full SoundFont player. **Loads and plays** does not mean **fully reproduces the
+preset**. Compare useful notes and velocities as well as held notes and note OFF.
+Changing SF2 to SF3 (or back) does not by itself remove these modulation needs.
+A conversion must translate the mappings and behavior into features this engine
+supports; rendering an effect into a sample preserves only that rendered result,
+not its interactive controller response. See the [format coverage and limits](soundbanks/README.md#format-coverage)
+and [validation notes](soundbanks/validation.md) before choosing or
+converting a bank. These limits describe the current experimental implementation,
+not restrictions inherent to all SoundFont players.
+
+
 ### AY Classic, AY Plus and AY Sample
 
 These are the original ChipNomad AY/YM engines. AY Classic exposes hardware-style tone, noise and envelope controls. AY Plus adds software oscillators and richer modulation. AY Sample reproduces a sample through AY-style volume levels and is distinct from the Sampler engine.

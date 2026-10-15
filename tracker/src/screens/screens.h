@@ -103,6 +103,7 @@ extern const AppScreen screenInstrument;
 extern const AppScreen screenSampleSettings;
 extern const AppScreen screenFMEdit;
 extern const AppScreen screenSIDEdit;
+extern const AppScreen screenSoundFontEdit;
 extern const AppScreen screenInstrumentPool;
 extern const AppScreen screenModulation;
 extern const AppScreen screenInsertFX;
