@@ -55,11 +55,11 @@ static const InsertDescriptor descriptors[] = {
       {"Output", "Output", "dB", -24, 24, 112, M::bipolar}}},
     {"Chorus",
      5,
-     {{"Rate", "Rate", "Hz", 0.05f, 20, 82, M::exponential},
-      {"Depth", "Depth", "ms", 0.2f, 35, 115, M::exponential},
+     {{"Rate", "Rate", "Hz", 0.05f, 20, 99, M::exponential},
+      {"Depth", "Depth", "ms", 0.2f, 50, 145, M::exponential},
       {"Tone", "Tone", "Hz", 800, 18000, 210, M::exponential},
-      {"Mix", "Mix", "%", 0, 1, 96, M::linear},
-      {"Feedback", "Feedback", "%", -0.95f, 0.95f, 128, M::bipolar}}},
+      {"Mix", "Mix", "%", 0, 1, 128, M::linear},
+      {"Feedback", "Feedback", "%", -0.98f, 0.98f, 140, M::bipolar}}},
     {"Flanger",
      4,
      {{"Rate", "Rate", "Hz", 0.02f, 20, 100, M::exponential},
@@ -68,11 +68,11 @@ static const InsertDescriptor descriptors[] = {
       {"Mix", "Mix", "%", 0, 1, 100, M::linear}}},
     {"Phaser",
      5,
-     {{"Rate", "Rate", "Hz", 0.02f, 15, 60, M::exponential},
-      {"Depth", "Depth", "%", 0, 1.5f, 160, M::linear},
-      {"Feedback", "Feedback", "%", -0.98f, 0.98f, 144, M::bipolar},
-      {"Mix", "Mix", "%", 0, 1, 128, M::linear},
-      {"Stages", "Stages", "", 0, 4, 0, M::discrete}}},
+     {{"Rate", "Rate", "Hz", 0.02f, 15, 92, M::exponential},
+      {"Depth", "Depth", "%", 0, 2, 180, M::linear},
+      {"Feedback", "Feedback", "%", -0.98f, 0.98f, 160, M::bipolar},
+      {"Mix", "Mix", "%", 0, 1, 144, M::linear},
+      {"Stages", "Stages", "", 0, 4, 1, M::discrete}}},
     {"Rotary",
      4,
      {{"Speed", "Speed", "Hz", 0.01f, 25, 143, M::exponential},
@@ -616,9 +616,10 @@ struct InsertChain::Impl {
               float sidePhase = s.phase + (ch ? 3.14159265359f : 0.0f);
               for (int stage = 0; stage < stages; ++stage) {
                 float sweep = 0.5f + 0.5f * sinf(sidePhase + stage * 0.7f);
-                float cutoff = 120.0f + sweep * p[1] * 4200.0f * stageScale[stage];
-                float normalized = std::min(0.95f, cutoff / rate);
-                float a = (1.0f - normalized) / (1.0f + normalized);
+                float cutoff = 80.0f + sweep * p[1] * 10000.0f * stageScale[stage];
+                cutoff = std::min(cutoff, rate * 0.45f);
+                float g = tanf((float)M_PI * cutoff / rate);
+                float a = (1.0f - g) / (1.0f + g);
                 float y = a * x + s.allpassX[ch][stage] - a * s.allpassY[ch][stage];
                 s.allpassX[ch][stage] = x;
                 s.allpassY[ch][stage] = y;
