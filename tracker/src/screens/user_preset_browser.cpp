@@ -12,6 +12,8 @@
 #include <map>
 #include <memory>
 #include <cstring>
+#include <tuple>
+#include <filesystem>
 
 namespace {
 std::map<InstrumentType, UserPresets> libraries;
@@ -19,6 +21,10 @@ UserPresets* library = nullptr;
 InstrumentType type = InstrumentType::none;
 std::vector<SelectionItem> choices;
 std::vector<std::string> labels;
+bool userColumns=false;
+std::vector<UserPresets::Reference> userReferences;
+std::vector<std::vector<SelectionItem>> collectionSounds;
+std::vector<std::string> collectionPaths;
 std::unique_ptr<Project> audition;
 struct Cursor {bool valid=false;UserPresets::Reference selected;};
 std::map<std::pair<int,InstrumentType>,Cursor> cursors;
@@ -41,10 +47,14 @@ void stop() {
 }
 void preview(int value, bool held) {
   stop();
-  if (!held || value < 0 || size_t(value) >= library->items().size() ||
-      library->items()[value].kind != UserPresets::Kind::preset) return;
+  if (!held || value < 0) return;
+  if (userColumns) {
+    if (size_t(value) >= userReferences.size()) return;
+  } else if (size_t(value) >= library->items().size() ||
+             library->items()[value].kind != UserPresets::Kind::preset) return;
   audition = std::make_unique<Project>(); projectInit(audition.get()); std::string error;
-  if (!library->load(value, audition.get(), 0, error)) { screenMessage(MESSAGE_TIME_ERROR, "%s", error.c_str()); return; }
+  if (!(userColumns ? library->load(userReferences[value], audition.get(), 0, error) :
+                      library->load(value, audition.get(), 0, error))) { screenMessage(MESSAGE_TIME_ERROR, "%s", error.c_str()); return; }
   const auto& i = audition->instruments[0];
   if (type == InstrumentType::DX7) chipnomadQueueDX7Preview(chipnomadState, *pSongTrack, &i.chip.dx7);
   else if (type == InstrumentType::SID) chipnomadQueueSIDPreview(chipnomadState, *pSongTrack, &i.chip.sid);
@@ -55,7 +65,7 @@ void preview(int value, bool held) {
 }
 void back() {
   stop();
-  if (library->atRoot()) { screenSetup(&screenInstrument, cInstrument); return; }
+  if (userColumns || library->atRoot()) { screenSetup(&screenInstrument, cInstrument); return; }
   std::string error; library->back(error);
   if (!error.empty()) screenMessage(MESSAGE_TIME_ERROR, "%s", error.c_str());
   show();
@@ -63,6 +73,17 @@ void back() {
 void select(int value) {
   stop();
   if (value == backValue) { back(); return; }
+  if (userColumns) {
+    if (value < 0 || size_t(value) >= userReferences.size()) return;
+    std::string error;
+    if (library->load(userReferences[value], &chipnomadState->project, cInstrument, error)) {
+      rememberUserPreset(userReferences[value]);
+      projectModified = 1;
+      screenSetup(&screenInstrument, cInstrument);
+    }
+    if (!error.empty()) screenMessage(MESSAGE_TIME_ERROR, "%s", error.c_str());
+    return;
+  }
   if (value < 0 || size_t(value) >= library->items().size()) return;
   std::string error;
   if (library->items()[value].kind != UserPresets::Kind::preset) {
@@ -73,7 +94,59 @@ void select(int value) {
   }
   if (!error.empty()) screenMessage(MESSAGE_TIME_ERROR, "%s", error.c_str());
 }
+void showUserColumns() {
+  std::string error;
+  userReferences = library->scan(error);
+  using FileKey = std::tuple<bool, std::string, std::string>;
+  std::map<FileKey, int> fileCounts;
+  for (const auto& ref : userReferences) ++fileCounts[{ref.legacy, ref.archive, ref.path}];
+  std::map<std::string, std::vector<int>> groups;
+  for (size_t n = 0; n < userReferences.size(); ++n) {
+    const auto& ref = userReferences[n];
+    const bool bank = fileCounts[{ref.legacy, ref.archive, ref.path}] > 1;
+    const auto path = bank ? ref.path : std::filesystem::path(ref.path).parent_path().generic_string();
+    std::string key = ref.legacy ? "Previous banks/" : "";
+    // An archive is one collection even when it nests sounds under 6581/8580.
+    key += ref.archive.empty() ? path : ref.archive;
+    if (key.empty()) key = "Loose presets";
+    groups[key].push_back(int(n));
+  }
+  choices.clear();
+  labels.clear();
+  collectionPaths.clear();
+  collectionSounds.clear();
+  labels.reserve(groups.size());
+  collectionPaths.reserve(groups.size());
+  collectionSounds.resize(groups.size());
+  choices.push_back({"< Back", backValue, nullptr, 0, nullptr});
+  size_t group = 0;
+  int selected = userReferences.empty() ? backValue : 0;
+  for (const auto& entry : groups) {
+    collectionPaths.push_back(entry.first);
+    auto label = std::filesystem::path(entry.first).filename().string();
+    if (std::filesystem::path(label).extension() == ".zip")
+      label = std::filesystem::path(label).stem().string();
+    if (label.empty()) label = entry.first;
+    labels.push_back(label);
+    auto& children = collectionSounds[group];
+    children.reserve(entry.second.size());
+    for (int n : entry.second) {
+      const auto& ref = userReferences[n];
+      children.push_back({ref.name.c_str(), n, nullptr, 0, ref.name.c_str()});
+      if (cursor().valid && samePreset(ref, cursor().selected)) selected = n;
+    }
+    choices.push_back({labels.back().c_str(), -100-int(group), children.data(),
+                       int(children.size()), collectionPaths.back().c_str()});
+    ++group;
+  }
+  if (groups.empty()) choices.push_back({"(No presets)", emptyValue, nullptr, 0, nullptr});
+  selectionPopupSetup("SID USER", choices.data(), int(choices.size()), selected,
+                      select, back, false, preview, true);
+  screenSetup(&screenSelectionPopup, 0);
+  if (!error.empty()) screenMessage(MESSAGE_TIME_ERROR, "%s", error.c_str());
+}
 void show() {
+  if (userColumns) { showUserColumns(); return; }
   labels.clear(); choices.clear();
   labels.push_back(library->atRoot() ? "< Back to instrument" : "../");
   for (const auto& i : library->items())
@@ -116,6 +189,7 @@ bool setupUserPresetLibrary(UserPresets& target, InstrumentType type) {
 
 void openUserPresetBrowser() {
   type = chipnomadState->project.instruments[cInstrument].type;
+  userColumns = type == InstrumentType::SID;
   library = &libraries[type];
   if(!setupUserPresetLibrary(*library,type))return;
   sequences[type].clear();
