@@ -26,6 +26,7 @@ static int prevRow = 1;     // Track previous cursor position
 static int prevCol = 0;
 static int lastSelectedChar = 0;
 static int isUppercase = 1; // Start with uppercase
+static int charEditOpen = 0;
 
 void updateCursorPosition();
 void charEditFullDraw(char startChar);
@@ -43,6 +44,7 @@ int editCharacter(CellEditAction action, char* str, int idx, int maxLen) {
   } else if (action == CellEditAction::tap) {
     char current = str[idx];
     if (idx  >= strlen(str)) current = -1;
+    charEditOpen = 1;
     charEditFullDraw(current);
     return 1;
   }
@@ -93,6 +95,7 @@ char charEditInput(int keys, int tapCount, char* str, int idx, int maxLen) {
     // Trim leading and trailing spaces before exiting
     trimString(str);
 
+    charEditOpen = 0;
     return selectedChar;
   }
 
@@ -166,6 +169,14 @@ char charEditInput(int keys, int tapCount, char* str, int idx, int maxLen) {
 
   // No character selected yet
   return 0;
+}
+
+int charEditIsOpen(void) {
+  return charEditOpen;
+}
+
+void charEditRedraw(void) {
+  if (charEditOpen) charEditFullDraw(0);
 }
 
 /**

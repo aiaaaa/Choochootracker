@@ -282,6 +282,11 @@ void mainLoopRun(void (*draw)(void), void (*onEvent)(MainLoopEventData eventData
         onEvent(eventData);
       }
       else if (event.type == SDL_APP_DIDENTERFOREGROUND) {
+        // Android may recreate its EGL surface while we are backgrounded,
+        // without emitting SDL_RENDER_*_RESET.  Rebuild our cached frame
+        // before the redraw so resuming after a rotated background app cannot
+        // keep presenting a texture from the old surface.
+        gfxHandleRenderReset();
         eventData.type = MainLoopEvent::wake;
         eventData.data.value = 0;
         onEvent(eventData);

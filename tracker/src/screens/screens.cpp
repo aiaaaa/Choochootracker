@@ -110,6 +110,10 @@ void screenDraw() {
     pendingScreen = NULL;
   }
 
+  // The character picker owns the whole canvas.  Live screen updates (for
+  // example an instrument waveform during playback) must not paint over it.
+  if (charEditIsOpen()) return;
+
   currentScreen->draw();
   if (currentScreen != &screenTitle)
     drawScreenMap();
