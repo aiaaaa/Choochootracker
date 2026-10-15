@@ -252,6 +252,39 @@ static int loadInstrumentBraids(FILE* file, Instrument* instrument) {
   }
 }
 
+static int loadInstrumentSoundFont(FILE* file, Instrument* instrument) {
+  auto& sf = instrument->chip.soundfont;
+  memset(&sf, 0, sizeof(sf));
+  sf.controls = soundbankDefaultControls();
+  sf.controls.bendStepCents = 0;
+  const char* line;
+  while ((line = peekLine(file)) != NULL && strncmp(line, "- ", 2) == 0) {
+    if (strncmp(line, "- Sound bank: ", 14) == 0) {
+      if (strlen(line + 14) >= sizeof(sf.bank)) return 1;
+      strcpy(sf.bank, line + 14);
+      sf.bank[strcspn(sf.bank, "\r\n")] = 0;
+    } else if (strncmp(line, "- Sound preset: ", 16) == 0) {
+      if (strlen(line + 16) >= sizeof(sf.preset)) return 1;
+      strcpy(sf.preset, line + 16);
+      sf.preset[strcspn(sf.preset, "\r\n")] = 0;
+    } else if (strncmp(line, "- Sound controls: ", 18) == 0) {
+      int t,c,r,d,a,h,dc,s,rl;
+      if (sscanf(line + 18, "%d %d %d %d %d %d %d %d %d", &t,&c,&r,&d,&a,&h,&dc,&s,&rl) != 9 ||
+          t < -2400 || t > 2400 || c < -1 || (c >= 0 && c < 20) || c > 20000 || r < -1 || r > 400 ||
+          d < -1 || d > 20000 || a < -1 || a > 20000 || h < -1 || h > 20000 ||
+          dc < -1 || dc > 20000 || s < -1 || s > 100 || rl < -1 || rl > 20000) return 1;
+      sf.controls = {int16_t(t),int16_t(c),int16_t(r),int16_t(d),int16_t(a),
+                     int16_t(h),int16_t(dc),int16_t(s),int16_t(rl),sf.controls.bendStepCents};
+    } else if (strncmp(line, "- Sound bend step: ", 19) == 0) {
+      int step;
+      if (sscanf(line+19,"%d",&step)!=1 || step<0 || step>100) return 1;
+      sf.controls.bendStepCents=int16_t(step);
+    }
+    consumeLine(file);
+  }
+  return 0;
+}
+
 static int loadInstrumentSample(FILE* file, Instrument* instrument) {
   InstrumentSample* sample = &instrument->chip.sample;
   while (1) {
@@ -561,6 +594,7 @@ int instrumentLoadData(FILE* file, Instrument* instrument, Project* p) {
     } else if (strncmp(line, "- Type: ", 8) == 0) {
       int type; char extra;
       if (sscanf(line + 8, "%d %c", &type, &extra) != 1 || type < 0 || type >= (int)InstrumentType::totalCount) return 1;
+      // Reject an unavailable personal-engine slot instead of misreading it as SoundFont.
       instrument->type = (InstrumentType)type;
     } else if (strncmp(line, "- Table speed: ", 15) == 0) {
       sscanf(line, "- Table speed: %hhu", &instrument->tableSpeed);
@@ -616,6 +650,9 @@ int instrumentLoadData(FILE* file, Instrument* instrument, Project* p) {
         break;
       case InstrumentType::AChChid:
         if (loadInstrumentAChChid(file, instrument)) return 1;
+        break;
+      case InstrumentType::SoundFont:
+        if(loadInstrumentSoundFont(file,instrument)) return 1;
         break;
       case InstrumentType::Sample:
         if (loadInstrumentSample(file, instrument)) return 1;
@@ -966,6 +1003,16 @@ int instrumentSaveData(FILE* file, int idx, Instrument* instrument) {
       break;
     case InstrumentType::AChChid:
       saveInstrumentAChChid(file, instrument);
+      break;
+    case InstrumentType::SoundFont:
+      fprintf(file,"- Sound bank: %s\n- Sound preset: %s\n",instrument->chip.soundfont.bank,instrument->chip.soundfont.preset);
+      {
+        const auto& c = instrument->chip.soundfont.controls;
+        fprintf(file,"- Sound controls: %d %d %d %d %d %d %d %d %d\n",
+                c.tuneCents,c.cutoffHz,c.resonanceTenths,c.delayMs,c.attackMs,
+                c.holdMs,c.decayMs,c.sustainPercent,c.releaseMs);
+        fprintf(file,"- Sound bend step: %d\n",c.bendStepCents);
+      }
       break;
     case InstrumentType::Sample:
       saveInstrumentSample(file, instrument);

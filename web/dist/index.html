@@ -61,9 +61,15 @@
       <button id="import-project" disabled>Import .cct</button>
       <button id="import-samples" disabled>Import WAVs</button>
       <button id="import-folder" disabled>Import sample folder</button>
+      <button id="import-banks" disabled>Import sound banks</button>
+      <button id="import-bank-folder" disabled>Import bank folder</button>
+      <button id="import-user-zip" disabled>Import USER ZIP</button>
+      <input id="user-zip-input" type="file" accept=".zip,application/zip" hidden>
       <button id="export-project" disabled>Download .cct</button>
       <button id="restart-audio" disabled>Restart audio</button>
       <button id="reload-app" disabled>Reload app</button>
+      <input id="bank-input" type="file" accept=".sf2,.sf3,.sfz,.exs,.zip,.wav,.aif,.aiff,.ogg" multiple hidden>
+      <input id="bank-folder-input" type="file" webkitdirectory multiple hidden>
       <input id="project-input" type="file" accept=".cct" hidden>
       <input id="sample-input" type="file" accept=".wav,audio/wav" multiple hidden>
       <input id="sample-folder-input" type="file" accept=".wav,audio/wav" webkitdirectory multiple hidden>
@@ -183,6 +189,7 @@
     const ensureUserDirectories = (fs) => {
       fs.mkdirTree('/user/projects');
       fs.mkdirTree('/user/samples');
+      fs.mkdirTree('/user/instruments/USER/soundfont');
       fs.mkdirTree('/user/exports');
     };
     const syncUserStorage = (done) => {
@@ -426,8 +433,37 @@
       if (event.target.files.length) await importFiles(event.target.files, '/user/samples');
       event.target.value = '';
     };
+    document.querySelector('#import-banks').addEventListener('click', () => document.querySelector('#bank-input').click());
+    document.querySelector('#import-bank-folder').addEventListener('click', () => document.querySelector('#bank-folder-input').click());
+    const importBanks = async (event) => {
+      if (event.target.files.length) await importFiles(event.target.files, '/user/instruments/USER/soundfont');
+      event.target.value = '';
+    };
+    document.querySelector('#bank-input').addEventListener('change', importBanks);
+    document.querySelector('#bank-folder-input').addEventListener('change', importBanks);
     document.querySelector('#sample-input').addEventListener('change', importSamples);
     document.querySelector('#sample-folder-input').addEventListener('change', importSamples);
+    document.querySelector('#import-user-zip').addEventListener('click', () => document.querySelector('#user-zip-input').click());
+    document.querySelector('#user-zip-input').addEventListener('change', async (event) => {
+      const file = event.target.files[0], fs = getFs();
+      if (!file || !fs) return;
+      fileControls.forEach(button => { button.disabled = true; });
+      const path = '/user/.user-library-import.zip';
+      let result = 'Import interrupted. Existing files kept.';
+      try {
+        status.textContent = 'Importing USER collection…';
+        fs.writeFile(path, new Uint8Array(await file.arrayBuffer()));
+        result = await window.Module.ccall('webImportUserZip', 'string', ['string'], [path], {async: true});
+      } catch (error) {
+        result = 'Import interrupted. Existing files kept. ' + (error.message || error);
+      } finally {
+        if (fs.analyzePath(path).exists) fs.unlink(path);
+        const error = await new Promise(resolve => syncUserStorage(resolve));
+        status.textContent = error ? result + ' Browser storage failed; keep your original ZIP.' : result;
+        event.target.value = '';
+        fileControls.forEach(button => { button.disabled = false; });
+      }
+    });
     document.querySelector('#export-project').addEventListener('click', () => {
       const path = '/user/exports/choochootracker.cct';
       if (window.Module.ccall('webSaveProject', 'number', ['string'], [path]) !== 0) {
