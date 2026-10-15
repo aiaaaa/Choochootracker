@@ -772,11 +772,15 @@
   },
   "soundfont_transitions_20261014": {
     "baseline": "2a119c6",
-    "status": "Local review fix; not deployed; handheld audition pending",
+    "status": "Selected for the new web and device personal daily; exact deployment recorded in receipts",
     "changes": [
       "3 ms output smoothing at retrigger, KILL and zero-length release, including removed chord slots",
       "Unknown sampler-specific WAV loop types warn and play without that embedded loop; explicit mapped loops retained"
     ],
-    "private_assets_in_public_build": false
+    "private_assets_in_public_build": false,
+    "included_commits": [
+      "7934432",
+      "588cfbf"
+    ]
   }
 }

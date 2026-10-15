@@ -769,4 +769,6 @@ and backward WAV loops remain unsupported.
 
 Local reproduction uses the private Stargate sounds without adding assets to Git.
 Validation receipts are under `.tmp/soundfont-retrigger-20261014/`. This follow-up
-is not deployed; the owner cannot check the handheld today.
+was subsequently selected by the owner for a new web and device personal daily.
+The two fixes remain separate commits (`7934432`, `588cfbf`); validation and
+installation receipts record the final build and rollout.
