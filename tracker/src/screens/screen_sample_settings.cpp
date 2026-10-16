@@ -175,6 +175,7 @@ static int uiWaveformCount = 0;
 // Set when the live capture bitmap must be re-rendered (state change or
 // new data).
 static int recordWaveformDirty = 1;
+static int recordInputDrops = -1; // -1 for track bounces
 
 // Input row geometry (y=2): label x=0, value x=6, meter x=24 (a small
 // square, display-only), MON x=26/30.
@@ -192,6 +193,7 @@ static constexpr int clearButtonX = 7;
 static constexpr int clearButtonWidth = 6;
 static constexpr int recStatusX = 14;
 static constexpr int recStatusWidth = 18;
+static void settingsDrawField(int col, int row, CellState state);
 
 static InstrumentSample* recordTargetSample(void) {
   if (recordInstrument < 0 || recordInstrument >= PROJECT_MAX_INSTRUMENTS) return nullptr;
@@ -240,18 +242,6 @@ static int recordFirstArmedSlot(void) {
   for (int slot = 0; slot < AUDIO_INPUT_MAX_ARMED; ++slot)
     if (audioInputManager.armedDeviceIndex(slot) >= 0) return slot;
   return -1;
-}
-
-// Ring feeding the recorder for the current source: the armed slot's ring
-// for external sources. Track sources are drained via trackBouncePreview()
-// (the SPSC track-bounce ring belongs to the writer thread).
-static AudioInputRing* recordActiveRing(void) {
-  if (recordState != RecordState::recording) return nullptr;
-  if (recordSourceIsTrack(recordSource)) return nullptr;
-  int slot = recordSourceSlot(recordSource);
-  if (slot < 0) slot = recordFirstArmedSlot();
-  if (slot < 0) return nullptr;
-  return audioInputManager.ring(slot);
 }
 
 static void recordStopPreview(void) {
@@ -318,6 +308,9 @@ static void recordStartExternal(void) {
     screenMessage(MESSAGE_TIME_ERROR, "No armed input");
     return;
   }
+  recordSource = (int)AudioInputSource::externalBase + slot;
+  settingsDrawField(0, 0, CellState::normal);
+  recordInputDrops = -1;
   recordGeneratePath();
   if (!recordFilePath[0]) {
     screenMessage(MESSAGE_TIME_ERROR, "Cannot create file");
@@ -337,6 +330,7 @@ static void recordStartExternal(void) {
 
 static void recordStartTrack(void) {
   recordStopPreview();
+  recordInputDrops = -1;
   // One recording per editor session: pressing REC erases any previous
   // take's WAV and stops its playback.
   if (recordFilePath[0]) { fileDelete(recordFilePath); recordFilePath[0] = 0; }
@@ -386,9 +380,9 @@ static void recordStartPlaybackIfArmed(void) {
   wasPlaying = playing;
 }
 
-// Live capture waveform: drains the active ring (external) or the
-// decimated track-bounce preview (track sources) into a rolling mono
-// buffer and renders it. Only used while recording/armed; once the take
+// Live capture waveform: reads the input levels snapshot (external) or the
+// decimated track-bounce preview (track sources). The recorder ring has one
+// consumer only: the WAV writer thread. Once the take
 // completes, the editor's own preview takes over (re-seeded in
 // settingsRecordStop).
 static void recordUpdateWaveform(void) {
@@ -403,23 +397,8 @@ static void recordUpdateWaveform(void) {
   }
   if (!recordWaveformBitmap) return;
   if (recordState == RecordState::recording) {
-    AudioInputRing* ring = recordActiveRing();
-    if (ring) {
-      int16_t chunk[1024 * 2];
-      int popped;
-      while ((popped = ring->pop(chunk, 1024)) > 0) {
-        for (int i = 0; i < popped; ++i) {
-          const float mono = (chunk[i * 2] + chunk[i * 2 + 1]) * 0.5f / 32768.0f;
-          uiWaveform[uiWaveformCount++] = mono;
-          if (uiWaveformCount >= (int)(sizeof(uiWaveform) / sizeof(uiWaveform[0]))) {
-            // Keep the most recent half of the buffer.
-            memmove(uiWaveform, uiWaveform + uiWaveformCount / 2,
-                    (uiWaveformCount - uiWaveformCount / 2) * sizeof(float));
-            uiWaveformCount -= uiWaveformCount / 2;
-          }
-        }
-      }
-    } else if (recordSourceIsTrack(recordSource)) {
+    gfxBitmapClear(recordWaveformBitmap);
+    if (recordSourceIsTrack(recordSource)) {
       float preview[256];
       int count = trackBouncePreview(preview, 256);
       for (int i = 0; i < count; ++i) {
@@ -430,9 +409,14 @@ static void recordUpdateWaveform(void) {
           uiWaveformCount -= uiWaveformCount / 2;
         }
       }
+      renderFloatPreview(recordWaveformBitmap, uiWaveform, uiWaveformCount);
+    } else {
+      int slot = recordSourceSlot(recordSource);
+      if (slot < 0) slot = recordFirstArmedSlot();
+      AudioInputLevels levels;
+      if (slot >= 0 && monitorDisplayInputLevels(&levels, nullptr))
+        renderFloatPreview(recordWaveformBitmap, levels.samples[slot], AUDIO_INPUT_LEVEL_SAMPLES);
     }
-    gfxBitmapClear(recordWaveformBitmap);
-    renderFloatPreview(recordWaveformBitmap, uiWaveform, uiWaveformCount);
   } else if (recordWaveformDirty) {
     recordWaveformDirty = 0;
     gfxBitmapClear(recordWaveformBitmap);
@@ -526,10 +510,8 @@ static void settingsUpdateHint(int row, int col, int ownsBar) {
       issued = "Edit: pick source";
     }
   } else if (row == 0 && col == 2) {
-    char buf[48];
-    snprintf(buf, sizeof(buf), "Edit: %s monitor",
-             appSettings.audioInputMonitor ? "disable" : "enable");
-    issued = buf;
+    issued = appSettings.audioInputMonitor
+      ? "Edit: disable monitor" : "Edit: enable monitor";
   } else if (row == 1 && col == 0) {
     // Record button: state-dependent hint.
     if (recordState == RecordState::idle) {
@@ -1482,6 +1464,8 @@ static void settingsClampCurrentSlice(const InstrumentSample* sample) {
 // load does.
 static void recordStop(void) {
   if (recordState != RecordState::recording && recordState != RecordState::armed) return;
+  const bool externalTake = !recordSourceIsTrack(recordSource);
+  const unsigned int inputDrops = audioInputManagerRecordingDroppedCount();
   recordStopPreview();
   if (sampleLazyPlaybackActive) {
     chipnomadQueuePlaybackStopPreview(chipnomadState, *pSongTrack);
@@ -1539,6 +1523,7 @@ static void recordStop(void) {
   projectModified = 1;
   sampleDirtyToDisk = 0; // fresh take matches its file
   recordState = RecordState::complete;
+  recordInputDrops = externalTake ? (int)inputDrops : -1;
   // Re-seed the editor around the new audio: full view, selection from the
   // fresh Region span, slice index clamped. This wipes the live capture
   // rendering and shows the recorded waveform like a freshly loaded file.
@@ -1562,6 +1547,7 @@ static void recordStop(void) {
 // Discards a completed take: deletes the WAV and unloads the sample.
 static void recordClear(void) {
   if (recordState != RecordState::complete) return;
+  recordInputDrops = -1;
   recordStopPreview();
   if (sampleLazyPlaybackActive) {
     chipnomadQueuePlaybackStopPreview(chipnomadState, *pSongTrack);
@@ -2352,8 +2338,13 @@ static void draw(void) {
       gfxSetFgColor(appSettings.colorScheme.textDefault);
       gfxClearRect(recStatusX, 3, recStatusWidth, 1);
       char status[24];
-      snprintf(status, sizeof(status), "%lu frames",
-               (unsigned long)target->frameCount);
+      if (recordInputDrops >= 0)
+        snprintf(status, sizeof(status), "%lu / drop %d",
+                 (unsigned long)target->frameCount, recordInputDrops);
+      else
+        snprintf(status, sizeof(status), "%lu frames",
+                 (unsigned long)target->frameCount);
+      status[recStatusWidth] = 0;
       gfxPrint(recStatusX, 3, status);
     }
   }

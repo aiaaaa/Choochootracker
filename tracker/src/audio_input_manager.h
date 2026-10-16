@@ -152,6 +152,7 @@ void syncArmedDevicesFromSettings(void);
 // Recorder writer-thread lifecycle (Phase 3.3). UI thread only.
 class RecordingWavWriter;
 void audioInputManagerStartRecording(RecordingWavWriter* writer, int armedSlot);
+unsigned int audioInputManagerRecordingDroppedCount(void);
 // Track bounce variant (Phase 7): records the rendered output of a track.
 void audioInputManagerStartTrackRecording(RecordingWavWriter* writer, int trackIdx);
 void audioInputManagerStopRecording(void);

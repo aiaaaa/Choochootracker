@@ -11,27 +11,30 @@
 #include <cstring>
 
 AudioInputManager audioInputManager;
+static std::atomic<int> g_captureRecordingSlot{-1};
 
 AudioInputManager::AudioInputManager() {
   for (int i = 0; i < AUDIO_INPUT_MAX_ARMED; ++i) armed_[i] = -1;
 }
 
 bool AudioInputRing::push(const int16_t* stereo, int stereoSampleCount) {
+  if (!stereo || stereoSampleCount <= 0) return false;
   unsigned int localHead = head.load(std::memory_order_relaxed);
+  const unsigned int localTail = tail.load(std::memory_order_acquire);
+  const unsigned int free = (localTail + CAPACITY - localHead - 1) % CAPACITY;
+  if ((unsigned int)stereoSampleCount > free) {
+    // Publish whole capture blocks or none: a partially written block is
+    // inaudible, so count all of its frames as lost.
+    dropped.fetch_add(stereoSampleCount, std::memory_order_relaxed);
+    audioInputDiagnostics::captureDropped.fetch_add(stereoSampleCount,
+                                                    std::memory_order_relaxed);
+    return false;
+  }
   unsigned int next = localHead;
   for (int i = 0; i < stereoSampleCount; ++i) {
-    unsigned int probe = (next + 1) % CAPACITY;
-    if (probe == tail.load(std::memory_order_acquire)) {
-      // Full: drop the remainder of this block rather than block the audio
-      // thread. Bump the drop counter so diagnostics can surface it.
-      dropped.fetch_add(stereoSampleCount - i, std::memory_order_relaxed);
-      audioInputDiagnostics::captureDropped.fetch_add(stereoSampleCount - i,
-                                                      std::memory_order_relaxed);
-      return false;
-    }
     samples[next * 2] = stereo[i * 2];
     samples[next * 2 + 1] = stereo[i * 2 + 1];
-    next = probe;
+    next = (next + 1) % CAPACITY;
   }
   head.store(next, std::memory_order_release);
   return true;
@@ -185,11 +188,10 @@ void AudioInputManager::onCapture(const int16_t* buffer, int stereoSamples, int 
     decimation_ = (decimation_ + 1) % 4; // ~12 kHz history at 48 kHz
   }
 
-  // Push into per-slot rings (recorder writer thread drains these).
-  for (int slot = 0; slot < AUDIO_INPUT_MAX_ARMED; ++slot) {
-    if (armed_[slot] < 0) continue;
-    rings_[slot].push(buffer, stereoSamples);
-  }
+  // Only the active take needs recording data. Idle input still feeds meters
+  // and the separate monitor ring, without filling recorder rings.
+  const int recordingSlot = g_captureRecordingSlot.load(std::memory_order_acquire);
+  if (recordingSlot >= 0) rings_[recordingSlot].push(buffer, stereoSamples);
   // Monitor ring: only when monitoring is on (saves the copy otherwise).
   if (monitor_.load(std::memory_order_acquire)) {
     monitorRing_.push(buffer, stereoSamples);
@@ -279,8 +281,12 @@ static void writerThreadLoop() {
 void audioInputManagerStartRecording(RecordingWavWriter* writer, int armedSlot) {
   audioInputManagerStopRecording();
   if (!writer || armedSlot < 0 || armedSlot >= AUDIO_INPUT_MAX_ARMED) return;
+  // Capture is already running while the input is armed. Start each take at
+  // the current callback, not with old frames left in its ring.
+  audioInputManager.ring(armedSlot)->clear();
   g_activeWriter = writer;
   g_activeArmedSlot = armedSlot;
+  g_captureRecordingSlot.store(armedSlot, std::memory_order_release);
   g_writerRunning.store(true, std::memory_order_relaxed);
   g_writerThread = new std::thread(writerThreadLoop);
 }
@@ -297,6 +303,7 @@ void audioInputManagerStartTrackRecording(RecordingWavWriter* writer, int trackI
 }
 
 void audioInputManagerStopRecording(void) {
+  g_captureRecordingSlot.store(-1, std::memory_order_release);
   if (g_writerRunning.exchange(false, std::memory_order_relaxed)) {
     if (g_writerThread) {
       g_writerThread->join();
@@ -305,7 +312,7 @@ void audioInputManagerStopRecording(void) {
     }
   }
   // Drain whatever is still buffered in the ring before closing: the ring
-  // holds up to ~2.7 s of audio and the writer thread only drains it while
+  // holds up to ~170 ms of audio and the writer thread only drains it while
   // running, so skipping this would truncate the take's tail.
   if (g_activeWriter) {
     int16_t chunk[1024 * 2];
@@ -325,6 +332,12 @@ void audioInputManagerStopRecording(void) {
   g_activeWriter = nullptr;
   g_activeArmedSlot = -1;
   g_activeTrackSource = -1;
+}
+
+unsigned int audioInputManagerRecordingDroppedCount(void) {
+  if (g_activeArmedSlot < 0) return 0;
+  AudioInputRing* ring = audioInputManager.ring(g_activeArmedSlot);
+  return ring ? ring->dropped.load(std::memory_order_relaxed) : 0;
 }
 
 void AudioInputManager::mixMonitor(int16_t* buffer, int stereoSamples) {
