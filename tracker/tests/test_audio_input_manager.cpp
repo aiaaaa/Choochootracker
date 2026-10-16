@@ -44,7 +44,7 @@ TEST_CASE("AudioInputRing drops on full and bumps counter") {
   CHECK(ring.dropped.load() > droppedBefore);
 
   // Draining frees space again.
-  int16_t out[64];
+  int16_t out[64 * 2];
   int total = 0;
   while (true) {
     int got = ring.pop(out, 64);
