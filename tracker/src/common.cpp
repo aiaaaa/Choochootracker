@@ -92,6 +92,14 @@ void initDefaultAppSettings(void) {
 #endif
   appSettings.bootScreenNight = 0;
 
+  // Audio input recording defaults: nothing enumerated, nothing armed,
+  // monitoring off, no recording folder override.
+  appSettings.audioInputDeviceCount = 0;
+  memset(appSettings.audioInputDeviceNames, 0, sizeof(appSettings.audioInputDeviceNames));
+  for (int i = 0; i < AUDIO_INPUT_MAX_ARMED; i++) appSettings.audioInputArmed[i] = -1;
+  appSettings.audioInputMonitor = 0;
+  appSettings.recordingPath[0] = '\0';
+
   // Zero out key mapping (platform-specific defaults applied later)
   memset(&appSettings.keyMapping, 0, sizeof(KeyMapping));
 
@@ -243,6 +251,19 @@ int settingsSave(void) {
   fprintf(file, "clockSource: %d\n", (int)appSettings.clockSource);
   fprintf(file, "midiClockMode: %d\n",
     appSettings.clockSource == ClockSource::midiClock ? 1 : 0);
+
+  // Audio input recording: persist the device-name list and the armed slots
+  // BY NAME (indices into the live enumeration aren't stable across
+  // reboots/replugging - same policy as MIDI devices).
+  fprintf(file, "audioInputDeviceCount: %d\n", appSettings.audioInputDeviceCount);
+  for (int i = 0; i < appSettings.audioInputDeviceCount && i < AUDIO_INPUT_MAX_DEVICES; i++)
+    fprintf(file, "audioInputDeviceName.%d: %s\n", i, appSettings.audioInputDeviceNames[i]);
+  for (int i = 0; i < AUDIO_INPUT_MAX_ARMED; i++) {
+    if (appSettings.audioInputArmed[i] >= 0 && appSettings.audioInputArmed[i] < appSettings.audioInputDeviceCount)
+      fprintf(file, "audioInputArmed.%d: %s\n", i, appSettings.audioInputDeviceNames[appSettings.audioInputArmed[i]]);
+  }
+  fprintf(file, "audioInputMonitor: %d\n", appSettings.audioInputMonitor);
+  fprintf(file, "recordingPath: %s\n", appSettings.recordingPath);
 
   // Save key mapping codes
   fprintf(file, "keyUp: %d,%d,%d\n", appSettings.keyMapping.keyUp[0].code, appSettings.keyMapping.keyUp[1].code, appSettings.keyMapping.keyUp[2].code);
@@ -416,6 +437,48 @@ int settingsLoad(void) {
       int mode = 0;
       if (sscanf(line + 15, "%d", &mode) == 1 && (mode == 0 || mode == 1))
         appSettings.clockSource = mode == 1 ? ClockSource::midiClock : ClockSource::internal;
+    } else if (strncmp(line, "audioInputDeviceCount: ", 23) == 0) {
+      int count;
+      if (sscanf(line + 23, "%d", &count) == 1)
+        appSettings.audioInputDeviceCount = count < 0 ? 0 :
+          (count > AUDIO_INPUT_MAX_DEVICES ? AUDIO_INPUT_MAX_DEVICES : count);
+    } else if (strncmp(line, "audioInputDeviceName.", 21) == 0) {
+      int index;
+      if (sscanf(line + 21, "%d:", &index) == 1 && index >= 0 && index < AUDIO_INPUT_MAX_DEVICES) {
+        const char* name = strchr(line + 21, ':');
+        if (name && name[1] == ' ') {
+          name += 2;
+          strncpy(appSettings.audioInputDeviceNames[index], name, AUDIO_DEVICE_NAME_LENGTH);
+          appSettings.audioInputDeviceNames[index][AUDIO_DEVICE_NAME_LENGTH] = 0;
+        }
+      }
+    } else if (strncmp(line, "audioInputArmed.", 16) == 0) {
+      int slot;
+      if (sscanf(line + 16, "%d:", &slot) == 1 && slot >= 0 && slot < AUDIO_INPUT_MAX_ARMED) {
+        const char* name = strchr(line + 16, ':');
+        if (name && name[1] == ' ') {
+          name += 2;
+          // Resolve the persisted name to an index in the saved device list;
+          // append if it isn't there yet (e.g. list was truncated on save).
+          int index = -1;
+          for (int i = 0; i < appSettings.audioInputDeviceCount && i < AUDIO_INPUT_MAX_DEVICES; i++) {
+            if (strcmp(appSettings.audioInputDeviceNames[i], name) == 0) { index = i; break; }
+          }
+          if (index < 0 && appSettings.audioInputDeviceCount < AUDIO_INPUT_MAX_DEVICES) {
+            index = appSettings.audioInputDeviceCount++;
+            strncpy(appSettings.audioInputDeviceNames[index], name, AUDIO_DEVICE_NAME_LENGTH);
+            appSettings.audioInputDeviceNames[index][AUDIO_DEVICE_NAME_LENGTH] = 0;
+          }
+          appSettings.audioInputArmed[slot] = (int8_t)index;
+        }
+      }
+    } else if (strncmp(line, "audioInputMonitor: ", 19) == 0) {
+      int enabled;
+      if (sscanf(line + 19, "%d", &enabled) == 1 && (enabled == 0 || enabled == 1))
+        appSettings.audioInputMonitor = enabled;
+    } else if (strncmp(line, "recordingPath: ", 15) == 0) {
+      strncpy(appSettings.recordingPath, line + 15, PATH_LENGTH);
+      appSettings.recordingPath[PATH_LENGTH] = 0;
     } else if (strncmp(line, "keyUp: ", 7) == 0) {
       sscanf(line + 7, "%d,%d,%d", &appSettings.keyMapping.keyUp[0].code, &appSettings.keyMapping.keyUp[1].code, &appSettings.keyMapping.keyUp[2].code);
     } else if (strncmp(line, "keyDown: ", 9) == 0) {
@@ -547,6 +610,12 @@ int settingsLoad(void) {
     if (appSettings.midiChannelInstrument[i] < -1 || appSettings.midiChannelInstrument[i] >= PROJECT_MAX_INSTRUMENTS)
       appSettings.midiChannelInstrument[i] = -1;
   }
+  if (appSettings.audioInputDeviceCount < 0) appSettings.audioInputDeviceCount = 0;
+  if (appSettings.audioInputDeviceCount > AUDIO_INPUT_MAX_DEVICES) appSettings.audioInputDeviceCount = AUDIO_INPUT_MAX_DEVICES;
+  for (int i = 0; i < AUDIO_INPUT_MAX_ARMED; i++) {
+    if (appSettings.audioInputArmed[i] >= appSettings.audioInputDeviceCount) appSettings.audioInputArmed[i] = -1;
+  }
+  if (appSettings.audioInputMonitor != 0 && appSettings.audioInputMonitor != 1) appSettings.audioInputMonitor = 0;
   return 0;
 }
 

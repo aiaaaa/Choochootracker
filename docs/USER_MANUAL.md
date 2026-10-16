@@ -748,6 +748,24 @@ This clean Sample engine plays mono or stereo PCM samples loaded into RAM.
 
 Unsupported WAV formats display an error. Convert unusual files to `PCM8`, `PCM16` or `PCM24` WAV before importing them.
 
+##### Audio input
+
+Open **Settings → Audio → Audio Input** before recording from a microphone or USB audio interface. The list shows the inputs currently available to the device. If an armed interface is disconnected, capture is interrupted and the audio handler restarts so the app can continue running. If you were recording, press **STOP** to finish the interrupted take. After reconnecting, select **[Refresh]** and check that the intended input is armed before recording again; reconnecting alone does not reliably re-arm it. **[List]** re-reads the current input list without restarting audio.
+
+Select an input's **ARM** box to make it available to the Sampler recorder; its small meter shows the incoming level. Arm one interface at a time: this version opens only the first armed interface, even if several boxes are checked. Your selection is remembered by device name, so an unavailable interface stays unarmed rather than being replaced by another input. Press **OPT** to return to Audio settings.
+
+##### Recording audio input
+
+On the Sample instrument screen, **REC** (or **EDIT/REC** when a sample is loaded) opens the sample editor, which hosts recording and editing in one screen. Arm inputs on the **Settings → Audio → Audio Input** screen first (see [Audio input](#audio-input)). The editor's top rows control recording:
+
+- **Input** cycles the recording source: `T1`..`T8` record the tracker's own eight tracks, followed by the armed microphone or USB interface. For external recording, keep cycling past `T8` until the device name appears. `-` means no source was chosen explicitly; **REC** then uses the first armed input and shows its name. Hold **EDIT** and press **LEFT**/**RIGHT** to step backwards/forwards, or **EDIT+OPT** to clear to `-`. Tapping Input cycles it directly.
+- The level meter next to **Input** shows the armed input's live level (external sources only). **MON** toggles input monitoring: the armed input is routed to the output at -6 dB to reduce feedback. The setting is saved in the settings file.
+- **REC** starts recording. External sources record immediately; a track source shows **ARMED** and recording starts when playback starts (press **PLAY**). **STOP** finishes the recording: the WAV is written to the project's export folder (`recNNN.wav`), loaded into the current Sampler instrument, and the Region resets to the full sample. Leaving the screen with **OPT** while a recording is in flight finalizes it the same way.
+- **PLAY** (shown after a recording) auditions the take; it becomes **STOP** while the preview plays. **CLEAR** (next to it) deletes the WAV file and unloads the sample from the instrument; after clearing, **REC** takes its place again.
+- The waveform shows the live input while recording and the full recorded waveform after the recording stops. The status line shows the file name while recording and the frame count after; an external take also shows `drop 0` when no audio frames were lost. A recorded sample is fully editable: loop region, selection, slicing, processing and saving all work on it like on any loaded file.
+
+Recordings are written at the project's audio sample rate as stereo 16-bit WAV files. Track sources capture what the track's instruments render (post-FX); external sources capture the device input directly.
+
 #### 2xSCWF
 
 2xSCWF is a dual single-cycle waveform oscillator. Load 1 mono WAV containing exactly 1 period into each oscillator. Both oscillators read forwards and wrap at the end of their cycle.

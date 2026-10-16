@@ -16,6 +16,18 @@
   greyed out on the **Tempo** row). The old **Tick rate** row is now shown as
   **Tempo** in BPM; projects still store the tick rate in Hz, so existing
   `.cct` files load and save unchanged.
+- Audio input disconnects now rebuild the audio handler automatically on all
+  platforms: when SDL reports a removed or failed audio device (USB audio
+  interfaces often take the output down with them), the tracker stops any
+  active recording, disarms and re-enumerates capture inputs, re-arms the
+  devices saved in settings, and reopens the output device. The helper box
+  shows an animated "Input disconnected: Restarting audio handler" notice
+  while the restart runs.
+- Android audio input listing now shows only usable inputs: the always-present
+  built-in microphone and connected USB audio interfaces (telephony, FM
+  tuner, loopback and other virtual inputs are filtered out), and device
+  names are resolved to human-readable product names instead of raw numeric
+  ids. The numeric id is still used internally to open the device.
 - Expanded the Sample Edit Slice row into three modes: **EQUAL** divides the
   Start/End window evenly, **AUTO** places slices on transients found by a
   spectral-flux detection (adjustable sensitivity, falls back to an even
