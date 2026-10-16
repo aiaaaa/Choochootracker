@@ -9,6 +9,7 @@ It follows the classic LSDj workflow and navigation system, with several sound d
 - PCM samples, single-cycle waveforms and wavetable oscillators, with a multimode filter
 - aChChid, a versatile acid synth based on Open303
 - Bogie, a native 12-model drum synthesiser with a multimode filter
+- MonkSynth, a vocal synthesiser with ten-voice unison and stereo delay
 - MME, a two-oscillator multi-modulation synthesiser with a multimode filter
 - Sintered, a native six-model experimental digital drum synthesiser
 
@@ -539,6 +540,37 @@ On the Modulation screen, press **EDIT** on a source to choose a family (Envelop
 **Sintered** is a native one-shot digital percussion synth. Notes set its fundamental pitch; its six models are `Knot`, `Shard`, `Burst`, `Comb`, `Logic` and `Melt`. Every model has **Decay**, **Mod** and **Motion**, plus three model-specific controls: Knot uses Ratio/Spread/Fold, Shard Ratio/Feedback/Bite, Burst Noise/Color/Feedback, Comb Time/Damping/Regen, Logic Rate/Pattern/Crush and Melt Ratio/Chaos/Drive. **Mod** is always the internal coupling depth.
 
 Motion is an internal macro envelope, not pitch glide: values below `80` use an AD shape, `80` disables it, and values above `80` use a decay-only shape. Moving farther from the centre makes the envelope faster. Its destinations are fixed per model, so Sintered stays predictable in tracker patterns: Knot animates Mod/Fold; Shard Feedback/Bite; Burst Noise/Color/Feedback; Comb Damping/Regen; Logic Rate/Crush; Melt Chaos/Drive. All models reset their state on a note trigger and bound internal feedback for repeatable hits.
+
+### MonkSynth
+
+MonkSynth is a vocal synthesiser based on JonET's MIT-licensed native DSP. Its
+sixteen parameters cover vowel, voice character, breath, pitch/vowel glide,
+vibrato depth/rate, ADSR, unison count, detune, voice spread, stereo delay mix/rate
+and output level. Each tracker chord note owns an independent synth.
+
+The Instrument page places Vowel under VOICE, followed by the main voice and
+unison controls. Bank and Preset sit above VOICE; EDIT opens all sixteen controls
+and the patch name. The compact home layout fits with either header setting.
+Use an insert filter for additional tone shaping.
+
+New instruments start on the ALL bank, combining FACTORY and USER. Selecting or
+cycling a preset keeps the chosen bank; FACTORY and USER are also available
+separately. Factory includes Dorje, Jamyang, Ngawang, Rabten and Tinley from the
+original MonkSynth. Save starts in `instruments/USER/monk/`. Instruments and songs
+embed every parameter, so edited sounds do not depend on external preset files.
+EDIT+PLAY auditions a highlighted preset without changing the song; EDIT selects it.
+
+Values use hexadecimal `00..FF`, except Voices (`01..0A`, one to ten). Attack,
+decay and release span 0..5 seconds; detune spans 0..50 cents and voice spread
+0..0.5. Volume, Pitch and the six main voice controls are available as modulation
+and motion-recording destinations.
+
+All sixteen controls appear together under **MonkSynth FX**: `MWV` (vowel), `MIN`
+(voice), `MAM` (breath), `MFL` (glide), `MFB` (vibrato depth), `MSH` (vibrato rate),
+`MUV` (voices), `MDT` (detune), `MVS` (spread), `MDM` (delay mix), `MDR` (delay rate),
+`MLV` (level), and `EAT`/`EDC`/`ESU`/`ERL` (ADSR). These voice meanings apply when
+MONK is the active instrument; the existing MME command meanings remain unchanged.
+The shared Trigger FX group retains TDC/TCL without duplicate envelope entries.
 
 ### MME
 
@@ -1316,7 +1348,7 @@ Desktop and PortMaster. Settings > **MIDI** opens this submenu: **MIDI In** / **
 
 ## 15. Credits and licensing
 
-ChooChooTracker is a fork of ChipNomad and retains its MIT licensing approach. Braids, Plaits, Plaits-Alt, Clouds DSP, Warps-derived MME DSP and stmlib code are derived from Mutable Instruments' open-source releases under their applicable MIT notices. Plaits-Alt is sourced from the lylepmills/eurorack Plaits Lab fork; its retained source notices apply. The aChChid engine uses Open303 by Robin Schmidt, copyright 2009, under the MIT License. Bogie and Sintered are original native implementations. MIDI I/O uses RtMidi by Gary P. Scavone, under its MIT-style license. See the packaged license files for exact attribution.
+ChooChooTracker is a fork of ChipNomad and retains its MIT licensing approach. Braids, Plaits, Plaits-Alt, Clouds DSP, Warps-derived MME DSP and stmlib code are derived from Mutable Instruments' open-source releases under their applicable MIT notices. Plaits-Alt is sourced from the lylepmills/eurorack Plaits Lab fork; its retained source notices apply. The aChChid engine uses Open303 by Robin Schmidt, copyright 2009, under the MIT License. MonkSynth uses JonET’s native DSP under the MIT License; see `LICENSE.monksynth.txt`. Bogie and Sintered are original native implementations. MIDI I/O uses RtMidi by Gary P. Scavone, under its MIT-style license. See the packaged license files for exact attribution.
 
 ## Track insert effects
 

@@ -455,7 +455,7 @@ TEST_CASE("instrument catalogue covers every family and its routable motion FX")
   }
 
   Instrument instrument;
-  uint8_t fx; int base, range; InstrumentMotionValue value;
+  FXId fx; int base, range; InstrumentMotionValue value;
   getInstrumentFunctions(InstrumentType::Sample).init(&instrument);
   CHECK(instrumentMotionDestination(&instrument, 3, &fx, &base, &range, &value));
   CHECK(fx == fxSST); CHECK(base == 0); CHECK(range == 255);

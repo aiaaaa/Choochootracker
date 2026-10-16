@@ -39,6 +39,7 @@ enum class InstrumentType : uint8_t {
   ArcadeFM = 26,
   SID = 27,
   SoundFont = 28,
+  Monk = 29,
   totalCount,
 };
 
@@ -224,6 +225,13 @@ struct InstrumentDrumSynth : InstrumentVoicePostSettings {
 // cross-modulation algorithm.  The six controls deliberately have a stable
 // position in the UI even though their musical interpretation varies by model.
 enum class MMEModel : uint8_t { ring, fold, cross, vpm, sync, logic, vocode, totalCount };
+struct InstrumentMonk {
+  uint8_t attack, decay, sustain, release;
+  uint8_t vowel, character, breath, glide, vibrato, rate;
+  uint8_t unison, detune, voiceSpread, delayMix, delayRate, level;
+  uint8_t factory;
+};
+
 struct InstrumentMME : InstrumentVoicePostSettings {
   MMEModel model;
   uint8_t waves;
@@ -459,6 +467,7 @@ union InstrumentChipData {
   InstrumentAChChid achchid;
   InstrumentDrumSynth drumSynth;
   InstrumentMME mme;
+  InstrumentMonk monk;
   InstrumentSintered sintered;
   InstrumentMidi midi;
 };
@@ -486,10 +495,10 @@ struct InstrumentFunctions {
 // This is metadata, not an audio abstraction: renderers keep their typed
 // paths while screens, validation and motion routing share this one catalogue.
 enum class InstrumentCategory : uint8_t { none, chip, sample, synth, drums, midi, fm };
-enum class InstrumentScreenKind : uint8_t { none, ay1, ay2, aySample, braids, sample, scwf, byowtbl, plaits, achchid, drumSynth, mme, sintered, midi, opll, opl, simpleChip, dx7, soundfont };
+enum class InstrumentScreenKind : uint8_t { none, ay1, ay2, aySample, braids, sample, scwf, byowtbl, plaits, achchid, drumSynth, mme, sintered, midi, opll, opl, simpleChip, dx7, soundfont, monk };
 enum class InstrumentMotionValue : uint8_t { raw, speed, cutoff };
 
-static constexpr uint8_t instrumentNoFX = 0xff;
+static constexpr FXId instrumentNoFX = FX_ID_EMPTY;
 
 // Reserved destinations shared by all instruments for MIDI CC mappings.
 // 0 is the explicit "no destination" option; keep the other values below
@@ -535,7 +544,7 @@ InstrumentFunctions getInstrumentFunctions(InstrumentType type);
 const InstrumentDefinition* getInstrumentDefinition(InstrumentType type);
 const InstrumentModDestination* instrumentModDestination(InstrumentType type, int destination);
 int instrumentMotionDestination(const Instrument* instrument, int destination,
-                                uint8_t* fx, int* base, int* range,
+                                FXId* fx, int* base, int* range,
                                 InstrumentMotionValue* value);
 int instrumentCCDestinationAvailable(const Instrument* instrument, int destination);
 int instrumentCCDestinationValue(const Instrument* instrument, int destination, uint8_t cc);
