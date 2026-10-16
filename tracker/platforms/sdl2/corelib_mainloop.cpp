@@ -496,6 +496,9 @@ void mainLoopRun(void (*draw)(void), void (*onEvent)(MainLoopEventData eventData
         if (gameController && event.cdevice.which == SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(gameController))) {
           SDL_GameControllerClose(gameController);
           gameController = NULL;
+          // A raw pad may have remained connected while the mapped controller
+          // was active, so no new device-added event will arrive for it.
+          openFallbackJoystick();
         }
       }
 #endif
