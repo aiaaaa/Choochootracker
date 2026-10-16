@@ -748,6 +748,12 @@ This clean Sample engine plays mono or stereo PCM samples loaded into RAM.
 
 Unsupported WAV formats display an error. Convert unusual files to `PCM8`, `PCM16` or `PCM24` WAV before importing them.
 
+##### Audio input
+
+Open **Settings → Audio → Audio Input** before recording from a microphone or USB audio interface. The list shows the inputs currently available to the device. Select **[List]** to look for newly connected inputs, or **[Refresh]** if the audio interface was unplugged or stopped responding.
+
+Select an input's **ARM** box to make it available to the Sampler recorder. You can arm several inputs; their small meters show live level. The choices are remembered by device name, so an unavailable interface stays unarmed rather than being replaced by another input. Press **OPT** to return to Audio settings.
+
 ##### Recording audio input
 
 On the Sample instrument screen, the **EDIT/REC** field opens the sample editor, which hosts recording and editing in one screen. Arm inputs on the **Settings → Audio → Audio Input** screen first (see [Audio input](#audio-input)). The editor's top rows control recording:
