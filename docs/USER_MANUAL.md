@@ -76,6 +76,8 @@ ChooChooTracker works best with a gamepad that has a D-pad, 2 analogue sticks an
 
 Mappings can be changed in **Settings > Key mapping**. Save a remap with **Done**, then release the button before continuing in Settings.
 
+On Android, a USB or Bluetooth pad that the system does not recognise as a standard controller still works: its D-pad (hat or X/Y axes) drives the directions, and pads that report numbered buttons (`KEYCODE_BUTTON_1` to `KEYCODE_BUTTON_16`) show them as **Btn 1** to **Btn 16** in **Key mapping**, where you assign each one yourself (there is no default for these). Analog sticks used as a D-pad are not supported yet. The touch controls stay visible while a gamepad is connected, unless **Hide pad w/ gamepad** is ON in **Settings > Controls**.
+
 ### Navigation
 
 - Use **[UP/DOWN/LEFT/RIGHT]** to move the cursor.
@@ -1693,6 +1695,7 @@ Use Settings for preferences that stay with the app, rather than with the curren
 
 - **Repeat delay** and **Repeat speed** set how soon, and how fast, a held navigation or edit button repeats. Raise the delay if a held press runs away from you; lower it for fast tracker entry.
 - **Stick live mode** chooses how the mapped **STICK LIVE** button works: `HOLD` is active while held, `TOGGLE` stays active after a press, and `FREE` is always active. See [Motion recording](#motion-recording).
+- **Hide pad w/ gamepad** (touch builds only) hides the on-screen touch controls while a gamepad is connected. OFF by default on Android, ON by default on other touch builds such as PortMaster.
 - **Key mapping** assigns keyboard or controller controls. Choose a command, press its new control, then select **Done** to save the mapping.
 
 ### Audio

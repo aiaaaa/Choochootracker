@@ -89,6 +89,7 @@ struct AppSettings {
   StickLiveMode stickLiveMode;
   TrackVisualSettings trackVisuals[PROJECT_MAX_TRACKS];
   uint8_t persistentWaveform;
+  uint8_t hideTouchPadWithGamepad; // touch builds: hide the virtual pad while a gamepad is connected
   uint8_t bootScreenNight; // 0 = original art; 1 = mellow night title
   KeyMapping keyMapping;
   ColorScheme colorScheme;
