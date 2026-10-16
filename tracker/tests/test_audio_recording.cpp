@@ -18,15 +18,19 @@ static void removeFile(const char* path) { remove(path); }
 TEST_SUITE("recording") {
 
 TEST_CASE("external recording: capture -> ring -> writer produces valid WAV") {
-  const char* path = "/tmp/test_recording_session.wav";
+  const char* path = "build/tests/test_recording_session.wav";
   removeFile(path);
 
   // Arm slot 0 via the test peer (no real device needed).
   AudioInputManagerTestPeer::captureOpenForTest(audioInputManager, true);
   AudioInputManagerTestPeer::armSlotForTest(audioInputManager, 0, 0);
-  // Earlier test cases leave capture data in the shared ring; clear it so
-  // the WAV contents are deterministic.
+  // Arming starts capture before REC, but must not feed the recorder ring.
   audioInputManager.ring(0)->clear();
+  int16_t stale[512 * 2]{};
+  audioInputManager.onCapture(stale, 512, 2);
+  CHECK(audioInputManager.ring(0)->head.load() == audioInputManager.ring(0)->tail.load());
+  // A previous take can still leave buffered data; start discards it.
+  REQUIRE(audioInputManager.ring(0)->push(stale, 512));
 
   RecordingWavWriter writer;
   REQUIRE(writer.open(path, 48000, 2, 16) == 0);

@@ -38,10 +38,10 @@ TEST_CASE("AudioInputRing drops on full and bumps counter") {
     REQUIRE(ring.push(block, 32) == true);
     pushed += 32;
   }
-  // Next push must drop the whole block (or remainder) and count it.
+  // Next push drops the whole block, not just the unwritten remainder.
   const unsigned int droppedBefore = ring.dropped.load();
   CHECK(ring.push(block, 32) == false);
-  CHECK(ring.dropped.load() > droppedBefore);
+  CHECK(ring.dropped.load() == droppedBefore + 32);
 
   // Draining frees space again.
   int16_t out[64 * 2];
