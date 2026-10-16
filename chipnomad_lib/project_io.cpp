@@ -708,7 +708,8 @@ static bool readInsertFields(const char* line, const char* prefix, unsigned* val
 static int projectLoadInternal(FILE* file, Project* project) {
   char buf[128];
   int tempLinearPitch;
-  Project p;
+  auto owned = std::make_unique<Project>();
+  Project& p = *owned;
   projectInit(&p);
   p.signedTrackSpeed = 0; // Absent from old files: retain the legacy SPD map.
   p.perceptualEffects = 0;

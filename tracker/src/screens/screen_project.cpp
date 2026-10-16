@@ -18,6 +18,10 @@
 #include "string_utils.h"
 #include <string.h>
 #include <strings.h>
+#include <memory>
+#ifdef ANDROID_BUILD
+#include <SDL2/SDL.h>
+#endif
 
 #ifdef WEB_BUILD
 #include <emscripten/emscripten.h>
@@ -52,49 +56,51 @@ int projectLoadFromPath(const char* path) {
   // Check file extension to determine loader
   const char* ext = strrchr(path, '.');
   int loadResult = -1;
-  Project replacement;
-  projectInitAY(&replacement);
+  auto replacement = std::make_unique<Project>();
+  projectInitAY(replacement.get());
 
   if (ext != NULL) {
     if (strcasecmp(ext, ".vt2") == 0) {
       // Load VT2 file
-      loadResult = projectLoadVT2(&replacement, path);
+      loadResult = projectLoadVT2(replacement.get(), path);
     } else if (strcasecmp(ext, ".mid") == 0 || strcasecmp(ext, ".midi") == 0) {
       // Import a Standard MIDI File as a new project
-      loadResult = projectLoadMidi(&replacement, path);
+      loadResult = projectLoadMidi(replacement.get(), path);
     } else if (strcasecmp(ext, ".m8s") == 0) {
       // Import a Dirtywave M8 song (structure and notes only)
-      loadResult = projectLoadM8SWithSamples(&replacement, path, appSettings.samplePath);
+      loadResult = projectLoadM8SWithSamples(replacement.get(), path, appSettings.samplePath);
     } else if (strcasecmp(ext, ".lsdsng") == 0) {
       // Import a Little Sound Dj song (structure and notes only)
-      loadResult = projectLoadLSDJ(&replacement, path);
+      loadResult = projectLoadLSDJ(replacement.get(), path);
     } else if (strcasecmp(ext, ".sav") == 0) {
       // One song of an LSDj save, picked in the list
       if (pendingSavSlot >= 0) {
-        loadResult = projectLoadLSDJSav(&replacement, path, pendingSavSlot);
+        loadResult = projectLoadLSDJSav(replacement.get(), path, pendingSavSlot);
       } else {
         snprintf(projectFileError, 40, "Pick a song in the .sav list");
         loadResult = 1;
       }
     } else if (strcasecmp(ext, ".cct") == 0) {
       // Load ChooChooTracker native format
-      loadResult = projectLoad(&replacement, path);
+      loadResult = projectLoad(replacement.get(), path);
     } else {
       // Try native format by default
-      loadResult = projectLoad(&replacement, path);
+      loadResult = projectLoad(replacement.get(), path);
     }
   } else {
     // No extension, try native format
-    loadResult = projectLoad(&replacement, path);
+    loadResult = projectLoad(replacement.get(), path);
   }
 
   if (loadResult == 0) {
-    audioManager.replaceProject(&replacement);
+    char loadedTitle[PROJECT_TITLE_LENGTH + 1];
+    snprintf(loadedTitle, sizeof(loadedTitle), "%s", replacement->title);
+    audioManager.replaceProject(replacement.get());
     autosaveLoadFailed = 0;
     projectModified = 0; // Clear modified flag after loading
 
     // Store filename without extension
-    if (pendingSavSlot >= 0) snprintf(appSettings.projectFilename, FILENAME_LENGTH + 1, "%s", replacement.title);
+    if (pendingSavSlot >= 0) snprintf(appSettings.projectFilename, FILENAME_LENGTH + 1, "%s", loadedTitle);
     else extractFilenameWithoutExtension(path, appSettings.projectFilename, FILENAME_LENGTH + 1);
     // The loaded project's export folder (if any) is adopted on next export
     exportResetFolderTracking();
@@ -108,7 +114,10 @@ int projectLoadFromPath(const char* path) {
       chipnomadQueuePlaybackClearTrackFX(chipnomadState, i);
     }
   } else {
-    projectFree(&replacement);
+    projectFree(replacement.get());
+#ifdef ANDROID_BUILD
+    SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "CCT project load failed: %s (%s)", path, projectFileError);
+#endif
     screenMessage(MESSAGE_TIME_ERROR, "%s", projectFileError);
   }
 
@@ -192,9 +201,9 @@ static void doLoadProject(void) {
 }
 
 static void doNewProject(void) {
-  Project replacement;
-  projectInitAY(&replacement);
-  audioManager.replaceProject(&replacement);
+  auto replacement = std::make_unique<Project>();
+  projectInitAY(replacement.get());
+  audioManager.replaceProject(replacement.get());
   projectModified = 0;
   appSettings.projectFilename[0] = 0;
   exportResetFolderTracking();

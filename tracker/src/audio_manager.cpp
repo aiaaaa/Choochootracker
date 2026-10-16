@@ -268,6 +268,15 @@ static void reinitializeChips(void) {
   resume();
 }
 
+static int mutateProject(ProjectMutation* mutation, void* userdata) {
+  if (!mutation || !chipnomadState) return 1;
+  pause();
+  int result = mutation(userdata);
+  chipnomadInitChips(chipnomadState, aSampleRate, NULL);
+  resume();
+  return result;
+}
+
 static void stop() {
   audioCleanup();
   free(floatBuffer);
@@ -443,6 +452,7 @@ struct AudioManager audioManager = {
   .resume = resume,
   .replaceProject = replaceProject,
   .reinitializeChips = reinitializeChips,
+  .mutateProject = mutateProject,
   .stop = stop,
   .toggleTrackMute = toggleTrackMute,
   .toggleTrackSolo = toggleTrackSolo,
