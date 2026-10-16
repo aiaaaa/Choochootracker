@@ -9,6 +9,7 @@
 #include "../../src/common.h"
 #ifdef ANDROID_BUILD
 #include "../android/extra_buttons_android.h"
+extern void androidPerformTouchHaptic(void);
 #endif
 
 #ifdef MIYOOPORTS_BUILD
@@ -530,6 +531,9 @@ void mainLoopRun(void (*draw)(void), void (*onEvent)(MainLoopEventData eventData
           numActiveFingers++;
           if (buttonTouches[buttonIndex]++ == 0) {
             gfxSetButtonPressed(buttonIndex, 1);
+#ifdef ANDROID_BUILD
+            if (appSettings.touchHaptics) androidPerformTouchHaptic();
+#endif
             eventData.type = MainLoopEvent::keyDown;
             eventData.data.input = (InputCode){InputDeviceType::logical, buttons[buttonIndex].key};
             onEvent(eventData);
@@ -637,6 +641,11 @@ void mainLoopRun(void (*draw)(void), void (*onEvent)(MainLoopEventData eventData
           mouseTouchButton = buttonIndex;
           if (buttonTouches[buttonIndex]++ == 0) {
             gfxSetButtonPressed(buttonIndex, 1);
+#ifdef ANDROID_BUILD
+            // SDL's Android backend can report screen touches as mouse clicks
+            // instead of finger events. Keep their feedback identical.
+            if (appSettings.touchHaptics) androidPerformTouchHaptic();
+#endif
             eventData.type = MainLoopEvent::keyDown;
             eventData.data.input = (InputCode){InputDeviceType::logical, buttons[buttonIndex].key};
             onEvent(eventData);

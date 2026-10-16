@@ -12,6 +12,7 @@
 #include "import_vts.h"
 #include "selection_popup.h"
 #include "simple_chip_presets.h"
+#include "audio_manager.h"
 #include <string.h>
 #include <stdio.h>
 #include <strings.h>
@@ -136,6 +137,18 @@ static const InstrumentFormat importFormats[] = {
   { ".vts", instrumentLoadVTS, "VTS sample imported", "Failed to import VTS" },
 };
 
+struct InstrumentLoad {
+  const char* path;
+  int instrument;
+  ImportHandler handler;
+};
+
+static int loadInstrument(void* userdata) {
+  auto* load = static_cast<InstrumentLoad*>(userdata);
+  return load->handler ? load->handler(load->path, load->instrument) :
+    instrumentLoad(&chipnomadState->project, load->path, load->instrument);
+}
+
 static void onInstrumentLoaded(const char* path) {
   int result = 1;
   const char* ext = strrchr(path, '.');
@@ -145,7 +158,8 @@ static void onInstrumentLoaded(const char* path) {
   if (ext != NULL) {
     for (size_t i = 0; i < sizeof(importFormats) / sizeof(importFormats[0]); i++) {
       if (strcasecmp(ext, importFormats[i].extension) == 0) {
-        result = importFormats[i].handler(path, cInstrument);
+        InstrumentLoad load{path, cInstrument, importFormats[i].handler};
+        result = audioManager.mutateProject(loadInstrument, &load);
         if (result == 0) {
           screenMessage(MESSAGE_TIME, importFormats[i].successMsg);
         } else {
@@ -158,7 +172,8 @@ static void onInstrumentLoaded(const char* path) {
   }
 
   if (!formatHandled) {
-    result = instrumentLoad(&chipnomadState->project, path, cInstrument);
+    InstrumentLoad load{path, cInstrument, nullptr};
+    result = audioManager.mutateProject(loadInstrument, &load);
     if (result == 0) {
       screenMessage(MESSAGE_TIME, "Instrument loaded");
     } else {

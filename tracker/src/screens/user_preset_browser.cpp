@@ -9,6 +9,7 @@
 #include "corelib_file.h"
 #include "chipnomad_lib.h"
 #include "project_utils.h"
+#include "audio_manager.h"
 #include <map>
 #include <memory>
 #include <cstring>
@@ -29,6 +30,19 @@ std::unique_ptr<Project> audition;
 struct Cursor {bool valid=false;UserPresets::Reference selected;};
 std::map<std::pair<int,InstrumentType>,Cursor> cursors;
 std::map<InstrumentType,std::vector<UserPresets::Reference>> sequences;
+struct PresetLoad {
+  UserPresets* library;
+  const UserPresets::Reference* reference;
+  int value;
+  int instrument;
+  std::string* error;
+};
+int loadPreset(void* userdata) {
+  auto* load = static_cast<PresetLoad*>(userdata);
+  return load->reference
+    ? load->library->load(*load->reference, &chipnomadState->project, load->instrument, *load->error)
+    : load->library->load(load->value, &chipnomadState->project, load->instrument, *load->error);
+}
 bool samePreset(const UserPresets::Reference& a,const UserPresets::Reference& b) {
   return a.path==b.path&&a.archive==b.archive&&a.voice==b.voice&&a.legacy==b.legacy;
 }
@@ -76,7 +90,8 @@ void select(int value) {
   if (userColumns) {
     if (value < 0 || size_t(value) >= userReferences.size()) return;
     std::string error;
-    if (library->load(userReferences[value], &chipnomadState->project, cInstrument, error)) {
+    PresetLoad load{library, &userReferences[value], 0, cInstrument, &error};
+    if (audioManager.mutateProject(loadPreset, &load) == 0) {
       rememberUserPreset(userReferences[value]);
       projectModified = 1;
       screenSetup(&screenInstrument, cInstrument);
@@ -88,9 +103,12 @@ void select(int value) {
   std::string error;
   if (library->items()[value].kind != UserPresets::Kind::preset) {
     library->enter(value, error); show();
-  } else if (library->load(value, &chipnomadState->project, cInstrument, error)) {
+  } else {
+    PresetLoad load{library, nullptr, value, cInstrument, &error};
+    if (audioManager.mutateProject(loadPreset, &load) == 0) {
     rememberUserPreset(library->reference(value));
     projectModified = 1; screenSetup(&screenInstrument, cInstrument);
+    }
   }
   if (!error.empty()) screenMessage(MESSAGE_TIME_ERROR, "%s", error.c_str());
 }
@@ -225,7 +243,8 @@ void cycleUserPreset(int direction) {
   if(index<0)index=direction>0?-1:0;
   for(int tries=0;tries<count;++tries) {
     index=(index+(direction>0?1:-1)+count)%count;const auto& preset=sequence[index];
-    if(!library->load(preset,&chipnomadState->project,cInstrument,error))continue;
+    PresetLoad load{library, &preset, 0, cInstrument, &error};
+    if(audioManager.mutateProject(loadPreset, &load) != 0)continue;
     position.selected=preset;position.valid=true;
     projectModified=1;screenSetup(&screenInstrument,cInstrument);return;
   }

@@ -11,6 +11,7 @@
 #include <fstream>
 #include <string>
 #include <cstdio>
+#include <memory>
 
 TEST_SUITE("project") {
 
@@ -819,6 +820,14 @@ TEST_CASE("fillFXNames ay") {
 TEST_CASE("fillFXNames unknown") {
   fillFXNames();
   CHECK(std::strcmp(fxNames[fxFBK + 1].name, "---") == 0);
+}
+
+TEST_CASE("project load keeps its working project off the caller stack") {
+  auto loaded = std::make_unique<Project>();
+  projectInit(loaded.get());
+  REQUIRE(projectLoad(loaded.get(), "packaging/common/projects/gm-midi-demo.cct") == 0);
+  CHECK(loaded->tracksCount == PROJECT_MAX_TRACKS);
+  projectFree(loaded.get());
 }
 
 } // TEST_SUITE("project")

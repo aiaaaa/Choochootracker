@@ -13,7 +13,7 @@ static int startAudio(int, int) { return 0; }
 int mockAudioReconfigureResult, mockAudioReconfigureCalls, mockAudioReconfigureSize, mockAudioCpuLoad;
 static int reconfigureAudio(int, int size) { ++mockAudioReconfigureCalls; mockAudioReconfigureSize = size; return mockAudioReconfigureResult; }
 static int cpuLoad() { return mockAudioCpuLoad; }
-AudioManager audioManager = {startAudio, reconfigureAudio, noOp, noOp, nullptr, nullptr, noOp,
+AudioManager audioManager = {startAudio, reconfigureAudio, noOp, noOp, nullptr, nullptr, nullptr, noOp,
                              nullptr, nullptr, cpuLoad};
 const AppScreen screenSong = {nullptr, nullptr, noOp, noOp, ignoreInput};
 const AppScreen screenTitle = {nullptr, nullptr, noOp, noOp, ignoreInput};

@@ -9,6 +9,7 @@ extern "C" {
 #endif
 
 typedef void FrameCallback(void* userdata);
+typedef int ProjectMutation(void* userdata);
 
 struct AudioManager {
   int (*start)(int sampleRate, int audioBufferSize);
@@ -17,6 +18,7 @@ struct AudioManager {
   void (*resume)(void);
   void (*replaceProject)(Project* replacement);
   void (*reinitializeChips)(void);
+  int (*mutateProject)(ProjectMutation* mutation, void* userdata);
   void (*stop)();
   void (*toggleTrackMute)(int trackIdx);
   void (*toggleTrackSolo)(int trackIdx);
