@@ -469,8 +469,14 @@ void gfxTitlePrint(int x, int y, const char* text) {
 void gfxToggleFullscreen(void) {
 #ifdef DESKTOP_BUILD
   const Uint32 flags = SDL_GetWindowFlags(window);
-  SDL_SetWindowFullscreen(window, flags & SDL_WINDOW_FULLSCREEN_DESKTOP
-    ? 0 : SDL_WINDOW_FULLSCREEN_DESKTOP);
+  if (SDL_SetWindowFullscreen(window, flags & SDL_WINDOW_FULLSCREEN_DESKTOP
+    ? 0 : SDL_WINDOW_FULLSCREEN_DESKTOP) == 0) {
+    // Windows can invalidate render targets during this transition without
+    // delivering a usable resize event until after the next present.
+    int width = 0, height = 0;
+    SDL_GetWindowSize(window, &width, &height);
+    gfxHandleResize(width, height);
+  }
 #endif
 }
 
