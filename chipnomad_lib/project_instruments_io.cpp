@@ -1,3 +1,4 @@
+#include <algorithm>
 #include "chip_program.h"
 #include "project.h"
 #include "sid_patch.h"
