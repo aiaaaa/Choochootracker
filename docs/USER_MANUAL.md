@@ -773,7 +773,8 @@ The available modulation types are:
 - ADSR - classic attack-decay-sustain-release envelope
 - AHD - attack-hold-decay envelope
 - LFO - low-frequency oscillator with several shapes
-- SLFO - LFO with a period multiplier for slow cycles
+- syncLFO (formerly SLFO) - LFO with a ticks-per-unit setting and period multiplier
+- slowLFO - long cycles with an evenly proportional period control, starting just beyond the ordinary LFO range
 - FLFO - audio-rate LFO that can reach the kHz range; FLFO can be heavy on the CPU
 - SLIN - linear joystick control
 - SRAT - rate-based joystick control
@@ -787,6 +788,10 @@ When an ADSR or AHD envelope targets Volume, it becomes the instrument's volume 
 The modulation amount can be positive or negative. Its range depends on the destination. If the destination's full range is `127` or less, as it is for most parameters, the amount defines an absolute range. Wider destinations such as pitch use a scaled amount.
 
 All duration parameters, including attack, hold, decay and period, are measured in ticks.
+
+The ordinary **LFO** period runs up to `FF` (255) ticks. **syncLFO** keeps the existing SLFO timing: period = Ticks × Multiplier, with a multiplier of 1–64 in the editor (up to 16,320 ticks). Existing SLFO settings and saved songs keep their timing.
+
+**slowLFO** uses the full `00`–`FF` Period range, starting just beyond the ordinary LFO at 256 ticks and reaching 131,072 ticks. Steps are logarithmic: each click makes the cycle about 2.48% longer, rounded to a whole tick. The range covers nine doublings, with exact anchors `00` = 256, `55` = 2,048, `AA` = 16,384, and `FF` = 131,072 ticks. The usual coarse edit moves 16 settings. At 120 BPM, the maximum full cycle takes about 45 minutes 31 seconds, or 11 minutes 23 seconds for a quarter-cycle. The footer shows the estimated full-cycle time at the project tempo and exact tick count when edited. Parameter 3 stores the `00`–`FF` step; FX offsets move along this proportional scale. All three tick-based LFOs follow song tempo and share shapes, wavetable selection, and trigger modes. Choose Free for a long cycle that continues across notes; Retrig, Phrase and Chain restart it at their respective boundaries.
 
 LFO shapes:
 
@@ -806,8 +811,8 @@ LFO trigger types:
 
 - Free - restarts the LFO only when the instrument changes
 - Retrig - restarts the LFO on every note
-- Phrase - restarts LFO and SLFO when playback enters a new phrase
-- Chain - restarts LFO and SLFO when playback enters a new chain
+- Phrase - restarts LFO, syncLFO and slowLFO when playback enters a new phrase
+- Chain - restarts LFO, syncLFO and slowLFO when playback enters a new chain
 - Hold - stops after 1 cycle and holds the last value
 - Once - stops after 1 cycle and returns to zero
 
@@ -1002,7 +1007,8 @@ The value is interpreted as a signed `8-bit` relative change (`01` adds `1`, `FF
 | ADSR | Attack | Decay | Sustain | Release | Unused |
 | AHD | Attack | Hold | Decay | Unused | Unused |
 | LFO | Shape | Trigger mode | Period | Unused | AY wavetable index |
-| SLFO | Shape | Trigger mode | Ticks | Multiplier | AY wavetable index |
+| syncLFO | Shape | Trigger mode | Ticks | Multiplier | AY wavetable index |
+| slowLFO | Shape | Trigger mode | Period step (00–FF) | — | AY wavetable index |
 | FLFO | Shape | Trigger mode | Frequency (`1 Hz` to `20 kHz`) | Unused | AY wavetable index |
 
 ### Braids FX

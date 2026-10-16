@@ -33,7 +33,7 @@ int modulationIsLiveStick(ModulationType type) {
 }
 
 int modulationIsAdditive(ModulationType type) {
-  return type == ModulationType::LFO || modulationIsLiveStick(type);
+  return type == ModulationType::LFO || type == ModulationType::SlowLFO || modulationIsLiveStick(type);
 }
 
 // Instrument type: None

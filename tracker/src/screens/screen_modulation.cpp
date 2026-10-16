@@ -26,7 +26,7 @@ static SelectionItem sourceCategories[3];
 static SelectionItem insertDestinations[16];
 static char insertHelpers[16][64];
 static const SelectionItem envelopeSources[] = {{"ADSR", (int)ModulationType::ADSR, NULL, 0}, {"AHD", (int)ModulationType::AHD, NULL, 0}};
-static const SelectionItem lfoSources[] = {{"LFO", (int)ModulationType::LFO, NULL, 0}, {"SYNC LFO", (int)ModulationType::SLFO, NULL, 0}, {"FAST LFO", (int)ModulationType::FLFO, NULL, 0}};
+static const SelectionItem lfoSources[] = {{"LFO", (int)ModulationType::LFO, NULL, 0}, {"syncLFO", (int)ModulationType::SLFO, NULL, 0}, {"slowLFO", (int)ModulationType::SlowLFO, NULL, 0}, {"FAST LFO", (int)ModulationType::FLFO, NULL, 0}};
 static const SelectionItem stickSources[] = {{"LINEAR", (int)ModulationType::StickLinear, NULL, 0}, {"RATE", (int)ModulationType::StickRate, NULL, 0}};
 static SelectionItem engineDestinations[96];
 static SelectionItem sendDestinations[3];
@@ -55,7 +55,7 @@ static void setModulationType(Modulation* mod, ModulationType type, int modIndex
   mod->p1 = modulationIsLiveStick(type) ? modIndex : 0;
   mod->p2 = type == ModulationType::StickRate ? 24 : 0;
   mod->p3 = type == ModulationType::ADSR ? 255 :
-            (type == ModulationType::FLFO ? 0 : (type == ModulationType::SLFO ? 24 : 6));
+            ((type == ModulationType::FLFO || type == ModulationType::SlowLFO) ? 0 : (type == ModulationType::SLFO ? 24 : 6));
   mod->p4 = type == ModulationType::SLFO ? 4 : 0;
   mod->p5 = 0;
 }
@@ -72,7 +72,7 @@ static void sourceCancelled() { screenSetup(&screenModulation, cInstrument); }
 static void openSourcePopup(int modIndex) {
   editedModIndex = modIndex;
   sourceCategories[0] = {"ENVELOPES", -1, envelopeSources, 2};
-  sourceCategories[1] = {"LFO", -1, lfoSources, 3};
+  sourceCategories[1] = {"LFO", -1, lfoSources, 4};
   sourceCategories[2] = {"STICKS", -1, stickSources, 2};
   selectionPopupSetup("SOURCE", sourceCategories, 3,
     (int)chipnomadState->project.instruments[cInstrument].modulation[modIndex].type,
@@ -92,6 +92,7 @@ static const char* modulationParameterName(ModulationType type, int parameter) {
   static const char* adsr[] = {"Attack", "Decay", "Sustain", "Release"};
   static const char* ahd[] = {"Attack", "Hold", "Decay", ""};
   static const char* lfo[] = {"Shape", "Trigger", "Rate", "", "Wavetable"};
+  static const char* slowLfo[] = {"Shape", "Trigger", "Period step", "", "Wavetable"};
   static const char* slfo[] = {"Shape", "Trigger", "Ticks", "Multiplier", "Wavetable"};
   static const char* flfo[] = {"Shape", "Trigger", "Frequency", "", "Wavetable"};
   static const char* stick[] = {"Axis", "", "", "", ""};
@@ -100,6 +101,7 @@ static const char* modulationParameterName(ModulationType type, int parameter) {
   if (type == ModulationType::ADSR) names = adsr;
   else if (type == ModulationType::AHD) names = ahd;
   else if (type == ModulationType::SLFO) names = slfo;
+  else if (type == ModulationType::SlowLFO) names = slowLfo;
   else if (type == ModulationType::FLFO) names = flfo;
   else if (type == ModulationType::StickLinear) names = stick;
   else if (type == ModulationType::StickRate) names = stickRate;
@@ -231,7 +233,8 @@ static const char* modTypeName(ModulationType type) {
     case ModulationType::ADSR: return "ADSR";
     case ModulationType::AHD:  return "AHD";
     case ModulationType::LFO:  return "LFO";
-    case ModulationType::SLFO: return "SLFO";
+    case ModulationType::SLFO: return "syncLFO";
+    case ModulationType::SlowLFO: return "slowLFO";
     case ModulationType::FLFO: return "FLFO";
     case ModulationType::StickLinear: return "STKLIN";
     case ModulationType::StickRate: return "STKRAT";
@@ -283,6 +286,7 @@ static const char* paramLabel(ModulationType type, int paramIdx) {
       if (paramIdx == 2) return "Dec";
       break;
     case ModulationType::LFO:
+    case ModulationType::SlowLFO:
       if (paramIdx == 0) return "Shape";
       if (paramIdx == 1) return "Trig";
       if (paramIdx == 2) return "Period";
@@ -319,6 +323,7 @@ static int paramCount(const Modulation* mod) {
   switch (mod->type) {
     case ModulationType::ADSR: return 4;
     case ModulationType::AHD:  return 3;
+    case ModulationType::SlowLFO:
     case ModulationType::LFO:  return mod->p1 == static_cast<uint8_t>(LFOShape::wavetable) ? 4 : 3;
     case ModulationType::SLFO: return mod->p1 == static_cast<uint8_t>(LFOShape::wavetable) ? 5 : 4;
     case ModulationType::FLFO: return mod->p1 == static_cast<uint8_t>(LFOShape::wavetable) ? 4 : 3;
@@ -383,7 +388,7 @@ static void drawCursor(int col, int row) {
     }
     case 2: gfxCursor(valX, y, 2); break; // Amt
     default:
-      if ((mod->type == ModulationType::LFO && (modRow - 3) <= 1) ||
+      if (((modulationIsTickLFO(mod->type) || mod->type == ModulationType::FLFO) && (modRow - 3) <= 1) ||
           (mod->type == ModulationType::FLFO && modRow == 5) ||
           ((mod->type == ModulationType::StickLinear || mod->type == ModulationType::StickRate) &&
            modRow == 3)) {
@@ -411,6 +416,7 @@ static void drawField(int col, int row, CellState state) {
 
   switch (modRow) {
     case 0: // Type (on header row)
+      gfxClearRect(valX, y, 8, 1);
       gfxPrint(valX, y, modTypeName(mod->type));
       break;
     case 1: // Destination
@@ -441,7 +447,7 @@ static void drawField(int col, int row, CellState state) {
       if (mod->type == ModulationType::AHD || mod->type == ModulationType::ADSR) {
         uint8_t* params = &mod->p1;
         gfxPrint(valX, y, byteToHex(params[paramIdx]));
-      } else if (mod->type == ModulationType::LFO || mod->type == ModulationType::SLFO || mod->type == ModulationType::FLFO) {
+      } else if (modulationIsTickLFO(mod->type) || mod->type == ModulationType::FLFO) {
         if (paramIdx == 0) {
           gfxPrint(valX, y, lfoShapeName(static_cast<LFOShape>(mod->p1)));
         } else if (paramIdx == 1) {
@@ -528,7 +534,7 @@ static int onEdit(int col, int row, enum CellEditAction action) {
             screenMessage(0, "%s %hhu ticks", fullName, params[paramIdx]);
           }
         }
-      } else if (mod->type == ModulationType::LFO || mod->type == ModulationType::SLFO || mod->type == ModulationType::FLFO) {
+      } else if (modulationIsTickLFO(mod->type) || mod->type == ModulationType::FLFO) {
         if (paramIdx == 0) {
           handled = edit8noLast(action, &mod->p1, 1, 0, static_cast<uint8_t>(LFOShape::totalCount) - 1);
           if (handled) screenFullRedraw(&screenData);
@@ -540,6 +546,12 @@ static int onEdit(int col, int row, enum CellEditAction action) {
           if (handled) {
             if (mod->type == ModulationType::FLFO)
               screenMessage(0, "Frequency %.0f Hz", powf(8000.0f, mod->p3 / 255.0f));
+            else if (mod->type == ModulationType::SlowLFO) {
+              uint32_t ticks = modulationSlowLFOPeriod(mod->p3);
+              float tickRate = chipnomadState->project.tickRate;
+              unsigned seconds = (unsigned)roundf(ticks / (tickRate > 0 ? tickRate : 50.0f));
+              screenMessage(0, "%u:%02u cycle, %u ticks", seconds / 60, seconds % 60, (unsigned)ticks);
+            }
             else
               screenMessage(0, "Period %hhu ticks", mod->p3);
           }

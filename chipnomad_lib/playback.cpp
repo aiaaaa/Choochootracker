@@ -350,7 +350,7 @@ static void initModulations(PlaybackState* state, int trackIdx, uint8_t oldInstr
     const Modulation* mod = &mods[i];
 
     // Free and structural LFOs keep their phase across notes.
-    int keepsPhase = ((mod->type == ModulationType::LFO || mod->type == ModulationType::SLFO) &&
+    int keepsPhase = (modulationIsTickLFO(mod->type) &&
                       (mod->p2 == static_cast<uint8_t>(LFOTrigger::free) ||
                        mod->p2 == static_cast<uint8_t>(LFOTrigger::phrase) ||
                        mod->p2 == static_cast<uint8_t>(LFOTrigger::chain))) ||
