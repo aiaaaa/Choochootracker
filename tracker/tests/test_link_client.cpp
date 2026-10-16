@@ -63,10 +63,13 @@ int fakeIsEnabled(void*, void*) { return g_fake.enabled; }
 
 int fakeNumPeers(void*, void*) { return g_fake.peers; }
 
-int fakeCapture(void*, void*, double* tempo, uint64_t* peers, int* isPlaying) {
+int fakeCapture(void*, void*, double* tempo, double* beat, uint64_t* capturedAtMicros,
+                uint64_t* peers, int* isPlaying) {
   ++g_fake.captureCalls;
   if (!g_fake.enabled) return 0;
   if (tempo) *tempo = g_fake.sessionTempo;
+  if (beat) *beat = 0.0;
+  if (capturedAtMicros) *capturedAtMicros = 1;
   if (peers) *peers = (uint64_t)g_fake.peers;
   if (isPlaying) *isPlaying = g_fake.sessionIsPlaying;
   return 1;

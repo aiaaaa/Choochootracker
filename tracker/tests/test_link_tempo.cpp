@@ -36,10 +36,13 @@ void tempoFakeDisable(void*, void*) { ++g_tempoFake.disableCalls; g_tempoFake.en
 int tempoFakeIsEnabled(void*, void*) { return g_tempoFake.enabled; }
 int tempoFakeNumPeers(void*, void*) { return g_tempoFake.peers; }
 
-int tempoFakeCapture(void*, void*, double* tempo, uint64_t* peers, int* isPlaying) {
+int tempoFakeCapture(void*, void*, double* tempo, double* beat, uint64_t* capturedAtMicros,
+                     uint64_t* peers, int* isPlaying) {
   ++g_tempoFake.captureCalls;
   if (!g_tempoFake.enabled) return 0;
   if (tempo) *tempo = g_tempoFake.sessionTempo;
+  if (beat) *beat = 0.0;
+  if (capturedAtMicros) *capturedAtMicros = 1;
   if (peers) *peers = (uint64_t)g_tempoFake.peers;
   if (isPlaying) *isPlaying = g_tempoFake.sessionIsPlaying;
   return 1;
