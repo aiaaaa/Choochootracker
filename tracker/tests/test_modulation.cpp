@@ -1,6 +1,7 @@
 #include "doctest.h"
 #include "../../chipnomad_lib/playback_modulation.h"
 #include "../../chipnomad_lib/playback.h"
+#include <initializer_list>
 #include <string.h>
 #include <stdio.h>
 
