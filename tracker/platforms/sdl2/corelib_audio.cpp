@@ -187,6 +187,11 @@ static JavaVM* audioJavaVm = nullptr;
 static jobject audioJavaActivity = nullptr;
 static jmethodID audioInputDeviceNameMethod = nullptr;
 
+// The helper methods live on org.libsdl.app.SDLAudioManager as statics, NOT on
+// the activity class. GetMethodID on the activity class returns null and ART
+// aborts with "JNI DETECTED ERROR IN APPLICATION: mid == null" on the call.
+static jclass audioManagerClass = nullptr;
+
 struct AttachedJavaEnv {
   JNIEnv* env = nullptr;
   bool attached = false;
@@ -201,23 +206,39 @@ struct AttachedJavaEnv {
 };
 
 static bool ensureAudioJava(void) {
-  if (audioJavaActivity) return true;
+  if (audioInputDeviceNameMethod) return true;
   JNIEnv* env = reinterpret_cast<JNIEnv*>(SDL_AndroidGetJNIEnv());
   jobject current = reinterpret_cast<jobject>(SDL_AndroidGetActivity());
   if (!env || !current) return false;
   env->GetJavaVM(&audioJavaVm);
   audioJavaActivity = env->NewGlobalRef(current);
-  jclass cls = env->GetObjectClass(audioJavaActivity);
-  audioInputDeviceNameMethod = env->GetMethodID(cls, "audioInputDeviceName", "(I)Ljava/lang/String;");
+  env->DeleteLocalRef(current);
+  jclass cls = env->FindClass("org/libsdl/app/SDLAudioManager");
+  if (!cls) {
+    env->ExceptionClear();
+    return false;
+  }
+  audioManagerClass = reinterpret_cast<jclass>(env->NewGlobalRef(cls));
   env->DeleteLocalRef(cls);
-  return audioInputDeviceNameMethod != nullptr;
+  if (!audioManagerClass) return false;
+  audioInputDeviceNameMethod = env->GetStaticMethodID(audioManagerClass,
+    "audioInputDeviceName", "(I)Ljava/lang/String;");
+  if (!audioInputDeviceNameMethod) {
+    env->ExceptionClear();
+    return false;
+  }
+  return true;
 }
 
 static int androidInputName(int deviceId, char* buffer, int bufferSize) {
   AttachedJavaEnv attached;
   if (!ensureAudioJava() || !attached.get()) return 1;
-  jstring name = (jstring)attached.env->CallObjectMethod(audioJavaActivity,
+  jstring name = (jstring)attached.env->CallStaticObjectMethod(audioManagerClass,
     audioInputDeviceNameMethod, (jint)deviceId);
+  if (attached.env->ExceptionCheck()) {
+    attached.env->ExceptionClear();
+    return 1;
+  }
   if (!name) return 1;
   const char* utf = attached.env->GetStringUTFChars(name, nullptr);
   if (!utf) { attached.env->DeleteLocalRef(name); return 1; }
