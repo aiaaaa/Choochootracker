@@ -13,7 +13,7 @@
 static void removeFile(const char* path) { remove(path); }
 
 TEST_CASE("RecordingWavWriter open/write/close produces a valid WAV") {
-  const char* path = "/tmp/test_recording.wav";
+  const char* path = "build/tests/test_recording.wav";
   removeFile(path);
 
   RecordingWavWriter writer;
@@ -59,15 +59,16 @@ TEST_CASE("RecordingWavWriter open/write/close produces a valid WAV") {
 }
 
 TEST_CASE("RecordingWavWriter rejects bad arguments and double open") {
+  const char* path = "build/tests/test_recording_bad.wav";
   RecordingWavWriter writer;
   CHECK(writer.open(nullptr, 48000, 2, 16) != 0);
-  CHECK(writer.open("/tmp/test_recording_bad.wav", 0, 2, 16) != 0);
-  CHECK(writer.open("/tmp/test_recording_bad.wav", 48000, 0, 16) != 0);
-  CHECK(writer.open("/tmp/test_recording_bad.wav", 48000, 2, 12) != 0);
-  CHECK(writer.open("/tmp/test_recording_bad.wav", 48000, 2, 16) == 0);
-  CHECK(writer.open("/tmp/test_recording_bad.wav", 48000, 2, 16) != 0); // double open
+  CHECK(writer.open(path, 0, 2, 16) != 0);
+  CHECK(writer.open(path, 48000, 0, 16) != 0);
+  CHECK(writer.open(path, 48000, 2, 12) != 0);
+  CHECK(writer.open(path, 48000, 2, 16) == 0);
+  CHECK(writer.open(path, 48000, 2, 16) != 0); // double open
   writer.close();
-  removeFile("/tmp/test_recording_bad.wav");
+  removeFile(path);
 }
 
 TEST_CASE("RecordingWavWriter write without open drops and counts") {
