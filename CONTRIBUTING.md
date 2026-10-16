@@ -29,6 +29,25 @@ Thorough human testing is strongly encouraged. Hunt for edge cases, do stupid th
 
 ## Getting started
 
+Clone with submodules (Ableton Link and Asio are pulled in as git submodules
+rather than vendored):
+
+```sh
+git clone --recurse-submodules https://github.com/<you>/ChooChooTracker.git
+# or, for an existing checkout:
+git submodule update --init chipnomad_lib/external/ableton_link chipnomad_lib/external/asio
+```
+
+### Ableton Link
+
+The Ableton Link submodule is required only for authorised official
+ChooChooTracker builds. This repository, its MIT license and its releases do
+not grant a license to Ableton Link. The authorisation held for official
+ChooChooTracker releases does not extend to forks, derivative works or other
+third-party distributions; their maintainers must obtain their own
+authorisation from Ableton before building or distributing a product that
+includes Ableton Link.
+
 Open an issue if you want to discuss a larger idea before writing code. For a small fix, a pull request with a short description is usually enough.
 
 Thank you for helping keep ChooChooTracker focused, playable, and fun.

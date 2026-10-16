@@ -7,8 +7,9 @@ include Makefile.common
 LIBS = $(COMMON_LIBS) platforms/sdl2 ../chipnomad_lib/external/rtmidi
 OUTPUT_EXT =
 
-XTRA_CFLAGS = -DDESKTOP_BUILD -DGAMEPAD_SUPPORT -D__LINUX_ALSA__ -D__LINUX_ALSASEQ__
-XTRA_LIBS = -lSDL2 -lm -lasound -lpthread -lstdc++fs
+XTRA_CFLAGS = -DDESKTOP_BUILD -DGAMEPAD_SUPPORT -D__LINUX_ALSA__ -D__LINUX_ALSASEQ__ \
+	-DLINK_PLATFORM_LINUX=1 -DASIO_STANDALONE=1 -DASIO_NO_TYPEID=1 -DASIO_VERSION_NAMESPACE=link_asio_1_38_2 -Wno-multichar
+XTRA_LIBS = -lSDL2 -lm -lasound -lpthread -lstdc++fs -latomic
 CFLAGS = $(COMMON_CFLAGS) $(INCLUDES) $(SOURCES) $(XTRA_CFLAGS)
 OUTPUT = -o $(BUILD)/choochootracker$(OUTPUT_EXT)
 

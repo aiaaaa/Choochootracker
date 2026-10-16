@@ -20,6 +20,7 @@ import android.media.midi.MidiManager;
 import android.media.midi.MidiOutputPort;
 import android.media.midi.MidiReceiver;
 import android.net.Uri;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Build;
 import android.os.Environment;
@@ -83,6 +84,8 @@ public final class ChooChooTrackerActivity extends SDLActivity {
     private int pendingUsbInputGeneration;
     private int pendingUsbOutputGeneration;
 
+    private WifiManager.MulticastLock linkMulticastLock;
+
     // Called from the SDL thread for an on-screen control press.
     public void performTouchHaptic() {
         if (!getSharedPreferences(PREFS_NAME, MODE_PRIVATE).getBoolean(PREF_TOUCH_HAPTICS, true)) return;
@@ -96,6 +99,35 @@ public final class ChooChooTrackerActivity extends SDLActivity {
     public void setTouchHaptics(boolean enabled) {
         getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit()
                 .putBoolean(PREF_TOUCH_HAPTICS, enabled).apply();
+
+    /** Called by the native Link backend before Link opens its sockets. */
+    public synchronized boolean acquireLinkMulticastLock() {
+        if (linkMulticastLock == null) {
+            WifiManager wifi = (WifiManager)getApplicationContext()
+                    .getSystemService(Context.WIFI_SERVICE);
+            if (wifi == null) return false;
+            linkMulticastLock = wifi.createMulticastLock("choochootracker-link");
+            linkMulticastLock.setReferenceCounted(false);
+        }
+        try {
+            if (!linkMulticastLock.isHeld()) linkMulticastLock.acquire();
+            Log.i("ChooChooTracker", "MulticastLock acquired choochootracker-link");
+            return true;
+        } catch (Exception e) {
+            Log.w("ChooChooTracker", "MulticastLock acquire failed: " + e);
+            return false;
+        }
+    }
+
+    /** Called by the native Link backend after Link closes its sockets. */
+    public synchronized void releaseLinkMulticastLock() {
+        if (linkMulticastLock == null) return;
+        try {
+            if (linkMulticastLock.isHeld()) linkMulticastLock.release();
+            Log.i("ChooChooTracker", "MulticastLock released");
+        } catch (Exception e) {
+            Log.w("ChooChooTracker", "MulticastLock release failed: " + e);
+        }
     }
 
     private static final class MidiEndpoint {
@@ -610,6 +642,7 @@ public final class ChooChooTrackerActivity extends SDLActivity {
         synchronized (this) {
             closeMidiInput();
             closeMidiOutput();
+            releaseLinkMulticastLock();
             if (midiManager != null && midiDeviceCallback != null)
                 midiManager.unregisterDeviceCallback(midiDeviceCallback);
             try { unregisterReceiver(usbReceiver); } catch (IllegalArgumentException ignored) { }

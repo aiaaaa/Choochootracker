@@ -26,6 +26,7 @@ class OPLVoice;
 class SimpleChipVoice;
 class AudioCommandQueue;
 struct MidiRouterState;
+struct LinkClientState;
 class AudioMonitor;
 
 constexpr int VOICE_MONITOR_SAMPLES = 256;
@@ -50,6 +51,11 @@ struct PlaybackStatus {
   PlaybackTrackState tracks[PROJECT_MAX_TRACKS];
   uint8_t trackEnabled[PROJECT_MAX_TRACKS];
   uint8_t isPlaying;
+  // Audio-thread tick counter and the host timestamp of that tick. They are
+  // published with the status snapshot so the UI can follow Link phase
+  // without racing the audio callback.
+  uint64_t linkPhaseTicks;
+  uint64_t linkPhaseTickMicros;
 };
 class MasterEffects;
 
@@ -123,12 +129,19 @@ struct ChipNomadState {
   // one instance per ChipNomadState, so independent engine states (e.g. one
   // per test fixture) never share bookkeeping through a hidden global.
   MidiRouterState* midiRouter;
+  // Receiver-only Ableton Link client (see link/link_client.h) - same
+  // one-instance-per-state ownership as the MIDI router. The UI polls it
+  // with serial-bumped getters; the audio thread captures session state
+  // through it at tick boundaries.
+  LinkClientState* linkClient;
   VoiceMonitor voiceMonitors[PROJECT_MAX_TRACKS];
   MasterEffects* masterEffects;
   AudioCommandQueue* audioCommands;
   AudioMonitor* audioMonitor;
   int benchmarkBypassPan;
   PlaybackStatus uiPlaybackStatus;
+  // Audio-thread-only state, copied into PlaybackStatus each tick.
+  uint64_t linkPhaseTicks;
 };
 
 /**
@@ -169,6 +182,16 @@ void chipnomadQueuePlaybackStop(ChipNomadState* state);
 // application shutdown, in addition to the automatic call on playback stop.
 void chipnomadMidiPanic(ChipNomadState* state);
 int chipnomadQueuePlaybackStartSong(ChipNomadState* state, int songRow, int chainRow, int loop);
+// Audio-thread conditional start. Unlike checking a UI playback snapshot,
+// this remains correct when a MIDI Stop and the following Start cross the
+// UI/audio thread boundary in the same render block.
+int chipnomadQueuePlaybackStartSongIfStopped(ChipNomadState* state, int songRow, int chainRow, int loop);
+// Timed start (T40): playback begins on the first audio tick frame at or
+// after waitUntilMicros on the monotonic host clock (same scale as
+// midiRouterNowMicros / linkClientNowMicros). waitUntilMicros == 0 fires
+// immediately. Used by the Ableton Link quantized launch to align song
+// start to a session beat boundary.
+int chipnomadQueuePlaybackStartSongAtTime(ChipNomadState* state, int songRow, int chainRow, int loop, uint64_t waitUntilMicros);
 int chipnomadQueuePlaybackStartChain(ChipNomadState* state, int trackIdx, int songRow, int chainRow, int loop);
 int chipnomadQueuePlaybackStartPhrase(ChipNomadState* state, int trackIdx, int songRow, int chainRow, int loop);
 int chipnomadQueuePlaybackStartPhraseRow(ChipNomadState* state, int trackIdx, const PhraseRow* row);
