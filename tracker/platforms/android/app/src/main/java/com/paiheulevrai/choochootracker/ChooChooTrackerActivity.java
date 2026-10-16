@@ -99,6 +99,7 @@ public final class ChooChooTrackerActivity extends SDLActivity {
     public void setTouchHaptics(boolean enabled) {
         getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit()
                 .putBoolean(PREF_TOUCH_HAPTICS, enabled).apply();
+    }
 
     /** Called by the native Link backend before Link opens its sockets. */
     public synchronized boolean acquireLinkMulticastLock() {

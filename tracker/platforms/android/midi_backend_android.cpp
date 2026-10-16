@@ -263,6 +263,7 @@ static const MidiBackend backend = {
   inputPortCount, inputPortName, outputPortCount, outputPortName,
   openInputPort, closeInputPort, openOutputPort, closeOutputPort,
   pollInput, scheduleOutput, flushOutput, droppedCount, nowMicros,
+  nullptr, nullptr,
   1, 1, 1, 0,
 };
 
