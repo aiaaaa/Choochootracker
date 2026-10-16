@@ -345,6 +345,9 @@ void mainLoopRun(void (*draw)(void), void (*onEvent)(MainLoopEventData eventData
         if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_RETURN &&
             (event.key.keysym.mod & KMOD_ALT)) {
           gfxToggleFullscreen();
+          eventData.type = MainLoopEvent::fullRedraw;
+          eventData.data.value = 0;
+          onEvent(eventData);
           continue;
         }
 #endif

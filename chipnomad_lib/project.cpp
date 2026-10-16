@@ -226,6 +226,12 @@ void projectInit(Project* p) {
   p->delayTicks = 9;
   p->delayFeedback = 50;
   p->delayFilterCutoffHz = 12000;
+  p->delayAlgorithm = 0;
+  p->tapeDivision = 2;
+  p->tapeHeads = 6;
+  p->tapeTone = 160;
+  p->tapeFlutter = 25;
+  p->tapeSpring = 25;
 
   // Clean song structure
   for (int c = 0; c < PROJECT_MAX_LENGTH; c++) {

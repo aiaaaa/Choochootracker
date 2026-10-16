@@ -1596,7 +1596,7 @@ Use it to balance the 8 tracks, shape each track with Tilt EQ, and send audio to
 |---|---|
 | LVL | Post-engine track level, `000-100` |
 | REV | Send to the shared reverb, `000-100` |
-| DLY | Send to the shared ping-pong delay, `000-100` |
+| DLY | Send to the shared delay, `000-100` |
 | PAN | Folds the audio left or right |
 | TLT | Per-track Tilt EQ, `00-FF`; `80` is neutral, low values favour bass and high values favour treble. Low values will introduce a soft overdrive. |
 | M | `*` mutes this track |
@@ -1625,17 +1625,15 @@ Use **SELECT + [UP]** from Mixer to open the reverb settings screen.
 
 This is the send reverb section only of Clouds or Beads, not the granular processor.
 
-### Ping-pong Delay
+### Delay
 
 Use **SELECT + [DOWN]** from Mixer to open Delay, then **SELECT + [UP]** to return. Reverb works in the opposite direction: **SELECT + [UP]** opens it and **SELECT + [DOWN]** returns to Mixer.
 
+- **Algorithm**: selects **Ping-Pong** or **Tape Echo**. Changing it clears the current delay tail.
 - **Return**: wet delay level.
-- **To Reverb**: amount of the wet delay signal sent into the shared reverb, `0-100%`.
-- **Ticks**: delay time in tracker ticks (`9 ticks` = `1 beat` by default).
-- **Feedback**: cross-feedback amount, limited to `95%`.
-- **Filter**: low-pass filter in the delayed signal path.
-
-The 1st repeat follows the stereo input. Later feedback crosses between the left and right channels.
+- **To Reverb**: amount of the wet tape or ping-pong repeats sent into the shared reverb, `0-100%`.
+- **Ping-Pong**: **Ticks** sets the delay time; `24 ticks` equal one beat. **Feedback** is cross-feedback, limited to `95%`, and **Filter** is a low-pass filter in the delayed path. The first repeat follows the stereo input; later feedback crosses between left and right.
+- **Tape Echo**: **Time** selects a tempo division from `1/16` to `1/2`; **Heads** selects one or more of three virtual tape heads; **Feedback** controls repeats from `0%` to `95%`. When several heads are selected, the loop is normalized so their sum cannot raise the feedback above the selected amount. **Tone** darkens the tape; **Flutter** starts gentle and reaches an exaggerated `20 ms` tape-speed wobble at maximum; **Spring** starts subtle and becomes a louder, longer splash at maximum. The spring is local to Tape Echo and is not fed back into its tape loop or sent to the shared reverb.
 
 ## 12. Project screen
 

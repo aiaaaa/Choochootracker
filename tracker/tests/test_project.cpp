@@ -72,6 +72,15 @@ TEST_CASE_FIXTURE(ProjectFixture, "projectInit defaults to Clouds with usable Be
   CHECK(p.beadsReverbHighpassCutoffHz == 150);
 }
 
+TEST_CASE_FIXTURE(ProjectFixture, "projectInit has a usable Tape Echo preset") {
+  CHECK(p.delayAlgorithm == 0);
+  CHECK(p.tapeDivision == 2);
+  CHECK(p.tapeHeads == 6);
+  CHECK(p.tapeTone == 160);
+  CHECK(p.tapeFlutter == 25);
+  CHECK(p.tapeSpring == 25);
+}
+
 TEST_CASE("Beads reverb settings survive save and load") {
   Project saved, loaded;
   projectInit(&saved); projectInit(&loaded);
@@ -92,6 +101,30 @@ TEST_CASE("Beads reverb settings survive save and load") {
   CHECK(loaded.beadsReverbTime == 77);
   CHECK(loaded.beadsReverbTone == 201);
   CHECK(loaded.beadsReverbHighpassCutoffHz == 900);
+}
+
+TEST_CASE("Tape Echo settings survive save and load") {
+  Project saved, loaded;
+  projectInit(&saved); projectInit(&loaded);
+  saved.chipsCount = loaded.chipsCount = 1;
+  saved.tracksCount = loaded.tracksCount = 1;
+  saved.chipType = loaded.chipType = ChipType::AY;
+  std::strcpy(saved.pitchTable.name, "Tape Echo test");
+  saved.delayAlgorithm = 1;
+  saved.tapeDivision = 5;
+  saved.tapeHeads = 4;
+  saved.tapeTone = 77;
+  saved.tapeFlutter = 61;
+  saved.tapeSpring = 43;
+  const char* path = "build/tests/tape_echo_io.cct";
+  REQUIRE(projectSave(&saved, path) == 0);
+  REQUIRE(projectLoad(&loaded, path) == 0);
+  CHECK(loaded.delayAlgorithm == 1);
+  CHECK(loaded.tapeDivision == 5);
+  CHECK(loaded.tapeHeads == 4);
+  CHECK(loaded.tapeTone == 77);
+  CHECK(loaded.tapeFlutter == 61);
+  CHECK(loaded.tapeSpring == 43);
 }
 
 TEST_CASE_FIXTURE(ProjectFixture, "projectInit enables MIDI CC mapping rows") {
