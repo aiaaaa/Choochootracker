@@ -1360,7 +1360,8 @@ CNI files may still be used in OPL3 USER folders.</p>
 <li>ADSR - classic attack-decay-sustain-release envelope</li>
 <li>AHD - attack-hold-decay envelope</li>
 <li>LFO - low-frequency oscillator with several shapes</li>
-<li>SLFO - LFO with a period multiplier for slow cycles</li>
+<li>syncLFO (formerly SLFO) - LFO with a ticks-per-unit setting and period multiplier</li>
+<li>slowLFO - long cycles with an evenly proportional period control, starting just beyond the ordinary LFO range</li>
 <li>FLFO - audio-rate LFO that can reach the kHz range; FLFO can be heavy on the CPU</li>
 <li>SLIN - linear joystick control</li>
 <li>SRAT - rate-based joystick control</li>
@@ -1369,6 +1370,8 @@ CNI files may still be used in OPL3 USER folders.</p>
 <p>When an ADSR or AHD envelope targets Volume, it becomes the instrument's volume envelope. An LFO targeting Volume offsets the current output volume instead.</p>
 <p>The modulation amount can be positive or negative. Its range depends on the destination. If the destination's full range is <code>127</code> or less, as it is for most parameters, the amount defines an absolute range. Wider destinations such as pitch use a scaled amount.</p>
 <p>All duration parameters, including attack, hold, decay and period, are measured in ticks.</p>
+<p>The ordinary <strong>LFO</strong> period runs up to <code>FF</code> (255) ticks. <strong>syncLFO</strong> keeps the existing SLFO timing: period = Ticks × Multiplier, with a multiplier of 1–64 in the editor (up to 16,320 ticks). Existing SLFO settings and saved songs keep their timing.</p>
+<p><strong>slowLFO</strong> uses the full <code>00</code>–<code>FF</code> Period range, starting just beyond the ordinary LFO at 256 ticks and reaching 131,072 ticks. Steps are logarithmic: each click makes the cycle about 2.48% longer, rounded to a whole tick. The range covers nine doublings, with exact anchors <code>00</code> = 256, <code>55</code> = 2,048, <code>AA</code> = 16,384, and <code>FF</code> = 131,072 ticks. The usual coarse edit moves 16 settings. At 120 BPM, the maximum full cycle takes about 45 minutes 31 seconds, or 11 minutes 23 seconds for a quarter-cycle. The footer shows the estimated full-cycle time at the project tempo and exact tick count when edited. Parameter 3 stores the <code>00</code>–<code>FF</code> step; FX offsets move along this proportional scale. All three tick-based LFOs follow song tempo and share shapes, wavetable selection, and trigger modes. Choose Free for a long cycle that continues across notes; Retrig, Phrase and Chain restart it at their respective boundaries.</p>
 <p>LFO shapes:</p>
 <ul>
 <li>Tri - bipolar triangle wave</li>
@@ -1387,8 +1390,8 @@ CNI files may still be used in OPL3 USER folders.</p>
 <ul>
 <li>Free - restarts the LFO only when the instrument changes</li>
 <li>Retrig - restarts the LFO on every note</li>
-<li>Phrase - restarts LFO and SLFO when playback enters a new phrase</li>
-<li>Chain - restarts LFO and SLFO when playback enters a new chain</li>
+<li>Phrase - restarts LFO, syncLFO and slowLFO when playback enters a new phrase</li>
+<li>Chain - restarts LFO, syncLFO and slowLFO when playback enters a new chain</li>
 <li>Hold - stops after 1 cycle and holds the last value</li>
 <li>Once - stops after 1 cycle and returns to zero</li>
 </ul>
@@ -1899,11 +1902,19 @@ makeup and EQ boosts can clip the mix, so watch the Mixer clip indicator.</p>
 <td>AY wavetable index</td>
 </tr>
 <tr>
-<td>SLFO</td>
+<td>syncLFO</td>
 <td>Shape</td>
 <td>Trigger mode</td>
 <td>Ticks</td>
 <td>Multiplier</td>
+<td>AY wavetable index</td>
+</tr>
+<tr>
+<td>slowLFO</td>
+<td>Shape</td>
+<td>Trigger mode</td>
+<td>Period step (00–FF)</td>
+<td>—</td>
 <td>AY wavetable index</td>
 </tr>
 <tr>
