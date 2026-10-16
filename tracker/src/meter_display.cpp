@@ -97,7 +97,7 @@ void monitorDisplayDrawHorizontalMeter(int armedSlot, int col, int row, int widt
            (runEnd >= width - width / 16 ? 2 : runEnd >= width * 3 / 4 ? 1 : 0) == zone)
       ++runEnd;
     gfxBitmapClear(cell);
-    memset(cell->data, 255, cell->widthPixels * cell->heightPixels);
+    memset(cell->data, 255, (size_t)cell->widthPixels * cell->heightPixels);
     gfxSetFgColor(zone == 2 ? 0xff0000 : zone == 1 ? cs.textTitles : cs.textInfo);
     for (int cx = x; cx < runEnd; ++cx) gfxDrawBitmap(cell, col + cx, row);
     x = runEnd;
