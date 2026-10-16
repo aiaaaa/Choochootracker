@@ -151,19 +151,29 @@ static void persistArmedDevices(void) {
   settingsSave();
 }
 
-// Re-arms devices from appSettings.audioInputArmed (launch + List/Refresh).
-// Skips entries whose device no longer exists after re-enumeration.
+// Match saved names against the current enumeration, whose indices can change
+// when an interface is plugged in or removed.
 void syncArmedDevicesFromSettings(void) {
+  int wanted[AUDIO_INPUT_MAX_ARMED];
+  int wantedCount = 0;
   for (int slot = 0; slot < AUDIO_INPUT_MAX_ARMED; ++slot) {
     int saved = appSettings.audioInputArmed[slot];
-    if (saved < 0) continue;
-    if (saved >= audioInputManager.deviceCount()) {
-      appSettings.audioInputArmed[slot] = -1;
-      continue;
+    if (saved < 0 || saved >= appSettings.audioInputDeviceCount) continue;
+    for (int live = 0; live < audioInputManager.deviceCount(); ++live) {
+      char name[AUDIO_DEVICE_NAME_LENGTH + 1];
+      if (audioInputManager.deviceName(live, name, sizeof(name)) == 0 &&
+          strcmp(name, appSettings.audioInputDeviceNames[saved]) == 0) {
+        wanted[wantedCount++] = live;
+        break;
+      }
     }
-    if (audioInputManager.armedDeviceIndex(slot) == saved) continue;
-    if (audioInputManager.arm(saved) < 0) appSettings.audioInputArmed[slot] = -1;
   }
+  bool unchanged = audioInputManager.armedCount() == wantedCount;
+  for (int i = 0; unchanged && i < wantedCount; ++i)
+    unchanged = audioInputManager.armedDeviceIndex(i) == wanted[i];
+  if (unchanged) return;
+  audioInputManager.disarmAll();
+  for (int i = 0; i < wantedCount; ++i) audioInputManager.arm(wanted[i]);
 }
 
 static int onEdit(int col, int row, CellEditAction action);
