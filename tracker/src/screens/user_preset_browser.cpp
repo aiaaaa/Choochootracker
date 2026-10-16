@@ -39,9 +39,9 @@ struct PresetLoad {
 };
 int loadPreset(void* userdata) {
   auto* load = static_cast<PresetLoad*>(userdata);
-  return load->reference
+  return !(load->reference
     ? load->library->load(*load->reference, &chipnomadState->project, load->instrument, *load->error)
-    : load->library->load(load->value, &chipnomadState->project, load->instrument, *load->error);
+    : load->library->load(load->value, &chipnomadState->project, load->instrument, *load->error));
 }
 bool samePreset(const UserPresets::Reference& a,const UserPresets::Reference& b) {
   return a.path==b.path&&a.archive==b.archive&&a.voice==b.voice&&a.legacy==b.legacy;
