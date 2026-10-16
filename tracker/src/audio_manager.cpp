@@ -4,6 +4,7 @@
 #include <limits.h>
 #include <string.h>
 #include "audio_manager.h"
+#include "audio_input_manager.h"
 #include "corelib_audio.h"
 
 #include "chipnomad_lib.h"
@@ -154,6 +155,10 @@ static void audioCallback(int16_t* buffer, int stereoSamples) {
     buffer[i] = sample;
   }
 
+  // Audio input monitoring (Phase 2.4): route armed capture into the output
+  // when enabled. No-op (single atomic load) when monitor is off.
+  audioInputManager.mixMonitor(buffer, stereoSamples);
+
   const auto elapsedNs = std::chrono::duration_cast<std::chrono::nanoseconds>(
     std::chrono::steady_clock::now() - startedAt).count();
   int load = (stereoSamples > 0 && aSampleRate > 0)
@@ -267,6 +272,18 @@ static void pause(void) {
 
 static void resume(void) {
   audioPause(0);
+}
+
+// Reopens the output device after it was lost (unplugged interface, driver
+// reset). Same rate/size, so the render buffers and engine state stay valid;
+// only the SDL device handle is recreated. Returns 0 on success.
+static int restart(void) {
+  if (!floatBuffer || !samplePreviewBuffer) return 1;
+  audioPause(1);
+  audioCleanup();
+  if (audioSetup(audioCallback, aSampleRate, aBufferSize)) return 1;
+  audioPause(0);
+  return 0;
 }
 
 static void replaceProject(Project* replacement) {
@@ -467,6 +484,7 @@ static int previewBYOWTBL(const char* path, const InstrumentBYOWTBL* settings, i
 struct AudioManager audioManager = {
   .start = start,
   .reconfigure = reconfigure,
+  .restart = restart,
   .pause = pause,
   .resume = resume,
   .replaceProject = replaceProject,

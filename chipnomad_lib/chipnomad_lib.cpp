@@ -28,6 +28,7 @@
 #include "synth/master_effects.h"
 #include "midi/midi_router.h"
 #include "link/link_client.h"
+#include "track_bounce.h"
 #include <math.h>
 #include <algorithm>
 #include <atomic>
@@ -785,6 +786,8 @@ static inline void mixTrackChannel(ChipNomadState* state, int trackIdx,
     return;
   }
   state->audioMonitor->add(trackIdx, sampleIndex, sample);
+  if (audioRecorderWantsTrackSample(trackIdx))
+    audioRecorderCaptureTrackSample(trackIdx, sampleIndex, sample);
   float previous = *mix;
   *mix += sample;
   if (reverbSend != 0.0f) *reverb += sample * reverbSend;
@@ -1374,6 +1377,8 @@ static void processTrackInserts(ChipNomadState* state, float* output, int frames
     for (int i = 0; i < frames * 2; ++i) {
       float sample = samples[i], previous = output[i];
       state->audioMonitor->add(t, i, sample);
+      if (audioRecorderWantsTrackSample(t))
+        audioRecorderCaptureTrackSample(t, i, sample);
       output[i] += sample;
       if (reverb != 0.0f) state->reverbBuffer[i] += sample * reverb;
       if (delay != 0.0f) state->delayBuffer[i] += sample * delay;
@@ -1419,6 +1424,11 @@ int chipnomadRender(ChipNomadState* state, float* buffer, int samples) {
     if (hasAudioRateModulation(state)) { updateAudioRateModulations(state); frames = 1; }
     float* output = buffer + (samples - samplesLeft) * 2;
     if (!prepareRenderChunk(state, output, frames)) return 0;
+    // Track-bounce capture bracket: the capture sites only run for tracks
+    // with an active voice, so the chunk end fills the remainder with
+    // silence - without this, rests between notes would be missing from a
+    // bounce and the recording would play back fast.
+    audioRecorderBeginTrackChunk();
     renderChipTracks(state, output, frames);
     renderMonoVoiceTracks(state, state->braidsVoices, output, frames);
     // Removed chord slots may still have a short de-click tail after KILL.
@@ -1478,6 +1488,7 @@ int chipnomadRender(ChipNomadState* state, float* buffer, int samples) {
     processTrackInserts(state, output, frames);
     processMasterMix(state, output, frames);
     state->audioMonitor->finishChunk(output, frames, state->sampleRate);
+    audioRecorderEndTrackChunk(frames);
     samplesLeft -= frames;
     state->frameSampleCounter -= (float)frames;
   }

@@ -410,6 +410,14 @@ void mainLoopRun(void (*draw)(void), void (*onEvent)(MainLoopEventData eventData
         }
       }
 #endif
+      else if (event.type == SDL_AUDIODEVICEREMOVED) {
+        // An audio device was unplugged or its stream died (SDL posts this
+        // for opened devices from both the hotplug path and the audio
+        // thread's IO-error path). Handled on the UI thread by the app.
+        eventData.type = MainLoopEvent::audioDeviceRemoved;
+        eventData.data.value = event.adevice.iscapture ? 1 : 0;
+        onEvent(eventData);
+      }
       else if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP) {
         // SDL/OS keyboard repeat competes with the app's deterministic repeat timer.
         if (event.type == SDL_KEYDOWN && event.key.repeat) continue;
