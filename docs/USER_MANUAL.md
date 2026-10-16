@@ -756,9 +756,9 @@ Select an input's **ARM** box to make it available to the Sampler recorder; its 
 
 ##### Recording audio input
 
-On the Sample instrument screen, the **EDIT/REC** field opens the sample editor, which hosts recording and editing in one screen. Arm inputs on the **Settings → Audio → Audio Input** screen first (see [Audio input](#audio-input)). The editor's top rows control recording:
+On the Sample instrument screen, **REC** (or **EDIT/REC** when a sample is loaded) opens the sample editor, which hosts recording and editing in one screen. Arm inputs on the **Settings → Audio → Audio Input** screen first (see [Audio input](#audio-input)). The editor's top rows control recording:
 
-- **Input** cycles the recording source: `T1`..`T8` (a tracker track's rendered output) and then every armed external input, wrapping back to `-` (none). Hold **EDIT** and press **LEFT**/**RIGHT** to step backwards/forwards, or **EDIT+OPT** to clear to `-`. Tapping Input cycles it directly.
+- **Input** cycles the recording source: `T1`..`T8` record the tracker's own eight tracks, followed by the armed microphone or USB interface. For external recording, keep cycling past `T8` until the device name appears; `-` means no source. Hold **EDIT** and press **LEFT**/**RIGHT** to step backwards/forwards, or **EDIT+OPT** to clear to `-`. Tapping Input cycles it directly.
 - The level meter next to **Input** shows the armed input's live level (external sources only). **MON** toggles input monitoring: the armed input is routed to the output at -6 dB to reduce feedback. The setting is saved in the settings file.
 - **REC** starts recording. External sources record immediately; a track source shows **ARMED** and recording starts when playback starts (press **PLAY**). **STOP** finishes the recording: the WAV is written to the project's export folder (`recNNN.wav`), loaded into the current Sampler instrument, and the Region resets to the full sample. Leaving the screen with **OPT** while a recording is in flight finalizes it the same way.
 - **PLAY** (shown after a recording) auditions the take; it becomes **STOP** while the preview plays. **CLEAR** (next to it) deletes the WAV file and unloads the sample from the instrument; after clearing, **REC** takes its place again.
