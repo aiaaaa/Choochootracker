@@ -77,8 +77,18 @@ static void openFallbackJoystick(void) {
   if (fallbackJoystick || gameController) return;
   for (int i = 0; i < SDL_NumJoysticks(); i++) {
     if (SDL_IsGameController(i)) continue;
-    fallbackJoystick = SDL_JoystickOpen(i);
-    if (fallbackJoystick) {
+    SDL_Joystick* candidate = SDL_JoystickOpen(i);
+    if (candidate) {
+#ifdef ANDROID_BUILD
+      // Android exposes motion sensors as raw joysticks. They have axes but
+      // no physical controls, so accepting one here turns gravity into D-pad.
+      if (!SDL_JoystickNumButtons(candidate) && !SDL_JoystickNumHats(candidate)) {
+        SDL_Log("CCT ignoring sensor-only joystick '%s'", SDL_JoystickName(candidate));
+        SDL_JoystickClose(candidate);
+        continue;
+      }
+#endif
+      fallbackJoystick = candidate;
       // The virtual pad stays visible: the raw mapping is a guess, and the
       // touch controls are needed to open the key mapping screen.
       SDL_Log("CCT fallback joystick '%s': %d buttons, %d hats, %d axes",
