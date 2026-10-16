@@ -2,6 +2,20 @@
 
 ## v1.0.16-alpha (October 14, 2026)
 
+- Reworked the Project screen's Ableton Link UI: selecting **Ableton Link** as
+  the clock source turns the **Tempo** row into a **Link** row holding the
+  session connect/disconnect toggle (`[Connect]` / `[Connecting]` /
+  `[Disconnect]`) with a status message (`Wait...`, `No net`, `No sess`,
+  `Err`); while connected the status alternates between `connected` and
+  `Peers: N` once a second. The session owns the tempo in Link mode, so no
+  BPM is shown or edited on the screen.
+- Added MIDI clock sync (desktop, PortMaster and Android): the Project screen
+  gained a **Clock source** row switching between **Internal** and **Midi
+  Clock**. With Midi Clock selected, the tracker follows an external
+  sequencer's clock, Start/Continue/Stop transport and measured tempo (shown
+  greyed out on the **Tempo** row). The old **Tick rate** row is now shown as
+  **Tempo** in BPM; projects still store the tick rate in Hz, so existing
+  `.cct` files load and save unchanged.
 - Expanded the Sample Edit Slice row into three modes: **EQUAL** divides the
   Start/End window evenly, **AUTO** places slices on transients found by a
   spectral-flux detection (adjustable sensitivity, falls back to an even

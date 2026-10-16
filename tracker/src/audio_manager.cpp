@@ -8,6 +8,7 @@
 
 #include "chipnomad_lib.h"
 #include "playback.h"
+#include "link/link_client.h"
 #include "corelib_file.h"
 #include "synth/sample_voice.h"
 #include "synth/scwf_voice.h"
@@ -34,6 +35,14 @@ static float* samplePreviewBuffer;
 
 enum { PREVIEW_NONE, PREVIEW_PCM, PREVIEW_AY, PREVIEW_SCWF, PREVIEW_BYOWTBL };
 static constexpr double previewTwoPi = 6.28318530717958647692;
+
+// Cumulative samples handed to the audio callback since process start.
+// Fed to the Link backend's HostTimeFilter every callback (T29) so the
+// launch-time estimator can map "current sample counter" -> host time.
+// int, not uint64_t: the counter only needs to be unique per callback on
+// the same clock scale the filter sees; wraparound of a 64-bit counter
+// is unreachable, and a plain increment keeps the audio path cheap.
+static uint64_t audioSampleCounter;
 
 static void freeSCWFPreview(void) {
   free(scwfPreview.oscillator[0].data);
@@ -105,6 +114,16 @@ static void updatePlaybackMuteFlags(void) {
 
 static void audioCallback(int16_t* buffer, int stereoSamples) {
   const auto startedAt = std::chrono::steady_clock::now();
+
+  // Feed the Link HostTimeFilter BEFORE any early return so the filter
+  // keeps seeing (sampleCounter, hostTime) pairs even while playback is
+  // stopped - the launch-time estimator needs a fresh fit at Play time.
+  // The counter advances by the callback size on every path below.
+  const uint64_t counter = audioSampleCounter;
+  audioSampleCounter += (stereoSamples > 0 ? (uint64_t)stereoSamples : 1);
+  linkClientNotifyAudioFrame(chipnomadState->linkClient, counter,
+    (uint64_t)std::chrono::duration_cast<std::chrono::microseconds>(
+      startedAt.time_since_epoch()).count());
 
   if (stereoSamples <= 0 || stereoSamples > aBufferSize ||
       !floatBuffer || !samplePreviewBuffer) {
