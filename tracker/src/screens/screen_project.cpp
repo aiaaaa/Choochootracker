@@ -13,6 +13,9 @@
 #include "import/import_vt2.h"
 #include "import/import_midi.h"
 #include "import/import_m8s.h"
+#include "import/import_lsdj.h"
+#include "selection_popup.h"
+#include <memory>
 #include "string_utils.h"
 #include "midi/midi_router.h"
 #include <string.h>
@@ -40,6 +43,8 @@ static uint8_t clockSourceMirror = 0;
 #define BPM_MIN (3)
 #define BPM_MAX (500)
 #define BPM_DEFAULT (125) // the old 50 Hz default
+
+static int pendingSavSlot = -1;
 
 int projectLoadFromPath(const char* path) {
   if (!path) {
@@ -119,14 +124,54 @@ int projectLoadFromPath(const char* path) {
       chipnomadQueuePlaybackClearTrackFX(chipnomadState, i);
     }
   } else {
-    projectFree(&replacement);
+    projectFree(replacement.get());
     screenMessage(MESSAGE_TIME_ERROR, "%s", projectFileError);
   }
 
   return loadResult;
 }
 
+static void onProjectCancelled(void) {
+  screenSetup(projectReturnScreen, 0);
+}
+static void onProjectLoaded(const char* path);
+
+// An LSDj save (.sav) holds up to 32 songs: list them and load the one picked.
+static char savPath[2048];
+static LsdjSavSong savSongs[32];
+static char savLabels[32][40];
+static SelectionItem savItems[32];
+
+static void onSavSongSelected(int slot) {
+  pendingSavSlot = slot;
+  int result = projectLoadFromPath(savPath);
+  pendingSavSlot = -1;
+  if (result == 0 && projectReturnScreen == &screenTitle) screenSetup(&screenSong, 0);
+  else screenSetup(projectReturnScreen, 0);
+}
+
+static int openLsdjSave(const char* path) {
+  int count = 0;
+  if (lsdjListSav(path, savSongs, 32, &count) != 0) {
+    screenMessage(MESSAGE_TIME_ERROR, "%s", projectFileError);
+    return 0;
+  }
+  snprintf(savPath, sizeof(savPath), "%s", path);
+  for (int i = 0; i < count; i++) {
+    snprintf(savLabels[i], sizeof(savLabels[i]), "%02d %-8s v%02X %3d blocks", savSongs[i].slot, savSongs[i].name[0] ? savSongs[i].name : "-", savSongs[i].version, savSongs[i].blocks);
+    savItems[i] = {savLabels[i], savSongs[i].slot, nullptr, 0, nullptr};
+  }
+  selectionPopupSetup("LSDJ SONGS", savItems, count, savSongs[0].slot, onSavSongSelected, onProjectCancelled, true);
+  screenSetup(&screenSelectionPopup, 0);
+  return 1;
+}
+
 static void onProjectLoaded(const char* path) {
+  const char* ext = path ? strrchr(path, '.') : NULL;
+  if (ext && strcasecmp(ext, ".sav") == 0) {
+    if (!openLsdjSave(path)) screenSetup(projectReturnScreen, 0);
+    return;
+  }
   if (projectLoadFromPath(path) == 0 && projectReturnScreen == &screenTitle)
     screenSetup(&screenSong, 0);
   else
@@ -161,12 +206,9 @@ static void onProjectSaved(const char* folderPath) {
   screenSetup(&screenProject, 0);
 }
 
-static void onProjectCancelled(void) {
-  screenSetup(projectReturnScreen, 0);
-}
 
 static void doLoadProject(void) {
-  fileBrowserSetup("LOAD PROJECT", ".cct,.vt2,.mid,.midi,.m8s", appSettings.projectPath,
+  fileBrowserSetup("LOAD PROJECT", ".cct,.vt2,.mid,.midi,.m8s,.lsdsng,.sav", appSettings.projectPath,
     onProjectLoaded, onProjectCancelled);
   screenSetup(&screenFileBrowser, 0);
 }
@@ -190,7 +232,7 @@ void projectOpenFromScreen(const AppScreen* returnScreen) {
 
 void projectOpenFromScreenAtPath(const AppScreen* returnScreen, const char* path) {
   projectReturnScreen = returnScreen ? returnScreen : &screenProject;
-  fileBrowserSetup("LOAD PROJECT", ".cct,.vt2,.mid,.midi,.m8s", path,
+  fileBrowserSetup("LOAD PROJECT", ".cct,.vt2,.mid,.midi,.m8s,.lsdsng,.sav", path,
     onProjectLoaded, onProjectCancelled);
   screenSetup(&screenFileBrowser, 0);
 }

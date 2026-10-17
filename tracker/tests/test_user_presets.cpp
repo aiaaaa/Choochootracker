@@ -146,12 +146,12 @@ TEST_CASE("USER popup keeps collection visible beside presets and remembers sele
   auto before=state->project.instruments[0];
   auto select=[] {screenSelectionPopup.onInput(1,keyEdit,0);screenSelectionPopup.onInput(0,keyEdit,0);};
   openUserPresetBrowser();CHECK(currentScreen==&screenSelectionPopup);CHECK_FALSE(selectionPopupIsFullWidth());
-  screenSelectionPopup.fullRedraw();std::string cells;for(auto&row:mockGfxCells)cells.append(row,40);CHECK(cells.find("COLLECTION")!=std::string::npos);CHECK(cells.find("PRESET")!=std::string::npos);CHECK(cells.find("Bass")!=std::string::npos);
+  screenSelectionPopup.fullRedraw();std::string cells;for(auto&row:mockGfxCells)cells.append(row,40);CHECK(cells.find("COLLECTION")!=std::string::npos);CHECK(cells.find("PRESET")!=std::string::npos);CHECK(cells.find("Pack")!=std::string::npos);
   select(); // Left collection -> right presets
   CHECK(!memcmp(&before,&state->project.instruments[0],sizeof(before)));
   select(); // Acoustic Grand
   CHECK(currentScreen==&screenInstrument);CHECK(std::string(state->project.instruments[0].name)=="Acoustic Grand");
-  openUserPresetBrowser(); // Return to Bass/, not to the root.
+  openUserPresetBrowser(); // Return to the accepted upstream ZIP collection, not to the root.
   auto selected=state->project.instruments[0];
   screenSelectionPopup.onInput(1,keyOpt,0);
   CHECK(currentScreen==&screenInstrument);CHECK(!memcmp(&selected,&state->project.instruments[0],sizeof(selected)));
