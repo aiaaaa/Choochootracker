@@ -82,11 +82,16 @@ def inspect_bundle(directory):
         check('..' not in Path(relative).parts, 'Unsafe preload path')
         path = expected[entry['filename']]
         check(not path.is_symlink(), f'Symlink in runtime assets: {relative}')
-        check(entry['start'] == offset and entry['end'] >= offset,
+        start, end = entry['start'], entry['end']
+        # Optimized JS may spell an integer offset as e.g. 12e3.
+        check(isinstance(start, (int, float)) and isinstance(end, (int, float))
+              and start == int(start) and end == int(end)
+              and start == offset and end >= start and end <= len(data),
               f'Invalid preload offsets: {relative}')
-        check(data[entry['start']:entry['end']] == path.read_bytes(),
+        start, end = int(start), int(end)
+        check(data[start:end] == path.read_bytes(),
               f'Stale packaged asset: {relative}')
-        offset = entry['end']
+        offset = end
     check(offset == len(data), 'Unaccounted preload data')
     return {name: sha256((directory / name).read_bytes()) for name in sorted(REQUIRED)}
 
