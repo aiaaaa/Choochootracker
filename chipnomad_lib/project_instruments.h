@@ -227,8 +227,11 @@ struct InstrumentDrumSynth : InstrumentVoicePostSettings {
 // cross-modulation algorithm.  The six controls deliberately have a stable
 // position in the UI even though their musical interpretation varies by model.
 enum class MMEModel : uint8_t { ring, fold, cross, vpm, sync, logic, vocode, totalCount };
-struct InstrumentMonk : InstrumentVoicePostSettings {
+struct InstrumentMonk {
+  uint8_t attack, decay, sustain, release;
   uint8_t vowel, character, breath, glide, vibrato, rate;
+  uint8_t unison, detune, voiceSpread, delayMix, delayRate, level;
+  uint8_t factory;
 };
 
 struct InstrumentMME : InstrumentVoicePostSettings {

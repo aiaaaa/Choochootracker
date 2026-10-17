@@ -850,3 +850,24 @@ Validation receipts are under `.tmp/soundfont-retrigger-20261014/`. This follow-
 was subsequently selected by the owner for a new web and device personal daily.
 The two fixes remain separate commits (`7934432`, `588cfbf`); validation and
 installation receipts record the final build and rollout.
+
+
+## MONK and Lane FX handheld evaluation — October 15, 2026
+
+Integrated current upstream main (1cf6141) while preserving personal engines and
+private library paths, with Ableton Link excluded. The standalone Lane FX popup
+cleanup remains a separate upstream contribution, ahead of MONK.
+
+MONK now uses the complete native unison, envelope and stereo delay engine with
+all sixteen parameters saved in CNI/song data. Home exposes the nine performance
+controls; EDIT exposes all sixteen. Five original MIT factory presets and the
+empty USER/monk directory follow the shared browser. Removed the tracker post
+filter and duplicate envelope. At the owner's request, there is no legacy MONK
+DSP branch: migrate the two device songs and autosave directly, retaining their
+original files for rollback. Convert envelope time bytes and set Level to 40 hex
+to retain the former track mix attenuation.
+
+Handheld evaluation follow-up: the FX group list starts one row below the help
+block, and all groups use up to eight columns except the five-command Modulation
+rows. All sixteen MONK controls now appear in its synth group; the shared Trigger
+group keeps TDC/TCL without duplicate envelope entries.

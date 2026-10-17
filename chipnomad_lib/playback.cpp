@@ -67,6 +67,7 @@ static void resetNoteFX(PlaybackState* state, int trackIdx) {
 }
 
 static void resetInstrumentFX(PlaybackTrackState* track) {
+  for (int i=fxMUV; i<=fxMLV; ++i) track->note.fx[i].isOn=0;
   for (int i=fxFPT; i<=fxFSU; ++i) track->note.fx[i].isOn=0;
   track->note.fx[fxNPR].isOn=0; // Each newly triggered note starts with zero individual pressure.
   track->note.nativeFM = {};

@@ -62,3 +62,5 @@ void instrumentPresetOpenCollections();
 void instrumentPresetCycleCollection(int direction);
 void instrumentPresetOpenSounds();
 void instrumentPresetCycle(int direction);
+
+bool instrumentMonkTouchCell(int col, int row, int* targetCol, int* targetRow);

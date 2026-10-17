@@ -28,6 +28,7 @@
 #include "help.h"
 #include "fm_catalog.h"
 #include "user_presets.h"
+#include "monk_patch.h"
 #include "user_preset_browser.h"
 extern SDL_Renderer* renderer;
 static const char* output;
@@ -311,22 +312,32 @@ int main(int argc,char** argv){
       appSettings.persistentWaveform=header;screenSetup(&screenInstrument,0);appDraw();
       char name[64];snprintf(name,sizeof(name),"monk-instrument-header-%d",header);capture(name);
       const int offset=screenScopeRows(currentScreen);
-      require(screenTouchTap(11,6+offset),"vowel touch");
-      require(screenInstrumentMonk.cursorRow==3&&screenInstrumentMonk.cursorCol==0,"vowel field mapping");
-      for(int row=4;row<=8;++row)for(int column=0;column<2;++column) {
-        require(screenTouchTap(column?28:11,row+4+offset),"source/filter touch");
-        require(screenInstrumentMonk.cursorRow==row&&screenInstrumentMonk.cursorCol==column,"exact source/filter touch mapping");
+      require(screenTouchTap(11,7+offset),"vowel touch");
+      require(screenInstrumentMonk.cursorRow==4&&screenInstrumentMonk.cursorCol==0,"vowel field mapping");
+      const int homeY[]={7,9,10,11,13,14};
+      for(int row=4;row<10;++row)for(int col=0;col<screenInstrumentMonk.getColumnCount(row);++col) {
+        require(screenTouchTap(col?31:11,homeY[row-4]+offset),"home touch");
+        require(screenInstrumentMonk.cursorRow==row&&screenInstrumentMonk.cursorCol==col,"exact home control mapping");
       }
-      require(screenTouchTap(22,14+offset),"release touch");
-      require(screenInstrumentMonk.cursorRow==9&&screenInstrumentMonk.cursorCol==3,"release mapping");
-      require(!screenTouchTap(11,7+offset),"SOURCE title not editable");
+      require(!screenTouchTap(11,8+offset),"VOICE title not editable");
+      require(screenTouchTap(30,5+offset),"EDIT touch");tapEdit();require(currentScreen==&screenMonkEdit,"EDIT route");
+      snprintf(name,sizeof(name),"monk-edit-header-%d",header);capture(name);
+      const int editY[]={5,6,7,10,11,14,15,17};
+      const int parameters[][2]={{monkVowel,monkVoice},{monkBreath,monkGlide},{monkVibrato,monkVibRate},
+        {monkAttack,monkDecay},{monkSustain,monkRelease},{monkUnison,monkDetune},{monkSpread,monkLevel},{monkDelayMix,monkDelayRate}};
+      for(int row=0;row<8;++row)for(int col=0;col<2;++col) {
+        int parameter=parameters[row][col];auto* value=monkParameter(&chipnomadState->project.instruments[0].chip.monk,parameter);
+        *value=parameter==monkUnison?3:64;int before=*value;
+        require(screenTouchTap(col?31:11,editY[row]+screenScopeRows(currentScreen)),"EDIT touch mapping");
+        key(1,keyEdit|keyRight);key(0,0);require(*value==before+1,"EDIT changes exactly the selected native variable");
+      }
       screenSetup(&screenPhrase,-1);appDraw();
-      for(int fx:{fxMWV,fxMIN,fxMAM,fxMFL,fxMFB,fxMSH,fxMCF,fxMRS}) {
-        fxEditFullDraw(fx,0,0);
-        snprintf(name,sizeof(name),"monk-fx-%d-header-%d",fx,header);capture(name,false);
+      for(const auto& control:monkControls) {
+        fxEditFullDraw(control.fx,0,0);
+        snprintf(name,sizeof(name),"monk-fx-%d-header-%d",control.fx,header);capture(name,false);
       }
     }
-    printf("Monk instrument and eight effect controls: both header modes and touch mappings passed\n");
+    printf("Monk home, all sixteen EDIT and Lane FX controls: both headers and exact touch mappings passed\n");
     chipnomadDestroy(chipnomadState);SDL_Quit();return 0;
   }
   if(argc==3 && !strcmp(argv[2],"--insert-popup-only")) {

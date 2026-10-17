@@ -12,6 +12,8 @@
 #include "import_vts.h"
 #include "selection_popup.h"
 #include "simple_chip_presets.h"
+#include "user_presets.h"
+#include "user_preset_browser.h"
 #include <string.h>
 #include <stdio.h>
 #include <strings.h>
@@ -198,10 +200,15 @@ static void onInstrumentSaved(const char* folderPath) {
   getInstrumentFilename(filename, sizeof(filename));
   snprintf(fullPath, sizeof(fullPath), "%s%s%s.cni", folderPath, PATH_SEPARATOR_STR, filename);
 
+  auto& instrument = chipnomadState->project.instruments[cInstrument];
+  const bool monk = instrument.type == InstrumentType::Monk;
+  const uint8_t previousBank = monk ? instrument.chip.monk.factory : 0;
+  if (monk) instrument.chip.monk.factory = 0;
   if (instrumentSave(&chipnomadState->project, fullPath, cInstrument) == 0) {
+    if (monk) projectModified = 1;
     strncpy(appSettings.instrumentPath, folderPath, PATH_LENGTH);
     appSettings.instrumentPath[PATH_LENGTH - 1] = 0;
-  }
+  } else if (monk) instrument.chip.monk.factory = previousBank;
   screenSetup(&screenInstrument, cInstrument);
 }
 
@@ -703,7 +710,14 @@ int instrumentCommonOnEdit(int col, int row, enum CellEditAction action) {
     } else {
       char filename[32];
       getInstrumentFilename(filename, sizeof(filename));
-      fileBrowserSetupFolderMode("SAVE INSTRUMENT", appSettings.instrumentPath, filename, ".cni", onInstrumentSaved, onInstrumentCancelled);
+      UserPresets destination;
+      const char* folder = appSettings.instrumentPath;
+      if (chipnomadState->project.instruments[cInstrument].type == InstrumentType::Monk &&
+          setupUserPresetLibrary(destination, InstrumentType::Monk, false)) {
+        fileCreateDirectoryRecursive(destination.rootPath().c_str());
+        folder = destination.rootPath().c_str();
+      }
+      fileBrowserSetupFolderMode("SAVE INSTRUMENT", folder, filename, ".cni", onInstrumentSaved, onInstrumentCancelled);
       screenSetup(&screenFileBrowser, 0);
     }
   } else if (row == 1) {
@@ -848,7 +862,7 @@ int instrumentKeyJazzTextField(KeyJazzTextField* field) {
   field->popupOpen = isCharEdit;
   field->marksProjectModified = 1;
   field->str = NULL;
-  if (screen->cursorRow == 1) { field->str = chipnomadState->project.instruments[cInstrument].name; field->maxLen = PROJECT_INSTRUMENT_NAME_LENGTH; }
+  if (screen->cursorRow == 1 && chipnomadState->project.instruments[cInstrument].type != InstrumentType::Monk) { field->str = chipnomadState->project.instruments[cInstrument].name; field->maxLen = PROJECT_INSTRUMENT_NAME_LENGTH; }
   return 1;
 }
 

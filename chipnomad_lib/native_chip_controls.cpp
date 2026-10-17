@@ -1,6 +1,7 @@
 #include "project.h"
 #include "synth/multimode_filter.h"
 #include "sid_patch.h"
+#include "monk_patch.h"
 #include <cstdio>
 #include <algorithm>
 #include <cstring>
@@ -41,19 +42,15 @@ bool instrumentNativeFXInfo(const Instrument* i,int fx,NativeFXInfo* out,int op)
   }
   if (i->type == InstrumentType::Monk) {
     const auto& p = i->chip.monk;
-    int value; const char* label;
-    switch (fx) {
-      case fxMWV: value=p.vowel; label="Vowel"; break;
-      case fxMIN: value=p.character; label="Voice character"; break;
-      case fxMAM: value=p.breath; label="Breath"; break;
-      case fxMFL: value=p.glide; label="Glide"; break;
-      case fxMFB: value=p.vibrato; label="Vibrato depth"; break;
-      case fxMSH: value=p.rate; label="Vibrato rate"; break;
-      case fxMCF: value=filterControlFromCutoff(p.filterCutoffHz); label="Cutoff"; break;
-      case fxMRS: value=p.filterResonance; label="Resonance"; break;
-      default: return false;
+    for (int parameter = 0; parameter < monkParameterCount; ++parameter) {
+      const auto& control = monkControls[parameter];
+      if (control.fx == fx) {
+        *out = {control.maximum, std::clamp(monkValue(p, parameter), control.minimum, control.maximum),
+                false, control.minimum, control.name};
+        return true;
+      }
     }
-    *out = {255, value, false, 0, label}; return true;
+    return false;
   }
 
 #if CHOOCHOO_EXPERIMENTAL_SQ80ESQ

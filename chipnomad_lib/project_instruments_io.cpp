@@ -12,6 +12,7 @@
 #include "synth/sample_voice.h"
 #include "synth/sr_wavetable_loader.h"
 #include "synth/multimode_filter.h"
+#include <algorithm>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -453,14 +454,24 @@ static int loadInstrumentMonk(FILE* file, Instrument* instrument) {
   InstrumentMonk* m = &instrument->chip.monk;
   while (1) {
     char* line = peekLine(file);
-    if (line == NULL || line[0] == '#') return 0;
+    if (line == NULL || line[0] == '#') { m->unison = std::clamp(int(m->unison), 1, 10); return 0; }
     if (strncmp(line, "- Vowel: ", 9) == 0) sscanf(line, "- Vowel: %hhu", &m->vowel);
     else if (strncmp(line, "- Voice: ", 9) == 0) sscanf(line, "- Voice: %hhu", &m->character);
     else if (strncmp(line, "- Breath: ", 10) == 0) sscanf(line, "- Breath: %hhu", &m->breath);
     else if (strncmp(line, "- Glide: ", 9) == 0) sscanf(line, "- Glide: %hhu", &m->glide);
     else if (strncmp(line, "- Vibrato: ", 11) == 0) sscanf(line, "- Vibrato: %hhu", &m->vibrato);
     else if (strncmp(line, "- Vib rate: ", 12) == 0) sscanf(line, "- Vib rate: %hhu", &m->rate);
-    else loadVoicePostSetting(line, m);
+    else if (strncmp(line, "- Unison: ", 10) == 0) sscanf(line, "- Unison: %hhu", &m->unison);
+    else if (strncmp(line, "- Detune: ", 10) == 0) sscanf(line, "- Detune: %hhu", &m->detune);
+    else if (strncmp(line, "- Voice spread: ", 16) == 0) sscanf(line, "- Voice spread: %hhu", &m->voiceSpread);
+    else if (strncmp(line, "- Delay mix: ", 13) == 0) sscanf(line, "- Delay mix: %hhu", &m->delayMix);
+    else if (strncmp(line, "- Delay rate: ", 14) == 0) sscanf(line, "- Delay rate: %hhu", &m->delayRate);
+    else if (strncmp(line, "- Level: ", 9) == 0) sscanf(line, "- Level: %hhu", &m->level);
+    else if (strncmp(line, "- Monk factory: ", 16) == 0) sscanf(line, "- Monk factory: %hhu", &m->factory);
+    else if (strncmp(line, "- Attack: ", 10) == 0) sscanf(line, "- Attack: %hhu", &m->attack);
+    else if (strncmp(line, "- Decay: ", 9) == 0) sscanf(line, "- Decay: %hhu", &m->decay);
+    else if (strncmp(line, "- Sustain: ", 11) == 0) sscanf(line, "- Sustain: %hhu", &m->sustain);
+    else if (strncmp(line, "- Release: ", 11) == 0) sscanf(line, "- Release: %hhu", &m->release);
     consumeLine(file);
   }
 }
@@ -976,7 +987,18 @@ static int saveInstrumentMonk(FILE* file, Instrument* instrument) {
   fprintf(file, "- Vowel: %hhu\n", m->vowel); fprintf(file, "- Voice: %hhu\n", m->character);
   fprintf(file, "- Breath: %hhu\n", m->breath); fprintf(file, "- Glide: %hhu\n", m->glide);
   fprintf(file, "- Vibrato: %hhu\n", m->vibrato); fprintf(file, "- Vib rate: %hhu\n", m->rate);
-  saveVoicePostSettings(file, m); return 0;
+  fprintf(file, "- Unison: %hhu\n", m->unison);
+  fprintf(file, "- Detune: %hhu\n", m->detune);
+  fprintf(file, "- Voice spread: %hhu\n", m->voiceSpread);
+  fprintf(file, "- Delay mix: %hhu\n", m->delayMix);
+  fprintf(file, "- Delay rate: %hhu\n", m->delayRate);
+  fprintf(file, "- Level: %hhu\n", m->level);
+  fprintf(file, "- Monk factory: %hhu\n", m->factory);
+  fprintf(file, "- Attack: %hhu\n", m->attack);
+  fprintf(file, "- Decay: %hhu\n", m->decay);
+  fprintf(file, "- Sustain: %hhu\n", m->sustain);
+  fprintf(file, "- Release: %hhu\n", m->release);
+  return 0;
 }
 
 static int saveInstrumentMME(FILE* file, Instrument* instrument) {

@@ -104,6 +104,7 @@ struct ChipNomadState {
   AChChidVoice* achchidVoices[PROJECT_MAX_TRACKS][CHORD_MAX_VOICES];
   DrumSynthVoice* drumSynthVoices[PROJECT_MAX_TRACKS][CHORD_MAX_VOICES];
   MMEVoice* mmeVoices[PROJECT_MAX_TRACKS][CHORD_MAX_VOICES];
+  MonkSynthVoice* monkPreview;
   MonkSynthVoice* monkVoices[PROJECT_MAX_TRACKS][CHORD_MAX_VOICES];
   OPLVoice* oplVoices[PROJECT_MAX_TRACKS][CHORD_MAX_VOICES];
   OPLVoice* oplPreview;
@@ -192,6 +193,7 @@ int chipnomadQueueDX7Preview(ChipNomadState* state,int track,const InstrumentDX7
 #if CHOOCHOO_EXPERIMENTAL_SQ80ESQ
 int chipnomadQueueSQ80Preview(ChipNomadState*,int,const InstrumentSQ80*);
 #endif
+int chipnomadQueueMonkPreview(ChipNomadState* state, int track, const InstrumentMonk* patch);
 int chipnomadQueueSIDPreview(ChipNomadState* state,int track,const InstrumentSID* patch);
 int chipnomadQueueOPLLPreview(ChipNomadState* state, int track, const InstrumentOPLL* patch);
 int chipnomadQueuePlaybackStopPreview(ChipNomadState* state, int trackIdx);

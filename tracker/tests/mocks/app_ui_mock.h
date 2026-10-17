@@ -2,6 +2,7 @@
 #include "screens.h"
 
 extern char mockGfxCells[20][40];
+extern int mockTextRight, mockTextBottom;
 extern int mockCursorX, mockCursorY, mockCursorWidth;
 extern int mockQuitTriggered;
 extern ScreenData* mockScreenData;

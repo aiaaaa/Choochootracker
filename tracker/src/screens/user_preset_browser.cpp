@@ -17,7 +17,7 @@
 
 namespace {
 InstrumentType type = InstrumentType::none;
-bool factorySelected(){const auto&i=chipnomadState->project.instruments[cInstrument];return i.type==InstrumentType::SQ80ESQ&&i.chip.sq80.factory;}
+bool factorySelected(){const auto&i=chipnomadState->project.instruments[cInstrument];return i.type==InstrumentType::Monk ? i.chip.monk.factory : i.type==InstrumentType::SQ80ESQ&&i.chip.sq80.factory;}
 using LibraryKey=std::pair<InstrumentType,bool>;
 LibraryKey libraryKey(){return {type,factorySelected()};}
 std::map<LibraryKey, UserPresets> libraries;
@@ -44,7 +44,8 @@ void stop() {
   if(type==InstrumentType::SQ80ESQ)chipnomadQueueSQ80Preview(chipnomadState,*pSongTrack,nullptr);
   else
 #endif
-  if (type == InstrumentType::DX7) chipnomadQueueDX7Preview(chipnomadState, *pSongTrack, nullptr);
+  if (type == InstrumentType::Monk) chipnomadQueueMonkPreview(chipnomadState, *pSongTrack, nullptr);
+  else if (type == InstrumentType::DX7) chipnomadQueueDX7Preview(chipnomadState, *pSongTrack, nullptr);
   else if (type == InstrumentType::SID) chipnomadQueueSIDPreview(chipnomadState, *pSongTrack, nullptr);
   else if (isOPLL(type)) chipnomadQueueOPLLPreview(chipnomadState, *pSongTrack, nullptr);
   else if (isOPL(type)) chipnomadQueueOPLPreview(chipnomadState, *pSongTrack, type, nullptr);
@@ -68,7 +69,8 @@ void preview(int value, bool held) {
   if(type==InstrumentType::SQ80ESQ)chipnomadQueueSQ80Preview(chipnomadState,*pSongTrack,&i.chip.sq80);
   else
 #endif
-  if (type == InstrumentType::DX7) chipnomadQueueDX7Preview(chipnomadState, *pSongTrack, &i.chip.dx7);
+  if (type == InstrumentType::Monk) chipnomadQueueMonkPreview(chipnomadState, *pSongTrack, &i.chip.monk);
+  else if (type == InstrumentType::DX7) chipnomadQueueDX7Preview(chipnomadState, *pSongTrack, &i.chip.dx7);
   else if (type == InstrumentType::SID) chipnomadQueueSIDPreview(chipnomadState, *pSongTrack, &i.chip.sid);
   else if (isOPLL(type)) chipnomadQueueOPLLPreview(chipnomadState, *pSongTrack, &i.chip.opll);
   else if (isOPL(type)) chipnomadQueueOPLPreview(chipnomadState, *pSongTrack, type, &i.chip.opl);
@@ -89,6 +91,7 @@ void select(int value) {
     if (value < 0 || size_t(value) >= userReferences.size()) return;
     std::string error;
     if (library->load(userReferences[value], &chipnomadState->project, cInstrument, error)) {
+      if (type == InstrumentType::Monk) chipnomadState->project.instruments[cInstrument].chip.monk.factory = 0;
       rememberUserPreset(userReferences[value]);
       projectModified = 1;
       screenSetup(&screenInstrument, cInstrument);
@@ -101,6 +104,7 @@ void select(int value) {
   if (library->items()[value].kind != UserPresets::Kind::preset) {
     library->enter(value, error); show();
   } else if (library->load(value, &chipnomadState->project, cInstrument, error)) {
+    if (type == InstrumentType::Monk) chipnomadState->project.instruments[cInstrument].chip.monk.factory = 1;
     rememberUserPreset(library->reference(value));
     projectModified = 1; screenSetup(&screenInstrument, cInstrument);
   }
@@ -178,6 +182,9 @@ void show() {
   const auto& position=cursor();
   if(position.valid)for(size_t i=0;i<library->items().size();++i)
     if(samePreset(library->reference(i),position.selected))selected=int(i);
+  if (!position.valid && type == InstrumentType::Monk)
+    for (size_t i = 0; i < library->items().size(); ++i)
+      if (library->items()[i].name == chipnomadState->project.instruments[cInstrument].name) selected = int(i);
   selectionPopupSetup(title, choices.data(), int(choices.size()), selected,
                       select, back, true, preview);
   screenSetup(&screenSelectionPopup, 0);
@@ -227,6 +234,7 @@ void rememberUserPreset(const UserPresets::Reference& preset) {
   auto& position=cursor();position.valid=true;position.selected=preset;sequences[{chipnomadState->project.instruments[cInstrument].type,factorySelected()}].clear();
 }
 void cycleUserPreset(int direction) {
+  const bool factory = factorySelected();
   type=chipnomadState->project.instruments[cInstrument].type;
   library=&libraries[libraryKey()];if(!setupUserPresetLibrary(*library,type,factorySelected()))return;
   auto& position=cursor();auto& sequence=sequences[libraryKey()];std::string error;
@@ -246,6 +254,7 @@ void cycleUserPreset(int direction) {
   for(int tries=0;tries<count;++tries) {
     index=(index+(direction>0?1:-1)+count)%count;const auto& preset=sequence[index];
     if(!library->load(preset,&chipnomadState->project,cInstrument,error))continue;
+    if (type == InstrumentType::Monk) chipnomadState->project.instruments[cInstrument].chip.monk.factory = factory;
     position.selected=preset;position.valid=true;
     projectModified=1;screenSetup(&screenInstrument,cInstrument);return;
   }

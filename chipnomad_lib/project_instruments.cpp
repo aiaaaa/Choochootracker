@@ -285,15 +285,18 @@ static int initDrumSynthInstrument(Instrument* instrument) {
 static int freeDrumSynthInstrument(Instrument* instrument) { freeCommon(instrument); return 0; }
 
 static const char* modNameMonk(int index) {
-  static const char* names[] = {"-", "Volume", "Pitch", "Vowel", "Voice", "Breath", "Glide", "Vibrato", "Vib rate", "Cutoff", "Reso"};
-  return index >= 0 && index < 11 ? names[index] : "-";
+  static const char* names[] = {"-", "Volume", "Pitch", "Vowel", "Voice", "Breath", "Glide", "Vibrato", "Vib rate"};
+  return index >= 0 && index < 9 ? names[index] : "-";
 }
 static int initMonkInstrument(Instrument* instrument) {
   initCommon(instrument); instrument->type = InstrumentType::Monk;
   auto* m = &instrument->chip.monk;
+  *m = {};
   m->vowel = m->character = m->rate = 128;
-  m->breath = m->glide = m->vibrato = 0;
-  initVoicePostSettings(m); m->attack = 4; m->release = 32;
+  m->attack = m->decay = m->release = 0; m->sustain = 255;
+  m->unison = 1; m->level = 255; m->delayRate = 128;
+  m->factory = 1;
+  strcpy(instrument->name, "Init");
   return 0;
 }
 
@@ -384,7 +387,7 @@ static const InstrumentModDestination destBYOWTBL[] = {N,D("Volume",instrumentNo
 static const InstrumentModDestination destAChChid[] = {N,D("Volume",instrumentNoFX,255,InstrumentMotionValue::raw),D("Pitch",instrumentNoFX,0,InstrumentMotionValue::raw),D("Cutoff",fxACF,FILTER_CUTOFF_MAX_HZ,InstrumentMotionValue::cutoff),D("Reso",fxARS,255,InstrumentMotionValue::raw),D("EnvMod",fxAEM,255,InstrumentMotionValue::raw),D("Decay",fxADC,255,InstrumentMotionValue::raw),D("Accent",fxAAC,255,InstrumentMotionValue::raw),D("Timbre",fxATM,16384,InstrumentMotionValue::raw),D("Color",fxACL,16384,InstrumentMotionValue::raw)};
 static const InstrumentModDestination destDrumSynth[] = {N,D("Volume",instrumentNoFX,255,InstrumentMotionValue::raw),D("Pitch",instrumentNoFX,0,InstrumentMotionValue::raw),D("Decay",fxDDC,255,InstrumentMotionValue::raw),D("Tone",fxDTO,255,InstrumentMotionValue::raw),D("Sweep",fxDSW,255,InstrumentMotionValue::raw),D("Noise",fxDNO,255,InstrumentMotionValue::raw),D("FM",fxDFM,255,InstrumentMotionValue::raw),D("Drive",fxDDR,255,InstrumentMotionValue::raw),D("Cutoff",fxDCF,FILTER_CUTOFF_MAX_HZ,InstrumentMotionValue::cutoff),D("Reso",fxDRS,255,InstrumentMotionValue::raw)};
 static const InstrumentModDestination destMME[] = {N,D("Volume",instrumentNoFX,255,InstrumentMotionValue::raw),D("Pitch",instrumentNoFX,0,InstrumentMotionValue::raw),D("Waves",fxMWV,255,InstrumentMotionValue::raw),D("Interval",fxMIN,255,InstrumentMotionValue::raw),D("Amount",fxMAM,255,InstrumentMotionValue::raw),D("Flow",fxMFL,255,InstrumentMotionValue::raw),D("Feedback",fxMFB,255,InstrumentMotionValue::raw),D("Shaper",fxMSH,255,InstrumentMotionValue::raw),D("Cutoff",fxMCF,FILTER_CUTOFF_MAX_HZ,InstrumentMotionValue::cutoff),D("Reso",fxMRS,255,InstrumentMotionValue::raw)};
-static const InstrumentModDestination destMonk[] = {N,D("Volume",instrumentNoFX,255,InstrumentMotionValue::raw),D("Pitch",instrumentNoFX,0,InstrumentMotionValue::raw),D("Vowel",fxMWV,255,InstrumentMotionValue::raw),D("Voice",fxMIN,255,InstrumentMotionValue::raw),D("Breath",fxMAM,255,InstrumentMotionValue::raw),D("Glide",fxMFL,255,InstrumentMotionValue::raw),D("Vibrato",fxMFB,255,InstrumentMotionValue::raw),D("Vib rate",fxMSH,255,InstrumentMotionValue::raw),D("Cutoff",fxMCF,FILTER_CUTOFF_MAX_HZ,InstrumentMotionValue::cutoff),D("Reso",fxMRS,255,InstrumentMotionValue::raw)};
+static const InstrumentModDestination destMonk[] = {N,D("Volume",instrumentNoFX,255,InstrumentMotionValue::raw),D("Pitch",instrumentNoFX,0,InstrumentMotionValue::raw),D("Vowel",fxMWV,255,InstrumentMotionValue::raw),D("Voice",fxMIN,255,InstrumentMotionValue::raw),D("Breath",fxMAM,255,InstrumentMotionValue::raw),D("Glide",fxMFL,255,InstrumentMotionValue::raw),D("Vibrato",fxMFB,255,InstrumentMotionValue::raw),D("Vib rate",fxMSH,255,InstrumentMotionValue::raw)};
 static const InstrumentModDestination destSintered[] = {N,D("Volume",instrumentNoFX,255,InstrumentMotionValue::raw),D("Pitch",instrumentNoFX,0,InstrumentMotionValue::raw),D("Decay",fxSDC,255,InstrumentMotionValue::raw),D("Mod",fxSMD,255,InstrumentMotionValue::raw),D("A",fxSA,255,InstrumentMotionValue::raw),D("B",fxSB,255,InstrumentMotionValue::raw),D("Motion",fxSMO,255,InstrumentMotionValue::raw),D("C",fxSC,255,InstrumentMotionValue::raw),D("Cutoff",fxSCF3,FILTER_CUTOFF_MAX_HZ,InstrumentMotionValue::cutoff),D("Reso",fxSRS3,255,InstrumentMotionValue::raw)};
 static const InstrumentModDestination destMidi[] = {N};
 static const InstrumentModDestination destOPLL[] = {N,D("Volume",instrumentNoFX,255,InstrumentMotionValue::raw),D("Pitch",instrumentNoFX,0,InstrumentMotionValue::raw)};
@@ -403,7 +406,7 @@ static const InstrumentFX fxAChChid[]={F(fxASL,"ASL"),F(fxATY,"ATY"),F(fxADC,"AD
 static const InstrumentFX fxDrumSynth[]={F(fxDMD,"DMD"),F(fxDDC,"DDC"),F(fxDTO,"DTO"),F(fxDSW,"DSW"),F(fxDNO,"DNO"),F(fxDFM,"DFM"),F(fxDDR,"DDR"),F(fxDCF,"DCF"),F(fxDRS,"DRS")};
 static const InstrumentFX fxMME[]={F(fxMMD,"MMD"),F(fxMWV,"MWV"),F(fxMIN,"MIN"),F(fxMAM,"MAM"),F(fxMFL,"MFL"),F(fxMFB,"MFB"),F(fxMSH,"MSH"),F(fxMCF,"MCF"),F(fxMRS,"MRS")};
 static const InstrumentFX fxSoundFont[]={F(fxFPT,"FPT"),F(fxFCF,"FCF"),F(fxFRS,"FRS"),F(fxFAT,"FAT"),F(fxFHD,"FHD"),F(fxFDC,"FDC"),F(fxFSU,"FSU"),F(fxFRL,"FRL")};
-static const InstrumentFX fxMonk[]={F(fxMWV,"MWV"),F(fxMIN,"MIN"),F(fxMAM,"MAM"),F(fxMFL,"MFL"),F(fxMFB,"MFB"),F(fxMSH,"MSH"),F(fxMCF,"MCF"),F(fxMRS,"MRS")};
+static const InstrumentFX fxMonk[]={F(fxMWV,"MWV"),F(fxMIN,"MIN"),F(fxMAM,"MAM"),F(fxMFL,"MFL"),F(fxMFB,"MFB"),F(fxMSH,"MSH"),F(fxMUV,"MUV"),F(fxMDT,"MDT"),F(fxMVS,"MVS"),F(fxMDM,"MDM"),F(fxMDR,"MDR"),F(fxMLV,"MLV"),F(fxEAT,"EAT"),F(fxEDC,"EDC"),F(fxESU,"ESU"),F(fxERL,"ERL")};
 static const InstrumentFX fxSintered[]={F(fxSMDL,"SMD"),F(fxSDC,"SDC"),F(fxSMD,"SMP"),F(fxSA,"SMA"),F(fxSB,"SMB"),F(fxSMO,"SMO"),F(fxSC,"SMC"),F(fxSCF3,"SCF"),F(fxSRS3,"SRS")};
 static const InstrumentFX fxMidi[]={F(fxMC1,"MC1"),F(fxMC2,"MC2"),F(fxMC3,"MC3"),F(fxMC4,"MC4")};
 #undef F
@@ -443,7 +446,7 @@ static const InstrumentDefinition instrumentDefinitions[] = {
 #else
   {"SQ80 unavailable",InstrumentCategory::none,InstrumentScreenKind::none,destNone,COUNT(destNone),NULL,0,{0,modNameNone,initNoneInstrument,freeNoneInstrument,0,0}},
 #endif
-  {"MonkSynth",InstrumentCategory::synth,InstrumentScreenKind::monk,destMonk,COUNT(destMonk),fxMonk,COUNT(fxMonk),{10,modNameMonk,initMonkInstrument,freeNoneInstrument,1,0}},
+  {"MonkSynth",InstrumentCategory::synth,InstrumentScreenKind::monk,destMonk,COUNT(destMonk),fxMonk,COUNT(fxMonk),{8,modNameMonk,initMonkInstrument,freeNoneInstrument,1,0}},
   {"SOUNDFONT",InstrumentCategory::sample,InstrumentScreenKind::soundfont,destOPLL,COUNT(destOPLL),fxSoundFont,COUNT(fxSoundFont),{2,modNameOPLL,initSoundFontInstrument,freeNoneInstrument,0,0}},
 };
 #undef COUNT
@@ -549,7 +552,6 @@ InstrumentVoicePostSettings* instrumentVoicePostSettings(Instrument* instrument)
     case InstrumentType::Plaits:
     case InstrumentType::PlaitsAlt: return &instrument->chip.plaits;
     case InstrumentType::DrumSynth: return &instrument->chip.drumSynth;
-    case InstrumentType::Monk: return &instrument->chip.monk;
     case InstrumentType::MME: return &instrument->chip.mme;
     case InstrumentType::Sintered: return &instrument->chip.sintered;
     default: return NULL;
@@ -586,7 +588,7 @@ int instrumentMotionDestination(const Instrument* instrument, int destination, F
     case InstrumentType::DrumSynth:
       *base = destination == 3 ? instrument->chip.drumSynth.decay : destination == 4 ? instrument->chip.drumSynth.tone : destination == 5 ? instrument->chip.drumSynth.sweep : destination == 6 ? instrument->chip.drumSynth.noise : destination == 7 ? instrument->chip.drumSynth.fm : destination == 8 ? instrument->chip.drumSynth.drive : destination == 9 ? instrument->chip.drumSynth.filterCutoffHz : instrument->chip.drumSynth.filterResonance; break;
     case InstrumentType::Monk:
-      *base = destination == 3 ? instrument->chip.monk.vowel : destination == 4 ? instrument->chip.monk.character : destination == 5 ? instrument->chip.monk.breath : destination == 6 ? instrument->chip.monk.glide : destination == 7 ? instrument->chip.monk.vibrato : destination == 8 ? instrument->chip.monk.rate : destination == 9 ? instrument->chip.monk.filterCutoffHz : instrument->chip.monk.filterResonance; break;
+      *base = destination == 3 ? instrument->chip.monk.vowel : destination == 4 ? instrument->chip.monk.character : destination == 5 ? instrument->chip.monk.breath : destination == 6 ? instrument->chip.monk.glide : destination == 7 ? instrument->chip.monk.vibrato : instrument->chip.monk.rate; break;
     case InstrumentType::MME:
       *base = destination == 3 ? instrument->chip.mme.waves : destination == 4 ? instrument->chip.mme.interval : destination == 5 ? instrument->chip.mme.amount : destination == 6 ? instrument->chip.mme.flow : destination == 7 ? instrument->chip.mme.feedback : destination == 8 ? instrument->chip.mme.shaper : destination == 9 ? instrument->chip.mme.filterCutoffHz : instrument->chip.mme.filterResonance; break;
     case InstrumentType::Sintered:
@@ -726,8 +728,6 @@ int instrumentSetCCDestination(Instrument* instrument, int destination, uint8_t 
       else if (destination == 6) instrument->chip.monk.glide = value;
       else if (destination == 7) instrument->chip.monk.vibrato = value;
       else if (destination == 8) instrument->chip.monk.rate = value;
-      else if (destination == 9) instrument->chip.monk.filterCutoffHz = value;
-      else if (destination == 10) instrument->chip.monk.filterResonance = value;
       else return 0;
       break;
     case InstrumentType::MME:

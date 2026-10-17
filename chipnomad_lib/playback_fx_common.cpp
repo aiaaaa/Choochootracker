@@ -420,6 +420,14 @@ void initFX(PlaybackState* state, int trackIdx, const FXCell* fx, PlaybackTableS
     if(i->type!=InstrumentType::SQ80ESQ||!instrumentNativeFXInfo(i,fx->command,&info))return;
     auto& f=track->note.fx[fx->command];f.isOn=1;f.fxValue=clampInt(fx->value,info.minimum,info.maximum);return;
   }
+  if (fx->command >= fxMUV && fx->command <= fxMLV) {
+    if (track->note.instrument == EMPTY_VALUE_8 ||
+        state->p->instruments[track->note.instrument].type != InstrumentType::Monk) return;
+    auto& control = track->note.fx[fx->command];
+    control.isOn = 1;
+    control.fxValue = fx->command == fxMUV ? clampInt(fx->value, 1, 10) : fx->value;
+    return;
+  }
   if (fx->command >= fxFPT && fx->command <= fxFSU) {
     if (track->note.instrument == EMPTY_VALUE_8 ||
         state->p->instruments[track->note.instrument].type != InstrumentType::SoundFont) return;

@@ -224,6 +224,8 @@ An asterisk (`*`) appears next to a phrase that is reused in the project. You ca
 
 The FX selector shows common commands plus those supported by the instrument on that row. This avoids a long global list of engine-specific commands. ChooChooTracker supports more FX than ChipNomad.
 
+The selector keeps its compact help panel and group spacing consistent as you browse. Commands use three-character labels; the help above shows their meaning and, where available, the saved value and range. Long groups scroll to keep the selected command visible, with arrows indicating more entries.
+
 ### Controls
 
 - **OPT + EDIT** on an empty note: insert `NOTE OFF`
@@ -1308,6 +1310,10 @@ Tables `00-7F` are reserved for default instrument tables. Tables `80-FE` are in
 - **EDIT + [UP/DOWN]** on an FX name column: open the FX selection screen
 - **OPT + [DIRECTION]**: move between tables
 
+The FX picker leaves a blank row between its four-row help area and the group list.
+Command groups use up to eight columns; Modulation keeps five commands per row,
+one row for each modulation slot.
+
 ## 9. Instrument Pool and AY Wavetable
 
 ### Instrument Pool
@@ -1762,3 +1768,27 @@ Personal experiments and platform-specific controls are documented in
 [Device personal build controls](personal-controls.md). Personal song identities
 retain SQ80 = 28, MONK = 29, and SoundFont = 30; upstream SoundFont uses 28.
 The device personal build excludes Ableton Link.
+
+
+### Device personal build: MONK presets and controls
+
+MONK exposes the sixteen native MonkSynth parameters. The Instrument page keeps
+the full-width Vowel row, Voice, Breath, Glide, Vib depth, Vib rate, Voices,
+Detune and Spread. EDIT contains all sixteen controls, including the complete
+ADSR envelope, delay mix/rate, output level and patch name. The tracker-added
+filter is removed; use an insert filter when wanted.
+
+Bank switches between FACTORY and USER. Factory includes Dorje, Jamyang, Ngawang,
+Rabten and Tinley from the original MIT-licensed MonkSynth. Save starts in
+`instruments/USER/monk/`; that folder starts empty. CNI files and songs embed all
+sixteen values, so edited patches do not depend on an external preset file.
+EDIT+PLAY auditions a highlighted preset without changing the song; EDIT selects it.
+
+Values use hexadecimal 00..FF except Voices, which is 01..0A (one to ten).
+Attack, decay and release span 0..5 seconds, detune 0..50 cents, and voice spread
+0..0.5. Lane FX uses the existing six MONK commands plus MUV (voices), MDT
+(detune), MVS (spread), MDM (delay mix), MDR (delay rate), MLV (level), and the
+shared EAT/EDC/ESU/ERL envelope commands. All sixteen appear together under
+MonkSynth FX; the shared Trigger group retains TDC/TCL without duplicate envelope
+entries. Each command has a compact three-letter
+label; the popup shows its full name, saved value and range above the list.

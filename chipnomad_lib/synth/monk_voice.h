@@ -1,27 +1,27 @@
 #pragma once
-#include "../external/monksynth/voice.h"
+#include "../external/monksynth/synth_internal.h"
 #include "../project_instruments.h"
-#include "voice_post_processor.h"
 #include <cstddef>
+#include <memory>
 
-// One FOF voice per tracker chord slot. All storage is allocated at startup;
-// note changes and rendering never allocate or copy the DSP lookup tables.
+// All ten unison sources and delay storage are allocated before playback.
 class MonkSynthVoice {
  public:
   void init(float sampleRate);
-  void configure(const InstrumentMonk* instrument, float pitchCents, float gain,
-                 uint16_t cutoffHz, uint8_t resonance);
+  void configure(const InstrumentMonk*, float pitchCents, float gain);
   void noteOn();
   void noteOff();
   void kill();
-  void render(float* output, size_t frames);
+  void renderMono(float* mono, size_t frames); // Offline audition helper.
+  void render(float* interleaved, size_t frames);
   bool active() const { return active_; }
-  float envelopeLevel() const { return active_ ? post_.envelopeLevel() : 0.0f; }
-
+  float envelopeLevel() const;
  private:
-  MonkVoice voice_{};
-  VoicePostProcessor<> post_;
-  float frequency_ = 440.0f;
-  int vowel_ = -1, glide_ = -1;
-  bool active_ = false;
+  void renderChunk(float* left, float* right, size_t frames);
+  std::unique_ptr<MonkSynthEngine, decltype(&monk_synth_free)> synth_{nullptr, monk_synth_free};
+  InstrumentMonk previous_{};
+  float frequency_ = 440.0f, sampleRate_ = 48000.0f;
+  float gain_ = 1.0f, currentGain_ = 1.0f, gainCoefficient_ = 1.0f;
+  size_t silentFrames_ = 0;
+  bool active_ = false, configured_ = false, released_ = false;
 };

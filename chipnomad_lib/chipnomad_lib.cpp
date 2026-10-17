@@ -15,6 +15,7 @@
 #include "synth/drum_synth_voice.h"
 #include "synth/mme_voice.h"
 #include "synth/monk_voice.h"
+#include "monk_patch.h"
 #include "synth/sintered_voice.h"
 #include "synth/opll_voice.h"
 #include "synth/sid_voice.h"
@@ -66,7 +67,8 @@ static int instrumentFXCutoff(uint8_t value);
 static int slewEngineFX(PlaybackTrackState*, FX, int);
 static void updateInsertValues(ChipNomadState*);
 
-static void stopSQ80Preview(ChipNomadState* state) {
+static void stopPersonalPreviews(ChipNomadState* state) {
+  state->monkPreview->kill();
 #if CHOOCHOO_EXPERIMENTAL_SQ80ESQ
   state->sq80Preview->kill();
 #endif
@@ -146,7 +148,7 @@ class AudioCommandQueue {
   }
 
   int pushCommand(uint8_t type, int a = 0, int b = 0, int c = 0, int d = 0,
-                  const PhraseRow* row = NULL, const InstrumentOPLL* patch = NULL, const InstrumentOPL* opl = NULL, const InstrumentSimpleChip* simple = NULL, const InstrumentDX7* dx7 = NULL, const InstrumentFourOp* fourOp = NULL,const InstrumentSID* sid = NULL, const InstrumentSQ80* sq80 = NULL) {
+                  const PhraseRow* row = NULL, const InstrumentOPLL* patch = NULL, const InstrumentOPL* opl = NULL, const InstrumentSimpleChip* simple = NULL, const InstrumentDX7* dx7 = NULL, const InstrumentFourOp* fourOp = NULL,const InstrumentSID* sid = NULL, const InstrumentSQ80* sq80 = NULL, const InstrumentMonk* monk = NULL) {
     unsigned int head = commandHead_.load(std::memory_order_relaxed);
     unsigned int next = (head + 1) % kCommandCapacity;
     if (next == commandTail_.load(std::memory_order_acquire)) {
@@ -163,6 +165,7 @@ class AudioCommandQueue {
     if (fourOp) command.fourOp = *fourOp;
     if (sid) command.sid = *sid;
     if (sq80) command.sq80 = *sq80;
+    if (monk) command.monk = *monk;
     commandHead_.store(next, std::memory_order_release);
     return 1;
   }
@@ -206,50 +209,61 @@ class AudioCommandQueue {
         case kPreviewNote: playbackPreviewNote(playback, command.a, (uint8_t)command.b, (uint8_t)command.c); break;
         #if CHOOCHOO_EXPERIMENTAL_SQ80ESQ
         case 18:
-          state->sq80Preview->kill();stopSQ80Preview(state);state->sidPreview->kill();state->fourOpPreview->kill();state->dx7Preview->kill();state->opllPreview->kill();state->oplPreview->kill();state->simpleChipPreview->kill();
+          state->sq80Preview->kill();stopPersonalPreviews(state);state->sidPreview->kill();state->fourOpPreview->kill();state->dx7Preview->kill();state->opllPreview->kill();state->oplPreview->kill();state->simpleChipPreview->kill();
           state->opllPreviewTrack=-1;
           if(command.b&&!playbackIsPlaying(playback)){state->chipPreviewType=InstrumentType::SQ80ESQ;state->opllPreviewTrack=command.a;state->sq80Preview->configure(&command.sq80,6000,.7f);state->sq80Preview->noteOn();}
           break;
 #endif
+        case 19:
+          stopPersonalPreviews(state);
+          state->sidPreview->kill(); state->fourOpPreview->kill(); state->dx7Preview->kill();
+          state->opllPreview->kill(); state->oplPreview->kill(); state->simpleChipPreview->kill();
+          state->opllPreviewTrack = -1;
+          if (command.b && !playbackIsPlaying(playback)) {
+            state->opllPreviewTrack = command.a; state->chipPreviewType = InstrumentType::Monk;
+            state->monkPreview->configure(&command.monk, 6000, .7f);
+            state->monkPreview->noteOn();
+          }
+          break;
         case 16:
           if(command.b&&!playbackIsPlaying(playback)) {
-            stopSQ80Preview(state);state->sidPreview->kill();state->fourOpPreview->kill();state->dx7Preview->kill();state->opllPreview->kill();state->oplPreview->kill();state->simpleChipPreview->kill();
+            stopPersonalPreviews(state);state->sidPreview->kill();state->fourOpPreview->kill();state->dx7Preview->kill();state->opllPreview->kill();state->oplPreview->kill();state->simpleChipPreview->kill();
             state->opllPreviewTrack=command.a;state->chipPreviewType=InstrumentType::SID;
             state->sidPreview->configure(&command.sid,6000,.7f);state->sidPreview->noteOn();
-          }else if(!command.b){stopSQ80Preview(state);state->sidPreview->kill();state->opllPreviewTrack=-1;}
+          }else if(!command.b){stopPersonalPreviews(state);state->sidPreview->kill();state->opllPreviewTrack=-1;}
           break;
         case 15:
           if(command.b&&!playbackIsPlaying(playback)) {
-            stopSQ80Preview(state);state->sidPreview->kill();state->fourOpPreview->kill();state->dx7Preview->kill();state->opllPreview->kill();state->oplPreview->kill();state->simpleChipPreview->kill();
+            stopPersonalPreviews(state);state->sidPreview->kill();state->fourOpPreview->kill();state->dx7Preview->kill();state->opllPreview->kill();state->oplPreview->kill();state->simpleChipPreview->kill();
             state->opllPreviewTrack=command.a;state->chipPreviewType=(InstrumentType)command.c;
             state->fourOpPreview->configure((InstrumentType)command.c,&command.fourOp,6000,.7f);state->fourOpPreview->noteOn();
-          }else if(!command.b){stopSQ80Preview(state);state->sidPreview->kill();state->fourOpPreview->kill();state->opllPreviewTrack=-1;}
+          }else if(!command.b){stopPersonalPreviews(state);state->sidPreview->kill();state->fourOpPreview->kill();state->opllPreviewTrack=-1;}
           break;
         case 14:
           if(command.b&&!playbackIsPlaying(playback)) {
-            stopSQ80Preview(state);state->sidPreview->kill();state->fourOpPreview->kill();state->dx7Preview->kill();state->opllPreview->kill();state->oplPreview->kill();state->simpleChipPreview->kill();
+            stopPersonalPreviews(state);state->sidPreview->kill();state->fourOpPreview->kill();state->dx7Preview->kill();state->opllPreview->kill();state->oplPreview->kill();state->simpleChipPreview->kill();
             state->opllPreviewTrack=command.a;state->chipPreviewType=InstrumentType::DX7;
             state->dx7Preview->voices[0].configure(&command.dx7,6000,.7f);state->dx7Preview->voices[0].noteOn();
-          }else if(!command.b){stopSQ80Preview(state);state->sidPreview->kill();state->fourOpPreview->kill();state->dx7Preview->kill();state->opllPreviewTrack=-1;}
+          }else if(!command.b){stopPersonalPreviews(state);state->sidPreview->kill();state->fourOpPreview->kill();state->dx7Preview->kill();state->opllPreviewTrack=-1;}
           break;
         case kSimplePreview:
           if(command.b && !playbackIsPlaying(playback)) {
-            stopSQ80Preview(state);state->sidPreview->kill();state->fourOpPreview->kill();state->dx7Preview->kill();state->opllPreview->kill();state->oplPreview->kill();state->simpleChipPreview->kill();
+            stopPersonalPreviews(state);state->sidPreview->kill();state->fourOpPreview->kill();state->dx7Preview->kill();state->opllPreview->kill();state->oplPreview->kill();state->simpleChipPreview->kill();
             state->opllPreviewTrack=command.a;state->chipPreviewType=(InstrumentType)command.c;
             state->simpleChipPreview->configure((InstrumentType)command.c,&command.simple,6000,.7f);state->simpleChipPreview->noteOn();
           }else if(!command.b){state->simpleChipPreview->kill();state->opllPreviewTrack=-1;}
           break;
         case kOPLPreview:
           if (command.b && !playbackIsPlaying(playback)) {
-            stopSQ80Preview(state);state->sidPreview->kill();state->fourOpPreview->kill();state->dx7Preview->kill();state->opllPreview->kill(); state->oplPreview->kill();state->simpleChipPreview->kill();state->opllPreviewTrack=command.a;state->chipPreviewType=(InstrumentType)command.c;
+            stopPersonalPreviews(state);state->sidPreview->kill();state->fourOpPreview->kill();state->dx7Preview->kill();state->opllPreview->kill(); state->oplPreview->kill();state->simpleChipPreview->kill();state->opllPreviewTrack=command.a;state->chipPreviewType=(InstrumentType)command.c;
             state->oplPreview->configure((InstrumentType)command.c,&command.opl,6000,.7f);state->oplPreview->noteOn();
           } else if (!command.b) {state->oplPreview->kill();state->opllPreviewTrack=-1;}
           break;
         case kChipPreview:
           if (command.b && !playbackIsPlaying(playback)) {
-            stopSQ80Preview(state);state->sidPreview->kill();state->fourOpPreview->kill();state->dx7Preview->kill();state->opllPreview->kill(); state->oplPreview->kill();state->simpleChipPreview->kill(); state->chipPreviewType = InstrumentType::OPLL; state->opllPreviewTrack = command.a;
+            stopPersonalPreviews(state);state->sidPreview->kill();state->fourOpPreview->kill();state->dx7Preview->kill();state->opllPreview->kill(); state->oplPreview->kill();state->simpleChipPreview->kill(); state->chipPreviewType = InstrumentType::OPLL; state->opllPreviewTrack = command.a;
             state->opllPreview->configure(&command.patch, 6000, .7f); state->opllPreview->noteOn();
-          } else if (!command.b) { stopSQ80Preview(state);state->sidPreview->kill();state->fourOpPreview->kill();state->dx7Preview->kill();state->opllPreview->kill(); state->oplPreview->kill();state->simpleChipPreview->kill(); state->opllPreviewTrack = -1; }
+          } else if (!command.b) { stopPersonalPreviews(state);state->sidPreview->kill();state->fourOpPreview->kill();state->dx7Preview->kill();state->opllPreview->kill(); state->oplPreview->kill();state->simpleChipPreview->kill(); state->opllPreviewTrack = -1; }
           break;
         case kStopPreview: playbackStopPreview(playback, command.a); break;
         case kClearTrackFX: memset(playback->tracks[command.a].note.fx, 0, sizeof(playback->tracks[command.a].note.fx)); break;
@@ -298,7 +312,7 @@ class AudioCommandQueue {
     Project project;
     BeadsPool::Handle beads[BeadsPool::capacity];
   };
-  struct AudioCommand { uint8_t type; int a, b, c, d; PhraseRow row; InstrumentOPLL patch; InstrumentOPL opl; InstrumentSimpleChip simple; InstrumentDX7 dx7; InstrumentFourOp fourOp; InstrumentSID sid; InstrumentSQ80 sq80; };
+  struct AudioCommand { uint8_t type; int a, b, c, d; PhraseRow row; InstrumentOPLL patch; InstrumentOPL opl; InstrumentSimpleChip simple; InstrumentDX7 dx7; InstrumentFourOp fourOp; InstrumentSID sid; InstrumentSQ80 sq80; InstrumentMonk monk; };
   // kStartPhraseRowFull is appended after upstream's preview commands so the
   // raw command IDs 14/15/16 used by applyCommands keep their meaning.
   enum CommandType { kStartSong, kStartChain, kStartPhrase, kStartPhraseRow, kQueuePhrase, kPreviewNote, kStopPreview, kClearTrackFX, kStartLiveChain, kQueueLiveChain, kSetScale, kChipPreview, kOPLPreview, kSimplePreview, kStartPhraseRowFull = 17 };
@@ -813,6 +827,7 @@ ChipNomadState* chipnomadCreate(void) {
   state->masterEffects = new MasterEffects();
   state->masterEffects->init(96000.0f);
 
+  state->monkPreview = new MonkSynthVoice(); state->monkPreview->init(96000);
   state->sidPreview=new SIDVoice();state->sidPreview->init(96000);
 #if CHOOCHOO_EXPERIMENTAL_SQ80ESQ
   state->sq80Preview=new SQ80Voice();state->sq80Preview->init(96000);
@@ -875,6 +890,7 @@ void chipnomadDestroy(ChipNomadState* state) {
     }
   }
 
+  delete state->monkPreview;
   delete state->sidPreview;
 #if CHOOCHOO_EXPERIMENTAL_SQ80ESQ
   delete state->sq80Preview;
@@ -957,6 +973,7 @@ void chipnomadInitChips(ChipNomadState* state, int sampleRate, ChipFactory facto
   state->masterInsertChain = new(std::nothrow) InsertChain((float)sampleRate);
   if (state->masterInsertChain)
     state->masterInsertChain->sync(state->audioProject.masterInserts, &state->masterInsertAutomation);
+  state->monkPreview->init((float)sampleRate);
   state->sidPreview->init((float)sampleRate);
 #if CHOOCHOO_EXPERIMENTAL_SQ80ESQ
   state->sq80Preview->init((float)sampleRate);
@@ -1155,7 +1172,7 @@ static int advancePlaybackFrame(ChipNomadState* state, uint64_t dueMicros) {
   if (state->audioCommands->takeStopRequest()) {
     chipnomadMidiPanic(state);
     playbackStop(&state->playbackState);
-    stopSQ80Preview(state);state->sidPreview->kill();state->fourOpPreview->kill();state->dx7Preview->kill();state->opllPreview->kill(); state->oplPreview->kill();state->simpleChipPreview->kill(); state->opllPreviewTrack = -1;
+    stopPersonalPreviews(state);state->sidPreview->kill();state->fourOpPreview->kill();state->dx7Preview->kill();state->opllPreview->kill(); state->oplPreview->kill();state->simpleChipPreview->kill(); state->opllPreviewTrack = -1;
   }
   for (int t = 0; t < PROJECT_MAX_TRACKS; ++t) {
     if (!state->insertChains[t]) continue;
@@ -1210,7 +1227,7 @@ static int advancePlaybackFrame(ChipNomadState* state, uint64_t dueMicros) {
   detectAYPitchConflicts(state);
   state->audioCommands->publishStatus(&state->playbackState);
   if (playbackIsPlaying(&state->playbackState) && state->opllPreviewTrack >= 0) {
-    stopSQ80Preview(state);state->sidPreview->kill();state->fourOpPreview->kill();state->dx7Preview->kill();state->opllPreview->kill(); state->oplPreview->kill();state->simpleChipPreview->kill(); state->opllPreviewTrack = -1;
+    stopPersonalPreviews(state);state->sidPreview->kill();state->fourOpPreview->kill();state->dx7Preview->kill();state->opllPreview->kill(); state->oplPreview->kill();state->simpleChipPreview->kill(); state->opllPreviewTrack = -1;
   }
   return allTracksStopped && state->opllPreviewTrack < 0 && !state->masterEffects->tailActive();
 }
@@ -1395,7 +1412,7 @@ int chipnomadRender(ChipNomadState* state, float* buffer, int samples) {
     renderMonoVoiceTracks(state, state->achchidVoices, output, frames);
     renderMonoVoiceTracks(state, state->drumSynthVoices, output, frames);
     renderMonoVoiceTracks(state, state->mmeVoices, output, frames);
-    renderMonoVoiceTracks(state, state->monkVoices, output, frames);
+    renderStereoVoiceTracks(state, state->monkVoices, output, frames, true);
     renderMonoVoiceTracks(state, state->sinteredVoices, output, frames);
     renderMonoVoiceTracks(state, state->opllVoices, output, frames);
     for(int t=0;t<state->audioProject.tracksCount;++t) {
@@ -1429,11 +1446,11 @@ int chipnomadRender(ChipNomadState* state, float* buffer, int samples) {
 #endif
     if (state->opllPreviewTrack >= 0 && state->playbackState.trackEnabled[state->opllPreviewTrack]) {
       const int track = state->opllPreviewTrack;
-      bool opl = isOPL(state->chipPreviewType)||isFourOp(state->chipPreviewType)||state->chipPreviewType==InstrumentType::SQ80ESQ;
+      bool opl = state->chipPreviewType == InstrumentType::Monk || isOPL(state->chipPreviewType)||isFourOp(state->chipPreviewType)||state->chipPreviewType==InstrumentType::SQ80ESQ;
 #if CHOOCHOO_EXPERIMENTAL_SQ80ESQ
       if(state->chipPreviewType==InstrumentType::SQ80ESQ){state->sq80Preview->render(state->mixBuffer,frames);}else
 #endif
-      if(state->chipPreviewType==InstrumentType::SID)state->sidPreview->render(state->mixBuffer,frames);else if(state->chipPreviewType==InstrumentType::DX7)state->dx7Preview->render(state->mixBuffer,frames);else if(isFourOp(state->chipPreviewType))state->fourOpPreview->render(state->mixBuffer,frames);else if (opl) state->oplPreview->render(state->mixBuffer,frames);else if(isSimpleChip(state->chipPreviewType))state->simpleChipPreview->render(state->mixBuffer,frames);else state->opllPreview->render(state->mixBuffer, frames);
+      if(state->chipPreviewType==InstrumentType::Monk)state->monkPreview->render(state->mixBuffer,frames);else if(state->chipPreviewType==InstrumentType::SID)state->sidPreview->render(state->mixBuffer,frames);else if(state->chipPreviewType==InstrumentType::DX7)state->dx7Preview->render(state->mixBuffer,frames);else if(isFourOp(state->chipPreviewType))state->fourOpPreview->render(state->mixBuffer,frames);else if (opl) state->oplPreview->render(state->mixBuffer,frames);else if(isSimpleChip(state->chipPreviewType))state->simpleChipPreview->render(state->mixBuffer,frames);else state->opllPreview->render(state->mixBuffer, frames);
       float gain = state->audioProject.trackVolume[track] / 100.0f * (opl ? 1.0f : 0.25f);
       float reverbSend = effectiveTrackSend(state, track, true);
       float delaySend = effectiveTrackSend(state, track, false);
@@ -2077,7 +2094,7 @@ static void updateMonkVoices(ChipNomadState* state) {
     InstrumentMonk* m = &project->instruments[track->note.instrument].chip.monk;
     int vowel = m->vowel, character = m->character, breath = m->breath;
     int glide = m->glide, vibrato = m->vibrato, rate = m->rate;
-    int cutoff = m->filterCutoffHz, resonance = m->filterResonance, pitch = 0;
+    int pitch = 0;
     float gain = phraseGain(playback, track, &project->instruments[track->note.instrument]);
     vowel = slewEngineFX(track, fxMWV, track->note.fx[fxMWV].isOn ? track->note.fx[fxMWV].fxValue : vowel);
     character = slewEngineFX(track, fxMIN, track->note.fx[fxMIN].isOn ? track->note.fx[fxMIN].fxValue : character);
@@ -2085,8 +2102,6 @@ static void updateMonkVoices(ChipNomadState* state) {
     glide = slewEngineFX(track, fxMFL, track->note.fx[fxMFL].isOn ? track->note.fx[fxMFL].fxValue : glide);
     vibrato = slewEngineFX(track, fxMFB, track->note.fx[fxMFB].isOn ? track->note.fx[fxMFB].fxValue : vibrato);
     rate = slewEngineFX(track, fxMSH, track->note.fx[fxMSH].isOn ? track->note.fx[fxMSH].fxValue : rate);
-    cutoff = instrumentFXCutoff(slewEngineFX(track, fxMCF, track->note.fx[fxMCF].isOn ? track->note.fx[fxMCF].fxValue : filterControlFromCutoff(cutoff)));
-    resonance = slewEngineFX(track, fxMRS, track->note.fx[fxMRS].isOn ? track->note.fx[fxMRS].fxValue : resonance);
     for (int i = 0; i < 4; ++i) {
       PlaybackModState* mod = &track->note.modulation[i]; if (!mod->modulation) continue;
       int value = playbackModScaleToRange(mod->outValue, 255);
@@ -2095,30 +2110,31 @@ static void updateMonkVoices(ChipNomadState* state) {
         case 2: pitch += playbackModScaleToRange(mod->outValue, 1200); break;
         case 3: vowel += value; break; case 4: character += value; break; case 5: breath += value; break;
         case 6: glide += value; break; case 7: vibrato += value; break; case 8: rate += value; break;
-        case 9: cutoff = playbackModulateCutoff(cutoff, mod); break; case 10: resonance += value; break;
       }
     }
     InstrumentMonk configured = *m;
+    for (int parameter = monkUnison; parameter < monkParameterCount; ++parameter) {
+      const auto& control = monkControls[parameter];
+      int value = track->note.fx[control.fx].isOn ? track->note.fx[control.fx].fxValue : monkValue(*m, parameter);
+      // Voice count is discrete; the native engine smooths its gain transition.
+      if (parameter != monkUnison) value = slewEngineFX(track, (FX)control.fx, value);
+      *monkParameter(&configured, parameter) = std::clamp(value, control.minimum, control.maximum);
+    }
     configured.vowel = (uint8_t)clampInt(vowel, 0, 255); configured.character = (uint8_t)clampInt(character, 0, 255);
     configured.breath = (uint8_t)clampInt(breath, 0, 255); configured.glide = (uint8_t)clampInt(glide, 0, 255);
     configured.vibrato = (uint8_t)clampInt(vibrato, 0, 255); configured.rate = (uint8_t)clampInt(rate, 0, 255);
     int attack = configured.attack, decay = configured.decay, sustain = configured.sustain, release = configured.release;
-    int shape = configured.envelopeShape, triggerDecay = 0, triggerColor = 0;
     if (track->note.fx[fxEAT].isOn) attack = track->note.fx[fxEAT].fxValue;
     if (track->note.fx[fxEDC].isOn) decay = track->note.fx[fxEDC].fxValue;
     if (track->note.fx[fxESU].isOn) sustain = track->note.fx[fxESU].fxValue;
     if (track->note.fx[fxERL].isOn) release = track->note.fx[fxERL].fxValue;
-    if (track->note.fx[fxESH].isOn) shape = track->note.fx[fxESH].fxValue;
-    applyVoicePostModulations(track, InstrumentType::Monk, &attack, &decay, &sustain, &release,
-                              &shape, &triggerDecay, &triggerColor);
     configured.attack = (uint8_t)attack; configured.decay = (uint8_t)decay; configured.sustain = (uint8_t)sustain;
-    configured.release = (uint8_t)release; configured.envelopeShape = (uint8_t)shape;
+    configured.release = (uint8_t)release;
     for (int slot = 0; slot < track->chordVoiceCount; ++slot) {
       uint8_t note = track->chordPitchFinal[slot];
       int cents = note == EMPTY_VALUE_8 ? 6000 :
         (project->linearPitch ? project->pitchTable.values[note] : (note + 12) * 100) + track->note.fineOffset + pitch;
-      voices[slot]->configure(&configured, (float)cents, (gain < 0.0f ? 0.0f : gain) / track->chordVoiceCount,
-        (uint16_t)clampInt(cutoff, FILTER_CUTOFF_MIN_HZ, FILTER_CUTOFF_MAX_HZ), (uint8_t)clampInt(resonance, 0, 255));
+      voices[slot]->configure(&configured, (float)cents, (gain < 0.0f ? 0.0f : gain) / track->chordVoiceCount);
     }
   }
 }
@@ -2743,6 +2759,12 @@ static void updateSIDVoices(ChipNomadState* state) {
       voices[v]->configure(&configured, cents, gain / track->chordVoiceCount);
     }
   }
+}
+
+int chipnomadQueueMonkPreview(ChipNomadState* state, int track, const InstrumentMonk* patch) {
+  if (!state || !state->audioCommands || track < 0 || track >= PROJECT_MAX_TRACKS) return 0;
+  return state->audioCommands->pushCommand(19, track, patch ? 1 : 0, 0, 0,
+    nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, patch);
 }
 
 int chipnomadQueueSIDPreview(ChipNomadState* state,int track,const InstrumentSID* patch){

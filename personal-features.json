@@ -839,5 +839,24 @@
       "SoundFont": 30
     },
     "excluded": "Ableton Link; Vita and web deployment unchanged"
+  },
+  "monk_revision_20261015": {
+    "parameters": 16,
+    "home_controls": 9,
+    "factory_presets": [
+      "Dorje",
+      "Jamyang",
+      "Ngawang",
+      "Rabten",
+      "Tinley"
+    ],
+    "user_folder": "instruments/USER/monk",
+    "native_unison": true,
+    "native_stereo_delay": true,
+    "legacy_dsp_branch": false,
+    "song_migration": "Two saved songs and autosave; original files backed up",
+    "evaluation": "Initial handheld build installed and evaluated; picker follow-up",
+    "picker_controls": "All 16 in MonkSynth FX; eight columns; shared Trigger group contains TDC/TCL",
+    "picker_layout": "One blank row below help; eight columns except five per Modulation slot"
   }
 }
