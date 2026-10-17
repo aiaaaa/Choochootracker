@@ -633,6 +633,9 @@ void instrumentCommonDrawEnvelopePreview(uint8_t attack, uint8_t decay, uint8_t 
   drawEnvelopePreviewSegment(bitmap, releaseStart, sustainLevel, width, 0.0f, shape);
   gfxSetFgColor(appSettings.colorScheme.textTitles);
   const int column = 6;
+  // The waveform redraw clears rows 16–18; the envelope also occupies row 15.
+  // Clear that uncovered strip so incremental edits cannot retain the old curve.
+  gfxClearRect(column, 15, columns, 1);
   gfxDrawBitmap(bitmap, column, 15);
 }
 

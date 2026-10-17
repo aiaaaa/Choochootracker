@@ -312,15 +312,15 @@ int main(int argc,char** argv){
       appSettings.persistentWaveform=header;screenSetup(&screenInstrument,0);appDraw();
       char name[64];snprintf(name,sizeof(name),"monk-instrument-header-%d",header);capture(name);
       const int offset=screenScopeRows(currentScreen);
-      require(screenTouchTap(11,7+offset),"vowel touch");
+      require(screenTouchTap(11,9+offset),"vowel touch");
       require(screenInstrumentMonk.cursorRow==4&&screenInstrumentMonk.cursorCol==0,"vowel field mapping");
-      const int homeY[]={7,9,10,11,13,14};
+      const int homeY[]={9,10,11,12,14,15};
       for(int row=4;row<10;++row)for(int col=0;col<screenInstrumentMonk.getColumnCount(row);++col) {
         require(screenTouchTap(col?31:11,homeY[row-4]+offset),"home touch");
         require(screenInstrumentMonk.cursorRow==row&&screenInstrumentMonk.cursorCol==col,"exact home control mapping");
       }
       require(!screenTouchTap(11,8+offset),"VOICE title not editable");
-      require(screenTouchTap(30,5+offset),"EDIT touch");tapEdit();require(currentScreen==&screenMonkEdit,"EDIT route");
+      require(screenTouchTap(30,7+offset),"EDIT touch");tapEdit();require(currentScreen==&screenMonkEdit,"EDIT route");
       snprintf(name,sizeof(name),"monk-edit-header-%d",header);capture(name);
       const int editY[]={5,6,7,10,11,14,15,17};
       const int parameters[][2]={{monkVowel,monkVoice},{monkBreath,monkGlide},{monkVibrato,monkVibRate},
@@ -628,12 +628,12 @@ int main(int argc,char** argv){
     require(currentScreen == &screenSelectionPopup && selectionPopupIsFullWidth(),
             "insert chooser opens full width");
     capture(header ? "insert-chooser-header-on" : "insert-chooser-header-off");
-    key(1, keyUp); key(1, keyRight); key(1, keyDown);
-    capture("insert-dynamics-ott");
+    key(1, keyUp); key(1, keyRight);
+    capture("insert-mix-ott");
     tapEdit();
     require(currentScreen == &screenInsertFX, "insert choice returns to page");
     require(chipnomadState->project.trackInserts[0][0].module == insertOTT,
-            "Dynamics category selects OTT");
+            "Mix category selects OTT");
     insertSelect(&chipnomadState->project.trackInserts[0][0], insertOff);
   }
   // This harness calls screen input directly; normal app button release clears tips.
@@ -768,7 +768,15 @@ int main(int argc,char** argv){
     auto incremental=pixels();currentScreen->fullRedraw();appDraw();auto clean=pixels();
     // Below row 6 excludes the independently refreshed persistent waveform.
     int start=(6+gfxGetContentRowOffset())*gfxGetCharHeight()*640;
-    require(std::equal(incremental.begin()+start,incremental.end(),clean.begin()+start),"ADSR incremental pixels match full redraw");
+    if (!std::equal(incremental.begin()+start,incremental.end(),clean.begin()+start)) {
+      fprintf(stderr,"ADSR mismatch: engine=%d header=%d rows:",int(type),header);
+      for(int y=start/640;y<480;++y) {
+        int changed=0;for(int x=0;x<640;++x)changed+=incremental[y*640+x]!=clean[y*640+x];
+        if(changed)fprintf(stderr," %d:%d",y,changed);
+      }
+      fprintf(stderr,"\n");capture("adsr-mismatch-clean",false);
+      require(false,"ADSR incremental pixels match full redraw");
+    }
     char name[64];snprintf(name,sizeof(name),"adsr-%d-header-%d",int(type),header);capture(name);
   }
   printf("ADSR pixel regression passed: ten engines, header off/on, twelve edits each\n");
