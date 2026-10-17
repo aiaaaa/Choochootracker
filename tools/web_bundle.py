@@ -56,9 +56,13 @@ def inspect_bundle(directory):
     for symbol in ('webQueueButton', 'webLoadProject', 'webSaveProject',
                    'webSaveBrowserState', 'webSetPageHidden', 'webRestartAudio', 'webLoadSQ80Banks', 'IDBFS'):
         check(symbol in js, f'Missing browser integration: {symbol}')
-    match = re.search(r'loadPackage\((\{"files":.*?\})\);', js)
+    # Emscripten's optimized JS drops quotes around object keys and the
+    # trailing semicolon. Keep parsing data without executing generated JS.
+    match = re.search(r'loadPackage\((\{(?:"files"|files):.*?\})\)', js)
     check(match, 'Cannot find Emscripten preload metadata; inspect SDK output')
-    package = json.loads(match[1])
+    metadata = re.sub(r'"(?:\\.|[^"\\])*"|([A-Za-z_][A-Za-z_0-9]*)(?=\s*:)',
+                      lambda token: json.dumps(token[1]) if token[1] else token[0], match[1])
+    package = json.loads(metadata)
     data = (directory / 'choochootracker.data').read_bytes()
     check(package['remote_package_size'] == len(data), 'Preload data size mismatch')
     tracked = set(git('ls-files', '--', 'tracker/packaging/common').splitlines())
