@@ -1,3 +1,4 @@
+#include <algorithm>
 #include "chip_program.h"
 #include "sq80_patch.h"
 #include "project.h"

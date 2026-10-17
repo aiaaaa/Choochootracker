@@ -29,6 +29,8 @@ Thorough human testing is strongly encouraged. Hunt for edge cases, do stupid th
 
 ## Getting started
 
+The personal build does not use Ableton Link or Asio submodules. Clone normally; do not fetch those SDKs for this target.
+
 Open an issue if you want to discuss a larger idea before writing code. For a small fix, a pull request with a short description is usually enough.
 
 Thank you for helping keep ChooChooTracker focused, playable, and fun.

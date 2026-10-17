@@ -1,5 +1,19 @@
 # My R36H build
 
+## October 17 main harmonization
+
+Both personal targets incorporate upstream main through `f1f9f197`, using the
+privacy-cleaned equivalent history. The accepted MONK controls and ALL bank,
+FORMANT insert, long tick-based LFOs, insert-menu layout, audio-input recorder
+and synchronized tape echo are shared with upstream. SQ80/ESQ, Lucky, personal
+appearance, browser persistence and the approved rough demos remain included.
+Existing personal instrument and FX identities remain stable. Ableton Link,
+its SDKs, build flags, controls and runtime are excluded from both targets.
+
+The device and web are selected for this update; earlier web holds are
+superseded. Build and deployment receipts identify the exact tested commit.
+Private songs, settings and USER banks are preserved. Vita remains paused.
+
 ## October 15 handheld upstream reconciliation
 
 The handheld candidate integrates upstream `1cf6141`, including the accepted

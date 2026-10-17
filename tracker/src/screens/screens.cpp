@@ -6,6 +6,8 @@
 #include <string.h>
 #include "screens.h"
 #include "screen_settings.h"
+#include "screen_audio_input.h"
+#include "../audio_input_manager.h"
 #include "screen_export.h"
 #include "chipnomad_lib.h"
 #include "corelib_gfx.h"
@@ -19,6 +21,21 @@ static ScreenData* touchScreenData = NULL;
 
 static int messageTimer = -1;
 static char messageBuffer[42] = "";
+
+// Audio-restart notice: shown in the helper box (row 19) while the audio
+// handler rebuilds after a device disconnect. Independent of the message
+// system so it can appear on any screen and outlive timed messages.
+static int audioRestartNoticeFrames = 0;
+static int audioRestartAnimationFrame = 0;
+
+void screenNotifyAudioRestart(void) {
+  audioRestartNoticeFrames = 180; // ~3 s at 60 fps
+  audioRestartAnimationFrame = 0;
+}
+
+int screenAudioRestartActive(void) {
+  return audioRestartNoticeFrames > 0;
+}
 
 static AppScreen const* pendingScreen;
 static int pendingScreenInput;
@@ -129,8 +146,27 @@ void screenDraw() {
     drawScreenMap();
 
   ScreenOverlayCoordinates overlay;
-  // Draw cached message
-  if (strlen(messageBuffer) > 0
+  // Audio-restart notice overrides the message area while active. The text
+  // is longer than one screen row, so it scrolls through the helper box
+  // (same wrap-around window as the device-name marquee).
+  if (audioRestartNoticeFrames > 0) {
+    audioRestartNoticeFrames--;
+    static const char noticeText[] = "Input disconnected: Restarting audio handler";
+    const int textLength = (int)sizeof(noticeText) - 1;
+    const int period = textLength + 3; // trailing gap before the wrap
+    // Advance the window every other frame (~30 chars/s: readable scroll).
+    if (++audioRestartAnimationFrame >= period * 2) audioRestartAnimationFrame = 0;
+    const int offset = audioRestartAnimationFrame / 2;
+    char window[41];
+    for (int i = 0; i < 40; ++i) {
+      const int pos = (offset + i) % period;
+      window[i] = pos < textLength ? noticeText[pos] : ' ';
+    }
+    window[40] = '\0';
+    gfxSetFgColor(appSettings.colorScheme.textValue);
+    gfxClearRect(0, 19, 40, 1);
+    gfxPrint(0, 19, window);
+  } else if (strlen(messageBuffer) > 0
       && currentScreen != &screenTitle
       ) {
     gfxSetFgColor(appSettings.colorScheme.textDefault);
@@ -380,9 +416,12 @@ static int screenTouchCellAt(int col, int row, int* targetCol, int* targetRow) {
     return 1;
   }
   if (currentScreen == &screenProject) {
-    const int fieldY[] = {3, 5, 6, 7, 9, 10, 11, 12, 13, 14, 16};
+    // Field y-coordinates: row 0 buttons at y=3, File/Title/Author at
+    // y=5/6/7, Linear pitch y=9, Clock source y=10, Tempo y=11, then the
+    // AY-specific rows (chip type, PWM, AY clock, pitch table, scale).
+    const int fieldY[] = {3, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15, 17};
     int field = -1, column = 0;
-    for (int i = 0; i < touchScreenData->rows && i < 11; ++i)
+    for (unsigned i = 0; i < sizeof(fieldY) / sizeof(fieldY[0]); ++i)
       if (row == fieldY[i]) field = i;
     if (field < 0) return 0;
     if (field == 0) {
@@ -397,7 +436,6 @@ static int screenTouchCellAt(int col, int row, int* targetCol, int* targetRow) {
       if (col < 0 || col >= 5) return 0;
     } else {
       if (col < 13 || col >= 34) return 0;
-      if (field == 5) column = col >= 17 ? 1 : 0;
     }
     if (targetCol) *targetCol = column;
     if (targetRow) *targetRow = field;
@@ -411,6 +449,55 @@ static int screenTouchCellAt(int col, int row, int* targetCol, int* targetRow) {
     if (targetCol) *targetCol = column;
     if (targetRow) *targetRow = field;
     return 1;
+  }
+  if (currentScreen == &screenAudioInput) {
+    // Physical rows: buttons at y=2 ([List] x=0 w=6, [Refresh] x=10 w=10),
+    // device rows start at y=4: name x=0..19, meter x=26..27 (display-only,
+    // untouchable), ARM x=28..31.
+    if (row == 2) {
+      int column = -1;
+      if (col >= 0 && col < 6) column = 0;
+      else if (col >= 10 && col < 20) column = 1;
+      if (column < 0) return 0;
+      if (targetCol) *targetCol = column;
+      if (targetRow) *targetRow = 0;
+      return 1;
+    }
+    int deviceIndex = row - 4;
+    if (deviceIndex < 0 || deviceIndex >= touchScreenData->rows - 1) return 0;
+    if (deviceIndex >= audioInputManager.deviceCount()) return 0;
+    int column = -1;
+    if (col >= 0 && col < 20) column = 0;
+    else if (col >= 28 && col < 32) column = 2;
+    if (column < 0) return 0;
+    if (targetCol) *targetCol = column;
+    if (targetRow) *targetRow = deviceIndex + 1;
+    return 1;
+  }
+  if (currentScreen == &screenSampleSettings) {
+    // Physical rows: y=2 Input (value x=6 w=8, meter x=24 w=2 display-only,
+    // MON x=30 w=2),
+    // y=3 REC/CLEAR buttons (x=0 w=6, x=7 w=6). The waveform box and the
+    // field rows below use the generic mapping.
+    if (row == 2) {
+      int column = -1;
+      if (col >= 6 && col < 14) column = 0;       // Input value x=6 w=8
+      else if (col >= 30 && col < 32) column = 2; // MON value x=30 w=2
+      if (column < 0) return 0;
+      if (targetCol) *targetCol = column;
+      if (targetRow) *targetRow = 0;
+      return 1;
+    }
+    if (row == 3) {
+      int column = -1;
+      if (col >= 0 && col < 6) column = 0;        // REC/STOP/PLAY x=0 w=6
+      else if (col >= 7 && col < 13) column = 1;  // CLEAR x=7 w=6
+      if (column < 0) return 0;
+      if (targetCol) *targetCol = column;
+      if (targetRow) *targetRow = 1;
+      return 1;
+    }
+    return 0;
   }
   if (currentScreen == &screenSettings) {
     return screenSettingsTouchCell(col, row, targetCol, targetRow);
@@ -438,6 +525,13 @@ static int screenTouchCellAt(int col, int row, int* targetCol, int* targetRow) {
     if (row >= 2 && row <= 4) {
       instrumentCommonRow = row - 2;
       row = instrumentCommonRow;
+    } else if (touchScreenData == &screenInstrumentSample) {
+      // Sampler page: the Sample row sits at y=6 and the SOURCE separator
+      // at y=7 shifts Pitch..Reso down to y=8..12 (rows 4..8). The ADSR
+      // strip is matched earlier by the envelope handler.
+      if (row == 6) row = 3;
+      else if (row >= 8 && row <= 12) row = row - 4;
+      else return 0;
     } else if (type == InstrumentType::AY1 && row >= 11 && row <= 14) {
       row -= 5;
       envelopeRow = 1;
@@ -466,6 +560,8 @@ static int screenTouchCellAt(int col, int row, int* targetCol, int* targetRow) {
     if (mappedCol < 0) mappedCol = 0;
   } else if (instrumentCommonRow == 2) {
     mappedCol = col < 18 ? 0 : col < 29 ? 1 : 2; // Transpose, tick, volume
+  } else if (touchScreenData == &screenInstrumentSample && row == 3) {
+    mappedCol = col < 17 ? 0 : 1; // Filename, EDIT/REC
   }
   if(currentScreen==&screenInstrument&&chipnomadState->project.instruments[cInstrument].type==InstrumentType::SQ80ESQ&&columns==2&&instrumentCommonRow<0)mappedCol=col>=19?1:0;
   if (mappedCol >= columns) mappedCol = columns - 1;
@@ -481,6 +577,12 @@ int screenTouchTap(int col, int row) {
   if (!screenTouchCellAt(col, row, &targetCol, &targetRow)) return 0;
   touchScreenData->cursorCol = targetCol;
   touchScreenData->cursorRow = targetRow;
+  // Button cells activate on the tap itself; value cells only select so
+  // touch adjustment keeps working.
+  if (touchScreenData->isButtonCell &&
+      touchScreenData->isButtonCell(targetCol, targetRow)) {
+    touchScreenData->onEdit(targetCol, targetRow, CellEditAction::tap);
+  }
   screenFullRedraw(touchScreenData);
   return 1;
 }

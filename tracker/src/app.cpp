@@ -8,6 +8,8 @@
 #include "corelib_file.h"
 #include "common.h"
 #include "audio_manager.h"
+#include "audio_input_manager.h"
+#include "corelib/corelib_audio.h"
 #include "app.h"
 #include "screens/screen_instrument.h"
 #include "screens.h"
@@ -75,6 +77,49 @@ static bool monitorNeeded(void) {
     screenScopeRows(currentScreen) != 0;
 }
 static uint32_t midiCCAppliedSerial[PROJECT_MAX_MIDI_CC_MAPPINGS];
+// MIDI clock slave mode (Project screen "Clock source"): last-applied
+// serials for transport state and measured tempo, same exactly-once
+// pattern as midiCCAppliedSerial above.
+static uint32_t clockTransportAppliedSerial;
+static uint32_t clockBpmAppliedSerial;
+static float midiClockBaseTickRate;
+static uint64_t midiClockPhaseLastPulse;
+
+static void resetMidiClockPhaseFollowing(void) {
+  midiClockBaseTickRate = 0.0f;
+  midiClockPhaseLastPulse = 0;
+}
+
+static double wrapMidiClockPhaseTicks(double ticks) {
+  ticks = fmod(ticks, 96.0);
+  if (ticks > 48.0) ticks -= 96.0;
+  if (ticks < -48.0) ticks += 96.0;
+  return ticks;
+}
+
+// MIDI Clock and tracker playback both advance at 24 ticks per beat. Correct
+// phase once per bar with a small bounded slew,
+// while avoiding jitter-driven retiming of delay/reverb on every F8 byte.
+static void updateMidiClockPhaseFollowing(void) {
+  if (appSettings.midiClockMode != 1) {
+    resetMidiClockPhaseFollowing();
+    return;
+  }
+  const PlaybackStatus* playback = chipnomadGetPlaybackStatus(chipnomadState);
+  if (!playback->isPlaying) return;
+  const uint64_t pulses = midiRouterGetClockPulseCount(chipnomadState->midiRouter);
+  if (pulses < 96 || pulses - midiClockPhaseLastPulse < 96) return;
+  if (midiClockBaseTickRate <= 0.0f) return;
+  const double phaseError = wrapMidiClockPhaseTicks((double)pulses - (double)playback->midiClockTicks);
+  double correction = phaseError / 96.0;
+  if (correction > 0.02) correction = 0.02;
+  if (correction < -0.02) correction = -0.02;
+  chipnomadState->project.tickRate = midiClockBaseTickRate * (float)(1.0 + correction);
+  audioProjectDirty = 1;
+  midiClockPhaseLastPulse = pulses;
+}
+
+
 
 // Port indices aren't saved (see common.h's AppSettings comment): this
 // resolves the saved device name back to whatever live port currently has
@@ -469,11 +514,19 @@ void appSetup(void) {
   audioManager.start(appSettings.audioSampleRate, appSettings.audioBufferSize);
   audioManager.resume();
 
+  // Audio input: enumerate capture devices and re-arm the ones saved in
+  // settings (Phase 4). Monitor state comes from settings too.
+  audioInputManager.enumerate();
+  syncArmedDevicesFromSettings();
+  audioInputManager.setMonitor(appSettings.audioInputMonitor);
+
   int savedInputPort = findMidiPortByName(1, appSettings.midiInputDeviceName);
   if (savedInputPort >= 0 && midiRouterOpenInput(savedInputPort) == 0) appSettings.midiInputDevice = savedInputPort;
   int savedOutputPort = findMidiPortByName(0, appSettings.midiOutputDeviceName);
   if (savedOutputPort >= 0 && midiRouterOpenOutput(savedOutputPort) == 0) appSettings.midiOutputDevice = savedOutputPort;
   midiRouterSetChannelInstrumentMap(chipnomadState->midiRouter, appSettings.midiChannelInstrument);
+  midiRouterSetClockMode(chipnomadState->midiRouter,
+    appSettings.midiClockMode == 1 ? MidiClockMode::slave : MidiClockMode::off);
 
   screenSetup(&screenTitle, 0);
 }
@@ -594,6 +647,24 @@ void appDraw(void) {
 * @param value Event value
 * @param userdata Arbitraty event data
 */
+
+// An audio device was unplugged or its stream died (SDL_AUDIODEVICEREMOVED).
+// Audio interfaces often take the output down with them, so rebuild the whole
+// audio handler: stop any active capture recording, drop armed inputs, close
+// and re-enumerate capture, then reopen the output device. The helper box
+// shows an animated notice while the restart runs.
+static void handleAudioDeviceRemoved(int isCapture) {
+  (void)isCapture; // both capture loss and output loss get the same rebuild
+  screenNotifyAudioRestart();
+  audioInputManagerStopRecording();
+  audioInputManager.disarmAll();
+  audioInputCleanup();
+  audioInputRefreshDevices();
+  audioInputManager.enumerate();
+  syncArmedDevicesFromSettings();
+  audioManager.restart();
+}
+
 void appOnEvent(MainLoopEventData eventData) {
   static int dPadMask = keyLeft | keyRight | keyUp | keyDown;
   static int doubleTapMask = keyEdit | keyOpt | keyUnmapped | keyPlay;
@@ -809,6 +880,38 @@ void appOnEvent(MainLoopEventData eventData) {
           }
         }
       }
+
+      // MIDI clock slave mode: transport (Start/Continue/Stop) always
+      // drives song playback - there is deliberately no separate UI toggle
+      // (the Project screen's play button keeps working alongside it).
+      // Tempo: the measured BPM is applied to the project's tick rate via
+      // the regular project-refresh path. projectModified stays 0 (following
+      // a clock isn't a user edit), matching how CC mappings mutate project
+      // state; the Project screen's Tempo row shows the live value while
+      // slaved.
+      int clockRunning = 0; uint32_t clockTransportSerial = 0;
+      if (midiRouterGetClockTransport(chipnomadState->midiRouter, &clockRunning, &clockTransportSerial) &&
+          clockTransportSerial != clockTransportAppliedSerial) {
+        clockTransportAppliedSerial = clockTransportSerial;
+        if (clockRunning) {
+          chipnomadQueuePlaybackStartSongIfStopped(chipnomadState, *pSongRow, 0, 1);
+          resetMidiClockPhaseFollowing();
+        } else {
+          chipnomadQueuePlaybackStop(chipnomadState);
+          resetMidiClockPhaseFollowing();
+        }
+      }
+      float clockBpm = 0; uint32_t clockBpmSerial = 0;
+      if (midiRouterGetClockBpm(chipnomadState->midiRouter, &clockBpm, &clockBpmSerial) &&
+          clockBpmSerial != clockBpmAppliedSerial) {
+        clockBpmAppliedSerial = clockBpmSerial;
+        // BPM -> Hz: 24 ticks/beat, so tickRate = BPM * 24 / 60 = BPM * 0.4.
+        midiClockBaseTickRate = clockBpm * 0.4f;
+        chipnomadState->project.tickRate = midiClockBaseTickRate;
+        audioProjectDirty = 1;
+      }
+      updateMidiClockPhaseFollowing();
+
       for (int i = 0; i < PROJECT_MAX_MIDI_CC_MAPPINGS; ++i) {
         MidiCCMapping& mapping = chipnomadState->project.midiCCMappings[i];
         int globalTrack = mapping.destination >= midiCCDestinationTrackMute &&
@@ -892,6 +995,9 @@ void appOnEvent(MainLoopEventData eventData) {
     }
     break;
   }
+  case MainLoopEvent::audioDeviceRemoved:
+    handleAudioDeviceRemoved(eventData.data.value);
+    break;
   case MainLoopEvent::exit:
     // Auto-save the current project and settings on exit
     projectSave(&chipnomadState->project, getAutosavePath());

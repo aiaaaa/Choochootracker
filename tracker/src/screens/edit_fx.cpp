@@ -64,11 +64,10 @@ static const char* nativeControlDescription(int fx) {
       case fxMFL: return "Smooth pitch and vowel changes";
       case fxMFB: return "Depth of the voice's pitch movement";
       case fxMSH: return "Speed of the voice's pitch movement";
-      case fxMCF: return "Tracker filter cutoff";
-      case fxMRS: return "Tracker filter resonance";
       default: return "";
     }
   }
+
   switch(fx) {
     case fxFPT:return "00=-24st 18=0 30=+24st";
     case fxFVL:return "Instrument volume: 00 silent, FF full";
@@ -167,7 +166,7 @@ static bool isFXAvailable(FXId fx, uint8_t instrumentIdx, int isTable) {
   InstrumentType instrumentType = getInstrumentType(instrumentIdx);
   const Instrument* instrument = instrumentIdx != EMPTY_VALUE_8 && instrumentIdx < PROJECT_MAX_INSTRUMENTS
     ? &chipnomadState->project.instruments[instrumentIdx] : NULL;
-  if((fx>=fxFBR&&fx<=fxLEN)||(fx>=fxQCF&&fx<=fxEXT)||(fx>=fxFPT&&fx<=fxFSU))return instrument && instrumentFXAvailableForInstrument(instrument,fx);
+  if((fx>=fxFBR&&fx<=fxLEN)||(fx>=fxQCF&&fx<=fxEXT)||(fx>=fxMUV&&fx<=fxMLV)||(fx>=fxFPT&&fx<=fxFSU))return instrument && instrumentFXAvailableForInstrument(instrument,fx);
   if (instrumentType == InstrumentType::Monk && fx == fxESH) return false;
   if (instrument && instrumentFXAvailableForInstrument(instrument, fx)) return true;
   for (int groupIdx = 0; groupIdx < fxGroupCount; groupIdx++) {

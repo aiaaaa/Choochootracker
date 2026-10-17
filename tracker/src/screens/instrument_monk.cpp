@@ -12,18 +12,19 @@
 namespace {
 Instrument& current() { return chipnomadState->project.instruments[cInstrument]; }
 int held = 0;
-const int homeY[] = {2, 3, 4, 5, 7, 9, 10, 11, 13, 14};
+const int homeY[] = {2, 3, 6, 7, 9, 10, 11, 12, 14, 15};
 const int homeParameters[][2] = {{monkVowel, -1}, {monkVoice, monkBreath},
   {monkGlide, monkVibrato}, {monkVibRate, -1}, {monkUnison, monkDetune}, {monkSpread, -1}};
 const int commonX[] = {3, 12, 22, 31};
 void returnHome() { screenSetup(&screenInstrument, cInstrument); }
 void chooseBank(int value) {
-  if (value == 0 || value == 1) { current().chip.monk.factory = value; projectModified = 1; }
+  if (value >= monkBankUser && value <= monkBankAll) { current().chip.monk.factory = value; projectModified = 1; }
   returnHome();
 }
 void banks() {
-  static const SelectionItem choices[] = {{"FACTORY", 1, nullptr, 0}, {"USER", 0, nullptr, 0}};
-  selectionPopupSetup("MONK BANK", choices, 2, current().chip.monk.factory, chooseBank, returnHome);
+  static const SelectionItem choices[] = {{"ALL", monkBankAll, nullptr, 0},
+    {"FACTORY", monkBankFactory, nullptr, 0}, {"USER", monkBankUser, nullptr, 0}};
+  selectionPopupSetup("MONK BANK", choices, 3, current().chip.monk.factory, chooseBank, returnHome);
   screenSetup(&screenSelectionPopup, 0);
 }
 int homeColumns(int row) {
@@ -37,10 +38,10 @@ void homeStatic() {
   gfxSetFgColor(appSettings.colorScheme.textDefault);
   gfxPrint(0, 2, "Type"); gfxPrint(0, 3, "TR"); gfxPrint(8, 3, "TIC");
   gfxPrint(18, 3, "VOL"); gfxPrint(27, 3, "PAN");
-  gfxPrint(0, 4, "Bank"); gfxPrint(0, 5, "Preset");
+  gfxPrint(0, homeY[2], "Bank"); gfxPrint(0, homeY[3], "Preset");
   for (int row = 4; row < 10; ++row) for (int col = 0; col < homeColumns(row); ++col)
     gfxPrint(col ? 20 : 0, homeY[row], monkControls[homeParameters[row-4][col]].name);
-  gfxSetFgColor(appSettings.colorScheme.textTitles); gfxPrint(0, 8, "VOICE"); gfxPrint(0, 12, "UNISON");
+  gfxSetFgColor(appSettings.colorScheme.textTitles); gfxPrint(0, 8, "VOICE"); gfxPrint(0, 13, "UNISON");
 }
 void homeCursor(int col, int row) {
   if (row == 0) instrumentCommonDrawCursor(col, 0);
@@ -55,8 +56,11 @@ void homeField(int col, int row, CellState state) {
   if (row == 1) {
     if (!col) gfxPrint(x, y, current().transposeEnabled ? "On " : "Off");
     else gfxPrint(x, y, byteToHex(col == 1 ? current().tableSpeed : col == 2 ? current().volume : current().pan));
-  } else if (row == 2) gfxPrint(x, y, m.factory ? "FACTORY" : "USER");
-  else if (row == 3) gfxPrintf(x, y, col ? "EDIT" : "%.19s", current().name);
+  } else if (row == 2) gfxPrint(x, y, m.factory == monkBankAll ? "ALL" : m.factory == monkBankFactory ? "FACTORY" : "USER");
+  else if (row == 3) {
+    if (col) gfxSetFgColor(state == CellState::focus ? appSettings.colorScheme.textValue : appSettings.colorScheme.textInfo);
+    gfxPrintf(x, y, col ? "EDIT" : "%.19s", current().name);
+  }
   else {
     gfxPrint(x, y, byteToHex(monkValue(m, homeParameters[row-4][col])));
     if (row == 4) {
@@ -93,7 +97,11 @@ int homeInput(int down, int keys, int) {
   if ((row != 2 && row != 3) || screenInstrumentMonk.cursorCol) { held = 0; return 0; }
   auto action = popupEditInput(down, keys, &held);
   if (action == PopupEditInput::cycle) {
-    if (row == 2) chooseBank(!current().chip.monk.factory);
+    if (row == 2) {
+      // Display order is ALL, FACTORY, USER.
+      int delta = keys == (keyEdit | keyRight) ? -1 : 1;
+      chooseBank((current().chip.monk.factory + delta + 3) % 3);
+    }
     else cycleUserPreset(keys == (keyEdit | keyRight) ? 1 : -1);
     return 1;
   }

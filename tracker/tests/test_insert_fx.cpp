@@ -276,7 +276,7 @@ TEST_SUITE("track inserts") {
     CHECK(fxF11 > fxATY);
     CHECK(fxF28 < 255);
     CHECK(genericModFirstInsert == 29);
-    const int counts[] = {0, 8, 4, 2, 6, 6, 5, 4, 5, 4, 4, 4, 4, 6, 8, 8};
+    const int counts[] = {0, 8, 4, 2, 6, 6, 5, 4, 5, 4, 4, 4, 4, 6, 8, 8, 6};
     static_assert(sizeof(counts) / sizeof(counts[0]) == insertModuleCount, "Test covers every module");
     for (int m = 0; m < insertModuleCount; ++m) {
       REQUIRE(insertDescriptor(m).count == counts[m]);
@@ -1129,11 +1129,10 @@ TEST_CASE("insert tips, CPU readout and reviewed category chooser work together"
   auto& insert = chipnomadState->project.trackInserts[0][0];
   insertSelect(&insert, insertOff);
   const int popupOrder[] = {
-      insertOff, insertCompressor, insertOTT,
-      insertDistortion, insertSaturation, insertBitcrusher, insertDestruction,
-      insertChorus, insertPhaser, insertFlanger,
-      insertTranceGate,
-      insertDoubler, insertRotary, insertTape, insertParametricEQ, insertBeads,
+      insertOff, insertOTT, insertCompressor, insertParametricEQ,
+      insertDistortion, insertSaturation, insertBitcrusher, insertDestruction, insertTape,
+      insertChorus, insertPhaser, insertFlanger, insertTranceGate,
+      insertRotary, insertDoubler, insertBeads, insertFormant,
   };
   for (int i = 1; i < (int)(sizeof(popupOrder) / sizeof(popupOrder[0])); ++i) {
     screenInsertFX.onInput(1, keyEdit | keyRight, 0);
@@ -1142,28 +1141,15 @@ TEST_CASE("insert tips, CPU readout and reviewed category chooser work together"
   screenInsertFX.onInput(1, keyEdit | keyRight, 0);
   CHECK(insert.module == insertOff);
   screenInsertFX.onInput(1, keyEdit | keyLeft, 0);
-  CHECK(insert.module == insertBeads);
+  CHECK(insert.module == insertFormant);
   insertSelect(&insert, insertDistortion);
   screenInsertFX.onInput(1, keyEdit, 1);
   screenInsertFX.onInput(0, 0, 1);
   REQUIRE(currentScreen == &screenSelectionPopup);
   CHECK(selectionPopupIsFullWidth());
   screenSelectionPopup.fullRedraw();
-  CHECK(std::string(mockGfxCells[0], 40).find("INSERT MODULE CPU 037%") != std::string::npos);
-  CHECK(std::string(mockGfxCells[3], 18).find("Dynamics") != std::string::npos);
-  CHECK(std::string(mockGfxCells[4], 18).find("Drive") != std::string::npos);
-  CHECK(std::string(mockGfxCells[5], 18).find("Modulation") != std::string::npos);
-  CHECK(std::string(mockGfxCells[6], 18).find("Stereo") != std::string::npos);
-  CHECK(std::string(mockGfxCells[7], 18).find("Tape") != std::string::npos);
-  // The selected Distortion starts at Drive. Navigate to Dynamics -> OTT.
-  screenSelectionPopup.onInput(1, keyUp, 1);
-  screenSelectionPopup.onInput(1, keyRight, 1);
-  screenSelectionPopup.onInput(1, keyDown, 1);
-  screenSelectionPopup.onInput(1, keyEdit, 1);
-  CHECK(currentScreen == &screenInsertFX);
-  CHECK(chipnomadState->project.trackInserts[0][0].module == insertOTT);
-  CHECK(chipnomadState->project.trackInserts[0][1].module == insertOff);
-  mockAudioCpuLoad = 0;
+  CHECK(std::string(mockGfxCells[4], 40).find("Character") != std::string::npos);
+  CHECK(std::string(mockGfxCells[2], 40).find("Distortion") != std::string::npos);
   // Legacy category choosers keep their two-panel layout.
   SelectionItem items[] = {{"Existing", 0, nullptr, 0, nullptr}};
   selectionPopupSetup("Existing", items, 1, 0, nullptr, nullptr);

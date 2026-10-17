@@ -4,6 +4,7 @@
 #include "synth/monk_voice.h"
 #include "monk_patch.h"
 #include <algorithm>
+#include <initializer_list>
 #include <cmath>
 #include <cstdio>
 #include <cstring>

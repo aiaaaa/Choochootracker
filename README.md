@@ -174,6 +174,8 @@ by Signalsmith Audio. Several insert effects are adapted from
 [Airwindows](https://github.com/airwindows/airwindows); see the included
 license files for the individual attributions.
 
+This personal build excludes Ableton Link and its SDK dependencies.
+
 The project is released under the [MIT License](LICENSE).
 
 Mad respects to the people I stole code from:

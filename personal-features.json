@@ -858,5 +858,31 @@
     "evaluation": "Initial handheld build installed and evaluated; picker follow-up",
     "picker_controls": "All 16 in MonkSynth FX; eight columns; shared Trigger group contains TDC/TCL",
     "picker_layout": "One blank row below help; eight columns except five per Modulation slot"
+  },
+  "harmonization_20261017": {
+    "upstream_commit": "f1f9f197ce034ebb3488c1b0ca06fafe6abaad2a",
+    "targets": [
+      "device personal build",
+      "personal web"
+    ],
+    "adopted": [
+      "MONK including ALL bank",
+      "FORMANT",
+      "long tick LFO",
+      "insert menu",
+      "audio input recorder",
+      "tape echo"
+    ],
+    "retained": [
+      "SQ80/ESQ",
+      "Lucky",
+      "personal instrument and FX IDs",
+      "browser storage and rough demos"
+    ],
+    "excluded": [
+      "Ableton Link and SDKs",
+      "paused Vita"
+    ],
+    "validation": "Exact source and results in build/deployment receipts"
   }
 }

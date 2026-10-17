@@ -46,4 +46,4 @@ style = """
 
 script = """const button=document.querySelector('.menu-toggle'),menu=document.querySelector('#toc');button.onclick=()=>{const open=document.body.classList.toggle('menu-open');button.setAttribute('aria-expanded',open)};menu.querySelectorAll('a').forEach(link=>link.onclick=()=>{document.body.classList.remove('menu-open');button.setAttribute('aria-expanded','false')});"""
 html = f"""<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>ChooChooTracker User Manual</title><style>{style}</style></head><body><header><a href=\"#top\">ChooChooTracker — User Manual</a><button class=\"menu-toggle\" aria-controls=\"toc\" aria-expanded=\"false\">&#9776; Contents</button></header><div class=\"layout\"><nav id=\"toc\" aria-label=\"Chapters\">{toc}</nav><main id=\"top\">{body}</main></div><script>{script}</script></body></html>"""
-(ROOT / "web" / "dist" / "manual.html").write_text(html, encoding="utf-8")
+(ROOT / "web" / "manual.html").write_text(html, encoding="utf-8")

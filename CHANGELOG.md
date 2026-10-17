@@ -2,6 +2,32 @@
 
 ## v1.0.16-alpha (October 14, 2026)
 
+- Reworked the Project screen's Ableton Link UI: selecting **Ableton Link** as
+  the clock source turns the **Tempo** row into a **Link** row holding the
+  session connect/disconnect toggle (`[Connect]` / `[Connecting]` /
+  `[Disconnect]`) with a status message (`Wait...`, `No net`, `No sess`,
+  `Err`); while connected the status alternates between `connected` and
+  `Peers: N` once a second. The session owns the tempo in Link mode, so no
+  BPM is shown or edited on the screen.
+- Added MIDI clock sync (desktop, PortMaster and Android): the Project screen
+  gained a **Clock source** row switching between **Internal** and **Midi
+  Clock**. With Midi Clock selected, the tracker follows an external
+  sequencer's clock, Start/Continue/Stop transport and measured tempo (shown
+  greyed out on the **Tempo** row). The old **Tick rate** row is now shown as
+  **Tempo** in BPM; projects still store the tick rate in Hz, so existing
+  `.cct` files load and save unchanged.
+- Audio input disconnects now rebuild the audio handler automatically on all
+  platforms: when SDL reports a removed or failed audio device (USB audio
+  interfaces often take the output down with them), the tracker stops any
+  active recording, disarms and re-enumerates capture inputs, re-arms the
+  devices saved in settings, and reopens the output device. The helper box
+  shows an animated "Input disconnected: Restarting audio handler" notice
+  while the restart runs.
+- Android audio input listing now shows only usable inputs: the always-present
+  built-in microphone and connected USB audio interfaces (telephony, FM
+  tuner, loopback and other virtual inputs are filtered out), and device
+  names are resolved to human-readable product names instead of raw numeric
+  ids. The numeric id is still used internally to open the device.
 - Expanded the Sample Edit Slice row into three modes: **EQUAL** divides the
   Start/End window evenly, **AUTO** places slices on transients found by a
   spectral-flux detection (adjustable sensitivity, falls back to an even
@@ -137,8 +163,7 @@
   Plaits-Alt tracks, with an envelope-level guide.
 - Kept Filter, Slope, Cutoff and Resonance grouped in the instrument UI;
   corrected the Project and Settings screen-map indicators.
-- Updated the PortMaster package metadata, cover reference and credits to
-  Pierre-Emmanuel SURGA.
+- Updated the PortMaster package metadata, cover reference and credits.
 
 ## v0.1.0-prealpha.1 (August 9, 2026)
 

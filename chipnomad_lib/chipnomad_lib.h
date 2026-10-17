@@ -52,6 +52,7 @@ struct PlaybackStatus {
   PlaybackTrackState tracks[PROJECT_MAX_TRACKS];
   uint8_t trackEnabled[PROJECT_MAX_TRACKS];
   uint8_t isPlaying;
+  uint64_t midiClockTicks;
 };
 class MasterEffects;
 
@@ -137,6 +138,7 @@ struct ChipNomadState {
   AudioMonitor* audioMonitor;
   int benchmarkBypassPan;
   PlaybackStatus uiPlaybackStatus;
+  uint64_t midiClockTicks;
 };
 
 /**
@@ -176,6 +178,7 @@ void chipnomadQueuePlaybackStop(ChipNomadState* state);
 // fallback. Call before closing/switching the MIDI output port and on
 // application shutdown, in addition to the automatic call on playback stop.
 void chipnomadMidiPanic(ChipNomadState* state);
+int chipnomadQueuePlaybackStartSongIfStopped(ChipNomadState*, int songRow, int chainRow, int loop);
 int chipnomadQueuePlaybackStartSong(ChipNomadState* state, int songRow, int chainRow, int loop);
 int chipnomadQueuePlaybackStartChain(ChipNomadState* state, int trackIdx, int songRow, int chainRow, int loop);
 int chipnomadQueuePlaybackStartPhrase(ChipNomadState* state, int trackIdx, int songRow, int chainRow, int loop);

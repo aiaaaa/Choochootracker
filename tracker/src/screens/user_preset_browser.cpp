@@ -9,6 +9,8 @@
 #include "corelib_file.h"
 #include "chipnomad_lib.h"
 #include "project_utils.h"
+#include "audio_manager.h"
+#include "monk_patch.h"
 #include <map>
 #include <memory>
 #include <cstring>
@@ -17,9 +19,11 @@
 
 namespace {
 InstrumentType type = InstrumentType::none;
-bool factorySelected(){const auto&i=chipnomadState->project.instruments[cInstrument];return i.type==InstrumentType::Monk ? i.chip.monk.factory : i.type==InstrumentType::SQ80ESQ&&i.chip.sq80.factory;}
-using LibraryKey=std::pair<InstrumentType,bool>;
-LibraryKey libraryKey(){return {type,factorySelected()};}
+int selectedBank(){const auto&i=chipnomadState->project.instruments[cInstrument];return i.type==InstrumentType::Monk ? i.chip.monk.factory : i.type==InstrumentType::SQ80ESQ ? i.chip.sq80.factory : 0;}
+bool factorySelected(){return selectedBank()==monkBankFactory;}
+bool allSelected(){return chipnomadState->project.instruments[cInstrument].type==InstrumentType::Monk&&selectedBank()==monkBankAll;}
+using LibraryKey=std::pair<InstrumentType,int>;
+LibraryKey libraryKey(){return {type,selectedBank()};}
 std::map<LibraryKey, UserPresets> libraries;
 UserPresets* library = nullptr;
 std::vector<SelectionItem> choices;
@@ -30,12 +34,40 @@ std::vector<std::vector<SelectionItem>> collectionSounds;
 std::vector<std::string> collectionPaths;
 std::unique_ptr<Project> audition;
 struct Cursor {bool valid=false;UserPresets::Reference selected;};
-std::map<std::tuple<int,InstrumentType,bool>,Cursor> cursors;
+std::map<std::tuple<int,InstrumentType,int>,Cursor> cursors;
 std::map<LibraryKey,std::vector<UserPresets::Reference>> sequences;
+struct PresetLoad {
+  UserPresets* library;
+  const UserPresets::Reference* reference;
+  int value;
+  int instrument;
+  std::string* error;
+};
+int loadPreset(void* userdata) {
+  auto* load = static_cast<PresetLoad*>(userdata);
+  const auto& before = chipnomadState->project.instruments[load->instrument];
+  const int bank = before.type == InstrumentType::Monk ? before.chip.monk.factory : monkBankUser;
+  bool loaded = (load->reference
+    ? load->library->load(*load->reference, &chipnomadState->project, load->instrument, *load->error)
+    : load->library->load(load->value, &chipnomadState->project, load->instrument, *load->error));
+  auto& after = chipnomadState->project.instruments[load->instrument];
+  if (loaded && after.type == InstrumentType::Monk) after.chip.monk.factory = bank;
+  return !loaded;
+}
 bool samePreset(const UserPresets::Reference& a,const UserPresets::Reference& b) {
   return a.path==b.path&&a.archive==b.archive&&a.voice==b.voice&&a.legacy==b.legacy;
 }
-Cursor& cursor(){return cursors[{cInstrument,chipnomadState->project.instruments[cInstrument].type,factorySelected()}];}
+Cursor& cursor(){return cursors[{cInstrument,chipnomadState->project.instruments[cInstrument].type,selectedBank()}];}
+
+bool setupBrowserLibrary(UserPresets& target) {
+  if (!allSelected()) return setupUserPresetLibrary(target, type, factorySelected());
+  UserPresets factory;
+  if (!setupUserPresetLibrary(target, type, false) || !setupUserPresetLibrary(factory, type, true)) return false;
+  // Reuse the browser's secondary-root support to retain each preset's origin.
+  // In MONK ALL, a Reference marked legacy points at FACTORY, not previous banks.
+  target.setup(target.rootPath(), type, factory.rootPath());
+  return true;
+}
 
 constexpr int backValue = -2, emptyValue = -3;
 void show();
@@ -90,8 +122,8 @@ void select(int value) {
   if (userColumns) {
     if (value < 0 || size_t(value) >= userReferences.size()) return;
     std::string error;
-    if (library->load(userReferences[value], &chipnomadState->project, cInstrument, error)) {
-      if (type == InstrumentType::Monk) chipnomadState->project.instruments[cInstrument].chip.monk.factory = 0;
+    PresetLoad load{library, &userReferences[value], 0, cInstrument, &error};
+    if (audioManager.mutateProject(loadPreset, &load) == 0) {
       rememberUserPreset(userReferences[value]);
       projectModified = 1;
       screenSetup(&screenInstrument, cInstrument);
@@ -103,10 +135,12 @@ void select(int value) {
   std::string error;
   if (library->items()[value].kind != UserPresets::Kind::preset) {
     library->enter(value, error); show();
-  } else if (library->load(value, &chipnomadState->project, cInstrument, error)) {
-    if (type == InstrumentType::Monk) chipnomadState->project.instruments[cInstrument].chip.monk.factory = 1;
+  } else {
+    PresetLoad load{library, nullptr, value, cInstrument, &error};
+    if (audioManager.mutateProject(loadPreset, &load) == 0) {
     rememberUserPreset(library->reference(value));
     projectModified = 1; screenSetup(&screenInstrument, cInstrument);
+    }
   }
   if (!error.empty()) screenMessage(MESSAGE_TIME_ERROR, "%s", error.c_str());
 }
@@ -121,12 +155,10 @@ void showUserColumns() {
     const auto& ref = userReferences[n];
     const bool bank = fileCounts[{ref.legacy, ref.archive, ref.path}] > 1;
     const auto path = bank ? ref.path : std::filesystem::path(ref.path).parent_path().generic_string();
-    std::string key = ref.legacy ? "Previous banks/" : "";
+    std::string key = allSelected() ? (ref.legacy ? "FACTORY/" : "USER/") : ref.legacy ? "Previous banks/" : "";
     // An archive is one collection even when it nests sounds under 6581/8580.
-    key += ref.archive;
-    if (type != InstrumentType::SID || ref.archive.empty()) {
-      if (!path.empty()) key += (key.empty() ? "" : "/") + path;
-    }
+    key += ref.archive.empty() ? path : ref.archive;
+    if (!key.empty() && key.back() == '/') key.pop_back();
     if (key.empty()) key = "Loose presets";
     groups[key].push_back(int(n));
   }
@@ -143,7 +175,7 @@ void showUserColumns() {
   for (const auto& entry : groups) {
     collectionPaths.push_back(entry.first);
     auto label = std::filesystem::path(entry.first).filename().string();
-    if (type == InstrumentType::SID && std::filesystem::path(label).extension() == ".zip")
+    if (std::filesystem::path(label).extension() == ".zip")
       label = std::filesystem::path(label).stem().string();
     if (label.empty()) label = entry.first;
     labels.push_back(label);
@@ -159,8 +191,7 @@ void showUserColumns() {
     ++group;
   }
   if (groups.empty()) choices.push_back({"(No presets)", emptyValue, nullptr, 0, nullptr});
-  char title[32];
-  snprintf(title, sizeof(title), "%s USER", instrumentTypeName(type));
+  char title[32]; snprintf(title, sizeof(title), "%s %s", instrumentTypeName(type), allSelected() ? "ALL" : "USER");
   selectionPopupSetup(title, choices.data(), int(choices.size()), selected,
                       select, back, false, preview, true);
   screenSetup(&screenSelectionPopup, 0);
@@ -177,7 +208,7 @@ void show() {
   for (size_t i = 0; i < library->items().size(); ++i)
     choices.push_back({labels[i + 1].c_str(), int(i), nullptr, 0, labels[i + 1].c_str()});
   if (library->items().empty()) choices.push_back({labels.back().c_str(), emptyValue, nullptr, 0, nullptr});
-  char title[32]; snprintf(title, sizeof(title), "%s %s", instrumentTypeName(type),factorySelected()?"FACTORY":"USER");
+  char title[32]; snprintf(title, sizeof(title), "%s %s", instrumentTypeName(type), factorySelected() ? "FACTORY" : "USER");
   int selected=library->items().empty()?backValue:0;
   const auto& position=cursor();
   if(position.valid)for(size_t i=0;i<library->items().size();++i)
@@ -216,9 +247,9 @@ bool setupUserPresetLibrary(UserPresets& target, InstrumentType type, bool facto
 
 void openUserPresetBrowser() {
   type = chipnomadState->project.instruments[cInstrument].type;
-  userColumns=!factorySelected();
+  userColumns = !factorySelected();
   library = &libraries[libraryKey()];
-  if(!setupUserPresetLibrary(*library,type,factorySelected()))return;
+  if(!setupBrowserLibrary(*library))return;
   sequences[libraryKey()].clear();
   std::string error;
   if(cursor().valid)library->focus(cursor().selected,error);
@@ -231,12 +262,11 @@ void openUserPresetBrowser() {
 }
 
 void rememberUserPreset(const UserPresets::Reference& preset) {
-  auto& position=cursor();position.valid=true;position.selected=preset;sequences[{chipnomadState->project.instruments[cInstrument].type,factorySelected()}].clear();
+  auto& position=cursor();position.valid=true;position.selected=preset;sequences[{chipnomadState->project.instruments[cInstrument].type,selectedBank()}].clear();
 }
 void cycleUserPreset(int direction) {
-  const bool factory = factorySelected();
   type=chipnomadState->project.instruments[cInstrument].type;
-  library=&libraries[libraryKey()];if(!setupUserPresetLibrary(*library,type,factorySelected()))return;
+  library=&libraries[libraryKey()];if(!setupBrowserLibrary(*library))return;
   auto& position=cursor();auto& sequence=sequences[libraryKey()];std::string error;
   if(sequence.empty())sequence=library->scan(error);
   if(error.rfind("ALL: ",0)==0)error.erase(0,5);
@@ -253,8 +283,8 @@ void cycleUserPreset(int direction) {
   if(index<0)index=direction>0?-1:0;
   for(int tries=0;tries<count;++tries) {
     index=(index+(direction>0?1:-1)+count)%count;const auto& preset=sequence[index];
-    if(!library->load(preset,&chipnomadState->project,cInstrument,error))continue;
-    if (type == InstrumentType::Monk) chipnomadState->project.instruments[cInstrument].chip.monk.factory = factory;
+    PresetLoad load{library, &preset, 0, cInstrument, &error};
+    if(audioManager.mutateProject(loadPreset, &load) != 0)continue;
     position.selected=preset;position.valid=true;
     projectModified=1;screenSetup(&screenInstrument,cInstrument);return;
   }

@@ -1,6 +1,8 @@
 #pragma once
 #include "project.h"
 
+enum MonkBank : uint8_t { monkBankUser = 0, monkBankFactory = 1, monkBankAll = 2 };
+
 enum MonkParameter {
   monkVowel, monkVoice, monkBreath, monkGlide, monkVibrato, monkVibRate,
   monkAttack, monkDecay, monkSustain, monkRelease,

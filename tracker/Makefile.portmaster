@@ -53,7 +53,7 @@ PortMaster: $(BUILD)/choochootracker.aarch64
 
 $(BUILD)/choochootracker.aarch64: $(OBJECTS)
 	mkdir -p $(BUILD)
-	$(CXX) $(PORTMASTER_CFLAGS) $(OBJECTS) $(SDL_LIBS) $(MOD_LUCKY_LIBS) -lasound -pthread -lm $(OUTPUT)
+	$(CXX) $(PORTMASTER_CFLAGS) $(OBJECTS) $(SDL_LIBS) $(MOD_LUCKY_LIBS) -lasound -pthread -lm -latomic $(OUTPUT)
 	$(STRIP) $(BUILD)/choochootracker.aarch64
 
 .PHONY: PortMaster-deploy
@@ -65,6 +65,7 @@ PortMaster-deploy: PortMaster
 	cp -r packaging/common/. $(PORT_DIR)/
 	cp ../docs/USER_MANUAL.md $(PORT_DIR)/
 	cp ../LICENSE $(PORT_DIR)/licenses/LICENSE.choochootracker.md
+	cp ../chipnomad_lib/external/insert_fx/LICENSE-JM-Formant $(PORT_DIR)/licenses/
 	cp packaging/portmaster/license/* $(PORT_DIR)/licenses/
 ifeq ($(CHOOCHOO_EXPERIMENTAL_MOD_LUCKY),1)
 	cp src/experimental/mod_lucky/notices/* $(PORT_DIR)/licenses/

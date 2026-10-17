@@ -389,7 +389,7 @@ TEST_CASE_FIXTURE(StickLiveFixture, "Settings menus and audio buffer control ali
   mockAudioCpuLoad = 37;
   screenAudioSettings.fullRedraw();
   screen = mockScreenData;
-  CHECK(screen->rows == 2);
+  CHECK(screen->rows == 3);
   screen->drawField(0, 0, CellState::focus);
   CHECK(std::string(mockGfxCells[2], 11) == "Buffer size");
   CHECK(std::string(mockGfxCells[2] + 23, 3) == "512");
@@ -401,6 +401,11 @@ TEST_CASE_FIXTURE(StickLiveFixture, "Settings menus and audio buffer control ali
   CHECK(std::string(mockGfxCells[3], 8) == "CPU load");
   CHECK(std::string(mockGfxCells[3] + 23, 4) == "037%");
   CHECK_FALSE(screen->isCellValid(0, 1));
+  screen->drawField(0, 2, CellState::focus);
+  CHECK(std::string(mockGfxCells[4], 11) == "Audio Input");
+  CHECK(std::string(mockGfxCells[4] + 23, 3) == "OFF");
+  CHECK(screen->isCellValid(0, 2));
+  REQUIRE(screen->onEdit(0, 2, CellEditAction::tap) == 1);
   REQUIRE(screen->onEdit(0, 0, CellEditAction::increase) == 1);
   CHECK(mockAudioReconfigureCalls == 1);
   CHECK(mockAudioReconfigureSize == 512);
@@ -507,6 +512,25 @@ TEST_CASE_FIXTURE(StickLiveFixture, "MIDI device names round-trip through settin
   REQUIRE(settingsLoad() == 0);
   CHECK(std::string(appSettings.midiInputDeviceName) == "Keystation Mini");
   CHECK(std::string(appSettings.midiOutputDeviceName) == "FluidSynth virtual port");
+}
+
+TEST_CASE_FIXTURE(StickLiveFixture, "MIDI clock mode round-trips through settings save/load") {
+  appSettings.midiClockMode = 1;
+  REQUIRE(settingsSave() == 0);
+
+  initDefaultAppSettings();
+  CHECK(appSettings.midiClockMode == 0);
+
+  REQUIRE(settingsLoad() == 0);
+  CHECK(appSettings.midiClockMode == 1);
+
+  // Invalid values fall back to the default rather than being trusted.
+  FILE* file = fopen(realSettingsPath.c_str(), "w");
+  REQUIRE(file != nullptr);
+  fprintf(file, "midiClockMode: 7\n");
+  fclose(file);
+  REQUIRE(settingsLoad() == 0);
+  CHECK(appSettings.midiClockMode == 0);
 }
 
 TEST_CASE_FIXTURE(StickLiveFixture, "screenMidiChannelMap cycles channel-to-instrument assignment") {
@@ -623,4 +647,32 @@ TEST_CASE("Settings touch targets follow optional Lucky rows") {
   CHECK(screenSettingsTouchCell(18, 17, &col, &row) == 0);
 #endif
   CHECK(screenSettingsTouchCell(0, 11, &col, &row) == 0);
+}
+
+TEST_CASE_FIXTURE(StickLiveFixture, "audio device removal restarts the audio handler and shows the notice") {
+  // The disconnect path rebuilds everything audio: the output device is
+  // reopened through AudioManager::restart, capture is torn down and
+  // re-enumerated, and the helper box shows the animated notice.
+  mockAudioRestartResult = 0;
+  mockAudioRestartCalls = 0;
+  mockAudioRestartNotificationFrames = 0;
+
+  MainLoopEventData event = {};
+  event.type = MainLoopEvent::audioDeviceRemoved;
+  event.data.value = 1; // capture device removed
+  appOnEvent(event);
+
+  CHECK(mockAudioRestartCalls == 1);
+  CHECK(mockAudioRestartNotificationFrames > 0);
+  CHECK(screenAudioRestartActive());
+
+  // The notice is transient: it clears without any further event.
+  mockAudioRestartNotificationFrames = 1;
+  CHECK(screenAudioRestartActive());
+  mockAudioRestartNotificationFrames = 0;
+  CHECK_FALSE(screenAudioRestartActive());
+
+  // A second disconnect restarts again (hot-unplug/replug cycles).
+  appOnEvent(event);
+  CHECK(mockAudioRestartCalls == 2);
 }

@@ -30,6 +30,7 @@
 #include "synth/four_op_voice.h"
 #include "synth/master_effects.h"
 #include "midi/midi_router.h"
+#include "track_bounce.h"
 #include <math.h>
 #include <algorithm>
 #include <atomic>
@@ -194,6 +195,9 @@ class AudioCommandQueue {
       const AudioCommand& command = commands_[tail];
       switch (command.type) {
         case kStartSong: playbackStartSong(playback, command.a, command.b, command.c); break;
+        case kStartSongIfStopped:
+          if (!playbackIsPlaying(playback)) playbackStartSong(playback, command.a, command.b, command.c);
+          break;
         case kStartChain: playbackStartChain(playback, command.a, command.b, command.c, command.d); break;
         case kStartPhrase: playbackStartPhrase(playback, command.a, command.b, command.c, command.d); break;
         case kStartPhraseRow: playbackStartPhraseRow(playback, command.a, const_cast<PhraseRow*>(&command.row)); break;
@@ -208,13 +212,13 @@ class AudioCommandQueue {
         case kQueueLiveChain: playbackQueueLiveChain(playback, command.a, command.b, command.c); break;
         case kPreviewNote: playbackPreviewNote(playback, command.a, (uint8_t)command.b, (uint8_t)command.c); break;
         #if CHOOCHOO_EXPERIMENTAL_SQ80ESQ
-        case 18:
+        case kSQ80Preview:
           state->sq80Preview->kill();stopPersonalPreviews(state);state->sidPreview->kill();state->fourOpPreview->kill();state->dx7Preview->kill();state->opllPreview->kill();state->oplPreview->kill();state->simpleChipPreview->kill();
           state->opllPreviewTrack=-1;
           if(command.b&&!playbackIsPlaying(playback)){state->chipPreviewType=InstrumentType::SQ80ESQ;state->opllPreviewTrack=command.a;state->sq80Preview->configure(&command.sq80,6000,.7f);state->sq80Preview->noteOn();}
           break;
 #endif
-        case 19:
+        case kMonkPreview:
           stopPersonalPreviews(state);
           state->sidPreview->kill(); state->fourOpPreview->kill(); state->dx7Preview->kill();
           state->opllPreview->kill(); state->oplPreview->kill(); state->simpleChipPreview->kill();
@@ -279,7 +283,7 @@ class AudioCommandQueue {
     commandTail_.store(tail, std::memory_order_release);
   }
 
-  void publishStatus(const PlaybackState* playback) {
+  void publishStatus(const PlaybackState* playback, uint64_t midiClockTicks) {
     int old = statusPublished_.exchange(-1, std::memory_order_acq_rel);
     if (old >= 0) releasePublished(statusSlots_, old);
     int slot = findFree(statusSlots_);
@@ -288,6 +292,7 @@ class AudioCommandQueue {
     memcpy(status.tracks, playback->tracks, sizeof(status.tracks));
     memcpy(status.trackEnabled, playback->trackEnabled, sizeof(status.trackEnabled));
     status.isPlaying = playbackIsPlaying(const_cast<PlaybackState*>(playback));
+    status.midiClockTicks = midiClockTicks;
     statusSlots_[slot].state.store(kPublished, std::memory_order_release);
     statusPublished_.store(slot, std::memory_order_release);
   }
@@ -315,7 +320,7 @@ class AudioCommandQueue {
   struct AudioCommand { uint8_t type; int a, b, c, d; PhraseRow row; InstrumentOPLL patch; InstrumentOPL opl; InstrumentSimpleChip simple; InstrumentDX7 dx7; InstrumentFourOp fourOp; InstrumentSID sid; InstrumentSQ80 sq80; InstrumentMonk monk; };
   // kStartPhraseRowFull is appended after upstream's preview commands so the
   // raw command IDs 14/15/16 used by applyCommands keep their meaning.
-  enum CommandType { kStartSong, kStartChain, kStartPhrase, kStartPhraseRow, kQueuePhrase, kPreviewNote, kStopPreview, kClearTrackFX, kStartLiveChain, kQueueLiveChain, kSetScale, kChipPreview, kOPLPreview, kSimplePreview, kStartPhraseRowFull = 17 };
+  enum CommandType { kStartSong, kStartChain, kStartPhrase, kStartPhraseRow, kQueuePhrase, kPreviewNote, kStopPreview, kClearTrackFX, kStartLiveChain, kQueueLiveChain, kSetScale, kChipPreview, kOPLPreview, kSimplePreview, kStartPhraseRowFull = 17, kSQ80Preview, kMonkPreview, kStartSongIfStopped };
   static constexpr unsigned int kSlotCount = 3;
   static constexpr unsigned int kCommandCapacity = 64;
 
@@ -452,11 +457,11 @@ static int motionDestinationFX(ChipNomadState* state, int trackIdx, const Instru
   if (insert >= 0 && insert < 16) {
     int slot = insert / 8, p = insert % 8;
     const auto& c = state->audioProject.trackInserts[trackIdx][slot];
-    const auto& d = insertDescriptor(c.module);
-    if (p >= d.count) return 0;
+    int mode = track->inserts.valid[slot] & 1 ? track->inserts.values[slot][0] : c.values[0];
+    if (!insertParameterModulatable(c.module, p, mode)) return 0;
     *fx = (FX)(fxF11 + insert);
     *base = track->inserts.valid[slot] & (1 << p) ? track->inserts.values[slot][p] : c.values[p];
-    *range = d.parameters[p].mapping == InsertMapping::discrete ? (int)d.parameters[p].maximum : 255;
+    *range = insertParameterMaximum(c.module, p);
     *value = InstrumentMotionValue::raw;
     return 1;
   }
@@ -756,6 +761,8 @@ static inline void mixTrackChannel(ChipNomadState* state, int trackIdx,
     return;
   }
   state->audioMonitor->add(trackIdx, sampleIndex, sample);
+  if (audioRecorderWantsTrackSample(trackIdx))
+    audioRecorderCaptureTrackSample(trackIdx, sampleIndex, sample);
   float previous = *mix;
   *mix += sample;
   if (reverbSend != 0.0f) *reverb += sample * reverbSend;
@@ -856,10 +863,10 @@ ChipNomadState* chipnomadCreate(void) {
       state->achchidVoices[i][voice]->init(96000.0f);
       state->drumSynthVoices[i][voice] = new DrumSynthVoice();
       state->drumSynthVoices[i][voice]->init(96000.0f);
-      state->mmeVoices[i][voice] = new MMEVoice();
       state->monkVoices[i][voice] = new MonkSynthVoice();
-      state->mmeVoices[i][voice]->init(96000.0f);
       state->monkVoices[i][voice]->init(96000.0f);
+      state->mmeVoices[i][voice] = new MMEVoice();
+      state->mmeVoices[i][voice]->init(96000.0f);
       state->sidVoices[i][voice]=new SIDVoice();state->sidVoices[i][voice]->init(96000);
 #if CHOOCHOO_EXPERIMENTAL_SQ80ESQ
       state->sq80Voices[i][voice]=new SQ80Voice();state->sq80Voices[i][voice]->init(96000);
@@ -910,8 +917,8 @@ void chipnomadDestroy(ChipNomadState* state) {
       delete state->plaitsAltVoices[i][voice];
       delete state->achchidVoices[i][voice];
       delete state->drumSynthVoices[i][voice];
-      delete state->mmeVoices[i][voice];
       delete state->monkVoices[i][voice];
+      delete state->mmeVoices[i][voice];
       delete state->sidVoices[i][voice];
 #if CHOOCHOO_EXPERIMENTAL_SQ80ESQ
       delete state->sq80Voices[i][voice];
@@ -997,8 +1004,8 @@ void chipnomadInitChips(ChipNomadState* state, int sampleRate, ChipFactory facto
       state->plaitsAltVoices[i][voice]->init((float)sampleRate);
       state->achchidVoices[i][voice]->init((float)sampleRate);
       state->drumSynthVoices[i][voice]->init((float)sampleRate);
-      state->mmeVoices[i][voice]->init((float)sampleRate);
       state->monkVoices[i][voice]->init((float)sampleRate);
+      state->mmeVoices[i][voice]->init((float)sampleRate);
       state->sidVoices[i][voice]->init((float)sampleRate);
 #if CHOOCHOO_EXPERIMENTAL_SQ80ESQ
       state->sq80Voices[i][voice]->init((float)sampleRate);
@@ -1211,6 +1218,9 @@ static int advancePlaybackFrame(ChipNomadState* state, uint64_t dueMicros) {
   for (int t = 0; t < state->audioProject.tracksCount; ++t)
     if (state->playbackState.tracks[t].note.noteTriggered && state->insertChains[t])
       state->insertChains[t]->trigger();
+  const int isPlaying = playbackIsPlaying(&state->playbackState);
+  if (!isPlaying) state->midiClockTicks = 0;
+  else if (wasPlaying) state->midiClockTicks++;
   motionRecordFrame(state);
   if (allTracksStopped) playbackUpdateLiveStickModulation(&state->playbackState, axes, enabled);
   updateSoundbankVoices(state);
@@ -1225,7 +1235,7 @@ static int advancePlaybackFrame(ChipNomadState* state, uint64_t dueMicros) {
     if (state->trackClipping[i] > 0) state->trackClipping[i]--;
   updateInsertValues(state);
   detectAYPitchConflicts(state);
-  state->audioCommands->publishStatus(&state->playbackState);
+  state->audioCommands->publishStatus(&state->playbackState, state->midiClockTicks);
   if (playbackIsPlaying(&state->playbackState) && state->opllPreviewTrack >= 0) {
     stopPersonalPreviews(state);state->sidPreview->kill();state->fourOpPreview->kill();state->dx7Preview->kill();state->opllPreview->kill(); state->oplPreview->kill();state->simpleChipPreview->kill(); state->opllPreviewTrack = -1;
   }
@@ -1331,9 +1341,10 @@ static void updateInsertValues(ChipNomadState* state) {
       const auto& d = insertDescriptor(c.module);
       for (int p = 0; p < d.count; ++p) {
         int value = track.inserts.valid[slot] & (1 << p) ? track.inserts.values[slot][p] : c.values[p];
-        int range = d.parameters[p].mapping == InsertMapping::discrete ? (int)d.parameters[p].maximum : 255;
+        int range = insertParameterMaximum(c.module, p);
         if (d.parameters[p].mapping != InsertMapping::discrete) value = slewEngineFX(&track, (FX)(fxF11 + slot * 8 + p), value);
-        if (track.note.instrument != EMPTY_VALUE_8) {
+        int mode = track.inserts.valid[slot] & 1 ? track.inserts.values[slot][0] : c.values[0];
+        if (insertParameterModulatable(c.module, p, mode) && track.note.instrument != EMPTY_VALUE_8) {
           auto type = state->audioProject.instruments[track.note.instrument].type;
           for (auto& mod : track.note.modulation) {
             if (!mod.modulation || instrumentGenericModDestination(type, mod.modulation->destination) != genericModFirstInsert + slot * 8 + p) continue;
@@ -1356,6 +1367,8 @@ static void processTrackInserts(ChipNomadState* state, float* output, int frames
     for (int i = 0; i < frames * 2; ++i) {
       float sample = samples[i], previous = output[i];
       state->audioMonitor->add(t, i, sample);
+      if (audioRecorderWantsTrackSample(t))
+        audioRecorderCaptureTrackSample(t, i, sample);
       output[i] += sample;
       if (reverb != 0.0f) state->reverbBuffer[i] += sample * reverb;
       if (delay != 0.0f) state->delayBuffer[i] += sample * delay;
@@ -1401,6 +1414,11 @@ int chipnomadRender(ChipNomadState* state, float* buffer, int samples) {
     if (hasAudioRateModulation(state)) { updateAudioRateModulations(state); frames = 1; }
     float* output = buffer + (samples - samplesLeft) * 2;
     if (!prepareRenderChunk(state, output, frames)) return 0;
+    // Track-bounce capture bracket: the capture sites only run for tracks
+    // with an active voice, so the chunk end fills the remainder with
+    // silence - without this, rests between notes would be missing from a
+    // bounce and the recording would play back fast.
+    audioRecorderBeginTrackChunk();
     renderChipTracks(state, output, frames);
     renderMonoVoiceTracks(state, state->braidsVoices, output, frames);
     // Removed chord slots may still have a short de-click tail after KILL.
@@ -1411,8 +1429,8 @@ int chipnomadRender(ChipNomadState* state, float* buffer, int samples) {
     renderMonoVoiceTracks(state, state->plaitsAltVoices, output, frames);
     renderMonoVoiceTracks(state, state->achchidVoices, output, frames);
     renderMonoVoiceTracks(state, state->drumSynthVoices, output, frames);
-    renderMonoVoiceTracks(state, state->mmeVoices, output, frames);
     renderStereoVoiceTracks(state, state->monkVoices, output, frames, true);
+    renderMonoVoiceTracks(state, state->mmeVoices, output, frames);
     renderMonoVoiceTracks(state, state->sinteredVoices, output, frames);
     renderMonoVoiceTracks(state, state->opllVoices, output, frames);
     for(int t=0;t<state->audioProject.tracksCount;++t) {
@@ -1467,6 +1485,7 @@ int chipnomadRender(ChipNomadState* state, float* buffer, int samples) {
     processTrackInserts(state, output, frames);
     processMasterMix(state, output, frames);
     state->audioMonitor->finishChunk(output, frames, state->sampleRate);
+    audioRecorderEndTrackChunk(frames);
     samplesLeft -= frames;
     state->frameSampleCounter -= (float)frames;
   }
@@ -2815,3 +2834,7 @@ int chipnomadQueueSQ80Preview(ChipNomadState* state,int track,const InstrumentSQ
  return state->audioCommands->pushCommand(18,track,p?1:0,0,0,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,p);
 }
 #endif
+
+int chipnomadQueuePlaybackStartSongIfStopped(ChipNomadState* state, int songRow, int chainRow, int loop) {
+  return state && state->audioCommands ? state->audioCommands->pushCommand(20, songRow, chainRow, loop) : 0;
+}

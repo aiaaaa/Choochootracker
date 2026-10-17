@@ -22,6 +22,7 @@ enum InsertModule : uint8_t {
   insertTranceGate, // Keep the upstream catalogue and saved IDs unchanged.
   // Experimental extension; migrate old personal Beads=14 songs before loading.
   insertBeads,
+  insertFormant,
   insertModuleCount
 };
 enum class InsertMapping : uint8_t { linear, exponential, bipolar, discrete };
@@ -47,6 +48,9 @@ struct InsertAutomation {
   uint8_t values[2][8], valid[2];
 };
 const InsertDescriptor& insertDescriptor(int module);
+int insertParameterMaximum(int module, int parameter);
+bool insertParameterActive(int module, int parameter, int mode);
+bool insertParameterModulatable(int module, int parameter, int mode);
 uint8_t insertClamp(int module, int parameter, int value);
 // Nearest byte for an exact Beads semitone, clamped to +/-24.
 uint8_t insertBeadsPitchValue(int semitones);
