@@ -219,6 +219,16 @@ static void selectionUpdateHint(void) {
     selectionHintActive = 1;
     selectionHintPhase = 0;
   }
+  // Hints are scoped to the selection's columns: a velocity-only
+  // selection only offers the velocity randomize, selections covering
+  // the note column get the full rotation, anything else gets none.
+  int startCol, startRow, endCol, endRow;
+  getSelectionBounds(&screen, &startCol, &startRow, &endCol, &endRow);
+  if (startCol == endCol && startCol == 2) {
+    screenMessage(120, "OPT + UP = randomize velocity");
+    return;
+  }
+  if (startCol != 0) return;
   static const char* hints[] = {
     "EDIT + DIR = batch note edit",
     "Double-tap EDIT: resample selection",
@@ -328,7 +338,9 @@ static uint8_t noteLockSnap(uint8_t note, int up) {
 // cycle restarts, while random fills cycle indefinitely. Releasing B
 // resets the pattern cycle. Patterns are aligned to absolute phrase rows,
 // so a partial selection only receives the steps that fall inside it.
-// Placed notes carry the last used instrument.
+// Placed notes carry the last used instrument and volume; every fill
+// press first clears the selection's note, instrument and volume cells
+// so no stale values linger between fills.
 //
 
 static const char* const fillPatterns[] = {
@@ -354,7 +366,11 @@ static uint8_t fillSnapNote(int row) {
 }
 
 static void fillEraseNotes(int startRow, int endRow) {
-  for (int r = startRow; r <= endRow; r++) phraseRows[r].note = EMPTY_VALUE_8;
+  for (int r = startRow; r <= endRow; r++) {
+    phraseRows[r].note = EMPTY_VALUE_8;
+    phraseRows[r].instrument = EMPTY_VALUE_8;
+    phraseRows[r].volume = EMPTY_VALUE_16;
+  }
 }
 
 static void fillApplyPattern(const char* pattern, int startRow, int endRow) {
@@ -362,6 +378,7 @@ static void fillApplyPattern(const char* pattern, int startRow, int endRow) {
     if (pattern[r] == 'X') {
       phraseRows[r].note = fillSnapNote(r);
       phraseRows[r].instrument = lastInstrument;
+      phraseRows[r].volume = lastVolume;
     }
   }
 }
@@ -385,6 +402,7 @@ static void fillApplyRandom(int startRow, int endRow) {
     if (row >= startRow && row <= endRow) {
       phraseRows[row].note = fillSnapNote(row);
       phraseRows[row].instrument = lastInstrument;
+      phraseRows[row].volume = lastVolume;
     }
   }
 }
