@@ -7,10 +7,17 @@
 #include "copy_paste.h"
 #include "help.h"
 #include "synth/sample_voice.h"
+#include <climits>
 
 static int phraseIdx = 0;
 static PhraseRow *phraseRows = NULL;
 static int isFxEdit = 0;
+
+// Mutate reference state (defined below; reset from init/setup and
+// re-captured from draw() when selection mode closes).
+static uint8_t mutateOriginalNotes[16];
+static int mutateReferenceValid = 0;
+static void mutateCaptureReference(int startRow, int endRow);
 
 static uint8_t lastNote = 48;
 static uint8_t lastInstrument = 0;
@@ -94,6 +101,7 @@ static void init(void) {
   isFxEdit = 0;
   fillCycleIndex = 0;
   mutateCycleIndex = 0;
+  mutateReferenceValid = 0;
   arpCycleIndex = 0;
   arpSlicePhase = 0;
   velocityCycleIndex = 0;
@@ -106,6 +114,7 @@ static void setup(int input) {
   isFxEdit = 0;
   fillCycleIndex = 0;
   mutateCycleIndex = 0;
+  mutateReferenceValid = 0;
   arpCycleIndex = 0;
   arpSlicePhase = 0;
   velocityCycleIndex = 0;
@@ -244,10 +253,17 @@ static void draw(void) {
   if (isFxEdit) return;
 
   // Rotating combo hints while a selection is active: only when no other
-  // message (action feedback, error) is showing.
+  // message (action feedback, error) is showing. The selectMode 1->0
+  // transition also re-captures the mutate reference, so the next
+  // selection session mutates from the sequence as it stands now.
   if (screen.selectMode == 1) {
     if (!screenGetActiveMessage()[0]) selectionUpdateHint();
   } else {
+    if (selectionHintActive && mutateReferenceValid) {
+      int startCol, startRow, endCol, endRow;
+      getSelectionBounds(&screen, &startCol, &startRow, &endCol, &endRow);
+      mutateCaptureReference(startRow, endRow);
+    }
     selectionHintActive = 0;
   }
 
@@ -412,16 +428,47 @@ static void fillApplyRandom(int startRow, int endRow) {
 // Selection mutate (note column only): with a selection active, B+UP
 // nudges the notes already placed in the selection. Every press picks
 // 1-3 of the placed notes and shifts each by a random semitone delta
-// within one octave, weighted toward small shifts. Note Lock snaps the
-// results back into the project scale (up for raised notes, down for
-// lowered ones); sliced-sample instruments stay chromatic - their notes
-// select slices, not pitches. Empty cells and OFF commands are never
-// touched, and nothing is erased: the 8th press restores the notes the
-// selection held when the cycle started, then the cycle restarts.
-// Releasing B resets the cycle.
+// within one octave, weighted toward small shifts. Mutations always
+// start from a reference snapshot of the selection, never from the
+// current (already mutated) values, so repeated presses wander around
+// the original material instead of drifting upward. The reference is
+// captured on the first press of a hold and re-captured from the
+// current sequence when selection mode closes, so the next selection
+// session mutates from whatever the phrase holds then. Note Lock snaps
+// the results back into the project scale (up for raised notes, down
+// for lowered ones); sliced-sample instruments stay chromatic - their
+// notes select slices, not pitches. Empty cells and OFF commands are
+// never touched, and nothing is erased: the 8th press restores the
+// reference notes, then the cycle restarts. Releasing B resets the
+// cycle but keeps the reference. A range limiter keeps the randomized
+// material near the reference: no mutated note may rise more than an
+// octave above the reference's highest note, and no note may sit more
+// than 5 semitones below the reference's lowest note.
 //
 
-static uint8_t mutateOriginalNotes[16];
+static int mutateRefMin = 0;
+static int mutateRefMax = 0;
+
+// Capture the selection's placed notes as the mutation reference and
+// record its pitch span for the range limiter.
+static void mutateCaptureReference(int startRow, int endRow) {
+  mutateRefMin = INT_MAX;
+  mutateRefMax = INT_MIN;
+  for (int r = startRow; r <= endRow; r++) {
+    uint8_t note = phraseRows[r].note;
+    mutateOriginalNotes[r] = note;
+    if (note != EMPTY_VALUE_8 && note != NOTE_OFF) {
+      if (note < mutateRefMin) mutateRefMin = note;
+      if (note > mutateRefMax) mutateRefMax = note;
+  }
+  }
+  if (mutateRefMin > mutateRefMax) {
+    // No placed notes: an empty reference disables the limiter.
+    mutateRefMin = 0;
+    mutateRefMax = -1;
+  }
+  mutateReferenceValid = 1;
+}
 
 // Random semitone delta within one octave, weighted toward small
 // shifts: 1-3 semitones is the most likely range, 4-6 next, 7-12 (the
@@ -435,7 +482,9 @@ static int mutateRandomDelta(void) {
   return (utilsRandom() & 1) ? magnitude : -magnitude;
 }
 
-// Shift one placed note by delta, clamped into the pitch table (the
+// Shift one placed note by delta measured from the reference note for
+// that row (not from the current value, which would compound across
+// presses and drift upward), clamped into the pitch table (the
 // direction flips at a boundary so the mutation still moves the note),
 // then snap it back into the project scale when Note Lock applies,
 // following the note lock logic: raised notes snap up, lowered notes
@@ -444,11 +493,19 @@ static int mutateRandomDelta(void) {
 static void mutateNote(int row, int delta) {
   Project* p = &chipnomadState->project;
   int note = phraseRows[row].note;
-  int candidate = note + delta;
+  int reference = mutateOriginalNotes[row];
+  if (reference == EMPTY_VALUE_8 || reference == NOTE_OFF) return;
+  int candidate = reference + delta;
   if (candidate < 0 || candidate >= p->pitchTable.length) {
-    candidate = note - delta;
+    candidate = reference - delta;
     if (candidate < 0) candidate = 0;
     if (candidate >= p->pitchTable.length) candidate = p->pitchTable.length - 1;
+  }
+  // Range limiter: mutated notes stay within [refMin - 5, refMax + 12]
+  // so the material cannot wander arbitrarily far from the reference.
+  if (mutateRefMin <= mutateRefMax) {
+    if (candidate > mutateRefMax + 12) candidate = mutateRefMax + 12;
+    if (candidate < mutateRefMin - 5) candidate = mutateRefMin - 5;
   }
   if (noteLockActive() && !noteLockSlicedSampleHere(row)) {
     uint16_t mask = p->scalePreset == scaleCustom ? p->scaleCustomMask : scalePresetMask(p->scalePreset);
@@ -801,9 +858,13 @@ static int fillInput(int isKeyDown, int keys) {
       screenMessage(MESSAGE_TIME, "RANDOM FILL");
     } else if (keys == (keyOpt | keyUp)) {
       // Mutate: the first press of a hold captures the selection's
-      // notes so the 8th press can restore them.
+      // notes as the mutation reference (kept until selection mode
+      // closes, so later holds mutate around the same material), then
+      // applies the first mutation.
       if (mutateCycleIndex == 0) {
-        for (int r = startRow; r <= endRow; r++) mutateOriginalNotes[r] = phraseRows[r].note;
+        if (!mutateReferenceValid) {
+          mutateCaptureReference(startRow, endRow);
+        }
         mutateApply(startRow, endRow);
         screenMessage(MESSAGE_TIME, "MUTATE");
         mutateCycleIndex = 1;
@@ -812,7 +873,7 @@ static int fillInput(int isKeyDown, int keys) {
         screenMessage(MESSAGE_TIME, "MUTATE");
         mutateCycleIndex++;
       } else {
-        // 8th press: back to the original notes, cycle restarts.
+        // 8th press: back to the reference notes, cycle restarts.
         for (int r = startRow; r <= endRow; r++) phraseRows[r].note = mutateOriginalNotes[r];
         screenMessage(MESSAGE_TIME, "RESTORED");
         mutateCycleIndex = 0;
