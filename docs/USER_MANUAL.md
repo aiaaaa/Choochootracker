@@ -820,6 +820,7 @@ The available modulation types are:
 - FLFO - audio-rate LFO that can reach the kHz range; FLFO can be heavy on the CPU
 - SLIN - linear joystick control
 - SRAT - rate-based joystick control
+- Sequence - reads the tracker sequence as a modulation signal: **PITCH** is the final sequenced pitch, **VOL** is the final sequenced volume, and **TRANCE GATE** is an independent rhythmic modulator. Its Motif, Rate and Length select the gate pattern; Trigger chooses whether it is free-running, retriggered per note, or restarted at Phrase or Chain boundaries. Closed gates output zero, open gates output half level, and Accents distributes full-level gates euclidically across the active gates. It does not use or change a track insert.
 
 The list of modulation destinations depends on the instrument type.
 
@@ -828,6 +829,8 @@ For a `Cutoff` destination, Amount is exponential with a quadratic response: 25%
 When an ADSR or AHD envelope targets Volume, it becomes the instrument's volume envelope. An LFO targeting Volume offsets the current output volume instead.
 
 The modulation amount can be positive or negative. Its range depends on the destination. If the destination's full range is `127` or less, as it is for most parameters, the amount defines an absolute range. Wider destinations such as pitch use a scaled amount.
+
+PITCH and VOL Sequence sources have a **Mode**. **Normal** keeps the tracker value audible while also using it as modulation. **Bypass** makes it a source only: PITCH retriggers at the last pitch (or C-4 for the first note), and VOL keeps the last audible level. Trance Gate is already source-only. If any active Sequence slot bypasses PITCH or VOL, bypass wins. To prevent feedback, PITCH and VOL cannot target Pitch or Volume.
 
 All duration parameters, including attack, hold, decay and period, are measured in ticks.
 

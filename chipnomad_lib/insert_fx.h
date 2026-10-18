@@ -55,6 +55,8 @@ float insertMap(int module, int parameter, int value);
 void insertSelect(InsertConfig*, int module);
 void insertEdit(InsertConfig*, int parameter, int value);
 void insertDescribe(char*, size_t, int module, int parameter, int value);
+bool tranceGatePatternOpen(uint8_t pattern, uint8_t length, uint32_t step);
+float tranceGateTicksPerStep(uint8_t rate);
 class InsertChain {
  public:
   explicit InsertChain(float sampleRate);

@@ -48,6 +48,7 @@ struct PlaybackNoteState {
   uint8_t accent;
 
   uint8_t pitchFinal; // Calculated pitch value
+  uint8_t sequencePitch; // Requested pitch before a Sequence PITCH bypass
   int8_t pitchOffset; // Pitch offset (semitones)
   int16_t fineOffset; // Fine pitch offset (cents or periods, depending on linearPitch setting)
   int16_t periodOffset; // Period offset
@@ -55,6 +56,7 @@ struct PlaybackNoteState {
   uint8_t volume2; // Instrument table volume
   uint8_t volume3; // Aux table volume
   int16_t volumeOffset; // Phrase-volume offset in the 0-127 domain
+  uint8_t sequenceVolume; // Requested phrase volume before a Sequence VOL bypass
 
   PlaybackTableState instrumentTable;
   PlaybackTableState auxTable;
@@ -135,6 +137,9 @@ struct PlaybackTrackState {
   // mapping.
   uint8_t sliceBypass;
 };
+
+int playbackSequenceBypasses(const PlaybackTrackState* track, SequenceSource source);
+int16_t playbackSequenceGateOutput(const Modulation* modulation, uint32_t ticks);
 
 struct MidiCCRuntime {
   uint8_t active;
