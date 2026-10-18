@@ -1,6 +1,7 @@
 #include "doctest.h"
 #include "chipnomad_lib.h"
 #include "playback_internal.h"
+#include "screens.h"
 
 TEST_SUITE("chord") {
 
@@ -92,6 +93,13 @@ TEST_CASE("CRD inversions retain their raised chord tones") {
       CHECK(chipnomad->playbackState.tracks[0].chordPitchFinal[voice] == expected[inversion][voice]);
   }
   chipnomadDestroy(chipnomad);
+}
+
+TEST_CASE("CRD editor exposes drop voicings") {
+  FXCell fx = {fxCRD, 0x37}, last = fx;
+  for (int i = 0; i < 12; ++i)
+    CHECK(editFXValue(CellEditAction::increaseBig, &fx, &last, 0, EMPTY_VALUE_8));
+  CHECK(fx.value == 0xf7);
 }
 
 TEST_CASE("CRD is ignored by AY instruments") {

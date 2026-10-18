@@ -2,7 +2,6 @@
 #include "screens.h"
 #include "corelib_gfx.h"
 #include "help.h"
-#include "chord.h"
 #include "synth/sample_voice.h"
 #include <algorithm>
 #include <string>
@@ -278,10 +277,9 @@ int editFXValue(CellEditAction action, FXCell* fx, FXCell* lastFX, int isTable, 
     else if (action == CellEditAction::tap) { if (fx->value == 0) { chord = lastFX->value & 0x0f; inversion = lastFX->value >> 4; } }
     else if (action == CellEditAction::increase) chord = (chord + 1) & 0x0f;
     else if (action == CellEditAction::decrease) chord = (chord + 15) & 0x0f;
-    else if (action == CellEditAction::increaseBig && inversion < chordMaxInversion(chord)) ++inversion;
+    else if (action == CellEditAction::increaseBig && inversion < 0x0f) ++inversion;
     else if (action == CellEditAction::decreaseBig && inversion > 0) --inversion;
     else handled = 0;
-    if (inversion > chordMaxInversion(chord)) inversion = chordMaxInversion(chord);
     if (handled) {
       fx->value = (inversion << 4) | chord;
       if (isNotMultiAction) lastFX->value = fx->value;
