@@ -983,6 +983,7 @@ Each FX has a 3-letter command and a hexadecimal value. The in-app help panel gi
 | `SNG` | signed `XX` | Moves playback by `XX` song rows. |
 | `PRO` | `00-64` | Evaluates an absolute trigger probability from `0%` to `100%`. |
 | `MOD` | `AB` | Triggers on pass `A` of a `B`-pass cycle. |
+| `RNN` | `MX` | Plays a random note near the row note. `M` selects the mode: `0` always random, `1` random per PLAY, `2` pick and keep until the value changes. `X` selects the range: `0` off, `1` +3 st, `2` +6 st, `3` +12 st, `4` -3 st, `5` -6 st, `6` -12 st, `7` +/-3 st, `8` +/-6 st, `9` +/-12 st. Random picks follow the project scale in Note Lock mode. |
 | `SPD` | signed `XX` | Selects a persistent per-track clock ratio; see the speed table below. |
 | `SLE` | `00-FF` ticks | Sets persistent per-track glide time for continuous engine FX. `00` is immediate. The setting resets to `00` when playback stops. |
 
@@ -1130,6 +1131,7 @@ The value is interpreted as a signed `8-bit` relative change (`01` adds `1`, `FF
 | `SCF` | `00-FF` | Exponential cutoff, `20 Hz` to `20 kHz` |
 | `SRS` | `00-FF` | Exponential filter resonance |
 | `SSP` | `00-FF` | Sample speed, mapped from `0%` to `500%` |
+| `RNS` | `M0` | Plays a random slice of a sliced sample instead of the note-mapped one. `M` selects the mode: `0` always random, `1` random per PLAY, `2` pick and keep until the value changes. Requires slice mode enabled on the instrument; the low nibble is unused. |
 
 ### AY FX shared by AY instruments
 

@@ -134,6 +134,23 @@ struct PlaybackTrackState {
   // speed. Cleared by resetTrack so every stop path restores normal slice
   // mapping.
   uint8_t sliceBypass;
+
+  // RNS (random slice) runtime state: the picked slice index (0-based,
+  // valid only when rnsSeeded is set), whether a pick is currently
+  // held, and the last raw FX value seen (used to detect value changes
+  // for mode 02, pick and keep). Mode 02 holds the pick until the FX
+  // value changes or the track resets; modes 00/01 re-pick per row /
+  // per PLAY.
+  uint8_t rnsSlice;
+  uint8_t rnsSeeded;
+  uint8_t rnsLastValue;
+
+  // RNN (random note) runtime state: the picked note (valid only when
+  // rnnSeeded is set) and the last raw FX value seen, used to detect
+  // value changes for mode 02 (pick and keep).
+  uint8_t rnnPickedNote;
+  uint8_t rnnSeeded;
+  uint8_t rnnLastValue;
 };
 
 struct MidiCCRuntime {

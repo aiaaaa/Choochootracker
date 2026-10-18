@@ -123,6 +123,12 @@ static void resetTrack(PlaybackState* state, int trackIdx) {
   track->mode = PlaybackMode::stopped;
   track->queue.liveAction = LiveQueueAction::none;
   track->sliceBypass = 0;
+  track->rnsSeeded = 0;
+  track->rnsSlice = 0;
+  track->rnsLastValue = 0xFF;
+  track->rnnSeeded = 0;
+  track->rnnPickedNote = EMPTY_VALUE_8;
+  track->rnnLastValue = 0xFF;
 
   resetNoteFX(state, trackIdx);
 
@@ -437,6 +443,38 @@ static void scheduleAChChidGate(PlaybackState* state, int trackIdx) {
   track->achchidGateCounter = 0;
 }
 
+// Pick a random note for RNN within the range encoded by the value's
+// low nibble: 1 +3 st, 2 +6, 3 +12, 4 -3, 5 -6, 6 -12, 7 +/-3,
+// 8 +/-6, 9 +/-12 (full range). 0 means no randomization (the written
+// note passes through). The range is centered on the written note, so
+// the random result stays musically anchored to it.
+static int rnnPickNote(uint8_t note, uint8_t range) {
+  static const int8_t spans[10] = {0, 3, 6, 12, -3, -6, -12, 3, 6, 12};
+  if (range >= 10) return note;
+  int span = spans[range];
+  if (span == 0) return note;
+  int magnitude = span < 0 ? -span : span;
+  // Draw a signed offset in [-span, +span]; for one-sided ranges (1-6)
+  // the sign is fixed by the span's sign, for two-sided ranges (7-9)
+  // both directions are possible.
+  int offset;
+  if (range <= 6) {
+    offset = (int)(utilsRandom() % (magnitude + 1)) * (span < 0 ? -1 : 1);
+  } else {
+    offset = (int)(utilsRandom() % (2 * magnitude + 1)) - magnitude;
+  }
+  int picked = (int)note + offset;
+  if (picked < 0) picked = 0;
+  if (picked > 0xFF) picked = 0xFF;
+  return picked;
+}
+
+// True when the RNN value changed since the last pick (used by mode 2,
+// pick and keep, to re-pick on a value change).
+static int rnnLastValueChanged(PlaybackTrackState* track, uint8_t value) {
+  return track->rnnLastValue != value;
+}
+
 void readPhraseRowDirect(PlaybackState* state, int trackIdx, PhraseRow* phraseRow, int skipDelCheck) {
   PlaybackTrackState* track = &state->tracks[trackIdx];
   Project* p = state->p;
@@ -572,6 +610,57 @@ void readPhraseRowDirect(PlaybackState* state, int trackIdx, PhraseRow* phraseRo
     if (note == NOTE_OFF) {
       handleNoteOff(state, trackIdx);
     } else {
+      // RNN replaces the row's note with a random one before any
+      // transposition or scale handling. First digit of the value picks
+      // the mode: 0 always random (re-picked every row), 1 random per
+      // PLAY (held until the track restarts), 2 pick and keep (held
+      // until the value changes or the track resets). Second digit
+      // limits the randomization range around the written note:
+      // 1 +3 st, 2 +6, 3 +12, 4 -3, 5 -6, 6 -12, 7 +/-3, 8 +/-6,
+      // 9 +/-12 (full range). 0 means no randomization.
+      if (track->note.fx[fxRNN].isOn) {
+        uint8_t rnnValue = track->note.fx[fxRNN].fxValue;
+        uint8_t rnnMode = rnnValue >> 4;
+        uint8_t rnnRange = rnnValue & 0x0F;
+        if (rnnMode == 2 && rnnLastValueChanged(track, rnnValue)) {
+          track->rnnSeeded = 0;
+        }
+        if (rnnMode == 0 || !track->rnnSeeded) {
+          track->rnnPickedNote = (uint8_t)rnnPickNote(note, rnnRange);
+          track->rnnSeeded = 1;
+          track->rnnLastValue = rnnValue;
+        }
+        note = track->rnnPickedNote;
+      }
+      // RNS picks a random slice for the triggered note (sliced sample
+      // instruments only). First digit of the value picks the mode:
+      // 0 always random (re-picked every row), 1 random per PLAY (held
+      // until the track restarts), 2 pick and keep (held until the
+      // value changes or the track resets). The second digit is unused.
+      // Picking happens here at note trigger, not in updateSampleVoices,
+      // which runs at audio rate and would re-pick thousands of times
+      // per second.
+      if (track->note.fx[fxRNS].isOn) {
+        InstrumentType rnsType = track->note.instrument == EMPTY_VALUE_8
+          ? InstrumentType::none : p->instruments[track->note.instrument].type;
+        const InstrumentSample* rnsSample = rnsType == InstrumentType::Sample
+          ? &p->instruments[track->note.instrument].chip.sample : NULL;
+        int rnsSliceCount = rnsType == InstrumentType::Sample &&
+          sampleActsAsSliced(rnsSample)
+          ? sampleDecodeSliceCount(rnsSample->slice) : 0;
+        if (rnsSliceCount) {
+          uint8_t rnsValue = track->note.fx[fxRNS].fxValue;
+          uint8_t rnsMode = rnsValue >> 4;
+          if (rnsMode == 2 && track->rnsLastValue != rnsValue) {
+            track->rnsSeeded = 0;
+          }
+          if (rnsMode == 0 || !track->rnsSeeded) {
+            track->rnsSlice = (uint8_t)(utilsRandom() % rnsSliceCount);
+            track->rnsSeeded = 1;
+            track->rnsLastValue = rnsValue;
+          }
+        }
+      }
       track->note.pitchBase = note;
       // Accent is deliberately derived from this row, never from sticky volume.
       track->note.accent = volume == PHRASE_VOLUME_MAX;
@@ -605,6 +694,14 @@ void readPhraseRowDirect(PlaybackState* state, int trackIdx, PhraseRow* phraseRo
   // quantization of plain notes is bypassed (chords below still quantize).
   int noteLock = p->scaleMode != 0;
   if (note != EMPTY_VALUE_8 && note != NOTE_OFF && p->scaleApply && !noteLock && !slicedSample &&
+      (p->scaleTracksMask & (1u << trackIdx)) && p->pitchTable.octaveSize == 12) {
+    uint16_t mask = state->scalePreset == scaleCustom ? p->scaleCustomMask : scalePresetMask(state->scalePreset);
+    track->note.pitchBase = scaleQuantizeNote(track->note.pitchBase, state->scaleRoot, mask, p->pitchTable.length);
+  }
+  // RNN notes follow the project scale in Note Lock mode too: manual
+  // entry is already scale-restricted there (which is why the quantizer
+  // path above is bypassed), but random picks are not, so snap them.
+  if (track->note.fx[fxRNN].isOn && noteLock && p->scaleApply && !slicedSample &&
       (p->scaleTracksMask & (1u << trackIdx)) && p->pitchTable.octaveSize == 12) {
     uint16_t mask = state->scalePreset == scaleCustom ? p->scaleCustomMask : scalePresetMask(state->scalePreset);
     track->note.pitchBase = scaleQuantizeNote(track->note.pitchBase, state->scaleRoot, mask, p->pitchTable.length);
