@@ -402,12 +402,32 @@ static void drawStatic(void) {
   }
 }
 
+static void hint(const Modulation* mod, int modRow) {
+  if (mod->type != ModulationType::Sequence ||
+      mod->p1 != static_cast<uint8_t>(SequenceSource::tranceGate)) return;
+  static const char* rateNames[] = {"1/2", "1/2T", "1/2.", "1/4", "1/4T", "1/4.",
+                                    "1/8", "1/8T", "1/8.", "1/16", "1/16T", "1/16.",
+                                    "1/32", "1/32T", "1/32."};
+  uint8_t rate = sequenceGateRate(mod);
+  switch (modRow) {
+    case 0: screenMessage(0, "Sequence source: Trance Gate"); break;
+    case 1: screenMessage(0, "Gate output modulates this destination"); break;
+    case 2: screenMessage(0, "Gate modulation depth %hhd", mod->amount); break;
+    case 3: screenMessage(0, "Motif %02X: one of 64 gate patterns", sequenceGatePattern(mod)); break;
+    case 4: screenMessage(0, "Rate %s", rateNames[rate > 14 ? 14 : rate]); break;
+    case 5: screenMessage(0, "Length %u steps", sequenceGateLength(mod)); break;
+    case 6: screenMessage(0, "Trigger resets: free, retrig, phrase, chain"); break;
+    case 7: screenMessage(0, "Accents %u across open steps", sequenceGateAccents(mod)); break;
+  }
+}
+
 static void drawCursor(int col, int row) {
   int y = rowToY(row);
   int valX = col == 0 ? COL_LEFT_VAL : COL_RIGHT_VAL;
   int modRow = getModRow(row);
   int modIdx = getModIndex(col, row);
   Modulation* mod = &chipnomadState->project.instruments[cInstrument].modulation[modIdx];
+  hint(mod, modRow);
 
   switch (modRow) {
     case 0: gfxCursor(valX, y, strlen(mod->type == ModulationType::Sequence &&

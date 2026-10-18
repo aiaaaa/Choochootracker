@@ -1,6 +1,7 @@
 #include "doctest.h"
 #include "chipnomad_lib.h"
 #include "playback_internal.h"
+#include "pitch_table_utils.h"
 #include "screens.h"
 
 TEST_SUITE("chord") {
@@ -80,6 +81,13 @@ TEST_CASE("CRD is same-row only and quantizes every chord note") {
 TEST_CASE("CRD inversions retain their raised chord tones") {
   ChipNomadState* chipnomad = chipnomadCreate();
   REQUIRE(chipnomad);
+  Project* project = &chipnomad->project;
+  project->chipType = ChipType::AY;
+  project->chipsCount = 1;
+  project->tracksCount = projectGetTotalTracks(project);
+  calculatePitchTableAY(project);
+  chipnomadInitChips(chipnomad, 44100, nullptr);
+  playbackInit(&chipnomad->playbackState, project);
   PhraseRow row = {};
   row.note = 40; row.instrument = EMPTY_VALUE_8; row.volume = EMPTY_VALUE_16;
   for (int i = 0; i < 3; ++i) row.fx[i][0] = EMPTY_VALUE_8;
@@ -88,6 +96,7 @@ TEST_CASE("CRD inversions retain their raised chord tones") {
   for (int inversion = 0; inversion < 3; ++inversion) {
     row.fx[0][0] = fxCRD; row.fx[0][1] = inversions[inversion];
     playbackStartPhraseRow(&chipnomad->playbackState, 0, &row);
+    playbackNextFrame(chipnomad);
     playbackNextFrame(chipnomad);
     for (int voice = 0; voice < 3; ++voice)
       CHECK(chipnomad->playbackState.tracks[0].chordPitchFinal[voice] == expected[inversion][voice]);

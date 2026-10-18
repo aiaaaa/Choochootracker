@@ -299,18 +299,18 @@ TEST_CASE_FIXTURE(PlaybackFixture, "Sequence sources bypass sequencer output and
   sequence.p1 = static_cast<uint8_t>(SequenceSource::tranceGate);
   sequenceGateDefaults(&sequence);
   sequenceGateSetPattern(&sequence, 2); // Alternating steps.
-  sequenceGateSetRate(&sequence, 9); // 1/16: three tracker ticks per step.
+  sequenceGateSetRate(&sequence, 9); // 1/16: six tracker ticks per step.
   sequenceGateSetLength(&sequence, 4);
   CHECK(sequenceGatePattern(&sequence) == 2);
   CHECK(sequenceGateRate(&sequence) == 9);
   CHECK(sequenceGateLength(&sequence) == 4);
   CHECK(playbackSequenceGateOutput(&sequence, 0) == 16192); // Open, normal gate.
-  CHECK(playbackSequenceGateOutput(&sequence, 3) == 0); // Closed pattern step.
+  CHECK(playbackSequenceGateOutput(&sequence, 6) == 0); // Closed pattern step.
   sequenceGateSetAccents(&sequence, 16);
   CHECK(playbackSequenceGateOutput(&sequence, 0) == 32385); // Every open gate accents.
   sequenceGateSetAccents(&sequence, 8);
   CHECK(playbackSequenceGateOutput(&sequence, 0) == 32385);
-  CHECK(playbackSequenceGateOutput(&sequence, 6) == 16192);
+  CHECK(playbackSequenceGateOutput(&sequence, 12) == 16192);
   for (SequenceGateTrigger trigger : {SequenceGateTrigger::free, SequenceGateTrigger::retrig,
                                       SequenceGateTrigger::phrase, SequenceGateTrigger::chain}) {
     sequenceGateSetTrigger(&sequence, trigger);
