@@ -984,7 +984,7 @@ static void nextFrame(PlaybackState* state, int trackIdx, int chipIdx) {
 
     track->note.pitchFinal = pitch;
     for (int i = 0; i < track->chordVoiceCount; ++i) {
-      int chordPitch = pitch + (int)track->chordPitchBase[i] - (int)track->chordPitchBase[0];
+      int chordPitch = pitch + (int)track->chordPitchBase[i] - (int)track->note.pitchBase;
       track->chordPitchFinal[i] = clampInt16(chordPitch, 0, p->pitchTable.length - 1);
     }
   }

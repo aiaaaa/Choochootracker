@@ -76,6 +76,24 @@ TEST_CASE("CRD is same-row only and quantizes every chord note") {
   CHECK(state.tracks[0].chordPitchBase[0] == 38);
 }
 
+TEST_CASE("CRD inversions retain their raised chord tones") {
+  ChipNomadState* chipnomad = chipnomadCreate();
+  REQUIRE(chipnomad);
+  PhraseRow row = {};
+  row.note = 40; row.instrument = EMPTY_VALUE_8; row.volume = EMPTY_VALUE_16;
+  for (int i = 0; i < 3; ++i) row.fx[i][0] = EMPTY_VALUE_8;
+  const uint8_t inversions[] = {0x01, 0x11, 0x21};
+  const uint8_t expected[][3] = {{40, 43, 47}, {43, 47, 52}, {47, 52, 55}};
+  for (int inversion = 0; inversion < 3; ++inversion) {
+    row.fx[0][0] = fxCRD; row.fx[0][1] = inversions[inversion];
+    playbackStartPhraseRow(&chipnomad->playbackState, 0, &row);
+    playbackNextFrame(chipnomad);
+    for (int voice = 0; voice < 3; ++voice)
+      CHECK(chipnomad->playbackState.tracks[0].chordPitchFinal[voice] == expected[inversion][voice]);
+  }
+  chipnomadDestroy(chipnomad);
+}
+
 TEST_CASE("CRD is ignored by AY instruments") {
   Project project;
   projectInit(&project);
