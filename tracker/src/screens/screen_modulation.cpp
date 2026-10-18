@@ -413,7 +413,12 @@ static void hint(const Modulation* mod, int modRow) {
     case 0: screenMessage(0, "Sequence source: Trance Gate"); break;
     case 1: screenMessage(0, "Gate output modulates this destination"); break;
     case 2: screenMessage(0, "Gate modulation depth %hhd", mod->amount); break;
-    case 3: screenMessage(0, "Motif %02X: one of 64 gate patterns", sequenceGatePattern(mod)); break;
+    case 3: {
+      char motif[32];
+      insertDescribe(motif, sizeof(motif), insertTranceGate, 0, sequenceGatePattern(mod));
+      screenMessage(0, "Motif: %s", motif);
+      break;
+    }
     case 4: screenMessage(0, "Rate %s", rateNames[rate > 14 ? 14 : rate]); break;
     case 5: screenMessage(0, "Length %u steps", sequenceGateLength(mod)); break;
     case 6: screenMessage(0, "Trigger resets: free, retrig, phrase, chain"); break;
