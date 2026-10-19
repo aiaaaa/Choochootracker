@@ -137,13 +137,10 @@ static void audioCallback(int16_t* buffer, int stereoSamples) {
     return;
   }
 
-  if (chipnomadRender(chipnomadState, floatBuffer, stereoSamples) != stereoSamples) {
-#ifdef ANDROID_BUILD
-    if (audioDiagnostics::enabled)
-      audioDiagnostics::renderFailures.fetch_add(1, std::memory_order_relaxed);
-#endif
-    memset(floatBuffer, 0, stereoSamples * 2 * sizeof(*floatBuffer));
-  }
+  // A short render is normal when a song ends. Preserve its valid prefix;
+  // pre-clear also makes an early render failure safe without stale samples.
+  memset(floatBuffer, 0, stereoSamples * 2 * sizeof(*floatBuffer));
+  chipnomadRender(chipnomadState, floatBuffer, stereoSamples);
   renderPreview(samplePreviewBuffer, stereoSamples);
   for (int i = 0; i < stereoSamples * 2; ++i) floatBuffer[i] += samplePreviewBuffer[i];
 

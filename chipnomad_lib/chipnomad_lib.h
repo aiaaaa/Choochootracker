@@ -6,6 +6,7 @@
 #include "playback.h"
 #include "synth/track_tilt.h"
 #include "utils.h"
+#include "stop_transition.h"
 
 class BraidsVoice;
 class SampleVoice;
@@ -83,6 +84,7 @@ struct ChipNomadState {
   SoundChip* chips[PROJECT_MAX_CHIPS];
   int sampleRate;
   float frameSampleCounter;
+  StopTransition stopTransition;
   float mixVolume;
   int audioOverload;
   int trackClipping[PROJECT_MAX_TRACKS];
