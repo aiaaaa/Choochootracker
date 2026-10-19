@@ -285,13 +285,27 @@ static PhraseRow makeFxRow(uint8_t note, FXId fx, uint8_t value) {
   return row;
 }
 
-TEST_CASE_FIXTURE(RandomFxPlaybackFixture, "RNN range 0 keeps the written note") {
+TEST_CASE_FIXTURE(RandomFxPlaybackFixture, "RNN range 0 picks any note of the pitch table") {
   PhraseRow row = makeFxRow(48, fxRNN, 0x00);
   readPhraseRowDirect(&state->playbackState, 0, &row, 0);
   auto& track = state->playbackState.tracks[0];
   CHECK(track.rnnSeeded == 1); // the pick branch ran
-  CHECK(track.rnnPickedNote == 48); // range 0 -> the note itself
-  CHECK(track.note.pitchBase == 48);
+  // Full range: the pick spans the whole pitch table, unanchored to the
+  // written note. The default chromatic project scale leaves it as is.
+  CHECK(track.rnnPickedNote < state->project.pitchTable.length);
+  CHECK(track.note.pitchBase == track.rnnPickedNote);
+}
+
+TEST_CASE_FIXTURE(RandomFxPlaybackFixture, "RNN range 0 snaps the pick to the project scale") {
+  state->playbackState.scalePreset = scaleMajor;
+  state->playbackState.scaleRoot = 0;
+  PhraseRow row = makeFxRow(48, fxRNN, 0x00);
+  readPhraseRowDirect(&state->playbackState, 0, &row, 0);
+  auto& track = state->playbackState.tracks[0];
+  CHECK(track.rnnSeeded == 1);
+  // Quantizer mode snaps the picked note down to the major scale.
+  CHECK(track.note.pitchBase <= track.rnnPickedNote);
+  CHECK(inMajorScale(track.note.pitchBase));
 }
 
 TEST_CASE_FIXTURE(RandomFxPlaybackFixture, "RNN mode 0 re-picks every row") {

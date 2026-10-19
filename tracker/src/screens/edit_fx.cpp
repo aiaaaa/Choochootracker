@@ -149,7 +149,7 @@ static const char* contextualFXHint(const FXCell* fx,int table,uint8_t instrumen
   if (fx->command == fxRNN) {
     static const char* rnnModes[] = {"always random", "random per PLAY",
       "pick and keep"};
-    static const char* rnnRanges[] = {"off", "+3 st", "+6 st", "+12 st",
+    static const char* rnnRanges[] = {"any note", "+3 st", "+6 st", "+12 st",
       "-3 st", "-6 st", "-12 st", "+/-3 st", "+/-6 st", "+/-12 st"};
     static char rnn[41];
     uint8_t mode = fx->value >> 4;

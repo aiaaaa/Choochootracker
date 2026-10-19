@@ -444,11 +444,15 @@ static void scheduleAChChidGate(PlaybackState* state, int trackIdx) {
 }
 
 // Pick a random note for RNN within the range encoded by the value's
-// low nibble: 1 +3 st, 2 +6, 3 +12, 4 -3, 5 -6, 6 -12, 7 +/-3,
-// 8 +/-6, 9 +/-12 (full range). 0 means no randomization (the written
-// note passes through). The range is centered on the written note, so
-// the random result stays musically anchored to it.
-static int rnnPickNote(uint8_t note, uint8_t range) {
+// low nibble: 0 any note of the pitch table (the project scale, when
+// active, snaps the pick afterwards), 1 +3 st, 2 +6, 3 +12, 4 -3,
+// 5 -6, 6 -12, 7 +/-3, 8 +/-6, 9 +/-12. Ranges 1-9 center on the
+// written note, so the random result stays musically anchored to it.
+static int rnnPickNote(uint8_t note, uint8_t range, uint16_t pitchCount) {
+  if (range == 0) {
+    int limit = pitchCount < 256 ? pitchCount : 256;
+    return limit ? (int)(utilsRandom() % limit) : (int)note;
+  }
   static const int8_t spans[10] = {0, 3, 6, 12, -3, -6, -12, 3, 6, 12};
   if (range >= 10) return note;
   int span = spans[range];
@@ -617,7 +621,8 @@ void readPhraseRowDirect(PlaybackState* state, int trackIdx, PhraseRow* phraseRo
       // until the value changes or the track resets). Second digit
       // limits the randomization range around the written note:
       // 1 +3 st, 2 +6, 3 +12, 4 -3, 5 -6, 6 -12, 7 +/-3, 8 +/-6,
-      // 9 +/-12 (full range). 0 means no randomization.
+      // 9 +/-12. 0 picks any note of the pitch table; the project
+      // scale, when active, snaps the pick afterwards.
       if (track->note.fx[fxRNN].isOn) {
         uint8_t rnnValue = track->note.fx[fxRNN].fxValue;
         uint8_t rnnMode = rnnValue >> 4;
@@ -626,7 +631,7 @@ void readPhraseRowDirect(PlaybackState* state, int trackIdx, PhraseRow* phraseRo
           track->rnnSeeded = 0;
         }
         if (rnnMode == 0 || !track->rnnSeeded) {
-          track->rnnPickedNote = (uint8_t)rnnPickNote(note, rnnRange);
+          track->rnnPickedNote = (uint8_t)rnnPickNote(note, rnnRange, p->pitchTable.length);
           track->rnnSeeded = 1;
           track->rnnLastValue = rnnValue;
         }
