@@ -26,7 +26,7 @@ static const InsertDescriptor descriptors[] = {
       {"Release", "Release", "Hz", 60, 0.4f, 128, M::exponential},
       {"Makeup", "Makeup", "dB", 0, 24, 0, M::linear},
       {"Ratio", "Ratio", "", 0, 7, 3, M::discrete},
-      {"Detect", "Detector source", "", 0, 2, 0, M::discrete},
+      {"Detect", "Detector source", "", 0, 10, 0, M::discrete},
       {"DetFilt", "Detector filter", "", -1, 1, 128, M::bipolar},
       {"Mix", "Mix", "%", 0, 1, 255, M::linear}}},
     {"Distortion",
@@ -226,7 +226,8 @@ void insertDescribe(char* text, size_t size, int m, int p, int value) {
     snprintf(text, size, "%.1f:1", n[(int)v]);
   } else if (m == insertCompressor && p == 5) {
     static const char* n[] = {"Stereo", "Left", "Right"};
-    snprintf(text, size, "%s", n[(int)v]);
+    if (v < 3) snprintf(text, size, "%s", n[(int)v]);
+    else snprintf(text, size, "Track %d", (int)v - 2);
   } else if (m == insertTranceGate && p == 0) {
     static const char* n[] = {
         "Full 1/16", "Downbeat 4/4", "8th Note Pulse", "Double Pump",
@@ -560,7 +561,7 @@ struct InsertChain::Impl {
     memcpy(s.previous, v, 8);
     s.dirty = false;
   }
-  void process(Slot& s, float* data, int frames, const uint8_t* values) {
+  void process(Slot& s, float* data, int frames, const uint8_t* values, const float* sidechain) {
     float increment = 1.0f / std::max(1.0f, rate * 0.005f);
     for (int offset = 0; offset < frames;) {
       if (s.switching && s.wet <= 0) {
@@ -596,7 +597,7 @@ struct InsertChain::Impl {
           if (s.beads) s.beads->process(l, r, n, p);
           break;
         case insertCompressor:
-          s.work.process(l, r, n);
+          s.work.process(l, r, n, sidechain ? sidechain + offset : nullptr);
           break;
         case insertDistortion:
           s.distortion.processReplacing(channels, channels, n);
@@ -841,7 +842,8 @@ bool InsertChain::active() const {
     if (s.config.module || s.module || s.switching) return true;
   return false;
 }
-void InsertChain::process(float* data, int frames, const uint8_t v[2][8]) {
+void InsertChain::process(float* data, int frames, const uint8_t v[2][8], const float* sidechain[2]) {
   if (!ready()) return;
-  for (int slot = 0; slot < 2; ++slot) impl_->process(impl_->slots[slot], data, frames, v[slot]);
+  for (int slot = 0; slot < 2; ++slot)
+    impl_->process(impl_->slots[slot], data, frames, v[slot], sidechain ? sidechain[slot] : nullptr);
 }

@@ -1401,9 +1401,11 @@ the current screen.
 Continuous controls use 00–FF, except FORMANT VOW (00–7F). Bipolar
 controls have an exact neutral at 80. Distortion modes are 00 Density, 01 Drive,
 02 Spiral, 03 Mojo, 04 Dyno. Compressor ratios 00–07 are 1.5, 2, 3, 4, 6, 8, 16,
-20:1; detector sources 00–02 are stereo input, left, right. Detector filter 80 is
-neutral, below is low-pass, above is high-pass. No external/cross-track sidechain
-is provided. Either slot can contain any module; repeated modules are independent.
+20:1. Compressor Detect 00–02 listens to its own stereo input, left, or right;
+03–0A listens to tracks 1–8 instead. Detector filter 80 is neutral, below is
+low-pass, above is high-pass. A track source is taken after its volume, pan and
+Tilt EQ but before its inserts; a muted or absent source supplies silence. Either
+slot can contain any module; repeated modules are independent.
 Chorus, Flanger, Phaser and Rotary use gentle modulation defaults. Rotary Speed
 uses the full **00-FF** range: **00 = 0.01 Hz** (one rotation per 100 seconds),
 **FF = 25 Hz** (the former Chaos maximum). Exponential spacing gives finer
@@ -1474,6 +1476,20 @@ unused slots; the sixteen available positions are not a guaranteed CPU budget.
 The Insert page keeps the selected field's tip visible after button release;
 temporary notices can still take its place. The module chooser shows each
 module's effect type and source project alongside its name.
+
+### Make a kick pump the mix or another track
+
+For a pumping master, put the kick on track 1, select Compressor in MASTER FX,
+set Detect to 03 (Track 1), Ratio to 04 (6:1), Attack around 60 (about 1.6 ms),
+Release around C0 (about 115 ms), Makeup to 00 and Mix to FF. Lower Threshold
+until the other sounds dip with each kick, then adjust Release so they recover
+before the next one. The kick's direct sound keeps its own track inserts but
+bypasses both master insert slots; its reverb and delay returns still pump.
+
+To duck only a bass, pad or synth, put its Compressor on that track and select
+the kick track with Detect. The source kick remains audible and its volume is
+not changed by that track's compressor. A kick and bass combined on the same
+track cannot be separated by this routing.
 
 ### FORMANT
 

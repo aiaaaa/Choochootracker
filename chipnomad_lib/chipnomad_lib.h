@@ -97,6 +97,8 @@ struct ChipNomadState {
   uint8_t insertValues[PROJECT_MAX_TRACKS][2][8];
   uint8_t insertActive[PROJECT_MAX_TRACKS];
   float* insertBuffer;
+  float* sidechainBuffer;
+  uint8_t sidechainSourceMask, masterSidechainExcludeMask;
   float* mixBuffer;
   float* reverbBuffer;
   float* delayBuffer;

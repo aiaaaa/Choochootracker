@@ -34,6 +34,7 @@
 #include <math.h>
 #include <algorithm>
 #include <atomic>
+#include <cmath>
 #include <new>
 #include <limits.h>
 #include <stdlib.h>
@@ -668,7 +669,9 @@ static int resizeMixBuffers(ChipNomadState* state, int requiredSize) {
   float* reverbBuffer = (float*)malloc(requiredSize * sizeof(float));
   float* delayBuffer = (float*)malloc(requiredSize * sizeof(float));
   float* insertBuffer = (float*)malloc((size_t)requiredSize * PROJECT_MAX_TRACKS * sizeof(float));
-  if (!mixBuffer || !reverbBuffer || !delayBuffer || !insertBuffer) {
+  float* sidechainBuffer = (float*)malloc((size_t)(requiredSize / 2) * PROJECT_MAX_TRACKS * sizeof(float));
+  if (!mixBuffer || !reverbBuffer || !delayBuffer || !insertBuffer || !sidechainBuffer) {
+    free(sidechainBuffer);
     free(insertBuffer);
     free(mixBuffer);
     free(reverbBuffer);
@@ -680,7 +683,9 @@ static int resizeMixBuffers(ChipNomadState* state, int requiredSize) {
   free(state->reverbBuffer);
   free(state->delayBuffer);
   free(state->insertBuffer);
+  free(state->sidechainBuffer);
   state->insertBuffer = insertBuffer;
+  state->sidechainBuffer = sidechainBuffer;
   state->mixBuffer = mixBuffer;
   state->reverbBuffer = reverbBuffer;
   state->delayBuffer = delayBuffer;
@@ -868,7 +873,9 @@ ChipNomadState* chipnomadCreate(void) {
   state->reverbBuffer = (float*)malloc(state->mixBufferSize * sizeof(float));
   state->delayBuffer = (float*)malloc(state->mixBufferSize * sizeof(float));
   state->insertBuffer = (float*)malloc((size_t)state->mixBufferSize * PROJECT_MAX_TRACKS * sizeof(float));
-  if (!state->mixBuffer || !state->reverbBuffer || !state->delayBuffer || !state->insertBuffer) {
+  state->sidechainBuffer = (float*)malloc((size_t)(state->mixBufferSize / 2) * PROJECT_MAX_TRACKS * sizeof(float));
+  if (!state->mixBuffer || !state->reverbBuffer || !state->delayBuffer || !state->insertBuffer || !state->sidechainBuffer) {
+    free(state->sidechainBuffer);
     free(state->insertBuffer);
     free(state->mixBuffer);
     free(state->reverbBuffer);
@@ -971,6 +978,7 @@ void chipnomadDestroy(ChipNomadState* state) {
   for (auto* chain : state->insertChains) delete chain;
   delete state->masterInsertChain;
   free(state->insertBuffer);
+  free(state->sidechainBuffer);
   // Cleanup mix buffer
   free(state->mixBuffer);
   free(state->reverbBuffer);
@@ -1294,8 +1302,31 @@ static int prepareRenderChunk(ChipNomadState* state, float* output, int frames) 
     state->audioCommands->setRenderBufferOverflow();
     return 0;
   }
+  state->sidechainSourceMask = 0;
+  state->masterSidechainExcludeMask = 0;
+  for (int t = 0; t < state->audioProject.tracksCount; ++t)
+    for (int slot = 0; slot < 2; ++slot)
+      if (state->audioProject.trackInserts[t][slot].module == insertCompressor) {
+        int source = state->insertValues[t][slot][5] - 3;
+        if (source >= 0 && source < state->audioProject.tracksCount)
+          state->sidechainSourceMask |= 1u << source;
+      }
+  for (int slot = 0; slot < 2; ++slot) {
+    const auto& c = state->audioProject.masterInserts[slot];
+    if (c.module != insertCompressor) continue;
+    int source = c.values[5] - 3;
+    if (source < 0 || source >= state->audioProject.tracksCount) continue;
+    state->sidechainSourceMask |= 1u << source;
+    if (!c.bypass && c.values[7]) state->masterSidechainExcludeMask |= 1u << source;
+  }
+  for (int t = 0; t < state->audioProject.tracksCount; ++t)
+    if (!state->insertChains[t]) {
+      state->sidechainSourceMask &= ~(1u << t);
+      state->masterSidechainExcludeMask &= ~(1u << t);
+    }
   for (int t = 0; t < PROJECT_MAX_TRACKS; ++t) {
-    state->insertActive[t] = state->insertChains[t] && state->insertChains[t]->active();
+    state->insertActive[t] = state->insertChains[t] &&
+      (state->insertChains[t]->active() || (state->sidechainSourceMask & (1u << t)));
     if (state->insertActive[t]) memset(state->insertBuffer + (size_t)t * state->mixBufferSize, 0, requiredSize * sizeof(float));
   }
   state->audioMonitor->beginChunk(frames);
@@ -1303,6 +1334,26 @@ static int prepareRenderChunk(ChipNomadState* state, float* output, int frames) 
   memset(state->reverbBuffer, 0, requiredSize * sizeof(float));
   memset(state->delayBuffer, 0, requiredSize * sizeof(float));
   return 1;
+}
+
+static const float* sidechainFor(ChipNomadState* state, int detect) {
+  int source = detect - 3;
+  return source >= 0 && source < state->audioProject.tracksCount &&
+         (state->sidechainSourceMask & (1u << source))
+    ? state->sidechainBuffer + (size_t)source * (state->mixBufferSize / 2) : nullptr;
+}
+
+static void captureSidechains(ChipNomadState* state, int frames) {
+  for (int t = 0; t < state->audioProject.tracksCount; ++t) {
+    if (!(state->sidechainSourceMask & (1u << t))) continue;
+    const float* source = state->insertBuffer + (size_t)t * state->mixBufferSize;
+    float* detector = state->sidechainBuffer + (size_t)t * (state->mixBufferSize / 2);
+    for (int i = 0; i < frames; ++i) {
+      float left = source[i * 2], right = source[i * 2 + 1];
+      detector[i] = (std::isfinite(left) ? left : 0.0f) * 0.5f +
+                    (std::isfinite(right) ? right : 0.0f) * 0.5f;
+    }
+  }
 }
 
 static void renderChipTracks(ChipNomadState* state, float* output, int frames) {
@@ -1407,17 +1458,24 @@ static void processTrackInserts(ChipNomadState* state, float* output, int frames
   for (int t = 0; t < state->audioProject.tracksCount; ++t) {
     if (!state->insertActive[t] || !state->playbackState.trackEnabled[t]) continue;
     float* samples = state->insertBuffer + (size_t)t * state->mixBufferSize;
-    state->insertChains[t]->process(samples, frames, state->insertValues[t]);
+    const float* sidechain[2] = {
+      sidechainFor(state, state->insertValues[t][0][5]),
+      sidechainFor(state, state->insertValues[t][1][5])
+    };
+    state->insertChains[t]->process(samples, frames, state->insertValues[t], sidechain);
     float reverb = effectiveTrackSend(state, t, true), delay = effectiveTrackSend(state, t, false);
+    bool excludeFromMaster = state->masterSidechainExcludeMask & (1u << t);
     for (int i = 0; i < frames * 2; ++i) {
       float sample = samples[i], previous = output[i];
       state->audioMonitor->add(t, i, sample);
       if (audioRecorderWantsTrackSample(t))
         audioRecorderCaptureTrackSample(t, i, sample);
-      output[i] += sample;
+      if (!excludeFromMaster) output[i] += sample;
       if (reverb != 0.0f) state->reverbBuffer[i] += sample * reverb;
       if (delay != 0.0f) state->delayBuffer[i] += sample * delay;
-      if (fabsf(output[i]) > 1.0f && fabsf(output[i]) > fabsf(previous)) state->trackClipping[t] = AUDIO_OVERLOAD_COOLDOWN_FRAMES;
+      if ((excludeFromMaster ? fabsf(sample) > 1.0f :
+           fabsf(output[i]) > 1.0f && fabsf(output[i]) > fabsf(previous)))
+        state->trackClipping[t] = AUDIO_OVERLOAD_COOLDOWN_FRAMES;
     }
   }
 }
@@ -1433,8 +1491,16 @@ static void processMasterMix(ChipNomadState* state, float* output, int frames) {
   if (state->masterInsertChain && state->masterInsertChain->active()) {
     uint8_t values[2][8];
     for (int slot = 0; slot < 2; ++slot) memcpy(values[slot], state->audioProject.masterInserts[slot].values, 8);
-    state->masterInsertChain->process(output, frames, values);
+    const float* sidechain[2] = {
+      sidechainFor(state, values[0][5]), sidechainFor(state, values[1][5])
+    };
+    state->masterInsertChain->process(output, frames, values, sidechain);
   }
+  for (int t = 0; t < state->audioProject.tracksCount; ++t)
+    if (state->masterSidechainExcludeMask & (1u << t)) {
+      const float* source = state->insertBuffer + (size_t)t * state->mixBufferSize;
+      for (int i = 0; i < frames * 2; ++i) output[i] += source[i];
+    }
   for (int i = 0; i < frames * 2; ++i) {
     output[i] *= state->mixVolume;
     if (output[i] > 1.0f || output[i] < -1.0f) state->audioOverload = AUDIO_OVERLOAD_COOLDOWN_FRAMES;
@@ -1546,6 +1612,7 @@ int chipnomadRender(ChipNomadState* state, float* buffer, int samples) {
                       reverbSend, delaySend, pan);
       }
     }
+    captureSidechains(state, frames);
     processTrackInserts(state, output, frames);
     processMasterMix(state, output, frames);
     state->stopTransition.process(output, frames);
