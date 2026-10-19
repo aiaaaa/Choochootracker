@@ -1809,6 +1809,13 @@ static void updateSampleVoices(ChipNomadState* state) {
     uint8_t sliSlice = sliOverride
       ? (uint8_t)((track->note.fx[fxSLI].fxValue - 1) % sliceCount) : 0;
     if (sliOverride) sliceIndex = sliSlice;
+    // RNS plays the slice picked at note trigger (see readPhraseRowDirect)
+    // regardless of the note pitch (sliced instruments only). This runs
+    // at audio rate, so it only consumes track->rnsSlice - the pick
+    // itself must never happen here.
+    if (track->note.fx[fxRNS].isOn && sliceCount) {
+      sliceIndex = track->rnsSlice;
+    }
     for (int i = 0; i < 4; i++) {
       PlaybackModState* mod = &track->note.modulation[i];
       if (!mod->modulation) continue;
@@ -1863,6 +1870,7 @@ static void updateSampleVoices(ChipNomadState* state) {
           voiceSliceIndex = pitch % sliceCount;
         }
         if (sliOverride) voiceSliceIndex = sliSlice;
+        if (track->note.fx[fxRNS].isOn) voiceSliceIndex = track->rnsSlice;
       } else if (track->chordPitchFinal[slot] != EMPTY_VALUE_8) {
         int noteCents = project->linearPitch ? project->pitchTable.values[track->chordPitchFinal[slot]]
           : track->chordPitchFinal[slot] * 100;
