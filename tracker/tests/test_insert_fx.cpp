@@ -692,11 +692,16 @@ TEST_SUITE("track inserts") {
     e.start();
     float out[1920];
     chipnomadRender(e.s, out, 960);
+    const float last[2] = {out[1918], out[1919]};
     uint8_t enabled[8]{};
     chipnomadQueueTrackEnabled(e.s, enabled);
     chipnomadRender(e.s, out, 960);
+    const int fadeFrames = e.s->sampleRate * 3 / 1000;
     for (int i = 0; i < 1920; ++i) {
-      CHECK(out[i] == 0);
+      // Only the shared output correction survives mute; inserts and sends
+      // cannot feed new audio into it or leak beyond its three milliseconds.
+      const float weight = i / 2 < fadeFrames ? float(fadeFrames - 1 - i / 2) / (fadeFrames - 1) : 0;
+      CHECK(out[i] == doctest::Approx(last[i % 2] * weight));
       CHECK(e.s->reverbBuffer[i] == 0);
       CHECK(e.s->delayBuffer[i] == 0);
     }

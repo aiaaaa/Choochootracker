@@ -276,6 +276,9 @@ Select one Song row across several columns to queue or stop those tracks togethe
 - **OPT + [LEFT/RIGHT]**: solo every track to the left or right of the current track
 - Select a range, then double-tap **EDIT**: open the BOUNCE TO SAMPLE screen (see Bounce below)
 
+Stopping playback and changing mute or solo use a short 3 ms output correction
+to reduce clicks. This also covers unmuting and clearing solos during playback.
+
 #### Bounce
 
 Select a range of Song rows and columns, then double-tap **EDIT** to open the BOUNCE TO SAMPLE screen. The bounce includes every selected track: tracks whose first chain starts later in the selection wait silently and join at their first chain, so the file contains all selected tracks' chains.

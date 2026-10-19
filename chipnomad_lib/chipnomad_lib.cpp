@@ -212,20 +212,26 @@ class AudioCommandQueue {
   // a stop request or an explicit immediate start supersedes it.
   void cancelPendingStart() { heldValid_ = 0; }
 
-  void applySettings(PlaybackState* playback) {
+  bool applySettings(PlaybackState* playback) {
     int slot = claim(settingsSlots_, settingsPublished_);
-    if (slot < 0) return;
+    if (slot < 0) return false;
     const Settings& settings = settingsSlots_[slot].value;
+    bool trackMaskChanged = false;
     {
       uint64_t mask = settings.trackMask;
-      for (int i = 0; i < PROJECT_MAX_TRACKS; ++i)
-        playback->trackEnabled[i] = (mask >> i) & 1;
+      for (int i = 0; i < PROJECT_MAX_TRACKS; ++i) {
+        const uint8_t enabled = (mask >> i) & 1;
+        if (i < playback->p->tracksCount && playback->trackEnabled[i] != enabled)
+          trackMaskChanged = true;
+        playback->trackEnabled[i] = enabled;
+      }
     }
     if (settings.loopDirty) {
       if (settings.loopRange.enabled) playbackSetLoopRange(playback, settings.loopRange);
       else playbackClearLoopRange(playback);
     }
     settingsSlots_[slot].state.store(kFree, std::memory_order_release);
+    return trackMaskChanged;
   }
 
   void applyCommands(ChipNomadState* state) {
@@ -981,6 +987,7 @@ void chipnomadDestroy(ChipNomadState* state) {
 
 void chipnomadInitChips(ChipNomadState* state, int sampleRate, ChipFactory factory) {
   if (!state) return;
+  state->stopTransition = {};
   state->audioProject = state->project;
   state->playbackState.p = &state->audioProject;
 
@@ -1233,7 +1240,7 @@ static int advancePlaybackFrame(ChipNomadState* state, uint64_t dueMicros) {
     state->masterInsertChain->setTempo(state->audioProject.tickRate);
   if (state->masterInsertChain)
     state->masterInsertChain->sync(state->audioProject.masterInserts, &state->masterInsertAutomation);
-  state->audioCommands->applySettings(&state->playbackState);
+  const bool trackMaskChanged = state->audioCommands->applySettings(&state->playbackState);
   state->audioCommands->applyCommands(state);
   if (!wasPlaying && playbackIsPlaying(&state->playbackState)) state->masterEffects->reset();
   for (int t = 0; t < PROJECT_MAX_TRACKS; ++t) {
@@ -1256,6 +1263,12 @@ static int advancePlaybackFrame(ChipNomadState* state, uint64_t dueMicros) {
     if (state->playbackState.tracks[t].note.noteTriggered && state->insertChains[t])
       state->insertChains[t]->trigger();
   const int isPlaying = playbackIsPlaying(&state->playbackState);
+  // Mute/solo changes gate the mix in either direction. Correct their output
+  // boundary just like a stop, without altering voice or transport state.
+  // Repeated settings and changes to unused tracks leave normal audio alone.
+  if ((wasPlaying && !isPlaying && !state->playbackState.stopRange.enabled) ||
+      (trackMaskChanged && (isPlaying || state->opllPreviewTrack >= 0)))
+    state->stopTransition.begin(state->sampleRate);
   if (!isPlaying) state->linkPhaseTicks = 0;
   else if (wasPlaying) state->linkPhaseTicks++;
   motionRecordFrame(state);
@@ -1442,7 +1455,32 @@ int chipnomadRender(ChipNomadState* state, float* buffer, int samples) {
   while (samplesLeft > 0) {
     uint64_t dueMicros = callbackStartMicros +
       (uint64_t)((double)(samples - samplesLeft) * 1000000.0 / state->sampleRate);
-    if ((int)state->frameSampleCounter == 0 && advancePlaybackFrame(state, dueMicros)) break;
+    if ((int)state->frameSampleCounter == 0 && advancePlaybackFrame(state, dueMicros)) {
+      // Finish the output transition even when all voices are already stopped.
+      // Keep the clock at a boundary so an idle callback cannot resume stale
+      // engine output, and queued starts are consumed on the next callback.
+      state->frameSampleCounter = 0;
+      // No more voice rendering follows this boundary. The common output
+      // fade replaces SoundFont's per-voice tails and releases their activity.
+      for (int t = 0; t < PROJECT_MAX_TRACKS; ++t)
+        for (int v = 0; v < CHORD_MAX_VOICES; ++v)
+          state->soundbankVoices[t][v]->stopImmediately();
+      auto& transition = state->stopTransition;
+      if (!transition.pending && !transition.remaining &&
+          (transition.last[0] != 0 || transition.last[1] != 0) &&
+          !state->playbackState.stopRange.enabled)
+        transition.begin(state->sampleRate);
+      const int frames = std::min(samplesLeft, transition.pending ? transition.length : transition.remaining);
+      if (frames > 0) {
+        float* output = buffer + (samples - samplesLeft) * 2;
+        memset(output, 0, frames * 2 * sizeof(float));
+        transition.process(output, frames);
+        state->audioMonitor->beginChunk(frames);
+        state->audioMonitor->finishChunk(output, frames, state->sampleRate);
+        samplesLeft -= frames;
+      }
+      break;
+    }
     int frames = (int)state->frameSampleCounter < samplesLeft ? (int)state->frameSampleCounter : samplesLeft;
     if (hasAudioRateModulation(state)) { updateAudioRateModulations(state); frames = 1; }
     float* output = buffer + (samples - samplesLeft) * 2;
@@ -1511,6 +1549,7 @@ int chipnomadRender(ChipNomadState* state, float* buffer, int samples) {
     }
     processTrackInserts(state, output, frames);
     processMasterMix(state, output, frames);
+    state->stopTransition.process(output, frames);
     state->audioMonitor->finishChunk(output, frames, state->sampleRate);
     audioRecorderEndTrackChunk(frames);
     samplesLeft -= frames;
