@@ -1919,3 +1919,25 @@ Native-engine output uses fixed measured gain compensation rather than
 per-preset normalization. Existing native-instrument songs can therefore play
 at a different level; review the balance of saved mixes. The calibration method
 and bounds are documented in `scripts/README_MEASURE.md`.
+
+### SoundFont collection browsing
+
+In SAMPLE → SOUNDFONT, **Preset** opens your collections. **Right** or **EDIT/A**
+enters a folder directly. In a leaf collection, Right moves to its presets;
+another Right pages forward by 15 entries without loading. EDIT/A loads the
+highlighted preset. Left returns to collections, then to the parent folder;
+OPT also goes back. PLAY starts/stops the song while browsing.
+
+Folder and sound icons identify the entries. Collections use their full panel
+height. The selected preset stays below the eight track previews; long names
+scroll after one second of idle selection and restart when you move.
+EDIT+Left/Right on the instrument page follows the same nested folder order,
+keeping each collection's sounds together. EDIT+PLAY auditions.
+
+The third row reports Reading preset, Finding samples, Unzipping, Checking
+samples or Loading samples. EXS instruments with empty or `(null)` embedded
+names use their filenames. Source banks and audio stay unchanged. Use **Rescan**
+after changing your library files.
+
+See [format coverage and limits](soundbanks/README.md#format-coverage) for
+supported sampler behavior and sample formats.
