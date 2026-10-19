@@ -115,17 +115,16 @@ static void controlsStatic(void) { gfxSetFgColor(appSettings.colorScheme.textTit
 #ifdef TOUCH_INPUT
 static const int controlsHapticsRow = 3;
 static const int controlsHidePadRow = 4;
-static const int controlsRows = 5;
+static const int controlsKeyMappingRow = 5;
 #else
 static const int controlsKeyMappingRow = 3;
-static const int controlsRows = 4;
 #endif
+static const int controlsRows = controlsKeyMappingRow + 1;
 static void controlsCursor(int, int row) {
   if (row < 3) gfxCursor(23, 2 + row, row < 2 ? 3 : 6);
+  else if (row == controlsKeyMappingRow) gfxCursor(0, 2 + row, 11);
 #ifdef TOUCH_INPUT
   else gfxCursor(23, 2 + row, 3);
-#else
-  else gfxCursor(0, 2 + row, 11);
 #endif
 }
 static void controlsField(int, int row, CellState state) {
@@ -137,9 +136,8 @@ static void controlsField(int, int row, CellState state) {
 #ifdef TOUCH_INPUT
   else if (row == controlsHapticsRow) { gfxPrint(0, 5, "Touch haptics"); gfxSetFgColor(state == CellState::focus ? cs.textValue : cs.textDefault); gfxPrint(23, 5, appSettings.touchHaptics ? "ON " : "OFF"); }
   else if (row == controlsHidePadRow) { gfxPrint(0, 6, "Hide pad w/ gamepad"); gfxSetFgColor(state == CellState::focus ? cs.textValue : cs.textDefault); gfxPrint(23, 6, appSettings.hideTouchPadWithGamepad ? "ON " : "OFF"); }
-#else
-  else { gfxSetFgColor(state == CellState::focus ? cs.textValue : cs.textDefault); gfxPrint(0, 2 + row, "Key mapping"); }
 #endif
+  else if (row == controlsKeyMappingRow) { gfxSetFgColor(state == CellState::focus ? cs.textValue : cs.textDefault); gfxPrint(0, 2 + row, "Key mapping"); }
 }
 static int controlsEdit(int, int row, CellEditAction action) {
   if (row == 0) { uint8_t value = appSettings.keyRepeatDelay; int handled = edit8noLast(action, &value, 4, 4, 30); if (handled) appSettings.keyRepeatDelay = value; return handled; }
@@ -158,9 +156,8 @@ static int controlsEdit(int, int row, CellEditAction action) {
     if (settingsSave() != 0) screenMessage(MESSAGE_TIME, "Could not save setting");
     return 1;
   }
-#else
-  if (row == controlsKeyMappingRow) { if (action == CellEditAction::tap) { screenSetup(&screenKeyMapping, 0); return 1; } return 0; }
 #endif
+  if (row == controlsKeyMappingRow) { if (action == CellEditAction::tap) { screenSetup(&screenKeyMapping, 0); return 1; } return 0; }
   uint8_t value = appSettings.hideTouchPadWithGamepad;
   if (action == CellEditAction::tap || action == CellEditAction::doubleTap) value ^= 1;
   else if (!edit8noLast(action, &value, 1, 0, 1)) return 0;
@@ -168,11 +165,7 @@ static int controlsEdit(int, int row, CellEditAction action) {
   if (settingsSave() != 0) screenMessage(MESSAGE_TIME, "Could not save setting");
   return 1;
 }
-#ifdef TOUCH_INPUT
 static ScreenData controlsData = {controlsRows, 0, 0, 0, -1, 0, 0, 0, 0, ScreenPlaybackLevel::none, columnCount, controlsStatic, controlsCursor, NULL, noHeader, noHeader, controlsField, controlsEdit, NULL, NULL, NULL, NULL};
-#else
-static ScreenData controlsData = {controlsRows, 0, 0, 0, -1, 0, 0, 0, 0, ScreenPlaybackLevel::none, columnCount, controlsStatic, controlsCursor, NULL, noHeader, noHeader, controlsField, controlsEdit, NULL, NULL, NULL, NULL};
-#endif
 
 static void synthStatic(void) { gfxSetFgColor(appSettings.colorScheme.textTitles); gfxPrint(0, 0, "SYNTHS"); }
 static void synthCursor(int, int row) { gfxCursor(23, 2 + row, row == 0 ? 6 : row == 1 ? 3 : row == 2 ? 6 : 4); }
