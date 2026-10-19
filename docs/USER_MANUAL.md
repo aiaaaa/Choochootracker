@@ -575,7 +575,7 @@ The shared Trigger FX group retains TDC/TCL without duplicate envelope entries.
 
 ### MME
 
-Choose **SYNTH → MME** from the Instrument Type menu.
+In the Instrument Type popup, open **SYNTH** and select **MME**. Left/right on Type also cycles to MME.
 
 **MME** (Multi Modulation Engine) is a two-oscillator synth dedicated to interactions between oscillators. Its models are `Ring`, `Fold`, `Cross`, `VPM`, `Sync`, `Logic` and `Vocode`. Both oscillators are internal and follow tracker notes; `Interval` sets their relationship.
 
