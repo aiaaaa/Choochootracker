@@ -157,10 +157,8 @@ by Signalsmith Audio. Several insert effects are adapted from
 [Airwindows](https://github.com/airwindows/airwindows); see the included
 license files for the individual attributions.
 
-Official ChooChooTracker releases may include Ableton Link under a separate
-authorisation. The project's MIT license does not grant rights to Ableton Link;
-forks, derivative works and third-party distributors must obtain their own
-authorisation before they build or distribute a product that includes it.
+This repository uses [Ableton Link](https://github.com/Ableton/link), which is
+not covered by this repository's license. See Link's own license for its terms.
 
 The project is released under the [MIT License](LICENSE).
 
