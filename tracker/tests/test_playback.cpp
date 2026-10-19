@@ -5,6 +5,7 @@
 #include "midi/midi_router.h"
 
 #include <cstring>
+#include <cstdio>
 #include <cmath>
 #include <vector>
 
@@ -265,6 +266,82 @@ TEST_CASE_FIXTURE(PlaybackFixture, "table volume and VOL apply to the shared voi
 
   state->project.tables[0].rows[0].volume = 0;
   CHECK(playbackVolumeGain(&state->playbackState, track) == 0.0f);
+}
+
+TEST_CASE_FIXTURE(PlaybackFixture, "Sequence sources bypass sequencer output and generate rhythmic Trance Gates") {
+  setInstrument(0, 0, 0, 15, 0);
+  Instrument& instrument = state->project.instruments[0];
+  Modulation& sequence = instrument.modulation[0];
+  sequence = {};
+  sequence.type = ModulationType::Sequence;
+  sequence.destination = 3; // AY noise: a safe non-pitch/non-volume target.
+  sequence.amount = 127;
+
+  PhraseRow row;
+  memset(&row, EMPTY_VALUE_8, sizeof(row));
+  row.note = 55;
+  row.instrument = 0;
+  row.volume = 100;
+
+  sequence.p1 = static_cast<uint8_t>(SequenceSource::pitch);
+  sequence.p2 = static_cast<uint8_t>(SequenceMode::bypass);
+  readPhraseRowDirect(&state->playbackState, 0, &row, 0);
+  PlaybackTrackState& track = state->playbackState.tracks[0];
+  CHECK(track.note.sequencePitch == 55);
+  CHECK(track.note.pitchBase == 48); // First bypassed note uses C-4.
+
+  track.note.volume = 42;
+  sequence.p1 = static_cast<uint8_t>(SequenceSource::volume);
+  readPhraseRowDirect(&state->playbackState, 0, &row, 0);
+  CHECK(track.note.sequenceVolume == 100);
+  CHECK(track.note.volume == 42);
+
+  sequence.p1 = static_cast<uint8_t>(SequenceSource::tranceGate);
+  sequenceGateDefaults(&sequence);
+  sequenceGateSetPattern(&sequence, 2); // Alternating steps.
+  sequenceGateSetRate(&sequence, 9); // 1/16: six tracker ticks per step.
+  sequenceGateSetLength(&sequence, 4);
+  CHECK(sequenceGatePattern(&sequence) == 2);
+  CHECK(sequenceGateRate(&sequence) == 9);
+  CHECK(sequenceGateLength(&sequence) == 4);
+  CHECK(playbackSequenceGateOutput(&sequence, 0) == 16192); // Open, normal gate.
+  CHECK(playbackSequenceGateOutput(&sequence, 6) == 0); // Closed pattern step.
+  sequenceGateSetAccents(&sequence, 16);
+  CHECK(playbackSequenceGateOutput(&sequence, 0) == 32385); // Every open gate accents.
+  sequenceGateSetAccents(&sequence, 8);
+  CHECK(playbackSequenceGateOutput(&sequence, 0) == 32385);
+  CHECK(playbackSequenceGateOutput(&sequence, 12) == 16192);
+  for (SequenceGateTrigger trigger : {SequenceGateTrigger::free, SequenceGateTrigger::retrig,
+                                      SequenceGateTrigger::phrase, SequenceGateTrigger::chain}) {
+    sequenceGateSetTrigger(&sequence, trigger);
+    readPhraseRowDirect(&state->playbackState, 0, &row, 0);
+    track.note.modulation[0].counter = 7;
+    readPhraseRowDirect(&state->playbackState, 0, &row, 0);
+    CHECK(track.note.modulation[0].counter == (trigger == SequenceGateTrigger::retrig ? 0 : 7));
+  }
+  sequenceGateSetTrigger(&sequence, SequenceGateTrigger::chain);
+  CHECK(sequenceGateTrigger(&sequence) == SequenceGateTrigger::chain);
+
+  REQUIRE(instrumentSave(&state->project, "test_sequence_gate.cni", 0) == 0);
+  Project loaded;
+  projectInit(&loaded);
+  REQUIRE(instrumentLoad(&loaded, "test_sequence_gate.cni", 0) == 0);
+  const Modulation& restored = loaded.instruments[0].modulation[0];
+  CHECK(restored.type == ModulationType::Sequence);
+  CHECK(restored.p1 == static_cast<uint8_t>(SequenceSource::tranceGate));
+  CHECK(sequenceGatePattern(&restored) == 2);
+  CHECK(sequenceGateRate(&restored) == 9);
+  CHECK(sequenceGateLength(&restored) == 4);
+  CHECK(sequenceGateTrigger(&restored) == SequenceGateTrigger::chain);
+  CHECK(sequenceGateAccents(&restored) == 8);
+  projectFree(&loaded);
+  std::remove("test_sequence_gate.cni");
+
+  sequence.p1 = static_cast<uint8_t>(SequenceSource::pitch);
+  CHECK_FALSE(modulationSequenceDestinationAllowed(&instrument, &sequence, 1));
+  CHECK_FALSE(modulationSequenceDestinationAllowed(&instrument, &sequence, 2));
+  sequence.p1 = static_cast<uint8_t>(SequenceSource::tranceGate);
+  CHECK(modulationSequenceDestinationAllowed(&instrument, &sequence, 2));
 }
 
 TEST_CASE_FIXTURE(PlaybackFixture, "Live urgent switches at a phrase boundary and stop is quantized") {

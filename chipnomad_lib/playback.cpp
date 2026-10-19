@@ -102,10 +102,12 @@ static void resetTrack(PlaybackState* state, int trackIdx) {
 
   track->note.pitchBase = EMPTY_VALUE_8;
   track->note.pitchFinal = EMPTY_VALUE_8;
+  track->note.sequencePitch = 0;
   track->note.pitchOffset = 0;
   track->note.fineOffset = 0;
   track->note.instrument = EMPTY_VALUE_8;
   track->note.volume = 0;
+  track->note.sequenceVolume = 0;
   track->note.noteTriggered = 0;
   track->note.noteReleased = 0;
   track->note.noteKilled = 0;
@@ -140,6 +142,17 @@ static void resetTrack(PlaybackState* state, int trackIdx) {
   memset(&track->currentPhraseRow, EMPTY_VALUE_8, sizeof(track->currentPhraseRow));
 
   resetTrackAY(state, trackIdx);
+}
+
+int playbackSequenceBypasses(const PlaybackTrackState* track, SequenceSource source) {
+  if (!track || track->note.instrument == EMPTY_VALUE_8) return 0;
+  for (const PlaybackModState& state : track->note.modulation) {
+    const Modulation* mod = state.modulation;
+    if (mod && mod->destination != 0 && mod->type == ModulationType::Sequence &&
+        mod->p1 == static_cast<uint8_t>(source) &&
+        mod->p2 == static_cast<uint8_t>(SequenceMode::bypass)) return 1;
+  }
+  return 0;
 }
 
 void tableInit(PlaybackState* state, int trackIdx, struct PlaybackTableState* table, int tableIdx, int row, int speed) {
@@ -356,12 +369,18 @@ static void initModulations(PlaybackState* state, int trackIdx, uint8_t oldInstr
   for (int i = 0; i < 4; i++) {
     const Modulation* mod = &mods[i];
 
-    // Free and structural LFOs keep their phase across notes.
+    // Free and structural LFOs, and rhythmic gates with matching triggers,
+    // keep their phase across notes.
     int keepsPhase = (modulationIsTickLFO(mod->type) &&
                       (mod->p2 == static_cast<uint8_t>(LFOTrigger::free) ||
                        mod->p2 == static_cast<uint8_t>(LFOTrigger::phrase) ||
                        mod->p2 == static_cast<uint8_t>(LFOTrigger::chain))) ||
-                     (mod->type == ModulationType::FLFO && mod->p2 == static_cast<uint8_t>(LFOTrigger::free));
+                     (mod->type == ModulationType::FLFO && mod->p2 == static_cast<uint8_t>(LFOTrigger::free)) ||
+                     (mod->type == ModulationType::Sequence &&
+                      mod->p1 == static_cast<uint8_t>(SequenceSource::tranceGate) &&
+                      (sequenceGateTrigger(mod) == SequenceGateTrigger::free ||
+                       sequenceGateTrigger(mod) == SequenceGateTrigger::phrase ||
+                       sequenceGateTrigger(mod) == SequenceGateTrigger::chain));
 
     // Initialize modulation if:
     // 1. Instrument changed (always reinit), OR
@@ -378,6 +397,13 @@ static void restartStructuralLFOs(PlaybackState* state, int trackIdx, int entere
   for (int i = 0; i < 4; ++i) {
     PlaybackModState* mod = &track->note.modulation[i];
     if (!mod->modulation) continue;
+    if (mod->modulation->type == ModulationType::Sequence) {
+      if (mod->modulation->p1 != static_cast<uint8_t>(SequenceSource::tranceGate)) continue;
+      SequenceGateTrigger trigger = sequenceGateTrigger(mod->modulation);
+      if ((enteredPhrase && trigger == SequenceGateTrigger::phrase) ||
+          (enteredChain && trigger == SequenceGateTrigger::chain)) playbackModRestart(mod);
+      continue;
+    }
     uint8_t trigger = (uint8_t)clampInt16((int16_t)mod->modulation->p2 + mod->p2Offset, 0, 255);
     if ((enteredPhrase && trigger == static_cast<uint8_t>(LFOTrigger::phrase)) ||
         (enteredChain && trigger == static_cast<uint8_t>(LFOTrigger::chain))) {
@@ -486,6 +512,7 @@ void readPhraseRowDirect(PlaybackState* state, int trackIdx, PhraseRow* phraseRo
   uint8_t note = phraseRow->note;
   uint8_t instrument = phraseRow->instrument;
   uint16_t volume = phraseRow->volume;
+  uint8_t heldPitch = track->note.pitchBase;
 
   uint8_t auxTable = EMPTY_VALUE_8;
   uint8_t auxTableRow = EMPTY_VALUE_8;
@@ -727,9 +754,20 @@ void readPhraseRowDirect(PlaybackState* state, int trackIdx, PhraseRow* phraseRo
     }
   }
 
+  if (note != EMPTY_VALUE_8 && note != NOTE_OFF) {
+    track->note.sequencePitch = track->note.pitchBase;
+    if (playbackSequenceBypasses(track, SequenceSource::pitch)) {
+      int fallback = clampInt(state->p->pitchTable.octaveSize * 4, 0, state->p->pitchTable.length - 1);
+      track->note.pitchBase = heldPitch != EMPTY_VALUE_8 ? heldPitch : fallback;
+      track->chordVoiceCount = 1;
+      track->chordPitchBase[0] = track->note.pitchBase;
+    }
+  }
+
   // Volume
   if (volume != EMPTY_VALUE_16) {
-    track->note.volume = (uint8_t)volume;
+    track->note.sequenceVolume = (uint8_t)volume;
+    if (!playbackSequenceBypasses(track, SequenceSource::volume)) track->note.volume = (uint8_t)volume;
   }
 }
 
@@ -952,6 +990,53 @@ int16_t playbackLiveStickOutput(const PlaybackState* state, uint8_t instrument,
   return (int16_t)clampInt(value, -32385, 32385);
 }
 
+int16_t playbackSequenceGateOutput(const Modulation* definition, uint32_t ticks) {
+  if (!definition) return 0;
+  if (definition->p1 != static_cast<uint8_t>(SequenceSource::tranceGate)) return 0;
+  uint32_t step = (uint32_t)(ticks / tranceGateTicksPerStep(sequenceGateRate(definition)));
+  uint8_t length = sequenceGateLength(definition);
+  if (!tranceGatePatternOpen(sequenceGatePattern(definition), length, step)) return 0;
+  int activeCount = 0, activeIndex = 0;
+  for (int i = 0; i < length; ++i) {
+    if (!tranceGatePatternOpen(sequenceGatePattern(definition), length, i)) continue;
+    if ((uint32_t)i == step % length) activeIndex = activeCount;
+    ++activeCount;
+  }
+  int accents = (sequenceGateAccents(definition) * activeCount + 8) / 16;
+  return accents && ((activeIndex * accents) % activeCount < accents) ? 32385 : 16192;
+}
+
+static int16_t sequenceSourceOutput(const PlaybackState* state, PlaybackTrackState* track,
+                                    PlaybackModState* mod) {
+  const Modulation* definition = mod->modulation;
+  if (!definition) return 0;
+  int raw = 0;
+  switch (static_cast<SequenceSource>(definition->p1)) {
+    case SequenceSource::pitch: {
+      int maxPitch = state->p->pitchTable.length - 1;
+      if (maxPitch > 0) {
+        int pitch = clampInt(track->note.sequencePitch + track->note.pitchOffset, 0, maxPitch);
+        raw = (pitch * 2 * 32385 + maxPitch / 2) / maxPitch - 32385;
+      }
+      break;
+    }
+    case SequenceSource::volume: {
+      int volume = clampInt(track->note.sequenceVolume + track->note.volumeOffset, 0, PHRASE_VOLUME_MAX);
+      raw = (volume * 2 * 32385 + PHRASE_VOLUME_MAX / 2) / PHRASE_VOLUME_MAX - 32385;
+      break;
+    }
+    case SequenceSource::tranceGate: {
+      raw = playbackSequenceGateOutput(definition, mod->counter);
+      ++mod->counter;
+      break;
+    }
+    default:
+      break;
+  }
+  int amount = clampInt((int)definition->amount + mod->amountOffset, -128, 127);
+  return (int16_t)clampInt(raw * amount / 127, -32385, 32385);
+}
+
 static void processModulations(PlaybackState* state, int trackIdx) {
   PlaybackTrackState* track = &state->tracks[trackIdx];
 
@@ -962,7 +1047,7 @@ static void processModulations(PlaybackState* state, int trackIdx) {
   // cross-modulation deterministic and avoids recursive evaluation.
   for (int source = 0; source < 4; ++source) {
     PlaybackModState* mod = &track->note.modulation[source];
-    if (!mod->modulation) continue;
+    if (!mod->modulation || mod->modulation->type == ModulationType::Sequence) continue;
     int generic = instrumentGenericModDestination(type, mod->modulation->destination);
     int target, targetParameter;
     if (generic >= genericModFirstParameter && generic < genericModDestinationCount) {
@@ -973,7 +1058,8 @@ static void processModulations(PlaybackState* state, int trackIdx) {
       target = generic - genericModFirstP5;
       targetParameter = 4;
     } else continue;
-    if (target == source || !track->note.modulation[target].modulation) continue;
+    if (target == source || !track->note.modulation[target].modulation ||
+        track->note.modulation[target].modulation->type == ModulationType::Sequence) continue;
     int16_t offset = playbackModScaleToRange(mod->outValue, 255);
     PlaybackModState* targetMod = &track->note.modulation[target];
     if (targetParameter == 0) targetMod->p1Offset += offset;
@@ -987,11 +1073,25 @@ static void processModulations(PlaybackState* state, int trackIdx) {
     PlaybackModState* mod = &track->note.modulation[i];
     // Skip if modulation not initialized or destination == 0 (no destination)
     if (!mod->modulation || mod->modulation->destination == 0 ||
-        mod->modulation->type == ModulationType::FLFO) continue;
+        mod->modulation->type == ModulationType::FLFO ||
+        mod->modulation->type == ModulationType::Sequence) continue;
     playbackModNext(mod);
     if (modulationIsLiveStick(mod->modulation->type)) {
       mod->outValue = playbackLiveStickOutput(state, track->note.instrument, i, mod->modulation);
     }
+  }
+
+  // Sequence sources are sampled after tracker FX and ordinary modulators.
+  // Their source/mode fields are deliberately not modulation destinations.
+  for (int i = 0; i < 4; ++i) {
+    PlaybackModState* mod = &track->note.modulation[i];
+    if (!mod->modulation || mod->modulation->type != ModulationType::Sequence) continue;
+    if (!modulationSequenceDestinationAllowed(&state->p->instruments[track->note.instrument], mod->modulation,
+                                              mod->modulation->destination)) {
+      mod->outValue = 0;
+      continue;
+    }
+    mod->outValue = sequenceSourceOutput(state, track, mod);
   }
 }
 
@@ -1086,7 +1186,7 @@ static void nextFrame(PlaybackState* state, int trackIdx, int chipIdx) {
 
     track->note.pitchFinal = pitch;
     for (int i = 0; i < track->chordVoiceCount; ++i) {
-      int chordPitch = pitch + (int)track->chordPitchBase[i] - (int)track->chordPitchBase[0];
+      int chordPitch = pitch + (int)track->chordPitchBase[i] - (int)track->note.pitchBase;
       track->chordPitchFinal[i] = clampInt16(chordPitch, 0, p->pitchTable.length - 1);
     }
   }

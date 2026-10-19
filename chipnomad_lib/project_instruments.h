@@ -53,8 +53,24 @@ enum class ModulationType : uint8_t {
   StickVelocity = 6, // Legacy project value, no longer exposed.
   StickRate = 7,
   SlowLFO = 8,
+  Sequence = 9,
   totalCount,
 };
+
+enum class SequenceSource : uint8_t {
+  pitch = 0,
+  volume = 1,
+  tranceGate = 2,
+  totalCount,
+};
+
+enum class SequenceMode : uint8_t {
+  normal = 0,
+  bypass = 1,
+  totalCount,
+};
+
+enum class SequenceGateTrigger : uint8_t { free, retrig, phrase, chain, totalCount };
 
 enum class StickAxis : uint8_t {
   leftVertical = 0,
@@ -93,12 +109,24 @@ struct Modulation {
   ModulationType type;
   uint8_t destination;
   int8_t amount;
-  uint8_t p1; // ADSR: A, AHD: A, LFO: Shape
-  uint8_t p2; // ADSR: D, AHD: H, LFO: Trig
-  uint8_t p3; // ADSR: S, AHD: D, LFO: Period, SlowLFO: period step
-  uint8_t p4; // ADSR: R, AHD: -, LFO: -, SLFO: multiplier
-  uint8_t p5; // LFO/SLFO/FLFO Wavetable: AY wavetable index
+  uint8_t p1; // ADSR: A, AHD: A, LFO: Shape, Sequence: source
+  uint8_t p2; // ADSR: D, AHD: H, LFO: Trig, Sequence: mode
+  uint8_t p3; // ADSR: S, AHD: D, LFO: Period, Sequence Trance Gate: Pattern
+  uint8_t p4; // ADSR: R, AHD: -, LFO: -, Sequence Trance Gate: Rate/Length
+  uint8_t p5; // LFO/SLFO/FLFO Wavetable, Sequence Trance Gate: Trigger/Accents
 };
+
+uint8_t sequenceGatePattern(const Modulation* modulation);
+uint8_t sequenceGateRate(const Modulation* modulation);
+uint8_t sequenceGateLength(const Modulation* modulation);
+SequenceGateTrigger sequenceGateTrigger(const Modulation* modulation);
+uint8_t sequenceGateAccents(const Modulation* modulation);
+void sequenceGateDefaults(Modulation* modulation);
+void sequenceGateSetPattern(Modulation* modulation, uint8_t value);
+void sequenceGateSetRate(Modulation* modulation, uint8_t value);
+void sequenceGateSetLength(Modulation* modulation, uint8_t value);
+void sequenceGateSetTrigger(Modulation* modulation, SequenceGateTrigger value);
+void sequenceGateSetAccents(Modulation* modulation, uint8_t value);
 
 // Equal ratios across the full byte: round(256 * 2^(9 * step / 255)).
 // Nine octaves: 00=256, 55=2048, AA=16384, FF=131072 ticks.
@@ -615,6 +643,7 @@ int instrumentModDestinationMax(InstrumentType type);
 int instrumentGenericModDestination(InstrumentType type, int destination);
 int modulationIsLiveStick(ModulationType type);
 int modulationIsAdditive(ModulationType type);
+int modulationSequenceDestinationAllowed(const Instrument* instrument, const Modulation* modulation, int destination);
 
 enum GenericModDestination {
   genericModReverbSend = 0,

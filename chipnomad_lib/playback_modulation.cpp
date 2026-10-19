@@ -356,7 +356,9 @@ void playbackModSetAYWavetables(PlaybackModState* state, const uint8_t (*ayWavet
 
 void playbackModRestart(PlaybackModState* state) {
   if (!state->modulation ||
-      !modulationIsTickLFO(GET_TYPE(state))) return;
+      !modulationIsTickLFO(GET_TYPE(state)) &&
+      !(GET_TYPE(state) == ModulationType::Sequence &&
+        state->modulation->p1 == static_cast<uint8_t>(SequenceSource::tranceGate))) return;
   state->counter = 0;
   state->step = 0;
   state->outValue = 0;
