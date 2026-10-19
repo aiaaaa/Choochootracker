@@ -66,6 +66,8 @@ class AudioInputManager {
   void disarm(int armedSlot);
   // UI thread. Disarms all slots (used before device re-enumeration).
   void disarmAll(void);
+  // Reopen an armed capture device at the output rate. Keeps the old rate on failure.
+  int reconfigureRate(int sampleRate);
   int armedCount() const;
   // Returns the device index for an armed slot, or -1.
   int armedDeviceIndex(int slot) const;
@@ -156,5 +158,6 @@ unsigned int audioInputManagerRecordingDroppedCount(void);
 // Track bounce variant (Phase 7): records the rendered output of a track.
 void audioInputManagerStartTrackRecording(RecordingWavWriter* writer, int trackIdx);
 void audioInputManagerStopRecording(void);
+bool audioInputManagerRecordingActive(void);
 
 extern AudioInputManager audioInputManager;
