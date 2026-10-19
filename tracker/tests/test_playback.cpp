@@ -616,7 +616,7 @@ TEST_CASE_FIXTURE(PlaybackFixture, "ADSR volume envelope ranges") {
 
 TEST_CASE_FIXTURE(PlaybackFixture, "Braids instrument renders through a tracker track") {
   getInstrumentFunctions(InstrumentType::Braids).init(&state->project.instruments[0]);
-  REQUIRE(chipnomadQueueProjectRefresh(state));
+  chipnomadInitChips(state, 44100, mockChipFactory);
   playbackPreviewNote(&state->playbackState, 0, 60, 0);
 
   float buffer[2048];
@@ -637,7 +637,7 @@ TEST_CASE_FIXTURE(PlaybackFixture, "Braids instrument renders through a tracker 
 
 TEST_CASE_FIXTURE(PlaybackFixture, "Plaits instrument renders and receives note off") {
   getInstrumentFunctions(InstrumentType::Plaits).init(&state->project.instruments[0]);
-  REQUIRE(chipnomadQueueProjectRefresh(state));
+  chipnomadInitChips(state, 44100, mockChipFactory);
   playbackPreviewNote(&state->playbackState, 0, 60, 0);
 
   float buffer[2048];
@@ -683,7 +683,7 @@ TEST_CASE_FIXTURE(PlaybackFixture, "MIDI Out instrument tracks its active note a
 
 TEST_CASE_FIXTURE(PlaybackFixture, "SLE reaches every BYOWTBL engine FX destination") {
   getInstrumentFunctions(InstrumentType::BYOWTBL).init(&state->project.instruments[0]);
-  REQUIRE(chipnomadQueueProjectRefresh(state));
+  chipnomadInitChips(state, 44100, mockChipFactory);
 
   float buffer[2] = {};
   chipnomadRender(state, buffer, 1);

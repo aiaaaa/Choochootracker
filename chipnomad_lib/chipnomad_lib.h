@@ -103,6 +103,8 @@ struct ChipNomadState {
   int mixBufferSize;
   int aySampleDithering;
   BraidsVoice* braidsVoices[PROJECT_MAX_TRACKS][CHORD_MAX_VOICES];
+  uint8_t braidsBits, braidsDrift, braidsSignature;
+  uint32_t braidsSignatureSeed;
   SoundbankVoice* soundbankVoices[PROJECT_MAX_TRACKS][CHORD_MAX_VOICES];
   SampleVoice* sampleVoices[PROJECT_MAX_TRACKS][CHORD_MAX_VOICES];
   SCWFVoice* scwfVoices[PROJECT_MAX_TRACKS][CHORD_MAX_VOICES];

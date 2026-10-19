@@ -23,7 +23,7 @@ Install `choochootracker.zip` through PortMaster, or copy the extracted package 
 
 Extract the MiyooPorts archive at the root of the SD card so that its `Roms/PORTS/` folders merge with Onion's existing folders. Start **ChooChooTracker** from the Ports menu after refreshing the collection. Back up the app's `projects/` folder before replacing an existing installation.
 
-If startup or project loading seems unusually slow, report how long each takes, along with the console model and Onion OS version.
+Project loading time can vary with the instrument types used in a song. If startup or project loading seems unusually slow, report how long each takes, along with the console model and Onion OS version.
 
 ### Raspberry Pi OS 64-bit
 

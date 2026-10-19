@@ -97,7 +97,7 @@ TEST_CASE("MonkSynth prepares engines only for projects with Monk instruments") 
   REQUIRE(s);
   chipnomadInitChips(s.get(),48000,nullptr);
   CHECK_FALSE(s->monkPreview->initialized());
-  for(auto& track:s->monkVoices) for(auto* voice:track) CHECK_FALSE(voice->initialized());
+  for(auto& track:s->monkVoices) for(auto* voice:track) CHECK(voice==nullptr);
   s->project.instruments[0]=monkInstrument();
   chipnomadInitChips(s.get(),48000,nullptr);
   CHECK(s->monkPreview->initialized());
@@ -105,7 +105,7 @@ TEST_CASE("MonkSynth prepares engines only for projects with Monk instruments") 
   s->project.instruments[0].type=InstrumentType::none;
   chipnomadInitChips(s.get(),48000,nullptr);
   CHECK_FALSE(s->monkPreview->initialized());
-  for(auto& track:s->monkVoices) for(auto* voice:track) CHECK_FALSE(voice->initialized());
+  for(auto& track:s->monkVoices) for(auto* voice:track) CHECK(voice==nullptr);
 }
 
 TEST_CASE("MonkSynth instrument and song save every control and preserve old IDs") {

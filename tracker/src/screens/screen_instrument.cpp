@@ -253,7 +253,7 @@ static void setInstrumentType(InstrumentType newType) {
       post->envelopeShape = savedEnvelope.envelopeShape;
     }
   }
-  if ((oldType == InstrumentType::Monk || newType == InstrumentType::Monk) && audioManager.reinitializeChips)
+  if (audioManager.reinitializeChips)
     audioManager.reinitializeChips();
   ScreenData* screen = instrumentScreen();
   screen->cursorRow = screen->cursorCol = screen->topRow = 0;
