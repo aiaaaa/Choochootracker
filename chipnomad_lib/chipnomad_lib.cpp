@@ -989,6 +989,9 @@ void chipnomadInitChips(ChipNomadState* state, int sampleRate, ChipFactory facto
   state->stopTransition = {};
   state->audioProject = state->project;
   state->playbackState.p = &state->audioProject;
+  bool hasMonk = false;
+  for (const auto& instrument : state->audioProject.instruments)
+    if (instrument.type == InstrumentType::Monk) { hasMonk = true; break; }
 
   // Cleanup existing chips if already initialized
   if (state->sampleRate > 0) {
@@ -1016,7 +1019,8 @@ void chipnomadInitChips(ChipNomadState* state, int sampleRate, ChipFactory facto
   state->masterInsertChain = new(std::nothrow) InsertChain((float)sampleRate);
   if (state->masterInsertChain)
     state->masterInsertChain->sync(state->audioProject.masterInserts, &state->masterInsertAutomation);
-  state->monkPreview->init((float)sampleRate);
+  if (hasMonk) state->monkPreview->init((float)sampleRate);
+  else state->monkPreview->unload();
   state->sidPreview->init((float)sampleRate);
   state->simpleChipPreview->init((float)sampleRate);
   state->fourOpPreview->init((float)sampleRate);
@@ -1037,7 +1041,8 @@ void chipnomadInitChips(ChipNomadState* state, int sampleRate, ChipFactory facto
       state->plaitsAltVoices[i][voice]->init((float)sampleRate);
       state->achchidVoices[i][voice]->init((float)sampleRate);
       state->drumSynthVoices[i][voice]->init((float)sampleRate);
-      state->monkVoices[i][voice]->init((float)sampleRate);
+      if (hasMonk) state->monkVoices[i][voice]->init((float)sampleRate, state->monkPreview);
+      else state->monkVoices[i][voice]->unload();
       state->mmeVoices[i][voice]->init((float)sampleRate);
       state->sidVoices[i][voice]->init((float)sampleRate);
       state->simpleChipVoices[i][voice]->init((float)sampleRate);
@@ -2847,6 +2852,7 @@ static void updateSIDVoices(ChipNomadState* state) {
 
 int chipnomadQueueMonkPreview(ChipNomadState* state, int track, const InstrumentMonk* patch) {
   if (!state || !state->audioCommands || track < 0 || track >= PROJECT_MAX_TRACKS) return 0;
+  if (patch && !state->monkPreview->initialized()) return 0;
   return state->audioCommands->pushCommand(19, track, patch ? 1 : 0, 0, 0,
     nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, patch);
 }

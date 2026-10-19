@@ -7,7 +7,9 @@
 // All ten unison sources and delay storage are allocated before playback.
 class MonkSynthVoice {
  public:
-  void init(float sampleRate);
+  void init(float sampleRate, const MonkSynthVoice* prototype = nullptr);
+  void unload();
+  bool initialized() const { return bool(synth_); }
   void configure(const InstrumentMonk*, float pitchCents, float gain);
   void noteOn();
   void noteOff();

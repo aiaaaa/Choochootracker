@@ -73,7 +73,39 @@ TEST_CASE("MonkSynth unchanged tick updates do not restart native glide") {
   CHECK(x==y);
   b->kill();b->renderMono(y.data(),y.size());CHECK(energy(y)==0);
   b->noteOn();b->renderMono(y.data(),y.size());CHECK(energy(y)>.001);
+  b->init(48000);b->renderMono(y.data(),y.size());CHECK(energy(y)==0);
   b->init(44100);b->renderMono(y.data(),y.size());CHECK(energy(y)==0);
+}
+
+TEST_CASE("MonkSynth prepared voices render independently like fresh voices") {
+  auto source=std::make_unique<MonkSynthVoice>();
+  auto copy=std::make_unique<MonkSynthVoice>();
+  auto i=monkInstrument();i.chip.monk.unison=4;
+  source->init(48000);copy->init(48000,source.get());
+  for(auto* voice:{source.get(),copy.get()}) { voice->configure(&i.chip.monk,6000,1);voice->noteOn(); }
+  std::vector<float> a(4800),b(a.size());
+  source->renderMono(a.data(),a.size());copy->renderMono(b.data(),b.size());
+  CHECK(a==b);
+  copy->init(48000,source.get());copy->renderMono(b.data(),b.size());
+  CHECK(energy(b)==0);
+  source->renderMono(a.data(),a.size());
+  CHECK(energy(a)>.001);
+}
+
+TEST_CASE("MonkSynth prepares engines only for projects with Monk instruments") {
+  auto s=std::unique_ptr<ChipNomadState,decltype(&chipnomadDestroy)>(chipnomadCreate(),chipnomadDestroy);
+  REQUIRE(s);
+  chipnomadInitChips(s.get(),48000,nullptr);
+  CHECK_FALSE(s->monkPreview->initialized());
+  for(auto& track:s->monkVoices) for(auto* voice:track) CHECK_FALSE(voice->initialized());
+  s->project.instruments[0]=monkInstrument();
+  chipnomadInitChips(s.get(),48000,nullptr);
+  CHECK(s->monkPreview->initialized());
+  for(auto& track:s->monkVoices) for(auto* voice:track) CHECK(voice->initialized());
+  s->project.instruments[0].type=InstrumentType::none;
+  chipnomadInitChips(s.get(),48000,nullptr);
+  CHECK_FALSE(s->monkPreview->initialized());
+  for(auto& track:s->monkVoices) for(auto* voice:track) CHECK_FALSE(voice->initialized());
 }
 
 TEST_CASE("MonkSynth instrument and song save every control and preserve old IDs") {
@@ -194,7 +226,8 @@ TEST_CASE("MonkSynth full unison and stereo delay remain finite and stop cleanly
 TEST_CASE("MonkSynth preset preview does not modify the song") {
   auto s=std::unique_ptr<ChipNomadState,decltype(&chipnomadDestroy)>(chipnomadCreate(),chipnomadDestroy);
   REQUIRE(projectLoad(&s->project,"packaging/common/projects/gm-midi-demo.cct")==0);
-  auto saved=std::make_unique<Project>(s->project);auto i=monkInstrument();i.chip.monk.unison=3;
+  auto i=monkInstrument();i.chip.monk.unison=3;s->project.instruments[0]=i;
+  auto saved=std::make_unique<Project>(s->project);
   chipnomadInitChips(s.get(),48000,nullptr);chipnomadReserveRenderBuffers(s.get(),480);
   REQUIRE(chipnomadQueueProjectRefresh(s.get()));
   REQUIRE(chipnomadQueueMonkPreview(s.get(),0,&i.chip.monk));std::vector<float> audio(960);

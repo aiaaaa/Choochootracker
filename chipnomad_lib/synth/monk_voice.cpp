@@ -1,13 +1,33 @@
 #include "monk_voice.h"
 #include <algorithm>
 #include <cmath>
+#include <cstdlib>
 #include <cstring>
 
-void MonkSynthVoice::init(float sampleRate) {
-  sampleRate_ = monk_sanitize_sample_rate(sampleRate);
-  if (!synth_) synth_.reset(monk_synth_new(sampleRate_));
-  else { monk_synth_set_sample_rate(synth_.get(), sampleRate_); monk_synth_reset(synth_.get()); }
+void MonkSynthVoice::init(float sampleRate, const MonkSynthVoice* prototype) {
+  const float rate = monk_sanitize_sample_rate(sampleRate);
+  const bool canCopy = prototype && prototype->synth_ && prototype->sampleRate_ == rate;
+  if (!synth_) {
+    if (canCopy) {
+      auto* copy = static_cast<MonkSynthEngine*>(std::malloc(sizeof(MonkSynthEngine)));
+      if (copy) std::memcpy(copy, prototype->synth_.get(), sizeof(MonkSynthEngine));
+      synth_.reset(copy);
+    } else synth_.reset(monk_synth_new(rate));
+  } else {
+    if (sampleRate_ != rate) {
+      if (canCopy) std::memcpy(synth_.get(), prototype->synth_.get(), sizeof(MonkSynthEngine));
+      else monk_synth_set_sample_rate(synth_.get(), rate);
+    }
+    monk_synth_reset(synth_.get());
+  }
+  sampleRate_ = rate;
   gainCoefficient_ = 1.0f - std::exp(-1.0f / (0.005f * sampleRate_));
+  active_ = configured_ = released_ = false;
+  silentFrames_ = 0;
+}
+
+void MonkSynthVoice::unload() {
+  synth_.reset();
   active_ = configured_ = released_ = false;
   silentFrames_ = 0;
 }
