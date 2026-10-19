@@ -2,7 +2,8 @@
 
 ## v1.0.19-alpha (October 19, 2026)
 
-- Added SoundFont instruments, collection browsing, and Lane FX support.
+- Added SoundFont instruments with collection browsing and Lane FX, plus
+  MonkSynth, a vocal synthesiser with ten-voice unison and stereo delay.
 - Added the Beads granular insert and reverb send, a synchronized tape echo
   send, a Trance Gate insert and Sequence modulation source, and vocal/formant
   controls with longer LFO cycles.
