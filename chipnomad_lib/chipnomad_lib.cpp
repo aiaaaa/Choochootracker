@@ -881,7 +881,7 @@ ChipNomadState* chipnomadCreate(void) {
   state->masterEffects = new MasterEffects();
   state->masterEffects->init(96000.0f);
 
-  state->monkPreview = new MonkSynthVoice(); state->monkPreview->init(96000);
+  state->monkPreview = new MonkSynthVoice();
   state->sidPreview=new SIDVoice();state->sidPreview->init(96000);
   state->simpleChipPreview=new SimpleChipVoice();state->simpleChipPreview->init(96000);
   state->fourOpPreview=new FourOpVoice();state->fourOpPreview->init(96000);
@@ -908,7 +908,6 @@ ChipNomadState* chipnomadCreate(void) {
       state->drumSynthVoices[i][voice] = new DrumSynthVoice();
       state->drumSynthVoices[i][voice]->init(96000.0f);
       state->monkVoices[i][voice] = new MonkSynthVoice();
-      state->monkVoices[i][voice]->init(96000.0f);
       state->mmeVoices[i][voice] = new MMEVoice();
       state->mmeVoices[i][voice]->init(96000.0f);
       state->sidVoices[i][voice]=new SIDVoice();state->sidVoices[i][voice]->init(96000);
