@@ -126,6 +126,29 @@ void AudioInputManager::disarmAll(void) {
   closeCaptureIfIdle();
 }
 
+int AudioInputManager::reconfigureRate(int sampleRate) {
+  if (sampleRate <= 0) return 1;
+  if (sampleRate == captureRate_) return 0;
+  const int oldRate = captureRate_;
+  const bool wasOpen = captureOpen_;
+  if (wasOpen) {
+    audioInputCleanup();
+    captureOpen_ = false;
+    monitorRing_.clear();
+    for (auto& ring : rings_) ring.clear();
+  }
+  captureRate_ = sampleRate;
+  if (wasOpen) {
+    openCaptureIfNeeded();
+    if (!captureOpen_) {
+      captureRate_ = oldRate;
+      openCaptureIfNeeded();
+      return 1;
+    }
+  }
+  return 0;
+}
+
 void AudioInputManager::openCaptureIfNeeded() {
   if (captureOpen_) return;
   // v1: single active capture device. The first armed slot's device is
@@ -134,9 +157,8 @@ void AudioInputManager::openCaptureIfNeeded() {
   for (int i = 0; i < AUDIO_INPUT_MAX_ARMED; ++i)
     if (armed_[i] >= 0) { deviceIndex = armed_[i]; break; }
   if (deviceIndex < 0) return;
-  if (audioInputSetup(onCaptureTrampoline, 48000, 512, 2, deviceIndex)) return;
+  if (audioInputSetup(onCaptureTrampoline, captureRate_, 512, 2, deviceIndex)) return;
   captureOpen_ = true;
-  captureRate_ = 48000;
 }
 
 void AudioInputManager::closeCaptureIfIdle() {
@@ -157,7 +179,7 @@ void AudioInputManager::onCapture(const int16_t* buffer, int stereoSamples, int 
 
   // Level accumulation + decimated waveform history (mirrors AudioMonitor).
   // Peaks decay ~0.5 dB per callback (~93 callbacks/s at 48k/512) for a
-  // ~46 dB/s fall - a usable peak-meter release; -1 dB per callback made the
+  // ~46 dB/s fall at 48 kHz - a usable peak-meter release; -1 dB per callback made the
   // bar vanish in a fraction of a second.
   for (int slot = 0; slot < AUDIO_INPUT_MAX_ARMED; ++slot) {
     if (armed_[slot] < 0) continue;
@@ -185,7 +207,7 @@ void AudioInputManager::onCapture(const int16_t* buffer, int stereoSamples, int 
       }
       sampleCursor_ = (sampleCursor_ + 1) % AUDIO_INPUT_LEVEL_SAMPLES;
     }
-    decimation_ = (decimation_ + 1) % 4; // ~12 kHz history at 48 kHz
+    decimation_ = (decimation_ + 1) % 4; // 8 or 12 kHz history at 32 or 48 kHz
   }
 
   // Only the active take needs recording data. Idle input still feeds meters
@@ -245,6 +267,10 @@ bool AudioInputManager::receiveLevels(AudioInputLevels& result) {
 // audioInputManagerStopRecording().
 static std::thread* g_writerThread = nullptr;
 static std::atomic<bool> g_writerRunning{false};
+
+bool audioInputManagerRecordingActive(void) {
+  return g_writerRunning.load(std::memory_order_acquire);
+}
 static RecordingWavWriter* g_activeWriter = nullptr;
 static int g_activeArmedSlot = -1;
 static int g_activeTrackSource = -1; // >= 0: bouncing this track (Phase 7)

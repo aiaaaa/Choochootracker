@@ -10,9 +10,9 @@ int mockLastInputKeys;
 static int ignoreInput(int, int keys, int) { mockLastInputKeys = keys; return 1; }
 static void noOp(void) {}
 static int startAudio(int, int) { return 0; }
-int mockAudioReconfigureResult, mockAudioReconfigureCalls, mockAudioReconfigureSize, mockAudioCpuLoad;
+int mockAudioReconfigureResult, mockAudioReconfigureCalls, mockAudioReconfigureRate, mockAudioReconfigureSize, mockAudioCpuLoad;
 int mockAudioRestartResult, mockAudioRestartCalls;
-static int reconfigureAudio(int, int size) { ++mockAudioReconfigureCalls; mockAudioReconfigureSize = size; return mockAudioReconfigureResult; }
+static int reconfigureAudio(int rate, int size) { ++mockAudioReconfigureCalls; mockAudioReconfigureRate = rate; mockAudioReconfigureSize = size; return mockAudioReconfigureResult; }
 static int restartAudio(void) { ++mockAudioRestartCalls; return mockAudioRestartResult; }
 static int cpuLoad() { return mockAudioCpuLoad; }
 static int mutateProject(ProjectMutation* mutation, void* userdata) { return mutation ? mutation(userdata) : 1; }

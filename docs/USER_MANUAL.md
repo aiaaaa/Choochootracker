@@ -797,7 +797,7 @@ On the Sample instrument screen, **REC** (or **EDIT/REC** when a sample is loade
 - **PLAY** (shown after a recording) auditions the take; it becomes **STOP** while the preview plays. **CLEAR** (next to it) deletes the WAV file and unloads the sample from the instrument; after clearing, **REC** takes its place again.
 - The waveform shows the live input while recording and the full recorded waveform after the recording stops. The status line shows the file name while recording and the frame count after; an external take also shows `drop 0` when no audio frames were lost. A recorded sample is fully editable: loop region, selection, slicing, processing and saving all work on it like on any loaded file.
 
-Recordings are written at the project's audio sample rate as stereo 16-bit WAV files. Track sources capture what the track's instruments render (post-FX); external sources capture the device input directly.
+Recordings are written at the selected audio sample rate as stereo 16-bit WAV files. Track sources capture what the track's instruments render (post-FX); external sources capture the device input directly.
 
 #### 2xSCWF
 
@@ -1323,6 +1323,7 @@ In Link mode the session owns the tempo: the row shows no BPM field, and the ses
 
 ## 12. Settings
 
+- **Audio** offers a **Sample rate** of `32 kHz` or `48 kHz` (default) and an adjustable **Buffer size**. Changes take effect immediately and are saved. Changing the sample rate stops playback and sample preview while the sound engines and any armed audio input reopen at the new rate. If a device rejects the new rate, the previous setting remains active. A larger buffer gives the audio engine more time but increases latency; 32 kHz reduces processing work and limits the highest reproduced frequency to 16 kHz. The CPU load readout shows audio rendering cost.
 - **Repeat delay / speed** tune held-button repeat.
 - **Stick live mode** selects `HOLD`, `TOGGLE`, or `FREE` for the existing mapped Stick live button.
 - **MIDI** opens the [MIDI](#14-midi) submenu: device selection and the MIDI In channel-to-instrument mapping.

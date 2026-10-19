@@ -595,6 +595,7 @@ void appSetup(void) {
 
   // Audio input: enumerate capture devices and re-arm the ones saved in
   // settings (Phase 4). Monitor state comes from settings too.
+  audioInputManager.reconfigureRate(appSettings.audioSampleRate);
   audioInputManager.enumerate();
   syncArmedDevicesFromSettings();
   audioInputManager.setMonitor(appSettings.audioInputMonitor);

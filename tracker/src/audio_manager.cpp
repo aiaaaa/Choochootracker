@@ -216,6 +216,7 @@ static int reconfigure(int sampleRate, int bufferSize) {
   if (sampleRate <= 0 || bufferSize <= 0 || bufferSize > INT_MAX / 2 ||
       !floatBuffer || !samplePreviewBuffer) return 1;
   if (sampleRate == aSampleRate && bufferSize == aBufferSize) return 0;
+  if (sampleRate != aSampleRate && audioInputManagerRecordingActive()) return 1;
 
   float* newFloatBuffer = (float*)malloc(bufferSize * 2 * sizeof(float));
   float* newPreviewBuffer = (float*)malloc(bufferSize * 2 * sizeof(float));
@@ -243,11 +244,23 @@ static int reconfigure(int sampleRate, int bufferSize) {
   aBufferSize = bufferSize;
   cpuLoadPercent.store(0, std::memory_order_relaxed);
   if (audioSetup(audioCallback, sampleRate, bufferSize) == 0) {
-    free(oldFloatBuffer);
-    free(oldPreviewBuffer);
-    updatePlaybackMuteFlags();
-    audioPause(0);
-    return 0;
+    if (sampleRate != oldSampleRate && audioInputManager.reconfigureRate(sampleRate)) {
+      audioCleanup();
+    } else {
+      if (sampleRate != oldSampleRate) {
+        stopSamplePreview();
+        chipnomadInitChips(chipnomadState, sampleRate, NULL);
+        playbackStop(&chipnomadState->playbackState);
+        samplePreviewVoice.init((float)sampleRate);
+        scwfPreviewVoice.init((float)sampleRate);
+      }
+      linkClientResetHostTimeFilter(chipnomadState->linkClient);
+      free(oldFloatBuffer);
+      free(oldPreviewBuffer);
+      updatePlaybackMuteFlags();
+      audioPause(0);
+      return 0;
+    }
   }
 
   floatBuffer = oldFloatBuffer;
