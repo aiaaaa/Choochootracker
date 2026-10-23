@@ -1,8 +1,8 @@
 #include "screen_project.h"
 #include "corelib_gfx.h"
-#include "common.h"
-#include "chipnomad_lib.h"
 #include <string.h>
+#include "chipnomad_lib.h"
+#include "common.h"
 
 static int getColumnCount(int row) {
   if (row < SCR_PROJECT_ROWS) return projectCommonColumnCount(row);
@@ -12,16 +12,16 @@ static int getColumnCount(int row) {
 static void drawStatic(void) {
   projectCommonDrawStatic();
   gfxSetFgColor(appSettings.colorScheme.textDefault);
-  gfxPrint(0, 10, "Pitch table");
-  gfxPrint(0, 12, "Scale");
+  gfxPrint(0, 12, "Pitch table");
+  gfxPrint(0, 13, "Scale");
 }
 
 static void drawCursor(int col, int row) {
   if (row < SCR_PROJECT_ROWS) return projectCommonDrawCursor(col, row);
   if (row == SCR_PROJECT_ROWS) {
-    gfxCursor(13, 10, strlen(chipnomadState->project.pitchTable.name));
+    gfxCursor(13, 12, strlen(chipnomadState->project.pitchTable.name));
   } else if (row == SCR_PROJECT_ROWS + 1) {
-    gfxCursor(0, 12, 5);
+    gfxCursor(0, 13, 5);
   }
 }
 
@@ -29,16 +29,18 @@ static void drawField(int col, int row, CellState state) {
   if (row < SCR_PROJECT_ROWS) return projectCommonDrawField(col, row, state);
 
   gfxSetFgColor(state == CellState::focus ? appSettings.colorScheme.textValue : appSettings.colorScheme.textDefault);
+
   if (row == SCR_PROJECT_ROWS) {
-    gfxClearRect(13, 10, PROJECT_PITCH_TABLE_TITLE_LENGTH, 1);
-    gfxPrint(13, 10, chipnomadState->project.pitchTable.name);
+    gfxClearRect(13, 12, PROJECT_PITCH_TABLE_TITLE_LENGTH, 1);
+    gfxPrint(13, 12, chipnomadState->project.pitchTable.name);
   } else if (row == SCR_PROJECT_ROWS + 1) {
-    gfxPrint(0, 12, "Scale");
+    gfxPrint(0, 13, "Scale");
   }
 }
 
 static int onEdit(int col, int row, enum CellEditAction action) {
   if (row < SCR_PROJECT_ROWS) return projectCommonOnEdit(col, row, action);
+
   if (row == SCR_PROJECT_ROWS) {
     screenSetup(&screenPitchTable, 0);
   } else if (row == SCR_PROJECT_ROWS + 1) {
@@ -47,7 +49,7 @@ static int onEdit(int col, int row, enum CellEditAction action) {
   return 0;
 }
 
-ScreenData screenProjectAY = {
+ScreenData screenProjectExtra = {
   .rows = SCR_PROJECT_ROWS + 2,
   .cursorRow = 0,
   .cursorCol = 0,
