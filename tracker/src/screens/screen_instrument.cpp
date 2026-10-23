@@ -238,6 +238,10 @@ static void setInstrumentType(InstrumentType newType) {
     screenSetup(&screenInstrument, cInstrument);
     return;
   }
+  const bool liveSwitch = chipnomadState->sampleRate > 0 &&
+    chipnomadCanSwitchInstrumentLive(oldType) &&
+    chipnomadCanSwitchInstrumentLive(newType);
+  if (liveSwitch) audioManager.ensureInstrumentVoices(newType);
   InstrumentVoicePostSettings savedEnvelope = {};
   InstrumentVoicePostSettings* oldPost = voicePostSettings(instrument, oldType);
   int preserveEnvelope = oldPost && (oldPost->attack || oldPost->decay || oldPost->sustain || oldPost->release);
@@ -253,7 +257,7 @@ static void setInstrumentType(InstrumentType newType) {
       post->envelopeShape = savedEnvelope.envelopeShape;
     }
   }
-  if (audioManager.reinitializeChips)
+  if (!liveSwitch && audioManager.reinitializeChips)
     audioManager.reinitializeChips();
   ScreenData* screen = instrumentScreen();
   screen->cursorRow = screen->cursorCol = screen->topRow = 0;

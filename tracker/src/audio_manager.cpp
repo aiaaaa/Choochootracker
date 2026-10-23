@@ -314,6 +314,16 @@ static void reinitializeChips(void) {
   resume();
 }
 
+static void ensureInstrumentVoices(InstrumentType type) {
+  PreparedInstrumentVoices* prepared = chipnomadPrepareInstrumentVoices(chipnomadState, type);
+  if (!prepared) return;
+  // Voice construction is finished. Only pointer publication needs the lock.
+  // ponytail: keep old pools for reuse; a full project reinit releases unused ones.
+  audioLock();
+  chipnomadInstallInstrumentVoices(chipnomadState, prepared);
+  audioUnlock();
+}
+
 static int mutateProject(ProjectMutation* mutation, void* userdata) {
   if (!mutation || !chipnomadState) return 1;
   pause();
@@ -499,6 +509,7 @@ struct AudioManager audioManager = {
   .resume = resume,
   .replaceProject = replaceProject,
   .reinitializeChips = reinitializeChips,
+  .ensureInstrumentVoices = ensureInstrumentVoices,
   .mutateProject = mutateProject,
   .stop = stop,
   .toggleTrackMute = toggleTrackMute,

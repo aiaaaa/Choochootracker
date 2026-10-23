@@ -147,6 +147,9 @@ void audioPause(int isPaused) {
   SDL_PauseAudio(isPaused);
 }
 
+void audioLock(void) { SDL_LockAudio(); }
+void audioUnlock(void) { SDL_UnlockAudio(); }
+
 void audioCleanup(void) {
   SDL_CloseAudio();
 #ifdef ANDROID_BUILD

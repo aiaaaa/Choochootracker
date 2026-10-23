@@ -971,6 +971,167 @@ static void syncVoicePool(Voice* (&pool)[PROJECT_MAX_TRACKS][CHORD_MAX_VOICES], 
   }
 }
 
+struct PreparedInstrumentVoices {
+  InstrumentType type;
+  void* voices[PROJECT_MAX_TRACKS * CHORD_MAX_VOICES] = {};
+  MonkSynthVoice* monkPreview = nullptr;
+  void (*dispose)(PreparedInstrumentVoices*) = nullptr;
+  ~PreparedInstrumentVoices() {
+    if (dispose) dispose(this);
+    delete monkPreview;
+  }
+};
+
+template <typename Voice>
+static void disposePreparedVoices(PreparedInstrumentVoices* prepared) {
+  for (void* voice : prepared->voices) delete static_cast<Voice*>(voice);
+}
+
+template <typename Voice>
+static void prepareVoices(PreparedInstrumentVoices* prepared, float rate) {
+  prepared->dispose = disposePreparedVoices<Voice>;
+  for (void*& slot : prepared->voices) {
+    Voice* voice = new Voice();
+    slot = voice;
+    voice->init(rate);
+  }
+}
+
+static InstrumentType voicePoolType(InstrumentType type) {
+  switch (type) {
+    case InstrumentType::VRC7: return InstrumentType::OPLL;
+    case InstrumentType::OPL3: return InstrumentType::OPL2;
+    case InstrumentType::GBPulse:
+    case InstrumentType::GBNoise: return InstrumentType::SegaPSG;
+    case InstrumentType::ArcadeFM: return InstrumentType::GenesisFM;
+    default: return type;
+  }
+}
+
+bool chipnomadCanSwitchInstrumentLive(InstrumentType type) {
+  switch (voicePoolType(type)) {
+    case InstrumentType::none:
+    case InstrumentType::Braids: case InstrumentType::Plaits:
+    case InstrumentType::PlaitsAlt: case InstrumentType::AChChid:
+    case InstrumentType::DrumSynth: case InstrumentType::MME:
+    case InstrumentType::Sintered: case InstrumentType::Monk:
+    case InstrumentType::OPLL: case InstrumentType::OPL2:
+    case InstrumentType::SegaPSG: case InstrumentType::DX7:
+    case InstrumentType::GenesisFM: case InstrumentType::SID:
+      return true;
+    default: return false;
+  }
+}
+
+PreparedInstrumentVoices* chipnomadPrepareInstrumentVoices(ChipNomadState* state, InstrumentType type) {
+  if (!state || state->sampleRate <= 0) return nullptr;
+  type = voicePoolType(type);
+  auto* prepared = new PreparedInstrumentVoices();
+  prepared->type = type;
+  const float rate = (float)state->sampleRate;
+  switch (type) {
+    case InstrumentType::Braids:
+      if (!state->braidsVoices[0][0]) prepareVoices<BraidsVoice>(prepared, rate); break;
+    case InstrumentType::Plaits:
+      if (!state->plaitsVoices[0][0]) prepareVoices<PlaitsVoice>(prepared, rate); break;
+    case InstrumentType::PlaitsAlt:
+      if (!state->plaitsAltVoices[0][0]) prepareVoices<PlaitsAltVoice>(prepared, rate); break;
+    case InstrumentType::AChChid:
+      if (!state->achchidVoices[0][0]) prepareVoices<AChChidVoice>(prepared, rate); break;
+    case InstrumentType::DrumSynth:
+      if (!state->drumSynthVoices[0][0]) prepareVoices<DrumSynthVoice>(prepared, rate); break;
+    case InstrumentType::MME:
+      if (!state->mmeVoices[0][0]) prepareVoices<MMEVoice>(prepared, rate); break;
+    case InstrumentType::Sintered:
+      if (!state->sinteredVoices[0][0]) prepareVoices<SinteredVoice>(prepared, rate); break;
+    case InstrumentType::OPLL:
+      if (!state->opllVoices[0][0]) prepareVoices<OPLLVoice>(prepared, rate); break;
+    case InstrumentType::OPL2:
+      if (!state->oplVoices[0][0]) prepareVoices<OPLVoice>(prepared, rate); break;
+    case InstrumentType::SegaPSG:
+      if (!state->simpleChipVoices[0][0]) prepareVoices<SimpleChipVoice>(prepared, rate); break;
+    case InstrumentType::GenesisFM:
+      if (!state->fourOpVoices[0][0]) prepareVoices<FourOpVoice>(prepared, rate); break;
+    case InstrumentType::SID:
+      if (!state->sidVoices[0][0]) prepareVoices<SIDVoice>(prepared, rate); break;
+    case InstrumentType::DX7:
+      if (!state->dx7Parts[0]) {
+        prepared->dispose = disposePreparedVoices<DX7Part>;
+        for (int track = 0; track < PROJECT_MAX_TRACKS; ++track) {
+          auto* part = new DX7Part();
+          prepared->voices[track] = part;
+          part->init(rate);
+        }
+      }
+      break;
+    case InstrumentType::Monk:
+      if (!state->monkVoices[0][0]) {
+        prepared->monkPreview = new MonkSynthVoice();
+        prepared->monkPreview->init(rate);
+        prepared->dispose = disposePreparedVoices<MonkSynthVoice>;
+        for (void*& slot : prepared->voices) {
+          auto* voice = new MonkSynthVoice();
+          slot = voice;
+          voice->init(rate, prepared->monkPreview);
+        }
+      }
+      break;
+    default: break;
+  }
+  if (!prepared->dispose) { delete prepared; return nullptr; }
+  return prepared;
+}
+
+template <typename Voice>
+static void installVoices(Voice* (&pool)[PROJECT_MAX_TRACKS][CHORD_MAX_VOICES],
+                          PreparedInstrumentVoices* prepared) {
+  for (int track = 0; track < PROJECT_MAX_TRACKS; ++track)
+    for (int slot = 0; slot < CHORD_MAX_VOICES; ++slot) {
+      int index = track * CHORD_MAX_VOICES + slot;
+      pool[track][slot] = static_cast<Voice*>(prepared->voices[index]);
+      prepared->voices[index] = nullptr;
+    }
+}
+
+void chipnomadInstallInstrumentVoices(ChipNomadState* state, PreparedInstrumentVoices* prepared) {
+  if (!prepared) return;
+  if (!state) { delete prepared; return; }
+  switch (prepared->type) {
+    case InstrumentType::Braids:
+      installVoices(state->braidsVoices, prepared);
+      chipnomadSetBraidsSettings(state, state->braidsBits, state->braidsDrift,
+        state->braidsSignature, state->braidsSignatureSeed);
+      break;
+    case InstrumentType::Plaits: installVoices(state->plaitsVoices, prepared); break;
+    case InstrumentType::PlaitsAlt: installVoices(state->plaitsAltVoices, prepared); break;
+    case InstrumentType::AChChid: installVoices(state->achchidVoices, prepared); break;
+    case InstrumentType::DrumSynth: installVoices(state->drumSynthVoices, prepared); break;
+    case InstrumentType::MME: installVoices(state->mmeVoices, prepared); break;
+    case InstrumentType::Sintered: installVoices(state->sinteredVoices, prepared); break;
+    case InstrumentType::OPLL: installVoices(state->opllVoices, prepared); break;
+    case InstrumentType::OPL2: installVoices(state->oplVoices, prepared); break;
+    case InstrumentType::SegaPSG: installVoices(state->simpleChipVoices, prepared); break;
+    case InstrumentType::GenesisFM: installVoices(state->fourOpVoices, prepared); break;
+    case InstrumentType::SID: installVoices(state->sidVoices, prepared); break;
+    case InstrumentType::Monk:
+      delete state->monkPreview;
+      state->monkPreview = prepared->monkPreview;
+      prepared->monkPreview = nullptr;
+      installVoices(state->monkVoices, prepared);
+      break;
+    case InstrumentType::DX7:
+      for (int track = 0; track < PROJECT_MAX_TRACKS; ++track) {
+        state->dx7Parts[track] = static_cast<DX7Part*>(prepared->voices[track]);
+        prepared->voices[track] = nullptr;
+        for (int slot = 0; slot < CHORD_MAX_VOICES; ++slot)
+          state->dx7Voices[track][slot] = &state->dx7Parts[track]->voices[slot];
+      }
+      break;
+    default: break;
+  }
+  delete prepared;
+}
+
 void chipnomadInitChips(ChipNomadState* state, int sampleRate, ChipFactory factory) {
   if (!state) return;
   state->stopTransition = {};

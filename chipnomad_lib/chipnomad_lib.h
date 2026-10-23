@@ -27,6 +27,7 @@ class FourOpVoice;
 class OPLVoice;
 class SimpleChipVoice;
 class AudioCommandQueue;
+struct PreparedInstrumentVoices;
 struct MidiRouterState;
 struct LinkClientState;
 class AudioMonitor;
@@ -172,6 +173,10 @@ void chipnomadDestroy(ChipNomadState* state);
 * @param factory Chip factory function, or NULL to use default implementations
 */
 void chipnomadInitChips(ChipNomadState* state, int sampleRate, ChipFactory factory);
+bool chipnomadCanSwitchInstrumentLive(InstrumentType type);
+PreparedInstrumentVoices* chipnomadPrepareInstrumentVoices(ChipNomadState* state, InstrumentType type);
+// Install a prepared pool while the audio callback is locked. Takes ownership.
+void chipnomadInstallInstrumentVoices(ChipNomadState* state, PreparedInstrumentVoices* prepared);
 
 // Reserve render buffers before starting the audio device. Rendering never
 // grows these buffers, so this must be called again after reconfiguration.
