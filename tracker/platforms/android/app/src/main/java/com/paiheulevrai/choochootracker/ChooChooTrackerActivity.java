@@ -54,6 +54,7 @@ public final class ChooChooTrackerActivity extends SDLActivity {
             "com.paiheulevrai.choochootracker.USB_PERMISSION";
     private static final String PREFS_NAME = "choochootracker_prefs";
     private static final String PREF_TREE_URI = "workspace_tree_uri";
+    private static final String PREF_DIRECT_USE_SHARED = "direct_use_shared_workspace";
     private static final int PICK_FOLDER = 4103;
     private static final String PREF_FOLDER_DECLINED = "workspace_folder_declined";
     private static final String PREF_TOUCH_HAPTICS = "touch_haptics";
@@ -257,13 +258,16 @@ public final class ChooChooTrackerActivity extends SDLActivity {
 
     @Override protected void onCreate(Bundle savedInstanceState) {
         // Before SDL starts the native side, which reads the workspace path once.
-        if (isDirectStorageBuild()) initDirectWorkspace();
+        if (usesDirectWorkspace()) initDirectWorkspace();
         else initSafWorkspace();
         // Complete the private, non-destructive asset seed before SDL starts.
         // Native code only selects this ready workspace as its current directory.
         seedWorkspace("choochootracker_data", getPrivateWorkspacePath());
         super.onCreate(savedInstanceState);
         hideSystemBars();
+        if (isDirectStorageBuild() && !usesDirectWorkspace() && safWorkspace == null
+                && !getSharedPreferences(PREFS_NAME, MODE_PRIVATE).getBoolean(PREF_FOLDER_DECLINED, false))
+            requestWorkspaceFolder();
     }
 
     // Called by the native backend after SDL has loaded the application.
@@ -633,8 +637,10 @@ public final class ChooChooTrackerActivity extends SDLActivity {
         super.onResume();
         if (requestedSharedStorage && hasSharedStorage()) {
             requestedSharedStorage = false;
+            getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit()
+                .putBoolean(PREF_DIRECT_USE_SHARED, true).commit();
             initDirectWorkspace();
-            // SDL cached the private workspace before Android showed its
+            // SDL cached the previous workspace before Android showed its
             // all-files access panel; restart into the newly available root.
             restartApp();
             return;
@@ -665,10 +671,16 @@ public final class ChooChooTrackerActivity extends SDLActivity {
         });
     }
 
-    // Direct uses a conventional shared folder; Store uses a user-granted SAF
-    // document tree and never asks for broad storage access.
+    // Direct defaults to a conventional shared folder on Android 11+, with
+    // private storage and SAF folders available from Settings. Android 10
+    // and Store use private storage or a user-granted SAF document tree.
     private boolean isDirectStorageBuild() {
         return getResources().getBoolean(R.bool.direct_storage);
+    }
+
+    private boolean usesDirectWorkspace() {
+        return isDirectStorageBuild() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
+            && getSharedPreferences(PREFS_NAME, MODE_PRIVATE).getBoolean(PREF_DIRECT_USE_SHARED, true);
     }
 
     private boolean hasSharedStorage() {
@@ -737,7 +749,7 @@ public final class ChooChooTrackerActivity extends SDLActivity {
 
     // Called by the native settings screen.
     public String getWorkingFolderStatus() {
-        if (isDirectStorageBuild()) return hasSharedStorage() ? "Shared storage" : "Permission needed";
+        if (usesDirectWorkspace()) return hasSharedStorage() ? "Shared storage" : "Permission needed";
         if (safWorkspace == null) return "Private (app storage)";
         String id = getSharedPreferences(PREFS_NAME, MODE_PRIVATE).getString(PREF_TREE_URI, "");
         String name = Uri.parse(id).getLastPathSegment();
@@ -748,8 +760,17 @@ public final class ChooChooTrackerActivity extends SDLActivity {
     // Called by the native settings screen.
     public void pickWorkingFolder() {
         runOnUiThread(() -> {
-            if (isDirectStorageBuild()) {
-                requestSharedStorage();
+            if (isDirectStorageBuild() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                new android.app.AlertDialog.Builder(this)
+                    .setTitle("Working folder")
+                    .setItems(new String[] { "Use shared storage", "Choose a folder", "Use private storage" },
+                        (dialog, which) -> {
+                            if (which == 0) switchToSharedStorage();
+                            else if (which == 1) launchFolderPicker();
+                            else clearWorkingFolder();
+                        })
+                    .setNegativeButton("Cancel", null)
+                    .show();
                 return;
             }
             if (safWorkspace != null) {
@@ -767,6 +788,15 @@ public final class ChooChooTrackerActivity extends SDLActivity {
         });
     }
 
+    private void switchToSharedStorage() {
+        if (usesDirectWorkspace() && hasSharedStorage()) return;
+        if (!hasSharedStorage()) { requestSharedStorage(); return; }
+        getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit()
+            .putBoolean(PREF_DIRECT_USE_SHARED, true).commit();
+        initDirectWorkspace();
+        restartApp();
+    }
+
     private void launchFolderPicker() {
         runOnUiThread(() -> {
             waitingForFolder = true;
@@ -781,15 +811,15 @@ public final class ChooChooTrackerActivity extends SDLActivity {
     // Called by the native settings screen: back to the app's private storage.
     public void clearWorkingFolder() {
         runOnUiThread(() -> {
-            if (isDirectStorageBuild()) return;
-            if (safWorkspace == null) return;
+            if (!usesDirectWorkspace() && safWorkspace == null) return;
             new android.app.AlertDialog.Builder(this)
                 .setTitle("Use private storage?")
-                .setMessage("Your files stay in the folder you chose, but the app will stop using it.")
+                .setMessage("Your files stay in the current folder, but the app will stop using it.")
                 .setPositiveButton("Switch", (dialog, which) -> {
                     releaseTree(getSharedPreferences(PREFS_NAME, MODE_PRIVATE).getString(PREF_TREE_URI, null));
                     getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit()
-                        .remove(PREF_TREE_URI).putBoolean(PREF_FOLDER_DECLINED, true).commit();
+                        .remove(PREF_TREE_URI).putBoolean(PREF_DIRECT_USE_SHARED, false)
+                        .putBoolean(PREF_FOLDER_DECLINED, true).commit();
                     restartApp();
                 })
                 .setNegativeButton("Cancel", null)
@@ -808,7 +838,7 @@ public final class ChooChooTrackerActivity extends SDLActivity {
     private void folderPicked(Uri tree) {
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         String previous = prefs.getString(PREF_TREE_URI, null);
-        if (tree.toString().equals(previous)) return;
+        if (tree.toString().equals(previous) && safWorkspace != null) return;
         try {
             getContentResolver().takePersistableUriPermission(tree,
                 Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
@@ -817,8 +847,10 @@ public final class ChooChooTrackerActivity extends SDLActivity {
             return;
         }
         Runnable finish = () -> {
-            prefs.edit().putString(PREF_TREE_URI, tree.toString()).putBoolean(PREF_FOLDER_DECLINED, false).commit();
-            if (previous != null) releaseTree(previous);
+            prefs.edit().putString(PREF_TREE_URI, tree.toString())
+                .putBoolean(PREF_DIRECT_USE_SHARED, false)
+                .putBoolean(PREF_FOLDER_DECLINED, false).commit();
+            if (previous != null && !tree.toString().equals(previous)) releaseTree(previous);
             restartApp();
         };
         List<String> files = collectFilesToCopy();
@@ -841,16 +873,17 @@ public final class ChooChooTrackerActivity extends SDLActivity {
             safWorkspace.collectFiles("", files);
             return files;
         }
-        collectPrivateFiles(privateWorkspace(), "", files);
+        collectLocalFiles(usesDirectWorkspace() && hasSharedStorage()
+            ? directWorkspace() : privateWorkspace(), "", files);
         return files;
     }
 
-    private void collectPrivateFiles(File dir, String prefix, List<String> out) {
+    private void collectLocalFiles(File dir, String prefix, List<String> out) {
         File[] children = dir.listFiles();
         if (children == null) return;
         for (File child : children) {
             String rel = prefix.isEmpty() ? child.getName() : prefix + "/" + child.getName();
-            if (child.isDirectory()) collectPrivateFiles(child, rel, out);
+            if (child.isDirectory()) collectLocalFiles(child, rel, out);
             else if (!matchesBundledAsset(rel, child.length())) out.add(rel);
         }
     }
@@ -874,17 +907,18 @@ public final class ChooChooTrackerActivity extends SDLActivity {
             .setTitle("Copying files").setView(text).setCancelable(false).show();
         new Thread(() -> {
             SafWorkspace target = new SafWorkspace(getContentResolver(), tree);
-            String privateRoot = getPrivateWorkspacePath();
+            String sourceRoot = safWorkspace != null ? SAF_ROOT
+                : usesDirectWorkspace() && hasSharedStorage() ? directWorkspace().getAbsolutePath()
+                : getPrivateWorkspacePath();
             int copied = 0, failed = 0;
             for (String rel : files) {
                 final int index = copied + failed + 1;
                 runOnUiThread(() -> text.setText("Copying " + index + "/" + files.size()));
                 if (target.stat(rel) != null) { copied++; continue; }  // never overwrite
-                try (InputStream input = openWorkspaceFile(safWorkspace != null
-                        ? SAF_ROOT + "/" + rel : privateRoot + "/" + rel)) {
+                try (InputStream input = openWorkspaceFile(sourceRoot + "/" + rel)) {
                     byte[] data = readAll(input);
                     if (rel.equals("settings.txt") && safWorkspace == null)
-                        data = new String(data).replace(privateRoot, SAF_ROOT).getBytes();  // paths of the old workspace
+                        data = new String(data).replace(sourceRoot, SAF_ROOT).getBytes();
                     int fd = target.open(rel, "wt");
                     if (fd < 0) throw new IOException("cannot create " + rel);
                     try (java.io.OutputStream output = new android.os.ParcelFileDescriptor.AutoCloseOutputStream(
@@ -928,7 +962,7 @@ public final class ChooChooTrackerActivity extends SDLActivity {
 
     // Called by the native layer.
     public String getWorkspacePath() {
-        if (isDirectStorageBuild() && hasSharedStorage()) return directWorkspace().getAbsolutePath();
+        if (usesDirectWorkspace() && hasSharedStorage()) return directWorkspace().getAbsolutePath();
         return safWorkspace != null ? SAF_ROOT : getPrivateWorkspacePath();
     }
 

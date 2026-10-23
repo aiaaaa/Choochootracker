@@ -83,9 +83,12 @@ touch controls appear automatically when no gamepad is connected: in portrait
 they sit below the tracker, with a square D-pad, A/EDIT, B/OPT, START/PLAY and
 SELECT/SHIFT controls, then a separate Live/Motion section with two modulation
 sticks and momentary REC/DEL controls. Landscape keeps the D-pad on the left
-and the action buttons on the right. Android projects and samples stay private to
-the app; use the Android file picker to import `.cct` projects and `.wav` samples,
-and to choose where WAV exports are saved.
+and the action buttons on the right. Android can keep projects and samples in
+private app storage or a folder chosen in **Settings > Working folder**. The
+direct APK starts with a shared folder on Android 11 and later, but you can
+change it from that setting; on Android 10 it asks you to choose a folder.
+Use the Android file picker to import `.cct` projects
+and `.wav` samples, and to choose where WAV exports are saved.
 
 ### Navigation
 
@@ -1259,7 +1262,7 @@ Exports, stems and bounces are written to a per-project folder inside the app's 
 
 - **Default**: `<app folder>/samples/Exports/<project name>/`. While the project is unnamed, the folder is `current-project`.
 - On the web build the default is `/user/samples/Exports/<project name>/`.
-- On Android the samples folder is inside the app's private workspace.
+- On Android the samples folder is inside the active workspace (private, picked, or shared).
 
 The **Folder** row on the EXPORT screen shows the active destination:
 
