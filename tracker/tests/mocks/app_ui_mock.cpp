@@ -16,7 +16,7 @@ static int reconfigureAudio(int rate, int size) { ++mockAudioReconfigureCalls; m
 static int restartAudio(void) { ++mockAudioRestartCalls; return mockAudioRestartResult; }
 static int cpuLoad() { return mockAudioCpuLoad; }
 static int mutateProject(ProjectMutation* mutation, void* userdata) { return mutation ? mutation(userdata) : 1; }
-AudioManager audioManager = {startAudio, reconfigureAudio, restartAudio, noOp, noOp, nullptr, nullptr, mutateProject, noOp,
+AudioManager audioManager = {startAudio, reconfigureAudio, restartAudio, noOp, noOp, nullptr, nullptr, nullptr, mutateProject, noOp,
                              nullptr, nullptr, cpuLoad};
 const AppScreen screenSong = {nullptr, nullptr, noOp, noOp, ignoreInput};
 const AppScreen screenTitle = {nullptr, nullptr, noOp, noOp, ignoreInput};
