@@ -127,6 +127,7 @@ Find bugs or anything? Come discuss on Discord: https://discord.gg/Ut9vM6zgKU
 
 ## Documentation
 
+- [Visual field guide](https://choochootracker.vercel.app/user-guide/) · [Offline version and sources](docs/user-guide/README.md)
 - [User manual](docs/USER_MANUAL.md)
 - [User manual PDF](docs/ChooChooTracker-User-Manual.pdf)
 
