@@ -192,36 +192,8 @@ static void cancelConfirm(void) {
 static void drawRowHeader(int row, CellState state);
 static void drawColHeader(int col, CellState state);
 
-static ScreenData screenProjectCommon = {
-  .rows = SCR_PROJECT_ROWS,
-  .cursorRow = 0,
-  .cursorCol = 0,
-  .topRow = 0,
-  .selectMode = -1,
-  .selectStartRow = 0,
-  .selectStartCol = 0,
-  .selectAnchorRow = 0,
-  .selectAnchorCol = 0,
-  .playbackLevel = ScreenPlaybackLevel::none,
-  .getColumnCount = projectCommonColumnCount,
-  .drawStatic = projectCommonDrawStatic,
-  .drawCursor = projectCommonDrawCursor,
-  .drawSelection = NULL,
-  .drawRowHeader = drawRowHeader,
-  .drawColHeader = drawColHeader,
-  .drawField = projectCommonDrawField,
-  .onEdit = projectCommonOnEdit,
-  .onInput = NULL,
-  .onRawInput = NULL,
-  .isCellValid = NULL,
-  .getLoopRange = NULL,
-};
-
 static ScreenData* projectScreen(void) {
-  ScreenData* data = &screenProjectCommon;
-  if (chipnomadState->project.chipType == ChipType::AY) {
-    data = &screenProjectAY;
-  }
+  ScreenData* data = &screenProjectExtra;
   data->drawRowHeader = drawRowHeader;
   data->drawColHeader = drawColHeader;
 

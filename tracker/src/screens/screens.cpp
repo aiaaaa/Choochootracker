@@ -396,9 +396,9 @@ static int screenTouchCellAt(int col, int row, int* targetCol, int* targetRow) {
   }
   if (currentScreen == &screenProject) {
     // Field y-coordinates: row 0 buttons at y=3, File/Title/Author at
-    // y=5/6/7, Linear pitch y=9, Clock source y=10, Tempo y=11, then the
-    // AY-specific rows (chip type, PWM, AY clock, pitch table, scale).
-    const int fieldY[] = {3, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15, 17};
+    // y=5/6/7, Linear pitch y=9, Clock source y=10, Tempo y=11,
+    // Pitch table y=12, Scale y=13.
+    const int fieldY[] = {3, 5, 6, 7, 9, 10, 11, 12, 13};
     int field = -1, column = 0;
     for (unsigned i = 0; i < sizeof(fieldY) / sizeof(fieldY[0]); ++i)
       if (row == fieldY[i]) field = i;
@@ -411,7 +411,7 @@ static int screenTouchCellAt(int col, int row, int* targetCol, int* targetRow) {
     } else if (field <= 3) {
       column = col - 7;
       if (column < 0 || column >= touchScreenData->getColumnCount(field)) return 0;
-    } else if (field == 10) {
+    } else if (field == 8) {
       if (col < 0 || col >= 5) return 0;
     } else {
       if (col < 13 || col >= 34) return 0;
