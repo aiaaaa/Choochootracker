@@ -2,6 +2,10 @@
 #include <SDL2/SDL.h>
 #include <stdio.h>
 #include <cstring>
+#ifdef PORTMASTER_BUILD
+#include <cstdlib>
+#include <string>
+#endif
 #ifdef WEB_BUILD
 #include <emscripten.h>
 static AudioCallback* webAudioCallback = nullptr;
@@ -298,9 +302,33 @@ int audioInputSetup(AudioCaptureCallback* callback, int sampleRate,
   spec.callback = sdlCaptureCallback;
   spec.userdata = (void*)callback;
 
-  captureDevice = SDL_OpenAudioDevice(
-    deviceIndex >= 0 ? SDL_GetAudioDeviceName(deviceIndex, SDL_TRUE) : NULL,
-    SDL_TRUE, &spec, NULL, 0);
+  const char* deviceName = deviceIndex >= 0 ? SDL_GetAudioDeviceName(deviceIndex, SDL_TRUE) : NULL;
+  captureDevice = SDL_OpenAudioDevice(deviceName, SDL_TRUE, &spec, NULL, 0);
+  if (captureDevice == 0) {
+    fprintf(stderr, "Failed to open audio input '%s': %s\n",
+      deviceName ? deviceName : "default", SDL_GetError());
+#ifdef PORTMASTER_BUILD
+    // The built-in codec's raw PCM may reject our stereo capture format.
+    // SDL's ALSA backend opens AUDIODEV when no device name is supplied;
+    // plughw converts to the codec's supported format.
+    if (deviceName && SDL_GetCurrentAudioDriver() &&
+        SDL_strcmp(SDL_GetCurrentAudioDriver(), "alsa") == 0 &&
+        SDL_strstr(deviceName, "audiocodec")) {
+      const char* previous = getenv("AUDIODEV");
+      const bool hadAudioDev = previous != nullptr;
+      const std::string savedAudioDev = hadAudioDev ? previous : "";
+      if (setenv("AUDIODEV", "plughw:CARD=audiocodec,DEV=0", 1) == 0) {
+        captureDevice = SDL_OpenAudioDevice(NULL, SDL_TRUE, &spec, NULL, 0);
+        if (hadAudioDev) setenv("AUDIODEV", savedAudioDev.c_str(), 1);
+        else unsetenv("AUDIODEV");
+      }
+      if (captureDevice == 0)
+        fprintf(stderr, "Failed to open built-in microphone via plughw:audiocodec,0: %s\n", SDL_GetError());
+      else
+        fprintf(stderr, "Opened built-in microphone via plughw:audiocodec,0\n");
+    }
+#endif
+  }
   if (captureDevice == 0) return 1;
   SDL_PauseAudioDevice(captureDevice, 0);
   return 0;

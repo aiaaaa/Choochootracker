@@ -236,7 +236,10 @@ static int onEdit(int col, int row, CellEditAction action) {
       audioInputManager.disarm(slot);
     } else {
       slot = audioInputManager.arm(deviceIndex);
-      if (slot < 0) return 1; // all slots full or capture open failed
+      if (slot < 0) {
+        screenMessage(MESSAGE_TIME, "Cannot arm audio input");
+        return 1;
+      }
     }
     persistArmedDevices();
     screenFullRedraw(&screenAudioInputData);
