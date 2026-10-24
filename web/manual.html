@@ -1,7 +1,7 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ChooChooTracker User Manual</title><style>
 :root{color-scheme:dark;font:16px/1.55 system-ui,sans-serif;background:#07101f;color:#d7dce8}
 *{box-sizing:border-box}body{margin:0}a{color:#83d9ff}header{border-bottom:1px solid #294560;background:#0b1930;padding:1.2rem max(1.25rem,calc((100vw - 1160px)/2));position:sticky;top:0;z-index:2}header a{color:#ffd665;text-decoration:none;font-weight:700}.menu-toggle{display:none}.layout{max-width:1160px;margin:auto;display:grid;grid-template-columns:13rem minmax(0,1fr);gap:3rem;padding:2rem 1.25rem 5rem}nav{position:sticky;top:5rem;align-self:start;max-height:calc(100vh - 6rem);overflow:auto}nav details{margin-bottom:.25rem}nav summary{cursor:pointer;color:#ffd665;font-size:.85rem}nav summary a{color:inherit;text-decoration:none}nav a{display:block;padding:.25rem 0;text-decoration:none;font-size:.85rem}.level-3{margin-left:1rem}main{max-width:52rem;min-width:0}h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.1;color:#ffd665;margin:0 0 2rem}h2{font-size:clamp(1.6rem,3vw,2.2rem);line-height:1.2;color:#ffd665;border-bottom:1px solid #294560;margin:4rem 0 1.25rem;padding-bottom:.45rem;scroll-margin-top:5rem}h3{font-size:1.35rem;color:#83d9ff;margin:2.5rem 0 .75rem;scroll-margin-top:5rem}h4{font-size:1.1rem;color:#ffb199;margin:2rem 0 .5rem;scroll-margin-top:5rem}p,li{max-width:75ch}table{border-collapse:collapse;display:block;max-width:100%;overflow:auto;margin:1rem 0}th,td{border:1px solid #294560;padding:.45rem .6rem;text-align:left;vertical-align:top}th{background:#10284a;color:#ffd665}code{background:#10284a;color:#b9efff;padding:.08rem .25rem}pre{background:#030814;padding:1rem;overflow:auto}blockquote{border-left:3px solid #83d9ff;margin:1rem 0;padding-left:1rem;color:#b6c5d8}@media(max-width:760px){header{position:sticky;display:flex;align-items:center;justify-content:space-between;padding:.8rem 1rem}.menu-toggle{display:block;border:1px solid #52799b;border-radius:.25rem;background:#10284a;color:#d7dce8;padding:.35rem .55rem;font:inherit;font-size:.85rem}.layout{display:block;padding:1rem}.layout nav{display:none}.menu-open .layout nav{display:block;position:fixed;z-index:3;top:3.7rem;bottom:0;left:0;width:min(20rem,88vw);max-height:none;margin:0;padding:1rem;background:#0b1930;border-right:1px solid #294560;box-shadow:1rem 0 2rem #0008;columns:1}.menu-open .layout nav a{padding:.45rem 0}h2{margin-top:3rem}}
-</style></head><body><header><a href="#top">ChooChooTracker — User Manual</a><button class="menu-toggle" aria-controls="toc" aria-expanded="false">&#9776; Contents</button></header><div class="layout"><nav id="toc" aria-label="Chapters"><details><summary><a href="#1-installation-and-files">1. Installation and files</a></summary><a class="level-3" href="#arkos-portmaster">ArkOS / PortMaster</a><a class="level-3" href="#miyoo-mini-mini-plus-onion-os">Miyoo Mini / Mini Plus (Onion OS)</a><a class="level-3" href="#windows">Windows</a><a class="level-3" href="#web">Web</a><a class="level-3" href="#directory-configuration">Directory configuration</a></details><details><summary><a href="#2-controls">2. Controls</a></summary><a class="level-3" href="#navigation">Navigation</a><a class="level-3" href="#selection-and-clipboard">Selection and clipboard</a><a class="level-3" href="#playback">Playback</a></details><details><summary><a href="#3-song-structure-and-screen-map">3. Song structure and screen map</a></summary><a class="level-3" href="#optional-16x24-fonts-and-nostromoamberda2">Optional 16x24 fonts and NostromoAmberDa2</a><a class="level-3" href="#project-page-spacing">Project page spacing</a><a class="level-3" href="#audio-display-telemetry">Audio display telemetry</a><a class="level-3" href="#persistent-waveform">Persistent waveform</a><a class="level-3" href="#playback-piano">Playback piano</a><a class="level-3" href="#mixer-meters">Mixer meters</a></details><details><summary><a href="#4-song-chain-and-phrase">4. Song, Chain and Phrase</a></summary><a class="level-3" href="#song">Song</a><a class="level-3" href="#chain">Chain</a><a class="level-3" href="#phrase">Phrase</a><a class="level-3" href="#controls">Controls</a><a class="level-3" href="#key-jazz-desktop-only">Key jazz (desktop only)</a></details><details><summary><a href="#5-instruments">5. Instruments</a></summary><a class="level-3" href="#controls">Controls</a><a class="level-3" href="#ay-classic-ay-plus-and-ay-sample">AY Classic, AY Plus and AY Sample</a><a class="level-3" href="#braids">Braids</a><a class="level-3" href="#achchid">aChChid</a><a class="level-3" href="#bogie">Bogie</a><a class="level-3" href="#sintered">Sintered</a><a class="level-3" href="#monksynth">MonkSynth</a><a class="level-3" href="#mme">MME</a><a class="level-3" href="#midi-out">MIDI Out</a><a class="level-3" href="#subtractive-engines">Subtractive engines</a></details><details><summary><a href="#6-modulation-and-motion-recording">6. Modulation and motion recording</a></summary><a class="level-3" href="#motion-recording">Motion recording</a></details><details><summary><a href="#7-tables">7. Tables</a></summary><a class="level-3" href="#retrigger-mode">Retrigger mode</a><a class="level-3" href="#copy-fx-between-phrase-and-table">Copy FX between Phrase and Table</a><a class="level-3" href="#controls">Controls</a></details><details><summary><a href="#8-other-screens">8. Other screens</a></summary><a class="level-3" href="#instrument-pool">Instrument Pool</a><a class="level-3" href="#ay-wavetable">AY Wavetable</a></details><details><summary><a href="#9-tracker-fx">9. Tracker FX</a></summary><a class="level-3" href="#scale-automation">Scale automation</a><a class="level-3" href="#chords">Chords</a><a class="level-3" href="#sequencer-fx">Sequencer FX</a><a class="level-3" href="#audio-fx-sends">Audio FX sends</a><a class="level-3" href="#adsr-trigger-fx">ADSR / Trigger FX</a><a class="level-3" href="#modulation-fx">Modulation FX</a><a class="level-3" href="#braids-fx">Braids FX</a><a class="level-3" href="#achchid-fx">aChChid FX</a><a class="level-3" href="#bogie-fx">Bogie FX</a><a class="level-3" href="#sintered-fx">Sintered FX</a><a class="level-3" href="#midi-out-fx">MIDI Out FX</a><a class="level-3" href="#plaits-fx">Plaits FX</a><a class="level-3" href="#sample-fx">Sample FX</a><a class="level-3" href="#ay-fx-shared-by-ay-instruments">AY FX shared by AY instruments</a><a class="level-3" href="#ay-classic-only-fx">AY Classic-only FX</a><a class="level-3" href="#ay-plus-fx">AY Plus FX</a><a class="level-3" href="#ay-sample-fx">AY Sample FX</a></details><details><summary><a href="#10-mixer-reverb-and-delay">10. Mixer, Reverb and Delay</a></summary><a class="level-3" href="#auto-mix">Auto Mix</a><a class="level-3" href="#clouds-reverb">Clouds Reverb</a><a class="level-3" href="#ping-pong-delay">Ping-pong Delay</a></details><details><summary><a href="#11-project-screen">11. Project screen</a></summary><a class="level-3" href="#export-location">Export location</a><a class="level-3" href="#scale-quantize">Scale / Quantize</a></details><details><summary><a href="#12-settings">12. Settings</a></summary></details><details><summary><a href="#13-performance-and-troubleshooting">13. Performance and troubleshooting</a></summary><a class="level-3" href="#cpu">CPU</a><a class="level-3" href="#no-sound">No sound</a><a class="level-3" href="#input-feels-wrong">Input feels wrong</a></details><details><summary><a href="#14-midi">14. MIDI</a></summary></details><details><summary><a href="#15-credits-and-licensing">15. Credits and licensing</a></summary></details><details><summary><a href="#track-insert-effects">Track insert effects</a></summary><a class="level-3" href="#formant">FORMANT</a><a class="level-3" href="#native-opll-and-vrc7-instruments-development">Native OPLL and VRC7 instruments (development)</a><a class="level-3" href="#adlib-opl2-and-opl3-development">AdLib / OPL2 and OPL3 (development)</a><a class="level-3" href="#sega-psg-and-game-boy-native-instruments-development">Sega PSG and Game Boy native instruments (development)</a><a class="level-3" href="#dx7-fm-development">DX7 FM (development)</a><a class="level-3" href="#portable-factory-collections-and-user-presets">Portable factory collections and USER presets</a><a class="level-3" href="#native-chip-controls">Native chip controls</a><a class="level-3" href="#handheld-workload-guidance-for-native-chips">Handheld workload guidance for native chips</a><a class="level-3" href="#sid-instruments-and-phrase-fx">SID instruments and Phrase FX</a><a class="level-3" href="#portable-factory-collections-and-user-presets">Portable factory collections and USER presets</a></details><details><summary><a href="#personal-build-additions">Personal build additions</a></summary></details></nav><main id="top"><h1>ChooChooTracker User Manual</h1>
+</style></head><body><header><a href="#top">ChooChooTracker — User Manual</a><button class="menu-toggle" aria-controls="toc" aria-expanded="false">&#9776; Contents</button></header><div class="layout"><nav id="toc" aria-label="Chapters"><details><summary><a href="#1-installation-and-files">1. Installation and files</a></summary><a class="level-3" href="#arkos-portmaster">ArkOS / PortMaster</a><a class="level-3" href="#miyoo-mini-mini-plus-onion-os">Miyoo Mini / Mini Plus (Onion OS)</a><a class="level-3" href="#raspberry-pi-os-64-bit">Raspberry Pi OS 64-bit</a><a class="level-3" href="#windows">Windows</a><a class="level-3" href="#web">Web</a><a class="level-3" href="#directory-configuration">Directory configuration</a></details><details><summary><a href="#2-controls">2. Controls</a></summary><a class="level-3" href="#navigation">Navigation</a><a class="level-3" href="#selection-and-clipboard">Selection and clipboard</a><a class="level-3" href="#playback">Playback</a></details><details><summary><a href="#3-song-structure-and-screen-map">3. Song structure and screen map</a></summary><a class="level-3" href="#optional-16x24-fonts-and-nostromoamberda2">Optional 16x24 fonts and NostromoAmberDa2</a><a class="level-3" href="#project-page-spacing">Project page spacing</a><a class="level-3" href="#audio-display-telemetry">Audio display telemetry</a><a class="level-3" href="#persistent-waveform">Persistent waveform</a><a class="level-3" href="#playback-piano">Playback piano</a><a class="level-3" href="#mixer-meters">Mixer meters</a></details><details><summary><a href="#4-song-chain-and-phrase">4. Song, Chain and Phrase</a></summary><a class="level-3" href="#song">Song</a><a class="level-3" href="#chain">Chain</a><a class="level-3" href="#phrase">Phrase</a><a class="level-3" href="#controls">Controls</a><a class="level-3" href="#key-jazz-desktop-only">Key jazz (desktop only)</a></details><details><summary><a href="#5-instruments">5. Instruments</a></summary><a class="level-3" href="#controls">Controls</a><a class="level-3" href="#ay-classic-ay-plus-and-ay-sample">AY Classic, AY Plus and AY Sample</a><a class="level-3" href="#braids">Braids</a><a class="level-3" href="#achchid">aChChid</a><a class="level-3" href="#bogie">Bogie</a><a class="level-3" href="#sintered">Sintered</a><a class="level-3" href="#monksynth">MonkSynth</a><a class="level-3" href="#mme">MME</a><a class="level-3" href="#midi-out">MIDI Out</a><a class="level-3" href="#subtractive-engines">Subtractive engines</a></details><details><summary><a href="#6-modulation-and-motion-recording">6. Modulation and motion recording</a></summary><a class="level-3" href="#motion-recording">Motion recording</a></details><details><summary><a href="#7-tables">7. Tables</a></summary><a class="level-3" href="#retrigger-mode">Retrigger mode</a><a class="level-3" href="#copy-fx-between-phrase-and-table">Copy FX between Phrase and Table</a><a class="level-3" href="#controls">Controls</a></details><details><summary><a href="#8-other-screens">8. Other screens</a></summary><a class="level-3" href="#instrument-pool">Instrument Pool</a><a class="level-3" href="#ay-wavetable">AY Wavetable</a></details><details><summary><a href="#9-tracker-fx">9. Tracker FX</a></summary><a class="level-3" href="#scale-automation">Scale automation</a><a class="level-3" href="#chords">Chords</a><a class="level-3" href="#sequencer-fx">Sequencer FX</a><a class="level-3" href="#audio-fx-sends">Audio FX sends</a><a class="level-3" href="#adsr-trigger-fx">ADSR / Trigger FX</a><a class="level-3" href="#modulation-fx">Modulation FX</a><a class="level-3" href="#braids-fx">Braids FX</a><a class="level-3" href="#achchid-fx">aChChid FX</a><a class="level-3" href="#bogie-fx">Bogie FX</a><a class="level-3" href="#sintered-fx">Sintered FX</a><a class="level-3" href="#midi-out-fx">MIDI Out FX</a><a class="level-3" href="#plaits-fx">Plaits FX</a><a class="level-3" href="#sample-fx">Sample FX</a><a class="level-3" href="#ay-fx-shared-by-ay-instruments">AY FX shared by AY instruments</a><a class="level-3" href="#ay-classic-only-fx">AY Classic-only FX</a><a class="level-3" href="#ay-plus-fx">AY Plus FX</a><a class="level-3" href="#ay-sample-fx">AY Sample FX</a></details><details><summary><a href="#10-mixer-reverb-and-delay">10. Mixer, Reverb and Delay</a></summary><a class="level-3" href="#auto-mix">Auto Mix</a><a class="level-3" href="#clouds-reverb">Clouds Reverb</a><a class="level-3" href="#ping-pong-delay">Ping-pong Delay</a></details><details><summary><a href="#11-project-screen">11. Project screen</a></summary><a class="level-3" href="#export-location">Export location</a><a class="level-3" href="#scale-quantize">Scale / Quantize</a></details><details><summary><a href="#12-settings">12. Settings</a></summary></details><details><summary><a href="#13-performance-and-troubleshooting">13. Performance and troubleshooting</a></summary><a class="level-3" href="#cpu">CPU</a><a class="level-3" href="#no-sound">No sound</a><a class="level-3" href="#input-feels-wrong">Input feels wrong</a></details><details><summary><a href="#14-midi">14. MIDI</a></summary></details><details><summary><a href="#15-credits-and-licensing">15. Credits and licensing</a></summary></details><details><summary><a href="#track-insert-effects">Track insert effects</a></summary><a class="level-3" href="#make-a-kick-pump-the-mix-or-another-track">Make a kick pump the mix or another track</a><a class="level-3" href="#formant">FORMANT</a><a class="level-3" href="#native-opll-and-vrc7-instruments-development">Native OPLL and VRC7 instruments (development)</a><a class="level-3" href="#adlib-opl2-and-opl3-development">AdLib / OPL2 and OPL3 (development)</a><a class="level-3" href="#sega-psg-and-game-boy-native-instruments-development">Sega PSG and Game Boy native instruments (development)</a><a class="level-3" href="#dx7-fm-development">DX7 FM (development)</a><a class="level-3" href="#portable-factory-collections-and-user-presets">Portable factory collections and USER presets</a><a class="level-3" href="#native-chip-controls">Native chip controls</a><a class="level-3" href="#handheld-workload-guidance-for-native-chips">Handheld workload guidance for native chips</a><a class="level-3" href="#sid-instruments-and-phrase-fx">SID instruments and Phrase FX</a><a class="level-3" href="#portable-factory-collections-and-user-presets">Portable factory collections and USER presets</a><a class="level-3" href="#soundfont-collection-browsing">SoundFont collection browsing</a></details><details><summary><a href="#personal-build-additions">Personal build additions</a></summary><a class="level-3" href="#private-library-compatibility">Private library compatibility</a></details></nav><main id="top"><h1>ChooChooTracker User Manual</h1>
 <p>ChooChooTracker is an 8-track music tracker for handheld consoles.</p>
 <p>It follows the classic LSDj workflow and navigation system, with several sound design options:</p>
 <ul>
@@ -19,6 +19,9 @@
 <p>Install <code>choochootracker.zip</code> through PortMaster, or copy the extracted package to the console's <code>ports</code> directory. Start <strong>ChooChooTracker</strong> from the Ports menu.</p>
 <h3 id="miyoo-mini-mini-plus-onion-os">Miyoo Mini / Mini Plus (Onion OS)</h3>
 <p>Extract the MiyooPorts archive at the root of the SD card so that its <code>Roms/PORTS/</code> folders merge with Onion's existing folders. Start <strong>ChooChooTracker</strong> from the Ports menu after refreshing the collection. Back up the app's <code>projects/</code> folder before replacing an existing installation.</p>
+<p>Project loading time can vary with the instrument types used in a song. If startup or project loading seems unusually slow, report how long each takes, along with the console model and Onion OS version.</p>
+<h3 id="raspberry-pi-os-64-bit">Raspberry Pi OS 64-bit</h3>
+<p>Extract the Raspberry Pi AArch64 archive, install the SDL2 runtime (<code>sudo apt install libsdl2-2.0-0</code>), then run <code>./chipnomad.sh</code> from the extracted directory. Keep the packaged instruments and other assets beside the executable.</p>
 <h3 id="windows">Windows</h3>
 <p>Run <code>choochootracker.exe</code> with <code>SDL2.dll</code> and <code>libwinpthread-1.dll</code> in the same directory.
 Press <strong>ALT + ENTER</strong> to toggle fullscreen. The window is resizable; the image
@@ -137,7 +140,7 @@ preserved. Input polling and app timers keep their usual cadence.</p>
 </tr>
 </tbody>
 </table>
-<p>Mappings can be changed in <strong>Settings &gt; Key mapping</strong>. On PortMaster, save a
+<p>Mappings can be changed in <strong>Settings &gt; Controls &gt; Key mapping</strong>, including on Android with an external gamepad. On PortMaster, save a
 remap with <strong>Done</strong>, then release the button before continuing in Settings.
 Desktop layout defaults use QWERTZ only for QWERTZ regions; Polish keyboards
 keep the standard QWERTY defaults.</p>
@@ -146,9 +149,12 @@ touch controls appear automatically when no gamepad is connected: in portrait
 they sit below the tracker, with a square D-pad, A/EDIT, B/OPT, START/PLAY and
 SELECT/SHIFT controls, then a separate Live/Motion section with two modulation
 sticks and momentary REC/DEL controls. Landscape keeps the D-pad on the left
-and the action buttons on the right. Android projects and samples stay private to
-the app; use the Android file picker to import <code>.cct</code> projects and <code>.wav</code> samples,
-and to choose where WAV exports are saved.</p>
+and the action buttons on the right. Android can keep projects and samples in
+private app storage or a folder chosen in <strong>Settings &gt; Working folder</strong>. The
+direct APK starts with a shared folder on Android 11 and later, but you can
+change it from that setting; on Android 10 it asks you to choose a folder.
+Use the Android file picker to import <code>.cct</code> projects
+and <code>.wav</code> samples, and to choose where WAV exports are saved.</p>
 <h3 id="navigation">Navigation</h3>
 <ul>
 <li>Use <strong>[UP/DOWN/LEFT/RIGHT]</strong> to move the cursor.</li>
@@ -298,7 +304,7 @@ D S     P W
 <p>It is common to reserve 1 chain for empty phrases, usually <code>00</code> or <code>FE</code>.</p>
 <p>You can keep multiple sub-songs in a project by creating "islands": sections separated by empty rows.</p>
 <h4 id="live-mode">Live Mode</h4>
-<p>Double-tap <strong>OPT</strong> to enter or leave Live Mode; <code>LIVE</code> replaces the Song title. In Live Mode, <strong>PLAY</strong> starts the selected chain on its own track when that track is stopped. On a playing track, it queues the selected chain for the next chain boundary; press <strong>PLAY</strong> twice for an urgent change at the next phrase boundary. A selected empty Song cell queues a quantised stop instead. <code>+</code> marks a queued chain, <code>!</code> an urgent chain and <code>-</code> a queued stop.</p>
+<p>Double-tap <strong>OPT</strong> to enter or leave Live Mode; <code>LIVE</code> replaces the Song title. The switch happens a moment after the second tap, so tapping <strong>OPT</strong> 3 times adds a highlight without entering or leaving Live Mode. In Live Mode, <strong>PLAY</strong> starts the selected chain on its own track when that track is stopped. On a playing track, it queues the selected chain for the next chain boundary; press <strong>PLAY</strong> twice for an urgent change at the next phrase boundary. A selected empty Song cell queues a quantised stop instead. <code>+</code> marks a queued chain, <code>!</code> an urgent chain and <code>-</code> a queued stop.</p>
 <p>Select one Song row across several columns to queue or stop those tracks together. Multi-row selections are deliberately rejected. Live queues are cleared while a Song range loop is active. Live is a performance mode and is not saved in the project.</p>
 <h4 id="controls">Controls</h4>
 <ul>
@@ -312,6 +318,8 @@ D S     P W
 <li><strong>OPT + [LEFT/RIGHT]</strong>: solo every track to the left or right of the current track</li>
 <li>Select a range, then double-tap <strong>EDIT</strong>: open the BOUNCE TO SAMPLE screen (see Bounce below)</li>
 </ul>
+<p>Stopping playback and changing mute or solo use a short 3 ms output correction
+to reduce clicks. This also covers unmuting and clearing solos during playback.</p>
 <h4 id="bounce">Bounce</h4>
 <p>Select a range of Song rows and columns, then double-tap <strong>EDIT</strong> to open the BOUNCE TO SAMPLE screen. The bounce includes every selected track: tracks whose first chain starts later in the selection wait silently and join at their first chain, so the file contains all selected tracks' chains.</p>
 <p>The screen offers:</p>
@@ -576,6 +584,7 @@ and motion-recording destinations.</p>
 MONK is the active instrument; the existing MME command meanings remain unchanged.
 The shared Trigger FX group retains TDC/TCL without duplicate envelope entries.</p>
 <h3 id="mme">MME</h3>
+<p>Choose <strong>SYNTH → MME</strong> from the Instrument Type menu.</p>
 <p><strong>MME</strong> (Multi Modulation Engine) is a two-oscillator synth dedicated to interactions between oscillators. Its models are <code>Ring</code>, <code>Fold</code>, <code>Cross</code>, <code>VPM</code>, <code>Sync</code>, <code>Logic</code> and <code>Vocode</code>. Both oscillators are internal and follow tracker notes; <code>Interval</code> sets their relationship.</p>
 <p>The six macros are <strong>Waves</strong>, <strong>Interval</strong>, <strong>Amount</strong>, <strong>Flow</strong>, <strong>Feedback</strong> and <strong>Shaper</strong>. Waves selects musical A/B waveform pairs. Amount controls the model's core interaction, Flow changes its direction or algorithm variant, and Feedback is bounded but becomes deliberately wild at the end of its range. Shaper is a shared final stage which moves from clean through saturation to wavefolding.</p>
 <p>MME uses the shared LP/BP/HP multimode filter and ADSR. All six macros, Cutoff and Resonance are available to modulation and motion recording. Hold <strong>EDIT</strong> on Model to open the model popup.</p>
@@ -820,7 +829,7 @@ The shared Trigger FX group retains TDC/TCL without duplicate envelope entries.<
 <li><strong>PLAY</strong> (shown after a recording) auditions the take; it becomes <strong>STOP</strong> while the preview plays. <strong>CLEAR</strong> (next to it) deletes the WAV file and unloads the sample from the instrument; after clearing, <strong>REC</strong> takes its place again.</li>
 <li>The waveform shows the live input while recording and the full recorded waveform after the recording stops. The status line shows the file name while recording and the frame count after; an external take also shows <code>drop 0</code> when no audio frames were lost. A recorded sample is fully editable: loop region, selection, slicing, processing and saving all work on it like on any loaded file.</li>
 </ul>
-<p>Recordings are written at the project's audio sample rate as stereo 16-bit WAV files. Track sources capture what the track's instruments render (post-FX); external sources capture the device input directly.</p>
+<p>Recordings are written at the selected audio sample rate as stereo 16-bit WAV files. Track sources capture what the track's instruments render (post-FX); external sources capture the device input directly.</p>
 <h4 id="2xscwf">2xSCWF</h4>
 <p>2xSCWF is a dual single-cycle waveform oscillator. Load 1 mono WAV containing exactly 1 period into each oscillator. Both oscillators read forwards and wrap at the end of their cycle.</p>
 <p>Mix crossfades A and B.</p>
@@ -841,11 +850,13 @@ The shared Trigger FX group retains TDC/TCL without duplicate envelope entries.<
 <li>FLFO - audio-rate LFO that can reach the kHz range; FLFO can be heavy on the CPU</li>
 <li>SLIN - linear joystick control</li>
 <li>SRAT - rate-based joystick control</li>
+<li>Sequence - reads the tracker sequence as a modulation signal: <strong>PITCH</strong> is the final sequenced pitch, <strong>VOL</strong> is the final sequenced volume, and <strong>TRANCE GATE</strong> is an independent rhythmic modulator. Its Motif, Rate and Length select the gate pattern; Trigger chooses whether it is free-running, retriggered per note, or restarted at Phrase or Chain boundaries. Closed gates output zero, open gates output half level, and Accents distributes full-level gates euclidically across the active gates. It does not use or change a track insert.</li>
 </ul>
 <p>The list of modulation destinations depends on the instrument type.</p>
 <p>For a <code>Cutoff</code> destination, Amount is exponential with a quadratic response: 25% reaches 4.5 semitones, 50% reaches 18 semitones, 75% reaches 40.5 semitones, and 100% reaches six octaves. This keeps fine control at low amounts while still allowing deep sweeps.</p>
 <p>When an ADSR or AHD envelope targets Volume, it becomes the instrument's volume envelope. An LFO targeting Volume offsets the current output volume instead.</p>
 <p>The modulation amount can be positive or negative. Its range depends on the destination. If the destination's full range is <code>127</code> or less, as it is for most parameters, the amount defines an absolute range. Wider destinations such as pitch use a scaled amount.</p>
+<p>PITCH and VOL Sequence sources have a <strong>Mode</strong>. <strong>Normal</strong> keeps the tracker value audible while also using it as modulation. <strong>Bypass</strong> makes it a source only: PITCH retriggers at the last pitch (or C-4 for the first note), and VOL keeps the last audible level. Trance Gate is already source-only. If any active Sequence slot bypasses PITCH or VOL, bypass wins. To prevent feedback, PITCH and VOL cannot target Pitch or Volume.</p>
 <p>All duration parameters, including attack, hold, decay and period, are measured in ticks.</p>
 <p><strong>syncLFO</strong> is the former SLFO: set its ticks and multiplier for tempo-synced
 movement. Existing SLFO settings and songs keep the same timing.</p>
@@ -1079,6 +1090,11 @@ their respective boundaries.</p>
 <td><code>MOD</code></td>
 <td><code>AB</code></td>
 <td>Triggers on pass <code>A</code> of a <code>B</code>-pass cycle.</td>
+</tr>
+<tr>
+<td><code>RNN</code></td>
+<td><code>MX</code></td>
+<td>Plays a random note. <code>M</code> selects the mode: <code>0</code> always random, <code>1</code> random per PLAY, <code>2</code> pick and keep until the value changes. <code>X</code> selects the range: <code>0</code> any note, <code>1</code> +3 st, <code>2</code> +6 st, <code>3</code> +12 st, <code>4</code> -3 st, <code>5</code> -6 st, <code>6</code> -12 st, <code>7</code> +/-3 st, <code>8</code> +/-6 st, <code>9</code> +/-12 st. Random picks follow the project scale when the scale engine applies to the track.</td>
 </tr>
 <tr>
 <td><code>SPD</code></td>
@@ -1572,6 +1588,11 @@ their respective boundaries.</p>
 <td><code>00-FF</code></td>
 <td>Sample speed, mapped from <code>0%</code> to <code>500%</code></td>
 </tr>
+<tr>
+<td><code>RNS</code></td>
+<td><code>M0</code></td>
+<td>Plays a random slice of a sliced sample instead of the note-mapped one. <code>M</code> selects the mode: <code>0</code> always random, <code>1</code> random per PLAY, <code>2</code> pick and keep until the value changes. Requires slice mode enabled on the instrument; the low nibble is unused.</td>
+</tr>
 </tbody>
 </table>
 <h3 id="ay-fx-shared-by-ay-instruments">AY FX shared by AY instruments</h3>
@@ -1821,13 +1842,13 @@ want to tweak the result.</p>
 </ul>
 <p>The 1st repeat follows the stereo input. Later feedback crosses between the left and right channels.</p>
 <h2 id="11-project-screen">11. Project screen</h2>
-<p>The Project screen provides <strong>Load</strong>, <strong>Save</strong>, <strong>New</strong>, <strong>Export</strong>, <strong>Manage</strong> and <strong>Scale</strong> commands, along with filename, title and author metadata.</p>
+<p>The Project screen provides <strong>Load</strong>, <strong>Save</strong>, <strong>New</strong>, <strong>Export</strong>, <strong>Manage</strong>, <strong>Pitch table</strong> and <strong>Scale</strong> commands, along with filename, title and author metadata.</p>
 <h3 id="export-location">Export location</h3>
 <p>Exports, stems and bounces are written to a per-project folder inside the app's preexisting samples directory:</p>
 <ul>
 <li><strong>Default</strong>: <code>&lt;app folder&gt;/samples/Exports/&lt;project name&gt;/</code>. While the project is unnamed, the folder is <code>current-project</code>.</li>
 <li>On the web build the default is <code>/user/samples/Exports/&lt;project name&gt;/</code>.</li>
-<li>On Android the samples folder is inside the app's private workspace.</li>
+<li>On Android the samples folder is inside the active workspace (private, picked, or shared).</li>
 </ul>
 <p>The <strong>Folder</strong> row on the EXPORT screen shows the active destination:</p>
 <ul>
@@ -1836,8 +1857,8 @@ want to tweak the result.</p>
 </ul>
 <p>When a named project is saved under a new name, the default export folder is renamed to match, keeping previously exported files with the project. Renaming does not apply to a custom folder, and the folder is not renamed by autosave. If a folder with the target name already exists, both folders are kept. If the tracker lost track of the folder (for example after a restart), saving a named project renames the existing <code>current-project</code> folder instead. Instruments keep working after a rename: loaded sample paths that point into the renamed folder are updated automatically.</p>
 <p><strong>Load</strong> also accepts <code>.mid</code>/<code>.midi</code> files, imported as a new project: notes are grouped by MIDI channel (one channel per track, up to the track count), quantized to 4 rows per beat, and placed on a single default AY instrument - MIDI program numbers have no chiptune equivalent, so pick real instruments afterward. Only the file's first tempo is used (one global tick rate, no per-section tempo changes). The Export screen's <strong>MIDI</strong> row does the reverse: writes the current arrangement's notes, volume and tempo/groove as a Standard MIDI File (one MIDI track per tracker track); <a href="#midi-out">MIDI Out</a> instruments and other per-row FX beyond volume and the global groove have no MIDI equivalent and are not translated.</p>
-<p><strong>Load</strong> also accepts Dirtywave M8 songs (<code>.m8s</code>, firmware 2.x-4.x), imported as a new project. Only the structure and the notes come across (song rows, chains with their transpose, phrases with note, velocity and instrument number, note-offs, tempo and song name); notes keep their real pitch. M8 instruments have no equivalent here, so each instrument used by a phrase becomes a default AY instrument carrying the M8 instrument's name - pick real sounds afterward. FX, tables and all instrument parameters are ignored.</p>
-<p>On desktop, the Export screen's <strong>M8S</strong> row does the reverse, in a limited way: tap it and pick an existing <code>.m8s</code> as a <strong>template</strong> (remembered until you quit, <strong>EDIT + OPT</strong> forgets it). Its song, chains, phrases, tempo and title are replaced and everything else, including the M8 instruments, is kept as is. FX are not exported, and a song using phrase <code>FF</code> or above cannot be exported (the M8 has 255 phrases). The exported file has not been tested on a real M8 yet. See <a href="m8s-format.md">M8 songs</a> for the details.</p>
+<p><strong>Load</strong> also accepts Dirtywave M8 songs (<code>.m8s</code>, firmware 2.x-4.x), imported as a new project: structure (song rows, chains with transpose, phrases), notes, velocities, instrument numbers, note-offs, tempo and name. Notes keep their real pitch (the M8's <code>C-6</code> is <code>C-4</code> here). Each instrument used is imported under its M8 name: <strong>MACROSYN</strong> becomes Braids (same 47 models; timbre, color, filter, cutoff, resonance and pan carried over, cutoff curve approximate), <strong>SAMPLER</strong> becomes Sample (the <code>.m8s</code> only stores the WAV's path on the M8 card: the file is searched under the <code>.m8s</code> folder, its parents and your sample folder; otherwise the instrument keeps the M8 path and stays silent; +24 semitones of Pitch, as the M8 plays two octaves lower), <strong>FMSYNTH</strong> becomes a Genesis FM (rough approximation), <strong>WAVSYNTH</strong> and <strong>HYPERSYNTH</strong> become aChChid, <strong>MIDI OUT</strong> becomes MIDI Out (channel, bank, program, first 4 CCs). Other types become a default AY instrument. FX and tables are ignored.</p>
+<p>On desktop, the Export screen's <strong>M8S</strong> row does the reverse, in a limited way: tap it and pick an existing <code>.m8s</code> as a <strong>template</strong> (remembered until you quit, <strong>EDIT + OPT</strong> forgets it). Its song, chains, phrases, tempo and title are replaced and everything else is kept, except that Braids instruments are written back as MacroSynth and Sample instruments as Sampler (path <code>/Samples/&lt;file name&gt;</code>: copy the WAV there on the M8 yourself), if the template has an instrument of that type to copy from. FX are not exported, and a song using phrase <code>FF</code> or above cannot be exported (the M8 has 255 phrases). The exported file has not been tested on a real M8 yet. See <a href="m8s-format.md">M8 songs</a> for the details.</p>
 <p>On desktop, key jazz lets you type the filename, title and author directly on the keyboard instead of using the on-screen virtual keyboard — see <a href="#key-jazz-desktop-only">Key jazz</a>.</p>
 <h3 id="scale-quantize">Scale / Quantize</h3>
 <p>The Scale screen controls the global 12-TET scale engine. The <strong>Mode</strong> row selects between two modes:</p>
@@ -1856,6 +1877,7 @@ want to tweak the result.</p>
 <p>Use <strong>Save</strong> before changing instrument types or loading another project.</p>
 <h2 id="12-settings">12. Settings</h2>
 <ul>
+<li><strong>Audio</strong> offers a <strong>Sample rate</strong> of <code>32 kHz</code> or <code>48 kHz</code> (default) and an adjustable <strong>Buffer size</strong>. Changes take effect immediately and are saved. Changing the sample rate stops playback and sample preview while the sound engines and any armed audio input reopen at the new rate. If a device rejects the new rate, the previous setting remains active. A larger buffer gives the audio engine more time but increases latency; 32 kHz reduces processing work and limits the highest reproduced frequency to 16 kHz. The CPU load readout shows audio rendering cost.</li>
 <li><strong>Repeat delay / speed</strong> tune held-button repeat.</li>
 <li><strong>Stick live mode</strong> selects <code>HOLD</code>, <code>TOGGLE</code>, or <code>FREE</code> for the existing mapped Stick live button.</li>
 <li><strong>MIDI</strong> opens the <a href="#14-midi">MIDI</a> submenu: device selection and the MIDI In channel-to-instrument mapping.</li>
@@ -1963,9 +1985,11 @@ the current screen.</p>
 <p>Continuous controls use 00–FF, except FORMANT VOW (00–7F). Bipolar
 controls have an exact neutral at 80. Distortion modes are 00 Density, 01 Drive,
 02 Spiral, 03 Mojo, 04 Dyno. Compressor ratios 00–07 are 1.5, 2, 3, 4, 6, 8, 16,
-20:1; detector sources 00–02 are stereo input, left, right. Detector filter 80 is
-neutral, below is low-pass, above is high-pass. No external/cross-track sidechain
-is provided. Either slot can contain any module; repeated modules are independent.
+20:1. Compressor Detect 00–02 listens to its own stereo input, left, or right;
+03–0A listens to tracks 1–8 instead. Detector filter 80 is neutral, below is
+low-pass, above is high-pass. A track source is taken after its volume, pan and
+Tilt EQ but before its inserts; a muted or absent source supplies silence. Either
+slot can contain any module; repeated modules are independent.
 Chorus, Flanger, Phaser and Rotary use gentle modulation defaults. Rotary Speed
 uses the full <strong>00-FF</strong> range: <strong>00 = 0.01 Hz</strong> (one rotation per 100 seconds),
 <strong>FF = 25 Hz</strong> (the former Chaos maximum). Exponential spacing gives finer
@@ -2028,6 +2052,17 @@ unused slots; the sixteen available positions are not a guaranteed CPU budget.</
 <p>The Insert page keeps the selected field's tip visible after button release;
 temporary notices can still take its place. The module chooser shows each
 module's effect type and source project alongside its name.</p>
+<h3 id="make-a-kick-pump-the-mix-or-another-track">Make a kick pump the mix or another track</h3>
+<p>For a pumping master, put the kick on track 1, select Compressor in MASTER FX,
+set Detect to 03 (Track 1), Ratio to 04 (6:1), Attack around 60 (about 1.6 ms),
+Release around C0 (about 115 ms), Makeup to 00 and Mix to FF. Lower Threshold
+until the other sounds dip with each kick, then adjust Release so they recover
+before the next one. The kick's direct sound keeps its own track inserts but
+bypasses both master insert slots; its reverb and delay returns still pump.</p>
+<p>To duck only a bass, pad or synth, put its Compressor on that track and select
+the kick track with Detect. The source kick remains audible and its volume is
+not changed by that track's compressor. A kick and bass combined on the same
+track cannot be separated by this routing.</p>
 <h3 id="formant">FORMANT</h3>
 <p>Select <strong>FORMANT</strong> in TF1 or TF2 to shape a sound into vowel-like tones. It works
 best on a sustained, harmonically rich source such as a saw wave.</p>
@@ -2169,6 +2204,18 @@ extensions, with stable slot/track tie breaking. This policy applies on every
 platform so the same song has the same bounded note allocation. It does not
 change other instruments' polyphony. Preset audition is disabled during playback.
 The limit was selected from R36H measurements and validated in mixed playback.</p>
+<h4 id="fm-operator-editor">FM operator editor</h4>
+<p>Genesis FM, Arcade FM, OPL2, OPL3, OPLL and VRC7 instruments have an <strong>EDIT</strong>
+button to the right of Fine ct. It opens a table of the patch parameters:</p>
+<ul>
+<li>Genesis FM / Arcade FM</li>
+<li>OPL2 / OPL3: on OPL3 the mode (2op, 4op, dual) can be changed here.</li>
+<li>OPLL / VRC7: editing a ROM preset turns it into "Custom".</li>
+</ul>
+<p>Left/Right and the usual edit keys change values; the instrument keeps playing
+as usual so you can hear changes. The status bar describes the parameter under
+the cursor. OPT or Left+Shift returns to the instrument screen. DX7 and SID
+have no operator editor.</p>
 <p>Genesis FM (YM2612) and Arcade FM (YM2151) now use the same FM Bank/Preset
 browser, EDIT+PLAY audition, confirm/cancel and fine-tune controls. Genesis now
 has <strong>73 presets</strong>: the original 24 and 49 supported melodic programs from
@@ -2564,5 +2611,35 @@ CNI files may still be used in OPL3 USER folders.</p>
 per-preset normalization. Existing native-instrument songs can therefore play
 at a different level; review the balance of saved mixes. The calibration method
 and bounds are documented in <code>scripts/README_MEASURE.md</code>.</p>
+<h3 id="soundfont-collection-browsing">SoundFont collection browsing</h3>
+<p>In SAMPLE → SOUNDFONT, <strong>Preset</strong> opens your collections. <strong>Right</strong> or <strong>EDIT/A</strong>
+enters a folder directly. In a leaf collection, Right moves to its presets;
+another Right pages forward by 15 entries without loading. EDIT/A loads the
+highlighted preset. Left returns to collections, then to the parent folder;
+OPT also goes back. PLAY starts/stops the song while browsing.</p>
+<p>Folder and sound icons identify the entries. Collections use their full panel
+height. The selected preset stays below the eight track previews; long names
+scroll after one second of idle selection and restart when you move.
+EDIT+Left/Right on the instrument page follows the same nested folder order,
+keeping each collection's sounds together. EDIT+PLAY auditions.</p>
+<p>The third row reports Reading preset, Finding samples, Unzipping, Checking
+samples or Loading samples. EXS instruments with empty or <code>(null)</code> embedded
+names use their filenames. Source banks and audio stay unchanged. Use <strong>Rescan</strong>
+after changing your library files.</p>
+<p>See <a href="soundbanks/README.md#format-coverage">format coverage and limits</a> for
+supported sampler behavior and sample formats.</p>
 <h2 id="personal-build-additions">Personal build additions</h2>
-<p>See <a href="personal-controls.md">personal controls</a> for SQ80/ESQ, Lucky and browser-specific controls. Existing personal songs retain SQ80 = 28, MONK = 29 and SoundFont = 30. This build excludes Ableton Link and its dependencies.</p></main></div><script>const button=document.querySelector('.menu-toggle'),menu=document.querySelector('#toc');button.onclick=()=>{const open=document.body.classList.toggle('menu-open');button.setAttribute('aria-expanded',open)};menu.querySelectorAll('a').forEach(link=>link.onclick=()=>{document.body.classList.remove('menu-open');button.setAttribute('aria-expanded','false')});</script></body></html>
+<p>See <a href="personal-controls.md">personal controls</a> for SQ80/ESQ, Lucky and browser-specific controls. Existing personal songs retain SQ80 = 28, MONK = 29 and SoundFont = 30. This build excludes Ableton Link and its dependencies.</p>
+<h3 id="private-library-compatibility">Private library compatibility</h3>
+<p>An optional <code>.choochoo-renamed-banks</code> receipt maps exact old bank paths to new paths after library housekeeping, so saved songs can resolve renamed files without duplicate browser entries.</p>
+<p>The loader accepts SF2/SF3, SFZ, legacy EXS24 and their supported WAV, AIFF and
+Vorbis samples, including ZIP collections. It leaves the original files
+unchanged. Ready status shows decoded sample memory. If a preset is too large,
+the error gives additional memory needed, memory already loaded and the current
+budget. That budget adapts to available system memory; it is separate from disk
+space. Very large banks still cannot fit on small systems without streaming.
+To shorten a sustained sound without editing the bank, use the instrument's
+<strong>Edit</strong> controls: Decay sets the fade time and Sustain sets the level it fades
+to (0% for a note that dies away while held). Release starts after an <strong>OFF</strong> note;
+KILL cuts the voice. A modulation slot targeting Volume supplies an envelope or
+tremolo; Pitch supplies pitch movement. Bank restores the authored setting.</p></main></div><script>const button=document.querySelector('.menu-toggle'),menu=document.querySelector('#toc');button.onclick=()=>{const open=document.body.classList.toggle('menu-open');button.setAttribute('aria-expanded',open)};menu.querySelectorAll('a').forEach(link=>link.onclick=()=>{document.body.classList.remove('menu-open');button.setAttribute('aria-expanded','false')});</script></body></html>

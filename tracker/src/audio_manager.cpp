@@ -121,13 +121,10 @@ static void audioCallback(int16_t* buffer, int stereoSamples) {
     return;
   }
 
-  if (chipnomadRender(chipnomadState, floatBuffer, stereoSamples) != stereoSamples) {
-#ifdef ANDROID_BUILD
-    if (audioDiagnostics::enabled)
-      audioDiagnostics::renderFailures.fetch_add(1, std::memory_order_relaxed);
-#endif
-    memset(floatBuffer, 0, stereoSamples * 2 * sizeof(*floatBuffer));
-  }
+  // A short render is normal when a song ends. Preserve its valid prefix;
+  // pre-clear also makes an early render failure safe without stale samples.
+  memset(floatBuffer, 0, stereoSamples * 2 * sizeof(*floatBuffer));
+  chipnomadRender(chipnomadState, floatBuffer, stereoSamples);
   renderPreview(samplePreviewBuffer, stereoSamples);
   for (int i = 0; i < stereoSamples * 2; ++i) floatBuffer[i] += samplePreviewBuffer[i];
 
@@ -212,6 +209,7 @@ static int reconfigure(int sampleRate, int bufferSize) {
   if (sampleRate <= 0 || bufferSize <= 0 || bufferSize > INT_MAX / 2 ||
       !floatBuffer || !samplePreviewBuffer) return 1;
   if (sampleRate == aSampleRate && bufferSize == aBufferSize) return 0;
+  if (sampleRate != aSampleRate && audioInputManagerRecordingActive()) return 1;
 
   float* newFloatBuffer = (float*)malloc(bufferSize * 2 * sizeof(float));
   float* newPreviewBuffer = (float*)malloc(bufferSize * 2 * sizeof(float));
@@ -239,11 +237,22 @@ static int reconfigure(int sampleRate, int bufferSize) {
   aBufferSize = bufferSize;
   cpuLoadPercent.store(0, std::memory_order_relaxed);
   if (audioSetup(audioCallback, sampleRate, bufferSize) == 0) {
-    free(oldFloatBuffer);
-    free(oldPreviewBuffer);
-    updatePlaybackMuteFlags();
-    audioPause(0);
-    return 0;
+    if (sampleRate != oldSampleRate && audioInputManager.reconfigureRate(sampleRate)) {
+      audioCleanup();
+    } else {
+      if (sampleRate != oldSampleRate) {
+        stopSamplePreview();
+        chipnomadInitChips(chipnomadState, sampleRate, NULL);
+        playbackStop(&chipnomadState->playbackState);
+        samplePreviewVoice.init((float)sampleRate);
+        scwfPreviewVoice.init((float)sampleRate);
+      }
+      free(oldFloatBuffer);
+      free(oldPreviewBuffer);
+      updatePlaybackMuteFlags();
+      audioPause(0);
+      return 0;
+    }
   }
 
   floatBuffer = oldFloatBuffer;
@@ -298,6 +307,16 @@ static void reinitializeChips(void) {
   pause();
   chipnomadInitChips(chipnomadState, aSampleRate, NULL);
   resume();
+}
+
+static void ensureInstrumentVoices(InstrumentType type) {
+  PreparedInstrumentVoices* prepared = chipnomadPrepareInstrumentVoices(chipnomadState, type);
+  if (!prepared) return;
+  // Voice construction is finished. Only pointer publication needs the lock.
+  // ponytail: keep old pools for reuse; a full project reinit releases unused ones.
+  audioLock();
+  chipnomadInstallInstrumentVoices(chipnomadState, prepared);
+  audioUnlock();
 }
 
 static int mutateProject(ProjectMutation* mutation, void* userdata) {
@@ -488,6 +507,7 @@ struct AudioManager audioManager = {
   .resume = resume,
   .replaceProject = replaceProject,
   .reinitializeChips = reinitializeChips,
+  .ensureInstrumentVoices = ensureInstrumentVoices,
   .mutateProject = mutateProject,
   .stop = stop,
   .toggleTrackMute = toggleTrackMute,

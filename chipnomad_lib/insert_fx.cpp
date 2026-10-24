@@ -26,7 +26,7 @@ static const InsertDescriptor descriptors[] = {
       {"Release", "Release", "Hz", 60, 0.4f, 128, M::exponential},
       {"Makeup", "Makeup", "dB", 0, 24, 0, M::linear},
       {"Ratio", "Ratio", "", 0, 7, 3, M::discrete},
-      {"Detect", "Detector source", "", 0, 2, 0, M::discrete},
+      {"Detect", "Detector source", "", 0, 10, 0, M::discrete},
       {"DetFilt", "Detector filter", "", -1, 1, 128, M::bipolar},
       {"Mix", "Mix", "%", 0, 1, 255, M::linear}}},
     {"Distortion",
@@ -242,7 +242,8 @@ void insertDescribe(char* text, size_t size, int m, int p, int value) {
     snprintf(text, size, "%.1f:1", n[(int)v]);
   } else if (m == insertCompressor && p == 5) {
     static const char* n[] = {"Stereo", "Left", "Right"};
-    snprintf(text, size, "%s", n[(int)v]);
+    if (v < 3) snprintf(text, size, "%s", n[(int)v]);
+    else snprintf(text, size, "Track %d", (int)v - 2);
   } else if (m == insertTranceGate && p == 0) {
     static const char* n[] = {
         "Full 1/16", "Downbeat 4/4", "8th Note Pulse", "Double Pump",
@@ -307,6 +308,57 @@ constexpr bool tranceGatePatternsAreUnique() {
   return true;
 }
 static_assert(tranceGatePatternsAreUnique(), "Trance Gate patterns must not be rotations or mirrors");
+bool tranceGatePatternOpen(uint8_t pattern, uint8_t length, uint32_t step) {
+  length = std::max<uint8_t>(1, std::min<uint8_t>(16, length));
+  return (tranceGatePatterns[pattern & 63] & (0x8000u >> (step % length))) != 0;
+}
+float tranceGateTicksPerStep(uint8_t rate) {
+  rate = std::min<uint8_t>(14, rate);
+  float ticks = 48.0f / (1 << (rate / 3));
+  if (rate % 3 == 1) ticks *= 2.0f / 3.0f;
+  if (rate % 3 == 2) ticks *= 1.5f;
+  return ticks;
+}
+static uint32_t gateRandom(uint32_t value) {
+  value ^= value >> 16;
+  value *= 0x7feb352dU;
+  value ^= value >> 15;
+  value *= 0x846ca68bU;
+  return value ^ (value >> 16);
+}
+static bool tranceGateOpen(const uint8_t* v, uint64_t step) {
+  const int length = v[2] + 1;
+  const int mode = v[5];
+  const int span = mode == 2 && length > 1 ? length * 2 - 2 : length;
+  const uint64_t loop = step / span;
+  int position = (int)(step % span);
+  if (mode == 1) position = length - 1 - position;
+  else if (mode == 2 && position >= length) position = span - position;
+  bool bits[16];
+  int opened = 0;
+  for (int i = 0; i < length; ++i) {
+    bits[i] = (tranceGatePatterns[v[0]] & (0x8000u >> ((i - v[4] + 16) & 15))) != 0;
+    opened += bits[i];
+  }
+  if (mode == 3 && opened && opened < length) {
+    int open[16], closed[16], openCount = 0, closedCount = 0;
+    for (int i = 0; i < length; ++i) {
+      if (bits[i]) open[openCount++] = i;
+      else closed[closedCount++] = i;
+    }
+    for (int move = 0; move < 2 && openCount && closedCount; ++move) {
+      uint32_t random = gateRandom((uint32_t)v[0] | ((uint32_t)v[4] << 8) |
+                                   ((uint32_t)(loop / 4) << 16) | ((uint32_t)move << 28));
+      int openPick = random % openCount, closedPick = (random >> 8) % closedCount;
+      bits[open[openPick]] = false;
+      bits[closed[closedPick]] = true;
+      open[openPick] = open[--openCount];
+      closed[closedPick] = closed[--closedCount];
+    }
+  }
+  return bits[position];
+}
+
 #include "external/insert_fx/work_compressor.h"
 struct InsertChain::Impl {
   static constexpr int block = 128;
@@ -457,47 +509,6 @@ struct InsertChain::Impl {
     magnitude -= 1.0f;
     return copysignf(1.0f + magnitude - 0.5f * magnitude * magnitude, x);
   }
-  static uint32_t gateRandom(uint32_t value) {
-    value ^= value >> 16;
-    value *= 0x7feb352dU;
-    value ^= value >> 15;
-    value *= 0x846ca68bU;
-    return value ^ (value >> 16);
-  }
-  static bool tranceGateOpen(const uint8_t* v, uint64_t step) {
-    const int length = v[2] + 1;
-    const int mode = v[5];
-    const int span = mode == 2 && length > 1 ? length * 2 - 2 : length;
-    const uint64_t loop = step / span;
-    int position = (int)(step % span);
-    if (mode == 1) position = length - 1 - position;
-    else if (mode == 2 && position >= length) position = span - position;
-    bool bits[16];
-    int opened = 0;
-    for (int i = 0; i < length; ++i) {
-      bits[i] = (tranceGatePatterns[v[0]] & (0x8000u >> ((i - v[4] + 16) & 15))) != 0;
-      opened += bits[i];
-    }
-    if (mode == 3 && opened && opened < length) {
-      int open[16], closed[16], openCount = 0, closedCount = 0;
-      for (int i = 0; i < length; ++i) {
-        if (bits[i]) open[openCount++] = i;
-        else closed[closedCount++] = i;
-      }
-      // Two moves make Chaos plainly audible while preserving density and its
-      // four-cycle anchor. Sparse patterns naturally fall back to one move.
-      for (int move = 0; move < 2 && openCount && closedCount; ++move) {
-        uint32_t random = gateRandom((uint32_t)v[0] | ((uint32_t)v[4] << 8) |
-                                     ((uint32_t)(loop / 4) << 16) | ((uint32_t)move << 28));
-        int openPick = random % openCount, closedPick = (random >> 8) % closedCount;
-        bits[open[openPick]] = false;
-        bits[closed[closedPick]] = true;
-        open[openPick] = open[--openCount];
-        closed[closedPick] = closed[--closedCount];
-      }
-    }
-    return bits[position];
-  }
   void parameters(Slot& s, const uint8_t* v) {
     if (!s.dirty && !memcmp(v, s.previous, 8)) return;
     float p[8];
@@ -566,7 +577,7 @@ struct InsertChain::Impl {
     memcpy(s.previous, v, 8);
     s.dirty = false;
   }
-  void process(Slot& s, float* data, int frames, const uint8_t* values) {
+  void process(Slot& s, float* data, int frames, const uint8_t* values, const float* sidechain) {
     float increment = 1.0f / std::max(1.0f, rate * 0.005f);
     for (int offset = 0; offset < frames;) {
       if (s.switching && s.wet <= 0) {
@@ -602,7 +613,7 @@ struct InsertChain::Impl {
           if (s.beads) s.beads->process(l, r, n, p);
           break;
         case insertCompressor:
-          s.work.process(l, r, n);
+          s.work.process(l, r, n, sidechain ? sidechain + offset : nullptr);
           break;
         case insertDistortion:
           s.distortion.processReplacing(channels, channels, n);
@@ -847,7 +858,8 @@ bool InsertChain::active() const {
     if (s.config.module || s.module || s.switching) return true;
   return false;
 }
-void InsertChain::process(float* data, int frames, const uint8_t v[2][8]) {
+void InsertChain::process(float* data, int frames, const uint8_t v[2][8], const float* sidechain[2]) {
   if (!ready()) return;
-  for (int slot = 0; slot < 2; ++slot) impl_->process(impl_->slots[slot], data, frames, v[slot]);
+  for (int slot = 0; slot < 2; ++slot)
+    impl_->process(impl_->slots[slot], data, frames, v[slot], sidechain ? sidechain[slot] : nullptr);
 }

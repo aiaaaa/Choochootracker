@@ -2,6 +2,7 @@
 #include "screen_audio_input.h"
 #include "screen_keymapping.h"
 #include "audio_manager.h"
+#include "audio_input_manager.h"
 #include "app.h"
 #include "corelib_file.h"
 #include "corelib_font.h"
@@ -17,6 +18,7 @@ static void setup(int) {}
 static void draw(void) {}
 
 static const int audioBufferSizes[] = {32, 64, 128, 256, 512, 1024};
+static const int audioSampleRates[] = {32000, 48000};
 static int displayedCpuLoad = -1;
 
 static void drawAudioCpuLoad(void) {
@@ -26,7 +28,7 @@ static void drawAudioCpuLoad(void) {
   if (load == displayedCpuLoad) return;
   displayedCpuLoad = load;
   gfxSetFgColor(appSettings.colorScheme.textInfo);
-  gfxPrintf(23, 3, "%03d%%", load);
+  gfxPrintf(23, 4, "%03d%%", load);
 }
 
 static void audioStatic(void) { gfxSetFgColor(appSettings.colorScheme.textTitles); gfxPrint(0, 0, "AUDIO"); }
@@ -39,23 +41,28 @@ static int audioInputArmedCount(void) {
 }
 
 static void audioCursor(int, int row) {
-  if (row == 0) gfxCursor(23, 2, appSettings.audioBufferSize == 1024 ? 4 : 3);
-  else if (row == 2) gfxCursor(23, 4, 3); // "OFF"/"ON" value width
+  if (row == 0) gfxCursor(23, 2, 6);
+  else if (row == 1) gfxCursor(23, 3, appSettings.audioBufferSize == 1024 ? 4 : 3);
+  else if (row == 3) gfxCursor(23, 5, 3); // "OFF"/"ON" value width
 }
 static void audioField(int, int row, CellState state) {
   const ColorScheme cs = appSettings.colorScheme;
   if (row == 0) {
-    gfxSetFgColor(cs.textDefault); gfxPrint(0, 2, "Buffer size");
+    gfxSetFgColor(cs.textDefault); gfxPrint(0, 2, "Sample rate");
     gfxSetFgColor(state == CellState::focus ? cs.textValue : cs.textDefault);
-    gfxClearRect(23, 2, 4, 1);
-    gfxPrintf(23, 2, "%d", appSettings.audioBufferSize);
-  } else if (row == 2) {
-    gfxSetFgColor(cs.textDefault); gfxPrint(0, 4, "Audio Input");
+    gfxPrintf(23, 2, "%d kHz", appSettings.audioSampleRate / 1000);
+  } else if (row == 1) {
+    gfxSetFgColor(cs.textDefault); gfxPrint(0, 3, "Buffer size");
     gfxSetFgColor(state == CellState::focus ? cs.textValue : cs.textDefault);
-    gfxClearRect(23, 4, 3, 1);
-    gfxPrint(23, 4, audioInputArmedCount() > 0 ? "ON" : "OFF");
+    gfxClearRect(23, 3, 4, 1);
+    gfxPrintf(23, 3, "%d", appSettings.audioBufferSize);
+  } else if (row == 3) {
+    gfxSetFgColor(cs.textDefault); gfxPrint(0, 5, "Audio Input");
+    gfxSetFgColor(state == CellState::focus ? cs.textValue : cs.textDefault);
+    gfxClearRect(23, 5, 3, 1);
+    gfxPrint(23, 5, audioInputArmedCount() > 0 ? "ON" : "OFF");
   } else {
-    gfxSetFgColor(cs.textDefault); gfxPrint(0, 3, "CPU load");
+    gfxSetFgColor(cs.textDefault); gfxPrint(0, 4, "CPU load");
     drawAudioCpuLoad();
   }
 }
@@ -65,12 +72,12 @@ static int audioBufferIndex(int value) {
   return 0;
 }
 static int audioEdit(int, int row, CellEditAction action) {
-  if (row == 2) {
+  if (row == 3) {
     if (action != CellEditAction::tap) return 0;
     screenSetup(&screenAudioInput, 0);
     return 1;
   }
-  if (row != 0) return 0;
+  if (row != 0 && row != 1) return 0;
   int direction = 0;
   if (action == CellEditAction::clear) direction = -99;
   else if (action == CellEditAction::increase || action == CellEditAction::increaseBig ||
@@ -79,38 +86,45 @@ static int audioEdit(int, int row, CellEditAction action) {
            action == CellEditAction::multiDecrease || action == CellEditAction::multiDecreaseBig) direction = -1;
   else return action == CellEditAction::tap;
 
-  int index = audioBufferIndex(appSettings.audioBufferSize);
-  if (direction < -1) index = 0;
-  else if (direction > 0 && index + 1 < (int)(sizeof(audioBufferSizes) / sizeof(audioBufferSizes[0]))) ++index;
+  int index = row == 0 ? (appSettings.audioSampleRate == 32000 ? 0 : 1)
+                       : audioBufferIndex(appSettings.audioBufferSize);
+  int count = row == 0 ? 2 : (int)(sizeof(audioBufferSizes) / sizeof(audioBufferSizes[0]));
+  if (direction < -1) index = row == 0 ? 1 : 0;
+  else if (direction > 0 && index + 1 < count) ++index;
   else if (direction < 0 && index > 0) --index;
-  const int size = audioBufferSizes[index];
-  if (size == appSettings.audioBufferSize) return 1;
-  if (!audioManager.reconfigure || audioManager.reconfigure(appSettings.audioSampleRate, size) != 0) {
-    screenMessage(MESSAGE_TIME_ERROR, "Audio buffer failed");
+  const int rate = row == 0 ? audioSampleRates[index] : appSettings.audioSampleRate;
+  const int size = row == 1 ? audioBufferSizes[index] : appSettings.audioBufferSize;
+  if (rate == appSettings.audioSampleRate && size == appSettings.audioBufferSize) return 1;
+  if (row == 0 && audioInputManagerRecordingActive()) {
+    screenMessage(MESSAGE_TIME_ERROR, "Stop recording first");
     return 1;
   }
+  if (!audioManager.reconfigure || audioManager.reconfigure(rate, size) != 0) {
+    screenMessage(MESSAGE_TIME_ERROR, row == 0 ? "Audio rate failed" : "Audio buffer failed");
+    return 1;
+  }
+  appSettings.audioSampleRate = rate;
   appSettings.audioBufferSize = size;
   if (settingsSave() != 0) screenMessage(MESSAGE_TIME_ERROR, "Could not save audio setting");
   return 1;
 }
-static int audioCellValid(int, int row) { return row == 0 || row == 2; }
-static ScreenData audioData = {3, 0, 0, 0, -1, 0, 0, 0, 0, ScreenPlaybackLevel::none, columnCount, audioStatic, audioCursor, NULL, noHeader, noHeader, audioField, audioEdit, NULL, NULL, audioCellValid, NULL};
+static int audioCellValid(int, int row) { return row == 0 || row == 1 || row == 3; }
+static ScreenData audioData = {4, 0, 0, 0, -1, 0, 0, 0, 0, ScreenPlaybackLevel::none, columnCount, audioStatic, audioCursor, NULL, noHeader, noHeader, audioField, audioEdit, NULL, NULL, audioCellValid, NULL};
 
 static void controlsStatic(void) { gfxSetFgColor(appSettings.colorScheme.textTitles); gfxPrint(0, 0, "CONTROLS"); }
 #ifdef TOUCH_INPUT
 static const int controlsHapticsRow = 3;
 static const int controlsHidePadRow = 4;
-static const int controlsRows = 5;
+static const int controlsKeyMappingRow = 5;
 #else
 static const int controlsKeyMappingRow = 3;
-static const int controlsRows = 4;
 #endif
+static const int controlsRows = controlsKeyMappingRow + 1;
 static void controlsCursor(int, int row) {
   if (row < 3) gfxCursor(23, 2 + row, row < 2 ? 3 : 6);
+  else if (row == controlsKeyMappingRow) gfxCursor(0, 2 + row, 11);
 #ifdef TOUCH_INPUT
   else gfxCursor(23, 2 + row, 3);
-#else
-  else gfxCursor(0, 2 + row, 11);
 #endif
 }
 static void controlsField(int, int row, CellState state) {
@@ -122,9 +136,8 @@ static void controlsField(int, int row, CellState state) {
 #ifdef TOUCH_INPUT
   else if (row == controlsHapticsRow) { gfxPrint(0, 5, "Touch haptics"); gfxSetFgColor(state == CellState::focus ? cs.textValue : cs.textDefault); gfxPrint(23, 5, appSettings.touchHaptics ? "ON " : "OFF"); }
   else if (row == controlsHidePadRow) { gfxPrint(0, 6, "Hide pad w/ gamepad"); gfxSetFgColor(state == CellState::focus ? cs.textValue : cs.textDefault); gfxPrint(23, 6, appSettings.hideTouchPadWithGamepad ? "ON " : "OFF"); }
-#else
-  else { gfxSetFgColor(state == CellState::focus ? cs.textValue : cs.textDefault); gfxPrint(0, 2 + row, "Key mapping"); }
 #endif
+  else if (row == controlsKeyMappingRow) { gfxSetFgColor(state == CellState::focus ? cs.textValue : cs.textDefault); gfxPrint(0, 2 + row, "Key mapping"); }
 }
 static int controlsEdit(int, int row, CellEditAction action) {
   if (row == 0) { uint8_t value = appSettings.keyRepeatDelay; int handled = edit8noLast(action, &value, 4, 4, 30); if (handled) appSettings.keyRepeatDelay = value; return handled; }
@@ -143,9 +156,8 @@ static int controlsEdit(int, int row, CellEditAction action) {
     if (settingsSave() != 0) screenMessage(MESSAGE_TIME, "Could not save setting");
     return 1;
   }
-#else
-  if (row == controlsKeyMappingRow) { if (action == CellEditAction::tap) { screenSetup(&screenKeyMapping, 0); return 1; } return 0; }
 #endif
+  if (row == controlsKeyMappingRow) { if (action == CellEditAction::tap) { screenSetup(&screenKeyMapping, 0); return 1; } return 0; }
   uint8_t value = appSettings.hideTouchPadWithGamepad;
   if (action == CellEditAction::tap || action == CellEditAction::doubleTap) value ^= 1;
   else if (!edit8noLast(action, &value, 1, 0, 1)) return 0;
@@ -153,11 +165,7 @@ static int controlsEdit(int, int row, CellEditAction action) {
   if (settingsSave() != 0) screenMessage(MESSAGE_TIME, "Could not save setting");
   return 1;
 }
-#ifdef TOUCH_INPUT
 static ScreenData controlsData = {controlsRows, 0, 0, 0, -1, 0, 0, 0, 0, ScreenPlaybackLevel::none, columnCount, controlsStatic, controlsCursor, NULL, noHeader, noHeader, controlsField, controlsEdit, NULL, NULL, NULL, NULL};
-#else
-static ScreenData controlsData = {controlsRows, 0, 0, 0, -1, 0, 0, 0, 0, ScreenPlaybackLevel::none, columnCount, controlsStatic, controlsCursor, NULL, noHeader, noHeader, controlsField, controlsEdit, NULL, NULL, NULL, NULL};
-#endif
 
 static void synthStatic(void) { gfxSetFgColor(appSettings.colorScheme.textTitles); gfxPrint(0, 0, "SYNTHS"); }
 static void synthCursor(int, int row) { gfxCursor(23, 2 + row, row == 0 ? 6 : row == 1 ? 3 : row == 2 ? 6 : 4); }

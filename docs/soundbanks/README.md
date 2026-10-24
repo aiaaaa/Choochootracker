@@ -1,15 +1,31 @@
 # SoundFont instruments
 
 Choose SAMPLE → SOUNDFONT and place banks in `instruments/USER/soundfont`.
-The engine reads SF2/SF3, SFZ and legacy EXS24 instruments, standalone WAV/AIFF
+The engine reads SF2/SF3, SFZ and legacy EXS24 instruments, standalone WAV/AIFF/Ogg Vorbis
 samples, and ZIP collections containing those formats. Sample libraries are
 external user files; none are included in this contribution.
 
 Rescan indexes metadata. Preset opens the current sound in a two-column
-collection/preset browser. EDIT+Left/Right cycles in the same order across the
-library, wrapping at either end. EDIT+PLAY auditions. Edit opens the supported
-playback controls. See [the manual](../USER_MANUAL.md#soundfont-experimental)
-for all controls, native key ranges and eight Lane FX.
+collection/preset browser. Physical folders stay navigable: Right or EDIT/A
+enters a folder, Left returns through the panels and parent folders, and OPT
+goes back. In the preset panel, Right pages by 15 entries without loading;
+EDIT/A loads the highlighted preset. PLAY controls song playback while browsing.
+EDIT+Left/Right cycles in matching nested folder order; EDIT+PLAY auditions.
+
+Collections use their full panel height. The selected preset stays below the
+eight track previews, and long names scroll after one second of idle selection.
+The third row reports the current preparation stage. Supporting sample folders
+stay with their mapped instruments without hiding unrelated loose samples.
+Empty or `(null)` EXS header names fall back to the instrument filename.
+See [the manual](../USER_MANUAL.md#soundfont-collection-browsing) for controls.
+
+Physical subfolders remain navigable. Right or EDIT/A enters a folder directly;
+Left returns from presets to collections, then to the parent folder. OPT also
+goes back. Folder/file icons identify the column headers. The third row reports
+Reading preset, Finding samples, Unzipping, Checking samples or Loading samples.
+ZIP-internal dependency
+folders stay inside their collection. The selected name stays on row 11, below
+the eight track previews, and starts scrolling after one second of idle selection.
 
 Only the selected preset is decoded. Failed presets remain selected and silent,
 showing Error and its reason at the bottom of Instrument; cycling can continue.
@@ -20,9 +36,20 @@ rewritten. Renaming bank paths requires reselecting the preset in saved songs.
 
 Portable builds use `instruments/USER/soundfont` relative to their data directory.
 Other platforms use the existing application data-directory helper.
-`CHOOCHOO_SOUNDBANKS` overrides that root. The default decoded PCM cache budget
-is 64 MiB; `CHOOCHOO_SOUNDBANK_CACHE_MB` accepts 8–1024 MiB. Budget headroom is
-also needed for the tracker and temporary decode data. There is no disk streaming.
+`CHOOCHOO_SOUNDBANKS` overrides that root. The decoded PCM budget adapts before
+each load: at most one quarter of physical RAM, half the available RAM including
+PCM already owned by the cache, and 2 GiB. Unknown platforms retain a 64 MiB
+fallback. Browser builds use Wasm address-space headroom instead of an unreliable
+physical-RAM estimate. This is a conservative budget, not an OS memory guarantee.
+`CHOOCHOO_SOUNDBANK_CACHE_MB` explicitly overrides it with 8–8192 MiB where the
+address space permits; overrides can exceed available memory and are for deliberate
+testing. Headroom is still needed for the tracker, imported files and temporary
+decode data. There is no disk streaming.
+Preparation measures the complete additional PCM requirement before allocating;
+errors report additional memory needed, already loaded PCM and the budget.
+Ready status shows the selected preset's decoded footprint. Shared samples count
+once in the cache. Pinned samples are not evicted to force a new allocation;
+the existing failed-selection behavior still leaves that selected instrument silent.
 Metadata indexing can succeed for an instrument too large to prepare for playback.
 
 Native preparation uses one background worker. Web preparation yields through
@@ -32,9 +59,13 @@ paths. Import USER ZIP accepts `instruments/USER/` or `USER/`, preserves existin
 files, and limits new uncompressed imports to 1 GiB total and 512 MiB per file.
 Browser quota and memory limits still apply. Keep independent song/library backups.
 
-The disposable `.choochoo-index-v3` metadata cache tracks source and dependency
+The disposable `.choochoo-index-v4` metadata cache tracks source and dependency
 changes. ZIP members are read individually; compressed members use temporary
-files deleted after use. Limits: 2 GiB uncompressed member, 64 MiB central
+files deleted after use. Preparation resolves each referenced asset once, shares
+collection directory indexes for that load, and retains up to 32 ZIP readers /
+32 MiB of temporary member data between size checks and decoding. CRC validation
+and the decoded PCM budget remain enforced. Empty or `(null)` EXS header names
+fall back to the instrument filename. Limits: 2 GiB uncompressed member, 64 MiB central
 directory, 200,000 members. ZIP64 is supported; encrypted archives, invalid CRCs,
 escaping paths and nested ZIP traversal are rejected or excluded.
 
@@ -53,8 +84,10 @@ or sample produces an error instead of substituting a different instrument.
 | WAV | PCM 8/16/24/32, float32, supported extensible PCM/float, mono/stereo, smpl root/fraction/forward loop | Standard ping-pong/backward loops fail. Exactly one-past-end forward loops and a narrowly recognized zero byte counted as PCM padding are accepted with warnings; other invalid boundaries fail. Unknown sampler-specific loop types (32+) warn and leave the embedded loop disabled; an explicit SFZ/EXS zone loop remains authoritative. Diagnoses a narrowly recognized omitted odd-chunk pad. |
 | AIFF/AIF | PCM and AIFC NONE/twos/sowt, rate/channels, INST root/detune and MARK sustain loop | Other compression and ping-pong loops fail. Release-loop and advanced instrument metadata are not mapped. |
 
-Referenced Ogg Vorbis samples are also decoded for SFZ. Standalone OGG, FLAC and
-MP3 are not instrument types. SFPack is excluded: research did not establish a
+Referenced and standalone mono/stereo Ogg Vorbis samples use the existing decoder.
+MP3 and Opus are not supported. Static SFZ envelopes accept `ampeg_dynamic`;
+actual MIDI-CC-modulated envelopes still produce an explicit unsupported warning.
+FLAC is not implemented. SFPack is excluded: research did not establish a
 permissively licensed, independently usable decoder/specification. SBK, sfArk,
 Kontakt, GigaStudio, HALion and Reason formats are outside this feature.
 

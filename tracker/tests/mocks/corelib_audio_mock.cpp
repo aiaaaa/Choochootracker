@@ -3,6 +3,8 @@
 
 int audioSetup(AudioCallback* audioCallback, int sampleRate, int bufferSize) { return 0; }
 void audioPause(int isPaused) {}
+void audioLock(void) {}
+void audioUnlock(void) {}
 void audioCleanup(void) {}
 
 int audioInputDeviceCount(void) { return 0; }

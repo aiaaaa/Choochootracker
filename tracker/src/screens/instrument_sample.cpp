@@ -103,6 +103,9 @@ static void onSampleLoaded(const char* path) {
     // deleted and its state reset before the editor is re-entered.
     sampleEditorDiscardRecording(cInstrument);
   }
+  // The loader frees the previous PCM buffer.  Publish the replacement while
+  // audio is still paused so the callback cannot render its stale snapshot.
+  chipnomadQueueProjectRefresh(chipnomadState);
   audioManager.resume();
   screenSetup(&screenInstrument, cInstrument);
 }

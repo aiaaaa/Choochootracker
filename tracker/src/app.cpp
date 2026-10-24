@@ -417,6 +417,10 @@ void appResetInputState(void) {
   quickHelpSelectAlone = 0;
 }
 
+int appTapSequenceOpen(int button) {
+  return tapButton == button && tapTimerCount > 0;
+}
+
 /**
 * @brief Initialize the application: setup audio system, load auto-saved project, show the first screen
 */
@@ -516,6 +520,7 @@ void appSetup(void) {
 
   // Audio input: enumerate capture devices and re-arm the ones saved in
   // settings (Phase 4). Monitor state comes from settings too.
+  audioInputManager.reconfigureRate(appSettings.audioSampleRate);
   audioInputManager.enumerate();
   syncArmedDevicesFromSettings();
   audioInputManager.setMonitor(appSettings.audioInputMonitor);

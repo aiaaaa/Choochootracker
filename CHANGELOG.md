@@ -1,5 +1,23 @@
 # ChooChooTracker changelog
 
+## v1.0.19-alpha (October 19, 2026)
+
+- Added SoundFont instruments with collection browsing and Lane FX, plus
+  MonkSynth, a vocal synthesiser with ten-voice unison and stereo delay.
+- Added the Beads granular insert and reverb send, a synchronized tape echo
+  send, a Trance Gate insert and Sequence modulation source, and vocal/formant
+  controls with longer LFO cycles.
+- Added Ableton Link tempo and transport sync, improved incoming MIDI clock,
+  and a BPM display for sampler editing.
+- Added microphone and USB audio input recording, track bounce to samples,
+  and recovery after audio device disconnection.
+- Improved Android gamepad support, sensor input, workspace loading, and USER
+  preset loading; fixed Windows WAV export directory detection.
+- Fixed CRD chord inversion pitches and exposed drop voicings in the editor;
+  improved instrument waveform stability and insert FX navigation.
+- Added a Raspberry Pi OS 64-bit release package and Android release signing
+  to GitHub Actions. Android now uses version code 19.
+
 ## v1.0.16-alpha (October 14, 2026)
 
 - Reworked the Project screen's Ableton Link UI: selecting **Ableton Link** as

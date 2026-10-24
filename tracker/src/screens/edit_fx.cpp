@@ -2,7 +2,6 @@
 #include "screens.h"
 #include "corelib_gfx.h"
 #include "help.h"
-#include "chord.h"
 #include "synth/sample_voice.h"
 #include <algorithm>
 #include <string>
@@ -145,6 +144,30 @@ static const char* contextualFXHint(const FXCell* fx,int table,uint8_t instrumen
     else snprintf(text,sizeof(text),"%s: %02X",native.label,fx->value);
     return text;
   }
+  // RNS/RNN carry full 16-bit commands that the legacy byte-based
+  // helpFXHint cannot represent, so format their value hints here.
+  if (fx->command == fxRNS) {
+    static const char* rnsModes[] = {"always random", "random per PLAY",
+      "pick and keep"};
+    static char rns[41];
+    uint8_t mode = fx->value >> 4;
+    snprintf(rns, sizeof(rns), "Random slice: %s",
+      mode <= 2 ? rnsModes[mode] : "?");
+    return rns;
+  }
+  if (fx->command == fxRNN) {
+    static const char* rnnModes[] = {"always random", "random per PLAY",
+      "pick and keep"};
+    static const char* rnnRanges[] = {"any note", "+3 st", "+6 st", "+12 st",
+      "-3 st", "-6 st", "-12 st", "+/-3 st", "+/-6 st", "+/-12 st"};
+    static char rnn[41];
+    uint8_t mode = fx->value >> 4;
+    uint8_t range = fx->value & 0x0f;
+    snprintf(rnn, sizeof(rnn), "%s:%s",
+      mode <= 2 ? rnnModes[mode] : "?",
+      range <= 9 ? rnnRanges[range] : "?");
+    return rnn;
+  }
   if(fx->command<fxF11 || fx->command>fxF28) {
     return helpFXHint(fx, table, instrument);
   }
@@ -160,7 +183,7 @@ static bool isFXAvailable(FXId fx, uint8_t instrumentIdx, int isTable) {
   if (!insertFXAvailable(fx)) return false;
   if(fx==fxFBR||(fx>=fxFET&&fx<=fxFLD))return false;
   if((fx>=fxFO1&&fx<=fxFO6)||fx==fxFFB)return false; // Retired personal commands.
-  if (isTable && (fx == fxSCL || fx == fxCRD)) return false;
+  if (isTable && (fx == fxSCL || fx == fxCRD || fx == fxRNS || fx == fxRNN)) return false;
   // Note Lock pins note entry to the project scale, so SCL is not offered.
   if (fx == fxSCL && chipnomadState->project.scaleMode != 0) return false;
   InstrumentType instrumentType = getInstrumentType(instrumentIdx);
@@ -285,10 +308,9 @@ int editFXValue(CellEditAction action, FXCell* fx, FXCell* lastFX, int isTable, 
     else if (action == CellEditAction::tap) { if (fx->value == 0) { chord = lastFX->value & 0x0f; inversion = lastFX->value >> 4; } }
     else if (action == CellEditAction::increase) chord = (chord + 1) & 0x0f;
     else if (action == CellEditAction::decrease) chord = (chord + 15) & 0x0f;
-    else if (action == CellEditAction::increaseBig && inversion < chordMaxInversion(chord)) ++inversion;
+    else if (action == CellEditAction::increaseBig && inversion < 0x0f) ++inversion;
     else if (action == CellEditAction::decreaseBig && inversion > 0) --inversion;
     else handled = 0;
-    if (inversion > chordMaxInversion(chord)) inversion = chordMaxInversion(chord);
     if (handled) {
       fx->value = (inversion << 4) | chord;
       if (isNotMultiAction) lastFX->value = fx->value;
@@ -350,6 +372,82 @@ int editFXValue(CellEditAction action, FXCell* fx, FXCell* lastFX, int isTable, 
     }
     // No slicing on this instrument: fall through to the generic editor so
     // the value stays inert but still editable.
+  }
+
+  // RNS cycles through its modes (0 always random, 1 random per PLAY,
+  // 2 pick and keep). The low nibble is unused and stays 0.
+  if (fx->command == fxRNS) {
+    int isNotMultiAction = action != CellEditAction::multiIncrease && action != CellEditAction::multiDecrease &&
+      action != CellEditAction::multiIncreaseBig && action != CellEditAction::multiDecreaseBig;
+    action = convertMultiAction(action);
+    uint8_t mode = fx->value >> 4;
+    int handled = 1;
+    switch (action) {
+      case CellEditAction::clear:
+        mode = 0;
+        break;
+      case CellEditAction::tap:
+        if (fx->value == 0) mode = lastFX->value >> 4 ? lastFX->value >> 4 : 1;
+        break;
+      case CellEditAction::increase:
+      case CellEditAction::increaseBig:
+        mode = mode >= 2 ? 0 : mode + 1;
+        break;
+      case CellEditAction::decrease:
+      case CellEditAction::decreaseBig:
+        mode = mode == 0 ? 2 : mode - 1;
+        break;
+      default:
+        handled = 0;
+        break;
+    }
+    if (handled) {
+      fx->value = (uint8_t)(mode << 4);
+      if (isNotMultiAction) lastFX->value = fx->value;
+    }
+    screenMessage(0, "%s", contextualFXHint(fx, isTable, instrumentIdx));
+    return handled;
+  }
+
+  // RNN edits its two nibbles independently: EDIT+UP/DOWN changes the
+  // mode (high nibble), EDIT+LEFT/RIGHT changes the range (low nibble).
+  if (fx->command == fxRNN) {
+    int isNotMultiAction = action != CellEditAction::multiIncrease && action != CellEditAction::multiDecrease &&
+      action != CellEditAction::multiIncreaseBig && action != CellEditAction::multiDecreaseBig;
+    action = convertMultiAction(action);
+    uint8_t mode = fx->value >> 4;
+    uint8_t range = fx->value & 0x0f;
+    int handled = 1;
+    switch (action) {
+      case CellEditAction::clear:
+        mode = 0;
+        range = 0;
+        break;
+      case CellEditAction::tap:
+        if (fx->value == 0) { mode = lastFX->value >> 4; range = lastFX->value & 0x0f; }
+        break;
+      case CellEditAction::increase:
+        range = (range + 1) & 0x0f;
+        break;
+      case CellEditAction::decrease:
+        range = (range + 15) & 0x0f;
+        break;
+      case CellEditAction::increaseBig:
+        mode = mode >= 2 ? 0 : mode + 1;
+        break;
+      case CellEditAction::decreaseBig:
+        mode = mode == 0 ? 2 : mode - 1;
+        break;
+      default:
+        handled = 0;
+        break;
+    }
+    if (handled) {
+      fx->value = (uint8_t)((mode << 4) | range);
+      if (isNotMultiAction) lastFX->value = fx->value;
+    }
+    screenMessage(0, "%s", contextualFXHint(fx, isTable, instrumentIdx));
+    return handled;
   }
 
   uint8_t bigStep = 16;

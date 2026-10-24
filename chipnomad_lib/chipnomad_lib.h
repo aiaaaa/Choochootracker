@@ -6,6 +6,7 @@
 #include "playback.h"
 #include "synth/track_tilt.h"
 #include "utils.h"
+#include "stop_transition.h"
 
 class BraidsVoice;
 class SampleVoice;
@@ -27,6 +28,7 @@ class FourOpVoice;
 class OPLVoice;
 class SimpleChipVoice;
 class AudioCommandQueue;
+struct PreparedInstrumentVoices;
 struct MidiRouterState;
 class AudioMonitor;
 
@@ -79,6 +81,7 @@ struct ChipNomadState {
   SoundChip* chips[PROJECT_MAX_CHIPS];
   int sampleRate;
   float frameSampleCounter;
+  StopTransition stopTransition;
   float mixVolume;
   int audioOverload;
   int trackClipping[PROJECT_MAX_TRACKS];
@@ -91,12 +94,16 @@ struct ChipNomadState {
   uint8_t insertValues[PROJECT_MAX_TRACKS][2][8];
   uint8_t insertActive[PROJECT_MAX_TRACKS];
   float* insertBuffer;
+  float* sidechainBuffer;
+  uint8_t sidechainSourceMask, masterSidechainExcludeMask;
   float* mixBuffer;
   float* reverbBuffer;
   float* delayBuffer;
   int mixBufferSize;
   int aySampleDithering;
   BraidsVoice* braidsVoices[PROJECT_MAX_TRACKS][CHORD_MAX_VOICES];
+  uint8_t braidsBits, braidsDrift, braidsSignature;
+  uint32_t braidsSignatureSeed;
   SoundbankVoice* soundbankVoices[PROJECT_MAX_TRACKS][CHORD_MAX_VOICES];
   SampleVoice* sampleVoices[PROJECT_MAX_TRACKS][CHORD_MAX_VOICES];
   SCWFVoice* scwfVoices[PROJECT_MAX_TRACKS][CHORD_MAX_VOICES];
@@ -160,6 +167,10 @@ void chipnomadDestroy(ChipNomadState* state);
 * @param factory Chip factory function, or NULL to use default implementations
 */
 void chipnomadInitChips(ChipNomadState* state, int sampleRate, ChipFactory factory);
+bool chipnomadCanSwitchInstrumentLive(InstrumentType type);
+PreparedInstrumentVoices* chipnomadPrepareInstrumentVoices(ChipNomadState* state, InstrumentType type);
+// Install a prepared pool while the audio callback is locked. Takes ownership.
+void chipnomadInstallInstrumentVoices(ChipNomadState* state, PreparedInstrumentVoices* prepared);
 
 // Reserve render buffers before starting the audio device. Rendering never
 // grows these buffers, so this must be called again after reconfiguration.

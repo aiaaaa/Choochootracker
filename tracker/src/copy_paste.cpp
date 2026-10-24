@@ -396,15 +396,21 @@ int switchTableSelectionMode(ScreenData* screen) {
   getSelectionBounds(screen, &startCol, &startRow, &endCol, &endRow);
 
   if (isSingleCell(startCol, startRow, endCol, endRow)) {
-    selectColumn(screen);
+    screen->selectStartRow = 1; // Row 0 is the retrigger setting, not table data.
+    screen->selectStartCol = screen->selectAnchorCol;
+    screen->cursorRow = 16;
+    screen->cursorCol = screen->selectAnchorCol;
     return 0;
   }
-  if (isFullColumn(startCol, startRow, endCol, endRow)) {
+  if (startCol == endCol && startRow == 1 && endRow == 16) {
     selectRow(screen, 10);
     return 0;
   }
   if (isFullRow(startRow, endRow, startCol, endCol, 10)) {
-    selectAll(screen, 10);
+    screen->selectStartRow = 1;
+    screen->selectStartCol = 0;
+    screen->cursorRow = 16;
+    screen->cursorCol = 10;
     return 0;
   }
   return 1;

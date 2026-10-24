@@ -35,7 +35,39 @@ int modulationIsLiveStick(ModulationType type) {
 }
 
 int modulationIsAdditive(ModulationType type) {
-  return type == ModulationType::LFO || type == ModulationType::SlowLFO || modulationIsLiveStick(type);
+  return type == ModulationType::LFO || type == ModulationType::SlowLFO ||
+         type == ModulationType::Sequence || modulationIsLiveStick(type);
+}
+
+uint8_t sequenceGatePattern(const Modulation* modulation) { return modulation->p3 & 63; }
+uint8_t sequenceGateRate(const Modulation* modulation) { return modulation->p4 & 15; }
+uint8_t sequenceGateLength(const Modulation* modulation) { return (modulation->p4 >> 4) + 1; }
+SequenceGateTrigger sequenceGateTrigger(const Modulation* modulation) {
+  uint8_t value = modulation->p5 & 7;
+  return value < static_cast<uint8_t>(SequenceGateTrigger::totalCount) ? static_cast<SequenceGateTrigger>(value) : SequenceGateTrigger::free;
+}
+uint8_t sequenceGateAccents(const Modulation* modulation) { return std::min<uint8_t>(16, modulation->p5 >> 3); }
+void sequenceGateDefaults(Modulation* modulation) {
+  modulation->p2 = static_cast<uint8_t>(SequenceMode::normal);
+  modulation->p3 = 0;
+  modulation->p4 = (15 << 4) | 9; // 16 steps, 1/16.
+  modulation->p5 = 0;
+}
+void sequenceGateSetPattern(Modulation* modulation, uint8_t value) { modulation->p3 = value & 63; }
+void sequenceGateSetRate(Modulation* modulation, uint8_t value) { modulation->p4 = (modulation->p4 & 0xf0) | std::min<uint8_t>(14, value); }
+void sequenceGateSetLength(Modulation* modulation, uint8_t value) { modulation->p4 = (modulation->p4 & 15) | ((std::min<uint8_t>(16, std::max<uint8_t>(1, value)) - 1) << 4); }
+void sequenceGateSetTrigger(Modulation* modulation, SequenceGateTrigger value) { modulation->p5 = (modulation->p5 & 0xf8) | static_cast<uint8_t>(value); }
+void sequenceGateSetAccents(Modulation* modulation, uint8_t value) { modulation->p5 = (modulation->p5 & 7) | (std::min<uint8_t>(16, value) << 3); }
+
+int modulationSequenceDestinationAllowed(const Instrument* instrument, const Modulation* modulation, int destination) {
+  if (!instrumentModDestinationAvailable(instrument, destination)) return 0;
+  if (!modulation || modulation->type != ModulationType::Sequence) return 1;
+  SequenceSource source = static_cast<SequenceSource>(modulation->p1);
+  // Volume and Pitch are the two shared engine destinations. Composite
+  // sequence sources cannot feed either one, avoiding direct/cross feedback.
+  if ((source == SequenceSource::pitch || source == SequenceSource::volume) &&
+      (destination == 1 || destination == 2)) return 0;
+  return 1;
 }
 
 // Instrument type: None
@@ -399,7 +431,7 @@ static const InstrumentFX fxAY1[]={F(fxAYM,"AYM"),F(fxNOI,"NOI"),F(fxNOA,"NOA"),
 static const InstrumentFX fxAY2[]={F(fxAYM,"AYM"),F(fxNOI,"NOI"),F(fxNOA,"NOA"),F(fxTNN,"TNN"),F(fxTNP,"TNP"),F(fxTNF,"TNF"),F(fxTRT,"TRT"),F(fxEAU,"EAU"),F(fxENN,"ENN"),F(fxENP,"ENP"),F(fxENF,"ENF"),F(fxERT,"ERT"),F(fxSFT,"SFT"),F(fxSFN,"SFN"),F(fxSFP,"SFP"),F(fxSFF,"SFF"),F(fxSRT,"SRT"),F(fxSFM,"SFM"),F(fxPWM,"PWM"),F(fxSPL,"SPL"),F(fxSWT,"SWT")};
 static const InstrumentFX fxAYSample[]={F(fxAYM,"AYM"),F(fxNOI,"NOI"),F(fxNOA,"NOA"),F(fxTNN,"TNN"),F(fxTNP,"TNP"),F(fxTNF,"TNF"),F(fxTRT,"TRT"),F(fxSFN,"SFN"),F(fxSFP,"SFP"),F(fxSFF,"SFF"),F(fxSMS,"SMS")};
 static const InstrumentFX fxBraids[]={F(fxBMD,"BMD"),F(fxBTM,"BTM"),F(fxBCL,"BCL"),F(fxBCF,"BCF"),F(fxBRS,"BRS")};
-static const InstrumentFX fxSample[]={F(fxSLP,"SPL"),F(fxSLI,"SLI"),F(fxSPT,"SPT"),F(fxSST,"SST"),F(fxSTA,"STA"),F(fxSEN,"SEN"),F(fxSVL,"SVL"),F(fxSCF,"SCF"),F(fxSRS,"SRS"),F(fxSSP,"SSP")};
+static const InstrumentFX fxSample[]={F(fxSLP,"SPL"),F(fxSLI,"SLI"),F(fxSPT,"SPT"),F(fxSST,"SST"),F(fxSTA,"STA"),F(fxSEN,"SEN"),F(fxSVL,"SVL"),F(fxSCF,"SCF"),F(fxSRS,"SRS"),F(fxSSP,"SSP"),F(fxRNS,"RNS")};
 static const InstrumentFX fxSCWF[]={F(fxSDT,"SDT"),F(fxSMX,"SMX"),F(fxSCF2,"SCF"),F(fxSRS2,"SRS")};
 static const InstrumentFX fxBYOWTBL[]={F(fxSDT,"SDT"),F(fxSMX,"SMX"),F(fxBIA,"BIA"),F(fxBIB,"BIB"),F(fxSCF2,"SCF"),F(fxSRS2,"SRS")};
 static const InstrumentFX fxPlaits[]={F(fxPMD,"PMD"),F(fxPHA,"PHA"),F(fxPTM,"PTM"),F(fxPMO,"PMO"),F(fxPAX,"PAX"),F(fxPCF,"PCF"),F(fxPRS,"PRS")};

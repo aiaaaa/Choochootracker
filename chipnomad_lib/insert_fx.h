@@ -58,6 +58,8 @@ float insertMap(int module, int parameter, int value);
 void insertSelect(InsertConfig*, int module);
 void insertEdit(InsertConfig*, int parameter, int value);
 void insertDescribe(char*, size_t, int module, int parameter, int value);
+bool tranceGatePatternOpen(uint8_t pattern, uint8_t length, uint32_t step);
+float tranceGateTicksPerStep(uint8_t rate);
 class InsertChain {
  public:
   explicit InsertChain(float sampleRate);
@@ -74,7 +76,8 @@ class InsertChain {
   void trigger();
   uint16_t sync(const InsertConfig config[2], InsertAutomation*, bool rendered = true);
   bool active() const;
-  void process(float* interleaved, int frames, const uint8_t effective[2][8]);
+  void process(float* interleaved, int frames, const uint8_t effective[2][8],
+               const float* sidechain[2] = nullptr);
 
  private:
   struct Impl;

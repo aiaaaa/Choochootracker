@@ -4,6 +4,9 @@
 #include <filesystem>
 #include <set>
 #include <stdexcept>
+#include <sstream>
+#include <iomanip>
+#include <limits>
 
 namespace soundbank {
 std::string Asset::identity() const {
@@ -22,7 +25,9 @@ Bank parseBank(const Location& location) {
                .string();
   auto ext = extension(location.member.empty() ? location.path : location.member);
   SourcePtr source;
-  if (ext != ".wav" && ext != ".aif" && ext != ".aiff") source = location.open();
+  const bool sample = ext == ".wav" || ext == ".aif" || ext == ".aiff" ||
+                      ext == ".ogg";
+  if (!sample) source = location.open();
   b.format = ext.substr(1);
   if (ext == ".sf2" || ext == ".sf3")
     parseSoundFont(b, source);
@@ -30,7 +35,7 @@ Bank parseBank(const Location& location) {
     parseSFZ(b, source);
   else if (ext == ".exs")
     parseEXS(b, source);
-  else if (ext == ".wav" || ext == ".aif" || ext == ".aiff") {
+  else if (sample) {
     b.assets.push_back({location});
     Preset p;
     p.id = "sample";
@@ -74,12 +79,58 @@ std::shared_ptr<const PreparedPreset> SampleCache::prepare(const Bank& b, const 
   result->name = p->name;
   result->warnings = b.warnings;
   result->warnings.insert(result->warnings.end(), p->warnings.begin(), p->warnings.end());
+  // Measure before allocating: failure leaves the existing playable instruments
+  // intact, and reports the complete additional requirement, not just the first
+  // sample that happened to overflow the remaining budget.
+  trim();
+  LoadStageScope progress(LoadStage::loading);
+  SampleResolver resolver;
+  std::map<size_t, std::string> assetKeys;
+  std::map<std::string, Asset> pending;
+  // Retain a bounded number of validated ZIP members between measurement and
+  // decoding. This avoids a second unzip without exhausting descriptors/tmpfs.
+  size_t retainedBytes = 0, retainedReaders = 0;
+  constexpr size_t retainedLimit = 32 * 1024 * 1024;
+  size_t additional = 0;
+  for (const auto& zone : p->zones) {
+    if (assetKeys.count(zone.asset)) continue;
+    auto asset = b.assets.at(zone.asset);
+    if (!asset.reader) asset.source = resolver.resolve(asset.source);
+    const auto key = asset.identity();
+    assetKeys.emplace(zone.asset, key);
+    if (audio_.count(key) || pending.count(key)) continue;
+    size_t needed;
+    try {
+      if (!asset.reader && !asset.source.member.empty()) {
+        auto reader = asset.source.open();
+        asset.reader = reader;
+        needed = decodedAudioBytes(asset);
+        if (retainedReaders < 32 && reader->size() <= retainedLimit - retainedBytes) {
+          retainedBytes += size_t(reader->size());
+          ++retainedReaders;
+        } else asset.reader.reset();
+      } else needed = decodedAudioBytes(asset);
+    }
+    catch (const std::exception& e) { throw std::runtime_error(std::string(e.what()) + ": " + asset.source.id()); }
+    require(needed <= std::numeric_limits<size_t>::max() - additional,
+            "Preset decoded sample size overflow");
+    additional += needed;
+    pending.emplace(key, std::move(asset));
+  }
+  const size_t used = bytes();
+  if (additional && (used > limit_ || additional > limit_ - used)) {
+    std::ostringstream message;
+    message << std::fixed << std::setprecision(1) << "PCM needs +"
+      << double(additional) / 1048576 << " MiB; loaded " << double(used) / 1048576
+      << "; limit " << double(limit_) / 1048576 << " MiB";
+    throw std::runtime_error(message.str());
+  }
   std::set<const Audio*> counted;
   for (auto z : p->zones) {
-    auto asset = b.assets.at(z.asset);
-    if (!asset.reader) asset.source = asset.source.relocated();
-    auto key = asset.identity();
+    const auto& key = assetKeys.at(z.asset);
     auto it = audio_.find(key);
+    const auto pendingAsset = pending.find(key);
+    const auto& asset = pendingAsset == pending.end() ? b.assets.at(z.asset) : pendingAsset->second;
     if (it == audio_.end()) {
       auto used = bytes();
       if (used >= limit_) {
@@ -94,6 +145,8 @@ std::shared_ptr<const PreparedPreset> SampleCache::prepare(const Bank& b, const 
         throw std::runtime_error(std::string(e.what()) + ": " + asset.source.id());
       }
       it = audio_.emplace(key, a).first;
+      // Release temporary ZIP storage as soon as its PCM is ready.
+      if (pendingAsset != pending.end()) pendingAsset->second.reader.reset();
     }
     auto a = it->second;
     if (!z.rootExplicit) {

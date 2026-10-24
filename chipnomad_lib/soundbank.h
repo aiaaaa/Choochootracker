@@ -78,6 +78,7 @@ class SampleCache {
   std::shared_ptr<const PreparedPreset> prepare(const Bank&, const std::string& presetId);
   size_t bytes() const;
   size_t limit() const { return limit_; }
+  void setLimit(size_t limit) { limit_ = limit; }
   void trim();  // only unpinned audio; caller runs outside callback
  private:
   size_t limit_;
@@ -85,6 +86,7 @@ class SampleCache {
 };
 Bank parseBank(const Location& source);
 std::shared_ptr<Audio> decodeAudio(const Asset&, size_t maxBytes);
+size_t decodedAudioBytes(const Asset&);
 void parseSoundFont(Bank&, const SourcePtr&);
 void parseSFZ(Bank&, const SourcePtr&);
 void parseEXS(Bank&, const SourcePtr&);

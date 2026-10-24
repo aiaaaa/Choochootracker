@@ -179,6 +179,20 @@ a bounded timeout before reporting success or failure.
 
 SoundFont status and compatibility warnings stay on its Instrument page.
 
+### Collection browsing improvements
+
+SoundFont collections retain physical category folders. Choose **Browse folders**
+to descend and **Parent folder** or OPT to return. ZIP sample dependencies remain
+inside their bank. The green selection stays on the row below all eight track
+previews; a long selected name scrolls after one second and resets when selection
+changes. EDIT+PLAY continues to audition without committing a different preset.
+
+Original MP3 and Ogg Opus samples now decode in the loader alongside Vorbis,
+WAV and AIFF. Memory budgets adapt to platform headroom, with required/loaded/limit
+figures on a cache failure. Large desktop banks still need streaming to run on a
+handheld with less physical RAM than their decoded samples. Source files are
+never converted or reduced by the loader.
+
 
 ### SoundFont evaluation daily follow-up
 

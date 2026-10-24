@@ -14,6 +14,21 @@
 #include "external/miniz/miniz_tinfl.h"
 
 namespace soundbank {
+namespace {
+thread_local LoadProgressCallback progressCallback = nullptr;
+thread_local LoadStage progressStage = LoadStage::reading;
+void reportStage(LoadStage stage) {
+  progressStage = stage;
+  if (progressCallback) progressCallback(stage);
+}
+}
+LoadProgressScope::LoadProgressScope(LoadProgressCallback callback) : previous_(progressCallback) {
+  progressCallback = callback;
+}
+LoadProgressScope::~LoadProgressScope() { progressCallback = previous_; }
+LoadStageScope::LoadStageScope(LoadStage stage) : previous_(progressStage) { reportStage(stage); }
+LoadStageScope::~LoadStageScope() { reportStage(previous_); }
+
 bool isPlatformMetadata(const std::string& path) {
   for (const auto& part : std::filesystem::path(path)) {
     const auto name = part.string();
@@ -233,6 +248,7 @@ SourcePtr Archive::open(const std::string& name, uint64_t maxBytes) const {
                          [&](const ZipEntry& e) { return e.name == name; });
   require(it != entries_.end(), "Missing ZIP sample: " + name);
   const auto& e = *it;
+  LoadStageScope progress(e.method == 8 ? LoadStage::unzipping : LoadStage::checking);
   require(!(e.flags & 1) && (e.method == 0 || e.method == 8), "Encrypted/unsupported ZIP member");
   require(e.size <= maxBytes, "ZIP member exceeds preparation limit");
   auto local = source_->bytes(e.offset, 30);
@@ -341,6 +357,14 @@ Location Location::relative(const std::string& ref) const {
 }
 
 Location Location::relocated() const {
+  SampleResolver resolver;
+  return resolver.resolve(*this);
+}
+Location SampleResolver::resolve(const Location& location) {
+  LoadStageScope progress(LoadStage::locating);
+  const auto& path = location.path;
+  const auto& member = location.member;
+  const auto& root = location.root;
   namespace fs = std::filesystem;
   auto lower = [](std::string s) {
     for (auto& c : s) c = char(std::tolower(uint8_t(c)));
@@ -358,7 +382,7 @@ Location Location::relocated() const {
   if (!member.empty()) {
     const auto& archive = cachedArchive(path);
     for (const auto& e : archive.entries())
-      if (e.name == member) return *this;
+      if (e.name == member) return location;
     std::vector<std::string> exact, basename;
     const auto wanted = lower(member), leaf = lower(fs::path(member).filename().string());
     for (const auto& e : archive.entries()) {
@@ -381,7 +405,7 @@ Location Location::relocated() const {
     return {path, matches.front(), root};
   }
   std::error_code ec;
-  if (fs::is_regular_file(path, ec)) return *this;
+  if (fs::is_regular_file(path, ec)) return location;
   // Repair case component by component before considering filename relocation.
   fs::path candidate;
   for (const auto& part : fs::path(path)) {
@@ -416,20 +440,31 @@ Location Location::relocated() const {
     std::vector<fs::path> matches;
     size_t best = 0;
     ec.clear();
-    for (fs::recursive_directory_iterator
-             i(search, fs::directory_options::skip_permission_denied, ec),
-         end;
-         !ec && i != end; i.increment(ec)) {
-      require(++count <= 200000, "Sample relocation search limit exceeded");
-      if (i.depth() > 32 || i->is_symlink(ec) || isPlatformMetadata(i->path().string())) {
-        i.disable_recursion_pending();
-        continue;
+    const auto directoryKey = search.lexically_normal().string();
+    auto cached = directories_.find(directoryKey);
+    if (cached == directories_.end()) {
+      Directory directory;
+      for (fs::recursive_directory_iterator
+               i(search, fs::directory_options::skip_permission_denied, ec), end;
+           !ec && i != end; i.increment(ec)) {
+        offlineYield();
+        require(++directory.visited <= 200000 - count, "Sample relocation search limit exceeded");
+        if (i.depth() > 32 || i->is_symlink(ec) || isPlatformMetadata(i->path().string())) {
+          i.disable_recursion_pending();
+          continue;
+        }
+        if (i->is_regular_file(ec))
+          directory.files[lower(i->path().filename().string())].push_back(i->path().string());
       }
-      if (i->is_regular_file(ec) && lower(i->path().filename().string()) == leaf) {
-        auto score = suffixScore(i->path().string(), path);
-        if (score > best) { matches.clear(); best = score; }
-        if (score == best) matches.push_back(i->path());
-      }
+      cached = directories_.emplace(directoryKey, std::move(directory)).first;
+    }
+    require(cached->second.visited <= 200000 - count, "Sample relocation search limit exceeded");
+    count += cached->second.visited;
+    const auto found = cached->second.files.find(leaf);
+    if (found != cached->second.files.end()) for (const auto& name : found->second) {
+      auto score = suffixScore(name, path);
+      if (score > best) { matches.clear(); best = score; }
+      if (score == best) matches.push_back(name);
     }
     require(matches.size() < 2, "Ambiguous sample reference: " + path);
     if (matches.size() == 1) return {matches.front().string(), "", root};

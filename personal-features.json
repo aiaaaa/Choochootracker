@@ -1,7 +1,7 @@
 {
   "upstream": "paiheulevrai/Choochootracker",
   "upstream_branch": "main",
-  "upstream_commit": "1cf6141269eec0e0b94624b2ff891d2b9b1a2d97",
+  "upstream_commit": "4b58e4804404ad339b9f9275b233e85f5cfe2105",
   "personal_branch": "personal/r36h",
   "update_policy": "Personal combines upstream main, my additions not yet incorporated upstream, and my experiments. Keep unmerged additions, including pending or declined submissions. Once incorporated upstream, replace my earlier implementation with the maintainer's merged version, including his fixes and changes; remove duplicate code and controls. Test, preserve user data, record commit, and retain rollback before installation.",
   "excluded_features": {
@@ -189,6 +189,18 @@
       "title": "SID sound/program controls and organized USER library",
       "upstream_status": "Merged upstream via PR #81; accepted code retained, private Studio USER sounds remain external",
       "integration_policy": "Preserve source programs and Factory; mark program-owned controls, retain readable imported names and one collection per SID archive. Keep generated Studio USER sounds private and separate from app packages."
+    },
+    {
+      "id": "collection-loading-feedback",
+      "title": "Direct collection navigation, original EXS names and sample loading feedback",
+      "upstream_status": "personal follow-up",
+      "integration_policy": "Keep original audio formats and sample mappings. Reuse per-load sample lookup and bounded ZIP readers; retain CRC validation and decoded-memory limits. Show current loading stage on row three and keep the selected row below previews. Device rollout only; web deployment remains separate."
+    },
+    {
+      "id": "collection-browser-followup",
+      "title": "Collection icons, paging and predictable folder order",
+      "upstream_status": "Personal follow-up; not submitted",
+      "integration_policy": "Full-height collection panel; fixed preset selection row; per-entry folder/sound icons; Right pages without loading; song transport remains available; no bottom hint line. Keep song-stop smoothing separate. Exact private rename receipts preserve saved references."
     }
   ],
   "personal_assets": [
@@ -884,5 +896,53 @@
       "paused Vita"
     ],
     "validation": "Exact source and results in build/deployment receipts"
+  },
+  "daily_20261018": {
+    "baseline": "9fc7822f59f771badc2e68948d86d6c77b4ffbbb",
+    "target": "R36H device personal build",
+    "changes": [
+      "Native FM occupied-channel rendering with unchanged full-chip default and PCM regression coverage",
+      "Nested collection browsing, fixed selection row below preview slots, one-second delayed name scrolling",
+      "Existing Vorbis decoding, SFZ compatibility and adaptive PCM cache budget"
+    ],
+    "library_policy": "Current public and sideloaded collection organization and deletions are authoritative; private data remains outside packages",
+    "validation": "Exact combined source, test results, installed binary and rollback recorded in daily receipts",
+    "web": "No deployment requested",
+    "vita": "Paused",
+    "ableton_link": "Excluded"
+  },
+  "harmonization_20261023": {
+    "upstream_commit": "4b58e4804404ad339b9f9275b233e85f5cfe2105",
+    "targets": [
+      "personal web deployment",
+      "device personal build via mounted card"
+    ],
+    "adopted": [
+      "Accepted FM channel optimizations",
+      "Accepted SoundFont collection browsing",
+      "Accepted stop and mute/solo smoothing",
+      "On-demand synth pools and live engine switching",
+      "32 and 48 kHz audio settings",
+      "Compressor sidechain routing",
+      "Random slice/note FX and Sequence Trance Gate modulation",
+      "Phrase/table copy and Song triple-tap fixes",
+      "PortMaster microphone fallback",
+      "Visual user guide"
+    ],
+    "retained": [
+      "SQ80/ESQ with on-demand voice preparation",
+      "Beads",
+      "Lucky",
+      "Personal appearance and browser storage",
+      "Existing personal instrument and FX identities",
+      "Private library compatibility and adaptive decoded-sample budget"
+    ],
+    "excluded": [
+      "Ableton Link and its dependencies",
+      "MP3 and Opus sample codecs",
+      "Paused Vita"
+    ],
+    "device_installation": "Authorized through mounted card after the soundfont copy; preserve launcher, settings, songs and USER assets",
+    "validation": "Exact source and results recorded in task receipts"
   }
 }

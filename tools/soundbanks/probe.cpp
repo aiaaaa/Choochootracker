@@ -7,6 +7,7 @@
 #include <set>
 
 #include "soundbank_index.h"
+#include "soundbank_memory.h"
 #include "synth/soundbank_voice.h"
 using namespace soundbank;
 static std::string json(const std::string& s) {
@@ -40,8 +41,12 @@ int main(int argc, char** argv) {
     else if (option.rfind("--root=", 0) == 0)
       root = option.substr(7);
     else if (option.rfind("--cache-mb=", 0) == 0) {
+      if (option.substr(11) == "auto") {
+        cacheBytes = automaticCacheBudget(systemMemory());
+        continue;
+      }
       int mb = std::atoi(option.c_str() + 11);
-      if (mb < 8 || mb > 1024) return 2;
+      if (mb < 8 || mb > 8192 || uint64_t(mb)*1048576>SIZE_MAX) return 2;
       cacheBytes = size_t(mb) * 1024 * 1024;
     } else
       return 2;
@@ -80,9 +85,9 @@ int main(int argc, char** argv) {
       for (auto& e : zip.entries()) {
         if (isPlatformMetadata(e.name)) continue;
         auto x = extension(e.name);
-        if (instrumentsOnly && (x == ".wav" || x == ".aif" || x == ".aiff")) continue;
+        if (instrumentsOnly && (x == ".wav" || x == ".aif" || x == ".aiff" || x == ".ogg" || x == ".opus" || x == ".mp3")) continue;
         if (x == ".sf2" || x == ".sf3" || x == ".sfz" || x == ".exs" || x == ".wav" ||
-            x == ".aif" || x == ".aiff")
+            x == ".aif" || x == ".aiff" || x == ".ogg" || x == ".opus" || x == ".mp3")
           sources.push_back({path, e.name});
       }
     } else

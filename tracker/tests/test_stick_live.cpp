@@ -60,6 +60,7 @@ struct StickLiveFixture {
     initDefaultAppSettings();
     mockAudioReconfigureResult = 0;
     mockAudioReconfigureCalls = 0;
+    mockAudioReconfigureRate = 0;
     mockAudioReconfigureSize = 0;
     mockAudioCpuLoad = 0;
     appSettings.keyMapping.keyMotionLive[0] = keyboardLive;
@@ -338,7 +339,7 @@ TEST_CASE_FIXTURE(StickLiveFixture, "absent, older and invalid settings default 
   }
 }
 
-TEST_CASE_FIXTURE(StickLiveFixture, "Settings menus and audio buffer control align") {
+TEST_CASE_FIXTURE(StickLiveFixture, "Settings menus and audio controls align") {
     REQUIRE(screenSettings.draw != nullptr);
     REQUIRE(screenSettings.setup != nullptr);
     REQUIRE(screenControlsSettings.draw != nullptr);
@@ -389,34 +390,45 @@ TEST_CASE_FIXTURE(StickLiveFixture, "Settings menus and audio buffer control ali
   mockAudioCpuLoad = 37;
   screenAudioSettings.fullRedraw();
   screen = mockScreenData;
-  CHECK(screen->rows == 3);
+  CHECK(screen->rows == 4);
   screen->drawField(0, 0, CellState::focus);
-  CHECK(std::string(mockGfxCells[2], 11) == "Buffer size");
-  CHECK(std::string(mockGfxCells[2] + 23, 3) == "512");
+  CHECK(std::string(mockGfxCells[2], 11) == "Sample rate");
+  CHECK(std::string(mockGfxCells[2] + 23, 6) == "48 kHz");
+  REQUIRE(screen->onEdit(0, 0, CellEditAction::decrease) == 1);
+  CHECK(mockAudioReconfigureRate == 32000);
+  CHECK(appSettings.audioSampleRate == 32000);
+  REQUIRE(screen->onEdit(0, 0, CellEditAction::clear) == 1);
+  CHECK(appSettings.audioSampleRate == 48000);
+  mockAudioReconfigureResult = 1;
+  REQUIRE(screen->onEdit(0, 0, CellEditAction::decrease) == 1);
+  CHECK(appSettings.audioSampleRate == 48000);
+  mockAudioReconfigureResult = 0;
+  screen->drawField(0, 1, CellState::focus);
+  CHECK(std::string(mockGfxCells[3], 11) == "Buffer size");
+  CHECK(std::string(mockGfxCells[3] + 23, 3) == "512");
   appSettings.audioBufferSize = 64;
-  screen->drawField(0, 0, CellState::focus);
-  CHECK(std::string(mockGfxCells[2] + 23, 4) == "64  ");
+  screen->drawField(0, 1, CellState::focus);
+  CHECK(std::string(mockGfxCells[3] + 23, 4) == "64  ");
   appSettings.audioBufferSize = 256;
-  screen->drawField(0, 1, CellState::normal);
-  CHECK(std::string(mockGfxCells[3], 8) == "CPU load");
-  CHECK(std::string(mockGfxCells[3] + 23, 4) == "037%");
-  CHECK_FALSE(screen->isCellValid(0, 1));
-  screen->drawField(0, 2, CellState::focus);
-  CHECK(std::string(mockGfxCells[4], 11) == "Audio Input");
-  CHECK(std::string(mockGfxCells[4] + 23, 3) == "OFF");
-  CHECK(screen->isCellValid(0, 2));
-  REQUIRE(screen->onEdit(0, 2, CellEditAction::tap) == 1);
-  REQUIRE(screen->onEdit(0, 0, CellEditAction::increase) == 1);
-  CHECK(mockAudioReconfigureCalls == 1);
+  screen->drawField(0, 2, CellState::normal);
+  CHECK(std::string(mockGfxCells[4], 8) == "CPU load");
+  CHECK(std::string(mockGfxCells[4] + 23, 4) == "037%");
+  CHECK_FALSE(screen->isCellValid(0, 2));
+  screen->drawField(0, 3, CellState::focus);
+  CHECK(std::string(mockGfxCells[5], 11) == "Audio Input");
+  CHECK(std::string(mockGfxCells[5] + 23, 3) == "OFF");
+  CHECK(screen->isCellValid(0, 3));
+  REQUIRE(screen->onEdit(0, 3, CellEditAction::tap) == 1);
+  REQUIRE(screen->onEdit(0, 1, CellEditAction::increase) == 1);
   CHECK(mockAudioReconfigureSize == 512);
   CHECK(appSettings.audioBufferSize == 512);
-  REQUIRE(screen->onEdit(0, 0, CellEditAction::clear) == 1);
+  REQUIRE(screen->onEdit(0, 1, CellEditAction::clear) == 1);
   CHECK(appSettings.audioBufferSize == 32);
   const int callsAtMinimum = mockAudioReconfigureCalls;
-  REQUIRE(screen->onEdit(0, 0, CellEditAction::decrease) == 1);
+  REQUIRE(screen->onEdit(0, 1, CellEditAction::decrease) == 1);
   CHECK(mockAudioReconfigureCalls == callsAtMinimum);
   mockAudioReconfigureResult = 1;
-  REQUIRE(screen->onEdit(0, 0, CellEditAction::increase) == 1);
+  REQUIRE(screen->onEdit(0, 1, CellEditAction::increase) == 1);
   CHECK(mockAudioReconfigureSize == 64);
   CHECK(appSettings.audioBufferSize == 32);
 }
@@ -439,17 +451,29 @@ TEST_CASE_FIXTURE(StickLiveFixture, "Audio buffer menu stops at the standard max
   screenAudioSettings.fullRedraw();
   REQUIRE(mockScreenData != nullptr);
   auto* screen = mockScreenData;
-  screen->drawCursor(0, 0);
+  screen->drawCursor(0, 1);
   CHECK(mockCursorWidth == 4);
-  REQUIRE(screen->onEdit(0, 0, CellEditAction::increase) == 1);
+  REQUIRE(screen->onEdit(0, 1, CellEditAction::increase) == 1);
   CHECK(appSettings.audioBufferSize == 1024);
   CHECK(mockAudioReconfigureCalls == 0);
-  REQUIRE(screen->onEdit(0, 0, CellEditAction::decrease) == 1);
+  REQUIRE(screen->onEdit(0, 1, CellEditAction::decrease) == 1);
   CHECK(appSettings.audioBufferSize == 512);
   CHECK(mockAudioReconfigureSize == 512);
   appSettings.audioBufferSize = 1024;
   REQUIRE(settingsLoad() == 0);
   CHECK(appSettings.audioBufferSize == 512);
+}
+
+TEST_CASE_FIXTURE(StickLiveFixture, "audio sample rate settings accept only 32 or 48 kHz") {
+  struct StoredSetting { const char* text; int expected; };
+  for (const auto& setting : {StoredSetting{"audioSampleRate: 32000\n", 32000},
+                              StoredSetting{"audioSampleRate: 48000\n", 48000},
+                              StoredSetting{"audioSampleRate: 96000\n", 48000},
+                              StoredSetting{"audioSampleRate: 0\n", 48000}}) {
+    std::ofstream(realSettingsPath) << setting.text;
+    REQUIRE(settingsLoad() == 0);
+    CHECK(appSettings.audioSampleRate == setting.expected);
+  }
 }
 }
 

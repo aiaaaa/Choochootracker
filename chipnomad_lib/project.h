@@ -237,6 +237,11 @@ enum FX : FXId {
   // MONK native controls, appended without changing existing song IDs.
   fxMUV, fxMDT, fxMVS, fxMDM, fxMDR, fxMLV,
 
+  // Random slice / random note lane FX, appended without changing
+  // existing song IDs.
+  fxRNS, // Sample FX: random slice selection
+  fxRNN, // Sequencer FX: random note
+
   // Total count - must be last
   fxTotalCount
 };

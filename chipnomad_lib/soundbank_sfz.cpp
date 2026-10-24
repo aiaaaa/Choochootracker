@@ -225,6 +225,15 @@ void parseSFZ(Bank& b, const SourcePtr&) {
         z.envelope.sustain = std::clamp(number(v) / 100.f, 0.f, 1.f);
       else if (k == "ampeg_release")
         z.envelope.release = std::clamp(number(v), 0.f, 100.f);
+      else if (k == "ampeg_dynamic") {
+        require(v == "0" || v == "1", "Invalid SFZ ampeg_dynamic");
+        // This controls recalculation after envelope-modulating MIDI CC input.
+        // Static envelopes (including VSCO) have identical behavior either way.
+        // Keep explicit warnings for actual CC modulation until it is supported.
+        if (v == "1") for (const auto& setting : region)
+          if (setting.first.rfind("ampeg_", 0) == 0 && setting.first.find("cc") != std::string::npos)
+            unsupported.insert("dynamic MIDI CC envelopes");
+      }
       else if (k == "cutoff")
         z.cutoff = std::clamp(number(v), 20.f, 20000.f);
       else if (k == "resonance")

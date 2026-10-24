@@ -16,6 +16,8 @@ typedef void AudioCaptureCallback(const int16_t* buffer, int stereoSamples, int 
 
 int audioSetup(AudioCallback* audioCallback, int sampleRate, int bufferSize);
 void audioPause(int isPaused);
+void audioLock(void);
+void audioUnlock(void);
 void audioCleanup(void);
 
 // Audio input (capture) API. Mirrors the output API above. Availability

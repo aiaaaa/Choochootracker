@@ -23,7 +23,31 @@ static std::string dependencyStamp(const std::vector<std::string>& dependencies)
   return result;
 }
 
-Location BankIndex::resolve(const std::string& id) const {
+std::string BankIndex::canonicalId(const std::string& id) const {
+  const auto split = id.find("::");
+  const auto original = normalizedPath(id.substr(0, split));
+  if (fs::exists(fs::path(root_) / original)) return id;
+  // Optional rename receipt keeps saved projects working after user library
+  // housekeeping. Exact file aliases only; never infer names or duplicate banks.
+  const auto aliases = fs::path(root_) / ".choochoo-renamed-banks";
+  std::error_code ec;
+  const auto size = fs::file_size(aliases, ec);
+  if (ec || size > 4 * 1024 * 1024) return id;
+  std::ifstream input(aliases);
+  std::string oldName, newName;
+  while (input >> std::quoted(oldName) >> std::quoted(newName)) {
+    if (oldName != original) continue;
+    newName = normalizedPath(newName);
+    require(fs::weakly_canonical(fs::path(root_) / newName).lexically_relative(
+        fs::weakly_canonical(root_)).generic_string().rfind("../", 0) != 0,
+        "Renamed bank escapes SoundBanks root");
+    return newName + (split == std::string::npos ? "" : id.substr(split));
+  }
+  return id;
+}
+
+Location BankIndex::resolve(const std::string& requested) const {
+  const auto id = canonicalId(requested);
   auto split = id.find("::");
   std::string path = normalizedPath(id.substr(0, split));
   Location l{(fs::path(root_) / path).string(),
@@ -38,7 +62,7 @@ Location BankIndex::resolve(const std::string& id) const {
 }
 std::vector<BankEntry> BankIndex::scan(bool force) const {
   std::map<std::string, BankEntry> cached;
-  fs::path cache = fs::path(root_) / ".choochoo-index-v3";
+  fs::path cache = fs::path(root_) / ".choochoo-index-v4";
   if (!force && fs::exists(cache) && fs::file_size(cache) <= 64 * 1024 * 1024) {
     std::ifstream in(cache);
     std::string tag;
@@ -80,7 +104,7 @@ std::vector<BankEntry> BankIndex::scan(bool force) const {
   require(!ec, "Cannot create SoundBanks directory");
   auto supported = [](const std::string& e) {
     return e == ".sf2" || e == ".sf3" || e == ".sfz" || e == ".exs" || e == ".wav" || e == ".aif" ||
-           e == ".aiff";
+           e == ".aiff" || e == ".ogg";
   };
   auto add = [&](const std::string& id, const std::string& signature) {
     if (result.size() >= 200000) throw std::runtime_error("SoundBanks index limit exceeded");

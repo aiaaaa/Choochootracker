@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <memory>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -9,6 +10,25 @@ namespace soundbank {
 // Cooperative browser preparation; native builds do their work on a worker.
 // Never call this, or any Source API, from a realtime callback.
 void offlineYield();
+enum class LoadStage { reading, locating, unzipping, checking, loading };
+using LoadProgressCallback = void (*)(LoadStage);
+// Worker-local observers; never used by the audio callback.
+class LoadProgressScope {
+ public:
+  explicit LoadProgressScope(LoadProgressCallback callback);
+  ~LoadProgressScope();
+  LoadProgressScope(const LoadProgressScope&) = delete;
+ private:
+  LoadProgressCallback previous_;
+};
+class LoadStageScope {
+ public:
+  explicit LoadStageScope(LoadStage stage);
+  ~LoadStageScope();
+  LoadStageScope(const LoadStageScope&) = delete;
+ private:
+  LoadStage previous_;
+};
 // All APIs in this file are offline only. Source is random access; large audio
 // payloads never need to be read merely to enumerate a bank.
 class Source {
@@ -44,6 +64,17 @@ struct Location {
   SourcePtr open(uint64_t maxBytes = 2ull * 1024 * 1024 * 1024) const;
   Location relative(const std::string& reference) const;
   Location relocated() const;  // metadata-only, refuses ambiguous filename matches
+};
+// One preparation owns this index. A later load sees additions/renames afresh.
+class SampleResolver {
+ public:
+  Location resolve(const Location& location);
+ private:
+  struct Directory {
+    size_t visited = 0;
+    std::map<std::string, std::vector<std::string>> files;
+  };
+  std::map<std::string, Directory> directories_;
 };
 std::string normalizedPath(std::string path);  // rejects absolute/escaping paths
 std::string extension(const std::string& path);

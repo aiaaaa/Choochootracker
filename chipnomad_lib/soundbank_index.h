@@ -12,6 +12,7 @@ class BankIndex {
   explicit BankIndex(std::string root) : root_(std::move(root)) {}
   std::vector<BankEntry> scan(bool force = false) const;
   Location resolve(const std::string& id) const;
+  std::string canonicalId(const std::string& id) const;
   const std::string& root() const { return root_; }
 
  private:

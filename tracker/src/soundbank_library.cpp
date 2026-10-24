@@ -7,23 +7,28 @@
 #include "soundbank_browser.h"
 
 #include <chrono>
+#include <atomic>
 #include <cstdlib>
 #include <cstring>
 #include <future>
 #include <map>
 #include <set>
+#include <limits>
 
 #include "app.h"
 #include "audio_manager.h"
 #include "corelib_file.h"
 #include "screens/screens.h"
 #include "soundbank_runtime.h"
+#include "soundbank_memory.h"
 namespace {
 struct Result {
   std::vector<soundbank::BankEntry> banks;
   std::shared_ptr<const soundbank::PreparedPreset> preset;
   std::string error;
+  std::string resolvedBank;
 };
+std::vector<std::pair<int,int>> presetOrder;
 std::vector<soundbank::BankEntry> entries;
 std::future<Result> job;
 std::string status, bankId, presetId, expectedBank, expectedPreset;
@@ -31,17 +36,19 @@ int target = -1;
 int preparationFrames = 0;
 bool restoringProject = false;
 bool scanned = false;
+std::atomic<soundbank::LoadStage> loadingStage{soundbank::LoadStage::reading};
 int pendingInstrument = -1;
 std::string pendingBank, pendingPreset, pendingExpectedBank, pendingExpectedPreset;
 uint32_t pendingExpectedHandle=0;
 bool refreshPending = false;
 uint32_t expectedHandle = 0;
-size_t cacheLimit() {
+size_t cacheLimit(size_t loaded = 0) {
   const char* value = getenv("CHOOCHOO_SOUNDBANK_CACHE_MB");
-  if (!value) return 64 * 1024 * 1024;
+  if (!value) return soundbank::automaticCacheBudget(soundbank::systemMemory(), loaded);
   char* end = nullptr;
   long n = strtol(value, &end, 10);
-  return n >= 8 && n <= 1024 && end && !*end ? size_t(n) * 1024 * 1024 : 64 * 1024 * 1024;
+  return n >= 8 && n <= 8192 && uint64_t(n) <= std::numeric_limits<size_t>::max()/1048576 && end && !*end ? size_t(n) * 1024 * 1024 :
+    soundbank::automaticCacheBudget(soundbank::systemMemory(), loaded);
 }
 soundbank::SampleCache cache(cacheLimit());
 std::map<std::string, std::string> failed;
@@ -74,6 +81,17 @@ bool soundbankBusy() { return job.valid(); }
 bool soundbankScanned() { return scanned; }
 bool soundbankScanning() { return job.valid() && target < 0; }
 const std::string& soundbankStatus() { return status; }
+std::string soundbankLoadingStatus() {
+  if (!soundbankBusy()) return {};
+  if (soundbankScanning()) return "Indexing presets...";
+  switch (loadingStage.load(std::memory_order_relaxed)) {
+    case soundbank::LoadStage::unzipping: return "Unzipping...";
+    case soundbank::LoadStage::locating: return "Finding samples...";
+    case soundbank::LoadStage::checking: return "Checking samples...";
+    case soundbank::LoadStage::loading: return "Loading samples...";
+    default: return "Reading preset...";
+  }
+}
 std::string soundbankPresetName(const std::string& bank, const std::string& preset) {
   for (const auto& entry : entries) if (entry.id == bank)
     for (const auto& item : entry.presets) if (item.first == preset)
@@ -92,9 +110,13 @@ std::string soundbankInstrumentError(int instrument) {
 }
 std::string soundbankInstrumentStatus(int instrument) {
   if (!chipnomadState || instrument < 0 || instrument >= PROJECT_MAX_INSTRUMENTS) return {};
-  if (job.valid() && target == instrument) return "Preparing preset...";
+  if (job.valid() && target == instrument) return soundbankLoadingStatus();
   const auto& s = chipnomadState->project.instruments[instrument].chip.soundfont;
-  if (soundbank::prepared(s.prepared)) return "Preset ready";
+  if (const auto* preset = soundbank::prepared(s.prepared)) {
+    char message[64];
+    snprintf(message,sizeof(message),"Preset ready: %.1f MiB PCM",double(preset->bytes)/1048576);
+    return message;
+  }
   if (failed.count(std::string(s.bank) + "|" + s.preset)) return {};
   return s.bank[0] ? "Preset not ready" : "Select a preset";
 }
@@ -170,12 +192,19 @@ void soundbankLoad(int instrument, const std::string& bank, const std::string& p
   expectedPreset = i.chip.soundfont.preset;
   expectedHandle = i.chip.soundfont.prepared;
   status = "Preparing preset...";
+  loadingStage.store(soundbank::LoadStage::reading, std::memory_order_relaxed);
   auto root = soundbankRoot();
   preparationFrames = 2;
   job = std::async(launchPolicy, [root, bank, preset]() {
     Result r;
+    soundbank::LoadProgressScope progress([](soundbank::LoadStage stage) {
+      loadingStage.store(stage, std::memory_order_relaxed);
+    });
     try {
-      auto b = soundbank::parseBank(soundbank::BankIndex(root).resolve(bank));
+      soundbank::BankIndex index(root);
+      r.resolvedBank = index.canonicalId(bank);
+      auto b = soundbank::parseBank(index.resolve(r.resolvedBank));
+      cache.setLimit(cacheLimit(cache.bytes()));
       r.preset = cache.prepare(b, preset);
     } catch (const std::exception& e) {
       r.error = e.what();
@@ -188,7 +217,7 @@ void soundbankCycle(int instrument, int direction) {
   const auto& i = chipnomadState->project.instruments[instrument];
   if (i.type != InstrumentType::SoundFont) return;
   if (!scanned) { if (!soundbankBusy()) soundbankRescan(); return; }
-  auto selected = soundbank::cyclePreset(entries,
+  auto selected = soundbank::cyclePreset(entries, presetOrder,
     pendingInstrument == instrument ? pendingBank : (soundbankBusy() && target == instrument ? bankId : i.chip.soundfont.bank),
     pendingInstrument == instrument ? pendingPreset : (soundbankBusy() && target == instrument ? presetId : i.chip.soundfont.preset), direction);
   if (selected.first >= 0)
@@ -232,6 +261,7 @@ void soundbankPoll() {
     if (target < 0) {
       if (!r.error.empty()) { status = scanError = r.error; return; }
       entries = std::move(r.banks);
+      presetOrder = soundbank::presetSequence(entries);
       scanned = true;
       status = std::to_string(entries.size()) + " USER banks";
       return;
@@ -245,6 +275,8 @@ void soundbankPoll() {
     }
     if (!r.error.empty()) { failPreset(r.error); return; }
     try {
+      soundbank::require(r.resolvedBank.size() < sizeof(i.chip.soundfont.bank), "Renamed bank path too long");
+      bankId = r.resolvedBank;
       audioManager.pause();
       uint32_t handle = soundbank::publish(r.preset);
       strcpy(i.chip.soundfont.bank, bankId.c_str());

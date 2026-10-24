@@ -600,7 +600,8 @@ int settingsLoad(void) {
   }
 
   fclose(file);
-  appSettings.audioSampleRate = kAudioSampleRate;
+  if (appSettings.audioSampleRate != 32000 && appSettings.audioSampleRate != 48000)
+    appSettings.audioSampleRate = kAudioSampleRate;
   // 4,906 was the legacy platform default; other values are rounded to the
   // nearest choice exposed by the audio settings screen.
   appSettings.audioBufferSize = appSettings.audioBufferSize == 4906

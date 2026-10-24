@@ -21,6 +21,7 @@ struct AudioManager {
   void (*resume)(void);
   void (*replaceProject)(Project* replacement);
   void (*reinitializeChips)(void);
+  void (*ensureInstrumentVoices)(InstrumentType type);
   int (*mutateProject)(ProjectMutation* mutation, void* userdata);
   void (*stop)();
   void (*toggleTrackMute)(int trackIdx);

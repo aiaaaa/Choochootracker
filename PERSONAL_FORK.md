@@ -1,5 +1,54 @@
 # My R36H build
 
+## October 23 upstream update
+
+The shared personal source incorporates upstream main through `4b58e480`.
+Accepted FM optimizations, SoundFont browsing, and stop/mute smoothing use the
+upstream implementations. This update also adopts on-demand synth allocation,
+live engine switching, 32/48 kHz audio, compressor sidechain routing, random
+slice/note FX, Sequence Trance Gate modulation, copy/paste and Song controls
+fixes, the PortMaster microphone fallback, and the visual user guide.
+
+SQ80 follows the new voice allocation and live-switching paths. Beads, Lucky,
+personal appearance, browser storage, existing personal song identities, and
+private-library compatibility remain. New RNS/RNN commands follow the existing
+personal commands; project FX continue to serialize by name. Ableton Link stays
+excluded. Private instruments and songs remain outside public packages.
+
+Web publication and an update through the mounted handheld card are selected.
+Installation preserves the existing launcher, settings, songs and USER assets,
+with a focused rollback for replaced app files. Vita remains paused. Validation
+and deployment receipts record the tested source and results.
+
+## October 18 collection loading follow-up
+
+Collection folders open directly with Right or EDIT/A. Folder/file header icons
+replace the extra Browse folders step, and the third row reports actual loading
+phases, including Unzipping. Selection stays below the previews and keeps its
+idle marquee. Empty/null EXS labels use instrument filenames.
+
+Preparation reuses resolved assets and collection directory indexes within one
+load. Bounded temporary ZIP readers avoid repeated extraction between size
+checks and decoding; CRC checks and PCM limits remain intact. No source audio
+is converted. Device validation and rollback receipts accompany installation;
+this follow-up does not deploy the web app or change charging behavior.
+
+## October 18 device personal daily
+
+This R36H daily combines the native FM channel-mask optimization with collection
+browsing and soundbank compatibility on the October 17 installed source. The
+selected soundbank row stays below the eight preview slots and long selected
+names scroll after one second. Nested collection folders, existing Vorbis
+decoding, compatible SFZ envelopes and an adaptive decoded-sample budget are
+included. Original library audio is preserved without conversion.
+
+The current public and sideloaded library layouts are authoritative, including
+intentional deletions. Private library synchronization remains separate from
+application packaging. The existing launcher, songs, settings and unrelated
+USER banks are retained. Exact validation and rollback details are in daily
+receipts. Web deployment and Vita are outside this update. Ableton Link remains
+excluded.
+
 ## October 17 main harmonization
 
 Both personal targets incorporate upstream main through `f1f9f197`, using the
@@ -885,3 +934,22 @@ Handheld evaluation follow-up: the FX group list starts one row below the help
 block, and all groups use up to eight columns except the five-command Modulation
 rows. All sixteen MONK controls now appear in its synth group; the shared Trigger
 group keeps TDC/TCL without duplicate envelope entries.
+
+### Collection browser follow-up (2026-10-19)
+
+Collections use the full left panel height, starting at the top; presets retain
+the selected row below the eight previews. Folder and three-line sound icons
+appear on entries as well as headers. Right pages through presets without loading;
+EDIT selects, and PLAY starts/stops the song. The bottom control legend is removed
+at the owner's request. Instrument-page cycling follows the same nested folder
+order and caches that order after a scan. Exact rename receipts keep saved bank
+references working after private library cleanup. No private assets are bundled.
+
+Song-stop smoothing is maintained as a separate commit and local branch for a
+future contribution; see `docs/playback-stop-smoothing.md`.
+
+## October 19 codec removal
+
+MP3 and Opus implementations and dependencies are removed. Existing Vorbis,
+WAV/AIFF and SoundFont playback remain. Unsupported private samples are reviewed
+separately in OffFormat; private libraries are not part of this source tree.

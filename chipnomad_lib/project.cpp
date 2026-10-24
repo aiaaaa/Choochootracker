@@ -17,7 +17,7 @@ FXName fxNamesSequencer[] = {
   {fxRET, "RET"}, {fxDEL, "DEL"}, {fxOFF, "OFF"}, {fxKIL, "KIL"}, {fxTIC, "TIC"},
   {fxTBL, "TBL"}, {fxTBX, "TBX"}, {fxTHO, "THO"}, {fxTXH, "TXH"}, {fxGRV, "GRV"},
   {fxGGR, "GGR"}, {fxHOP, "HOP"}, {fxSNG, "SNG"}, {fxPRO, "PRO"},
-  {fxMOD, "MOD"}, {fxSPD, "SPD"}, {fxSLE, "SLE"}, {fxPAN, "PAN"}
+  {fxMOD, "MOD"}, {fxRNN, "RNN"}, {fxSPD, "SPD"}, {fxSLE, "SLE"}, {fxPAN, "PAN"}
 };
 int fxSequencerCount = sizeof(fxNamesSequencer) / sizeof(FXName);
 

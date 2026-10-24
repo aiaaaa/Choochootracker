@@ -59,6 +59,7 @@ linux-package: linux
 	@echo "Creating Linux package..."
 	@mkdir -p $(BUILD)/$(APPNAME)-Linux
 	@cp $(BUILD)/choochootracker $(BUILD)/$(APPNAME)-Linux/
+	@strip --strip-unneeded $(BUILD)/$(APPNAME)-Linux/choochootracker
 	@cp -r packaging/common/* $(BUILD)/$(APPNAME)-Linux/
 	@cp $(PACKAGE_README) $(BUILD)/$(APPNAME)-Linux/README.txt
 	@cp ../docs/USER_MANUAL.md $(BUILD)/$(APPNAME)-Linux/
@@ -85,12 +86,14 @@ appimage: linux
 	@mkdir -p $(BUILD)/$(APPNAME).AppDir/usr/bin
 	@mkdir -p $(BUILD)/$(APPNAME).AppDir/usr/lib
 	@cp $(BUILD)/choochootracker $(BUILD)/$(APPNAME).AppDir/usr/bin/
+	@strip --strip-unneeded $(BUILD)/$(APPNAME).AppDir/usr/bin/choochootracker
 	@for lib in $(APPIMAGE_LIBS); do \
 		if [ ! -f "$$lib" ]; then echo "Error: $$lib not found - install libsdl2-2.0-0" && exit 1; fi; \
 		target="$$(basename "$$(readlink -f "$$lib")")"; \
 		cp -L "$$(readlink -f "$$lib")" $(BUILD)/$(APPNAME).AppDir/usr/lib/ || exit 1; \
 		ln -sf "$$target" "$(BUILD)/$(APPNAME).AppDir/usr/lib/$$(basename "$$lib")"; \
 	done
+	@find $(BUILD)/$(APPNAME).AppDir/usr/lib -type f -exec strip --strip-unneeded {} +
 	@mkdir -p $(BUILD)/$(APPNAME).AppDir/usr/share/choochootracker/common
 	@cp -r packaging/common/* $(BUILD)/$(APPNAME).AppDir/usr/share/choochootracker/common/
 	@cp packaging/linux-appimage/AppRun $(BUILD)/$(APPNAME).AppDir/

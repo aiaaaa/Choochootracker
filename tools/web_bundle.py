@@ -26,6 +26,12 @@ def git(*args):
     return subprocess.check_output(['git', *args], cwd=ROOT).decode().strip()
 
 
+GUIDE_FILES = {'user-guide/' + name.removeprefix('docs/user-guide/'): ROOT / name
+              for name in git('ls-files', '--', 'docs/user-guide/index.html',
+                              'docs/user-guide/assets').splitlines()}
+REQUIRED |= GUIDE_FILES.keys()
+
+
 def check(condition, message):
     if not condition:
         raise ValueError(message)
@@ -49,6 +55,9 @@ def inspect_bundle(directory):
     for name in WRAPPER_FILES:
         check((directory / name).read_bytes() == (ROOT / 'web' / name).read_bytes(),
               f'Stale browser wrapper: {name}')
+    for name, source in GUIDE_FILES.items():
+        check(not source.is_symlink() and (directory / name).read_bytes() == source.read_bytes(),
+              f'Stale visual guide: {name}')
     check((directory / 'lucky-license.txt').read_bytes() ==
           (ROOT / 'tracker/src/experimental/mod_lucky/notices/LICENSE.libxmp.txt').read_bytes(),
           'Missing or stale libxmp license')
@@ -104,7 +113,10 @@ def validate(directory, require_clean=False):
         check(commit == os.environ['GITHUB_SHA'], 'Checkout differs from workflow source SHA')
     if require_clean:
         check(not dirty and not info['dirty'], 'Deployment requires a clean committed source tree')
-    check({p.name for p in directory.iterdir()} == REQUIRED | {'build-info.json'},
+    check(not any(p.is_symlink() for p in directory.rglob('*')),
+          'Symlink in bundle; rebuild from clean output')
+    check({p.relative_to(directory).as_posix() for p in directory.rglob('*') if p.is_file()}
+          == REQUIRED | {'build-info.json'},
           'Unexpected files in bundle; rebuild from clean output')
     check(info['files'] == inspect_bundle(directory), 'Bundle hashes do not match build-info.json')
     check(info['server_files'] == {'api/lucky.js': sha256((ROOT / 'api/lucky.js').read_bytes())},
@@ -114,7 +126,8 @@ def validate(directory, require_clean=False):
 
 def build():
     # Never package private ignored USER collections from a developer's checkout.
-    extras = git('ls-files', '--others', '--', 'tracker/packaging/common', 'tracker/packaging/web')
+    extras = git('ls-files', '--others', '--', 'tracker/packaging/common', 'tracker/packaging/web',
+                 'docs/user-guide')
     check(not extras, 'Untracked/private packaging files; use a clean checkout for web builds')
     commit, dirty = source_state()
     check(os.environ.get('GITHUB_ACTIONS') != 'true' or not dirty,
@@ -129,7 +142,7 @@ def build():
     try:
         subprocess.run([
             'make', '-C', 'tracker', '-j2', '-f', 'Makefile.web', 'web-deploy',
-            f'EMXX={compiler}', 'COMMON_CFLAGS=-std=c++17 -Wall -g -Os -DTEST',
+            f'EMXX={compiler}', 'COMMON_CFLAGS=-std=c++17 -Wall -Os -DTEST',
         ], cwd=ROOT, check=True)
         files = inspect_bundle(DIST)
         info = {

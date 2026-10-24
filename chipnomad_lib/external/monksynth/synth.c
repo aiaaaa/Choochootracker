@@ -57,8 +57,10 @@ MonkSynthEngine *monk_synth_new(float sample_rate) {
     s->current_out_gain = -1.0f; /* unset: first process() call snaps to target */
     s->gain_coeff = gain_smoothing_coeff(sample_rate);
 
+    monk_voice_init(&s->voices[0], sample_rate);
     for (int i = 0; i < MAX_UNISON; i++) {
-        monk_voice_init(&s->voices[i], sample_rate);
+        /* All lookup tables are identical at this rate; build them once. */
+        if (i) memcpy(&s->voices[i], &s->voices[0], sizeof(MonkVoice));
         /* Stagger vibrato phase and RNG seed so unison voices don't move
          * in lockstep — each one sounds like an independent singer. */
         s->voices[i].vibrato_phase = (float)(MONK_SINE_TBL_SIZE * i) / MAX_UNISON;

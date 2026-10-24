@@ -9,7 +9,7 @@
 #include "external/stb/stb_vorbis.c"
 
 namespace soundbank {
-std::shared_ptr<Audio> decodeAudio(const Asset& asset, size_t maxBytes) {
+static std::shared_ptr<Audio> readAudio(const Asset& asset, size_t maxBytes, size_t* measured) {
   auto s = asset.reader ? asset.reader : asset.source.open();
   auto a = std::make_shared<Audio>();
   a->sampleRate = asset.sampleRate;
@@ -23,7 +23,7 @@ std::shared_ptr<Audio> decodeAudio(const Asset& asset, size_t maxBytes) {
     compressed.length = s->size();
     compressed.vorbis = true;
     compressed.reader = s;
-    return decodeAudio(compressed, maxBytes);
+    return readAudio(compressed, maxBytes, measured);
   }
   if (asset.length) {
     require(asset.offset <= s->size() && asset.length <= s->size() - asset.offset,
@@ -46,6 +46,7 @@ std::shared_ptr<Audio> decodeAudio(const Asset& asset, size_t maxBytes) {
               "Vorbis decoded sample exceeds cache limit");
       a->channels = info.channels;
       a->sampleRate = info.sample_rate;
+      if (measured) { *measured = size_t(frames) * a->channels * 2; return {}; }
       a->pcm.resize(size_t(frames) * a->channels);
       size_t done = 0;
       while (done < frames) {
@@ -59,6 +60,7 @@ std::shared_ptr<Audio> decodeAudio(const Asset& asset, size_t maxBytes) {
     } else {
       require(asset.length % 2 == 0 && asset.length <= maxBytes,
               "SoundFont sample exceeds cache limit");
+      if (measured) { *measured = size_t(asset.length); return {}; }
       auto data = s->bytes(asset.offset, size_t(asset.length), maxBytes);
       a->pcm.resize(data.size() / 2);
       for (size_t i = 0; i < a->pcm.size(); ++i) a->pcm[i] = int16_t(read16(data.data() + i * 2));
@@ -201,11 +203,21 @@ std::shared_ptr<Audio> decodeAudio(const Asset& asset, size_t maxBytes) {
     --dataSize;
     a->warnings.push_back("WAV data size included alignment padding");
   }
+  // Logic AIFF exports can likewise count their zero alignment byte in SSND.
+  // COMM provides an independent exact frame count, so accept only that one
+  // extra byte and never truncate a partial frame or unexplained audio data.
+  if (aiff && (frameBytes & 1) && !(dataSize & 1) &&
+      uint64_t(declaredFrames) * frameBytes + 1 == dataSize &&
+      s->bytes(dataOffset + dataSize - 1, 1)[0] == 0) {
+    --dataSize;
+    a->warnings.push_back("AIFF SSND size included alignment padding");
+  }
   uint64_t frames = dataSize / (channels * width);
   require(dataSize % (channels * width) == 0, "Audio asset contains a partial PCM frame");
   require(frames > 0 && frames <= UINT32_MAX, "Invalid audio frame count");
   require(frames * channels * 2 <= maxBytes, "Decoded sample exceeds remaining PCM cache budget");
   if (aiff) require(frames == declaredFrames, "AIFF frame count mismatch");
+  if (measured) { *measured = size_t(frames) * channels * 2; return {}; }
   a->channels = uint8_t(channels);
   a->pcm.resize(size_t(frames) * channels);
   std::vector<uint8_t> block(16384 * width);
@@ -251,5 +263,13 @@ std::shared_ptr<Audio> decodeAudio(const Asset& asset, size_t maxBytes) {
   require(a->loopStart <= a->loopEnd && a->loopEnd <= frames,
           "Audio loop outside sample range");
   return a;
+}
+std::shared_ptr<Audio> decodeAudio(const Asset& asset, size_t maxBytes) {
+  return readAudio(asset, maxBytes, nullptr);
+}
+size_t decodedAudioBytes(const Asset& asset) {
+  size_t bytes = 0;
+  readAudio(asset, std::numeric_limits<size_t>::max(), &bytes);
+  return bytes;
 }
 }  // namespace soundbank
