@@ -11,6 +11,7 @@
 #include "audio_input_manager.h"
 #include "corelib/corelib_audio.h"
 #include "app.h"
+#include <cmath>
 #include "screens/screen_instrument.h"
 #include "screens.h"
 #include "screens/selection_popup.h"
@@ -91,7 +92,7 @@ static void resetMidiClockPhaseFollowing(void) {
 }
 
 static double wrapMidiClockPhaseTicks(double ticks) {
-  ticks = fmod(ticks, 96.0);
+  ticks = std::fmod(ticks, 96.0);
   if (ticks > 48.0) ticks -= 96.0;
   if (ticks < -48.0) ticks += 96.0;
   return ticks;
